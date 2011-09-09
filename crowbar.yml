@@ -23,6 +23,7 @@ barclamp:
 
 crowbar:
   layout: 1
+  order: 0
 
 locale_additions:
   en:
@@ -30,4 +31,7 @@ locale_additions:
       crowbar_edit_attributes: 
         attributes: Attributes
       crowbar_edit_deployment: 
-        deployment: Deployment
+        deployment: Deployment        
+    nav:
+      overview: Overview
+      eula: EULA        

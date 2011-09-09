@@ -11,4 +11,5 @@ A Barclamp is a module component that implements functionality for Crowbar.  Cor
 About this barclamp
 -------------------
 
-Information for this barclamp is maintained on the Crowbar Framework Wiki: https://github.com/dellcloudedge/crowbar/wiki
+This is the core barclamp!  Change with caution!
+

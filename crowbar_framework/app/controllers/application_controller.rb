@@ -136,7 +136,7 @@ class ApplicationController < ActionController::Base
   # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
   $htdigest_reload =true
   def load_users
-    return if @users and !$htdigest_reload  
+    return if @@users and !$htdigest_reload  
 
     ## only 1 thread should load stuff..(and reset the flag)
     @@auth_load_mutex.synchronize  do
@@ -146,8 +146,12 @@ class ApplicationController < ActionController::Base
     ret = {}
     data = IO.readlines("htdigest")
     data.each { |entry|
+      next if entry.strip.length ==0
       list = entry.split(":") ## format: user : realm : hashed pass
-      ret[list[0]] ={:realm => list[1].strip, :password => list[2].strip}  
+      user = list[0].strip rescue nil
+      password = list[2].strip rescue nil
+      real = list[1].strip rescue nil
+      ret[user] ={:realm => realm, :password => password}  
     }
     @@auth_load_mutex.synchronize  do 
         @@users = ret.dup

@@ -20,6 +20,8 @@ require 'uri'
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
+
+  @@users = nil
   
   before_filter :digest_authenticate, :if => :need_to_auth?
   
@@ -124,6 +126,8 @@ class ApplicationController < ActionController::Base
   end
   
   def find_user(username) 
+    puts "have username: #{username}"
+    puts "have @@users: #{@@users.nil? ? "nil" : @@users.inspect}"
     return false if !@@users || !username
     user = @@users[username]
     return false unless user
@@ -150,7 +154,7 @@ class ApplicationController < ActionController::Base
       list = entry.split(":") ## format: user : realm : hashed pass
       user = list[0].strip rescue nil
       password = list[2].strip rescue nil
-      real = list[1].strip rescue nil
+      realm = list[1].strip rescue nil
       ret[user] ={:realm => realm, :password => password}  
     }
     @@auth_load_mutex.synchronize  do 

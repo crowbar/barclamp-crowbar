@@ -38,7 +38,7 @@ when "redhat","centos"
 end
 gemlist=%w{rake json syslogger sass simple-navigation 
    i18n haml net-http-digest_auth rails
-   rainbows sqlite3-ruby}
+   rainbows }
 
 bash "force-apache-reload" do
   code "service #{apache_name} graceful"

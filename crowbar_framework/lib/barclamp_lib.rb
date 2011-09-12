@@ -205,16 +205,16 @@
     dirs = Dir.entries(path)
     if dirs.include? 'crowbar_framework'
       files += bc_cloner('crowbar_framework', bc, nil, path, BASE_PATH, false) 
-      FileUtils.chmod 755, File.join(CROWBAR_PATH, 'db')
-      chmod_dir 644, File.join(CROWBAR_PATH, 'db')
-      FileUtils.chmod 755, File.join(CROWBAR_PATH, 'tmp')
-      chmod_dir 766, File.join(CROWBAR_PATH, 'tmp')
-      FileUtils.chmod_R 755, File.join(CROWBAR_PATH, 'public', 'stylesheets')
+      FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'db')
+      chmod_dir 0644, File.join(CROWBAR_PATH, 'db')
+      FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'tmp')
+      chmod_dir 0644, File.join(CROWBAR_PATH, 'tmp')
+      FileUtils.chmod_R 0755, File.join(CROWBAR_PATH, 'public', 'stylesheets')
       puts "\tcopied crowbar_framework files" if DEBUG
     end
     if dirs.include? 'bin'
       files += bc_cloner('bin', bc, nil, path, BASE_PATH, false) 
-      FileUtils.chmod_R 777, BIN_PATH
+      FileUtils.chmod_R 0777, BIN_PATH
       puts "\tcopied command line files" if DEBUG
     end
     if dirs.include? 'updates'
@@ -257,8 +257,8 @@ puts "FILES #{files.inspect}"
     Dir.entries(databags).each do |bag|
       next if bag == "." or bag == ".."
       bag_path = File.join databags, bag 
-      FileUtils.chmod 755, bag_path
-      chmod_dir 644, bag_path
+      FileUtils.chmod 0755, bag_path
+      chmod_dir 0644, bag_path
       FileUtils.cd bag_path
       knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
       system knife_bag

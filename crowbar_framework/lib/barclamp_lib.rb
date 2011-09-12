@@ -247,6 +247,7 @@ puts "FILES #{files.inspect}"
 
     #upload the cookbooks
     if File.directory? cookbooks
+      FileUtils.cd cookbooks
       knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
       system knife_cookbook
       puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG

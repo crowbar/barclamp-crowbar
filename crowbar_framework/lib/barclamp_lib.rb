@@ -214,11 +214,12 @@
     end
     if dirs.include? 'bin'
       files += bc_cloner('bin', bc, nil, path, BASE_PATH, false) 
-      FileUtils.chmod_R 0777, BIN_PATH
+      FileUtils.chmod_R 0755, BIN_PATH
       puts "\tcopied command line files" if DEBUG
     end
     if dirs.include? 'updates'
       files += bc_cloner('updates', bc, nil, path, ROOT_PATH, false)
+      FileUtils.chmod_R 0755, UPDATE_PATH
       puts "\tcopied updates files" if DEBUG
     end
     

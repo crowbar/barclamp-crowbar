@@ -33,7 +33,8 @@ for i in *.rb; do
 done 
 cd ../.. # now just in $1
 cd app; cp -r * /opt/dell/crowbar_framework/app; cd ..
-cd command_line; cp * /opt/dell/bin; cd ..
+cd command_line; chmod +rx *; cp * /opt/dell/bin; cd ..
+cd bin; chmod +rx *; cp * /opt/dell/bin; ; cd ..
 cp -r public /opt/dell/crowbar_framework;
   
 if [[ -f /etc/redhat-release ]]; then

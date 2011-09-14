@@ -28,10 +28,11 @@ crowbar:
 locale_additions:
   en:
     barclamp:
-      crowbar_edit_attributes: 
-        attributes: Attributes
-      crowbar_edit_deployment: 
-        deployment: Deployment        
+      crowbar:
+        edit_attributes: 
+          attributes: Attributes
+        edit_deployment: 
+          deployment: Deployment        
     nav:
       overview: Overview
       eula: EULA        

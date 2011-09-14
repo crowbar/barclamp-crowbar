@@ -139,7 +139,15 @@ class ApplicationController < ActionController::Base
   # load the ""user database"" but be careful about thread contention.
   # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
   $htdigest_reload =true
+  $htdigest_timestamp = Time.now()
   def load_users
+    unless $htdigest_reload
+      f = File.new("htdigest")
+      if $htdigest_timestamp != f.mtime
+        $htdigest_timestamp = f.mtime
+        $htdigest_reload = true
+      end
+    end
     return if @@users and !$htdigest_reload  
 
     ## only 1 thread should load stuff..(and reset the flag)
@@ -147,6 +155,7 @@ class ApplicationController < ActionController::Base
       $htdigest_reload = false if $htdigest_reload   
     end
 
+    puts "reloading htdigest"
     ret = {}
     data = IO.readlines("htdigest")
     data.each { |entry|

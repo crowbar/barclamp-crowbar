@@ -7,12 +7,10 @@
   %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
   %input#name{:type => "hidden", :name => "name", :value => @proposal.name}
   
-  =(@attr_raw ? (render :partial => 'barclamp/edit_attributes_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}_edit_attributes" rescue (render :partial => 'barclamp/edit_attributes_raw') end))
-  =# render :partial => "barclamp/#{@proposal.barclamp}_edit_attributes"
+  =(@attr_raw ? (render :partial => 'barclamp/edit_attributes_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}/edit_attributes" rescue (render :partial => 'barclamp/edit_attributes_raw') end))
   = render :partial => "barclamp/attribute_helper"
 
-  =(@dep_raw ? (render :partial => 'barclamp/edit_deployment_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}_edit_deployment" rescue (render :partial => 'barclamp/edit_deployment_raw') end))
-  =# render :partial => "barclamp/#{@proposal.barclamp}_edit_deployment" 
+  =(@dep_raw ? (render :partial => 'barclamp/edit_deployment_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}/edit_deployment" rescue (render :partial => 'barclamp/edit_deployment_raw') end))
 
   %p
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]

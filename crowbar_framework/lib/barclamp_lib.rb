@@ -82,7 +82,7 @@
       file = File.join(path,i)
       if File.exists? file
         FileUtils.chmod value, file
-        puts "\tchmod #{value} for #{file}" if DEBUG
+        puts "\tchmod 0#{value.to_s(8)} for #{file}" if DEBUG
       else
         puts "WARN: missing file #{file} for chmod #{value} operation."
       end

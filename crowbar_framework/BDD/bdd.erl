@@ -56,10 +56,10 @@ setup_scenario(Config, Scenario, Tests) ->
 test_scenario(Config, RawSteps, Name) ->
 	{N, GivenSteps, WhenSteps, ThenSteps} = scenario_steps(RawSteps),
 	% execute all the given steps & put their result into GIVEN
-	bdd_utils:trace(Config, Name, N, RawSteps, ["pending..."], ["pending..."]),
+	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
 	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
 	% now, excute the when steps & put the result into RESULT
-	bdd_utils:trace(Config, Name, N, RawSteps, Given, ["pending..."]),
+	bdd_utils:trace(Config, Name, N, RawSteps, Given, ["No When: pending next pass..."]),
 	When = case length(WhenSteps) of
 	  0 -> Given;
 	  _ -> [step_run(Config, Given, WS) || WS <- WhenSteps]
@@ -78,6 +78,7 @@ test_scenario(Config, RawSteps, Name) ->
 step_run(Config, Input, Step) ->
 	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files)],
 	step_run(Config, Input, Step, StepFiles).
+	
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
 	try apply(Feature, step, [Config, Input, Step]) of
@@ -89,6 +90,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		exit: {noproc, {gen_server, call, Details}} -> io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> io:format("ERROR: step run found ~p:~p~n", [X, Y]), throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
+	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->
 	io:format("ERROR: Unable to resolve step ~p!~n", [Step]),
@@ -99,20 +101,24 @@ step_run(_Config, _Input, Step, []) ->
 % Each step is given a line number to help w/ debug
 scenario_steps(Steps) ->
 	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
-	scenario_steps(Steps, 1, [], [], []).
-scenario_steps([H | T], N, Given, When, Then) ->
+	scenario_steps(Steps, 1, [], [], [], unknown).
+scenario_steps([H | T], N, Given, When, Then, LastStep) ->
 	CleanStep = bdd_utils:clean_line(H),
 	{Type, StepRaw} = step_type(CleanStep),
-	Step = {Type, bdd_utils:tokenize(StepRaw)},
+	StepPrep = {Type, bdd_utils:tokenize(StepRaw)},
+	Step = case StepPrep of
+	  {step_and, SS} -> {LastStep, SS};
+	  {Type, SS} -> {Type, SS}
+	end,
 	bdd_utils:debug("line ~p~n", [Step]),
 	case Step of
-		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then);
-		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then);
-		{step_then, S} -> scenario_steps(T, N+1, Given, When, [{step_then, N, S} | Then]);
-		{empty, _} -> scenario_steps(T, N, Given, When, Then);
-		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(T, N+1, Given, When, Then)		
+		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, step_given);
+		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, step_when);
+		{step_then, S} -> scenario_steps(T, N+1, Given, When, [{step_then, N, S} | Then], step_then);
+		{empty, _} -> scenario_steps(T, N, Given, When, Then, empty);
+		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(T, N+1, Given, When, Then, unknown)		
 	end;
-scenario_steps([], N, Given, When, Then) ->
+scenario_steps([], N, Given, When, Then, _) ->
 	% returns number of steps and breaks list into types, may be expanded for more times in the future!
 	{N, Given, When, Then}.
 	
@@ -123,6 +129,8 @@ step_type([$W, $h, $e, $n, 32 | When] ) ->
 	{ step_when, When };
 step_type([$T, $h, $e, $n, 32 | Then ]) -> 
 	{ step_then, Then };
+step_type([$A, $n, $d, 32 | Next ]) -> 
+	{ step_and, Next };
 step_type([]) ->
 	{ empty, []};
 step_type(Step) ->

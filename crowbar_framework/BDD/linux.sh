@@ -8,6 +8,7 @@ rm -f erl_crash.dump
 rm -f *.beam
 
 # Compile
+erlc json.erl
 erlc bdd_utils.erl
 erlc bdd_webrat.erl
 erlc bdd_catchall.erl

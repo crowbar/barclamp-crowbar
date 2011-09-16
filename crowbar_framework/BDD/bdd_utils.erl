@@ -46,9 +46,9 @@ trace_setup(Config, Name, N) ->
 trace(Config, Name, N, Steps, Given, When) ->
   File = trace_setup(Config, Name, N),
   {ok, S} = file:open(File, write),
-  lists:foreach(fun(X) -> io:format(S, "~n==== Step ====~n~s", [X]) end, Steps),
-  lists:foreach(fun(X) -> io:format(S, "~n==== Given ====~n~s", [X]) end, Given),
-  lists:foreach(fun(X) -> io:format(S, "~n==== When ====~n~s", [X]) end, When),
+  lists:foreach(fun(X) -> io:format(S, "~n==== Step ====~n~p", [X]) end, Steps),
+  lists:foreach(fun(X) -> io:format(S, "~n==== Given ====~n~p", [X]) end, Given),
+  [io:format(S, "~n==== When ====~n~p",[X]) || X <- (When), X =/= []],
   io:format(S, "~n==== End of Test Dump (~p) ====", [N]),
   file:close(S).
  

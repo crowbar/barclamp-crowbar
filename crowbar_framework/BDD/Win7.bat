@@ -3,6 +3,7 @@ del erl_crash.dump
 del *.beam
 
 REM Compile
+erlc json.erl
 erlc bdd_utils.erl
 erlc bdd_webrat.erl
 erlc bdd_catchall.erl

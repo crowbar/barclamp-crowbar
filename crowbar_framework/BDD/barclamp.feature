@@ -1,10 +1,10 @@
-Feature: Dashboard
-  In order monitor the sytem
-  The system operator, Oscar
-  wants to be able to check the status of nodes
+Feature: Barclamp
+  In order for automation to work
+  The nodes
+  must to be discovered and to update their status
 
-  Scenario: Check Status
-    When I go to the "nodes" page
+  Scenario: Update Status
+    When I go set nod to the "nodes" page
     Then I should see "a4-ba-db-70-f8-74"
     Then I should see "da4-ba-db-17-47-69"
     Then I should see "da4-ba-db-17-44-3f"
@@ -42,8 +42,3 @@ Feature: Dashboard
     When AJAX requests the "nodes/status" page
     Then key "nodes" should contain at least "6" items
       And key "[nodes][admin][state]" should be "Ready"
-      
-  Scenario: Status Changes
-    When node "d00-26-9e-cd-e0-c6.dell.com" status changes to "foo"
-      And I go to the "nodes\d00-26-9e-cd-e0-c6.dell.com" page
-    Then I should see "foo"

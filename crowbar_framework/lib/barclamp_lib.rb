@@ -29,7 +29,7 @@
   BIN_PATH = File.join BASE_PATH, 'bin'
   UPDATE_PATH = '/updates'
   ROOT_PATH = '/'
-  DEBUG=true
+  DEBUG=false
   
   # entry point for scripts
   def bc_install(bc, path, barclamp)
@@ -249,7 +249,7 @@ puts "FILES #{files.inspect}"
     #upload the cookbooks
     if File.directory? cookbooks
       FileUtils.cd cookbooks
-      knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
+      knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui >/dev/null 2>/dev/null"
       system knife_cookbook
       puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG
     end
@@ -261,13 +261,13 @@ puts "FILES #{files.inspect}"
       FileUtils.chmod 0755, bag_path
       chmod_dir 0644, bag_path
       FileUtils.cd bag_path
-      knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
+      knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui >/dev/null 2>/dev/null"
       system knife_bag
       puts "\texecuted: #{path} #{knife_bag}" if DEBUG
 
       json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
       json.each do |bag_file|
-        knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui"
+        knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui >/dev/null 2>/dev/null"
         system knife_databag
         puts "\texecuted: #{path} #{knife_databag}" if DEBUG
       end
@@ -276,7 +276,7 @@ puts "FILES #{files.inspect}"
     #upload the roles
     FileUtils.cd roles
     Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
-      knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
+      knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui >/dev/null 2>/dev/null"
       system knife_role
       puts "\texecuted: #{path} #{knife_role}" if DEBUG
     end

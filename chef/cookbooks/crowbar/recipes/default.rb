@@ -63,7 +63,7 @@ user "crowbar" do
   comment "Crowbar User"
   gid "crowbar"
   home "/home/crowbar"
-  password "$1$Woys8jvS$FjbKkYYpG175iSJf.pclw/"
+  password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
 end
 

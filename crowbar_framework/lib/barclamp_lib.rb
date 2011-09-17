@@ -29,7 +29,7 @@
   BIN_PATH = File.join BASE_PATH, 'bin'
   UPDATE_PATH = '/updates'
   ROOT_PATH = '/'
-  DEBUG=true
+  DEBUG=false
   
   # entry point for scripts
   def bc_install(bc, path, barclamp)
@@ -165,11 +165,11 @@
           target[key] = merge_tree(k, v, target[key])
         end
       else
-        #puts "replaced key #{key} value #{value}"
+        puts "replaced key #{key} value #{value}" if DEBUG
         target[key] = value      
       end
     else
-      #puts "added key #{key} value #{value}"
+      puts "added key #{key} value #{value}" if DEBUG
       target[key] = value
     end
     return target
@@ -230,7 +230,6 @@
     end
   
     filelist = File.join BARCLAMP_PATH, "#{bc}-filelist.txt"
-puts "FILES #{files.inspect}"
     File.open( filelist, 'w' ) do |out|
       files.each { |line| out.puts line } 
     end
@@ -241,6 +240,11 @@ puts "FILES #{files.inspect}"
   # upload the chef parts for a barclamp
   def bc_install_layout_1_chef(bc, path, barclamp)
 
+    log_path = File.join '/var', 'log', 'barclamps'
+    FileUtils.mkdir log_path unless File.directory? log_path
+    log = File.join log_path, "#{bc}.log"
+    system "date >> #{log}"
+    puts "Capturing chef install logs to #{log}" if DEBUG
     chef = File.join path, 'chef'
     cookbooks = File.join chef, 'cookbooks'
     databags = File.join chef, 'data_bags'
@@ -250,8 +254,10 @@ puts "FILES #{files.inspect}"
     if File.directory? cookbooks
       FileUtils.cd cookbooks
       knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
-      system knife_cookbook
+      system knife_cookbook + " >> #{log} 2>&1"
       puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG
+    else
+      puts "\tNOTE: could not find cookbooks #{cookbooks}" if DEBUG
     end
     
     #upload the databags
@@ -262,13 +268,13 @@ puts "FILES #{files.inspect}"
       chmod_dir 0644, bag_path
       FileUtils.cd bag_path
       knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_bag
+      system knife_bag + " >> #{log} 2>&1"
       puts "\texecuted: #{path} #{knife_bag}" if DEBUG
 
       json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
       json.each do |bag_file|
         knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui"
-        system knife_databag
+        system knife_databag + " >> #{log} 2>&1"
         puts "\texecuted: #{path} #{knife_databag}" if DEBUG
       end
     end
@@ -281,7 +287,7 @@ puts "FILES #{files.inspect}"
       puts "\texecuted: #{path} #{knife_role}" if DEBUG
     end
 
-    puts "Barclamp #{bc} (format v1) Chef Components Uploaded." if DEBUG
+    puts "Barclamp #{bc} (format v1) Chef Components Uploaded." 
 
   end
   

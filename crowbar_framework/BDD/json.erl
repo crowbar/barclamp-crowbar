@@ -72,20 +72,21 @@ json(JSON, Key) ->
 parse(RawJSON) ->
   json(#json{raw=RawJSON}, []).
 
+% CREATE JSON STRING FROM List: [{K, V}, {K, V}, {K, [{K, V}, ...]}, ...]
 % create json from list
-output(List) ->
-  "{" ++ output_inner(List) ++ "}".
-  
+output({json, List}) -> 
+  lists:concat(["{", output_inner(List), "}"]);
+output(List) -> 
+  lists:concat(["{", output_inner(List), "}"]).
+
 atomize({K, V}) ->
-  io:format("DEBUG ~p ~p~n", [K, V]),
   Value = case V of
-    [_] -> V;
-     _ -> output(V)
+    [{_, _} | _] -> output(V);
+    _ -> V
   end,
-  "\"" ++ K ++ "\":\"" ++ Value ++ "\"".
+  lists:concat(["\"", K, "\":\"", Value, "\""]).
 
 output_inner([Head | []]) ->
-  io:format("end"),
   atomize(Head);
 output_inner([Head | Tail]) ->
   atomize(Head) ++ ", " ++ output_inner(Tail).

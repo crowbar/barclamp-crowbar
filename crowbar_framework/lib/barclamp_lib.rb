@@ -283,7 +283,7 @@
     FileUtils.cd roles
     Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
       knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_role
+      system knife_role + " >> #{log} 2>&1"
       puts "\texecuted: #{path} #{knife_role}" if DEBUG
     end
 

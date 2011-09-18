@@ -25,6 +25,8 @@
 %% Callback function passes an authorization header and a URL,
 %% to make it possible to construct consequent http request with proper authorization.
 %% For example:
+%% application:start(crypto).
+%% application:start(inets).
 %% AuthCallback = fun(AuthHeader, URL) -> 
 %%	http:request(post, {URL, [{"Authorization", AuthHeader}], "application/x-www-form-urlencoded",
 %%			Body}, [], [])
@@ -77,18 +79,21 @@ calcResponse(Fields, User, Password, URI, Method, Nc) ->
 	{Realm, Nonce,  Nc, CNonce, Response, Opaque}.	
 
 calc_response(Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop) ->	
+io:format("~p ~p ~p ~p ~p ~p ~p ~p ~p ~p~n",[Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop]),
+io:format("md5 ~s~n",[string:join([User, Realm, Password], ":")]),
 	HA1 = 	hex(binary_to_list(crypto:md5( string:join([User, Realm, Password], ":")))),
 	HA2 = 	hex(binary_to_list(crypto:md5( string:join([Method, URI], ":")))),
 	io:format("HA1:~p~n", [HA1]),
 	io:format("HA2:~p~n", [HA2]),	
 	%HA1 result, server nonce (nonce), request counter (nc), client nonce (cnonce), quality of protection code (qop) and HA2 result is calculated.
-	Step3Arg = HA1 ++ ":" ++ 
+	Step3Arg = string:join([HA1, Nonce, Nc, CNonce, Qop, HA2], ":"),
+% HA1 ++ ":" ++ 
 		Nonce ++ ":" ++
 		Nc ++ ":" ++ 
 		CNonce ++ ":" ++ 
 		Qop ++  ":" ++
 		HA2,
-	io:format("3rd step:~p~n", [Step3Arg]),
+  io:format("3rd step:~p~n", [Step3Arg]),
 	hex(binary_to_list(crypto:md5( Step3Arg))).
 
 %% Implements example of digest response calculation from Wikipedia 

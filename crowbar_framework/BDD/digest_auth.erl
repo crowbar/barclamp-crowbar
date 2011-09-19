@@ -1,4 +1,4 @@
-%% Author: bokner (boris.okner@gmail.com)
+%% Original Author: bokner (boris.okner@gmail.com)
 %% Created: Apr 10, 2010
 %% Description: HTTP digest authentication
 %% Note: the code follows particular explanation given on Wikipedia.
@@ -6,69 +6,101 @@
 %% with regard to using this code.
 %% Posted at git://gist.github.com/362131.git
 
+%% Second Author: Rob Hirschfeld (@Zehicle)
+%% Updated: Sept 19. 2011
+%% Addendum Copyright 2011, Dell 
+%% 
+%% Licensed under the Apache License, Version 2.0 (the "License"); 
+%% you may not use this file except in compliance with the License. 
+%% You may obtain a copy of the License at 
+%% 
+%%  http://www.apache.org/licenses/LICENSE-2.0 
+%% 
+%% Unless required by applicable law or agreed to in writing, software 
+%% distributed under the License is distributed on an "AS IS" BASIS, 
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+%% See the License for the specific language governing permissions and 
+%% limitations under the License. 
+%% 
+
 -module(digest_auth).
-%%
-%% Include files
-%%
 
 %%
 %% Exported Functions
 %%
--export([auth/5]).
--export([realm_key/2]).  % debug
-
-%%
-%% API Functions
-%%
+-export([auth/5, request/5, header/2]).
 
 %% Does digest authentication. 
 %% Callback function passes an authorization header and a URL,
 %% to make it possible to construct consequent http request with proper authorization.
+%%
+%% WINDOWS USERS: You should copy the OpenSSH lib & dll files matching you x86/64 os into the erl.exe directory!
+%%
 %% For example:
 %% application:start(crypto).
 %% application:start(inets).
-%% AuthCallback = fun(AuthHeader, URL) -> 
-%%	http:request(post, {URL, [{"Authorization", AuthHeader}], "application/x-www-form-urlencoded",
-%%			Body}, [], [])
-%%		  end,
-%% digest_auth:auth("http://hostname.com/protected_resource", "POST", "user_name", "password", AuthCallback).
+%% Config = [{user,"crowbar"},{password,"crowbar"}].
+%% digest_auth:request(Config, get, {URL, []}, [], []).
 %%
-%% Note: I assume that initial request can be made using GET. 
-%% It seems logical, because it doesn't have to submit any data. The service I was testing the code on does just this,
-%% event though consequent requests must be made with POST. 
-%% Hence second argument (i.e. Method) refers to a method for consequent request, not for initial request.
-%% Note: HTTP method names are case sensitive. Because this code doesn't imply using any particular HTTP client
-%% for consequent request, I don't see the way to enforce proper method name. So when you write your callback
-%% function, you have to make sure that the method name used by your http client logically corresponds 
-%% to the one passed to auth/5, which always have to be a capitalized name, like "POST" or "GET".
-%% Looking at the example above, string "POST" is used for a method name, while http:request/4 specifies
-%% method as atom 'post'.  
-%% 
-%%	
-auth(URL, Method, User, Password, AuthCallback) ->
-	{http, _, _, _, DigestURI, _} = http_uri:parse(URL),
-	{ok, {{_, ResponseCode, _},
-	        Fields,
-		_Response}} = 	http:request(get, {URL, []}, [], []),
-	case ResponseCode of
-		401 ->
-			AuthorizationHeader = buildAuthHeader(DigestURI, Method, User, Password, Fields),
-			AuthCallback(AuthorizationHeader, URL);
-		_ ->
-			{error, noAuthentication}
-	end.
+%% Note: You can save time if you add the header to the Config:
+%% ConfigPlus = digest_auth:header(Config, URL). 
+%% digest_auth:request(ConfigPlus, get, {URL, []}, [], []).
+%%
 
-buildAuthHeader(URI, Method, User, Password, Fields) ->
-	{Realm, Nonce, Nc, CNonce, Response, Opaque} = 
-        calcResponse(Fields, User, Password, URI, Method, "0000000000000000"),
-	lists:flatten(io_lib:format("Digest username=\"~s\",realm=\"~s\",nonce=\"~s\",uri=\"~s\",qop=auth,nc=~s,cnonce=\"~s\",response=\"~s\",opaque=\"~s\"", 
-	[User, Realm, Nonce, URI, Nc, CNonce, Response, Opaque])).
+request(Config, get, {URL, Header}, HTTPOptions, Options) ->
+  request(Config, get, {URL, Header, [], []}, HTTPOptions, Options);
+  
+request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
+  % prepare information that's common
+  {http, _, _, _, DigestURI, _} = http_uri:parse(URL),
+  User = proplists:get_value(user, Config),
+  MethodStr = string:to_upper(atom_to_list(Method)),
+  Password = proplists:get_value(password, Config),
+  % if we have a header fields, add them to the header so we can avoid the round trip
+  TrialHeader = case proplists:get_value(digest_field, Config) of 
+    undefined -> Header;
+    FieldsCache ->  
+      HeaderInjection = buildAuthHeader(DigestURI, MethodStr, User, Password, FieldsCache),
+      Header ++ [{"Authorization", HeaderInjection}]
+  end,
+  % try request
+  {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
+    get -> http:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
+    _ -> http:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions, Options)
+  end,
+  % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
+  case Code of
+    401 -> 
+      DigestLine = proplists:get_value("www-authenticate", Fields),
+      AuthHeader = buildAuthHeader(DigestURI, MethodStr, User, Password, DigestLine),
+      HeaderDigested = Header ++ [{"Authorization", AuthHeader}],
+      case Method of 
+        get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
+        _ -> http:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions, Options)
+      end;
+    _ -> {Status,{{Protocol,Code,Comment}, Fields, Message}}
+  end.
 
-calcResponse(Fields, User, Password, URI, Method, Nc) ->
+%% Simplifed version of request that returns the Auth Header to save future round trips  
+header(Config, URL) ->
+  {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} = http:request(URL),
+  % if 401, then get the auth info and retry
+  case {Status, Code} of
+    {ok, 401} -> Config ++ [{digest_field, proplists:get_value("www-authenticate", Fields)}];
+    _ -> Config
+  end.
+  
+buildAuthHeader(URI, Method, User, Password, DigestLine) ->
+	buildMetaTag(calcResponse(DigestLine, User, Password, URI, Method, "0000000000000000")).
+
+buildMetaTag(Components) ->
+  {User, Realm, Nonce,  URI, Nc, CNonce, Response, Opaque} = Components,
+	lists:flatten(io_lib:format("Digest username=\"~s\",realm=\"~s\",nonce=\"~s\",uri=\"~s\",qop=auth,nc=~s,cnonce=\"~s\",response=\"~s\",opaque=\"~s\"", [User, Realm, Nonce, URI,  Nc, CNonce, Response, Opaque])).
+
+calcResponse(DigestLine, User, Password, URI, Method, Nc) ->
 	random:seed(now()),
-	DigestLine = proplists:get_value("www-authenticate", Fields),
 	[$D, $i, $g, $e, $s, $t, $  | DigestParamsStr] = DigestLine,
-	DigestParams = [ digest_auth:realm_key(R, []) || R <- string:tokens(DigestParamsStr,",")],
+	DigestParams = [ realm_key(R, []) || R <- string:tokens(DigestParamsStr,",")],
 	%% Calculate digest
 	Realm = proplists:get_value("realm", DigestParams),
 	Opaque = proplists:get_value("opaque", DigestParams),
@@ -76,24 +108,16 @@ calcResponse(Fields, User, Password, URI, Method, Nc) ->
 	CNonce = hex(integer_to_list(erlang:trunc(random:uniform()*10000000000000000))),
 	Qop = proplists:get_value("qop", DigestParams),
 	Response = calc_response(Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop),
-	{Realm, Nonce,  Nc, CNonce, Response, Opaque}.	
+	{User, Realm, Nonce,  URI, Nc, CNonce, Response, Opaque}.	
 
 calc_response(Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop) ->	
-io:format("~p ~p ~p ~p ~p ~p ~p ~p ~p ~p~n",[Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop]),
-io:format("md5 ~s~n",[string:join([User, Realm, Password], ":")]),
 	HA1 = 	hex(binary_to_list(crypto:md5( string:join([User, Realm, Password], ":")))),
 	HA2 = 	hex(binary_to_list(crypto:md5( string:join([Method, URI], ":")))),
-	io:format("HA1:~p~n", [HA1]),
-	io:format("HA2:~p~n", [HA2]),	
+	%io:format("HA1:~p~n", [HA1]),
+	%io:format("HA2:~p~n", [HA2]),	
 	%HA1 result, server nonce (nonce), request counter (nc), client nonce (cnonce), quality of protection code (qop) and HA2 result is calculated.
 	Step3Arg = string:join([HA1, Nonce, Nc, CNonce, Qop, HA2], ":"),
-% HA1 ++ ":" ++ 
-		Nonce ++ ":" ++
-		Nc ++ ":" ++ 
-		CNonce ++ ":" ++ 
-		Qop ++  ":" ++
-		HA2,
-  io:format("3rd step:~p~n", [Step3Arg]),
+  %io:format("3rd step:~p~n", [Step3Arg]),
 	hex(binary_to_list(crypto:md5( Step3Arg))).
 
 %% Implements example of digest response calculation from Wikipedia 
@@ -108,11 +132,12 @@ test_calc_response() ->
 %% Local Functions
 %%
 
+%% @hidden
+
 realm_key([$  | Realm], [])   -> realm_key( Realm, []);
 realm_key([$= | Realm], Key)  -> {Key, string:strip(Realm, both, $")};
 realm_key([H | Realm], Key)   -> realm_key( Realm, Key++[H] ).
 
-%% @hidden
 
 digit_to_xchar(D) when (D >= 0) and (D < 10) ->
 	D + 48;

@@ -108,6 +108,7 @@ class ApplicationController < ActionController::Base
   @@realm = ""
   
   def need_to_auth?()
+    return false unless File::exists? "htdigest"
     ip = session[:ip_address] rescue nil
     puts "checking session saved: #{ip} remote #{request.remote_addr}"    
     return false if ip == request.remote_addr

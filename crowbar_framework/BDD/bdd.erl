@@ -45,10 +45,13 @@ test(ConfigBase, FileName, Tests) ->
 	{feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]}.
 
 feature(ConfigName, FeatureName) ->
-  Config = getconfig(ConfigName),
-  FileName = FeatureName ++ "." ++ bdd_utils:config(Config,extension),
+  BaseConfig = getconfig(ConfigName),
+  FileName = FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension),
 	application:start(inets),		% needed for getting we pages
+	application:start(crypto),  % needed for digest authentication
+	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
   test(Config, FileName, []),
+	application:stop(crypto),
 	application:stop(inets).
   
 getconfig(ConfigName) ->
@@ -67,8 +70,10 @@ feature_import(FileName) ->
 setup_scenario(Config, Scenario, Tests) ->
 	[RawName | RawSteps] = string:tokens(Scenario, "\n"),
 	Name = bdd_utils:clean_line(RawName),
+  [First | _ ] = Name,
 	Member = lists:member(Name,Tests),
 	if 
+	  First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
 	  Member; length(Tests) =:= 0 -> test_scenario(Config, RawSteps, Name);
 	  true -> io:format("\tSKIPPED ~p~n", [Name])
 	end.
@@ -98,7 +103,7 @@ test_scenario(Config, RawSteps, Name) ->
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
 	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files)],
-	step_run(Config, Input, Step, StepFiles).
+  step_run(Config, Input, Step, StepFiles).
 	
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
@@ -135,7 +140,6 @@ scenario_steps([H | T], N, Given, When, Then, LastStep) ->
 	  {step_and, SS} -> {LastStep, SS};
 	  {Type, SS} -> {Type, SS}
 	end,
-	bdd_utils:debug("line ~p~n", [Step]),
 	case Step of
 		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, step_given);
 		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, step_when);

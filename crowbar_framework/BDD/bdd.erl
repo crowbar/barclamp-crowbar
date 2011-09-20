@@ -18,14 +18,18 @@
 -module(bdd).
 -export([test/1, test/3, feature/2]).  %this is the final one
 -import(bdd_utils).
+-import(digest_auth).
 
 test(ConfigName) -> 
   test(ConfigName, search, []).
 test(ConfigName, search, Tests) ->
-  Config = getconfig(ConfigName),
-  Features = filelib:wildcard("*." ++ bdd_utils:config(Config,extension)),
+  BaseConfig = getconfig(ConfigName),
+  Features = filelib:wildcard("*." ++ bdd_utils:config(BaseConfig,extension)),
 	application:start(inets),		% needed for getting we pages
+	application:start(crypto),  % needed for digest authentication
+	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
   Results = [{feature, FileName, test(Config, FileName, Tests)} || FileName <- Features],
+  application:stop(crypto),
 	application:stop(inets),
 	Result = [R || {_, R} <- Results, R =/= pass],
 	case Result of
@@ -99,12 +103,16 @@ step_run(Config, Input, Step) ->
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
 	try apply(Feature, step, [Config, Input, Step]) of
-		error -> {error, Step};
+		error -> 
+		  {error, Step};
 		Result -> Result
 	catch
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);
-		exit: {noproc, {gen_server, call, Details}} -> io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), throw("BDD ERROR: Could not connect to web server.");
+		exit: {noproc, {gen_server, call, Details}} -> 
+		  io:format("exit Did not find step: ~p~n", [Feature]),
+      io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), 
+      throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> io:format("ERROR: step run found ~p:~p~n", [X, Y]), throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
 	

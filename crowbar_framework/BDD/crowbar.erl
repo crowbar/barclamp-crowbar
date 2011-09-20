@@ -19,6 +19,15 @@
 -import(bdd_utils).
 -import(json).
 
+step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", State]}) ->
+  Path = "/crowbar/crowbar/1.0/transition/default",
+  Data = json:output([{name, Node++"."++sc:domain(Config)}, {state, State}]),
+  Result = digest_auth:request(Config, post, {sc:url(Config) ++ Path, "application/json", "application/json", Data}, [{timeout, 10000}], []),
+  case Result of
+    {ok, {_, _, Body}} -> Body;
+    _ -> io:format("Post did not return ok: ~s: ~s~n", [Path, Data]), error
+  end;
+
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     
 step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.

@@ -28,7 +28,7 @@
 %%
 %% Exported Functions
 %%
--export([auth/5, request/5, header/2]).
+-export([request/5, request/2, header/2, test_calc_response/0]).
 
 %% Does digest authentication. 
 %% Callback function passes an authorization header and a URL,
@@ -46,6 +46,11 @@
 %% ConfigPlus = digest_auth:header(Config, URL). 
 %% digest_auth:request(ConfigPlus, get, {URL, []}, [], []).
 %%
+%% If your site is NOT digest, then this is basically a pass through with minimal overhead
+%%
+
+request(Config, URL) ->
+  request(Config, get, {URL, [], [], []}, [], []).
 
 request(Config, get, {URL, Header}, HTTPOptions, Options) ->
   request(Config, get, {URL, Header, [], []}, HTTPOptions, Options);
@@ -110,7 +115,7 @@ calcResponse(DigestLine, User, Password, URI, Method, Nc) ->
 	Response = calc_response(Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop),
 	{User, Realm, Nonce,  URI, Nc, CNonce, Response, Opaque}.	
 
-calc_response(Method, User, Password, URI, Realm, Opaque, Nonce, Nc, CNonce, Qop) ->	
+calc_response(Method, User, Password, URI, Realm, _Opaque, Nonce, Nc, CNonce, Qop) ->	
 	HA1 = 	hex(binary_to_list(crypto:md5( string:join([User, Realm, Password], ":")))),
 	HA2 = 	hex(binary_to_list(crypto:md5( string:join([Method, URI], ":")))),
 	%io:format("HA1:~p~n", [HA1]),

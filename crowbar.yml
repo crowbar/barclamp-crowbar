@@ -191,5 +191,6 @@ gems:
     - rainbows
     - sqlite3-ruby
     - rdoc
+    - net-ssh-multi
     # mysql stuff
     - mysql

@@ -211,4 +211,5 @@ include_recipe "apache2::mod_log_config" if platform?("centos", "redhat", "fedor
 
 service "apache2" do
   action :start
+  ignore_failure true
 end

@@ -53,9 +53,6 @@
     "rails": {
       "max_pool_size": 256,
       "environment": "production"
-    },
-    "passenger": {
-      "max_pool_size": 256
     }
   },
   "deployment": {

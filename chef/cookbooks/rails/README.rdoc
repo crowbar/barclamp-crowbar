@@ -14,7 +14,6 @@ Opscode cookbooks, http://github.com/opscode/cookbooks/tree/master:
 
 * ruby 
 * apache2 
-* passenger 
 
 = ATTRIBUTES: 
 
@@ -22,19 +21,6 @@ Opscode cookbooks, http://github.com/opscode/cookbooks/tree/master:
 * rails[:environment] - Set Rails environment. Default production.
 
 = USAGE:
-
-The recommended Rails application deployment method is Passenger and use the Apache2 cookbook's web_app define.
-
-  include_recipe "apache2"
-  include_recipe "passenger"
-  include_recipe "rails"
-
-  web_app "some_rails_app" do
-    docroot "/srv/some_rails_app/public"
-    template "some_rails_app.conf.erb"
-  end
-
-We provide an example rails application vhost config file in this cookbook. Remember, for Passenger, DocumentRoot (docroot) needs 'public'. Per the web_app define, other parameters can be passed arbitrarily and used in the template. 
 
 = LICENSE and AUTHOR:
 

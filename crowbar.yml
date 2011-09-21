@@ -104,6 +104,7 @@ debs:
     - ruby1.8
     - ruby1.8-dev
     - ruby-dev
+    - rubygems
     - rubygems1.8
     # runit stuff
     - runit
@@ -178,7 +179,7 @@ gems:
     - bluepill
     # crowbar stuff
     - rake
-    - json
+    - json-1.5.2
     - syslogger
     - sass
     - simple-navigation

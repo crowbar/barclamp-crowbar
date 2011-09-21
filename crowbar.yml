@@ -62,6 +62,11 @@ debs:
     - sqlite
     - libsqlite3-dev
     - libshadow-ruby1.8
+    - chef
+    - chef-server
+    - chef-server-webui
+    - kwalify
+    - libcurl4-gnutls-dev
     # minicom stuff
     - minicom
     # mysql stuff
@@ -85,8 +90,15 @@ debs:
     # ruby stuff
     - ruby1.8
     - ruby1.8-dev
+    - ruby-dev
+    - rubygems1.8
+    # runit stuff
+    - runit
     # sudo stuff
     - sudo
+    # java stuff
+    - sun-java6-jdk
+    - sun-java6-jre
 
 rpms:
   pkgs:
@@ -151,7 +163,11 @@ gems:
     - simple-navigation
     - haml
     - net-http-digest_auth
-    - rails
+    - rails-2.3.12
+    - builder
+    - activesupport
     - rainbows
+    - sqlite3-ruby
+    - rdoc
     # mysql stuff
     - mysql

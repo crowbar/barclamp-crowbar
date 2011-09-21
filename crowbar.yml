@@ -20,6 +20,19 @@ barclamp:
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
   version: 0
+  requires:
+    - deployer
+    - dns
+    - ipmi
+    - logging
+    - network
+    - ntp
+    - provisioner
+    - redhat-install
+    - test
+    - ubuntu-install
+    - ganglia
+    - nagios
 
 crowbar:
   layout: 1
@@ -104,6 +117,7 @@ rpms:
   pkgs:
     # apache stuff
     - httpd
+    - httpd-devel
     - mod_fcgid
     - php
     - mod_python
@@ -117,10 +131,16 @@ rpms:
     - autoconf
     - flex
     - bison
+    - patch
     # crowbar stuff
     - curl
+    - curl-devel
     - sqlite
     - sqlite-devel
+    - rubygem-chef-server
+    - rubygem-kwalify
+    - createrepo
+    - lshw
     # minicom stuff
     - minicom
     # mysql stuff
@@ -131,13 +151,14 @@ rpms:
     # nscd stuff
     - nscd
     # openldap stuff
-    - libnss-ldap
-    - libpam-ldap
-    - ldap-utils
+    - nss_ldap
     - db4.2-utils
-    - slapd
+    - openldap
+    - openldap-servers
+    - openldap-clients
     # openssh stuff
     - openssh-clients
+    - openssh-server
     - openssh
     # rabbitmq stuff
     - rabbitmq-server

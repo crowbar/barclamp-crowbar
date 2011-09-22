@@ -1,2 +1,5 @@
 *~
+
+erl_crash.dump
+trace_*.txt
 *.beam

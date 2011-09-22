@@ -1,14 +1,35 @@
+% Copyright 2011, Dell 
+% 
+% Licensed under the Apache License, Version 2.0 (the "License"); 
+% you may not use this file except in compliance with the License. 
+% You may obtain a copy of the License at 
+% 
+%  http://www.apache.org/licenses/LICENSE-2.0 
+% 
+% Unless required by applicable law or agreed to in writing, software 
+% distributed under the License is distributed on an "AS IS" BASIS, 
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+% See the License for the specific language governing permissions and 
+% limitations under the License. 
+% 
+% Author: RobHirschfeld 
+% 
+
 -module(bdd).
 -export([test/1, test/3, feature/2]).  %this is the final one
 -import(bdd_utils).
+-import(digest_auth).
 
 test(ConfigName) -> 
   test(ConfigName, search, []).
 test(ConfigName, search, Tests) ->
-  Config = getconfig(ConfigName),
-  Features = filelib:wildcard("*." ++ bdd_utils:config(Config,extension)),
+  BaseConfig = getconfig(ConfigName),
+  Features = filelib:wildcard("*." ++ bdd_utils:config(BaseConfig,extension)),
 	application:start(inets),		% needed for getting we pages
+	application:start(crypto),  % needed for digest authentication
+	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
   Results = [{feature, FileName, test(Config, FileName, Tests)} || FileName <- Features],
+  application:stop(crypto),
 	application:stop(inets),
 	Result = [R || {_, R} <- Results, R =/= pass],
 	case Result of
@@ -24,10 +45,13 @@ test(ConfigBase, FileName, Tests) ->
 	{feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]}.
 
 feature(ConfigName, FeatureName) ->
-  Config = getconfig(ConfigName),
-  FileName = FeatureName ++ "." ++ bdd_utils:config(Config,extension),
+  BaseConfig = getconfig(ConfigName),
+  FileName = FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension),
 	application:start(inets),		% needed for getting we pages
+	application:start(crypto),  % needed for digest authentication
+	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
   test(Config, FileName, []),
+	application:stop(crypto),
 	application:stop(inets).
   
 getconfig(ConfigName) ->
@@ -46,8 +70,10 @@ feature_import(FileName) ->
 setup_scenario(Config, Scenario, Tests) ->
 	[RawName | RawSteps] = string:tokens(Scenario, "\n"),
 	Name = bdd_utils:clean_line(RawName),
+  [First | _ ] = Name,
 	Member = lists:member(Name,Tests),
 	if 
+	  First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
 	  Member; length(Tests) =:= 0 -> test_scenario(Config, RawSteps, Name);
 	  true -> io:format("\tSKIPPED ~p~n", [Name])
 	end.
@@ -77,17 +103,21 @@ test_scenario(Config, RawSteps, Name) ->
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
 	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files)],
-	step_run(Config, Input, Step, StepFiles).
+  step_run(Config, Input, Step, StepFiles).
 	
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
 	try apply(Feature, step, [Config, Input, Step]) of
-		error -> {error, Step};
+		error -> 
+		  {error, Step};
 		Result -> Result
 	catch
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);
-		exit: {noproc, {gen_server, call, Details}} -> io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), throw("BDD ERROR: Could not connect to web server.");
+		exit: {noproc, {gen_server, call, Details}} -> 
+		  io:format("exit Did not find step: ~p~n", [Feature]),
+      io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), 
+      throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> io:format("ERROR: step run found ~p:~p~n", [X, Y]), throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
 	
@@ -110,7 +140,6 @@ scenario_steps([H | T], N, Given, When, Then, LastStep) ->
 	  {step_and, SS} -> {LastStep, SS};
 	  {Type, SS} -> {Type, SS}
 	end,
-	bdd_utils:debug("line ~p~n", [Step]),
 	case Step of
 		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, step_given);
 		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, step_when);

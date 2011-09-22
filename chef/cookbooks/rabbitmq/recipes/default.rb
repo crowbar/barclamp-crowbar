@@ -33,7 +33,7 @@
 # while still using /etc/init.d/rabbitmq-server start
 # because of this we just put the rabbitmq-env.conf in place and let it rip
 
-remote_directory "/usr/lib/rabbitmq/lib/rabbitmq_server-2.3.1/plugins" do
+remote_directory "/usr/lib/rabbitmq/lib/rabbitmq_server-2.6.1/plugins" do
   source "plugins"
   owner "root"
   group "root"

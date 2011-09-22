@@ -24,7 +24,7 @@ Rails::Initializer.run do |config|
   config.gem "sass"
   config.gem "simple-navigation"
   config.gem "i18n"
-  config.gem "json", :version => '1.5.2'
+  config.gem "json"
   
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named

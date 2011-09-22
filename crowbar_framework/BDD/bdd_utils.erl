@@ -17,7 +17,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, config/2, tokenize/1, clean_line/1, strip_doctype/1, uri/2]).
 -export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3, html_find_link/2, debug/3, debug/2, debug/1, trace/6]).
--export([http_post_params/1, http_post/4]).
+-export([http_post_params/1, http_post/5]).
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -112,9 +112,9 @@ http_get(Config, Page) ->
 http_get(Config, Page, not_found) ->
 	http_get(uri(Config,Page), 404, "Not Found");
 http_get(Config, Page, ok) ->
-	http_get(uri(Config,Page), 200, "OK(.*)");
-http_get(URL, ReturnCode, StateRegEx) ->
-	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = http:request(URL),
+	http_get(Config, uri(Config,Page), 200, "OK(.*)").
+http_get(Config, URL, ReturnCode, StateRegEx) ->
+	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = digest_auth:request(Config, URL),
 	{ok, StateMP} = re:compile(StateRegEx),
 	%bdd_utils:debug(true, "hppt_get has: URL ~p = ~s~n", [URL, Body]),
 	case re:run(State, StateMP) of
@@ -131,9 +131,9 @@ http_post_params([{K, V} | P], ParamsOrig) ->
   end,
   http_post_params(P, ParamsOrig++ParamsAdd).
 
-http_post(URL, Parameters, ReturnCode, StateRegEx) ->
+http_post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
   Post = URL ++ http_post_params(Parameters),
-  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = http:post(post, Post, [], []),
+  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = digest_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
@@ -141,9 +141,11 @@ http_post(URL, Parameters, ReturnCode, StateRegEx) ->
 	end. 
 
 config(Config, Key) ->
-	{Key, Value} = lists:keyfind(Key,1,Config),
-	Value.
-	
+	case lists:keyfind(Key,1,Config) of
+	  {Key, Value} -> Value;
+	  false -> throw("Could not find requested key in config file");
+	  _ -> throw("Unexpected return from keyfind")
+	end.
 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),

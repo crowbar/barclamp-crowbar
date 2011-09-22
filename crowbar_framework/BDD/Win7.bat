@@ -4,7 +4,9 @@ del *.beam
 
 REM Compile
 erlc json.erl
+erlc digest_auth.erl
 erlc bdd_utils.erl
+erlc sc.erl
 erlc bdd_webrat.erl
 erlc bdd_catchall.erl
 erlc bdd_selftest.erl

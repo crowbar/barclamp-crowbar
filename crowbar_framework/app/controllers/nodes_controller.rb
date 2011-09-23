@@ -44,6 +44,10 @@ class NodesController < ApplicationController
     end
   end
 
+  def list
+    @nodes = NodeObject.all
+  end
+
   def status
     nodes = {}
     switches = {}

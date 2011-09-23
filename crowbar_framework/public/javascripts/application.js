@@ -66,6 +66,17 @@ jQuery(document).ready(function($) {
   }).click(function(e){
     $(this).val('').removeClass('default');
   });
+  // Toggle stuff
+  $('.toggle').not('.disabled').click(function() {
+    target = $(this).attr('rel');
+    $(this).toggleClass('on');
+    if( $(this).attr('data-speed') ) {
+      $('#'+target).slideToggle( $(this).attr('data-speed') );
+    } else {
+      $('#'+target).toggle();
+    }
+    return false;
+  });
   
   $(document).konami(function(){
     $("header h1 a").css('background-image','url("/images/layout/bunny.png")').css('width','279px');

@@ -38,7 +38,7 @@ Feature: Barclamp
       And I should see "4"
       And I should see "1234567"    
     
-  Scenario: Status Works
+  Scenario: %Status Works
     When AJAX requests the "nodes/status" page
     Then key "nodes" should contain at least "6" items
       And key "[nodes][admin][state]" should be "Ready"

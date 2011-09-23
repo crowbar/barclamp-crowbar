@@ -65,6 +65,7 @@ en:
         status: Status
         barclamp: Barclamp
         data: JSON Data
+        proposal_count: Proposals
       role:
         name: Proposal
         description: Description
@@ -100,6 +101,12 @@ en:
       allocate_node_success: Node allocated successfully
       description: Description
   barclamp:
+    modules:
+      title: Barclamps
+      barclamp: Name
+      status: Status
+      description: Description
+      proposal: Proposal
     barclamp_index:
       title: Barclamps
       none: None

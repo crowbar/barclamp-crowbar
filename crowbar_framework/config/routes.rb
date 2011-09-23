@@ -50,6 +50,7 @@ ActionController::Routing::Routes.draw do |map|
   map.barclamp_show_barclamp    'crowbar/show/1.0/:id', :controller => 'barclamp', :action => 'barclamp_show', :conditions => { :method => :get }
   map.barclamp_roles_barclamp   'crowbar/roles/1.0', :controller => 'barclamp', :action => 'barclamp_roles', :conditions => { :method => :get }
   map.barclamp_proposals_barclamp 'crowbar/proposals/1.0', :controller => 'barclamp', :action => 'barclamp_proposals', :conditions => { :method => :get }
+  map.barclamp_modules 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :conditions => { :method => :get }
 
   map.connect 'crowbar/:barclamp/1.0/help', :action => 'help', :conditions => { :method => :get }, :controller => 'barclamp'
   map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }, :controller => 'barclamp'

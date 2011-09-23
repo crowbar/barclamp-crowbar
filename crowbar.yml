@@ -51,6 +51,9 @@ locale_additions:
       eula: EULA
 
 debs:
+  repos:
+    # Rabbit MQ repo
+    - deb http://www.rabbitmq.com/debian/ testing main
   pkgs:
     # apache stuff
     - apache2

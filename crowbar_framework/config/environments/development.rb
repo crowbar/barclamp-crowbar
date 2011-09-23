@@ -37,3 +37,5 @@ CROWBAR_VERSION = "Development"
 CHEF_ONLINE = File.exist? CHEF_CLIENT_KEY
 OFFLINE_FILES_DIR = 'db'
 
+
+

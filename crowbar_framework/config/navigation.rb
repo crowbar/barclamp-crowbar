@@ -1,8 +1,15 @@
 SimpleNavigation::Configuration.run do |navigation|  
   navigation.items do |primary|
     primary.item :dashboard, t('nav.dashboard'), root_path
-    primary.item :barclamps, t('nav.barclamps'), barclamp_index_barclamp_path do |secondary|
-      # barclamps can add menu items here
+    if RAILS_ENV == 'development'
+      primary.item :barclamps, t('nav.barclamps'), barclamp_modules_path do |secondary|
+        # barclamps can add menu items here
+        secondary.item :foo, "testing", '/users_guide.pdf'
+      end
+    else
+      primary.item :barclamps, t('nav.barclamps'), barclamp_index_barclamp_path do |secondary|
+        # barclamps can add menu items here
+      end
     end
     primary.item :proposals, t('nav.proposals'), barclamp_proposals_barclamp_path
     primary.item :roles, t('nav.roles'), barclamp_roles_barclamp_path

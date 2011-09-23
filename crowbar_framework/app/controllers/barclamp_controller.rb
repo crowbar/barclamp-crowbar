@@ -194,6 +194,26 @@ class BarclampController < ApplicationController
     render :json => ret[1]
   end
 
+  add_help(:modules)
+  def modules
+    @modules = {}
+    list = ServiceObject.all
+    list.each do |bc|
+      name = bc[0]
+      props = ProposalObject.find_proposals name
+      @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
+      ProposalObject.find_proposals(bc[0]).each do |prop|
+        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>prop.status}
+      end
+    end
+    respond_to do |format|
+      format.html 
+      format.xml  { render :xml => @modules }
+      format.json { render :json => @modules }
+    end
+    
+  end
+    
   add_help(:proposals)
   def proposals
     ret = @service_object.proposals

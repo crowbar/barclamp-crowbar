@@ -25,7 +25,7 @@ class NodeObject < ChefObject
       else 
         ChefObject.query_chef.search "node", "#{chef_escape(search)}"
       end
-      if nodes[2] != 0
+      if nodes[2] != 0 and !nodes[0].nil?
         nodes[0].delete_if { |x| x.nil? }
         answer = nodes[0].map do |x| 
           dumped = self.dump x, 'node', x.name

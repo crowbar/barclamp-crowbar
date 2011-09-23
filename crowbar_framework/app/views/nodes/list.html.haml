@@ -1,0 +1,25 @@
+- # filter to only show unallocated nodes, with an option to display all
+
+- form_for :node, :'data-remote' => true, :url => '/nodes/update_list', :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_nodes_list', :class => "formtastic" } do |f|
+  %table.data.box
+    %thead
+      %tr
+        %th= t('.name')
+        %th= t('.description')
+        %th= t('.usage')
+        %th= t('.bios')
+        %th= t('.raid')
+        %th.center Allocate?
+    %tbody
+      - @nodes.each do |node|
+        %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
+          %td= text_field_tag :name, node.name
+          %td= text_field_tag :description, "node.description"
+          %td= select_tag :usage, options_for_select([['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
+          %td= select_tag :bios, options_for_select([['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
+          %td= select_tag :raid, options_for_select([['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')
+          %td.center= check_box_tag(:allocate)
+    %tfoot
+      %tr{ :class => cycle(:odd, :even, :name => "nodes")}
+        %td.action{:colspan => 6}
+          %input.button{:type => "submit", :name => "submit", :value => 'Save'}

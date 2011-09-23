@@ -33,10 +33,12 @@ config.action_controller.perform_caching             = false
 config.action_mailer.raise_delivery_errors = false
 
 CHEF_SERVER_URL = "http://localhost:4000"
-CHEF_CLIENT_KEY = "tmp\\chefkey.pem"
-CHEF_NODE_NAME = "WN7-J84NHL1"
+CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
+CHEF_NODE_NAME ="crowbar"
 CHEF_ONLINE = true
 CROWBAR_VERSION = "Development"
 CHEF_ONLINE = true
 OFFLINE_FILES_DIR = 'db'
+
+
 

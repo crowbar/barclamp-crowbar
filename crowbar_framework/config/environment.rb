@@ -7,19 +7,6 @@
 require 'thread'
 require File.join(File.dirname(__FILE__), 'boot')
 
-# Hack around phusion passenger/rack/rails bug.  Needs to have a more 
-# elegant fix at some point.
-#if Gem::VERSION >= "1.3.6" 
-#  module Rails
-#    class GemDependency
-#      def requirement
-#        r = super
-#        (r == Gem::Requirement.default) ? nil : r
-#      end
-#    end
-#  end
-#end
-
 Rails::Initializer.run do |config|
   # Settings in config/environments/* take precedence over those specified here.
   # Application configuration should go into files in config/initializers
@@ -37,7 +24,7 @@ Rails::Initializer.run do |config|
   config.gem "sass"
   config.gem "simple-navigation"
   config.gem "i18n"
-  config.gem "json", :version => '1.5.2'
+  config.gem "json"
   
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named

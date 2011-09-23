@@ -60,7 +60,11 @@ post_state() {
   curl "${curlargs[@]}" "http://$IP:3000/crowbar/crowbar/1.0/transition/default"
 }
 
-cd /opt/dell/crowbar_framework; rainbows -D -E production -c rainbows.cfg; cd -
+RAINBOWS="/var/lib/gems/1.8/bin/rainbows"
+if [[ ! -f ${RAINBOWS} ]]; then
+  RAINBOWS="rainbows"
+fi
+cd /opt/dell/crowbar_framework; ${RAINBOWS} -D -E production -c rainbows.cfg; cd -
 
 # Mark us as readying, and get our cert.
 post_state $HOSTNAME "readying"

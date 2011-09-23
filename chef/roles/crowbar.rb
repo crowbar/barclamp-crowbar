@@ -9,7 +9,6 @@ run_list(
 default_attributes(
   :crowbar => { :admin_node => true },
   :rails => { :max_pool_size => 256, :environment => "production" },
-  :passenger => { :max_pool_size => 256 },
   :authorization => {
     :sudo => {
       :groups => [ "admin" ],

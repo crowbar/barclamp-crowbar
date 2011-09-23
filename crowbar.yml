@@ -20,6 +20,19 @@ barclamp:
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
   version: 0
+  requires:
+    - deployer
+    - dns
+    - ipmi
+    - logging
+    - network
+    - ntp
+    - provisioner
+    - redhat-install
+    - test
+    - ubuntu-install
+    - ganglia
+    - nagios
 
 crowbar:
   layout: 1
@@ -36,3 +49,148 @@ locale_additions:
     nav:
       overview: Overview
       eula: EULA
+
+debs:
+  pkgs:
+    # apache stuff
+    - apache2
+    - apache2-prefork-dev
+    - libopkele-dev
+    - libopkele3
+    - libapache2-svn
+    - libapache2-mod-fcgid
+    - libapache2-mod-php5
+    - libapache2-mod-python
+    - libapache2-mod-wsgi
+    # apt-cacher stuff
+    - apt-cacher
+    # build-essential stuff
+    - build-essential
+    - binutils-doc
+    - autoconf
+    - flex
+    - bison
+    # crowbar stuff
+    - curl
+    - sqlite
+    - libsqlite3-dev
+    - libshadow-ruby1.8
+    - chef
+    - chef-server
+    - chef-server-webui
+    - kwalify
+    - libcurl4-gnutls-dev
+    # minicom stuff
+    - minicom
+    # mysql stuff
+    - libmysqlclient-dev
+    - mysql-client
+    - libmysql-ruby
+    - mysql-server
+    # nscd stuff
+    - nscd
+    # openldap stuff
+    - libnss-ldap
+    - libpam-ldap
+    - ldap-utils
+    - db4.8-util
+    - slapd
+    # openssh stuff
+    - openssh-client
+    - openssh-server
+    # rabbitmq stuff
+    - rabbitmq-server
+    # ruby stuff
+    - ruby1.8
+    - ruby1.8-dev
+    - ruby-dev
+    - rubygems
+    - rubygems1.8
+    # runit stuff
+    - runit
+    # sudo stuff
+    - sudo
+    # java stuff
+    - sun-java6-jdk
+    - sun-java6-jre
+
+rpms:
+  pkgs:
+    # apache stuff
+    - httpd
+    - httpd-devel
+    - mod_fcgid
+    - php
+    - mod_python
+    - mod_ssl
+    - mod_wsgi
+    # build-essential stuff
+    - gcc
+    - gcc-c++
+    - kernel-devel
+    - make
+    - autoconf
+    - flex
+    - bison
+    - patch
+    # crowbar stuff
+    - curl
+    - curl-devel
+    - sqlite
+    - sqlite-devel
+    - rubygem-chef-server
+    - rubygem-kwalify
+    - createrepo
+    - lshw
+    # minicom stuff
+    - minicom
+    # mysql stuff
+    - mysql-devel
+    - mysql
+    - ruby-mysql
+    - mysql-server
+    # nscd stuff
+    - nscd
+    # openldap stuff
+    - nss_ldap
+    - db4.2-utils
+    - openldap
+    - openldap-servers
+    - openldap-clients
+    # openssh stuff
+    - openssh-clients
+    - openssh-server
+    - openssh
+    # rabbitmq stuff
+    - rabbitmq-server
+    # ruby stuff
+    - ruby
+    - ruby-ri
+    - ruby-docs
+    - ruby-devel
+    - ruby-shadow
+    # sudo stuff
+    - sudo
+
+gems:
+  pkgs:
+    # bluepill stiff
+    - i18n
+    - bluepill
+    # crowbar stuff
+    - rake
+    - json-1.5.2
+    - syslogger
+    - sass
+    - simple-navigation
+    - haml
+    - net-http-digest_auth
+    - rails-2.3.12
+    - builder
+    - activesupport
+    - rainbows
+    - sqlite3-ruby
+    - rdoc
+    - net-ssh-multi
+    # mysql stuff
+    - mysql

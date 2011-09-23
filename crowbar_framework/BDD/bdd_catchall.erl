@@ -2,6 +2,23 @@
 -export([step/3]).
 -import(bdd_util).
 
+step(_Config, _Result, {_, _N, ["pause", Time, "seconds to", Message]}) -> 
+  {T, _} = string:to_integer(Time),
+  io:format("\t\t\t...paused ~p seconds in order to ~s.~n", [T, Message]),
+  timer:sleep(T*1000);
+step(_Config, _Result, {_, _N, ["after", Time, "seconds"]}) -> 
+  {T, _} = string:to_integer(Time),
+  io:format("\t\t\tzzz...sleeping ~p seconds.~n", [T]),
+  timer:sleep(T*1000);
+step(_Config, _Result, {_, _N, ["after", Time, "minutes"]}) -> 
+  {T, _} = string:to_integer(Time),
+  io:format("\t\t\tzzz...sleeping ~p minutes.~n", [T]),
+  timer:sleep(T*60000);
+step(_Config, _Result, {_, _N, ["after", Time, "milliseconds"]}) -> 
+  {T, _} = string:to_integer(Time),
+  io:format("\t\t\tzzz...sleeping ~p milliseconds.~n", [T]),
+  timer:sleep(string:to_integer(T));
+
 step(_Config, _Result, {step_given, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_when, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_then, _N, ["I always pass"]}) -> true;

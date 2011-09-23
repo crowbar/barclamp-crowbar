@@ -1,7 +1,7 @@
 maintainer        "Opscode, Inc."
 maintainer_email  "cookbooks@opscode.com"
 license           "Apache 2.0"
-description       "Installs rails and provides a sample template for use with passenger"
+description       "Installs rails"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
 version           "0.9.2"
 

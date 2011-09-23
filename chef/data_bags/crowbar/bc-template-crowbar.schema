@@ -31,10 +31,6 @@
             "environment": { "type": "str", "required": true },
             "max_pool_size": { "type": "int", "required": true }
           }
-        },
-        "passenger": { "type": "map", "required": true, "mapping": {
-            "max_pool_size": { "type": "int", "required": true }
-          }
         }
       }
     },

@@ -117,7 +117,7 @@ en:
       description: Description
       active: Active Proposals
       proposals: All Proposals
-      default: default
+      default: model
     barclamp_roles:
       title: Active Roles
     barclamp_proposals:

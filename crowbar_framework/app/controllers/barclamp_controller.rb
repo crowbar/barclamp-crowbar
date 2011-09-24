@@ -197,13 +197,15 @@ class BarclampController < ApplicationController
   add_help(:modules)
   def modules
     @modules = {}
+    active_roles = RoleObject.active
     list = ServiceObject.all
     list.each do |bc|
       name = bc[0]
       props = ProposalObject.find_proposals name
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
-        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>prop.status}
+        active = active_roles.include? "#{name}-config-#{prop.name}"
+        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>(active ? prop.status : 'off'), :active=>active}
       end
     end
     respond_to do |format|
@@ -214,6 +216,7 @@ class BarclampController < ApplicationController
     
   end
     
+  # REMOVE WHEN MENUS CHANGE!!!
   add_help(:proposals)
   def proposals
     ret = @service_object.proposals

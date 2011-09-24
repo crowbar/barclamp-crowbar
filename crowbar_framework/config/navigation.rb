@@ -11,8 +11,8 @@ SimpleNavigation::Configuration.run do |navigation|
         # barclamps can add menu items here
       end
       primary.item :roles, t('nav.roles'), barclamp_roles_barclamp_path
+      primary.item :roles, t('nav.roles'), barclamp_roles_barclamp_path
     end
-    primary.item :roles, t('nav.roles'), barclamp_roles_barclamp_path
     primary.item :help, t('nav.help'), '/users_guide.pdf', { :link => { :target => "_blank" } }
   end
 end

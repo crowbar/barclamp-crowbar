@@ -204,7 +204,7 @@ class BarclampController < ApplicationController
       props = ProposalObject.find_proposals name
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
-        active = active_roles.include? "#{name}-config-#{prop.name}"
+        active = true #active_roles.include? "#{name}-config-#{prop.name}"
         @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>(active ? prop.status : 'off'), :active=>active}
       end
     end

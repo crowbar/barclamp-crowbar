@@ -32,6 +32,7 @@ en:
   proposal:
     actions:
       apply: Apply
+      apply: Save
       delete: Delete
       create: Create
       recall: Deactivate

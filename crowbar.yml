@@ -182,7 +182,7 @@ gems:
     - bluepill
     # crowbar stuff
     - rake
-    - json-1.5.2
+    - json
     - syslogger
     - sass
     - simple-navigation

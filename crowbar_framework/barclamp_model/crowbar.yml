@@ -29,6 +29,24 @@ nav:
   add:
     ==BC-MODEL==: barclamp_index_barclamp_path
 
+debs:
+  repos:
+    # pull from internet: 
+    # - deb http://www.rabbitmq.com/debian/ testing main
+  pkgs:
+    # put your packages here
+    # - mod_fcgid
+    
+rpms:
+  pkgs:
+    # put your rpms here
+    # - httpd
+    
+gems:
+  pkgs:
+    # put your gems here.
+    # - i18n
+
 locale_additions:
   en:
     nav:

@@ -2,8 +2,8 @@
 
 .box
   %h2= t '.attributes'
-  = render :partial => "barclamp/show_attributes_raw"
+  =(@attr_raw ? (render :partial => 'barclamp/show_attributes_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_attributes" rescue (render :partial => 'barclamp/show_attributes_raw') end))
 
 .box
   %h2= t '.deployment'
-  = render :partial => "barclamp/show_deployment_raw"
+  =(@attr_raw ? (render :partial => 'barclamp/show_deployment_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_deployment" rescue (render :partial => 'barclamp/show_deployment_raw') end))

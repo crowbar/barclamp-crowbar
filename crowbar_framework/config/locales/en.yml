@@ -28,6 +28,19 @@ en:
     proposals: Proposals
     help: Help
 
+  # General Proposal components
+  proposal:
+    actions:
+      apply: Apply
+      delete: Delete
+      create: Create
+      recall: Deactivate
+    status:
+      hold: User Review
+      ready: Active
+      unready: In Progress
+      pending: Pending
+
   # Model Names / Attributes
   model:
     node: Node
@@ -107,12 +120,16 @@ en:
       status: Status
       description: Description
       proposal: Proposal
+      delete_role: Deactivate
+      apply_proposal: Apply
+      confirm_delete_role: Are you sure you wish to deactivate this proposal?
+      delete_role_success: Successfully deactivated proposal
     barclamp_index:
       title: Barclamps
       none: None
     barclamp_show:
       title: Barclamp Details
-      create_proposal: Create Proposal
+      create_proposal: Create
       name: Name
       description: Description
       active: Active Proposals
@@ -151,9 +168,6 @@ en:
     index:
       title: Active Roles
     show:
-      delete_role: Delete Role
-      confirm_delete_role: Are you sure you wish to delete this role?
-      delete_role_success: Successfully deleted the role
       deployment: Nodes Activated
       attributes: Proposal Attributes
       role: Role

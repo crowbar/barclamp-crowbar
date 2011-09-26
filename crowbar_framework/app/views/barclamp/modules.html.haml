@@ -14,7 +14,7 @@
           %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.camelize
         %td
           - barclamp[:proposals].each do |proposal_name, proposal|
-            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.camelize} - #{proposal[:status].capitalize}"}
+            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.camelize} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description].capitalize}"
 
       %tr{:class => current_cycle("barclamps"), :style => "display:none", :id => "#{name.parameterize}_details"}
@@ -26,14 +26,16 @@
                   - barclamp[:proposals].each do |proposal_name, proposal|
                     %tr{:class => ["proposal", cycle(:odd, :even)]}
                       %td.status
-                        .led{:class => proposal[:status], :id => "#{name.parameterize}_details_#{proposal_name}", :title=> proposal[:status].capitalize}
+                        .led{:class => proposal[:status], :id => "#{name.parameterize}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
                           = link_to proposal_name.camelize, "/crowbar/#{name}/1.0/#{proposal_name}"
+                          %td= proposal[:description].capitalize
+                          %td= link_to t('.delete_role'), delete_barclamp_path(:controller => name, :id => proposal_name), :method => :delete, :class => 'button', :'data-remote' => true
                         - else
                           = link_to proposal_name.camelize, "/crowbar/#{name}/1.0/proposals/#{proposal_name}"
-                      %td= proposal[:description].capitalize
-                      %td button
+                          %td= proposal[:description].capitalize
+                          %td= "apply"
                 - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                   - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
                     %tr

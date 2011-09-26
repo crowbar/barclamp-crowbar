@@ -98,7 +98,8 @@ class BarclampController < ApplicationController
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
-
+  
+  # REMOVE WHEN MENUS CHANGE!!!
   add_help(:index)
   def index
     ret = @service_object.list_active
@@ -204,8 +205,8 @@ class BarclampController < ApplicationController
       props = ProposalObject.find_proposals name
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
-        active = true #active_roles.include? "#{name}-config-#{prop.name}"
-        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>(active ? prop.status : 'off'), :active=>active}
+        active = ["ready", "unready", "pending"].include? prop.status
+        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>prop.status, :active=>active}
       end
     end
     respond_to do |format|

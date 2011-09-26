@@ -103,11 +103,11 @@ class ProposalObject < ChefObject
   def status
     bc = @item["deployment"][self.barclamp]
     if bc.nil?
-      "unready"
+      "hold"
     else
       return "unready" if bc.has_key? "crowbar-committing" and bc["crowbar-committing"]
       return "pending" if bc.has_key? "crowbar-queued" and bc["crowbar-queued"]
-      return "off" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
+      return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
       "ready"
     end
   end

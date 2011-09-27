@@ -4,7 +4,7 @@ SimpleNavigation::Configuration.run do |navigation|
     if RAILS_ENV == 'development'
       primary.item :barclamps, t('nav.barclamps'), barclamp_modules_path do |secondary|
         # barclamps can add menu items here
-        secondary.item :foo, "testing", '/users_guide.pdf'
+        secondary.item :test, "test ", barclamp_modules_path(:id=>'test')
       end
     else
       primary.item :barclamps, t('nav.barclamps'), barclamp_index_barclamp_path do |secondary|

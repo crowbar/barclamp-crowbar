@@ -125,8 +125,12 @@ class BarclampController < ApplicationController
   def show
     ret = @service_object.show_active params[:id]
     @role = ret[1]
+    Rails.logger.debug "Role #{ret.inspect}"
     respond_to do |format|
-      format.html { render :template => 'barclamp/show' }
+      format.html {
+        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
+        render :template => 'barclamp/show' 
+      }
       format.xml  { 
         return render :text => @role, :status => ret[0] if ret[0] != 200
         render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
@@ -383,10 +387,6 @@ class BarclampController < ApplicationController
 
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
-    @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
-    @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-    @service_object.validate_proposal @proposal.raw_data
-    @proposal.save
     ret = @service_object.proposal_commit params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] >= 210
     render :json => ret[1], :status => ret[0]

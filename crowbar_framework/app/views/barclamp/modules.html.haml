@@ -13,7 +13,7 @@
         %td
           %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.humanize
         %td
-          - barclamp[:proposals].each do |proposal_name, proposal|
+          - barclamp[:proposals].sort.each do |proposal_name, proposal|
             .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.humanize} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description].capitalize}"
 
@@ -29,10 +29,10 @@
                         .led{:class => proposal[:status], :id => "#{name}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
-                          = link_to proposal_name.humanize, "/crowbar/#{name}/1.0/#{proposal_name}"
+                          = link_to proposal_name.humanize, show_barclamp_path(:controller=>name, :id=>proposal_name)
                           %td= proposal[:description].capitalize
                         - else
-                          = link_to proposal_name.humanize, "/crowbar/#{name}/1.0/proposals/#{proposal_name}"
+                          = link_to proposal_name.humanize, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
                           %td= proposal[:description].capitalize
                       %td
                         - button = case proposal[:status]

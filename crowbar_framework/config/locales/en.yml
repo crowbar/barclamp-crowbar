@@ -102,6 +102,12 @@ en:
       title: Node list
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
+    list:
+      name: Name
+      description: Description
+      usage: Usage
+      bios: BIOS
+      raid: RAID
     new:
       title: Add Node
     show:

@@ -53,7 +53,7 @@ crowbar:
 
 nav:
   add:
-    ==BC-MODEL==: barclamp_index_barclamp_path
+    ==BC-MODEL==: barclamp_modules_path(:id=>'==BC-MODEL==')
 
 # debs, gems, rpms and extra_files allow you declare the OS packages,
 # gems, and raw files that this barclamp needs.

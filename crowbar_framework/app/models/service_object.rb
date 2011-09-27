@@ -302,13 +302,17 @@ class ServiceObject
 
   def destroy_active(inst)
     inst = "#{@bc_name}-config-#{inst}"
+    @logger.debug "Trying to deactivate role #{inst}" 
     role = RoleObject.find_role_by_name(inst)
     if role.nil?
       [404, {}]
     else
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes
-      dep[@bc_name]["elements"] = {}
+      dep[@bc_name]["elements"] = {}      
+      @logger.debug "#{inst} proposal has a crowbar-committing key" if dep[@bc_name]["config"].has_key? "crowbar-committing"
+      dep[@bc_name]["config"].delete("crowbar-committing")
+      dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
       answer = apply_role(role, inst)
       role.destroy

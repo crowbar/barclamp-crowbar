@@ -148,10 +148,9 @@ class BarclampController < ApplicationController
     ret = [500, "Server Problem"]
     begin
       ret = @service_object.destroy_active(params[:id])
-      flash[:notice] = ret[1] if ret[0] >= 300
-      flash[:notice] = t('proposal.actions.delete_success') if ret[0] == 200
+      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1])
     rescue Exception => e
-      flash[:notice] = e.message
+      flash[:notice] = t('proposal.actions.delete_fail') + e.message
     end
 
     respond_to do |format|
@@ -395,7 +394,8 @@ class BarclampController < ApplicationController
   add_help(:proposal_dequeue,[:id],[:post])
   def proposal_dequeue
     ret = @service_object.dequeue_proposal params[:id]
-    return render :text => "Failed to dequeue", :status => 400 unless ret
+    flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
+    return render :text => flash[:notice], :status => 400 unless ret
     render :json => {}, :status => 200 if ret
   end
 

@@ -20,7 +20,7 @@ ActionController::Routing::Routes.draw do |map|
 
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
-
+  map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :constraints => { :name => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /.*/ }
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /.*/ }
@@ -41,7 +41,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :post }
   map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :get }
   map.index_barclamp            'crowbar/:controller/1.0', :action => 'index', :conditions => { :method => :get }
-  map.status_barclamp           'crowbar/:controller/1.0/status', :action => 'status', :conditions => { :method => :get }
+  map.status_barclamp           'crowbar/:controller/1.0/status', :action => 'status', :conditions => { :method => :get }  #REMOVE
   map.delete_barclamp           'crowbar/:controller/1.0/:id', :action => 'delete', :conditions => { :method => :delete }
   map.show_barclamp             'crowbar/:controller/1.0/:id', :action => 'show', :conditions => { :method => :get }
   map.versions_barclamp         'crowbar/:controller', :action => 'versions', :conditions => { :method => :get }

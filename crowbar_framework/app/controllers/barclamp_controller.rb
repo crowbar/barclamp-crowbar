@@ -69,6 +69,7 @@ class BarclampController < ApplicationController
     end
   end
 
+  # REMOVE WHEN MENUS CAHNGES
   # Barclamp Proposals (all)
   add_help(:barclamp_proposals, [])
   def barclamp_proposals
@@ -124,8 +125,12 @@ class BarclampController < ApplicationController
   def show
     ret = @service_object.show_active params[:id]
     @role = ret[1]
+    Rails.logger.debug "Role #{ret.inspect}"
     respond_to do |format|
-      format.html { render :template => 'barclamp/show' }
+      format.html {
+        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
+        render :template => 'barclamp/show' 
+      }
       format.xml  { 
         return render :text => @role, :status => ret[0] if ret[0] != 200
         render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
@@ -143,16 +148,14 @@ class BarclampController < ApplicationController
     ret = [500, "Server Problem"]
     begin
       ret = @service_object.destroy_active(params[:id])
-      flash[:notice] = ret[1] if ret[0] >= 300
-      flash[:notice] = t('barclamp.show.delete_role_success') if ret[0] == 200
+      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1])
     rescue Exception => e
-      flash[:notice] = e.message
+      flash[:notice] = t('proposal.actions.delete_fail') + e.message
     end
 
     respond_to do |format|
       format.html {
-        return redirect_to show_barclamp_path(:id => params[:id], :controller => @bc_name) if ret[0] != 200
-        redirect_to barclamp_roles_barclamp_path
+        redirect_to barclamp_modules_path(:id => @bc_name) 
       }
       format.xml  { 
         return render :text => ret[1], :status => ret[0] if ret[0] != 200
@@ -165,6 +168,7 @@ class BarclampController < ApplicationController
     end
   end
 
+  # REMOVE, NOT USED IN NEW DESIGN
   add_help(:status,[],[:get])
   def status
     bcs = {}
@@ -198,7 +202,7 @@ class BarclampController < ApplicationController
   add_help(:modules)
   def modules
     @modules = {}
-    active_roles = RoleObject.active
+    @count = 0
     list = ServiceObject.all
     list.each do |bc|
       name = bc[0]
@@ -206,7 +210,8 @@ class BarclampController < ApplicationController
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
         active = ["ready", "unready", "pending"].include? prop.status
-        @modules[name][:proposals][prop.name] = {:description=>prop.description, :status=>prop.status, :active=>active}
+        @count += 1
+        @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>prop.status, :active=>active}
       end
     end
     respond_to do |format|
@@ -256,7 +261,7 @@ class BarclampController < ApplicationController
       result = ProposalObject.all
       result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       result.each do |prop|
-        proposals["#{prop.barclamp}_#{prop.name}"] = prop.status
+        proposals["#{prop.barclamp.parameterize}_#{prop.name}"] = prop.status
       end
       render :inline => {:proposals=>proposals, :count=>proposals.length}.to_json, :cache => false
     rescue Exception=>e
@@ -268,7 +273,7 @@ class BarclampController < ApplicationController
 
   add_help(:proposal_create,[:name],[:put])
   def proposal_create
-    Rails.logger.fatal "Proposal Create starting. Params #{params.to_s}"    
+    Rails.logger.info "Proposal Create starting. Params #{params.to_s}"    
     controller = params[:controller]
     orig_id = params[:name] || params[:id]
     params[:id] = orig_id
@@ -277,14 +282,14 @@ class BarclampController < ApplicationController
       Rails.logger.info "asking for proposal of: #{params}"
       answer = @service_object.proposal_create params
       Rails.logger.info "proposal is: #{answer}"
-      flash[:notice] =  answer[0] != 200 ? answer[1] : t('barclamp.proposal_show.create_proposal_success')
+      flash[:notice] =  answer[0] != 200 ? answer[1] : t('proposal.actions.create_success')
     rescue Exception => e
       flash[:notice] = e.message
     end
     respond_to do |format|
       format.html { 
-        return redirect_to barclamp_show_barclamp_path(controller) if answer[0] != 200
-        redirect_to proposal_barclamp_path(:controller => controller, :id => orig_id) 
+        return redirect_to barclamp_modules_path :id => params[:controller] if answer[0] != 200
+        redirect_to proposal_barclamp_path :controller=> controller, :id=>orig_id
       }
       format.xml  {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
@@ -362,9 +367,21 @@ class BarclampController < ApplicationController
 
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
-    ret = @service_object.proposal_delete params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    answer = @service_object.proposal_delete params[:id]
+    flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
+    respond_to do |format|
+      format.html {         
+        redirect_to barclamp_modules_path :id => @bc_name
+      }
+      format.xml  {
+        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        render :xml => answer[1] 
+      }
+      format.json {
+        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        render :json => answer[1] 
+      }
+    end
   end
 
   add_help(:proposal_commit,[:id],[:post])
@@ -377,7 +394,8 @@ class BarclampController < ApplicationController
   add_help(:proposal_dequeue,[:id],[:post])
   def proposal_dequeue
     ret = @service_object.dequeue_proposal params[:id]
-    return render :text => "Failed to dequeue", :status => 400 unless ret
+    flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
+    return render :text => flash[:notice], :status => 400 unless ret
     render :json => {}, :status => 200 if ret
   end
 

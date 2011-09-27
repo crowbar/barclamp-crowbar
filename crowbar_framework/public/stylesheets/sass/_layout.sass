@@ -28,6 +28,7 @@ header
     ul
       +inline_list
       li
+        position: relative
         a:link, a:visited
           color: $nav_color
           padding-left: 20px
@@ -35,6 +36,24 @@ header
             color: $nav_selected
         a:hover
           color: $nav_selected
+        ul
+          display: none
+          border: 1px solid $header_border
+          background: $page_bg
+          position: absolute
+          right: 0
+          top: 1.1em
+          width: 90%
+          li
+            display: inline
+            a
+              display: block
+              text-align: left
+              margin: 0
+              padding: 2px 10px !important
+        &:hover ul
+          display: block
+          +shadow
 
 .notice
   text-align: center

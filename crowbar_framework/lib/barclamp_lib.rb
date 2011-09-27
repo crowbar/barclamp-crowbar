@@ -18,6 +18,8 @@
 
   require 'yaml'
   require 'fileutils'
+  require 'rubygems'
+  require 'active_support'
 
   MODEL_SUBSTRING_BASE = '==BC-MODEL=='
   MODEL_SUBSTRING_CAMEL = '==^BC-MODEL=='

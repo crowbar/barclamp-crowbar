@@ -21,7 +21,7 @@ class ==^BC-MODEL==Service < ServiceObject
   end
 
   def create_proposal
-    @logger.debug("==^BC-MODEL== create_proposal: entering")
+    @logger.debug("==*BC-MODEL== create_proposal: entering")
     base = super
 
     nodes = NodeObject.all
@@ -32,12 +32,12 @@ class ==^BC-MODEL==Service < ServiceObject
       }
     end
 
-    @logger.debug("==^BC-MODEL== create_proposal: exiting")
+    @logger.debug("==*BC-MODEL== create_proposal: exiting")
     base
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
-    @logger.debug("==^BC-MODEL== apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+    @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     return if all_nodes.empty?
 
     # Make sure the bind hosts are in the admin network
@@ -50,7 +50,7 @@ class ==^BC-MODEL==Service < ServiceObject
 
       node.save
     end
-    @logger.debug("==^BC-MODEL== apply_role_pre_chef_call: leaving")
+    @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: leaving")
   end
 
 end

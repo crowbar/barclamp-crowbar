@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: ==BC-MODEL==
+# Cookbook Name:: ==*BC-MODEL==
 # Recipe:: setup
 #
 

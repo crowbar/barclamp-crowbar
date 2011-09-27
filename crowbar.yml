@@ -154,7 +154,7 @@ rpms:
     - nscd
     # openldap stuff
     - nss_ldap
-    - db4.2-utils
+    - db4.2-util
     - openldap
     - openldap-servers
     - openldap-clients

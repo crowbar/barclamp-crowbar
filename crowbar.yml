@@ -20,6 +20,8 @@ barclamp:
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
   version: 0
+  member:
+    - crowbar
   requires:
     - deployer
     - dns

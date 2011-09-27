@@ -1,0 +1,11 @@
+.bundle
+db/*.sqlite3
+db/*.json
+log/*.log
+tmp/
+.rvmrc
+config/database.yml
+public/stylesheets/*.css
+*~
+.beam
+vendor/cache

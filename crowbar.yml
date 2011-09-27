@@ -46,9 +46,7 @@ locale_additions:
           attributes: Attributes
         edit_deployment:
           deployment: Deployment
-    nav:
-      overview: Overview
-      eula: EULA
+
 
 debs:
   repos:

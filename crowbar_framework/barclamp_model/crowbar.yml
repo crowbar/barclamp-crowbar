@@ -14,6 +14,12 @@
 #
 # Author: RobHirschfeld
 #
+# This file directs the installation of the barclamp by the Crowbar Framework
+# The major compoents are
+#    barclamp: detalis about the barclamp
+#    crowbar: installation instructions
+#    nav: (optional) injects items into the Crowbar UI menu
+#    debs/rpms/gems: components needs by the barclamp
 
 barclamp:
   name: ==BC-MODEL==

@@ -23,8 +23,8 @@
 
 barclamp:
   name: ==BC-MODEL==
-  display: ==^BC-MODEL==
-  description: A way to maximize awesomeness for ==^BC-MODEL==
+  display: ==*BC-MODEL==
+  description: A way to maximize awesomeness for ==*BC-MODEL==
   version: 0
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
@@ -134,7 +134,7 @@ extra_files:
 locale_additions:
   en:
     nav:
-      ==BC-MODEL==: ==^BC-MODEL==
+      ==BC-MODEL==: ==*BC-MODEL==
     barclamp:
       ==BC-MODEL==_edit_attributes: 
         attributes: Attributes

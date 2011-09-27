@@ -32,11 +32,14 @@
     path = ARGV[2] || "/opt/dell/barclamps"
     target = File.join path, bc
     
-    if bc.nil?
+    if bc.nil? or bc == ""
       puts "You must supply a name to create a barclamp"
       exit -3
     elsif File.exist? File.join target, "crowbar.yml"
       puts "Aborting! A barclamp already exists in '#{target}'."
+      exit -3
+    elsif ! ( bc =~ /^[a-zA-Z0-9_]*$/ )
+      puts "You must supply a name to create a barclamp"
       exit -3
     else
       puts "Creating barclamp '#{bc}' into '#{path}' as entity '#{org}'."

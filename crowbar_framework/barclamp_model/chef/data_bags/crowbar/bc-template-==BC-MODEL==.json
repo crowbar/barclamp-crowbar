@@ -1,6 +1,6 @@
 {
   "id": "bc-template-==BC-MODEL==",
-  "description": "Installation for ==^BC-MODEL==",
+  "description": "Installation for ==*BC-MODEL==",
   "attributes": {
     "==BC-MODEL==": {
       "foo": "bar"

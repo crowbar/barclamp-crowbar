@@ -21,6 +21,8 @@
 
   MODEL_SUBSTRING_BASE = '==BC-MODEL=='
   MODEL_SUBSTRING_CAMEL = '==^BC-MODEL=='
+  MODEL_SUBSTRING_HUMAN = '==*BC-MODEL=='
+  MODEL_SUBSTRING_CAPSS = '==%BC-MODEL=='
   BASE_PATH = File.join '/opt', 'dell'
   MODEL_TARGET = File.join BASE_PATH, 'barclamps'
   BARCLAMP_PATH = File.join BASE_PATH, 'barclamps'
@@ -92,7 +94,9 @@
   # remove model placeholders
   def bc_replacer(item, bc, entity)
     item = item.gsub(MODEL_SUBSTRING_BASE, bc)
-    item = item.gsub(MODEL_SUBSTRING_CAMEL, bc.capitalize)
+    item = item.gsub(MODEL_SUBSTRING_CAMEL, bc.camelize)
+    item = item.gsub(MODEL_SUBSTRING_HUMAN, bc.humanize)
+    item = item.gsub(MODEL_SUBSTRING_CAPSS, bc.capitalize)
     item = item.gsub('Copyright 2011, Dell', "Copyright #{Time.now.year}, #{entity}")
     return item
   end

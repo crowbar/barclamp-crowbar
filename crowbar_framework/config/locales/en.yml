@@ -30,12 +30,20 @@ en:
 
   # General Proposal components
   proposal:
+    items:
+      default: proposal
     actions:
       apply: Apply
       apply: Save
+      dequeue: Dequeue
+      dequeue_success: Successfully dequeued proposal
       delete: Delete
+      delete_success: Successfully deleted proposal
+      delete_fail: Error, could not delete proposal
       create: Create
+      create_success: Successfully created proposal
       recall: Deactivate
+      recall_success: Successfully deactivated proposal
     status:
       hold: User Review
       ready: Active
@@ -120,11 +128,12 @@ en:
       barclamp: Name
       status: Status
       description: Description
+      in_process: Processing...
       proposal: Proposal
-      delete_role: Deactivate
-      apply_proposal: Apply
-      confirm_delete_role: Are you sure you wish to deactivate this proposal?
-      delete_role_success: Successfully deactivated proposal
+      confirm_dequeue: Are you sure you wish to dequeue this proposal?
+      confirm_recall: Are you sure you wish to deactivate this proposal?
+      confirm_delete: Are you sure you wish to delete this proposal?
+      no_action: No Action for 
     barclamp_index:
       title: Barclamps
       none: None
@@ -135,7 +144,7 @@ en:
       description: Description
       active: Active Proposals
       proposals: All Proposals
-      default: model
+      default: proposal
     barclamp_roles:
       title: Active Roles
     barclamp_proposals:
@@ -169,6 +178,7 @@ en:
     index:
       title: Active Roles
     show:
+      edit: Edit Proposal
       deployment: Nodes Activated
       attributes: Proposal Attributes
       role: Role

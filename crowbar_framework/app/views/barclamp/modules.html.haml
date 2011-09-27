@@ -3,46 +3,55 @@
 %table.data.box
   %thead
     %tr
-      %th{:style => "width:10%"}= t('.barclamp')
+      %th{:style => "width:15%"}= t('.barclamp')
       %th.status{:style => "width:10%"}= t('.status')
-      %th{:style => "width:80%"}= t('.description')
+      %th{:style => "width:75%"}= t('.description')
 
   %tbody
-    - @modules.each do |name, barclamp|
+    - @modules.sort.each do |name, barclamp|
       %tr{:class => cycle(:odd, :even, :name => "barclamps")}
         %td
-          %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.camelize
+          %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.humanize
         %td
           - barclamp[:proposals].each do |proposal_name, proposal|
-            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.camelize} - #{t 'proposal.status.'+proposal[:status]}"}
+            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.humanize} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description].capitalize}"
 
-      %tr{:class => current_cycle("barclamps"), :style => "display:none", :id => "#{name.parameterize}_details"}
+      %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
         %td.container{:colspan => "3"}
           .box
             %table.data
               %tbody
                 - if barclamp[:proposals].length > 0
-                  - barclamp[:proposals].each do |proposal_name, proposal|
-                    %tr{:class => ["proposal", cycle(:odd, :even)]}
+                  - barclamp[:proposals].sort.each do |proposal_name, proposal|
+                    %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
                       %td.status
-                        .led{:class => proposal[:status], :id => "#{name.parameterize}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
+                        .led{:class => proposal[:status], :id => "#{name}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
-                          = link_to proposal_name.camelize, "/crowbar/#{name}/1.0/#{proposal_name}"
+                          = link_to proposal_name.humanize, "/crowbar/#{name}/1.0/#{proposal_name}"
                           %td= proposal[:description].capitalize
-                          %td= link_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name), :method => :delete, :class => 'button', :'data-remote' => true
                         - else
-                          = link_to proposal_name.camelize, "/crowbar/#{name}/1.0/proposals/#{proposal_name}"
+                          = link_to proposal_name.humanize, "/crowbar/#{name}/1.0/proposals/#{proposal_name}"
                           %td= proposal[:description].capitalize
-                          %td= link_to t('proposal.actions.delete'), delete_barclamp_path(:controller => name, :id => proposal_name), :method => :delete, :class => 'button', :'data-remote' => true
+                      %td
+                        - button = case proposal[:status]
+                          - when 'hold' 
+                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
+                          - when "ready" 
+                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_recall')
+                          - when 'unready'
+                            = t '.in_process'
+                          - when 'pending' 
+                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_queue')
+                          - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
                 - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                   - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
-                    %tr
+                    %tr{:class => ["proposal", cycle(:odd, :even)]}
                       %td{:style => "text-align:center"} +
                       %td
                         = hidden_field_tag :barclamp, name
-                        = text_field_tag :name, t('barclamp.barclamp_show.default')
+                        = text_field_tag :name, t('proposal.items.default'), :size => 15
                       %td
                         = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }", :size => 60
                       %td
@@ -50,5 +59,23 @@
 
 :javascript
   function update() {
-    return false;
+    
+    $.getJSON('#{status_proposals_barclamp_path}', function(data) {
+      // If role has changed, re-render the page
+      if (data['count'] != #{@count}) {
+        location.reload();
+      };
+      
+      // Update proposals status
+      $.each(data['proposals'], function(key,val) {
+        var td = $('#'+key+' td');
+        var led = td.children('.led');
+        if(!led.hasClass(val)){
+          led.attr('class', 'led '+val);
+          led.attr('title', val.capitalize);
+          td.effect("highlight", {color: '#666666'}, 2000);
+        }
+      });
+
+    });
   }

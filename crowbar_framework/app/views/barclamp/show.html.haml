@@ -7,3 +7,7 @@
 .box
   %h2= t '.deployment'
   =(@attr_raw ? (render :partial => 'barclamp/show_deployment_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_deployment" rescue (render :partial => 'barclamp/show_deployment_raw') end))
+  
+%p
+  =link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
+  

@@ -22,11 +22,6 @@ class RoleObject < ChefObject
     self.find_roles_by_search(nil)
   end
   
-  def self.active
-    full = RoleObject.find_roles_by_name "*-config-*"
-    full.map { |x| x.name }
-  end
-  
   def self.find_roles_by_name(name)
     roles = []
     if CHEF_ONLINE

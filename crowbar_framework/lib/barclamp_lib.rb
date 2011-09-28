@@ -286,11 +286,15 @@
     end
 
     #upload the roles
-    FileUtils.cd roles
-    Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
-      knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_role + " >> #{log} 2>&1"
-      puts "\texecuted: #{path} #{knife_role}" if DEBUG
+    if File.directory? roles
+      FileUtils.cd roles
+      Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
+        knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
+        system knife_role + " >> #{log} 2>&1"
+        puts "\texecuted: #{path} #{knife_role}" if DEBUG
+      end
+    else
+      puts "\tNOTE: could not find roles #{roles}" if DEBUG
     end
 
     puts "Barclamp #{bc} (format v1) Chef Components Uploaded." 

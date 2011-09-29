@@ -306,8 +306,11 @@
     if File.directory? cookbooks
       FileUtils.cd cookbooks
       knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
-      system knife_cookbook + " >> #{log} 2>&1"
-      puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG
+      unless system knife_cookbook + " >> #{log} 2>&1"
+        puts "\t#{path} #{knife_cookbook} upload failed. Examine #{log} for more into"
+        exit 1
+      end
+      puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG  
     else
       puts "\tNOTE: could not find cookbooks #{cookbooks}" if DEBUG
     end
@@ -320,23 +323,36 @@
       chmod_dir 0644, bag_path
       FileUtils.cd bag_path
       knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_bag + " >> #{log} 2>&1"
+      unless system knife_bag + " >> #{log} 2>&1"
+        puts "\t#{knife_bag} failed.  Examine #{log} for more information."
+        exit 1
+      end
       puts "\texecuted: #{path} #{knife_bag}" if DEBUG
 
       json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
       json.each do |bag_file|
         knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui"
-        system knife_databag + " >> #{log} 2>&1"
+        unless system knife_databag + " >> #{log} 2>&1"
+          puts "\t#{knife_databag} failed.  Examine #{log} for more information."
+          exit 1
+        end
         puts "\texecuted: #{path} #{knife_databag}" if DEBUG
       end
     end
 
     #upload the roles
-    FileUtils.cd roles
-    Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
-      knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_role + " >> #{log} 2>&1"
-      puts "\texecuted: #{path} #{knife_role}" if DEBUG
+    if File.directory? roles
+      FileUtils.cd roles
+      Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
+        knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
+        unless system knife_role + " >> #{log} 2>&1"
+          puts "\t#{knife_role} failed.  Examine #{log} for more information."
+          exit 1
+        end
+        puts "\texecuted: #{path} #{knife_role}" if DEBUG
+      end
+    else
+      puts "\tNOTE: could not find roles #{roles}" if DEBUG
     end
 
     puts "Barclamp #{bc} (format v1) Chef Components Uploaded." 

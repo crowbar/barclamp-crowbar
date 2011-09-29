@@ -29,7 +29,12 @@
   if __FILE__ == $0
     path = ARGV[0]
     puts "Using #{path}" if DEBUG
-    barclamp = YAML.load_file File.join path, 'crowbar.yml'
+    bc_file = File.join path, 'crowbar.yml'
+    unless File.exist? bc_file
+      path = File.join '/opt', 'dell', 'barclamps', path
+      bc_file = File.join path, 'crowbar.yml'
+    end
+    barclamp = YAML.load_file bc_file
     bc = barclamp["barclamp"]["name"].chomp.strip
     case barclamp["crowbar"]["layout"].to_i
     when 1

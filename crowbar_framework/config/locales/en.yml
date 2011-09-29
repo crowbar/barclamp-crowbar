@@ -22,7 +22,9 @@ en:
 
   # Layout
   nav:
+    nodes: System Nodes
     dashboard: Dashboard
+    list: Bulk&nbsp;Edit
     barclamps: Barclamps
     roles: Active Roles
     proposals: Proposals

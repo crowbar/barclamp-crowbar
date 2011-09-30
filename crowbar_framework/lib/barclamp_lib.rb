@@ -33,7 +33,7 @@
   BIN_PATH = File.join BASE_PATH, 'bin'
   UPDATE_PATH = '/updates'
   ROOT_PATH = '/'
-  DEBUG=false
+  DEBUG=if ENV['DEBUG'] == "true"
   
   # entry point for scripts
   def bc_install(bc, path, barclamp)
@@ -124,26 +124,33 @@
   
   # makes sure that sass overrides are injected into the application.sass
   def merge_sass(barclamp, bc, path, installing)
+    debug = DEBUG
     sass_path = File.join path, 'crowbar_framework', 'public', 'stylesheets', 'sass'
     application_sass = File.join CROWBAR_PATH, 'public', 'stylesheets', 'sass', 'application.sass'
     if File.exist? application_sass
       sass_files = Dir.entries(sass_path).find_all { |r| r =~ /^_(.*).sass$/ }
-      puts "ERROR: missing application sass in #{application_sass}" unless File.exist? application_sass
       # get entries from the applicaiton.sass file
       sapp = []
       File.open(application_sass,'r') do |f|
         f.each_line { |l| sapp << l.chomp }
       end
       # figure out where to insert the sass item
-      top = sapp.find_index("// top of import list")+1 || 5
+      top = -1
+      if !barclamp['application_sass'].nil? and  barclamp['application_sass']['add'] === 'top'
+        top = (sapp.find_index("// top of import list") || 3)+1 
+      end
       # remove items that we don't want
       barclamp['application_sass']['remove'].each do |item|
         if installing and sapp.include? item
           sapp.delete item
-          puts "removing '#{item}' from application.sass based on crowbar.yml" if DEBUG 
+          puts "removing '#{item}' from application.sass based on crowbar.yml" if debug 
         elsif !installing and !sapp.include? item
-          sapp.insert top, item
-          puts "restoring '#{item}' to application.sass based on crowbar.yml" if DEBUG 
+          if top>0 
+            sapp.insert top, item
+          else
+            sapp << item
+          end
+          puts "restoring '#{item}' to application.sass based on crowbar.yml in position #{top}" if debug 
         end   
       end 
       # scan the sass files from the barclamp
@@ -151,12 +158,16 @@
         entry = "@import #{sf[/^_(.*).sass$/,1]}"
         # when installing, if not already in the application, add it
         if installing and !sapp.include? entry 
-          sapp.insert top, entry.chomp
-          puts "adding '#{entry}' to application.sass for #{sf}" if DEBUG
+          if top>0 
+            sapp.insert top, item
+          else
+            sapp << item
+          end
+          puts "adding '#{entry}' to application.sass for #{sf} in position #{top}" if debug
         # when uninstalling, remove from applicaiton
         elsif !installing
           sapp.delete entry
-          puts "removing '#{entry}' from application.sass for #{sf}" if DEBUG
+          puts "removing '#{entry}' from application.sass for #{sf}" if debug
         end
       end
       # write the new application sass
@@ -164,9 +175,9 @@
         out.puts sapp
       end
       FileUtils.chmod_R 0755, application_sass
-      puts "updated #{application_sass}" if DEBUG
+      puts "updated #{application_sass}" if debug
     else
-      puts "NOTE: skipping application sass update, #{application_sass} not found" if DEBUG
+      puts "NOTE: skipping application sass update, #{application_sass} not found" if debug
     end
   end
     

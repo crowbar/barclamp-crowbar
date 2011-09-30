@@ -45,6 +45,7 @@ class NodesController < ApplicationController
   end
 
   def list
+    flash[:notice] = "THIS FEATURE IS UNDER DEVELOPMENT"
     @nodes = NodeObject.all
   end
 

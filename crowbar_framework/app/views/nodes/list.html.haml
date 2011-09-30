@@ -1,5 +1,4 @@
 - # filter to only show unallocated nodes, with an option to display all
-
 - form_for :node, :'data-remote' => true, :url => '/nodes/update_list', :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_nodes_list', :class => "formtastic" } do |f|
   %table.data.box
     %thead
@@ -22,4 +21,5 @@
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}
         %td.action{:colspan => 6}
-          %input.button{:type => "submit", :name => "submit", :value => 'Save'}
+          - if RAILS_ENV == "development"
+            %input.button{:type => "submit", :name => "submit", :value => 'Save'}

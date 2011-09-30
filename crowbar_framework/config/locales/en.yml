@@ -188,6 +188,7 @@ en:
       deployment: Nodes Activated
       attributes: Proposal Attributes
       role: Role
+      key: Key
     show_attributes_raw:
       key: Key
     show_deployment_raw:

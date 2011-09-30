@@ -22,7 +22,9 @@ en:
 
   # Layout
   nav:
+    nodes: System Nodes
     dashboard: Dashboard
+    list: Bulk&nbsp;Edit
     barclamps: Barclamps
     roles: Active Roles
     proposals: Proposals
@@ -36,10 +38,11 @@ en:
       apply: Apply
       apply: Save
       dequeue: Dequeue
-      dequeue_success: Successfully dequeued proposal
+      dequeue_fail: Error, could not dequeue proposal.  
+      dequeue_success: Successfully dequeued proposal.  
       delete: Delete
-      delete_success: Successfully deleted proposal
-      delete_fail: Error, could not delete proposal
+      delete_success: Successfully deleted proposal.  
+      delete_fail: Error, could not delete proposal.  
       create: Create
       create_success: Successfully created proposal
       recall: Deactivate

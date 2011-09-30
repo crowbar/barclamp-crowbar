@@ -100,6 +100,7 @@ class ProposalObject < ChefObject
     @item.name[/crowbar_bc-(.*)-(.*)$/,1]
   end
 
+  #NOTE: Status is NOT accurate if the proposal has been deactivated!  You must check the role.
   def status
     bc = @item["deployment"][self.barclamp]
     if bc.nil?

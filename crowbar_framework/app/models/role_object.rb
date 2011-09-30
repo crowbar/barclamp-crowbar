@@ -22,6 +22,16 @@ class RoleObject < ChefObject
     self.find_roles_by_search(nil)
   end
   
+  def self.active(name)
+    full = if name.nil?
+      RoleObject.find_roles_by_name "*-config-*"
+    else
+      RoleObject.find_roles_by_name name
+    end
+    full.map { |x| "#{x.barclamp}_#{x.inst}" }
+    Rails.logger.debug full.inspect
+  end
+  
   def self.find_roles_by_name(name)
     roles = []
     if CHEF_ONLINE

@@ -148,10 +148,9 @@ class BarclampController < ApplicationController
     ret = [500, "Server Problem"]
     begin
       ret = @service_object.destroy_active(params[:id])
-      flash[:notice] = ret[1] if ret[0] >= 300
-      flash[:notice] = t('proposal.actions.delete_success') if ret[0] == 200
+      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1])
     rescue Exception => e
-      flash[:notice] = e.message
+      flash[:notice] = t('proposal.actions.delete_fail') + e.message
     end
 
     respond_to do |format|
@@ -204,15 +203,17 @@ class BarclampController < ApplicationController
   def modules
     @modules = {}
     @count = 0
+    active = RoleObject.active
     list = ServiceObject.all
     list.each do |bc|
       name = bc[0]
       props = ProposalObject.find_proposals name
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
-        active = ["ready", "unready", "pending"].include? prop.status
+        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
+        status = active.include?(prop) or ["unready", "pending"].include?(prop.status) 
         @count += 1
-        @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>prop.status, :active=>active}
+        @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
       end
     end
     respond_to do |format|
@@ -259,10 +260,14 @@ class BarclampController < ApplicationController
   def proposal_status
     proposals = {}
     begin
-      result = ProposalObject.all
+      active = RoleObject.active params[:id]
+      Rails.logger.debug "active #{active.inspect}"
+      result = (params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
       result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       result.each do |prop|
-        proposals["#{prop.barclamp.parameterize}_#{prop.name}"] = prop.status
+        prop_id = "#{prop.barclamp}_#{prop.name}"
+        status = active.include?(prop_id) or ["unready", "pending"].include?(prop.status) 
+        proposals[prop_id] = (status ? prop.status : "hold")
       end
       render :inline => {:proposals=>proposals, :count=>proposals.length}.to_json, :cache => false
     rescue Exception=>e
@@ -395,7 +400,8 @@ class BarclampController < ApplicationController
   add_help(:proposal_dequeue,[:id],[:post])
   def proposal_dequeue
     ret = @service_object.dequeue_proposal params[:id]
-    return render :text => "Failed to dequeue", :status => 400 unless ret
+    flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
+    return render :text => flash[:notice], :status => 400 unless ret
     render :json => {}, :status => 200 if ret
   end
 

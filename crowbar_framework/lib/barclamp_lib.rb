@@ -110,7 +110,7 @@
       #translation file (can be multiple)
       f = File.join CROWBAR_PATH, 'config', 'locales', "#{key}.yml"
       if File.exist? f
-        puts "merging tranlation for #{f}" if DEBUG
+        puts "merging translation for #{f}" if DEBUG
         master = YAML.load_file f
         master = merge_tree(key, value, master)
         File.open( f, 'w' ) do |out|
@@ -122,6 +122,54 @@
     end
   end
   
+  # makes sure that sass overrides are injected into the application.sass
+  def merge_sass(barclamp, bc, path, installing)
+    sass_path = File.join path, 'crowbar_framework', 'public', 'stylesheets', 'sass'
+    application_sass = File.join CROWBAR_PATH, 'public', 'stylesheets', 'sass', 'application.sass'
+    if File.exist? application_sass
+      sass_files = Dir.entries(sass_path).find_all { |r| r =~ /^_(.*).sass$/ }
+      puts "ERROR: missing application sass in #{application_sass}" unless File.exist? application_sass
+      # get entries from the applicaiton.sass file
+      sapp = []
+      File.open(application_sass,'r') do |f|
+        f.each_line { |l| sapp << l.chomp }
+      end
+      # figure out where to insert the sass item
+      top = sapp.find_index("// top of import list")+1 || 5
+      # remove items that we don't want
+      barclamp['application_sass']['remove'].each do |item|
+        if installing and sapp.include? item
+          sapp.delete item
+          puts "removing '#{item}' from application.sass based on crowbar.yml" if DEBUG 
+        elsif !installing and !sapp.include? item
+          sapp.insert top, item
+          puts "restoring '#{item}' to application.sass based on crowbar.yml" if DEBUG 
+        end   
+      end 
+      # scan the sass files from the barclamp
+      sass_files.each do |sf|
+        entry = "@import #{sf[/^_(.*).sass$/,1]}"
+        # when installing, if not already in the application, add it
+        if installing and !sapp.include? entry 
+          sapp.insert top, entry.chomp
+          puts "adding '#{entry}' to application.sass for #{sf}" if DEBUG
+        # when uninstalling, remove from applicaiton
+        elsif !installing
+          sapp.delete entry
+          puts "removing '#{entry}' from application.sass for #{sf}" if DEBUG
+        end
+      end
+      # write the new application sass
+      File.open(application_sass, 'w' ) do |out|
+        out.puts sapp
+      end
+      FileUtils.chmod_R 0755, application_sass
+      puts "updated #{application_sass}" if DEBUG
+    else
+      puts "NOTE: skipping application sass update, #{application_sass} not found" if DEBUG
+    end
+  end
+    
   # injects/cleans barclamp items from framework navigation
   def merge_nav(barclamp, installing)
     unless barclamp['nav'].nil?
@@ -191,6 +239,7 @@
       end
       FileUtils.rm files
       merge_nav barclamp, false
+      merge_sass barclamp, bc, path, false
       puts "Barclamp #{bc} UNinstalled" if DEBUG
     end
   end
@@ -206,6 +255,7 @@
     #merge i18n information (least invasive operations first)
     merge_i18n barclamp
     merge_nav barclamp, true
+    merge_sass barclamp, bc, path, true
 
     #copy the rails parts (required for render BEFORE import into chef)
     dirs = Dir.entries(path)
@@ -259,9 +309,12 @@
     #upload the cookbooks
     if File.directory? cookbooks
       FileUtils.cd cookbooks
-      knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
-      system knife_cookbook + " >> #{log} 2>&1"
-      puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG
+      knife_cookbook = "knife cookbook upload -o . -a -V -k /etc/chef/webui.pem -u chef-webui"
+      unless system knife_cookbook + " >> #{log} 2>&1"
+        puts "\t#{path} #{knife_cookbook} upload failed. Examine #{log} for more into"
+        exit 1
+      end
+      puts "\texecuted: #{path} #{knife_cookbook}" if DEBUG  
     else
       puts "\tNOTE: could not find cookbooks #{cookbooks}" if DEBUG
     end
@@ -273,27 +326,39 @@
       FileUtils.chmod 0755, bag_path
       chmod_dir 0644, bag_path
       FileUtils.cd bag_path
-      knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_bag + " >> #{log} 2>&1"
+      knife_bag  = "knife data bag create #{bag} -V -k /etc/chef/webui.pem -u chef-webui"
+      unless system knife_bag + " >> #{log} 2>&1"
+        puts "\t#{knife_bag} failed.  Examine #{log} for more information."
+        exit 1
+      end
       puts "\texecuted: #{path} #{knife_bag}" if DEBUG
 
       json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
       json.each do |bag_file|
-        knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui"
-        system knife_databag + " >> #{log} 2>&1"
+        knife_databag  = "knife data bag from file #{bag} #{bag_file} -V -k /etc/chef/webui.pem -u chef-webui"
+        unless system knife_databag + " >> #{log} 2>&1"
+          puts "\t#{knife_databag} failed.  Examine #{log} for more information."
+          exit 1
+        end
         puts "\texecuted: #{path} #{knife_databag}" if DEBUG
       end
     end
 
     #upload the roles
-    FileUtils.cd roles
-    Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
-      knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
-      system knife_role + " >> #{log} 2>&1"
-      puts "\texecuted: #{path} #{knife_role}" if DEBUG
+    if File.directory? roles
+      FileUtils.cd roles
+      Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
+        knife_role = "knife role from file #{role} -V -k /etc/chef/webui.pem -u chef-webui"
+        unless system knife_role + " >> #{log} 2>&1"
+          puts "\t#{knife_role} failed.  Examine #{log} for more information."
+          exit 1
+        end
+        puts "\texecuted: #{path} #{knife_role}" if DEBUG
+      end
+    else
+      puts "\tNOTE: could not find roles #{roles}" if DEBUG
     end
 
     puts "Barclamp #{bc} (format v1) Chef Components Uploaded." 
 
   end
-  

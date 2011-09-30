@@ -20,6 +20,8 @@ barclamp:
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
   version: 0
+  member:
+    - crowbar
   requires:
     - deployer
     - dns
@@ -180,7 +182,7 @@ gems:
     - bluepill
     # crowbar stuff
     - rake
-    - json
+    - json-1.5.2
     - syslogger
     - sass
     - simple-navigation
@@ -193,5 +195,6 @@ gems:
     - sqlite3-ruby
     - rdoc
     - net-ssh-multi
+    - formtastic-1.2.4
     # mysql stuff
     - mysql

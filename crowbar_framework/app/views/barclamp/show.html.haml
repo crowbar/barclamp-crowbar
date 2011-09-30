@@ -1,6 +1,6 @@
 %p{:style => 'float:right'}
   = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
-%h1= link_to "#{@role.barclamp.titlecase}: #{@role.inst}", barclamp_modules_path(:id=>@role.barclamp)
+%h1= link_to "#{@role.barclamp.titlecase}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
 
 .box
   %h2= t '.attributes'

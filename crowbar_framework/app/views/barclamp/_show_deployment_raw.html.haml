@@ -1,6 +1,8 @@
 - if @role.elements.length > 0 
-  - @role.elements.each_pair do |key, value|
-    = dl_item "#{t '.role'} <b>#{key}</b>", (value.map{|m| m.split('.').first}.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')), {:escape_html=>false} #.html_safe
+  %dl
+    - @role.elements.each_pair do |key, value|
+      = dl_item "#{t '.role'} <b>#{key}</b>", (value.map{|m| m.split('.').first}.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')), {:escape_html=>false} #.html_safe
+  .clear
 - else
   %p 
     = t '.none'

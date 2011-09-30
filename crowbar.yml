@@ -189,6 +189,8 @@ gems:
     - haml
     - net-http-digest_auth
     - rails-2.3.12
+    - activesupport-2.3.12
+    - bundler
     - builder
     - activesupport
     - rainbows

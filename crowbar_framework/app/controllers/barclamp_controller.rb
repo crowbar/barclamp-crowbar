@@ -203,7 +203,7 @@ class BarclampController < ApplicationController
   def modules
     @modules = {}
     @count = 0
-    active = RoleObject.active
+    active = RoleObject.active nil
     list = ServiceObject.all
     list.each do |bc|
       name = bc[0]
@@ -211,7 +211,7 @@ class BarclampController < ApplicationController
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
       ProposalObject.find_proposals(bc[0]).each do |prop|
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = active.include?(prop) or ["unready", "pending"].include?(prop.status) 
+        status = active.include?("#{name}_#{prop}") or ["unready", "pending"].include?(prop.status) 
         @count += 1
         @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
       end
@@ -261,8 +261,7 @@ class BarclampController < ApplicationController
     proposals = {}
     begin
       active = RoleObject.active params[:id]
-      Rails.logger.debug "active #{active.inspect}"
-      result = (params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
+      result = ProposalObject.all #(params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
       result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"

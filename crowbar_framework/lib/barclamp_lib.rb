@@ -33,7 +33,7 @@
   BIN_PATH = File.join BASE_PATH, 'bin'
   UPDATE_PATH = '/updates'
   ROOT_PATH = '/'
-  DEBUG=if ENV['DEBUG'] == "true"
+  DEBUG = ENV['DEBUG'] == "true"
   
   # entry point for scripts
   def bc_install(bc, path, barclamp)

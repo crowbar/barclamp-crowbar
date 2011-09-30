@@ -127,7 +127,7 @@
     debug = DEBUG
     sass_path = File.join path, 'crowbar_framework', 'public', 'stylesheets', 'sass'
     application_sass = File.join CROWBAR_PATH, 'public', 'stylesheets', 'sass', 'application.sass'
-    if File.exist? application_sass
+    if File.exist? application_sass and File.exists? sass_path
       sass_files = Dir.entries(sass_path).find_all { |r| r =~ /^_(.*).sass$/ }
       # get entries from the applicaiton.sass file
       sapp = []
@@ -151,17 +151,17 @@
             sapp << item
           end
           puts "restoring '#{item}' to application.sass based on crowbar.yml in position #{top}" if debug 
-        end   
-      end 
+        end 
+      end unless barclamp['application_sass'].nil? or barclamp['application_sass']['remove']
       # scan the sass files from the barclamp
       sass_files.each do |sf|
         entry = "@import #{sf[/^_(.*).sass$/,1]}"
         # when installing, if not already in the application, add it
         if installing and !sapp.include? entry 
           if top>0 
-            sapp.insert top, item
+            sapp.insert top, entry
           else
-            sapp << item
+            sapp << entry
           end
           puts "adding '#{entry}' to application.sass for #{sf} in position #{top}" if debug
         # when uninstalling, remove from applicaiton
@@ -331,28 +331,32 @@
     end
     
     #upload the databags
-    Dir.entries(databags).each do |bag|
-      next if bag == "." or bag == ".."
-      bag_path = File.join databags, bag 
-      FileUtils.chmod 0755, bag_path
-      chmod_dir 0644, bag_path
-      FileUtils.cd bag_path
-      knife_bag  = "knife data bag create #{bag} -V -k /etc/chef/webui.pem -u chef-webui"
-      unless system knife_bag + " >> #{log} 2>&1"
-        puts "\t#{knife_bag} failed.  Examine #{log} for more information."
-        exit 1
-      end
-      puts "\texecuted: #{path} #{knife_bag}" if DEBUG
-
-      json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
-      json.each do |bag_file|
-        knife_databag  = "knife data bag from file #{bag} #{bag_file} -V -k /etc/chef/webui.pem -u chef-webui"
-        unless system knife_databag + " >> #{log} 2>&1"
-          puts "\t#{knife_databag} failed.  Examine #{log} for more information."
+    if File.exists? databags
+      Dir.entries(databags).each do |bag|
+        next if bag == "." or bag == ".."
+        bag_path = File.join databags, bag 
+        FileUtils.chmod 0755, bag_path
+        chmod_dir 0644, bag_path
+        FileUtils.cd bag_path
+        knife_bag  = "knife data bag create #{bag} -V -k /etc/chef/webui.pem -u chef-webui"
+        unless system knife_bag + " >> #{log} 2>&1"
+          puts "\t#{knife_bag} failed.  Examine #{log} for more information."
           exit 1
         end
-        puts "\texecuted: #{path} #{knife_databag}" if DEBUG
+        puts "\texecuted: #{path} #{knife_bag}" if DEBUG
+
+        json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
+        json.each do |bag_file|
+          knife_databag  = "knife data bag from file #{bag} #{bag_file} -V -k /etc/chef/webui.pem -u chef-webui"
+          unless system knife_databag + " >> #{log} 2>&1"
+            puts "\t#{knife_databag} failed.  Examine #{log} for more information."
+            exit 1
+          end
+          puts "\texecuted: #{path} #{knife_databag}" if DEBUG
+        end
       end
+    else
+      puts "\tNOTE: could not find databags #{databags}" if DEBUG
     end
 
     #upload the roles

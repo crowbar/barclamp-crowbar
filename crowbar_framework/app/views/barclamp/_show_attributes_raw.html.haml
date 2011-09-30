@@ -1,2 +1,4 @@
-- @role.default_attributes[@role.barclamp].each_pair do |key, value|
-  = dl_item "#{t '.key'} <b>#{key}</b>", (value.is_a?(Enumerable) ? hash_to_ul(value) : value), {:escape_html=>false} #hash_to_ul(value).html_safe
+%dl
+  - @role.default_attributes[@role.barclamp].each_pair do |key, value|
+    = dl_item key, (value.is_a?(Enumerable) ? hash_to_ul(value) : value), {:escape_html=>false}
+.clear

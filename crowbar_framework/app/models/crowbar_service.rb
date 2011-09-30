@@ -14,6 +14,8 @@
 # 
 
 class CrowbarService < ServiceObject
+  
+  @my_proposal = nil
 
   def initialize(thelogger)
     @bc_name = "crowbar"
@@ -190,6 +192,39 @@ class CrowbarService < ServiceObject
 
     @logger.debug("Crowbar apply_role: leaving: #{answer}")
     answer
+  end
+
+
+  def self.get_bios_options    
+    read_proposal()
+    h =	 @my_proposal["attributes"]["crowbar"]["bios-settings"]
+  rescue
+    {}
+  end
+
+
+  def self.get_raid_options
+    read_proposal()
+    h = @my_proposal["attributes"]["crowbar"]["raid-settings"]
+  rescue
+    {}
+   end
+  
+  def self.get_usage_options
+    read_proposal()
+    @my_proposal["attributes"]["crowbar"]["node-usage"]
+  rescue
+    { }
+  end
+
+  def self.read_proposal 
+    return unless @my_proposal.nil?
+
+    # read in default proposal, to make some vaules avilable
+    proposals = ProposalObject.find_proposals("crowbar")
+    raise "Can't find crowbar default proposal" if proposals.nil? or proposals[0].nil?
+    @my_proposal = proposals[0]
+    raise "No crowbar proposal found" if @my_proposal.nil?    
   end
 
 end

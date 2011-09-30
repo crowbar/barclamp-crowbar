@@ -24,8 +24,20 @@
                   }
                 }
               }
-            }
-          }
+            },
+	    "bios-settings": { "type": "map", "required": false, "mapping": {
+		    = : { "type": "str", "required": true }
+	        }
+            },
+	    "raid-settings": { "type": "map", "required": false, "mapping": {
+		    = : { "type": "str", "required": true}
+	       }
+            },
+            "node-usage": { "type": "map", "required": false, "mapping": {
+		    = : { "type": "str", "required": true }
+	       }
+	    }
+	  }
         },
         "rails": { "type": "map", "required": true, "mapping": {
             "environment": { "type": "str", "required": true },

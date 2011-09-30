@@ -26,7 +26,7 @@
                   - barclamp[:proposals].sort.each do |proposal_name, proposal|
                     %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
                       %td.status
-                        .led{:class => proposal[:status], :id => "#{name}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
+                        .led{:class => proposal[:status], :id => "#{name}_#{proposal_name}_details", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
                           = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
@@ -68,14 +68,17 @@
       
       // Update proposals status
       $.each(data['proposals'], function(key,val) {
-        var td = $('#'+key+' td');
-        var led = td.children('.led');
-        if(!led.hasClass(val)){
-          led.attr('class', 'led '+val);
-          led.attr('title', val.capitalize);
-          td.effect("highlight", {color: '#666666'}, 2000);
-        }
+        led_update($('#'+key), val);
+        led_update($('#'+key+'_details'), val);
       });
 
     });
+  }
+  
+  function led_update(td, val) {
+    if(!td.hasClass(val)){
+      td.attr('class', val+' led');
+      td.attr('title', val.capitalize);
+      td.effect("highlight", {color: '#666666'}, 2000);
+    };  
   }

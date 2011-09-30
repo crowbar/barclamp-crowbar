@@ -174,7 +174,8 @@
       File.open(application_sass, 'w' ) do |out|
         out.puts sapp
       end
-      FileUtils.chmod_R 0755, application_sass
+      framework_permissions bc, path
+      
       puts "updated #{application_sass}" if debug
     else
       puts "NOTE: skipping application sass update, #{application_sass} not found" if debug
@@ -255,6 +256,15 @@
     end
   end
 
+  def framework_permissions(bc, path)
+    FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'db')
+    chmod_dir 0644, File.join(CROWBAR_PATH, 'db')
+    FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'tmp')
+    chmod_dir 0644, File.join(CROWBAR_PATH, 'tmp')
+    FileUtils.chmod_R 0755, File.join(CROWBAR_PATH, 'public', 'stylesheets')
+    puts "\tcopied crowbar_framework files" if DEBUG
+  end
+  
   # install the framework files for a barclamp
   def bc_install_layout_1_app(bc, path, barclamp)
     
@@ -272,12 +282,7 @@
     dirs = Dir.entries(path)
     if dirs.include? 'crowbar_framework'
       files += bc_cloner('crowbar_framework', bc, nil, path, BASE_PATH, false) 
-      FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'db')
-      chmod_dir 0644, File.join(CROWBAR_PATH, 'db')
-      FileUtils.chmod 0755, File.join(CROWBAR_PATH, 'tmp')
-      chmod_dir 0644, File.join(CROWBAR_PATH, 'tmp')
-      FileUtils.chmod_R 0755, File.join(CROWBAR_PATH, 'public', 'stylesheets')
-      puts "\tcopied crowbar_framework files" if DEBUG
+      framework_permissions bc, path
     end
     if dirs.include? 'bin'
       files += bc_cloner('bin', bc, nil, path, BASE_PATH, false) 

@@ -305,7 +305,7 @@
     #upload the cookbooks
     if File.directory? cookbooks
       FileUtils.cd cookbooks
-      knife_cookbook = "knife cookbook upload -o . -a -k /etc/chef/webui.pem -u chef-webui"
+      knife_cookbook = "knife cookbook upload -o . -a -V -k /etc/chef/webui.pem -u chef-webui"
       unless system knife_cookbook + " >> #{log} 2>&1"
         puts "\t#{path} #{knife_cookbook} upload failed. Examine #{log} for more into"
         exit 1
@@ -322,7 +322,7 @@
       FileUtils.chmod 0755, bag_path
       chmod_dir 0644, bag_path
       FileUtils.cd bag_path
-      knife_bag  = "knife data bag create #{bag} -k /etc/chef/webui.pem -u chef-webui"
+      knife_bag  = "knife data bag create #{bag} -V -k /etc/chef/webui.pem -u chef-webui"
       unless system knife_bag + " >> #{log} 2>&1"
         puts "\t#{knife_bag} failed.  Examine #{log} for more information."
         exit 1
@@ -331,7 +331,7 @@
 
       json = Dir.entries(bag_path).find_all { |r| r.end_with?(".json") }
       json.each do |bag_file|
-        knife_databag  = "knife data bag from file #{bag} #{bag_file} -k /etc/chef/webui.pem -u chef-webui"
+        knife_databag  = "knife data bag from file #{bag} #{bag_file} -V -k /etc/chef/webui.pem -u chef-webui"
         unless system knife_databag + " >> #{log} 2>&1"
           puts "\t#{knife_databag} failed.  Examine #{log} for more information."
           exit 1
@@ -344,7 +344,7 @@
     if File.directory? roles
       FileUtils.cd roles
       Dir.entries(roles).find_all { |r| r.end_with?(".rb") }.each do |role|
-        knife_role = "knife role from file #{role} -k /etc/chef/webui.pem -u chef-webui"
+        knife_role = "knife role from file #{role} -V -k /etc/chef/webui.pem -u chef-webui"
         unless system knife_role + " >> #{log} 2>&1"
           puts "\t#{knife_role} failed.  Examine #{log} for more information."
           exit 1
@@ -358,4 +358,3 @@
     puts "Barclamp #{bc} (format v1) Chef Components Uploaded." 
 
   end
-  

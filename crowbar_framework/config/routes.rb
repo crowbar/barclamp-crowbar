@@ -32,7 +32,7 @@ ActionController::Routing::Routes.draw do |map|
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
   map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
   map.commit_proposal_barclamp  'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }
-  map.status_proposals_barclamp 'crowbar/:controller/1.0/proposals/status/:id.:format', :action => 'proposal_status', :conditions => { :method => :get }
+  map.status_proposals_barclamp 'crowbar/:controller/1.0/proposals/status/:id/.:format', :action => 'proposal_status', :conditions => { :method => :get }
   map.delete_proposal_barclamp  'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :conditions => { :method => :delete }
   map.dequeue_barclamp  'crowbar/:controller/1.0/proposals/dequeue/:id', :action => 'proposal_dequeue', :conditions => { :method => :delete }
   map.update_proposal_barclamp  'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_update', :conditions => { :method => :post }

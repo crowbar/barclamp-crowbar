@@ -112,13 +112,14 @@ class Rails::Boot
 
     Rails::Initializer.class_eval do
       def load_gems
-        @bundler_loaded ||= Bundler.require :default, Rails.env
+        @bundler_loaded ||= Bundler.require :default, Rails.env if defined? RAILS_VERSION and RAILS_VERSION.starts_with? == '3.'
       end
     end
 
     Rails::Initializer.run(:set_load_path)
   end
 end
+
 
 # All that for this:
 Rails.boot!

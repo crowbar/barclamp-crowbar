@@ -11,10 +11,10 @@
     - @modules.sort.each do |name, barclamp|
       %tr{:class => cycle(:odd, :even, :name => "barclamps")}
         %td
-          %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.humanize
+          %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
         %td
           - barclamp[:proposals].sort.each do |proposal_name, proposal|
-            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.humanize} - #{t 'proposal.status.'+proposal[:status]}"}
+            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description].capitalize}"
 
       %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
@@ -29,21 +29,21 @@
                         .led{:class => proposal[:status], :id => "#{name}_details_#{proposal_name}", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
-                          = link_to proposal_name.humanize, show_barclamp_path(:controller=>name, :id=>proposal_name)
+                          = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
                           %td= proposal[:description].capitalize
                         - else
-                          = link_to proposal_name.humanize, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
+                          = link_to proposal_name.titlecase, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
                           %td= proposal[:description].capitalize
                       %td
                         - button = case proposal[:status]
                           - when 'hold' 
-                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
+                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
                           - when "ready" 
-                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_recall')
+                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
                           - when 'unready'
                             = t '.in_process'
                           - when 'pending' 
-                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.humanize+": " + t('.confirm_queue')
+                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_queue')
                           - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
                 - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                   - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|

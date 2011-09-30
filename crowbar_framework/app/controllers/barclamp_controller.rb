@@ -203,7 +203,7 @@ class BarclampController < ApplicationController
   def modules
     @modules = {}
     @count = 0
-    active = RoleObject.active
+    active = RoleObject.active nil
     list = ServiceObject.all
     list.each do |bc|
       name = bc[0]
@@ -261,13 +261,12 @@ class BarclampController < ApplicationController
     proposals = {}
     begin
       active = RoleObject.active params[:id]
-      Rails.logger.debug "active #{active.inspect}"
-      result = (params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
+      result = ProposalObject.all #(params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
       result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"
         status = active.include?(prop_id) or ["unready", "pending"].include?(prop.status) 
-        proposals[prop_id] = (status ? prop.status : "hold")
+        proposals[prop_id] = "foo" #prop.status # (status ? prop.status : "hold")
       end
       render :inline => {:proposals=>proposals, :count=>proposals.length}.to_json, :cache => false
     rescue Exception=>e

@@ -29,7 +29,6 @@ class RoleObject < ChefObject
       RoleObject.find_roles_by_name name
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }
-    Rails.logger.debug full.inspect
   end
   
   def self.find_roles_by_name(name)

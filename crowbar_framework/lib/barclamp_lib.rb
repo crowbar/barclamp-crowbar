@@ -125,45 +125,49 @@
   # makes sure that sass overrides are injected into the application.sass
   def merge_sass(barclamp, bc, path, installing)
     sass_path = File.join path, 'crowbar_framework', 'public', 'stylesheets', 'sass'
-    sass_files = Dir.entries(sass_path).find_all { |r| r =~ /^_(.*).sass$/ }
     application_sass = File.join CROWBAR_PATH, 'public', 'stylesheets', 'sass', 'application.sass'
-    puts "ERROR: missing application sass in #{application_sass}" unless File.exist? application_sass
-    # get entries from the applicaiton.sass file
-    sapp = []
-    File.open(application_sass,'r') do |f|
-      f.each_line { |l| sapp << l.chomp }
-    end
-    # figure out where to insert the sass item
-    top = sapp.find_index("// top of import list")+1 || 5
-    # remove items that we don't want
-    barclamp['application_sass']['remove'].each do |item|
-      if installing and sapp.include? item
-        sapp.delete item
-        puts "removing '#{item}' from application.sass based on crowbar.yml" if DEBUG 
-      elsif !installing and !sapp.include? item
-        sapp.insert top, item
-        puts "restoring '#{item}' to application.sass based on crowbar.yml" if DEBUG 
-      end   
-    end 
-    # scan the sass files from the barclamp
-    sass_files.each do |sf|
-      entry = "@import #{sf[/^_(.*).sass$/,1]}"
-      # when installing, if not already in the application, add it
-      if installing and !sapp.include? entry 
-        sapp.insert top, entry.chomp
-        puts "adding '#{entry}' to application.sass for #{sf}" if DEBUG
-      # when uninstalling, remove from applicaiton
-      elsif !installing
-        sapp.delete entry
-        puts "removing '#{entry}' from application.sass for #{sf}" if DEBUG
+    if File.exist? application_sass
+      sass_files = Dir.entries(sass_path).find_all { |r| r =~ /^_(.*).sass$/ }
+      puts "ERROR: missing application sass in #{application_sass}" unless File.exist? application_sass
+      # get entries from the applicaiton.sass file
+      sapp = []
+      File.open(application_sass,'r') do |f|
+        f.each_line { |l| sapp << l.chomp }
       end
+      # figure out where to insert the sass item
+      top = sapp.find_index("// top of import list")+1 || 5
+      # remove items that we don't want
+      barclamp['application_sass']['remove'].each do |item|
+        if installing and sapp.include? item
+          sapp.delete item
+          puts "removing '#{item}' from application.sass based on crowbar.yml" if DEBUG 
+        elsif !installing and !sapp.include? item
+          sapp.insert top, item
+          puts "restoring '#{item}' to application.sass based on crowbar.yml" if DEBUG 
+        end   
+      end 
+      # scan the sass files from the barclamp
+      sass_files.each do |sf|
+        entry = "@import #{sf[/^_(.*).sass$/,1]}"
+        # when installing, if not already in the application, add it
+        if installing and !sapp.include? entry 
+          sapp.insert top, entry.chomp
+          puts "adding '#{entry}' to application.sass for #{sf}" if DEBUG
+        # when uninstalling, remove from applicaiton
+        elsif !installing
+          sapp.delete entry
+          puts "removing '#{entry}' from application.sass for #{sf}" if DEBUG
+        end
+      end
+      # write the new application sass
+      File.open(application_sass, 'w' ) do |out|
+        out.puts sapp
+      end
+      FileUtils.chmod_R 0755, application_sass
+      puts "updated #{application_sass}" if DEBUG
+    else
+      puts "NOTE: skipping application sass update, #{application_sass} not found" if DEBUG
     end
-    # write the new application sass
-    File.open(application_sass, 'w' ) do |out|
-      out.puts sapp
-    end
-    FileUtils.chmod_R 0755, application_sass
-    puts "updated #{application_sass}" if DEBUG
   end
     
   # injects/cleans barclamp items from framework navigation

@@ -1,6 +1,6 @@
 SimpleNavigation::Configuration.run do |navigation|  
   navigation.items do |primary|
-    primary.item :dashboard, t('nav.nodes'), root_path do |secondary|
+    primary.item :nodes, t('nav.nodes'), root_path do |secondary|
       secondary.item :dashboard, t('nav.dashboard'), root_path
       secondary.item :dashboard, t('nav.list'), nodes_list_path
     end

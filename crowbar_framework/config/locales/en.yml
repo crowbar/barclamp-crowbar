@@ -194,6 +194,7 @@ en:
     show_attributes_raw:
       key: Key
     show_deployment_raw:
+      role: Role
       none: No Nodes Activated
 
 

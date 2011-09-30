@@ -17,7 +17,7 @@
           %a{:href => "/"}
             %span logo
         %nav
-          = render_navigation :expand_all => true
+          = render_navigation :expand_all => true, :skip_if_empty => true
     
     - if flash[:notice] || !CHEF_ONLINE
       .notice

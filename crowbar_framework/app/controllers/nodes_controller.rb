@@ -46,9 +46,6 @@ class NodesController < ApplicationController
 
   def list
     flash[:notice] = "THIS FEATURE IS UNDER DEVELOPMENT"
-    @options = { :usege => CrowbarService.get_usage_options(), 
-                  :bios => CrowbarService.get_bios_options(), 
-                  :raid => CrowbarService.get_raid_options() }
     @nodes = NodeObject.all
   end
 

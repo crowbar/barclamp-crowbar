@@ -75,6 +75,10 @@ case $1 in
 
         # Mark us as readying, and get our cert.
 	post_state $HOSTNAME "readying"
+        if [ -f /etc/default/tftpd-hpa ] ; then
+          service tftpd-hpa stop
+          service tftpd-hpa start
+        fi
 	post_state $HOSTNAME "ready"
 
 	echo "Done";;

@@ -13,8 +13,11 @@
         %td
           %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
         %td
-          - barclamp[:proposals].sort.each do |proposal_name, proposal|
-            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
+          - if barclamp[:proposals].length == 0 
+            .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+          - else
+            - barclamp[:proposals].sort.each do |proposal_name, proposal|
+              .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description].capitalize}"
 
       %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}

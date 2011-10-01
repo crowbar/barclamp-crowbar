@@ -209,9 +209,9 @@ class BarclampController < ApplicationController
       name = bc[0]
       props = ProposalObject.find_proposals name
       @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
-      ProposalObject.find_proposals(bc[0]).each do |prop|
+      ProposalObject.find_proposals(bc[0]).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = active.include?("#{name}_#{prop}") or ["unready", "pending"].include?(prop.status) 
+        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
         @count += 1
         @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
       end
@@ -265,7 +265,7 @@ class BarclampController < ApplicationController
       result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"
-        status = active.include?(prop_id) or ["unready", "pending"].include?(prop.status) 
+        status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
         proposals[prop_id] = (status ? prop.status : "hold")
       end
       render :inline => {:proposals=>proposals, :count=>proposals.length}.to_json, :cache => false

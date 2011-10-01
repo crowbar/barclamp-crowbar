@@ -27,9 +27,10 @@
               %tbody
                 - if barclamp[:proposals].length > 0
                   - barclamp[:proposals].sort.each do |proposal_name, proposal|
+                    - prop_id = "#{name}_#{proposal_name}"
                     %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
                       %td.status
-                        .led{:class => proposal[:status], :id => "#{name}_#{proposal_name}_details", :title=> t('proposal.status.'+proposal[:status])}
+                        .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
                       %td{:style => "width:10%"}
                         - if proposal[:active]
                           = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
@@ -40,13 +41,13 @@
                       %td
                         - button = case proposal[:status]
                           - when 'hold' 
-                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
+                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :id => "#{prop_id}_button", :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
                           - when "ready" 
-                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
+                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
                           - when 'unready'
                             = t '.in_process'
                           - when 'pending' 
-                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_queue')
+                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_queue')
                           - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
                 - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                   - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
@@ -71,17 +72,19 @@
       
       // Update proposals status
       $.each(data['proposals'], function(key,val) {
-        led_update($('#'+key), val);
-        led_update($('#'+key+'_details'), val);
+        led_update($('#'+key), key, val);
+        led_update($('#'+key+'_details'), key, val);
       });
 
     });
   }
   
-  function led_update(td, val) {
+  function led_update(td, key, val) {
     if(!td.hasClass(val)){
       td.attr('class', val+' led');
       td.attr('title', val.capitalize);
       td.effect("highlight", {color: '#666666'}, 2000);
+      // remove the button since it does not reflect the state anymore
+      $('#'+key+'_button').attr('hidden', 'true');
     };  
   }

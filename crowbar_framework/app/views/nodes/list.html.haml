@@ -14,9 +14,9 @@
         %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
           %td= text_field_tag :name, node.name
           %td= text_field_tag :description, "node.description"
-          %td= select_tag :usage, options_for_select(CrowbarService.get_usage_options(),  'hadoop')
-          %td= select_tag :bios, options_for_select(CrowbarService.get_bios_options(), node.bios_set || 'Hadoop')
-          %td= select_tag :raid, options_for_select(CrowbarService.get_raid_options(), node.raid_set || 'SingleRaid10')
+          %td= select_tag :usage, options_for_select(CrowbarService.get_usage_options() || [['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
+          %td= select_tag :bios, options_for_select(CrowbarService.get_bios_options() || [['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
+          %td= select_tag :raid, options_for_select(CrowbarService.get_raid_options() || [['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')
           %td.center= check_box_tag(:allocate)
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}

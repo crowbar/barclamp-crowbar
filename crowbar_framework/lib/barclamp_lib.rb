@@ -152,7 +152,7 @@
           end
           puts "restoring '#{item}' to application.sass based on crowbar.yml in position #{top}" if debug 
         end 
-      end unless barclamp['application_sass'].nil? or barclamp['application_sass']['remove']
+      end unless barclamp['application_sass'].nil? or barclamp['application_sass']['remove'].nil?
       # scan the sass files from the barclamp
       sass_files.each do |sf|
         entry = "@import #{sf[/^_(.*).sass$/,1]}"

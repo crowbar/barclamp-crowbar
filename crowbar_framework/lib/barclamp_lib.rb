@@ -152,7 +152,7 @@
           end
           puts "restoring '#{item}' to application.sass based on crowbar.yml in position #{top}" if debug 
         end 
-      end unless barclamp['application_sass'].nil? or barclamp['application_sass']['remove']
+      end unless barclamp['application_sass'].nil? or barclamp['application_sass']['remove'].nil?
       # scan the sass files from the barclamp
       sass_files.each do |sf|
         entry = "@import #{sf[/^_(.*).sass$/,1]}"
@@ -273,17 +273,18 @@
     
     puts "Installing barclamp #{bc} from #{path}"
 
-    #merge i18n information (least invasive operations first)
-    merge_i18n barclamp
-    merge_nav barclamp, true
-    merge_sass barclamp, bc, path, true
-
     #copy the rails parts (required for render BEFORE import into chef)
     dirs = Dir.entries(path)
     if dirs.include? 'crowbar_framework'
       files += bc_cloner('crowbar_framework', bc, nil, path, BASE_PATH, false) 
       framework_permissions bc, path
     end
+
+    #merge i18n information (least invasive operations first)
+    merge_i18n barclamp
+    merge_nav barclamp, true
+    merge_sass barclamp, bc, path, true
+
     if dirs.include? 'bin'
       files += bc_cloner('bin', bc, nil, path, BASE_PATH, false) 
       FileUtils.chmod_R 0755, BIN_PATH

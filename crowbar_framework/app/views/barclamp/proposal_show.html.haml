@@ -1,15 +1,18 @@
-%p{:style=>'float:right'}
-  - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
-    %input.button{:type => "submit", :name => "submit", :value => t('.save_proposal')}
-    %input.button{:type => "submit", :name => "submit", :value => t('.commit_proposal'), :'data-confirm' => t('.apply_changes')}
-    - unless @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-      %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
-    - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-      %input.button{:type => "submit", :name => "submit", :value => t('.dequeue_proposal')}
-%h1= t '.title'
+- prop = "#{@proposal.barclamp}_#{@proposal.name}"
+%h1
+  .led{:id => prop, :class => "none", :style => "position:inline", :title=>t('proposal.status.unknown')}
+  = t '.title'
 
 -# Rails 2 needs - and Rails 3 needs =
 - form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box" } do |f|
+  %p{:style=>'float:right'}
+    - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
+      %input.button{:type => "submit", :name => "submit", :value => t('.save_proposal')}
+      %input.button{:type => "submit", :name => "submit", :value => t('.commit_proposal'), :'data-confirm' => t('.apply_changes')}
+      - unless @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
+        %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
+      - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
+        %input.button{:type => "submit", :name => "submit", :value => t('.dequeue_proposal')}
   %h2= link_to "#{@proposal.barclamp.titlecase}: #{@proposal.name.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
 
   %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
@@ -29,4 +32,31 @@
       - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name => "submit", :value => t('.dequeue_proposal')}
 
+  
+:javascript
 
+  $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
+    // Update proposals status
+    $.each(data['proposals'], function(key,val) {
+      led_update($('#'+key), key, val);
+    });
+  });
+
+  function update() {
+    
+    $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
+      // Update proposals status
+      $.each(data['proposals'], function(key,val) {
+        led_update($('#'+key), key, val);
+      });
+
+    });
+  }
+  
+  function led_update(td, key, val) {
+    if(!td.hasClass(val)){
+      td.attr('class', val+' led');
+      td.attr('title', val);
+      td.effect("highlight", {color: '#666666'}, 2000);
+    };  
+  }

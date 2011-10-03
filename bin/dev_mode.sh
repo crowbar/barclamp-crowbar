@@ -14,8 +14,12 @@
 # limitations under the License.
 #
 
-cd /opt/dell/crowbar_framework/
+# clean up
 service crowbar stop
 pidof rainbow
-/var/lib/gems/1.8/bin/rainbows -d -E development -c rainbows.cfg
+
+# start dev version of the server
+cd /opt/dell/crowbar_framework/
+chmod 777 -R .
+/var/lib/gems/1.8/bin/rainbows -d -E development -c rainbows-dev.cfg
 

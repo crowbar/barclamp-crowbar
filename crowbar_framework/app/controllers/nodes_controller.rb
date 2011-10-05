@@ -46,6 +46,34 @@ class NodesController < ApplicationController
 
   def list
     flash[:notice] = "THIS FEATURE IS UNDER DEVELOPMENT"
+    if request.post?
+      nodes = {}
+      params.each do |k, v|
+        if k.starts_with? "node:"
+          parts = k.split ':'
+          node = parts[1]
+          area = parts[2]
+          nodes[node] = {} if nodes[node].nil?
+          nodes[node][area] = v
+        end
+      end
+      nodes.each do |node_name, values|
+        dirty = false
+        node = NodeObject.find_node_by_name node_name
+        if !node.allocated and values['allocate'] === 'checked'
+          node.allocated = true
+          dirty = true
+        end
+        if values['description'].length>0 and !(node.description === values['description'])
+          node.description = values['description']
+          dirty = true
+        end
+        if dirty 
+          node.save 
+          flash[:notice] = t('nodes.list.updated')
+        end
+      end
+    end
     @nodes = NodeObject.all
   end
 

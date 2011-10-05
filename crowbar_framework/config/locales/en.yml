@@ -113,6 +113,7 @@ en:
       usage: Usage
       bios: BIOS
       raid: RAID
+      updated: Node List Updated
     new:
       title: Add Node
     show:

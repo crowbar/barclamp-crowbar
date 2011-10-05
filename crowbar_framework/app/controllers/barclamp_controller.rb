@@ -261,8 +261,12 @@ class BarclampController < ApplicationController
     proposals = {}
     begin
       active = RoleObject.active params[:id]
-      result = ProposalObject.all #(params[:id].nil? ? ProposalObject.all : ProposalObject.find_proposal_by_id(params[:id]) )
-      result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
+      result = if params[:id].nil? 
+        result = ProposalObject.all 
+        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
+      else
+        [ProposalObject.find_proposal(params[:id][/^(.*)_(.*)$/,1], params[:id][/^(.*)_(.*)$/,2])]
+      end
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"
         status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))

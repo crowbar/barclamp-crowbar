@@ -1,6 +1,9 @@
+- prop = "#{@role.barclamp}_#{@role.inst}"
 %p{:style => 'float:right'}
   = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
-%h1= link_to "#{@role.barclamp.titlecase}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+%h1 
+  .led{:id => prop, :class => "none", :style => "position:inline", :title=>t('proposal.status.unknown')}
+  = link_to "#{@role.barclamp.titlecase}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
 
 .box
   %h2= t '.attributes'
@@ -14,3 +17,31 @@
 %p
   =link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
   
+  
+:javascript
+
+  $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
+    // Update proposals status
+    $.each(data['proposals'], function(key,val) {
+      led_update($('#'+key), key, val);
+    });
+  });
+
+  function update() {
+    
+    $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
+      // Update proposals status
+      $.each(data['proposals'], function(key,val) {
+        led_update($('#'+key), key, val);
+      });
+
+    });
+  }
+  
+  function led_update(td, key, val) {
+    if(!td.hasClass(val)){
+      td.attr('class', val+' led');
+      td.attr('title', val);
+      td.effect("highlight", {color: '#666666'}, 2000);
+    };  
+  }

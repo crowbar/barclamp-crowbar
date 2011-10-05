@@ -82,7 +82,7 @@
   function led_update(td, key, val) {
     if(!td.hasClass(val)){
       td.attr('class', val+' led');
-      td.attr('title', val.capitalize);
+      td.attr('title', val);
       td.effect("highlight", {color: '#666666'}, 2000);
       // remove the button since it does not reflect the state anymore
       $('#'+key+'_button').attr('hidden', 'true');

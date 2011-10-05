@@ -26,6 +26,7 @@ class RoleObject < ChefObject
     full = if name.nil?
       RoleObject.find_roles_by_name "*-config-*"
     else
+      name = "#{name[/^(.*)_(.*)$/,1]}-config-#{name[/^(.*)_(.*)$/,2]}"
       RoleObject.find_roles_by_name name
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }

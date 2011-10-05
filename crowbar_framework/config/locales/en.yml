@@ -53,6 +53,7 @@ en:
       unready: In Progress
       pending: Pending
       none: No Proposal
+      unknown: Unknown, requesting status...
 
   # Model Names / Attributes
   model:

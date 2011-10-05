@@ -26,6 +26,12 @@ web_app "rubygems" do
   web_port 80
 end
 
+bash "force-apache-reload" do
+  code "service #{apache_name} graceful"
+end
+
+pkglist=()
+rainbows_path=""
 case node[:platform]
 when "ubuntu","debian"
   apache_name="apache2"
@@ -36,21 +42,16 @@ when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
 end
-gemlist=%w{rake json syslogger sass simple-navigation 
-   i18n haml net-http-digest_auth rails
-   rainbows }
 
-bash "force-apache-reload" do
-  code "service #{apache_name} graceful"
-end
+gemlist=%w{rake json syslogger sass simple-navigation 
+   i18n haml net-http-digest_auth rails rainbows }
 
 pkglist.each {|p|
-  package p
+  package p do
+    action :install
+  end
 }
 
-%w{rake json syslogger sass simple-navigation 
-   i18n haml net-http-digest_auth #{extra_gems}
-   rainbows sqlite3-ruby}
 gemlist.each {|g|
   gem_package g do
     action :install

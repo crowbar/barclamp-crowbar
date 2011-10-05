@@ -108,11 +108,12 @@ en:
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
     list:
-      name: Name
+      name: Name  
       description: Description
       usage: Usage
       bios: BIOS
       raid: RAID
+      updated: Node List Updated
     new:
       title: Add Node
     show:

@@ -1,5 +1,5 @@
 - # filter to only show unallocated nodes, with an option to display all
-- form_for :node, :'data-remote' => true, :url => '/nodes/update_list', :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_nodes_list', :class => "formtastic" } do |f|
+- form_for :node, :'data-remote' => true, :url => '/nodes/list', :html => { :'data-type' => 'html',  :id => 'update_nodes_list', :class => "formtastic" } do |f|
   %table.data.box
     %thead
       %tr
@@ -12,12 +12,15 @@
     %tbody
       - @nodes.each do |node|
         %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
-          %td= text_field_tag :name, node.name
-          %td= text_field_tag :description, "node.description"
-          %td= select_tag :usage, options_for_select(CrowbarService.get_usage_options() || [['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
-          %td= select_tag :bios, options_for_select(CrowbarService.get_bios_options() || [['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
-          %td= select_tag :raid, options_for_select(CrowbarService.get_raid_options() || [['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')
-          %td.center= check_box_tag(:allocate)
+          %td= node.name
+          %td= text_field_tag "node:#{node.name}:description".to_sym, node.description
+          %td= select_tag "node:#{node.name}:usage".to_sym, options_for_select(CrowbarService.get_usage_options() || [['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
+          %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(CrowbarService.get_bios_options() || [['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
+          %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(CrowbarService.get_raid_options() || [['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')
+          -unless node.allocated
+            %td.center= check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
+          -else
+            %td.center= "-"
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}
         %td.action{:colspan => 6}

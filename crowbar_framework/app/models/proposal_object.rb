@@ -62,6 +62,10 @@ class ProposalObject < ChefObject
     self.find "bc-#{barclamp}-*"
   end
 
+  def self.find_barclamp(barclamp)
+    self.find_proposal_by_id "bc-template-#{barclamp}"
+  end
+
   def self.find_proposal(barclamp, name)
     self.find_proposal_by_id "bc-#{barclamp}-#{name}"
   end

@@ -19,19 +19,9 @@
 
 include_recipe "apache2"
 
-web_app "rubygems" do
-  server_name "rubygems.org"
-  docroot "/tftpboot/#{node[:platform]}_dvd/extra"
-  template "rubygems_app.conf.erb"
-  web_port 80
-end
-
-bash "force-apache-reload" do
-  code "service #{apache_name} graceful"
-end
-
 pkglist=()
 rainbows_path=""
+apache_name=""
 case node[:platform]
 when "ubuntu","debian"
   apache_name="apache2"
@@ -41,6 +31,17 @@ when "redhat","centos"
   apache_name="httpd"
   pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
+end
+
+web_app "rubygems" do
+  server_name "rubygems.org"
+  docroot "/tftpboot/#{node[:platform]}_dvd/extra"
+  template "rubygems_app.conf.erb"
+  web_port 80
+end
+
+bash "force-apache-reload" do
+  code "service #{apache_name} graceful"
 end
 
 gemlist=%w{rake json syslogger sass simple-navigation 

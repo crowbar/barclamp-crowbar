@@ -65,6 +65,7 @@ debs:
     - autoconf
     - flex
     - bison
+    - patch
     # crowbar stuff
     - curl
     - sqlite

@@ -180,6 +180,20 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
+template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
+  source "rainbows.cfg.erb"
+  owner "crowbar"
+  group "crowbar"
+  mode "0644"
+  variables(:web_host => "0.0.0.0", 
+            :web_port => node["crowbar"]["web_port"] || 3000,
+            :user => "crowbar",
+            :concurrency_model => "EventMachine",
+            :group => "crowbar",
+            :logfile => "/opt/dell/crowbar_framework/log/development.log",
+            :app_location => "/opt/dell/crowbar_framework")
+end
+
 bash "start rainbows" do
   code "cd /opt/dell/crowbar_framework; #{rainbows_path}rainbows -D -E production -c rainbows.cfg"
   not_if "pidof rainbows"

@@ -22,18 +22,6 @@ barclamp:
   version: 0
   member:
     - crowbar
-  requires:
-    - deployer
-    - dns
-    - ipmi
-    - logging
-    - network
-    - ntp
-    - provisioner
-    - test
-    - ganglia
-    - nagios
-
 crowbar:
   layout: 1
   order: 0

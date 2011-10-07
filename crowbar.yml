@@ -22,6 +22,7 @@ barclamp:
   version: 0
   member:
     - crowbar
+
 crowbar:
   layout: 1
   order: 0

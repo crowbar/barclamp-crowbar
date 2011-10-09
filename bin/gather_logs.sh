@@ -18,7 +18,7 @@ if [[ -f /etc/crowbar.install.key ]]; then
     export CROWBAR_KEY=$(cat /etc/crowbar.install.key)
 fi
 mkdir -p /tmp/crowbar-logs
-tarname="$1"
+tarname="${1-$(date '+%Y%m%d-%H%M%S')}"
 targetdir="/opt/dell/crowbar_framework/public/logs"
 (   flock -s 200
     logdir=$(mktemp -d "/tmp/crowbar-logs/$tarname-XXXXX")

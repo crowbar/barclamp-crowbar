@@ -144,7 +144,7 @@ class NodeObject < ChefObject
   end
   
   def state 
-    return 'unknown' if @node.nil? 
+    return 'unknown' if (@node.nil? or @role.nil?)
     if self.crowbar['state'] === 'ready' and CHEF_ONLINE and @node['ohai_time']
       since_last = Time.now.to_i-@node['ohai_time'].to_i
       return 'noupdate' if since_last > 1200 # or 20 mins
@@ -174,7 +174,7 @@ class NodeObject < ChefObject
   end
 
   def allocated
-    @node.nil? ? false : self.crowbar["crowbar"]["allocated"]
+    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
   end
   
   def allocated=(value)
@@ -183,7 +183,7 @@ class NodeObject < ChefObject
   end
   
   def allocated?
-    @node.nil? ? false : self.crowbar["crowbar"]["allocated"]
+    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
   end
   
   def ipmi_enabled?
@@ -288,7 +288,7 @@ class NodeObject < ChefObject
   end
 
   def networks
-    self.crowbar["crowbar"]["network"]
+    self.crowbar["crowbar"]["network"] rescue {}
   end
   
   def get_network_by_type(type)

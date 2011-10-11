@@ -108,9 +108,9 @@ cookbook_file "/home/crowbar/.chef/knife.rb" do
 end
 
 bash "Add crowbar chef client" do
-  environment ({'EDITOR' => '/bin/true'})
-  code "HOME=/root knife client create crowbar -a --file /opt/dell/crowbar_framework/config/client.pem -u chef-validator -k /etc/chef/validation.pem"
-  not_if "HOME=/root knife client list -u crowbar -k /opt/dell/crowbar_framework/config/client.pem"
+  environment ({'EDITOR' => '/bin/true', 'HOME' => '/root'})
+  code "knife client create crowbar -a --file /opt/dell/crowbar_framework/config/client.pem -u chef-validator -k /etc/chef/validation.pem"
+  not_if "knife client list -u crowbar -k /opt/dell/crowbar_framework/config/client.pem"
 end
 
 file "/opt/dell/crowbar_framework/log/production.log" do

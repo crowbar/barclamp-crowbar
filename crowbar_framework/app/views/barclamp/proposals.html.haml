@@ -22,6 +22,7 @@
 
 :javascript
   function update() {
+    $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{status_proposals_path}', function(data) {
 
       // If proposal count has changed, re-render the page

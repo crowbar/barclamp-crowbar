@@ -52,7 +52,7 @@ crowbar:
   order: 1000
 
 nav:
-  add:
+  barclamps:
     ==BC-MODEL==: barclamp_modules_path(:id=>'==BC-MODEL==')
 
 # debs, gems, rpms and extra_files allow you declare the OS packages,

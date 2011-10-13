@@ -36,7 +36,6 @@ class BarclampController < ApplicationController
   add_help(:barclamp_index)
   def barclamp_index
     @barclamps = ServiceObject.all
-
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
       format.xml  { render :xml => @barclamps }
@@ -103,6 +102,7 @@ class BarclampController < ApplicationController
   # REMOVE WHEN MENUS CHANGE!!!
   add_help(:index)
   def index
+    @title = @bc_name.titlecase
     ret = @service_object.list_active
     @roles = ret[1]
     respond_to do |format|

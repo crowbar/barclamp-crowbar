@@ -80,6 +80,7 @@ class ProposalObject < ChefObject
   end
 
   def self.human_attribute_name(attrib)
+    #remove if possible, do in the view
     I18n.t attrib, :scope => "model.attributes.proposal"
   end
 

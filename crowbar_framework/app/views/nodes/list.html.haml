@@ -13,7 +13,7 @@
       - @nodes.each do |node|
         %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
           %td= node.name
-          %td= text_field_tag "node:#{node.name}:description".to_sym, node.description
+          %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
           %td= select_tag "node:#{node.name}:usage".to_sym, options_for_select(CrowbarService.get_usage_options() || [['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
           %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(CrowbarService.get_bios_options() || [['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
           %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(CrowbarService.get_raid_options() || [['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')

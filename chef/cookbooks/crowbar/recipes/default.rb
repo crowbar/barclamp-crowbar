@@ -26,10 +26,6 @@ web_app "rubygems" do
   web_port 80
 end
 
-bash "force-apache-reload" do
-  code "service #{apache_name} graceful"
-end
-
 pkglist=()
 rainbows_path=""
 case node[:platform]
@@ -41,6 +37,10 @@ when "redhat","centos"
   apache_name="httpd"
   pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
+end
+
+bash "force-apache-reload" do
+  code "service #{apache_name} graceful"
 end
 
 gemlist=%w{rake json syslogger sass simple-navigation 

@@ -195,7 +195,8 @@
       nav = []
       nav_raw.each do |line|
         barclamp['nav']['primary'].each { |key, value| line = nil if line.lstrip.start_with? "primary.item :#{value}" } unless barclamp['nav']['primary'].nil?
-        barclamp['nav']['add'].each { |key, value| line = nil if line.lstrip.start_with? "secondary.item :#{key}" } unless barclamp['nav']['add'].nil?
+        barclamp['nav']['nodes'].each { |key, value| line = nil if line.lstrip.start_with? "secondary.item :#{key}" } unless barclamp['nav']['add'].nil?
+        barclamp['nav']['barclamps'].each { |key, value| line = nil if line.lstrip.start_with? "secondary.item :#{key}" } unless barclamp['nav']['add'].nil?
         nav << line unless line.nil?
       end  
       # now add new items
@@ -210,9 +211,22 @@
         # add the line
         new_nav << line
         # add subitems under barclamps
-        if installing and line.lstrip.start_with? "primary.item :barclamps" and !barclamp['nav']['add'].nil?
-          barclamp['nav']['add'].each do |key, value|
+        if installing and line.lstrip.start_with? "primary.item :barclamps" and !barclamp['nav']['barclamps'].nil?
+          barclamp['nav']['barclamps'].each do |key, value|
             new_nav << "secondary.item :#{key}, t('nav.#{key}'), #{value}" unless value.nil?
+          end
+        end
+        # add subitems under nodes
+        if installing and line.lstrip.start_with? "primary.item :nodes" and !barclamp['nav']['nodes'].nil?
+          barclamp['nav']['nodes'].each do |key, value|
+            new_nav << "secondary.item :#{key}, t('nav.#{key}'), #{value}" unless value.nil?
+          end
+        end
+        # LEAGACY for add subitems under barclamps
+        if installing and line.lstrip.start_with? "primary.item :barclamps" and !barclamp['nav']['add'].nil?
+          puts "WARNING! This is a DEPRICATED install command.  Please change 'nav/add' to 'nav/barclamps' in your crowbar.yml"
+          barclamp['nav']['add'].each do |key, value|
+            new_nav << "secondary.item :#{key}, t('nav.#{key}')+' (DEPRICATED nav/add)', #{value}" unless value.nil?
           end
         end
       end

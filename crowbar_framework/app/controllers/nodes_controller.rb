@@ -67,10 +67,6 @@ class NodesController < ApplicationController
           node.description = values['description']
           dirty = true
         end
-        if values['usage'].length>0 and !(node.usage === values['usage'])
-          node.usage = values['usage']
-          dirty = true
-        end
         if values['bios'].length>0 and !(node.bios_set === values['bios'])
           node.bios_set = values['bios']
           dirty = true

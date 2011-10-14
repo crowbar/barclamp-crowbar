@@ -213,16 +213,7 @@ class CrowbarService < ServiceObject
   rescue
     {}
   end
-  
-  def self.get_usage_options(current = nil)
-    read_proposal()
-    h = @my_proposal["attributes"]["crowbar"]["node-usage"]
-    h = select_item(h,current) unless current.nil?
-    return h 
-  rescue
-    { }
-  end
-  
+    
   def self.select_item(h, item)
     i = h.find{ |k, v| v == item }
     if i.nil?

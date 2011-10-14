@@ -31,6 +31,7 @@
 :javascript
   var racks = {};
   function update() {
+    $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{nodes_status_path}', function(data) {
       
       // If node count has changed, re-render the page

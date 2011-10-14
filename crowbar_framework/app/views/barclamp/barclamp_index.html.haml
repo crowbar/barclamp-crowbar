@@ -20,6 +20,7 @@
   }
 
   function update() {
+    $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{status_barclamp_path}', function(data) {
 
       // Update roles

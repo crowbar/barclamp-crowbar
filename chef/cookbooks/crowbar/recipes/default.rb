@@ -19,15 +19,9 @@
 
 include_recipe "apache2"
 
-web_app "rubygems" do
-  server_name "rubygems.org"
-  docroot "/tftpboot/#{node[:platform]}_dvd/extra"
-  template "rubygems_app.conf.erb"
-  web_port 80
-end
-
 pkglist=()
 rainbows_path=""
+apache_name=""
 case node[:platform]
 when "ubuntu","debian"
   apache_name="apache2"
@@ -37,6 +31,13 @@ when "redhat","centos"
   apache_name="httpd"
   pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
+end
+
+web_app "rubygems" do
+  server_name "rubygems.org"
+  docroot "/tftpboot/#{node[:platform]}_dvd/extra"
+  template "rubygems_app.conf.erb"
+  web_port 80
 end
 
 bash "force-apache-reload" do
@@ -107,7 +108,7 @@ cookbook_file "/home/crowbar/.chef/knife.rb" do
 end
 
 bash "Add crowbar chef client" do
-  environment ({'EDITOR' => '/bin/true'})
+  environment ({'EDITOR' => '/bin/true', 'HOME' => '/root'})
   code "knife client create crowbar -a --file /opt/dell/crowbar_framework/config/client.pem -u chef-validator -k /etc/chef/validation.pem"
   not_if "knife client list -u crowbar -k /opt/dell/crowbar_framework/config/client.pem"
 end
@@ -179,6 +180,20 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
+template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
+  source "rainbows.cfg.erb"
+  owner "crowbar"
+  group "crowbar"
+  mode "0644"
+  variables(:web_host => "0.0.0.0", 
+            :web_port => node["crowbar"]["web_port"] || 3000,
+            :user => "crowbar",
+            :concurrency_model => "EventMachine",
+            :group => "crowbar",
+            :logfile => "/opt/dell/crowbar_framework/log/development.log",
+            :app_location => "/opt/dell/crowbar_framework")
+end
+
 bash "start rainbows" do
   code "cd /opt/dell/crowbar_framework; #{rainbows_path}rainbows -D -E production -c rainbows.cfg"
   not_if "pidof rainbows"
@@ -199,4 +214,5 @@ end
     not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
   end
 end
+
 

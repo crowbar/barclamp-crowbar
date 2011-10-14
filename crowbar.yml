@@ -22,17 +22,6 @@ barclamp:
   version: 0
   member:
     - crowbar
-  requires:
-    - deployer
-    - dns
-    - ipmi
-    - logging
-    - network
-    - ntp
-    - provisioner
-    - test
-    - ganglia
-    - nagios
 
 crowbar:
   layout: 1
@@ -77,6 +66,7 @@ debs:
     - autoconf
     - flex
     - bison
+    - patch
     # crowbar stuff
     - curl
     - sqlite
@@ -169,7 +159,6 @@ rpms:
     - nscd
     # openldap stuff
     - nss_ldap
-    - db4.2-util
     - openldap
     - openldap-servers
     - openldap-clients
@@ -182,7 +171,6 @@ rpms:
     # ruby stuff
     - ruby
     - ruby-ri
-    - ruby-docs
     - ruby-devel
     - ruby-shadow
     # sudo stuff

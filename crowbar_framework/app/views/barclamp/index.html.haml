@@ -5,6 +5,7 @@
 
 :javascript
   function update() {
+    $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{status_barclamp_path}', function(data) {
 
       // If role has changed, re-render the page

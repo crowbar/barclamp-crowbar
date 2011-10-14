@@ -195,26 +195,43 @@ class CrowbarService < ServiceObject
   end
 
 
-  def self.get_bios_options    
+  def self.get_bios_options(current = nil)    
     read_proposal()
     h =	 @my_proposal["attributes"]["crowbar"]["bios-settings"]
+    h = select_item(h,current) unless current.nil?
+    return h 
   rescue
     {}
   end
 
 
-  def self.get_raid_options
+  def self.get_raid_options(current = nil)
     read_proposal()
     h = @my_proposal["attributes"]["crowbar"]["raid-settings"]
+    h = select_item(h,current) unless current.nil?
+    return h 
   rescue
     {}
-   end
+  end
   
-  def self.get_usage_options
+  def self.get_usage_options(current = nil)
     read_proposal()
-    @my_proposal["attributes"]["crowbar"]["node-usage"]
+    h = @my_proposal["attributes"]["crowbar"]["node-usage"]
+    h = select_item(h,current) unless current.nil?
+    return h 
   rescue
     { }
+  end
+  
+  def self.select_item(h, item)
+    i = h.find{ |k, v| v == item }
+    if i.nil?
+      h["[#{item.humanize}]"] = item
+    else
+      h.delete i[0]
+      h["[#{i[0]}]"] = i[1] unless i[0].start_with?('[')
+    end
+    return h
   end
 
   def self.read_proposal 

@@ -10,19 +10,24 @@
         %th= t('.raid')
         %th.center Allocate?
     %tbody
-      - @nodes.each do |node|
+      - @nodes.sort_by{|n| n.name }.each do |node|
         %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
-          %td= node.name
+          %td= link_to node.shortname, node_path(node.shortname)
           %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
-          %td= select_tag "node:#{node.name}:usage".to_sym, options_for_select(CrowbarService.get_usage_options() || [['Swift','swift'], ['Nova','nova'], ['Glance','glance']], 'nova')
-          %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(CrowbarService.get_bios_options() || [['Virtualization','Virtualization'], ['Storage','Storage']], 'Virtualization')
-          %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(CrowbarService.get_raid_options() || [['JBOD Only','JBODOnly'], ['Single RAID 10','SingleRaid10']], 'SingleRaid10')
-          -unless node.allocated
-            %td.center= check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
+          -unless node.admin?
+            %td= select_tag "node:#{node.name}:usage".to_sym, options_for_select(CrowbarService.get_usage_options(node.usage), node.usage)
+            %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(CrowbarService.get_bios_options(node.bios_set), node.bios_set)
+            %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(CrowbarService.get_raid_options(node.raid_set), node.raid_set)
+            -unless node.allocated
+              %td.center= check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
+            -else
+              %td.center= "-"
           -else
+            %td= t('.admin')
+            %td= t('na')
+            %td= t('na')
             %td.center= "-"
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}
         %td.action{:colspan => 6}
-          - if RAILS_ENV == "development"
-            %input.button{:type => "submit", :name => "submit", :value => 'Save'}
+          %input.button{:type => "submit", :name => "submit", :value => 'Save'}

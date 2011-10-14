@@ -45,7 +45,6 @@ class NodesController < ApplicationController
   end
 
   def list
-    flash[:notice] = "THIS FEATURE IS UNDER DEVELOPMENT"
     if request.post?
       nodes = {}
       params.each do |k, v|
@@ -66,6 +65,18 @@ class NodesController < ApplicationController
         end
         if values['description'].length>0 and !(node.description === values['description'])
           node.description = values['description']
+          dirty = true
+        end
+        if values['usage'].length>0 and !(node.usage === values['usage'])
+          node.usage = values['usage']
+          dirty = true
+        end
+        if values['bios'].length>0 and !(node.bios_set === values['bios'])
+          node.bios_set = values['bios']
+          dirty = true
+        end
+        if values['raid'].length>0 and !(node.raid_set === values['raid'])
+          node.raid_set = values['raid']
           dirty = true
         end
         if dirty 

@@ -22,7 +22,7 @@ en:
 
   # Layout
   nav:
-    nodes: System Nodes
+    nodes: Nodes
     dashboard: Dashboard
     list: Bulk&nbsp;Edit
     barclamps: Barclamps
@@ -114,6 +114,7 @@ en:
       bios: BIOS
       raid: RAID
       updated: Node List Updated
+      admin: Crowbar Server
     new:
       title: Add Node
     show:
@@ -212,6 +213,7 @@ en:
   unknown: Unknown
   not_set: Not set
   undetermined: Undetermined
+  na: N/A
   name: Name
   offline: Chef Offline
   raw: Raw

@@ -62,7 +62,10 @@ jQuery(document).ready(function($) {
   });
   
   $('input[data-default]').each(function() {
-    $(this).val($(this).attr('data-default')).addClass('default');
+    $(this).val($(this).attr('data-default'))
+  })
+  $('input[data-default-clear]').each(function() {
+    $(this).val($(this).attr('data-default-clear')).addClass('default');
   }).click(function(e){
     $(this).val('').removeClass('default');
   });

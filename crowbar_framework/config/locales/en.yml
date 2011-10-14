@@ -111,7 +111,6 @@ en:
     list:
       name: Name  
       description: Description
-      usage: Usage
       bios: BIOS
       raid: RAID
       updated: Node List Updated
@@ -132,7 +131,6 @@ en:
       save: Save
       raid: Raid
       bios: BIOS
-      usage: Usage
       save_node_success: Node saved successfully
       allocate_node_success: Node allocated successfully
       description: Description

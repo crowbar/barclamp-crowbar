@@ -26,6 +26,7 @@ en:
     dashboard: Dashboard
     list: Bulk&nbsp;Edit
     barclamps: Barclamps
+    all_bc: All Barclamps
     roles: Active Roles
     proposals: Proposals
     help: Help

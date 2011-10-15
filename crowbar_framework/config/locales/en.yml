@@ -115,6 +115,11 @@ en:
       raid: RAID
       updated: Node List Updated
       admin: Crowbar Server
+      title_all: Bulk Edit
+      title_unallocated: Bulk Edit (unallocated only)
+      unallocated: Show Unallocated
+      all: Show All
+      nochange: No Changes
     new:
       title: Add Node
     show:
@@ -126,10 +131,11 @@ en:
       links: Links
       active: Allocated
       inactive: Not Allocated
+      raid: RAID
     form:
       allocate: Allocate
       save: Save
-      raid: Raid
+      raid: RAID
       bios: BIOS
       save_node_success: Node saved successfully
       allocate_node_success: Node allocated successfully
@@ -218,6 +224,14 @@ en:
   raw: Raw
   custom: Custom
   created_on: Created On
+  
+  raid:
+    RAID0: RAID 0 span
+    RAID1: RAID 1 mirror
+    RAID5: RAID 5
+    RAID6: RAID 6
+    RAID10: Raid 10
+    not_set: Not Set
   
   # Error messages, etc.
   error:

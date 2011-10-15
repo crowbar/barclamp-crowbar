@@ -67,21 +67,26 @@ class NodesController < ApplicationController
           node.description = values['description']
           dirty = true
         end
-        if values['bios'].length>0 and !(node.bios_set === values['bios'])
+        if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(node.bios_set === 'not_set')
           node.bios_set = values['bios']
           dirty = true
         end
-        if values['raid'].length>0 and !(node.raid_set === values['raid'])
+        if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(node.bios_set === 'not_set')
           node.raid_set = values['raid']
           dirty = true
         end
         if dirty 
           node.save 
           flash[:notice] = t('nodes.list.updated')
+        else
+          flash[:notice] = t('nodes.list.nochange')
         end
       end
     end
     @nodes = NodeObject.all
+    if !params[:allocated].nil?
+      @nodes = @nodes.select { |n| !n.allocated? }
+    end
   end
 
   def status

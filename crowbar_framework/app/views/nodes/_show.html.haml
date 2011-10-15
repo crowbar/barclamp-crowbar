@@ -22,7 +22,7 @@
     = dl_item((NodeObject.human_attribute_name :hardware), @node.hardware)
     = dl_item((NodeObject.human_attribute_name :cpu), @node.cpu)
     = dl_item((NodeObject.human_attribute_name :memory), format_memory(@node.memory))
-    = dl_item((NodeObject.human_attribute_name :number_of_drives), @node.number_of_drives)
+    = dl_item((NodeObject.human_attribute_name :number_of_drives), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
     = dl_item((NodeObject.human_attribute_name :asset_tag), @node.asset_tag)
 
 .clear

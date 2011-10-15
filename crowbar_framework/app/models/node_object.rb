@@ -416,44 +416,32 @@ class NodeObject < ChefObject
     @node["dmi"].system.product_name
   end
 
-  def usage
-    return [] if @role.nil?
-    return [] if self.crowbar["crowbar"].nil?
-    self.crowbar["crowbar"]["usage"]
-  end
-
-  def usage=(value)
-    return [] if @role.nil?
-    return [] if self.crowbar["crowbar"].nil?
-    self.crowbar["crowbar"]["usage"] = value
-  end
-  
   def raid_set
-    return nil if @role.nil?
-    return nil if self.crowbar["crowbar"].nil?
-    return nil if self.crowbar["crowbar"]["hardware"].nil?
-    self.crowbar["crowbar"]["hardware"]["raid_set"]
+    return NOT_SET if @role.nil?
+    return NOT_SET if self.crowbar["crowbar"].nil?
+    return NOT_SET if self.crowbar["crowbar"]["hardware"].nil?
+    self.crowbar["crowbar"]["hardware"]["raid_set"] || NOT_SET
   end
 
   def raid_set=(value)
     return nil if @role.nil?
     return nil if self.crowbar["crowbar"].nil?
     self.crowbar["crowbar"]["hardware"] = {} if self.crowbar["crowbar"]["hardware"].nil?
-    self.crowbar["crowbar"]["hardware"]["raid_set"] = value
+    self.crowbar["crowbar"]["hardware"]["raid_set"] = value unless value===NOT_SET
   end
   
   def bios_set
-    return nil if @role.nil?
-    return nil if self.crowbar["crowbar"].nil?
-    return nil if self.crowbar["crowbar"]["hardware"].nil?
-    self.crowbar["crowbar"]["hardware"]["bios_set"]
+    return NOT_SET if @role.nil?
+    return NOT_SET if self.crowbar["crowbar"].nil?
+    return NOT_SET if self.crowbar["crowbar"]["hardware"].nil?
+    self.crowbar["crowbar"]["hardware"]["bios_set"] || NOT_SET
   end
 
   def bios_set=(value)
     return nil if @role.nil?
     return nil if self.crowbar["crowbar"].nil?
     self.crowbar["crowbar"]["hardware"] = {} if self.crowbar["crowbar"]["hardware"].nil?
-    self.crowbar["crowbar"]["hardware"]["bios_set"] = value
+    self.crowbar["crowbar"]["hardware"]["bios_set"] = value unless value===NOT_SET
   end
   
   def to_hash

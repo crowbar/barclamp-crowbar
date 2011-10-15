@@ -19,6 +19,8 @@ class ChefObject
   extend CrowbarOffline
   @@CrowbarDomain = nil
   
+  NOT_SET = 'not_set'
+  
   def self.cloud_domain
     begin
       # NOTE: We are using a global here to avoid lookups.  We need to consider some better cache/expiration strategy

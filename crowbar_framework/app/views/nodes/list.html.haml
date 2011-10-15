@@ -1,5 +1,15 @@
+%p{:style => 'float:right'}
+  -if params[:allocated].nil?
+    = link_to t('.unallocated'), nodes_list_path(:allocated=>'yes'), :class => 'button'
+    %h1= t('.title_all')
+  -else
+    = link_to t('.all'), nodes_list_path, :class => 'button'
+    %h1= t('.title_unallocated')
+
 - # filter to only show unallocated nodes, with an option to display all
 - form_for :node, :'data-remote' => true, :url => '/nodes/list', :html => { :'data-type' => 'html',  :id => 'update_nodes_list', :class => "formtastic" } do |f|
+  -if !params[:allocated].nil?
+    = hidden_field_tag "allocated", 'yes'
   %table.data.box
     %thead
       %tr
@@ -11,7 +21,7 @@
     %tbody
       - @nodes.sort_by{|n| n.name }.each do |node|
         %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
-          %td= link_to node.shortname, node_path(node.shortname)
+          %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
           %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
           -unless node.admin?
             %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(CrowbarService.get_bios_options(node.bios_set), node.bios_set)
@@ -22,7 +32,6 @@
               %td.center= "-"
           -else
             %td= t('.admin')
-            %td= t('na')
             %td= t('na')
             %td.center= "-"
     %tfoot

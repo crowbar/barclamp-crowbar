@@ -214,13 +214,22 @@ class CrowbarService < ServiceObject
     {}
   end
     
+  #this routine markes the current item w/ [] and also adds it if it is missing
   def self.select_item(h, item)
-    i = h.find{ |k, v| v == item }
-    if i.nil?
-      h["[#{item.humanize}]"] = item
-    else
-      h.delete i[0]
-      h["[#{i[0]}]"] = i[1] unless i[0].start_with?('[')
+    if h.nil?
+      h = { I18n.t(item, :scope => '' ) => item } 
+    else 
+      i = h.find{ |k, v| v == item }
+      if i.nil?
+        if item == NOT_SET
+           h["[#{I18n.t(NOT_SET)}]"] = item
+        else
+          h["[#{item.humanize}]"] = item
+        end
+      else
+        h.delete i[0]
+        h["[#{i[0]}]"] = i[1] unless i[0].start_with?('[')
+      end
     end
     return h
   end

@@ -1,4 +1,6 @@
-%dl
+%table{:class => "top"}
   - @role.default_attributes[@role.barclamp].each_pair do |key, value|
-    = dl_item key, (value.is_a?(Enumerable) ? hash_to_ul(value) : value), {:escape_html=>false}
+    %tr
+      %td= key
+      %td= (value.is_a?(Enumerable) ? hash_to_ul(value) : value)
 .clear

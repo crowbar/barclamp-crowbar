@@ -221,8 +221,8 @@ class CrowbarService < ServiceObject
     else 
       i = h.find{ |k, v| v == item }
       if i.nil?
-        if item == NOT_SET
-           h["[#{I18n.t(NOT_SET)}]"] = item
+        if item == ChefObject::NOT_SET
+           h["[#{I18n.t(ChefObject::NOT_SET)}]"] = item
         else
           h["[#{item.humanize}]"] = item
         end

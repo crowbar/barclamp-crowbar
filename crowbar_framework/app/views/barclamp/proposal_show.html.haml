@@ -1,6 +1,6 @@
 - prop = "#{@proposal.barclamp}_#{@proposal.name}"
-%h1
-  .led{:id => prop, :class => "none", :style => "position:inline", :title=>t('proposal.status.unknown')}
+
+%h1.led.unknown{:id => prop, :title=>t('proposal.status.unknown')}
   = t '.title'
 
 -# Rails 2 needs - and Rails 3 needs =
@@ -35,28 +35,30 @@
   
 :javascript
 
-  $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
-    // Update proposals status
-    $.each(data['proposals'], function(key,val) {
-      led_update($('#'+key), key, val);
-    });
-  });
-
   function update() {
-    $.ajaxSetup({ timeout: 3000 }) 
+    $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
       // Update proposals status
       $.each(data['proposals'], function(key,val) {
-        led_update($('#'+key), key, val);
+        var el = $('#'+key);
+        if(el.hasClass("unknown")) {
+          led_update(el, key, val);
+        } else {
+          led_update(el, key, val, function(){ el.effect("highlight", {color: '#666666'}, 2000); });
+        }
       });
-
     });
   }
-  
-  function led_update(td, key, val) {
+
+  function led_update(td, key, val, callback) {
     if(!td.hasClass(val)){
-      td.attr('class', val+' led');
-      td.attr('title', val);
-      td.effect("highlight", {color: '#666666'}, 2000);
-    };  
+      td.attr('class', val+' led').attr('title', val);
+      if(typeof callback == 'function'){
+        callback.call();
+      }
+    };
   }
+
+  jQuery(document).ready(function($) {
+    update();
+  });

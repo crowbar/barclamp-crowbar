@@ -224,15 +224,25 @@ en:
   raw: Raw
   custom: Custom
   created_on: Created On
-  
+
+  # node.raid_set
   raid:
-    RAID0: RAID 0 span
-    RAID1: RAID 1 mirror
-    RAID5: RAID 5
-    RAID6: RAID 6
-    RAID10: Raid 10
+    SingleRaid10: RAID 10
+    SingleRaid1: RAID 1 span
+    SingleRaid5: RAID 5
+    SingleRaid6: RAID 6
+    Raid0: RAID 0 span
+    Raid1: RAID 1 mirror
+    Raid5: RAID 5
+    Raid6: RAID 6
+    Raid10: Raid 10
     not_set: Not Set
   
+  # node.bios_set
+  bios:
+    Virtualization: Virtualization Flag On
+    not_set: Not Set
+    
   # Error messages, etc.
   error:
     warning: Warning

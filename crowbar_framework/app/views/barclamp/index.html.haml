@@ -1,4 +1,4 @@
-%h1= "#{t('.title')} #{@title}"
+%h1= @title
 
 %table.data.box
   =begin render :partial => "barclamp/#{@bc_name}/index" rescue (render :partial => 'barclamp/index') end
@@ -9,8 +9,8 @@
     $.getJSON('#{status_barclamp_path}', function(data) {
 
       // If role has changed, re-render the page
-      var current_roles = $('.role').length;
-      if(data['count'] != current_roles) {
+      var count = $('.bc').length;
+      if(data['count'] != count) {
         location.reload();
       }
 

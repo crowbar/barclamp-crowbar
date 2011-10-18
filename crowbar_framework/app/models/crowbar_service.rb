@@ -198,7 +198,7 @@ class CrowbarService < ServiceObject
   def self.get_bios_options(current = nil)    
     read_proposal()
     h =	 @my_proposal["attributes"]["crowbar"]["bios-settings"]
-    h = select_item(h,current) unless current.nil?
+    h = select_item(h,current, 'bios') unless current.nil?
     return h 
   rescue
     {}
@@ -208,16 +208,16 @@ class CrowbarService < ServiceObject
   def self.get_raid_options(current = nil)
     read_proposal()
     h = @my_proposal["attributes"]["crowbar"]["raid-settings"]
-    h = select_item(h,current) unless current.nil?
+    h = select_item(h,current, 'raid') unless current.nil?
     return h 
   rescue
     {}
   end
     
   #this routine markes the current item w/ [] and also adds it if it is missing
-  def self.select_item(h, item)
+  def self.select_item(h, item, scope = '')
     if h.nil?
-      h = { I18n.t(item, :scope => '' ) => item } 
+      h = { I18n.t(item, :scope => scope ) => item } 
     else 
       i = h.find{ |k, v| v == item }
       if i.nil?

@@ -362,6 +362,31 @@ class NodeObject < ChefObject
     bus_order
   end
 
+  def bus_index(bus_order, path)
+    return 999 if bus_order.nil?
+
+    dpath = path.split(".")[0].split("/")
+
+    index = 0
+    bus_order.each do |b|
+      subindex = 0
+      bs = b.split(".")[0].split("/")
+
+      match = true
+      bs.each do |bp|
+        break if subindex >= dpath.size
+        match = false if bp != dpath[subindex]
+        break unless match
+        subindex = subindex + 1
+      end
+
+      return index if match
+      index = index + 1
+    end
+
+    999
+  end
+
   def sort_ifs
     bus_order = get_bus_order
     map = @node["crowbar"]["detected"]["network"]
@@ -371,6 +396,106 @@ class NodeObject < ChefObject
       aindex == bindex ? a[0] <=> b[0] : aindex <=> bindex
     }
     answer.map! { |x| x[0] }
+  end
+
+  def get_conduits
+    conduits = nil
+    @node["network"]["conduit_map"].each do |data|
+      parts = data["pattern"].split("/")
+      the_one = true
+      the_one = false unless @node["network"]["mode"] =~ /#{parts[0]}/
+      the_one = false unless @node["crowbar"]["detected"]["network"].size.to_s =~ /#{parts[1]}/
+
+      found = false
+      @node.roles.each do |role|
+        found = true if role =~ /#{parts[2]}/
+        break if found
+      end
+      the_one = false unless found
+
+      conduits = data["conduit_list"] if the_one
+      break if conduits
+    end rescue nil
+    conduits
+  end
+
+  def build_node_map
+    bus_order = get_bus_order
+    conduits = get_conduits
+
+    return {} if conduits.nil?
+
+    sorted_ifs = sort_ifs
+    if_remap = {}
+    count = 1
+    sorted_ifs.each do |intf|
+      if_remap["1g#{count}"] = intf
+      count = count + 1
+    end
+
+    ans = {}
+    conduits.each do |k,v|
+      hash = {}
+      v.each do |mk, mv|
+        if mk == "if_list"
+          hash["if_list"] = v["if_list"].map do |y|
+            if_remap[y]
+          end
+        else
+          hash[mk] = mv
+        end
+      end
+      ans[k] = hash
+    end
+
+    ans
+  end
+
+  def unmanaged_interfaces
+    intf_to_if_map = build_node_map
+
+    if_list = @node["crowbar"]["detected"]["network"]
+    if_list = {} if if_list.nil?
+    if_list = if_list.clone
+    
+    intf_to_if_map.each do |k,v|
+      v.each do |mk, mv|
+        if mk == "if_list"
+          v["if_list"].each do |x|
+            if_list.delete(x) if if_list.include?(x)
+          end
+        end
+      end
+    end
+
+    if_list
+  end
+
+  def lookup_interface_info(conduit, intf_to_if_map = nil)
+    intf_to_if_map = build_node_map if intf_to_if_map.nil?
+
+    return [nil, nil] if intf_to_if_map[conduit].nil?
+
+    c_info = intf_to_if_map[conduit]
+    interface_list = c_info["if_list"]
+    team_mode = c_info["team_mode"] rescue nil
+
+    return [interface_list[0], interface_list, nil] if interface_list.size == 1
+
+    @node["crowbar"]["bond_list"] = {} if (@node["crowbar"].nil? or @node["crowbar"]["bond_list"].nil?)
+    bond_list = @node["crowbar"]["bond_list"]
+    the_bond = nil
+    bond_list.each do |bond, map|
+      the_bond = bond if map == interface_list
+      break if the_bond
+    end
+
+    if the_bond.nil?
+      the_bond = "bond#{bond_list.size}"
+      bond_list[the_bond] = interface_list
+    end
+
+    [the_bond, interface_list, team_mode]
   end
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role

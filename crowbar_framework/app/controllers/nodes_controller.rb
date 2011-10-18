@@ -196,7 +196,11 @@ class NodesController < ApplicationController
           ifname = "bmc"
         else
           ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
-          ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
+          if ifname.nil? or ifs.nil?
+            ifname = "Unknown"
+          else
+            ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
+          end
         end
         @network[data["usage"]][ifname] = data["address"] || 'n/a'
       end

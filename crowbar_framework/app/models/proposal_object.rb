@@ -94,7 +94,7 @@ class ProposalObject < ChefObject
 
   def allow_multiple_proposals?
     #hacky, but workable for now
-    !["ntp", "dns", "crowbar", "logging", "network", "provisioner", "deployer"].include? barclamp
+    !["ntp", "dns", "crowbar", "logging", "network", "provisioner", "deployer", "redhat install", "ubuntu install", "bios", "raid"].include? barclamp
   end
   
   def name

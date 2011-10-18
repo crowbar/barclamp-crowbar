@@ -4,7 +4,7 @@
     %title= "Crowbar: #{ controller.action_name }"
     = stylesheet_link_tag 'application'
     /[if IE]
-      -# = stylesheet_link_tag 'ie', :media => "all"
+      = stylesheet_link_tag 'ie', :media => "all"
       = javascript_include_tag "html5"
     -# ALWAYS DIFFERENT FROM RAILS3
     = javascript_include_tag 'jquery.min', 'jquery-ui.min', 'jquery.sparkline.min', 'jquery.drag_drop_multi_select_alpha', 'rails', 'codemirror/codemirror', 'codemirror/javascript', 'application'

@@ -29,7 +29,7 @@
     var name = item.attr('name');
     var listname = item.parent().parent().attr('id').replace("_div", "");
     var list = json['elements'][listname];
-    var idx = list.indexOf(name); // Find the index
+    var idx = jQuery.inArray(name, list); // Find the index
     if (idx!=-1) list.splice(idx, 1)
     input.value = JSON.stringify(json);
   }

@@ -1,24 +1,31 @@
-
-%input#proposal_development{:type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_data['deployment'][@proposal.barclamp].to_json }
-%p
-  %label{:for => "drag_drop"}= t('.title')
-  = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float: right;"
-  %div{ :class => ["container"], :id => "drag_drop" }
-    .column_40.first
-      - @proposal.all_elements.each do |element|
-        %div{ :class => ["list"], :id => "#{element}_div" }
-          %div{ :class => ["list", "title"] }= "#{element}"
-          %ul.list{ :id => "#{element}" }
-            - unless @proposal.elements[element].nil?
-              - @proposal.elements[element].each do |v|
-                %li{ :name => "#{v}" }= v.split('.')[0]
-
-    .column_50.last
-      %div{ :class => ["list"], :id => "nodes_div" }
-        %div{ :class => ["list", "title"] }= t('barclamp.proposal_show.available_nodes')
-        %ul
-          - NodeObject.all.each do |n|
-            %li{ :name => "#{n.name}" }= n.shortname
+-if request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
+  %p
+    %em= t('.msie_fail')
+  = render :partial => 'barclamp/edit_deployment_raw'
+  -if RAILS_ENV === "development"
+    %p
+      = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
+-else 
+  %input#proposal_development{:type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_data['deployment'][@proposal.barclamp].to_json }
+  %p
+    %label{:for => "drag_drop"}= t('.title')
+    = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float: right;"
+    %div{ :class => ["container"], :id => "drag_drop" }
+      .column_40.first
+        - @proposal.all_elements.each do |element|
+          %div{ :class => ["list"], :id => "#{element}_div" }
+            %div{ :class => ["list", "title"] }= "#{element}"
+            %ul.list{ :id => "#{element}" }
+              - unless @proposal.elements[element].nil?
+                - @proposal.elements[element].each do |v|
+                  %li{ :name => "#{v}" }= v.split('.')[0]
+  
+      .column_50.last
+        %div{ :class => ["list"], :id => "nodes_div" }
+          %div{ :class => ["list", "title"] }= t('barclamp.proposal_show.available_nodes')
+          %ul
+            - NodeObject.all.each do |n|
+              %li{ :name => "#{n.name}" }= n.shortname
 
 .clear
 

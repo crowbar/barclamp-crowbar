@@ -189,6 +189,7 @@ en:
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
     node_selector:
       title: Deployment
+      msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
     edit_attributes_raw:
       title: Attributes
     edit_deployment_raw:

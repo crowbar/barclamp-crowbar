@@ -27,9 +27,9 @@
       $.each(data['proposals'], function(key,val) {
         var el = $('#'+key);
         if(el.hasClass("unknown")) {
-          led_update($('#'+key), key, val);
+          led_update(el, key, val);
         } else {
-          led_update($('#'+key), key, val, function(){ el.effect("highlight", {color: '#666666'}, 2000); });
+          led_update(el, key, val, function(){ el.effect("highlight", {color: '#666666'}, 2000); });
         }
       });
     });

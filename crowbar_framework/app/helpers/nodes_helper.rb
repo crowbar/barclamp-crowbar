@@ -43,4 +43,26 @@ module NodesHelper
     html
   end
   
+    
+  #this routine markes the current item w/ [] and also adds it if it is missing
+  def option_default(options, item, scope = '')
+    h = options.clone  #prevent changing the original list when we select an item
+    if h.nil?
+      h = { t(item, :scope => scope ) => item } 
+    else 
+      i = h.find{ |k, v| v == item }
+      if i.nil?
+        if item == ChefObject::NOT_SET or item.nil?
+           h["[#{t(ChefObject::NOT_SET, :scope => scope)}]"] = item || ChefObject::NOT_SET
+        else
+          h["[#{item.humanize}]"] = item
+        end
+      else
+        h.delete i[0]
+        h["[#{i[0]}]"] = i[1] unless i[0].start_with?('[')
+      end
+    end
+    return h
+  end
+
 end

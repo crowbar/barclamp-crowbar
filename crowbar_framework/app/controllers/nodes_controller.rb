@@ -83,6 +83,7 @@ class NodesController < ApplicationController
         end
       end
     end
+    @options = CrowbarService.read_options
     @nodes = NodeObject.all
     if !params[:allocated].nil?
       @nodes = @nodes.select { |n| !n.allocated? }
@@ -149,6 +150,7 @@ class NodesController < ApplicationController
   end
   
   def edit
+    @options = CrowbarService.read_options
     get_node_and_network(params[:id] || params[:name])
   end
 
@@ -176,7 +178,6 @@ class NodesController < ApplicationController
   private
 
   def save_node
-    @node.usage = [ params[:usage] ]
     @node.bios_set = params[:bios]
     @node.raid_set = params[:raid]
     @node.description = params[:description]

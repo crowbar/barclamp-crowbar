@@ -240,7 +240,8 @@ en:
   
   # node.bios_set
   bios:
-    Virtualization: Virtualization Flag On
+    Virtualization: Virtualization Flag Enabled
+    Storage: Storage (Virt Off)
     not_set: Not Set
     
   # Error messages, etc.

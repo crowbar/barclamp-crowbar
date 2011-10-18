@@ -15,8 +15,6 @@
 
 class CrowbarService < ServiceObject
   
-  @my_proposal = nil
-
   def initialize(thelogger)
     @bc_name = "crowbar"
     @logger = thelogger
@@ -194,54 +192,17 @@ class CrowbarService < ServiceObject
     answer
   end
 
-
-  def self.get_bios_options(current = nil)    
-    read_proposal()
-    h =	 @my_proposal["attributes"]["crowbar"]["bios-settings"]
-    h = select_item(h,current, 'bios') unless current.nil?
-    return h 
-  rescue
-    {}
-  end
-
-
-  def self.get_raid_options(current = nil)
-    read_proposal()
-    h = @my_proposal["attributes"]["crowbar"]["raid-settings"]
-    h = select_item(h,current, 'raid') unless current.nil?
-    return h 
-  rescue
-    {}
-  end
-    
-  #this routine markes the current item w/ [] and also adds it if it is missing
-  def self.select_item(h, item, scope = '')
-    if h.nil?
-      h = { I18n.t(item, :scope => scope ) => item } 
-    else 
-      i = h.find{ |k, v| v == item }
-      if i.nil?
-        if item == ChefObject::NOT_SET
-           h["[#{I18n.t(ChefObject::NOT_SET)}]"] = item
-        else
-          h["[#{item.humanize}]"] = item
-        end
-      else
-        h.delete i[0]
-        h["[#{i[0]}]"] = i[1] unless i[0].start_with?('[')
-      end
-    end
-    return h
-  end
-
-  def self.read_proposal 
-    return unless @my_proposal.nil?
-
+  def self.read_options
     # read in default proposal, to make some vaules avilable
     proposals = ProposalObject.find_proposals("crowbar")
-    raise "Can't find crowbar default proposal" if proposals.nil? or proposals[0].nil?
-    @my_proposal = proposals[0]
-    raise "No crowbar proposal found" if @my_proposal.nil?    
+    raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
+    # populate options from attributes/crowbar/*-settings
+    options = { :raid=>{}, :bios=>{} }
+    unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
+      options[:raid] = proposals[0]["attributes"]["crowbar"]["raid-settings"]
+      options[:bios] = proposals[0]["attributes"]["crowbar"]["bios-settings"]
+    end
+    options
   end
 
 end

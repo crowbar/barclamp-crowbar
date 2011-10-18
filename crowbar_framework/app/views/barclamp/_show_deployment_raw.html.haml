@@ -1,4 +1,4 @@
-f @role.elements.length > 0
+- if @role.elements.length > 0
   %table{:class => "top"}
     - @role.elements.each_pair do |key, value|
       %tr

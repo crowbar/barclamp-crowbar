@@ -14,7 +14,9 @@
           = select_tag :raid,  options_for_select(option_default(@options[:raid], @node.raid_set, 'raid'), @node.raid_set)
     %fieldset.buttons
       %ol
-        %li
-          %input.button{:type => "submit", :name => "submit", :value => t('.allocate')}
+        -unless @node.allocated? or @node.admin?
+          %li
+            %input.button{:type => "submit", :name => "submit", :value => t('.allocate')}
         %li
           %input.button{:type => "submit", :name => "submit", :value => t('.save')}
+

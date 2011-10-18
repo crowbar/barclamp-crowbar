@@ -186,19 +186,22 @@ class NodesController < ApplicationController
   
   def get_node_and_network(node_name)
     @network = {}
-    notconns = {}
     @node = NodeObject.find_node_by_name(node_name)
     if @node
+      intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)
-      interfaces = @node.interface_list.find_all { |n| n=~/^eth/ }
       @node.networks.each do |intf, data|
         @network[data["usage"]] = {} if @network[data["usage"]].nil?
-        @network[data["usage"]][intf] = data["address"] || 'n/a'
-        interfaces.delete(intf)
+        if data["usage"] == "bmc"
+          ifname = "bmc"
+        else
+          ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
+          ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
+        end
+        @network[data["usage"]][ifname] = data["address"] || 'n/a'
       end
-      interfaces.map { |i| notconns[i] = nil }
+      @network['[not managed]'] = @node.unmanaged_interfaces
     end
-    @network['[not managed]'] = notconns
     @network.sort
   end
 end

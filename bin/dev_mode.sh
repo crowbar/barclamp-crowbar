@@ -16,10 +16,16 @@
 
 # clean up
 service crowbar stop
-pidof rainbow
+pidof rainbows
 
 # start dev version of the server
 cd /opt/dell/crowbar_framework/
 chmod 777 -R .
-/var/lib/gems/1.8/bin/rainbows -d -E development -c rainbows-dev.cfg
+if which rainbows &> /dev/null; then
+  rainbows -d -E development -c rainbows-dev.cfg
+else
+  # still needed for ubuntu
+  /var/lib/gems/1.8/bin/rainbows -d -E development -c rainbows-dev.cfg
+fi
+
 

@@ -454,7 +454,7 @@ class NodeObject < ChefObject
   def unmanaged_interfaces
     intf_to_if_map = build_node_map
 
-    orig_if_list = @node["crowbar"]["detected"]["network"]
+    orig_if_list = @node["crowbar"]["detected"]["network"] rescue nil
     return {} if orig_if_list.nil?
     if_list = orig_if_list.map { |x| x[0] }
     

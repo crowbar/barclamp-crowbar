@@ -143,13 +143,15 @@ class ServiceObject
     @logger.debug("process queue: queue: #{queue.inspect}")
 
     # Test for ready
+    pre_cached_nodes = {}
     queue.each do |item|
       prop = ProposalObject.find_proposal(item["barclamp"], item["inst"])
       if prop.nil?
         dequeue_proposal(item["inst"], item["barclamp"])
         next
       end
-      list << item if elements_not_ready(prop["deployment"][item["barclamp"]]["elements"]).empty?
+      delay, pre_cached_nodes = elements_not_ready(prop["deployment"][item["barclamp"]]["elements"], pre_cached_nodes)
+      list << item if delay.empty?
     end
 
     @logger.debug("process queue: list: #{list.inspect}")
@@ -168,7 +170,7 @@ class ServiceObject
     @logger.debug("process queue: exit")
   end
 
-  def elements_not_ready(elements)
+  def elements_not_ready(elements, pre_cached_nodes = {})
     # Get all the nodes
     all_new_nodes = []
     elements.each do |elem, nodes|
@@ -181,19 +183,14 @@ class ServiceObject
     all_new_nodes.each do |n|
       node = NodeObject.find_node_by_name(n)
       next if node.nil?
-
-      # if a node is not allocated, mark it as allocated
-      unless node.allocated?
-        node.allocated = true
-        node.save
-      end
-
+      
+      pre_cached_nodes[n] = node
       delay << n if node.state != "ready"
     end
-    delay
+    [ delay, pre_cached_nodes ]
   end
 
-  def add_pending_elements(bc, inst, elements)
+  def add_pending_elements(bc, inst, elements, pre_cached_nodes = {})
     # Create map with nodes and their element list
     all_new_nodes = {}
     elements.each do |elem, nodes|
@@ -203,15 +200,22 @@ class ServiceObject
       end
     end
 
-    # Add the entries to the nodes.
-    all_new_nodes.each do |n, val|
-      node = NodeObject.find_node_by_name(n)
-      next if node.nil?
+    # Check for delays and build up cache
+    delay, pre_cached_nodes = elements_not_ready(elements, pre_cached_nodes)
 
-      node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
-      node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
-      node.save
+    # Add the entries to the nodes.
+    unless delay.empty?
+      all_new_nodes.each do |n, val|
+        node = pre_cached_nodes[n]
+
+        # Make sure the node is allocated
+        node.allocated = true
+        node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
+        node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
+        node.save
+      end
     end
+    [ delay, nodes ]
   end
 
   def remove_pending_elements(bc, inst, elements)
@@ -505,9 +509,8 @@ class ServiceObject
     new_elements = new_deployment["elements"]
     element_order = new_deployment["element_order"]
 
-    delay = elements_not_ready(new_elements)
+    delay, pre_cached_nodes = add_pending_elements(@bc_name, inst, new_elements)
     unless delay.empty?
-      add_pending_elements(@bc_name, inst, new_elements)
       queue_proposal(inst)
       return [202, delay]
     end
@@ -564,7 +567,8 @@ class ServiceObject
     # Clean the run_lists
     admin_nodes = []
     nodes.each do |n, lists|
-      node = NodeObject.find_node_by_name(n)
+      node = pre_cached_nodes[n]
+      node = NodeObject.find_node_by_name(n) if node.nil?
       next if node.nil?
 
       admin_nodes << n if node.admin?

@@ -215,7 +215,7 @@ class ServiceObject
         node.save
       end
     end
-    [ delay, nodes ]
+    [ delay, pre_cached_nodes ]
   end
 
   def remove_pending_elements(bc, inst, elements)

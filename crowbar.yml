@@ -38,6 +38,19 @@ locale_additions:
 
 
 debs:
+  ubuntu-10.10:
+    repos:
+      - deb http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
+      - deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
+      - deb http://archive.canonical.com/ubuntu maverick partner
+      - deb-src http://archive.canonical.com/ubuntu maverick partner
+      - deb http://extras.ubuntu.com/ubuntu maverick main
+      - deb-src http://extras.ubuntu.com/ubuntu maverick main
+      - deb http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
+      - deb-src http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
+      - deb http://apt.opscode.com/ maverick-0.10 main
   repos:
     # Rabbit MQ repo
     - deb http://www.rabbitmq.com/debian/ testing main
@@ -112,6 +125,9 @@ debs:
     - sun-java6-jre
 
 rpms:
+  repos:
+    - rpm http://rbel.frameos.org/rbel5
+    - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
   build_pkgs:
     - rubygems
     - ruby-devel

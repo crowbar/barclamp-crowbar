@@ -73,17 +73,25 @@ debs:
   ppas:
     - ppa_username/ppa_name 
   # pkgs is a list of extra packages that the build system will try to pull
-  # and cache on the crowbar iso image.  You only have to list top-level packages
-  # here -- if apt-get install gets all the dependencies, you do not need to list
-  # them here.
+  # and cache on the crowbar iso image.  You only have to list top-level 
+  # packages here -- if apt-get install gets all the dependencies, you do not
+  # need to list them here.
   pkgs:
     # put your packages here
     # - mod_fcgid
-  # raw_pkgs is a list of URLs to .deb packages that the build system will try to
-  # download and add to the iso.  It does not do dependency checking, and it uses
-  # curl to handle the actual download process.
+  # raw_pkgs is a list of URLs to .deb packages that the build system will try
+  # to download and add to the iso.  It does not do dependency checking, and
+  # it uses curl to handle the actual download process.
   raw_pkgs:
     - http://your_site/your_special_deb.deb
+  # You can have multiple OS specific sections as well.  You can declare
+  # dependencies for repos, ppas, pkgs, and raw_pkgs here, and they will
+  # be picked up when building Crowbar on that OS. 
+  os-token:
+    repos:
+    ppas:
+    pkgs:
+    raw_pkgs:
     
 # rpms does the same thing that debs does, except for RPM-based systems.
 rpms:

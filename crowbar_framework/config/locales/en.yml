@@ -26,10 +26,13 @@ en:
     dashboard: Dashboard
     list: Bulk&nbsp;Edit
     barclamps: Barclamps
+    crowbar_bc: Crowbar
     all_bc: All Barclamps
     roles: Active Roles
     proposals: Proposals
     help: Help
+    crowbar_ug: Crowbar
+    crowbar_dg: Deployment
 
   # General Proposal components
   proposal:

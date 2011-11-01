@@ -44,6 +44,26 @@
     else
       throw "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
     end
+    catalog
+  end
+  
+  # regenerate the barclamp catalog (does a complete regen each install)
+  def catalog
+    # create the groups for the catalog - for now, just groups.  other catalogs may be added later
+    cat = { 'groups'=>{} }
+    barclamps = File.join CROWBAR_PATH, 'barclamps'
+    list = Dir.entries(barclamps).find_all { |e| e.end_with? '.yml'}
+    # scan the installed barclamps
+    list.each do |bc_file|
+      bc = YAML.load_file File.join(barclamps, bc_file)
+      bc['barclamp']['member'].each do |meta|
+        cat['groups'][meta] = {} if cat['groups'][meta].nil?
+        cat['groups'][meta][bc['barclamp']['name']] = bc['crowbar']['order']
+      end
+    end
+    File.open( File.join(CROWBAR_PATH, 'config', 'catalog.yml'), 'w' ) do |out|
+      YAML.dump( cat, out )
+    end
   end
   
   # copies paths from one place to another (recursive)
@@ -210,23 +230,12 @@
         end
         # add the line
         new_nav << line
-        # add subitems under barclamps
-        if installing and line.lstrip.start_with? "primary.item :barclamps" and !barclamp['nav']['barclamps'].nil?
-          barclamp['nav']['barclamps'].each do |key, value|
-            new_nav << "secondary.item :#{key}, t('nav.#{key}'), #{value}" unless value.nil?
-          end
-        end
-        # add subitems under nodes
-        if installing and line.lstrip.start_with? "primary.item :nodes" and !barclamp['nav']['nodes'].nil?
-          barclamp['nav']['nodes'].each do |key, value|
-            new_nav << "secondary.item :#{key}, t('nav.#{key}'), #{value}" unless value.nil?
-          end
-        end
-        # LEAGACY for add subitems under barclamps
-        if installing and line.lstrip.start_with? "primary.item :barclamps" and !barclamp['nav']['add'].nil?
-          puts "WARNING! This is a DEPRICATED install command.  Please change 'nav/add' to 'nav/barclamps' in your crowbar.yml"
-          barclamp['nav']['add'].each do |key, value|
-            new_nav << "secondary.item :#{key}, t('nav.#{key}')+' (DEPRICATED nav/add)', #{value}" unless value.nil?
+        # add submenu items (REQUIRIES KEYS IN NAV FILE!!)
+        barclamp['nav'].each do |key, value|
+          if installing and line.lstrip.start_with? "# insert here for :#{key}"
+            value.each do |k, v|
+              new_nav << "secondary.item :#{k}, t('nav.#{k}'), #{v}" unless v.nil?
+            end
           end
         end
       end
@@ -321,6 +330,12 @@
       files.each { |line| out.puts line } 
     end
 
+    #copy over the crowbar.yml file
+    yml_path = File.join CROWBAR_PATH, 'barclamps'
+    yml_barclamp = File.join path, "crowbar.yml"
+    FileUtils.mkdir yml_path unless File.directory? yml_path
+    FileUtils.cp yml_barclamp, File.join(yml_path, "#{bc}.yml")
+    
     puts "Barclamp #{bc} (format v1) added to Crowbar Framework.  Review #{filelist} for files created." if DEBUG
   end
     

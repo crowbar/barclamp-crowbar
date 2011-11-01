@@ -22,14 +22,21 @@
   if File.exists? fw_lib+'.rb'
     require fw_lib
   else
+    puts "WARNING: Using bootstrap install library (only acceptable during bootstrap)"
     require File.join '/opt', 'dell', 'barclamps', 'crowbar', 'crowbar_framework', 'lib', 'barclamp_lib'
   end
 
   debug = DEBUG
+  bootstrap = false
 
   # this is used by the install-chef installer script 
   if __FILE__ == $0
-    path = (ARGV[0].nil? ? File.join('/opt','dell','barclamps') : ARGV[0])
+    path = File.join('/opt','dell','barclamps')
+    unless ARGV[0].nil?
+      bootstrap = (ARGV[0] === "bootstrap")
+      puts "Installing in boostrap mode" if bootstrap      
+      path = ARGV[0] unless bootstrap 
+    end
     puts "Using #{path}" if debug
     barclamps = {}
     Dir.entries(path).each do |dir|
@@ -38,6 +45,7 @@
         if File.exist? bc_file
           barclamp = YAML.load_file bc_file
           name = (!barclamp["barclamp"].nil? and !barclamp["barclamp"]["name"].nil? ? barclamp["barclamp"]["name"] : nil)
+          next if bootstrap and name === "crowbar"
           unless name.nil?
             order = (!barclamp["crowbar"].nil? and !barclamp["crowbar"]["order"].nil? ? barclamp["crowbar"]["order"].to_i : 1000)
             barclamps[name] = {:dir=>dir, :name=>name, :file=>bc_file, :order=>order}

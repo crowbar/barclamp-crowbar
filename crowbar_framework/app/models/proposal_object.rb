@@ -91,11 +91,6 @@ class ProposalObject < ChefObject
   def id
     @item['id']
   end
-
-  def allow_multiple_proposals?
-    #hacky, but workable for now
-    !["ntp", "dns", "crowbar", "logging", "network", "provisioner", "deployer", "redhat install", "ubuntu install", "bios", "raid"].include? barclamp
-  end
   
   def name
     @item.name[/crowbar_bc-(.*)-(.*)$/,2]

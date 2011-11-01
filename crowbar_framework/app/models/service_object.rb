@@ -24,6 +24,11 @@ class ServiceObject
 
   extend CrowbarOffline
 
+  # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
+  def self.allow_multiple_proposals?
+    false
+  end
+  
   def self.all
     bc = {}
     ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|

@@ -208,7 +208,7 @@ class BarclampController < ApplicationController
     list.each do |bc|
       name = bc[0]
       props = ProposalObject.find_proposals name
-      @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (props[0].allow_multiple_proposals? unless props[0].nil?) }
+      @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call) }
       ProposalObject.find_proposals(bc[0]).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
         status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))

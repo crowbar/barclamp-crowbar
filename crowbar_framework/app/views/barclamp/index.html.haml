@@ -1,7 +1,9 @@
 %h1= @title
 
+%p= @members.inspect
+
 %table.data.box
-  =begin render :partial => "barclamp/#{@bc_name}/index" rescue (render :partial => 'barclamp/index') end
+  //=begin render :partial => "barclamp/#{@bc_name}/index" rescue (render :partial => 'barclamp/index') end
 
 :javascript
   function update() {

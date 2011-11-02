@@ -22,11 +22,56 @@ require 'json'
 
 class ServiceObject
 
+  BARCLAMP_CATALOG = File.join 'config', 'catalog.yml'
   extend CrowbarOffline
 
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false
+  end
+  
+  def self.bc_name
+    self.name.underscore[/(.*)_service$/,1]
+  end
+  
+  # ordered list of barclamps from groups in the crowbar.yml files.  Built at barclamp install time by the catalog step
+  def self.member_names
+    names = []
+    if File.exist? BARCLAMP_CATALOG
+      cat = YAML.load_file BARCLAMP_CATALOG
+      members = cat["groups"][bc_name].sort
+      members.each { |k,v| names <<  k }
+    end
+    names
+  end
+
+  # return the proposal for OpenStack (will create them if they are missing)
+  def self.member_proposals(find_name = 'proposal.items.default', add_when_missing = false)
+    props = {}
+    prop_name = I18n.t(find_name)
+    member_names do |bc|
+      Rails.logger.debug "member bc #{bc.inspect}"
+      prop = ProposalObject.find_proposal bc, prop_name 
+      if prop.nil? 
+        service = ServiceObject.new @logger
+        service.bc_name = bc.to_s
+        answer = @service_object.proposal_create [:id=>prop_name]
+        props[bc] = answer[1] if answer[0] == 200
+      else
+        props[bc] = prop
+      end
+    end
+    return props
+  end
+  
+  #ordered list of barclamps objects
+  def self.members
+    bc = {}
+    member_names do |item|
+      clamp = ProposalObject.find_barclamp item
+      bc[item] = clamp unless clamp.nil? 
+    end
+    return bc
   end
   
   def self.all

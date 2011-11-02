@@ -35,6 +35,7 @@ class BarclampController < ApplicationController
   # Barclamp List (generic)
   add_help(:barclamp_index)
   def barclamp_index
+    throw "NOT IN USE - REMOVE >1.2"
     @barclamps = ServiceObject.all
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
@@ -46,6 +47,7 @@ class BarclampController < ApplicationController
   # Barclamp Show (specific one)
   add_help(:barclamp_show, [:id])
   def barclamp_show
+    throw "NOT IN USE - REMOVE >1.2"
     @barclamp = ServiceObject.new logger
     @barclamp.bc_name = params[:id]
 
@@ -59,6 +61,7 @@ class BarclampController < ApplicationController
   # Barclamp Roles (all)
   add_help(:barclamp_roles, [])
   def barclamp_roles
+    throw "DEPRICATED!"
     @roles = RoleObject.all
     @roles = @roles.delete_if { |v| v.nil? or !(v.name =~ /^.*-config-/) }
     respond_to do |format|
@@ -72,6 +75,7 @@ class BarclampController < ApplicationController
   # Barclamp Proposals (all)
   add_help(:barclamp_proposals, [])
   def barclamp_proposals
+    throw "DEPRICATED!"
     @proposals = ProposalObject.all
     @proposals = @proposals.delete_if { |v| v.nil? or v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
     respond_to do |format|
@@ -99,26 +103,29 @@ class BarclampController < ApplicationController
     render :json => ret[1]
   end
   
-  # REMOVE WHEN MENUS CHANGE!!!
   add_help(:index)
   def index
     @title = @bc_name.titlecase
-    ret = @service_object.list_active
-    @roles = ret[1]
+    @members = Kernel.const_get("#{@bc_name.camelize}Service").method(:member_names).call
     respond_to do |format|
       format.html { 
-        @roles.map! { |r| RoleObject.find_role_by_name("#{@bc_name}-config-#{r}") }
         render :template => 'barclamp/index' 
       }
       format.xml  { 
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :xml => @roles 
+        return render :text => @members, :status => ret[0] if ret[0] != 200
+        render :xml => @members 
       }
       format.json {
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :json => @roles 
+        return render :text => @members, :status => ret[0] if ret[0] != 200
+        render :json => @members 
       }
     end
+  end
+    
+  def index_old
+    ret = @service_object.list_active
+    @roles = ret[1]
+    
   end
 
   add_help(:show,[:id])
@@ -201,6 +208,7 @@ class BarclampController < ApplicationController
 
   add_help(:modules)
   def modules
+    @title = I18n.t('barclamp.modules.title')
     @modules = {}
     @count = 0
     active = RoleObject.active nil

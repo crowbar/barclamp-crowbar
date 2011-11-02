@@ -5,21 +5,18 @@ Feature: Check Core Navigation
   
   Scenario: Home Page Nav
     When I go to the home page
-    Then I should see "Dashboard"
+    Then I should see "Nodes"
     Then I should see "Barclamps"
-    Then I should see "Active Roles"
-    Then I should see "Proposals"
     Then I should see "Help"
-    Then I should see "Chef Offline"
     Then I should see "CloudEdge Solution Team"
     Then I should not see "Error"
     
   Scenario: Dashboard Nav
     Given I am on the home page
-    When I click on the "Dashboard" link
+    When I click on the "Nodes" link
     Then I should see "nodes available in the system"
     Then I should see "admin"
-  
+    
   Scenario: Barclamps Nav
     Given I am on the home page
     When I click on the "Barclamps" link

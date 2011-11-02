@@ -56,4 +56,6 @@ Rails::Initializer.run do |config|
   CHEF_ONLINE = true unless defined? CHEF_ONLINE
   OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
   CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
+  BARCLAMP_CATALOG = YAML.load_file File.join( 'config', 'catalog.yml')
+  
 end

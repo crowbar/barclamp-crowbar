@@ -22,7 +22,6 @@ require 'json'
 
 class ServiceObject
 
-  BARCLAMP_CATALOG = File.join 'config', 'catalog.yml'
   extend CrowbarOffline
 
   def initialize(thelogger)
@@ -42,11 +41,8 @@ class ServiceObject
   # ordered list of barclamps from groups in the crowbar.yml files.  Built at barclamp install time by the catalog step
   def self.member_names
     names = []
-    if File.exist? BARCLAMP_CATALOG
-      cat = YAML.load_file BARCLAMP_CATALOG
-      members = cat["groups"][bc_name].sort
-      members.each { |k,v| names <<  k }
-    end
+    members = BARCLAMP_CATALOG["barclamps"][bc_name]['members']
+    members.sort.each { |k,v| names <<  k } unless members.nil?
     names
   end
 

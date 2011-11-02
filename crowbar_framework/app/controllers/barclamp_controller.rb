@@ -106,7 +106,7 @@ class BarclampController < ApplicationController
   add_help(:index)
   def index
     @title = @bc_name.titlecase
-    @members = Kernel.const_get("#{@bc_name.camelize}Service").method(:member_names).call
+    @members = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
     respond_to do |format|
       format.html { 
         render :template => 'barclamp/index' 

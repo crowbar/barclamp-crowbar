@@ -17,6 +17,7 @@
 #
 
   require 'yaml'
+  require 'json'
   require 'fileutils'
   require 'rubygems'
   require 'active_support'
@@ -44,21 +45,36 @@
     else
       throw "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
     end
-    catalog
+    catalog path
   end
   
   # regenerate the barclamp catalog (does a complete regen each install)
-  def catalog
+  def catalog(path)
     # create the groups for the catalog - for now, just groups.  other catalogs may be added later
-    cat = { 'groups'=>{} }
+    cat = { 'barclamps'=>{} }
     barclamps = File.join CROWBAR_PATH, 'barclamps'
     list = Dir.entries(barclamps).find_all { |e| e.end_with? '.yml'}
     # scan the installed barclamps
     list.each do |bc_file|
       bc = YAML.load_file File.join(barclamps, bc_file)
+      name =  bc['barclamp']['name']
+      cat['barclamps'][name] = {} if cat['barclamps'][name].nil?
+      description = bc['barclamp']['description']
+      if description.nil?
+        schema = File.join(path, '..', name, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
+        # second try based on different name pattern
+        schema = File.join(path, '..', "barclamp-#{name}", 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json") unless File.exist? schema
+        if File.exist? schema 
+          s = JSON::load File.open(schema, 'r')
+          description = s['description'] unless s.nil?
+        end
+      end
+      # template = File.join path, name, 
+      cat['barclamps'][name]['description'] = description
       bc['barclamp']['member'].each do |meta|
-        cat['groups'][meta] = {} if cat['groups'][meta].nil?
-        cat['groups'][meta][bc['barclamp']['name']] = bc['crowbar']['order']
+        cat['barclamps'][meta] = {} if cat['barclamps'][meta].nil?
+        cat['barclamps'][meta]['members'] = {} if cat['barclamps'][meta]['members'].nil?
+        cat['barclamps'][meta]['members'][name] = bc['crowbar']['order']
       end
     end
     File.open( File.join(CROWBAR_PATH, 'config', 'catalog.yml'), 'w' ) do |out|

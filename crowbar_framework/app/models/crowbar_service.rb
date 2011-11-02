@@ -15,11 +15,6 @@
 
 class CrowbarService < ServiceObject
   
-  def initialize(thelogger)
-    @bc_name = "crowbar"
-    @logger = thelogger
-  end
-
   #
   # Below are the parts to handle transition requests.
   #

@@ -25,6 +25,11 @@ class ServiceObject
   BARCLAMP_CATALOG = File.join 'config', 'catalog.yml'
   extend CrowbarOffline
 
+  def initialize(thelogger)
+    @bc_name = bc_name
+    @logger = thelogger
+  end
+
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false

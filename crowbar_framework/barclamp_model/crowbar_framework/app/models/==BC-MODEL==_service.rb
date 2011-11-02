@@ -14,11 +14,6 @@
 # 
 
 class ==^BC-MODEL==Service < ServiceObject
-
-  def initialize(thelogger)
-    @bc_name = "==BC-MODEL=="
-    @logger = thelogger
-  end
   
   #if barclamp allows multiple proposals OVERRIDE
   # def self.allow_multiple_proposals?

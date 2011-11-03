@@ -32,59 +32,6 @@ class BarclampController < ApplicationController
     @service_object = ServiceObject.new logger
   end
 
-  # Barclamp List (generic)
-  add_help(:barclamp_index)
-  def barclamp_index
-    throw "NOT IN USE - REMOVE >1.2"
-    @barclamps = ServiceObject.all
-    respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_index' }
-      format.xml  { render :xml => @barclamps }
-      format.json { render :json => @barclamps }
-    end
-  end
-
-  # Barclamp Show (specific one)
-  add_help(:barclamp_show, [:id])
-  def barclamp_show
-    throw "NOT IN USE - REMOVE >1.2"
-    @barclamp = ServiceObject.new logger
-    @barclamp.bc_name = params[:id]
-
-    respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_show' }
-      format.xml  { render :xml => @proposal }
-      format.json
-    end
-  end
-
-  # Barclamp Roles (all)
-  add_help(:barclamp_roles, [])
-  def barclamp_roles
-    throw "DEPRICATED!"
-    @roles = RoleObject.all
-    @roles = @roles.delete_if { |v| v.nil? or !(v.name =~ /^.*-config-/) }
-    respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_roles' }
-      format.xml  { render :xml => @roles }
-      format.json { render :json => @roles }
-    end
-  end
-
-  # REMOVE WHEN MENUS CAHNGES
-  # Barclamp Proposals (all)
-  add_help(:barclamp_proposals, [])
-  def barclamp_proposals
-    throw "DEPRICATED!"
-    @proposals = ProposalObject.all
-    @proposals = @proposals.delete_if { |v| v.nil? or v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-    respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_proposals' }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
-    end
-  end
-
   add_help(:versions)
   def versions
     ret = @service_object.versions
@@ -103,31 +50,6 @@ class BarclampController < ApplicationController
     render :json => ret[1]
   end
   
-  add_help(:index)
-  def index
-    @title = @bc_name.titlecase
-    @members = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
-    respond_to do |format|
-      format.html { 
-        render :template => 'barclamp/index' 
-      }
-      format.xml  { 
-        return render :text => @members, :status => ret[0] if ret[0] != 200
-        render :xml => @members 
-      }
-      format.json {
-        return render :text => @members, :status => ret[0] if ret[0] != 200
-        render :json => @members 
-      }
-    end
-  end
-    
-  def index_old
-    ret = @service_object.list_active
-    @roles = ret[1]
-    
-  end
-
   add_help(:show,[:id])
   def show
     ret = @service_object.show_active params[:id]
@@ -175,23 +97,6 @@ class BarclampController < ApplicationController
     end
   end
 
-  # REMOVE, NOT USED IN NEW DESIGN
-  add_help(:status,[],[:get])
-  def status
-    bcs = {}
-    begin
-      result = ProposalObject.all
-      result = result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      result.each do |role|
-        bcs[role.barclamp] = (bcs[role.barclamp].nil? ? 1 : bcs[role.barclamp] + 1)
-      end
-      render :inline => {:count=>bcs.length, :barclamps=>bcs}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposals list due to '#{e.message}'")
-    end
-  end
-
   add_help(:elements)
   def elements
     ret = @service_object.elements
@@ -205,6 +110,22 @@ class BarclampController < ApplicationController
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
+  
+  add_help(:index)
+  def index
+    @title = "#{@bc_name.titlecase} #{t('barclamp.index.members')}"
+    @count = -1
+    members = {}
+    list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
+    list.each { |bc| members[bc] = { 'description' => BARCLAMP_CATALOG['barclamps'][bc]['description'] } }
+    @modules = get_proposals_from_barclamps members
+    respond_to do |format|
+      format.html { render 'barclamp/index' }
+      format.xml  { render :xml => @modules }
+      format.json { render :json => @modules }
+    end
+  end
+
 
   add_help(:modules)
   def modules
@@ -212,11 +133,10 @@ class BarclampController < ApplicationController
     @count = 0
     @modules = get_proposals_from_barclamps(BARCLAMP_CATALOG['barclamps']).sort
     respond_to do |format|
-      format.html 
+      format.html { render 'index'}
       format.xml  { render :xml => @modules }
       format.json { render :json => @modules }
     end
-    
   end
     
   def get_proposals_from_barclamps(barclamps)
@@ -224,7 +144,7 @@ class BarclampController < ApplicationController
     active = RoleObject.active nil
     barclamps.each do |name, details|
       props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'], :proposals=>{}, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+      modules[name] = { :description=>details['description'] || t('not_set'), :proposals=>{}, :members=>(details['members'].nil? ? 0 : details['members'].length) }
       begin
         modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
       rescue
@@ -235,27 +155,11 @@ class BarclampController < ApplicationController
       ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
         status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
-        @count += 1
+        @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
         modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
       end        
     end
     modules
-  end
-  
-  # REMOVE WHEN MENUS CHANGE!!!
-  add_help(:proposals)
-  def proposals
-    ret = @service_object.proposals
-    @proposals = ret[1]
-    return render :text => @proposals, :status => ret[0] if ret[0] != 200
-    respond_to do |format|
-      format.html { 
-        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposal_index' 
-      }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
-    end
   end
 
   add_help(:proposal_show,[:id])

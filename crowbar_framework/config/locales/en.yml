@@ -146,6 +146,8 @@ en:
   barclamp:
     modules:
       title: All Barclamps
+    index:
+      members: Members
       proposals: proposals
       barclamp: Name
       status: Status
@@ -156,23 +158,6 @@ en:
       confirm_recall: Are you sure you wish to deactivate this proposal?
       confirm_delete: Are you sure you wish to delete this proposal?
       no_action: No Action for 
-    barclamp_index:
-      title: Barclamps
-      none: None
-    barclamp_show:
-      title: Barclamp Details
-      create_proposal: Create
-      name: Name
-      description: Description
-      active: Active Proposals
-      proposals: All Proposals
-      default: proposal
-    barclamp_roles:
-      title: Active Roles
-    barclamp_proposals:
-      title: Proposals
-    proposal_index:
-      title: Proposals
     proposal_show:
       title: Edit Proposal
       apply_changes: Apply changes now?
@@ -198,8 +183,6 @@ en:
       title: Attributes
     edit_deployment_raw:
       title: Deployment
-    index:
-      title: Active Roles
     show:
       edit: Edit Proposal
       deployment: Nodes Activated

@@ -538,7 +538,7 @@ class NodeObject < ChefObject
   end
   
   def hardware
-    @node["dmi"].system.product_name
+    @node["dmi"].nil? ? I18n.t('unknown') : @node["dmi"].system.product_name
   end
 
   def raid_set

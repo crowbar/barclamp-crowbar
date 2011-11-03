@@ -145,7 +145,8 @@ en:
       description: Description
   barclamp:
     modules:
-      title: Barclamps
+      title: All Barclamps
+      proposals: proposals
       barclamp: Name
       status: Status
       description: Description

@@ -209,21 +209,8 @@ class BarclampController < ApplicationController
   add_help(:modules)
   def modules
     @title = I18n.t('barclamp.modules.title')
-    @modules = {}
     @count = 0
-    active = RoleObject.active nil
-    list = ServiceObject.all
-    list.each do |bc|
-      name = bc[0]
-      props = ProposalObject.find_proposals name
-      @modules[name] = { :description=>bc[1], :proposals=>{}, :allow_multiple_proposals => (Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call) }
-      ProposalObject.find_proposals(bc[0]).each do |prop|        
-        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
-        @count += 1
-        @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
-      end
-    end
+    @modules = get_proposals_from_barclamps(BARCLAMP_CATALOG['barclamps']).sort
     respond_to do |format|
       format.html 
       format.xml  { render :xml => @modules }
@@ -232,6 +219,29 @@ class BarclampController < ApplicationController
     
   end
     
+  def get_proposals_from_barclamps(barclamps)
+    modules = {}
+    active = RoleObject.active nil
+    barclamps.each do |name, details|
+      props = ProposalObject.find_proposals name
+      modules[name] = { :description=>details['description'], :proposals=>{}, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+      begin
+        modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
+      rescue
+        Rails.logger.debug "WARNING: could not resolve barclamp #{name}.  Please correct the naming to be the object name when camelized"
+        modules[name][:allow_multiple_proposals] = false
+        modules[name][:description] += " !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object." if RAILS_ENV === 'development'
+      end
+      ProposalObject.find_proposals(name).each do |prop|        
+        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
+        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
+        @count += 1
+        modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
+      end        
+    end
+    modules
+  end
+  
   # REMOVE WHEN MENUS CHANGE!!!
   add_help(:proposals)
   def proposals

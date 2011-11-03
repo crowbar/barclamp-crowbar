@@ -1,4 +1,7 @@
-%h1= t('.title')
+- if @count>0
+  %p{:style => 'float:right'}
+    = "#{@count} #{t('.proposals')}"
+%h1= @title
 
 %table.data.box
   %thead
@@ -8,7 +11,7 @@
       %th{:style => "width:75%"}= t('.description')
 
   %tbody
-    - @modules.sort.each do |name, barclamp|
+    - @modules.each do |name, barclamp|
       %tr{:class => cycle(:odd, :even, :name => "barclamps")}
         %td
           %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
@@ -66,7 +69,7 @@
     $.ajaxSetup({ timeout: 3000 }) 
     $.getJSON('#{status_proposals_barclamp_path}', function(data) {
       // If role has changed, re-render the page
-      if (data['count'] != #{@count}) {
+      if (#{@count}>0 && data['count'] != #{@count}) {
         location.reload();
       };
       

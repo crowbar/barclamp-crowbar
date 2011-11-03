@@ -32,6 +32,17 @@ class BarclampController < ApplicationController
     @service_object = ServiceObject.new logger
   end
 
+  # Barclamp List (generic)
+  add_help(:barclamp_index)
+  def barclamp_index
+    @barclamps = ServiceObject.all
+    respond_to do |format|
+      format.html { render :template => 'barclamp/barclamp_index' }
+      format.xml  { render :xml => @barclamps }
+      format.json { render :json => @barclamps }
+    end
+  end
+
   add_help(:versions)
   def versions
     ret = @service_object.versions
@@ -138,7 +149,21 @@ class BarclampController < ApplicationController
       format.json { render :json => @modules }
     end
   end
-    
+  add_help(:proposals)
+  def proposals
+    ret = @service_object.proposals
+    @proposals = ret[1]
+    return render :text => @proposals, :status => ret[0] if ret[0] != 200
+    respond_to do |format|
+      format.html { 
+        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
+        render :template => 'barclamp/proposal_index' 
+      }
+      format.xml  { render :xml => @proposals }
+      format.json { render :json => @proposals }
+    end
+  end
+
   def get_proposals_from_barclamps(barclamps)
     modules = {}
     active = RoleObject.active nil

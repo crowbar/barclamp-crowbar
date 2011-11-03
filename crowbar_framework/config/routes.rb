@@ -31,7 +31,7 @@ ActionController::Routing::Routes.draw do |map|
 
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
-  #map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
+  map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
   map.commit_proposal_barclamp  'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }
   map.status_proposals_barclamp 'crowbar/:controller/1.0/proposals/status/:id/.:format', :action => 'proposal_status', :conditions => { :method => :get }
   map.delete_proposal_barclamp  'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :conditions => { :method => :delete }
@@ -48,7 +48,7 @@ ActionController::Routing::Routes.draw do |map|
   map.show_barclamp             'crowbar/:controller/1.0/:id', :action => 'show', :conditions => { :method => :get }
   map.versions_barclamp         'crowbar/:controller', :action => 'versions', :conditions => { :method => :get }
   map.action_barclamp           'crowbar/:controller/1.0/:action/:id', :conditions => { :method => :post }
-  #map.barclamp_index_barclamp   'crowbar', :controller => 'barclamp', :action => 'barclamp_index', :conditions => { :method => :get }
+  map.barclamp_index_barclamp   'crowbar', :controller => 'barclamp', :action => 'barclamp_index', :conditions => { :method => :get }
   #map.barclamp_show_barclamp    'crowbar/show/1.0/:id', :controller => 'barclamp', :action => 'barclamp_show', :conditions => { :method => :get }
   #map.barclamp_roles_barclamp   'crowbar/roles/1.0', :controller => 'barclamp', :action => 'barclamp_roles', :conditions => { :method => :get }
   #map.barclamp_proposals_barclamp 'crowbar/proposals/1.0', :controller => 'barclamp', :action => 'barclamp_proposals', :conditions => { :method => :get }

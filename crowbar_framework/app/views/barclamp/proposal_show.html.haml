@@ -17,11 +17,10 @@
 
   %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
   %input#name{:type => "hidden", :name => "name", :value => @proposal.name}
-  
-  =(@attr_raw ? (render :partial => 'barclamp/edit_attributes_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}/edit_attributes" rescue (render :partial => 'barclamp/edit_attributes_raw') end))
+  = render_attributes(@attr_raw, @proposal)
   = render :partial => "barclamp/attribute_helper"
 
-  =(@dep_raw ? (render :partial => 'barclamp/edit_deployment_raw') : (begin render :partial => "barclamp/#{@proposal.barclamp}/edit_deployment" rescue (render :partial => 'barclamp/edit_deployment_raw') end))
+  = render_deployment(@dep_raw, @proposal)
 
   %p
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]

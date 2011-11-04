@@ -151,6 +151,25 @@ class BarclampController < ApplicationController
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
+
+  #
+  # Provides the restful api call for
+  # List Proposals 	/crowbar/<barclamp-name>/<version>/proposals 	GET 	Returns a json list of proposals for instances 
+  #
+  add_help(:proposals)
+  def proposals
+    ret = @service_object.proposals
+    @proposals = ret[1]
+    return render :text => @proposals, :status => ret[0] if ret[0] != 200
+    respond_to do |format|
+      format.html { 
+        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
+        render :template => 'barclamp/proposal_index' 
+      }
+      format.xml  { render :xml => @proposals }
+      format.json { render :json => @proposals }
+    end
+  end
   
   #
   # Provides the restful api call for
@@ -164,7 +183,7 @@ class BarclampController < ApplicationController
         @count = -1
         members = {}
         list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
-        list.each { |bc| members[bc] = { 'description' => BARCLAMP_CATALOG['barclamps'][bc]['description'] } }
+        list.each { |bc| members[bc] = { 'description' => BARCLAMP_CATALOG['barclamps'][bc]['description'] } if BARCLAMP_CATALOG['barclamps'][bc]['user_managed'] }
         @modules = get_proposals_from_barclamps members
         render 'barclamp/index' 
       }
@@ -190,30 +209,12 @@ class BarclampController < ApplicationController
   def modules
     @title = I18n.t('barclamp.modules.title')
     @count = 0
-    @modules = get_proposals_from_barclamps(BARCLAMP_CATALOG['barclamps']).sort
+    barclamps = BARCLAMP_CATALOG['barclamps'].delete_if { |bc, props| !props['user_managed'] }
+    @modules = get_proposals_from_barclamps(barclamps).sort 
     respond_to do |format|
       format.html { render 'index'}
       format.xml  { render :xml => @modules }
       format.json { render :json => @modules }
-    end
-  end
-
-  #
-  # Provides the restful api call for
-  # List Proposals 	/crowbar/<barclamp-name>/<version>/proposals 	GET 	Returns a json list of proposals for instances 
-  #
-  add_help(:proposals)
-  def proposals
-    ret = @service_object.proposals
-    @proposals = ret[1]
-    return render :text => @proposals, :status => ret[0] if ret[0] != 200
-    respond_to do |format|
-      format.html { 
-        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposal_index' 
-      }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
     end
   end
 
@@ -231,7 +232,7 @@ class BarclampController < ApplicationController
       rescue
         Rails.logger.debug "WARNING: could not resolve barclamp #{name}.  Please correct the naming to be the object name when camelized"
         modules[name][:allow_multiple_proposals] = false
-        modules[name][:description] += " !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object." if RAILS_ENV === 'development'
+        modules[name][:description] += " !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object.  You may want to set 'barclamp:\\user_managed: false' in the crowbar.yml file" if RAILS_ENV === 'development'
       end
       ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.

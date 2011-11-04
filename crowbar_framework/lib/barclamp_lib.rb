@@ -71,6 +71,8 @@
       end
       # template = File.join path, name, 
       cat['barclamps'][name]['description'] = description
+      cat['barclamps'][name]['user_managed'] =  bc['barclamp']['user_managed'] || true
+      puts "#{name} #{bc['barclamp']['user_managed']}" if name === 'dell-branding'
       bc['barclamp']['member'].each do |meta|
         cat['barclamps'][meta] = {} if cat['barclamps'][meta].nil?
         cat['barclamps'][meta]['members'] = {} if cat['barclamps'][meta]['members'].nil?

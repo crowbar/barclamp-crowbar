@@ -1,6 +1,9 @@
 - if @count>0
   %p{:style => 'float:right'}
     = "#{@count} #{t('.proposals')}"
+- else
+  %div#logo{:style => 'float:right', :width=>'25%', :border=>0, :visibility=>'hidden'}
+    %img#graphic{:alt=>@title, :width=>'100%'}
 %h1= @title
 
 %table.data.box

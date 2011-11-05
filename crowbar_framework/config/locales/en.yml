@@ -34,6 +34,10 @@ en:
     crowbar_ug: Crowbar
     crowbar_dg: Deployment
 
+  # Crowbar barclamp items
+  crowbar:
+    instructions: These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.
+    
   # General Proposal components
   proposal:
     items:

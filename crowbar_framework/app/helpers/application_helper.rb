@@ -56,4 +56,36 @@ module ApplicationHelper
     result << "</ul>"
   end
 
+  def render_attributes(raw, proposal)
+    if raw
+      render :partial => 'barclamp/edit_attributes_raw'
+    else
+      begin
+        render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
+      rescue ActionView::MissingTemplate
+        render :partial => 'barclamp/edit_attributes_raw'
+      rescue Exception => e
+        puts "Attribute Exception #{e.class}: #{e.message}"
+        puts e.backtrace
+        render :partial => 'barclamp/edit_attributes_raw'
+      end
+    end
+  end
+
+  def render_deployment(raw, proposal)
+    if raw
+      render :partial => 'barclamp/edit_deployment_raw'
+    else
+      begin
+        render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
+      rescue ActionView::MissingTemplate
+        render :partial => 'barclamp/edit_deployment_raw'
+      rescue 
+        puts "Deployment Exception #{e.message}"
+        puts e.backtrace
+        render :partial => 'barclamp/edit_deployment_raw'
+      end
+    end
+  end
+
 end

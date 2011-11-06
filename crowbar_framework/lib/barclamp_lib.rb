@@ -16,10 +16,10 @@
 # Author: RobHirschfeld
 #
 
+  require 'rubygems'
   require 'yaml'
   require 'json'
   require 'fileutils'
-  require 'rubygems'
   require 'active_support'
 
   MODEL_SUBSTRING_BASE = '==BC-MODEL=='

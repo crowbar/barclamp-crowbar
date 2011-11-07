@@ -88,4 +88,18 @@ module ApplicationHelper
     end
   end
 
+  def instance_selector(bc, name, field, proposal)
+    service = eval("#{bc.camelize}Service.new nil")
+    options = service.list_active[1]
+    if options.empty?
+      options = [["None", ""]]
+    else
+      options = options.map { |x| [x,x] }
+    end
+
+    def_val = proposal.raw_data['attributes'][proposal.barclamp][field] || ""
+
+    select_tag name, options_for_select(options, def_val), :onchange => "update_value(#{field}, #{field}, 'string')"
+  end
+
 end

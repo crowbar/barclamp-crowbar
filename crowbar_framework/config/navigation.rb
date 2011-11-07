@@ -7,7 +7,7 @@ SimpleNavigation::Configuration.run do |navigation|
     end
     primary.item :barclamps, t('nav.barclamps'), barclamp_modules_path do |secondary|
       secondary.item :barclamps, t('nav.all_bc'), barclamp_modules_path
-      secondary.item :crowbar, t('nav.crowbar_bc'), index_barclamp_path(:controller=>'crowbar') if RAILS_ENV === 'development'
+      secondary.item :crowbar, t('nav.crowbar_bc'), index_barclamp_path(:controller=>'crowbar')
       # insert here for :barclamps 
       # insert here for :add  (this is legacy support)
     end

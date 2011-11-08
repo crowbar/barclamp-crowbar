@@ -345,18 +345,23 @@
 
     # Migrate base crowbar schema if needed
     bc_schema_version = barclamp["crowbar"]["proposal_schema_version"].to_i rescue 1
-    if bc_schema_version == 1 
+    if bc_schema_version < 2 
       name = barclamp['barclamp']['name']
-      schema_file = File.join BASE_PATH, name, 'chef','data_bags','crowbar', "bc-template-#{name}.schema"
-      schema_file = File.join BASE_PATH, "barclamp-#{name}", 'chef','data_bags','crowbar', "bc-template-#{name}.schema" unless File.exists? schema_file
+      schema_file = File.join BASE_PATH, 'chef','data_bags','crowbar', "bc-template-#{name}.schema"
       if File.exists? schema_file
-        s = JSON::load File.open(schema, 'r')
-        s["deployment"]["mapping"][name]["mapping"]["crowbar-status"] = { "type" => "string" }
-        s["deployment"]["mapping"][name]["mapping"]["crowbar-failed"] = { "type" => "string" }
+        a = []
+        File.open(schema_file, 'r') { |f|
+          a = f.readlines
+        }
 
-        ss = JSON::pretty_generate(s)
-        File.open(schema, 'w') { |f|
-          f.write(ss)
+        File.open(schema_file, 'w') { |f|
+          a.each do |line|
+            if line =~ /crowbar-committing/
+              f.write("  \"crowbar-status\": { \"type\": \"str\" },\n")
+              f.write("  \"crowbar-failed\": { \"type\": \"str\" },\n")
+            end
+            f.write(line)
+          end
         }
       end
     end

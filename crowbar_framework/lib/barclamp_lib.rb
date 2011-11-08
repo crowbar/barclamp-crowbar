@@ -342,6 +342,24 @@
       files += bc_cloner('chef', bc, nil, path, BASE_PATH, false)
       puts "\tcopied over chef parts from #{path} to #{BASE_PATH}" if DEBUG
     end
+
+    # Migrate base crowbar schema if needed
+    bc_schema_version = barclamp["crowbar"]["proposal_schema_version"].to_i rescue 1
+    if bc_schema_version == 1 
+      name = barclamp['barclamp']['name']
+      schema_file = File.join BASE_PATH, name, 'chef','data_bags','crowbar', "bc-template-#{name}.schema"
+      schema_file = File.join BASE_PATH, "barclamp-#{name}", 'chef','data_bags','crowbar', "bc-template-#{name}.schema" unless File.exists? schema_file
+      if File.exists? schema_file
+        s = JSON::load File.open(schema, 'r')
+        s["deployment"]["mapping"][name]["mapping"]["crowbar-status"] = { "type" => "string" }
+        s["deployment"]["mapping"][name]["mapping"]["crowbar-failed"] = { "type" => "string" }
+
+        ss = JSON::pretty_generate(s)
+        File.open(schema, 'w') { |f|
+          f.write(ss)
+        }
+      end
+    end
   
     filelist = File.join BARCLAMP_PATH, "#{bc}-filelist.txt"
     File.open( filelist, 'w' ) do |out|

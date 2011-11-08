@@ -261,6 +261,18 @@ class ServiceObject
     end
   end
 
+  def update_proposal_status(inst, status, message, bc = @bc_name)
+    @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
+
+    prop = ProposalObject.find_proposal(bc, inst)
+    prop["deployment"][bc]["crowbar-status"] = status
+    prop["deployment"][bc]["crowbar-failed"] = message
+    res = prop.save
+
+    @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
+    res
+  end
+
   def bc_name=(new_name)
     @bc_name = new_name
   end
@@ -643,34 +655,69 @@ class ServiceObject
     ran_admin = false
     run_order.each do | batch |
       next if batch.empty?
-      snodes = ""
-      admin_list = ""
+      snodes = []
+      admin_list = []
       batch.each do |n|
         # Run admin nodes a different way.
         if admin_nodes.include?(n)
-          admin_list = admin_list + " OR " if admin_list != ""
-          admin_list = admin_list + "name:#{n}"
+          admin_list << n
           ran_admin = true
           next
         end
-        snodes = snodes + " OR " if snodes != ""
-        snodes = snodes + "name:#{n}"
+        snodes << n
       end
  
-      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes}")
-      @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list}")
+      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
+      @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
       if CHEF_ONLINE
-        system("sudo -i -u root \"knife ssh '#{snodes}' chef-client\"")
-        system("sudo -i -u root \"knife ssh '#{snodes}' chef-client\"")
+        # XXX: We used to do this twice - do we really need twice???
+        pids = {}
+        unless snodes.empty?
+          snodes.each do |node|
+            filename = "log/#{node}.chef_client.log"
+            pid = run_remote_chef_client(node, "chef-client", filename)
+            pids[pid] = node
+          end
+          status = Process.waitall
 
-        system("sudo -i -u root \"knife ssh '#{admin_list}' /opt/dell/bin/single_chef_client.sh\"") if admin_list != ""
-        system("sudo -i -u root \"knife ssh '#{admin_list}' /opt/dell/bin/single_chef_client.sh\"") if admin_list != ""
+          badones = status.select { |x| x[1].exitstatus != 0 }
+          unless badones.empty?
+            message = "Failed to apply the proposal to: "
+            badones.each do |baddie|
+              message = message + "#{pids[baddie[0]]} "
+            end
+            update_proposal_status(inst, "failed", message)
+            return [ 405, message ] 
+          end
+        end
+
+        unless admin_list.empty?
+          admin_list.each do |node|
+            filename = "log/#{node}.chef_client.log"
+            pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
+            pids[node] = pid
+          end
+          status = Process.waitall
+
+          badones = status.select { |x| x[1].exitstatus != 0 }
+          unless badones.empty?
+            message = "Failed to apply the proposal to: "
+            badones.each do |baddie|
+              message = message + "#{pids[baddie[0]]} "
+            end
+            update_proposal_status(inst, "failed", message)
+            return [ 405, message ] 
+          end
+        end
       end
     end
 
+    # XXX: This should not be done this way.  Something else should request this.
     system("sudo /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
+
+    update_proposal_status(inst, "success", message)
     [200, {}]
   end
 
@@ -720,6 +767,45 @@ class ServiceObject
     end
     true
   end
+
+  #
+  # fork and exec ssh call to node and return pid.
+  #
+  def run_remote_chef_client(node, command, logfile_name)
+    Kernel::fork {
+      # Make sure all file descriptors are closed
+      ObjectSpace.each_object(IO) do |io|
+        unless [STDIN, STDOUT, STDERR].include?(io)
+          begin
+            unless io.closed?
+              io.close
+            end
+          rescue ::Exception
+          end
+        end
+      end
+
+      # Fix the normal file descriptors.
+      begin; STDIN.reopen "/dev/null"; rescue ::Exception; end       
+      if logfile_name
+        begin
+          STDOUT.reopen logfile_name, "a+"
+          File.chmod(0644, logfile_name)
+          STDOUT.sync = true
+        rescue ::Exception
+          begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
+        end
+      else
+        begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
+      end
+      begin; STDERR.reopen STDOUT; rescue ::Exception; end
+      STDERR.sync = true      
+
+      # Exec command
+      exec("sudo -i -u root \"ssh root@#{node} #{command}\"")
+    }
+  end
+
 
 end
 

@@ -1,11 +1,16 @@
 - if @role.elements.length > 0
   %table{:class => "top"}
     - @role.elements.each_pair do |key, value|
-      %tr
-        %td= "#{t '.role'} <b>#{key}</b>"
-        %td= value.map{|m| m.split('.').first}.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
+      %dl
+        %dt
+          = t '.role'
+          %b
+            - if CONVERGED_ADMIN
+              = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
+            - else
+              = key
+        %dd= value.map{|m| m.split('.').first}.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
   .clear
 - else
-  %p
-    = t '.none'
+  %p= t '.none'
 

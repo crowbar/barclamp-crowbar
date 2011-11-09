@@ -57,5 +57,6 @@ Rails::Initializer.run do |config|
   OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
   CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
   BARCLAMP_CATALOG = begin YAML.load_file File.join( 'config', 'catalog.yml') rescue nil end
+  CONVERGED_ADMIN = true   #flag indicating at we can assume all Crowbar services on a single server
   
 end

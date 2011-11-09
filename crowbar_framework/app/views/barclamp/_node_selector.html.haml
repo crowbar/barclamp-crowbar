@@ -14,7 +14,12 @@
       .column_40.first
         - @proposal.all_elements.each do |element|
           %div{ :class => ["list"], :id => "#{element}_div" }
-            %div{ :class => ["list", "title"] }= "#{element}"
+            %div{ :class => ["list", "title"] }
+            %b
+              - if CONVERGED_ADMIN
+                = link_to element, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
+              - else
+                = element
             %ul.list{ :id => "#{element}" }
               - unless @proposal.elements[element].nil?
                 - @proposal.elements[element].each do |v|

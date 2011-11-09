@@ -192,10 +192,12 @@ class CrowbarService < ServiceObject
     proposals = ProposalObject.find_proposals("crowbar")
     raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
     # populate options from attributes/crowbar/*-settings
-    options = { :raid=>{}, :bios=>{} }
+    options = { :raid=>{}, :bios=>{}, :show=>[] }
     unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
       options[:raid] = proposals[0]["attributes"]["crowbar"]["raid-settings"]
       options[:bios] = proposals[0]["attributes"]["crowbar"]["bios-settings"]
+      options[:show] << :raid if options[:raid].length > 0
+      options[:show] << :bios if options[:bios].length > 0
     end
     options
   end

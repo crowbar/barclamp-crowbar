@@ -15,10 +15,8 @@
       %tr
         %th= t('.name')
         %th= t('.description')
-        -if @options[:show].include? :bios
-          %th= t('.bios')
-        -if @options[:show].include? :raid
-          %th= t('.raid')
+        %th= t('.bios')
+        %th= t('.raid')
         %th.center Allocate?
     %tbody
       - @nodes.sort_by{|n| n.name }.each do |node|
@@ -26,20 +24,25 @@
           %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
           -unless node.admin?
             %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
-            -if @options[:show].include? :bios
-              %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
-            -if @options[:show].include? :raid
-              %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
-            -unless node.allocated
-              %td.center= check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
-            -else
-              %td.center= "-"
+            %td
+              -if @options[:show].include? :bios
+                = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
+              -else
+                = t 'feature_na'
+            %td
+              -if @options[:show].include? :raid
+                %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
+              -else
+                = t 'feature_na'
+            %td.center
+              -unless node.allocated
+                = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
+              -else
+                = "-"
           -else
             %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description || t('.admin')}"
-            -if @options[:show].include? :bios
-              %td= t('na')
-            -if @options[:show].include? :raid
-              %td= t('na')
+            %td= t('na')
+            %td= t('na')
             %td.center= "-"
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}

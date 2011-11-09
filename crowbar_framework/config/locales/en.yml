@@ -181,15 +181,15 @@ en:
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
     node_selector:
-      title: Deployment
+      title: Node Deployment
       msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
     edit_attributes_raw:
-      title: Attributes
+      title: Proposal Attributes
     edit_deployment_raw:
       title: Deployment
     show:
       edit: Edit Proposal
-      deployment: Nodes Activated
+      deployment: Nodes Deployment
       attributes: Proposal Attributes
       role: Role
       key: Key
@@ -197,7 +197,7 @@ en:
       key: Key
     show_deployment_raw:
       role: Role
-      none: No Nodes Activated
+      none: No Nodes Deployed
 
 
   # Global

@@ -38,7 +38,7 @@ class NodesController < ApplicationController
       end
     end
     respond_to do |format|
-      format.html # index.html.erb
+      format.html # index.html.haml
       format.xml  { render :xml => @nodes }
       format.json { render :json => @nodes }
     end

@@ -204,6 +204,7 @@ en:
   show: View
   destroy: Remove
   back: Go Back
+  cancel: Cancel
   edit: Edit
   actions: Actions
   are_you_sure: Are you sure?

@@ -716,7 +716,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
+    system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
 
     update_proposal_status(inst, "success", "")
     [200, {}]

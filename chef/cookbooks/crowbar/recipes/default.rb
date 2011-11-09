@@ -33,17 +33,6 @@ when "redhat","centos"
   rainbows_path=""
 end
 
-web_app "rubygems" do
-  server_name "rubygems.org"
-  docroot "/tftpboot/#{node[:platform]}_dvd/extra"
-  template "rubygems_app.conf.erb"
-  web_port 80
-end
-
-bash "force-apache-reload" do
-  code "service #{apache_name} graceful"
-end
-
 gemlist=%w{rake json syslogger sass simple-navigation 
    i18n haml net-http-digest_auth rails rainbows }
 
@@ -214,5 +203,3 @@ end
     not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
   end
 end
-
-

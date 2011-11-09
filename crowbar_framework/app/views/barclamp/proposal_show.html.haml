@@ -1,5 +1,7 @@
 - prop = "#{@proposal.barclamp}_#{@proposal.name}"
-
+%p{:style => 'float:right'}
+  = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
+  
 %h1.led.unknown{:id => prop, :title=>t('proposal.status.unknown')}
   = t '.title'
 

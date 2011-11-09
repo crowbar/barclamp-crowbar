@@ -1,6 +1,6 @@
 %table{:class => "top"}
   - @role.default_attributes[@role.barclamp].each_pair do |key, value|
-    %tr
-      %td= key
-      %td= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value)
+    %dl
+      %dt= t ".#{key}", :default => key
+      %dd= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value)
 .clear

@@ -212,6 +212,7 @@ en:
   not_set: Not set
   undetermined: Undetermined
   na: N/A
+  feature_na: Feature Not Available
   name: Name
   offline: Chef Offline
   raw: Raw

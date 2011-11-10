@@ -20,7 +20,7 @@
   require 'yaml'
   require 'json'
   require 'fileutils'
-  require 'active_support'
+  require 'active_support/all'
 
   MODEL_SUBSTRING_BASE = '==BC-MODEL=='
   MODEL_SUBSTRING_CAMEL = '==^BC-MODEL=='

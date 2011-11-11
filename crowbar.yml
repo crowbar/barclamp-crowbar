@@ -213,6 +213,7 @@ gems:
     - builder
     - activesupport
     - rainbows
+    - sendfile
     - sqlite3-ruby
     - rdoc
     - net-ssh-multi

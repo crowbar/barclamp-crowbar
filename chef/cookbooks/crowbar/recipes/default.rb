@@ -17,18 +17,15 @@
 # limitations under the License.
 #
 
-include_recipe "apache2"
+include_recipe "bluepill"
 
 pkglist=()
 rainbows_path=""
-apache_name=""
 case node[:platform]
 when "ubuntu","debian"
-  apache_name="apache2"
   pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8}
   rainbows_path="/var/lib/gems/1.8/bin/"
 when "redhat","centos"
-  apache_name="httpd"
   pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
 end
@@ -183,9 +180,18 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
-bash "start rainbows" do
-  code "cd /opt/dell/crowbar_framework; #{rainbows_path}rainbows -D -E production -c rainbows.cfg"
-  not_if "pidof rainbows"
+bluepill_service "crowbar-webserver" do
+  variables(:processes => [ {
+                              "name" => "rainbows",
+                              "start_command" => "rainbows -E production -c rainbows.cfg",
+                              "stdout" => "/dev/null",
+                              "stderr" => "/dev/null",
+                              "working_dir" => "/opt/dell/crowbar_framework",
+                              "uid" => "crowbar",
+                              "gid" => "crowbar",
+                              "daemonize" => true
+                            } ] )
+  action [:create, :load]
 end
 
 cookbook_file "/etc/init.d/crowbar" do

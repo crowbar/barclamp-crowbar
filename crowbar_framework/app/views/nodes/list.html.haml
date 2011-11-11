@@ -31,7 +31,7 @@
                 = t 'feature_na'
             %td
               -if @options[:show].include? :raid
-                %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
+                = select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
               -else
                 = t 'feature_na'
             %td.center

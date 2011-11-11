@@ -74,6 +74,11 @@
           td.effect("highlight", {color: '#666666'}, 2000);
         }
         led.attr('title', val['state']);
+        // catch the case where we've expanded detail on a node
+        var head = $('#head_'+key);
+        if (head.length !=0 ) {
+          head.attr('class', 'led '+val['status']);
+        }
       });
       
     });

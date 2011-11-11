@@ -183,7 +183,8 @@ class BarclampController < ApplicationController
         @count = -1
         members = {}
         list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
-        list.each { |bc| members[bc] = { 'description' => BARCLAMP_CATALOG['barclamps'][bc]['description'] } if BARCLAMP_CATALOG['barclamps'][bc]['user_managed'] }
+        cat = ServiceObject.barclamp_catalog
+        list.each { |bc| members[bc] = { 'description' => cat['barclamps'][bc]['description'] } if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
         @modules = get_proposals_from_barclamps members
         render 'barclamp/index' 
       }
@@ -209,7 +210,7 @@ class BarclampController < ApplicationController
   def modules
     @title = I18n.t('barclamp.modules.title')
     @count = 0
-    barclamps = BARCLAMP_CATALOG['barclamps'].delete_if { |bc, props| !props['user_managed'] }
+    barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
     @modules = get_proposals_from_barclamps(barclamps).sort 
     respond_to do |format|
       format.html { render 'index'}
@@ -226,7 +227,7 @@ class BarclampController < ApplicationController
     active = RoleObject.active nil
     barclamps.each do |name, details|
       props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'] || t('not_set'), :proposals=>{}, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+      modules[name] = { :description=>details['description'] || t('not_set'), :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
       begin
         modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
       rescue
@@ -236,9 +237,13 @@ class BarclampController < ApplicationController
       end
       ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
+        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
         @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
         modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
+        if prop.status === "failed"
+          modules[name][:proposals][prop.name][:message] = prop.fail_reason 
+          modules[name][:expand] = true
+        end
       end        
     end
     modules
@@ -253,7 +258,7 @@ class BarclampController < ApplicationController
     ret = @service_object.proposal_show params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     @proposal = ret[1]
-
+    flash[:notice] = @proposal.fail_reason if @proposal.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
 

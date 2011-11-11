@@ -1,4 +1,5 @@
-%h1{:style=>"float: left"}= "#{@node.shortname} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
+%h1.led{:id => "head_#{@node.shortname}", :class=>@node.status, :title=>@node.state}
+  = "#{@node.shortname} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
 
 %ul.buttons
   - if @node.bmc_set?

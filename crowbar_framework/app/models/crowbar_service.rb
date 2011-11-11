@@ -196,7 +196,7 @@ class CrowbarService < ServiceObject
     unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
       options[:raid] = proposals[0]["attributes"]["crowbar"]["raid-settings"]
       options[:bios] = proposals[0]["attributes"]["crowbar"]["bios-settings"]
-      #options[:show] << :raid if options[:raid].length > 0
+      options[:show] << :raid if options[:raid].length > 0
       options[:show] << :bios if options[:bios].length > 0
     end
     options

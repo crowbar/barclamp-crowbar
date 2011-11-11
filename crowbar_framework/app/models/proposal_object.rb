@@ -81,6 +81,7 @@ class ProposalObject < ChefObject
 
   def self.human_attribute_name(attrib)
     #remove if possible, do in the view
+    Rails.logger.info("please rewrite to not using I18n in models!  Use in views.")
     I18n.t attrib, :scope => "model.attributes.proposal"
   end
 
@@ -109,8 +110,31 @@ class ProposalObject < ChefObject
       return "unready" if bc.has_key? "crowbar-committing" and bc["crowbar-committing"]
       return "pending" if bc.has_key? "crowbar-queued" and bc["crowbar-queued"]
       return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
-      "ready"
+      if !@item["deployment"][self.barclamp].key? "crowbar-status" or @item["deployment"][self.barclamp]["crowbar-status"] === "success"
+        "ready"
+      else
+        "failed"
+      end
     end
+  end
+  
+  # nil if not appliciable, true = if success, false if failed
+  def failed?
+     status === 'failed'
+  end
+
+  # for locationlization, will lookup text before the :  
+  def fail_reason
+     s = if failed?
+       @item["deployment"][self.barclamp]["crowbar-failed"].to_s
+     elsif status === "ready"
+       "Did not fail.  Successfully applied: #{barclamp}-#{name} (status #{status})"
+     else
+       "No success information for proposal: #{barclamp}-#{name} (status #{status})"
+     end
+     out = s.split(":")
+     out[0] = I18n.t out[0], :default=> out[0]
+     return out.join(":").to_s
   end
   
   def description

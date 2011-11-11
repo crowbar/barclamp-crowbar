@@ -46,7 +46,7 @@ jQuery(document).ready(function($) {
   $('.inline_piechart').sparkline('html', piechart_options );
   
   setInterval( function() {
-    $('.led.unready, .led.pending').toggleClass('blink');
+    $('.led.failed, .led.pending, .led.waiting, led.red').toggleClass('blink');
   }, 500);
   
   if(typeof update == 'function') { 

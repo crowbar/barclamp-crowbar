@@ -17,7 +17,7 @@
             .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
       %td= "#{barclamp[:description].capitalize}"
 
-    %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
+    %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
       %td.container{:colspan => "3"}
         .box
           %table.data
@@ -29,12 +29,15 @@
                     %td.status
                       .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
                     %td{:style => "width:10%"}
-                      - if proposal[:active]
+                      - if proposal[:active] and !proposal[:status]==="failed"
                         = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
-                        %td= proposal[:description].capitalize
-                      - else
+                      -else
                         = link_to proposal_name.titlecase, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
-                        %td= proposal[:description].capitalize
+                    %td
+                      - unless proposal[:status] === 'failed'
+                        = proposal[:description].capitalize
+                      - else
+                        = "#{t('.failed')} - #{proposal[:message]}"
                     %td
                       - button = case proposal[:status]
                         - when 'hold' 
@@ -43,6 +46,8 @@
                           = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
                         - when 'unready'
                           = t '.in_process'
+                        - when 'failed'
+                          = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
                         - when 'pending' 
                           = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_queue')
                         - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"

@@ -44,7 +44,8 @@ en:
       default: proposal
     actions:
       apply: Apply
-      apply: Save
+      save: Save
+      edit: Edit      
       dequeue: Dequeue
       dequeue_fail: Error, could not dequeue proposal.  
       dequeue_success: Successfully dequeued proposal.  
@@ -62,6 +63,10 @@ en:
       pending: Pending
       none: No Proposal
       unknown: Unknown, requesting status...
+    failures:
+      Failed to apply the proposal to: Failed to apply proposal
+      Did not fail.  Successfully applied: Did not fail.  Successfully applied
+      No success information for proposal: No success information for proposal
 
   # Model Names / Attributes
   model:
@@ -157,6 +162,7 @@ en:
       status: Status
       description: Description
       in_process: Processing...
+      failed: ERROR
       proposal: Proposal
       confirm_dequeue: Are you sure you wish to dequeue this proposal?
       confirm_recall: Are you sure you wish to deactivate this proposal?

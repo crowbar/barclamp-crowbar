@@ -88,14 +88,17 @@ pre.code
   background: url('/images/icons/led/off.png')
   &.ready, &.active, &.green
     background: url('/images/icons/led/green.png')
-  &.unready, &.red
-    background: url('/images/icons/led/red.png')
+  &.unready, &.yellow
+    background: url('/images/icons/led/yellow.png')
   &.unknown, &.off
     background: url('/images/icons/led/off.png')
-  &.pending, &.yellow
-    background: url('/images/icons/led/yellow.png')
   &.none, &.diamond
     background: url('/images/icons/led/none.png')
+  // blinking classes
+  &.pending, &.waiting
+    background: url('/images/icons/led/yellow.png')
+  &.failed, &.red, &.error
+    background: url('/images/icons/led/red.png')
   &.blink
     +opacity(0.5)
 

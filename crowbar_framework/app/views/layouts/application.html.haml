@@ -20,11 +20,13 @@
           = render_navigation :expand_all => true, :skip_if_empty => true
     
     - if flash[:notice] || !CHEF_ONLINE
-      .notice
+      .notice#flash
         .container
-          %p= flash[:notice]
+          %p
+            = flash[:notice]
+            = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
           - if !CHEF_ONLINE
-            %p= I18n.t "offline"
+            %p= t "offline"
 
     #main.container
       = yield

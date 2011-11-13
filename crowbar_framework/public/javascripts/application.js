@@ -55,6 +55,7 @@ jQuery(document).ready(function($) {
   
   $('.button').live('click', function() {
     var button = $(this);
+    $('#flash').attr("style", "display:none");
     button.addClass('pressed');
     if(button.attr('data-remote')=='true') {
       button.bind('ajax:complete', function(){ button.removeClass('pressed'); });

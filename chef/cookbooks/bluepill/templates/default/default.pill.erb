@@ -1,0 +1,9 @@
+Bluepill.application("<%= @name %>") do |app|
+  <% @processes.each do |p| -%>
+  app.process("<%= p["name"] %>") do |p|
+    <% p.keys.sort.reject{|m| m == "name"}.each do |k| -%>
+    p.<%= k %> = <%= p[k].inspect %>
+    <% end -%>
+  end
+  <% end -%>
+end

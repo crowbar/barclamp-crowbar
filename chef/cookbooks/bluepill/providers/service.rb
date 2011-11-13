@@ -21,6 +21,23 @@ require 'chef/mixin/command'
 require 'chef/mixin/language'
 include Chef::Mixin::Command
 
+action :create do
+  Chef::Log.debug "Adding #{new_resource.name} pill in /etc/bluepill"
+  
+  filename = "/etc/bluepill/#{new_resource.name}.pill"
+  template filename do
+    cookbook "bluepill"
+    source "default.pill.erb"
+    variables(
+              :name => new_resource.name,
+              :processes => new_resource.variables[:processes]
+              )
+    owner "root"
+    group "root"
+    mode 0644
+  end
+end
+
 action :enable do
   unless @bp.enabled
     link "#{node['bluepill']['init_dir']}/#{new_resource.service_name}" do

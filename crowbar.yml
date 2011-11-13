@@ -125,6 +125,7 @@ debs:
     # java stuff
     - sun-java6-jdk
     - sun-java6-jre
+    - dpkg-dev
 
 rpms:
   repos:

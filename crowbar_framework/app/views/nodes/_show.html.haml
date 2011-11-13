@@ -11,7 +11,7 @@
 .column_50.first
   %dl
     = dl_item((NodeObject.human_attribute_name :name), @node.name)
-    = dl_item((NodeObject.human_attribute_name :state), t(@node.state, :scope => :state))
+    = dl_item((NodeObject.human_attribute_name :state), t(@node.state, :scope => :state, :default=>@node.state.titlecase))
     = dl_item((NodeObject.human_attribute_name :uptime), (@node.ready? ? @node.uptime : NodeObject.human_attribute_name(:na)))
     = dl_item((NodeObject.human_attribute_name :switch_name_port), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
     = dl_item((NodeObject.human_attribute_name :mac), @node.mac || t('unknown'))

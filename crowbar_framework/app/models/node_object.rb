@@ -135,7 +135,7 @@ class NodeObject < ChefObject
       "pending"   #flashing yellow
     when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
       "unknown"   #grey
-    when "error", "failed", "fail", "warn", "warning", "fubar", "alert"
+    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert"
       "failed"    #flashing red
     else
       "unready"   #yellow

@@ -131,7 +131,7 @@ class NodeObject < ChefObject
     case state.split[0].downcase!
     when "ready"
       "ready"     #green
-    when "discovered"
+    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
       "pending"   #flashing yellow
     when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
       "unknown"   #grey

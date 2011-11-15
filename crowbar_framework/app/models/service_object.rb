@@ -40,11 +40,8 @@ class ServiceObject
   
   # ordered list of barclamps from groups in the crowbar.yml files.  Built at barclamp install time by the catalog step
   def self.members
-    names = []
     cat = barclamp_catalog
-    members = cat["barclamps"][bc_name]['members'] unless cat["barclamps"][bc_name].nil?
-    members.sort.each { |k,v| names <<  k } unless members.nil?
-    names
+    cat["barclamps"][bc_name].nil? ? [] : cat["barclamps"][bc_name]['members']
   end
   
   def self.barclamp_catalog

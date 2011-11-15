@@ -127,15 +127,18 @@ class NodeObject < ChefObject
   end
   
   def status
-    case state
+    # if you add new states then you MUST expand the PIE chart on the nodes index page
+    case state.split[0].downcase
     when "ready"
-      "ready"
-    when "discovered"
-      "pending"
+      "ready"     #green
+    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
+      "pending"   #flashing yellow
     when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
-      "unknown"
+      "unknown"   #grey
+    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert"
+      "failed"    #flashing red
     else
-      "unready"
+      "unready"   #yellow
     end
   end
   

@@ -184,8 +184,9 @@ class BarclampController < ApplicationController
         members = {}
         list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
         cat = ServiceObject.barclamp_catalog
-        list.each { |bc| members[bc] = { 'description' => cat['barclamps'][bc]['description'] } if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
-        @modules = get_proposals_from_barclamps members
+        i = 0
+        list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
+        @modules = get_proposals_from_barclamps(members).sort_by {|k,v| v[:order].to_i}
         render 'barclamp/index' 
       }
       format.xml  { 
@@ -227,7 +228,7 @@ class BarclampController < ApplicationController
     active = RoleObject.active nil
     barclamps.each do |name, details|
       props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'] || t('not_set'), :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+      modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
       begin
         modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
       rescue

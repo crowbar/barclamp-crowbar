@@ -29,7 +29,7 @@
                     %td.status
                       .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
                     %td{:style => "width:10%"}
-                      - if proposal[:active] and !proposal[:status]==="failed"
+                      - if proposal[:active]
                         = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
                       -else
                         = link_to proposal_name.titlecase, proposal_barclamp_path(:controller=>name, :id=>proposal_name)

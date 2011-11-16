@@ -24,14 +24,14 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
-    list: Bulk&nbsp;Edit
+    list: Bulk Edit
     barclamps: Barclamps
     crowbar_bc: Crowbar
     all_bc: All Barclamps
     roles: Active Roles
     proposals: Proposals
     help: Help
-    crowbar_ug: Crowbar
+    crowbar_ug: Crowbar Users
     crowbar_dg: Deployment
 
   # Crowbar barclamp items

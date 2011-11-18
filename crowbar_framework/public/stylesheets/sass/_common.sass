@@ -88,7 +88,7 @@ pre.code
   background: url('/images/icons/led/off.png')
   &.ready, &.active, &.green
     background: url('/images/icons/led/green.png')
-  &.unready, &.yellow
+  &.yellow
     background: url('/images/icons/led/yellow.png')
   &.unknown, &.off
     background: url('/images/icons/led/off.png')
@@ -101,6 +101,8 @@ pre.code
     background: url('/images/icons/led/red.png')
   &.blink
     +opacity(0.5)
+  &.unready, &.spin, &.in_process
+    background: url('/images/icons/led/yellow-green-spin.png')
 
 h1,h2,h3
   &.led

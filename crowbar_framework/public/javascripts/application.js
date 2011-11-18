@@ -45,14 +45,26 @@ jQuery(document).ready(function($) {
   
   $('.inline_piechart').sparkline('html', piechart_options );
   
+  // Blinking lights
   setInterval( function() {
     $('.led.failed, .led.pending, .led.waiting, led.red').toggleClass('blink');
   }, 500);
-  
-  if(typeof update == 'function') { 
-    setInterval("update()", 10000);
+
+  // Animate spinning LEDs
+  function animate() {
+    $('.led.unready, .led.in_process, .led.spin').sprite({fps: 6, no_of_frames: 8});
   }
+
+  animate(); // Call this again when new animatable elements are created...
   
+  // Auto-run update functions periodically
+  if(typeof update == 'function') { 
+    setInterval(function() {
+      update();
+      animate();
+    }, 10000);
+  }
+
   $('.button').live('click', function() {
     var button = $(this);
     $('#flash').attr("style", "display:none");

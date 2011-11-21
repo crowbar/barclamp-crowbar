@@ -3,7 +3,7 @@ Feature: Dashboard
   The system operator, Oscar
   wants to be able to check the status of nodes
 
-  Scenario: I can add a node
+  Scenario: %I can add a node
     Given there is a node "bdd-test-dashboard-02" in state "testing"
       And pause "10" seconds to "create the node"
     When I go to the "nodes" page

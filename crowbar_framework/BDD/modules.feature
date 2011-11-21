@@ -19,7 +19,7 @@ Feature: Modules
     Then I should see "default"
     Then I should see "All Proposals"    
     
-  Scenario: Direct Link Crowbar
+  Scenario: %Direct Link Crowbar
     When I go to the "crowbar/show/1.0/crowbar" page
     Then I should see "Barclamp Details"
     Then I should see "Create Proposal"

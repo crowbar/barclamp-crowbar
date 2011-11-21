@@ -13,6 +13,4 @@ for f in *.erl; do
 done
 
 # Run Self-test
-erl -s bdd test "crowbar" -s init stop -noshell
-
-
+# erl -s bdd test "crowbar" -s init stop -noshell

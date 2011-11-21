@@ -57,7 +57,8 @@ request(Config, get, {URL, Header}, HTTPOptions, Options) ->
   
 request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   % prepare information that's common
-  {http, _, _, _, DigestURI, _} = http_uri:parse(URL),
+  bdd_utils:debug("URL request ~p~n", [http_uri:parse(URL)]),
+  {http, _, _Host, _Port, DigestURI, Params} = http_uri:parse(URL),
   User = proplists:get_value(user, Config),
   MethodStr = string:to_upper(atom_to_list(Method)),
   Password = proplists:get_value(password, Config),
@@ -65,7 +66,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   TrialHeader = case proplists:get_value(digest_field, Config) of 
     undefined -> Header;
     FieldsCache ->  
-      HeaderInjection = buildAuthHeader(DigestURI, MethodStr, User, Password, FieldsCache),
+      HeaderInjection = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, FieldsCache),
       Header ++ [{"Authorization", HeaderInjection}]
   end,
   % try request
@@ -77,7 +78,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   case Code of
     401 -> 
       DigestLine = proplists:get_value("www-authenticate", Fields),
-      AuthHeader = buildAuthHeader(DigestURI, MethodStr, User, Password, DigestLine),
+      AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
       HeaderDigested = Header ++ [{"Authorization", AuthHeader}],
       case Method of 
         get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);

@@ -6,7 +6,7 @@
 
 %tbody
   - @modules.each do |name, barclamp|
-    %tr{:class => cycle(:odd, :even, :name => "barclamps")}
+    %tr{:id=>name, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
       %td
         %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
       %td

@@ -16,7 +16,9 @@
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, config/2, tokenize/1, clean_line/1, strip_doctype/1, uri/2]).
--export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3, html_find_link/2, debug/3, debug/2, debug/1, trace/6]).
+-export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3]).
+-export([html_find_button/2, html_find_link/2, html_find_block/4]).
+-export([debug/3, debug/2, debug/1, trace/6]).
 -export([http_post_params/1, http_post/5]).
 
 assert(Bools) ->
@@ -26,6 +28,7 @@ assert(Bools, Test) ->
 	lists:any(F, Bools).
 	
 debug(Format) -> debug(Format, []).
+debug(puts, Format) -> debug(true, Format++"~n", []);
 debug(true, Format) -> debug(true, Format, []);
 debug(false, Format) -> debug(false, Format, []);
 debug(Format, Data) -> debug(false, Format, Data).
@@ -79,12 +82,29 @@ html_peek(Match, Input) ->
 		_ -> Result
 	end.
 	
+	
+html_find_button(Match, Input) ->
+  %<form.. <input class="button" name="submit" type="submit" value="Save"></form>
+  debug(puts,Match),
+	Form = html_find_block("<form ", "</form>", Input, "value='"++Match++"'"),
+	debug(puts,Form),
+	Button = html_find_block("<input ", ">", Form,  "value='"++Match++"'"),
+	debug(puts,Button),
+	RegEx = "type='submit'",
+	case re:run(Button, re:compile(RegEx)) of
+	  {match, _} -> Button;
+	  _ -> io:format("ERROR: Could not find button with value  '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not html_find_button")
+	end.
+	
 % return the HREF part of an anchor tag given the content of the link
 html_find_link(Match, Input) ->
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
-	{ok, RE} = re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]),
+	RE = case re:compile(RegEx) of
+	  {ok, R} -> R;
+	  Error -> io:format("ERROR: Could not parse regex: '~p'.", [Error])
+	end,
 	AnchorTag = case re:run(Input, RE) of
-	  {match, [{AStart, ALength} | _]} -> string:substr(Input, AStart+1,ALength);
+	  {match, [{AStart, ALength} | _]} -> string:substr(Input, AStart+1,AStart+ALength);
 	  {_, _} -> io:format("ERROR: Could not find Anchor tags enclosing '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not html_find_link")
 	end,
 	{ok, HrefREX} = re:compile("\\bhref=(['\"])([^\\s]+?)(\\1)", [multiline, dotall, {newline , anycrlf}]),
@@ -96,6 +116,25 @@ html_find_link(Match, Input) ->
 	%bdd_utils:debug(, "html_find_link href regex~p~n", [re:run(AnchorTag, HrefREX)]),
 	bdd_utils:debug("html_find_link found path ~p~n", [Href]),
 	Href.
+
+% we allow for a of open tags (nesting) but only the inner close is needed
+html_find_block(OpenTag, CloseTag, Input, Match) ->
+  {ok, RE} = re:compile([Match]),
+  CandidatesNotTested = re:split(Input, OpenTag, [{return, list}]),
+  Candidates = [ html_find_block_helper(C, RE) || C <- CandidatesNotTested ],
+  Block = case [ C || C <- Candidates, C =/= false ] of
+    [B] -> B;
+    [B, _] -> B;
+    _ -> []
+  end,
+  [Inside | _ ] = re:split(Block, CloseTag, [{parts, 2}, {return, list}]),
+  [Inside].
+
+html_find_block_helper(Test, RE) ->
+	case re:run(Test, RE) of
+		{match, _} -> Test;
+		_ -> false
+	end.
 
 uri(Config, Path) ->
 	{url, Base} = lists:keyfind(url,1,Config),

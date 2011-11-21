@@ -18,6 +18,17 @@
 -export([step/3]).
 -import(bdd_util).
 
+% helper routine
+click_link(Config, URL, Link) ->
+  _Debug = false,
+  bdd_utils:debug(_Debug, "URL ~p~n",[URL]),
+	Result = case URL of
+		[] -> io:format("CANNOT FIND LINK ~s~n", [Link]), error;
+		_ -> bdd_utils:http_get(Config, URL, ok)
+	end,
+	bdd_utils:debug(_Debug, "when I click result ~p~n", [Result]),
+	Result.
+
 step(_Config, _Global, {step_given, _N, ["I am on the home page"]}) -> 
 	bdd_utils:debug("start from home.~n"), 
 	bdd_utils:http_get(_Config, []);
@@ -41,16 +52,14 @@ step(_Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
   JSON = bdd_utils:http_get(_Config, Page),
   {ajax, json:parse(JSON), Page};
 
-step(_Config, _Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
-  _Debug = false,
-	[URL | _] = [bdd_utils:html_find_link(Link, HTML) || HTML <- (_Given), HTML =/= []],
-	bdd_utils:debug(_Debug, "URL ~p~n",[URL]),
-	Result = case URL of
-		[] -> io:format("CANNOT FIND LINK ~s~n", [Link]), error;
-		_ -> bdd_utils:http_get(_Config, URL, ok)
-	end,
-	bdd_utils:debug(_Debug, "when I click result ~p~n", [Result]),
-	Result;
+step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
+	[URL | _] = [bdd_utils:html_find_link(Link, HTML) || HTML <- (Given), HTML =/= []],
+	click_link(Config, URL, Link);
+
+step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
+  [Block] = bdd_utils:html_find_block("<li", "</li>", Given, ">"++Menu++"</a>"),
+  URL = bdd_utils:html_find_link(Menu, Block),
+  click_link(Config, URL, Menu);
 
 step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) -> 
 	bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [_Result, Text]),
@@ -59,6 +68,9 @@ step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) ->
 step(_Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
 	bdd_utils:debug("step_then result ~p should have ~p on the page~n", [_Result, Text]),
 	bdd_utils:html_search(Text,_Result);
+
+step(_Config, Result, {step_then, _N, ["I should see a button with", Button]}) -> 
+  bdd_utils:html_find_button(Button,Result);
 
 step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
@@ -71,5 +83,8 @@ step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Coun
   Items = length(List),
   Items >= C;
 
+step(_Config, _Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
+  bdd_utils:assert([bdd_utils:html_find_block("<li", "</li>", R, Menu) =/= [] || R <- _Result]);
+                                                                
 step(_Config, _Result, {_Type, _N, ["END OF WEBRAT"]}) ->
   false.

@@ -1,4 +1,4 @@
-Feature: Check Core Navigation
+Feature: Crowbar, Check Core Navigation
   In order use the system
   The system operator, Oscar
   wants to be able to navigate around
@@ -58,7 +58,7 @@ Feature: Check Core Navigation
       And I should not see "Nova"
       And I should not see "Hadoop"
   
-  Scenario: Bulk Edit SubMenu
+  Scenario: %Bulk Edit SubMenu
     Given I am on the home page
     When I click on the "Bulk Edit" menu item
     Then I should see "Bulk Edit (unallocated only)"

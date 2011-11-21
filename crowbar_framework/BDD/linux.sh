@@ -8,15 +8,11 @@ rm -f erl_crash.dump
 rm -f *.beam
 
 # Compile
-erlc json.erl
-erlc bdd_utils.erl
-erlc bdd_webrat.erl
-erlc bdd_catchall.erl
-erlc bdd_selftest.erl
-erlc crowbar.erl
-erlc swift
-erlc bdd.erl
+for f in *.erl; do
+  erlc $f
+done
 
 # Run Self-test
-erl -s bdd_selftest test all -s init stop -noshell
+erl -s bdd test "crowbar" -s init stop -noshell
+
 

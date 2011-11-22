@@ -38,7 +38,8 @@ class ServiceObject
     self.name.underscore[/(.*)_service$/,1]
   end
   
-  # ordered list of barclamps from groups in the crowbar.yml files.  Built at barclamp install time by the catalog step
+  # ordered list of barclamps from groups in the crowbar.yml files.  
+  # Built at barclamp install time by the catalog step
   def self.members
     cat = barclamp_catalog
     cat["barclamps"][bc_name].nil? ? [] : cat["barclamps"][bc_name]['members']
@@ -70,6 +71,22 @@ class ServiceObject
     cat["barclamps"][@bc_name]["run_order"] rescue order
   end
 
+  def self.chef_order(bc = bc_name, cat = nil)
+    return 1000 if bc == nil
+    cat = barclamp_catalog if cat.nil?
+    order = cat["barclamps"][bc]["order"] rescue 1000
+    cat["barclamps"][bc]["chef_order"] rescue order
+  end
+
+  def chef_order
+    cat = ServiceObject.barclamp_catalog
+    order = cat["barclamps"][@bc_name]["order"] rescue 1000
+    cat["barclamps"][@bc_name]["chef_order"] rescue order
+  end
+
+#
+# Locking Routines
+#
   def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
     f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
@@ -93,130 +110,15 @@ class ServiceObject
     @logger.debug("Release lock exit")
   end
 
-  def queue_proposal(inst, nodes, deps, bc = @bc_name)
-    @logger.debug("queue proposal: enter #{inst} #{bc}")
-    begin
-      f = acquire_lock "queue"
+#
+# Helper routines for queuing
+#
 
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
-      if db.nil?
-        new_queue = Chef::DataBagItem.new
-        new_queue.data_bag "crowbar"
-        new_queue["id"] = "queue"
-        new_queue["proposal_queue"] = []
-        db = ProposalObject.new new_queue
-      end
-
-      db["proposal_queue"].each do |item|
-        @logger.debug("queue proposal: exit #{inst} #{bc}: already queued") if item["barclamp"] == bc and item["inst"] == inst
-        return if item["barclamp"] == bc and item["inst"] == inst
-      end
-
-      db["proposal_queue"] << { "barclamp" => bc, "inst" => inst }
-      db.save
-    rescue Exception => e
-      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
-    ensure
-      release_lock f
-    end
-
-    prop = ProposalObject.find_proposal(bc, inst)
-    prop["deployment"][bc]["crowbar-queued"] = true
-    res = prop.save
-    @logger.debug("queue proposal: exit #{inst} #{bc}")
-    res
-  end
-
-  def dequeue_proposal(inst, bc = @bc_name)
-    @logger.debug("dequeue proposal: enter #{inst} #{bc}")
-    begin
-      f = acquire_lock "queue"
-
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
-      return true if db.nil?
-
-      db["proposal_queue"].delete_if { |item| item["barclamp"] == bc and item["inst"] == inst }
-      db.save
-      prop = ProposalObject.find_proposal(bc, inst)
-      unless prop.nil?
-        prop["deployment"][bc]["crowbar-queued"] = false
-        prop.save
-
-        remove_pending_elements(bc, inst, prop["deployment"][bc]["elements"])
-      end
-    rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
-      return false
-    ensure
-      release_lock f
-    end
-    @logger.debug("dequeue proposal: exit #{inst} #{bc}")
-    true
-  end
-
-  def process_queue
-    @logger.debug("process queue: enter")
-    list = []
-    queue = []
-    begin
-      f = acquire_lock "queue"
-
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
-      @logger.debug("process queue: exit: empty queue") if db.nil?
-      return if db.nil?
-
-      queue = db["proposal_queue"]
-    rescue Exception => e
-      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
-      @logger.debug("process queue: exit: error")
-      return
-    ensure
-      release_lock f
-    end
-
-    @logger.debug("process queue: queue: #{queue.inspect}")
-
-    # Test for ready
-    pre_cached_nodes = {}
-    queue.each do |item|
-      prop = ProposalObject.find_proposal(item["barclamp"], item["inst"])
-      if prop.nil?
-        dequeue_proposal(item["inst"], item["barclamp"])
-        next
-      end
-      delay, pre_cached_nodes = elements_not_ready(prop["deployment"][item["barclamp"]]["elements"], pre_cached_nodes)
-      list << item if delay.empty?
-    end
-
-    @logger.debug("process queue: list: #{list.inspect}")
-
-    # For each ready item, apply it.
-    list.each do |item|
-      @logger.debug("process queue: item to do: #{item.inspect}")
-      bc = item["barclamp"]
-      inst = item["inst"]
-      service = eval("#{bc.camelize}Service.new @logger")
-      answer = service.proposal_commit(inst)
-      @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
-      dequeue_proposal(inst, bc) if answer[0] == 200
-      $htdigest_reload = true
-    end
-    @logger.debug("process queue: exit")
-  end
-
-  def elements_not_ready(elements, pre_cached_nodes = {})
-    # Get all the nodes
-    all_new_nodes = []
-    elements.each do |elem, nodes|
-      all_new_nodes << nodes
-    end
-    all_new_nodes.flatten!
-
+  # Assumes the BA-LOCK is held
+  def elements_not_ready(nodes, pre_cached_nodes = {})
     # Check to see if we should delay our commit until nodes are ready.
     delay = []
-    all_new_nodes.each do |n|
+    nodes.each do |n|
       node = NodeObject.find_node_by_name(n)
       next if node.nil?
       
@@ -226,7 +128,7 @@ class ServiceObject
     [ delay, pre_cached_nodes ]
   end
 
-  def add_pending_elements(bc, inst, elements, pre_cached_nodes = {})
+  def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
     # Create map with nodes and their element list
     all_new_nodes = {}
     elements.each do |elem, nodes|
@@ -236,21 +138,41 @@ class ServiceObject
       end
     end
 
-    # Check for delays and build up cache
-    delay, pre_cached_nodes = elements_not_ready(elements, pre_cached_nodes)
-
-    # Add the entries to the nodes.
-    unless delay.empty?
-      all_new_nodes.each do |n, val|
-        node = pre_cached_nodes[n]
-
-        # Make sure the node is allocated
-        node.allocated = true
-        node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
-        node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
-        node.save
+    f = acquire_lock "BA-LOCK"
+    delay = []
+    pre_cached_nodes = {}
+    begin
+      # Check for delays and build up cache
+      delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys, pre_cached_nodes)
+      if queue_me
+        delay = all_new_nodes.keys
       end
+
+      # Add the entries to the nodes.
+      if delay.empty?
+        all_new_nodes.each do |n, val|
+          node = pre_cached_nodes[n]
+
+          # Nothing to delay so mark them applying.
+          node.crowbar['state'] = 'applying'
+          node.crowbar['state_owner'] = "#{bc}-#{inst}"
+          node.save
+        end
+      else
+        all_new_nodes.each do |n, val|
+          node = pre_cached_nodes[n]
+
+          # Make sure the node is allocated
+          node.allocated = true
+          node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
+          node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
+          node.save
+        end
+      end
+    ensure
+      release_lock f
     end
+
     [ delay, pre_cached_nodes ]
   end
 
@@ -265,16 +187,247 @@ class ServiceObject
     end
 
     # Remove the entries from the nodes.
-    all_new_nodes.each do |n,data|
-      node = NodeObject.find_node_by_name(n)
-      next if node.nil?
-      unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
-        node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = {}
-        node.save
+    f = acquire_lock "BA-LOCK"
+    begin
+      all_new_nodes.each do |n,data|
+        node = NodeObject.find_node_by_name(n)
+        next if node.nil?
+        unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
+          node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = {}
+          node.save
+        end
       end
+    ensure
+      release_lock f
     end
   end
 
+  def restore_to_ready(nodes)
+    f = acquire_lock "BA-LOCK"
+    begin
+      nodes.each do |n|
+        node = NodeObject.find_node_by_name(n)
+        next if node.nil?
+
+        # Nothing to delay so mark them applying.
+        node.crowbar['state'] = 'ready'
+        node.crowbar['state_owner'] = ""
+        node.save
+      end
+    ensure
+      release_lock f
+    end
+  end
+
+#
+# Queuing routines:
+#   queue_proposal - attempts to queue proposal returns delay otherwise.
+#   dequeue_proposal - remove item from queue and clean up
+#   process_queue - see what we can execute
+#
+  def queue_proposal(inst, elements, deps, bc = @bc_name)
+    @logger.debug("queue proposal: enter #{inst} #{bc}")
+    delay = []
+    pre_cached_nodes = {}
+    begin
+      f = acquire_lock "queue"
+
+      db = ProposalObject.find_data_bag_item "crowbar/queue"
+      if db.nil?
+        new_queue = Chef::DataBagItem.new
+        new_queue.data_bag "crowbar"
+        new_queue["id"] = "queue"
+        new_queue["proposal_queue"] = []
+        db = ProposalObject.new new_queue
+      end
+
+      queue_me = false
+      db["proposal_queue"].each do |item|
+        # Am I already in the queue
+        if item["barclamp"] == bc and item["inst"] == inst
+          nodes = []
+          elements.each do |elem, inodes|
+            inodes.each do |node|
+              nodes << node unless nodes.include?(node)
+            end
+          end
+          @logger.debug("queue proposal: exit #{inst} #{bc}: already queued")
+          return [nodes, {}]
+        end
+
+        # See if dep is in list.
+        deps.each do |dep|
+          if item["barclamp"] == dep["barclamp"] and item["inst"] == dep["inst"]
+            queue_me = true
+          end
+        end
+      end
+
+      delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)
+      return [ delay, pre_cached_nodes ] if delay.empty?
+
+      db["proposal_queue"] << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
+      db.save
+    rescue Exception => e
+      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
+    ensure
+      release_lock f
+    end
+
+    prop = ProposalObject.find_proposal(bc, inst)
+    prop["deployment"][bc]["crowbar-queued"] = true
+    prop.save
+    @logger.debug("queue proposal: exit #{inst} #{bc}")
+    [ delay, pre_cached_nodes ]
+  end
+
+  def dequeue_proposal_no_lock(queue, inst, bc = @bc_name)
+    @logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
+    begin
+      elements = nil
+      # The elements = item["elements"] is on purpose to get the assignment out of the element.
+      queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and elements = item["elements"] }
+
+      remove_pending_elements(bc, inst, elements) if elements
+
+      prop = ProposalObject.find_proposal(bc, inst)
+      unless prop.nil?
+        prop["deployment"][bc]["crowbar-queued"] = false
+        prop.save
+      end
+    rescue Exception => e
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
+      return false
+    end
+    @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
+    true
+  end
+
+  def dequeue_proposal(inst, bc = @bc_name)
+    @logger.debug("dequeue proposal: enter #{inst} #{bc}")
+    ret = false
+    begin
+      f = acquire_lock "queue"
+
+      db = ProposalObject.find_data_bag_item "crowbar/queue"
+      @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
+      return true if db.nil?
+
+      queue = db["proposal_queue"]
+      ret = dequeue_proposal_no_lock(queue, inst, bc)
+    rescue Exception => e
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
+      return ret
+    ensure
+      release_lock f
+    end
+    @logger.debug("dequeue proposal: exit #{inst} #{bc}")
+    ret
+  end
+
+  #
+  # NOTE: If dependencies don't for a DAG (Directed Acyclic Graph) then we have a problem
+  # with our dependency algorithm
+  #
+  # GREG: Consider node overlap in process_queue and queue_proposal
+  # GREG: Use chef_order to order runlist and consolidate runlist manipulation
+  #
+  def process_queue
+    @logger.debug("process queue: enter")
+    loop_again = true
+    while loop_again
+      loop_again = false
+      list = []
+      begin
+        f = acquire_lock "queue"
+
+        db = ProposalObject.find_data_bag_item "crowbar/queue"
+        if db.nil?
+          @logger.debug("process queue: exit: queue gone")
+          return
+        end
+
+        queue = db["proposal_queue"]
+        if queue.nil? or queue.empty?
+          @logger.debug("process queue: exit: empty queue")
+          return
+        end
+
+        @logger.debug("process queue: queue: #{queue.inspect}")
+
+        # Test for ready
+        remove_list = []
+        queue.each do |item|
+          prop = ProposalObject.find_proposal(item["barclamp"], item["inst"])
+          if prop.nil?
+            remove_list << item
+            next
+          end
+
+          # See if dep is in list.
+          queue_me = false
+          queue.each do |i2|
+            item["deps"].each do |dep|
+              if i2["barclamp"] == dep["barclamp"] and i2["inst"] == dep["inst"]
+                queue_me = true
+              end
+            end
+          end
+          next if queue_me
+
+          # Create map with nodes and their element list
+          all_new_nodes = {}
+          prop["deployment"][item["barclamp"]]["elements"].each do |elem, nodes|
+            nodes.each do |node|
+              all_new_nodes[node] = [] if all_new_nodes[node].nil?
+              all_new_nodes[node] << elem
+            end
+          end
+          delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys)
+          list << item if delay.empty?
+        end
+
+        save_db = false
+        remove_list.each do |iii| 
+          save_db = dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+        end
+
+        list.each do |iii| 
+          save_db = dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+        end
+      
+        db.save if save_db
+
+      rescue Exception => e
+        @logger.error("Error processing queue: #{e.message}")
+        @logger.debug("process queue: exit: error")
+        return
+      ensure
+        release_lock f
+      end
+
+      @logger.debug("process queue: list: #{list.inspect}")
+
+      # For each ready item, apply it.
+      list.each do |item|
+        @logger.debug("process queue: item to do: #{item.inspect}")
+        bc = item["barclamp"]
+        inst = item["inst"]
+        service = eval("#{bc.camelize}Service.new @logger")
+        answer = service.proposal_commit(inst, true)
+        @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
+        loop_again = true if answer[0] != 202
+        $htdigest_reload = true
+      end
+      @logger.debug("process queue: exit")
+    end
+  end
+
+#
+# update proposal status information
+#
   def update_proposal_status(inst, status, message, bc = @bc_name)
     @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
 
@@ -300,6 +453,9 @@ class ServiceObject
     @logger = thelogger
   end
 
+#
+# API Functions
+#
   def versions
     [200, { :versions => [ "1.0" ] }]
   end
@@ -339,12 +495,12 @@ class ServiceObject
   # Proposal is a json structure (not a ProposalObject)
   # Use to create or update an active instance
   #
-  def active_update(proposal, inst)
+  def active_update(proposal, inst, in_queue)
     begin
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
       clean_proposal(proposal)
       validate_proposal proposal
-      apply_role(role, inst)
+      apply_role(role, inst, in_queue)
     rescue Net::HTTPServerException => e
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
@@ -366,7 +522,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, inst)
+      answer = apply_role(role, inst, false)
       role.destroy
       answer
     end
@@ -446,7 +602,7 @@ class ServiceObject
     end
   end
 
-  def proposal_commit(inst)
+  def proposal_commit(inst, in_queue = false)
     prop = ProposalObject.find_proposal(@bc_name, inst)
 
     if prop.nil?
@@ -458,7 +614,7 @@ class ServiceObject
       prop["deployment"][@bc_name]["crowbar-committing"] = true
       prop.save
 
-      answer = active_update prop.raw_data, inst
+      answer = active_update prop.raw_data, inst, in_queue
 
       # Unmark the wall
       prop = ProposalObject.find_proposal(@bc_name, inst)
@@ -546,7 +702,7 @@ class ServiceObject
   # This function can be overriden to define a barclamp specific operation.
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
-  def apply_role(role, inst)
+  def apply_role(role, inst, in_queue)
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
@@ -557,12 +713,12 @@ class ServiceObject
     new_elements = new_deployment["elements"]
     element_order = new_deployment["element_order"]
 
-    delay, pre_cached_nodes = add_pending_elements(@bc_name, inst, new_elements)
-    unless delay.empty?
-      deps = proposal_dependencies(role)
-      queue_proposal(inst, pre_cached_nodes.keys, deps)
-      return [202, delay]
-    end
+    # 
+    # Attempt to queue the propsal.  If delay is empty, then run it.
+    #
+    deps = proposal_dependencies(role)
+    delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)
+    return [202, delay] unless delay.empty?
 
     # make sure the role is saved
     role.save
@@ -601,7 +757,7 @@ class ServiceObject
 
         unless new_nodes.nil?
           new_nodes.each do |n|
-            all_nodes << n
+            all_nodes << n unless all_nodes.include?(n)
             if old_nodes.nil? or !old_nodes.include?(n)
               nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
               nodes[n][:add] << elem
@@ -704,6 +860,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             update_proposal_status(inst, "failed", message)
+            restore_to_ready(all_nodes)
+            process_queue unless in_queue
             return [ 405, message ] 
           end
         end
@@ -723,6 +881,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             update_proposal_status(inst, "failed", message)
+            restore_to_ready(all_nodes)
+            process_queue unless in_queue
             return [ 405, message ] 
           end
         end
@@ -733,6 +893,8 @@ class ServiceObject
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
 
     update_proposal_status(inst, "success", "")
+    restore_to_ready(all_nodes)
+    process_queue unless in_queue
     [200, {}]
   end
 

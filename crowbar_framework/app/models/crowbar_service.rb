@@ -132,7 +132,7 @@ class CrowbarService < ServiceObject
     base
   end
 
-  def apply_role (role, inst)
+  def apply_role (role, inst, in_queue)
     @logger.debug("Crowbar apply_role: enter")
     answer = super
     @logger.debug("Crowbar apply_role: super apply_role finished")

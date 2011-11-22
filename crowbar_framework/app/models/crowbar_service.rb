@@ -26,59 +26,67 @@ class CrowbarService < ServiceObject
 
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
-    node = NodeObject.find_node_by_name name
-    if node.nil? and (state == "discovering" or state == "testing")
-      @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
-      node = NodeObject.create_new name
-    end
-    if node.nil?
-      @logger.error("Crowbar transition leaving: node not found nor created - #{name} to #{state}")
-      return [404, "Node not found"]
-    end
-
-    node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
-    node.crowbar["crowbar"]["network"] = {} if node.crowbar["crowbar"]["network"].nil?
-
-    pop_it = false
-    if (state == "hardware-installing" or state == "hardware-updating" or state == "update") or node.crowbar["state"] != state
-      @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
-
-      node.crowbar["crowbar"]["state_debug"] = {} if node.crowbar["crowbar"]["state_debug"].nil?
-      if node.crowbar["crowbar"]["state_debug"][state].nil?
-        node.crowbar["crowbar"]["state_debug"][state] = 1
-      else
-        node.crowbar["crowbar"]["state_debug"][state] = node.crowbar["crowbar"]["state_debug"][state] + 1
+    f = acquire_lock "BA-LOCK"
+    begin
+      node = NodeObject.find_node_by_name name
+      if node.nil? and (state == "discovering" or state == "testing")
+        @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
+        node = NodeObject.create_new name
+      end
+      if node.nil?
+        @logger.error("Crowbar transition leaving: node not found nor created - #{name} to #{state}")
+        return [404, "Node not found"]
       end
 
-      node.crowbar["state"] = state
-      save_it = true
-      pop_it = true
+      node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
+      node.crowbar["crowbar"]["network"] = {} if node.crowbar["crowbar"]["network"].nil?
+
+      pop_it = false
+      if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
+        @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")
+        pop_it = true
+      end
+
+      if node.crowbar["state"] != state
+        @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
+
+        node.crowbar["crowbar"]["state_debug"] = {} if node.crowbar["crowbar"]["state_debug"].nil?
+        if node.crowbar["crowbar"]["state_debug"][state].nil?
+          node.crowbar["crowbar"]["state_debug"][state] = 1
+        else
+          node.crowbar["crowbar"]["state_debug"][state] = node.crowbar["crowbar"]["state_debug"][state] + 1
+        end
+
+        node.crowbar["state"] = state
+        save_it = true
+        pop_it = true
+      end
+    ensure
+      release_lock f
     end
 
     node.save if save_it
 
     if pop_it
-      crole = RoleObject.find_role_by_name("crowbar-config-#{inst}")
-      ro = crole.default_attributes["crowbar"]["run_order"]
-
       #
-      # If we are discovering the node and it is an admin, make sure that we add the crowbar config
+      # If we are discovering the node and it is an admin, 
+      # make sure that we add the crowbar config
       #
       if state == "discovering" and node.admin?
+        crole = RoleObject.find_role_by_name("crowbar-config-#{inst}")
         db = ProposalObject.find_proposal("crowbar", inst)
         add_role_to_instance_and_node("crowbar", inst, name, db, crole, "crowbar")
       end
 
+      catalog = ServiceObject.barclamp_catalog
       roles = RoleObject.find_roles_by_search "transitions:true AND (transition_list:all OR transition_list:#{ChefObject.chef_escape(state)})"
       # Make sure the deployer objects run first.
       roles.sort! do |x,y| 
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
 
-        xs = 1000
-        xs = ro[xname] unless ro[xname].nil?
-        ys = 1000
-        ys = ro[yname] unless ro[yname].nil?
+        xs = ServiceOrder.run_order(xname, catalog)
+        ys = ServiceOrder.run_order(yname, catalog)
         xs <=> ys
       end
 

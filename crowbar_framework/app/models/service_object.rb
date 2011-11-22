@@ -57,6 +57,18 @@ class ServiceObject
     return bc
   end
 
+  def self.run_order(bc = bc_name, cat = nil)
+    return 1000 if bc = nil
+    cat = barclamp_catalog if cat.nil?
+    order = cat["barclamps"][bc]["order"] rescue 1000
+    cat["barclamps"][bc]["run_order"] rescue order
+  end
+
+  def run_order
+    cat = ServiceObject.barclamp_catalog
+    order = cat["barclamps"][@bc_name]["order"] rescue 1000
+    cat["barclamps"][@bc_name]["run_order"] rescue order
+  end
 
   def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
@@ -81,7 +93,7 @@ class ServiceObject
     @logger.debug("Release lock exit")
   end
 
-  def queue_proposal(inst, bc = @bc_name)
+  def queue_proposal(inst, nodes, deps, bc = @bc_name)
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     begin
       f = acquire_lock "queue"
@@ -547,7 +559,8 @@ class ServiceObject
 
     delay, pre_cached_nodes = add_pending_elements(@bc_name, inst, new_elements)
     unless delay.empty?
-      queue_proposal(inst)
+      deps = proposal_dependencies(role)
+      queue_proposal(inst, pre_cached_nodes.keys, deps)
       return [202, delay]
     end
 
@@ -725,6 +738,11 @@ class ServiceObject
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     # noop by default.
+  end
+
+  def proposal_dependencies(role)
+    # Default none
+    []
   end
 
   def add_role_to_instance_and_node(barclamp, instance, name, prop, role, newrole)

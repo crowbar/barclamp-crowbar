@@ -27,6 +27,8 @@ barclamp:
 crowbar:
   layout: 1
   order: 0
+  run_order: 0
+  chef_order: 0
   proposal_schema_version: 2
 
 locale_additions:

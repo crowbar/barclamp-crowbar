@@ -58,7 +58,7 @@ class ServiceObject
   end
 
   def self.run_order(bc = bc_name, cat = nil)
-    return 1000 if bc = nil
+    return 1000 if bc == nil
     cat = barclamp_catalog if cat.nil?
     order = cat["barclamps"][bc]["order"] rescue 1000
     cat["barclamps"][bc]["run_order"] rescue order

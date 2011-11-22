@@ -629,11 +629,6 @@ class NodeObject < ChefObject
     end
   end
 
-  def power_change_state(state)
-    self.crowbar['state'] = state
-    save
-  end
-
   def identify
     bmc = get_network_by_type("bmc")
     return puts "Node #{name} IMPI Identify call to #{bmc["address"]}" unless CHEF_ONLINE

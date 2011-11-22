@@ -85,8 +85,8 @@ class CrowbarService < ServiceObject
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
 
-        xs = ServiceOrder.run_order(xname, catalog)
-        ys = ServiceOrder.run_order(yname, catalog)
+        xs = ServiceObject.run_order(xname, catalog)
+        ys = ServiceObject.run_order(yname, catalog)
         xs <=> ys
       end
 

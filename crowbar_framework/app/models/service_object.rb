@@ -332,7 +332,6 @@ class ServiceObject
   # with our dependency algorithm
   #
   # GREG: Consider node overlap in process_queue and queue_proposal
-  # GREG: Use chef_order to order runlist and consolidate runlist manipulation
   #
   def process_queue
     @logger.debug("process queue: enter")
@@ -729,6 +728,8 @@ class ServiceObject
     old_elements = old_deployment["elements"] unless old_deployment.nil?
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
+    local_chef_order = chef_order
+
     # Merge the parts based upon the element install list.
     all_nodes = []
     run_order = []
@@ -787,7 +788,7 @@ class ServiceObject
       rlist.each do |item|
         next unless node.role? item
         @logger.debug("AR: Removing role #{item} to #{node.name}")
-        node.crowbar_run_list.run_list_items.delete "role[#{item}]"
+        node.delete_from_run_list item
         save_it = true
       end
 
@@ -795,7 +796,7 @@ class ServiceObject
       alist.each do |item|
         next if node.role? item
         @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.crowbar_run_list.run_list_items << "role[#{item}]"
+        node.add_to_run_list(item, local_chef_order)
         save_it = true
       end
 
@@ -804,14 +805,14 @@ class ServiceObject
         # Add the config role 
         unless node.role?(role.name)
           @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.crowbar_run_list.run_list_items << "role[#{role.name}]"
+          node.add_to_run_list(role.name, local_chef_order)
           save_it = true
         end
       else
         # Remove the config role 
         if node.role?(role.name)
           @logger.debug("AR: Removing role #{role.name} to #{node.name}")
-          node.crowbar_run_list.run_list_items.delete "role[#{role.name}]"
+          node.delete_from_run_list role.name
           save_it = true
         end
       end
@@ -914,6 +915,8 @@ class ServiceObject
       return false 
     end
 
+    chef_order = ServiceObject.chef_order(barclamp)
+
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
       @logger.debug("ARTOI: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
@@ -934,12 +937,12 @@ class ServiceObject
 
     save_it = false
     unless node.role?(newrole)
-      node.crowbar_run_list.run_list_items << "role[#{newrole}]"
+      node.add_to_run_list(newrole, chef_order)
       save_it = true
     end
 
     unless node.role?("#{barclamp}-config-#{instance}")
-      node.crowbar_run_list.run_list_items << "role[#{barclamp}-config-#{instance}]"
+      node.add_to_run_list("#{barclamp}-config-#{instance}", chef_order)
       save_it = true
     end
 

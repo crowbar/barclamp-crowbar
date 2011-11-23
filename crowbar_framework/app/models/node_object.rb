@@ -78,6 +78,7 @@ class NodeObject < ChefObject
     role.default_attributes["crowbar"]["network"] = {} if role.default_attributes["crowbar"]["network"].nil?
     role.save
 
+    # This run_list call is to add the crowbar tracking role to the node.
     machine.run_list.run_list_items << "role[#{role.name}]"
     machine.save
 
@@ -199,6 +200,7 @@ class NodeObject < ChefObject
     @node.name value
     @node[:fqdn] = value
     @node[:domain] = domain
+    # This modifying of the run_list is to handle change the name of the crowbar tracking role
     @node.run_list.run_list_items.delete "role[#{@role.name}]"
     @role.name = "crowbar-#{value.gsub(".", "_")}"
     @node.run_list.run_list_items << "role[#{@role.name}]"
@@ -231,9 +233,28 @@ class NodeObject < ChefObject
     @node[attrib]
   end
 
+  # Function to help modify the run_list.
   def crowbar_run_list(*args)
     return nil if @role.nil?
     args.length > 0 ? @role.run_list(args) : @role.run_list
+  end
+
+  def add_to_run_list(rolename, priority)
+    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+    crowbar["run_list_map"][rolename] = priority
+
+    # Sort map
+    vals = crowbar["run_list_map"].sort { |a,b| a[1] <=> b[1] }
+
+    # Rebuild list
+    crowbar_run_list.run_list_items.clear
+    vals.each do |item|
+      crowbar_run_list.run_list_items << "role[#{item[0]}]"
+    end
+  end
+
+  def delete_from_run_list(rolename)
+    crowbar_run_list.run_list_items.delete "role[#{rolename}]"
   end
 
   def crowbar

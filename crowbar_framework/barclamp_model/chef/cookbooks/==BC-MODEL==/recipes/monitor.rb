@@ -35,6 +35,6 @@ template "/etc/nagios/nrpe.d/==BC-MODEL==_nrpe.cfg" do
     :svcs => svcs ,
     :ports => ports
   })    
-   notifies :restart, resources(:service => "nagios-nrpe-server")
+   notifies :restart, "service[nagios-nrpe-server]"
 end if node["roles"].include?("nagios-client")    
 

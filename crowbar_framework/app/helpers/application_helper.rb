@@ -90,7 +90,7 @@ module ApplicationHelper
 
   def instance_selector(bc, name, field, proposal)
     service = eval("#{bc.camelize}Service.new nil")
-    options = service.list_active[1]
+    options = service.list_active[1] | service.proposals[1]
     if options.empty?
       options = [["None", ""]]
     else

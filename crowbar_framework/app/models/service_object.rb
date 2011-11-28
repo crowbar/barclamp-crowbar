@@ -903,6 +903,10 @@ class ServiceObject
     # noop by default.
   end
 
+  #
+  # Inputs: role = RoleObject of proposal being applied/queued.
+  # Returns: List of hashs { "barclamp" => bcname, "inst" => instname }
+  #
   def proposal_dependencies(role)
     # Default none
     []

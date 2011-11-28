@@ -328,10 +328,8 @@ class ServiceObject
   end
 
   #
-  # NOTE: If dependencies don't for a DAG (Directed Acyclic Graph) then we have a problem
+  # NOTE: If dependencies don't form a DAG (Directed Acyclic Graph) then we have a problem
   # with our dependency algorithm
-  #
-  # GREG: Consider node overlap in process_queue and queue_proposal
   #
   def process_queue
     @logger.debug("process queue: enter")

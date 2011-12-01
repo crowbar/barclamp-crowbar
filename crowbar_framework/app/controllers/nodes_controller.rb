@@ -145,7 +145,7 @@ class NodesController < ApplicationController
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
-      format.json { render :json => @node }
+      format.json { render :json => (params[:key].nil? ? @node : @node[params[:key]]) }
     end
   end
   

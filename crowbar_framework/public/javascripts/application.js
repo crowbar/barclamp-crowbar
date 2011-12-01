@@ -11,6 +11,7 @@ jQuery(document).ready(function($) {
   });
   
   $('a.node_details').click(function(e) {
+    selected = $(this).attr('id');
     $('#details').load($(this).attr('href'));
     $('tr.selected').removeClass('selected');
     $(this).parents('tr').addClass('selected');

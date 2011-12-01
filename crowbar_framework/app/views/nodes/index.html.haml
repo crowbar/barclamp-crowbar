@@ -30,20 +30,24 @@
 
 :javascript
   var racks = {};
+  var selected = '#{session[:node]}';
   function update() {
     $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{nodes_status_path}', function(data) {
       
+      // reload path
+      var repath = '#{dashboard_path}/'+selected;
+      
       // If node count has changed, re-render the page
       var current_nodes = $('.node').length;
       if(data['count'] != current_nodes) {
-        location.reload();
+        location.href = repath;
       }
 
       // If node name sum has changed, re-render the page
       var current_sum = $('#node_sum').val();
       if(data['sum'] != current_sum) {
-        location.reload();
+        location.href = repath;
       }
       
       // Update switch-level piecharts
@@ -53,7 +57,7 @@
         if (racks[key]==undefined) { 
           racks[key] = total; 
         } else if (racks[key]!=total) {
-          location.reload();
+          location.href =repath;
         }
         $('#switch_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
         var status = "#{t :status_pie, :scope=>'nodes.index'}";

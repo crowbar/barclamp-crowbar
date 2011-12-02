@@ -1,9 +1,9 @@
 - prop = "#{@proposal.barclamp}_#{@proposal.name}"
 %p{:style => 'float:right'}
   = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
-  
-%h1.led.unknown{:id => prop, :title=>t('proposal.status.unknown')}
-  = t '.title'
+
+.led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'} 
+%h1= t '.title'
 
 -# Rails 2 needs - and Rails 3 needs =
 - form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box" } do |f|

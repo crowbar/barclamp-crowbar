@@ -23,6 +23,8 @@ ActionController::Routing::Routes.draw do |map|
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :constraints => { :name => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /.*/ }
+  map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
+  map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index'
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /.*/ }
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /.*/ }
   map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'

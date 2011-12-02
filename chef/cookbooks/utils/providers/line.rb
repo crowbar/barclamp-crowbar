@@ -13,7 +13,8 @@
 # limitations under the License.
 #
 
-action :add do
+
+def lock(new_resource)
   filename = "/tmp/#{new_resource.file.gsub("/","_")}.lock"
   f = ::File.new(filename, ::File::RDWR|::File::CREAT, 0644)
   rc = false
@@ -24,43 +25,66 @@ action :add do
     sleep 1 if rc == false
   end
 
-  system "/bin/egrep -q '^#{new_resource.name}$' '#{new_resource.file}'"
-  ret=$?
-  if ret != 0
-    b = bash "add #{new_resource.name}" do
-      code "/bin/echo '#{new_resource.name}' >> '#{new_resource.file}'"
-    end
-    b.action(:run)
-    new_resource.updated_by_last_action(true)
-  end
+  return f
+end
 
+def unlock(f)
   f.flock(::File::LOCK_UN)
   f.close
+end
+
+
+
+def add_and_filter(file, add, filter_re)
+  need_to_add = !add.nil?
+  need_to_remove = false
+  lines = []
+  re = Regexp.compile("^#{add}\s*$")
+  ll = [] 
+  ll = IO.readlines(file) if ::File.exists?(file)
+  ll.each { |l|
+    need_to_add = false if l.match(re)
+    unless (filter_re.nil?)
+      if l.match(/^#{filter_re}$/)
+	need_to_remove = true
+      else
+	lines << l
+      end
+    else 
+      lines << 1
+    end
+  } 
+  
+  puts "need to add: #{need_to_add} remove: #{need_to_remove}"
+  updated =  need_to_add or need_to_remove
+  
+  if need_to_remove
+    lines << add if need_to_add
+    need_to_add = false
+    open(file, "w+") {|f| f.write lines }
+  end
+  open(file, "a") {|f| 
+    f.write "#{add}\n"
+  } if need_to_add
+
+  return updated
+end
+
+
+action :add do
+  lock = lock(@new_resource)
+  updated = add_and_filter(@new_resource.file, 
+		 @new_resource.name, @new_resource.regexp_exclude)
+  @new_resource.updated_by_last_action(true) if updated
+  unlock(lock)
 end
 
 action :remove do
-  filename = "/tmp/#{new_resource.file.gsub("/","_")}.lock"
-  f = ::File.new(filename, ::File::RDWR|::File::CREAT, 0644)
-  rc = false
-  count = 0
-  while rc == false do
-    count = count + 1
-    rc = f.flock(::File::LOCK_EX|::File::LOCK_NB)
-    sleep 1 if rc == false
-  end
+  f = lock(@new_resource)
+  lock = lock(@new_resource)
+  updated = add_and_filter(@new_resource.file,nil, 
+			   "^#{@new_resource.name}$")
+  @new_resource.updated_by_last_action(true) if updated
+  unlock(lock)
 
-  system "/bin/egrep -q '^#{new_resource.name}$' '#{new_resource.file}'"
-  ret=$?
-  if ret == 0
-    line_str = new_resource.name.gsub("\"", "\\\"").gsub("/", "\\/").gsub("'", "\\'")
-    b = bash "remove #{new_resource.name}" do
-      code "/usr/bin/perl -ni -e 'print unless /^#{line_str}$/' '#{new_resource.file}'"
-    end
-    b.action(:run)
-    new_resource.updated_by_last_action(true)
-  end
-
-  f.flock(::File::LOCK_UN)
-  f.close
-end
-
+end 

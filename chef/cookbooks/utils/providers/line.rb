@@ -34,7 +34,13 @@ def unlock(f)
 end
 
 
-
+####
+#  add and remove lines to a file
+# - file - the file to operate on
+# - add - the string to make sure is in the file
+# - filter_re - a regular expression (forced between ^$) to remove
+#
+# if a line matching the filter_re also matches the add line, then do neither.
 def add_and_filter(file, add, filter_re)
   need_to_add = !add.nil?
   need_to_remove = false
@@ -45,8 +51,15 @@ def add_and_filter(file, add, filter_re)
   ll.each { |l|
     need_to_add = false if l.match(re)
     unless (filter_re.nil?)
-      if l.match(/^#{filter_re}$/)
-	need_to_remove = true
+      if md=l.match(/^#{filter_re}$/)
+	  if md[0].match(re)
+	    # we're adding and removing the same thing...
+	    need_to_remove = false
+	    need_to_add = false
+	    lines << l
+	  else
+	    need_to_remove = true
+	  end
       else
 	lines << l
       end

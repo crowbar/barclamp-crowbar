@@ -123,7 +123,7 @@ class ServiceObject
       next if node.nil?
       
       pre_cached_nodes[n] = node
-      delay << n if node.state != "ready"
+      delay << n if node.state != "ready" and !delay.include?(n)
     end
     [ delay, pre_cached_nodes ]
   end

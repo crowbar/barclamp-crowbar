@@ -221,6 +221,7 @@ en:
   na: N/A
   feature_na: Feature Not Available
   name: Name
+  down: Down
   offline: Chef Offline
   raw: Raw
   custom: Custom

@@ -68,10 +68,13 @@ jQuery(document).ready(function($) {
 
   $('.button').live('click', function() {
     var button = $(this);
+    button2 = $('.button[source="'+button.attr('match')+'"]');
     $('#flash').attr("style", "display:none");
     button.addClass('pressed');
+    button2.addClass('pressed');
     if(button.attr('data-remote')=='true') {
       button.bind('ajax:complete', function(){ button.removeClass('pressed'); });
+      button2.bind('ajax:complete', function(){ button2.removeClass('pressed'); });
     }
   });
   

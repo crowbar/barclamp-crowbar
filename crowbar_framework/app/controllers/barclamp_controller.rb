@@ -410,7 +410,8 @@ class BarclampController < ApplicationController
     flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
     respond_to do |format|
       format.html {         
-        redirect_to :action=>'modules', :id => @bc_name
+        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        render :text => answer[1]
       }
       format.xml  {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200

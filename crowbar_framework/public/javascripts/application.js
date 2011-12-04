@@ -71,11 +71,11 @@ jQuery(document).ready(function($) {
     button2 = $('.button[source="'+button.attr('match')+'"]');
     $('#flash').attr("style", "display:none");
     button.addClass('pressed');
-    button2.addClass('pressed');
+    if (button2) button2.addClass('pressed');
     if(button.attr('data-remote')=='true') {
       button.bind('ajax:complete', function(){ button.removeClass('pressed'); });
-      button2.bind('ajax:complete', function(){ button2.removeClass('pressed'); });
-    }
+      if (button2) button2.bind('ajax:complete', function(){ button2.removeClass('pressed'); });
+    } 
   });
   
   $('input[data-default]').each(function() {

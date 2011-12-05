@@ -117,11 +117,7 @@ class BarclampController < ApplicationController
 
     respond_to do |format|
       format.html {
-<<<<<<< HEAD
         redirect_to barclamp_modules_path(:id => @bc_name)
-=======
-        redirect_to :action => 'modules', :id => @bc_name 
->>>>>>> 9ecda54525c77e139b2e0ffe944a102e99299ccf
       }
       format.xml  {
         return render :text => ret[1], :status => ret[0] if ret[0] != 200

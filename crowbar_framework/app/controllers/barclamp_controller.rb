@@ -110,7 +110,7 @@ class BarclampController < ApplicationController
     ret = [500, "Server Problem"]
     begin
       ret = @service_object.destroy_active(params[:id])
-      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1])
+      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
     rescue Exception => e
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
       ret[500, flash[:notice]]

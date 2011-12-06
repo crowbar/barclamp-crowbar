@@ -33,14 +33,6 @@
 # while still using /etc/init.d/rabbitmq-server start
 # because of this we just put the rabbitmq-env.conf in place and let it rip
 
-remote_directory "/usr/lib/rabbitmq/lib/rabbitmq_server-2.6.1/plugins" do
-  source "plugins"
-  owner "root"
-  group "root"
-  mode 0755
-  files_mode 0644
-end
-
 directory "/etc/rabbitmq/" do
   owner "root"
   group "root"
@@ -57,3 +49,11 @@ end
 
 package "rabbitmq-server"
 
+bash "Enable rabbit management" do
+  code <<-'EOH'
+/usr/sbin/rabbitmq-plugins enable rabbitmq_management
+/etc/init.d/rabbitmq-server restart
+exit 0
+EOH
+  not_if "/usr/sbin/rabbitmq-plugins list -E | grep -q rabbitmq_management"
+end

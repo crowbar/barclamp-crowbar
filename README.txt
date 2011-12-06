@@ -13,3 +13,11 @@ About this barclamp
 
 This is the core barclamp!  Change with caution!
 
+Licenses
+--------
+
+Many Crowbar licenses are listed on 
+
+Icons for Crowbar UI are from:
+   * Jon Roberts, http://bandedartists.com
+   * Mark James, http://famfamfam.com by

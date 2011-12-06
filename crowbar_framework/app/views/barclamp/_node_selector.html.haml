@@ -7,57 +7,166 @@
       = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
 -else 
   %input#proposal_development{:type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_data['deployment'][@proposal.barclamp].to_json }
-  %p
-    %label{:for => "drag_drop"}= t('.title')
-    = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float: right;"
-    %div{ :class => ["container"], :id => "drag_drop" }
-      .column_40.first
-        - @proposal.all_elements.each do |element|
-          %div{ :class => ["list"], :id => "#{element}_div" }
-            %div{ :class => ["list", "title"] }
-            %b
-              - if CONVERGED_ADMIN
-                = link_to element, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
-              - else
-                = element
-            %ul.list{ :id => "#{element}" }
-              - unless @proposal.elements[element].nil?
-                - @proposal.elements[element].each do |v|
-                  %li{ :name => "#{v}" }= v.split('.')[0]
-  
-      .column_50.last
-        %div{ :class => ["list"], :id => "nodes_div" }
-          %div{ :class => ["list", "title"] }= t('barclamp.proposal_show.available_nodes')
-          %ul
-            - NodeObject.all.each do |n|
-              %li{ :name => "#{n.name}" }= n.shortname
+  %h2= t('.title')
+  = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float: right;"
+  %div.container#deploy
+    %p
+      %em#hint= t('.hint')
+    .column_40.first
+      %div#nodes_div
+        %div.title
+          %b= link_to t('barclamp.proposal_show.available_nodes'), dashboard_path
+        %ul 
+          - NodeObject.all.each do |n|
+            %li.available{ :id => n.name, :title => n.description, :draggable=>'true'  }= n.shortname
+    .column_50.last
+      - @proposal.all_elements.each do |element|
+        %div
+          %div.ddlist{ :id=>element, :draggable=>'true'}
+            - if CONVERGED_ADMIN
+              %b= link_to element.humanize, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
+            - else
+              %b= element.humanize
+            %img{ :src=>'/images/icons/server_add.png', :title=>t('.add') }
+          %ul.ddlist{ :id=>element }
 
 .clear
 
 :javascript
-  function remove_item(item) {
-    var input = document.getElementById('proposal_development');
-    var json = JSON.parse(input.value);
-    var name = item.attr('name');
-    var listname = item.parent().parent().attr('id').replace("_div", "");
-    var list = json['elements'][listname];
-    var idx = jQuery.inArray(name, list); // Find the index
-    if (idx!=-1) list.splice(idx, 1)
-    input.value = JSON.stringify(json);
-  }
-  function copy_item(item, list) {
-    var input = document.getElementById('proposal_development');
-    var json = JSON.parse(input.value);
-    var name = item.attr('name');
-    if (json['elements'][list] == undefined) {
-      json['elements'][list] = new Array();
+
+$(document).ready(function() {
+
+  var drag_from = null;
+  var i18n_remove = "#{t('.remove')}";
+  var i18n_no_dup = "#{t('.no_dup')}";
+  var i18n_added = "#{t('.added')}";
+  var i18n_removed = "#{t('.removed')}";
+  var json = JSON.parse(document.getElementById('proposal_development').value);
+    
+  // this populates the current deployment from the given data
+  $('#deploy div.ddlist[draggable="true"]').each(function() {
+    var element = $(this).attr('id');
+    $.each(json['elements'][element], function(index, node) {
+      make_allocated(node, element);
+    });
+  });
+  
+  // set draggable attributes
+  $('#deploy li.available[draggable="true"]')
+    .bind('dragsend', function( ev ) {
+      false;
+    })
+    .bind('dragstart', function( ev ) {
+      console.debug("dragging " + ev.target.id);
+      var dt = ev.originalEvent.dataTransfer;
+      // TODO make sure only li available set this!
+      dt.setData("Text", ev.target.id);
+    });
+
+  // set droppable attributes
+  $('#deploy div.ddlist[draggable="true"]')
+    // highlight on entering drop done
+    .bind('dragenter', function(ev) {
+      $(ev.target).addClass('droptarget');
+      return false;
+    })
+    // Un-highlight on drag leaving drop zone.
+    .bind('dragleave', function(ev) {
+      $(ev.target).removeClass('droptarget');
+      return false;
+    })
+    // Decide whether the thing dragged in is welcome.
+    .bind('dragover', function(ev) {
+        if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+        return false;
+    })
+
+    // Handle the final drop...
+    .bind('drop', function(ev) {
+      if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+      var drag_from = ev.originalEvent.dataTransfer.getData("Text");      
+      if (drag_from) {
+        var list = $(this).attr('id');
+        if ($('ul.ddlist[id="'+list+'"]').children('li[id="'+drag_from+'"]').length==0) {
+          console.debug("from " + drag_from + " to " + list);
+          drop_item(drag_from, list);
+          drag_from = null;
+          return true;
+        } else {
+          console.info("duplicate name " + drag_from + " in list " + list);
+          // TODO - tell user no_dup
+        }
+      } else {
+        console.warn("cannot drop - missing drag_from");
+        return false;
+      }
+    });
+}
+ 
+  // called when an available node is dropped into the list
+  function drop_item(name, list) {
+    var $node = $('li.allocated[id="'+name+'"]');
+    if ($node) {
+      console.debug("dropped " + $node.attr('id') + " from " + list);
+      if (json['elements'][list] == undefined) {
+        json['elements'][list] = new Array();
+      }
+      json['elements'][list].push(name);
+      update_json();
+      make_allocated(name, list);
+      //TODO $('#hint').text(i18n_msg(i18n_added, name, list));
     }
-    json['elements'][list].push(name);
-    input.value = JSON.stringify(json);
   }
+  
+  // substitutions for i18n strings
+  function i18n_msg(msg, node, list) {
+    msg = msg.replace('{0}', node);
+    msg = msg.replace('{1}', list);
+    return msg;
+  }
+  
+  // responds to the remove button
+  function remove_item(name, list) {
+    var nodes = json['elements'][list];
+    var idx = jQuery.inArray(name, nodes);  // Find the index
+    if (idx!=-1) nodes.splice(idx, 1);    // Remove it!
+    json['elements'][list] = nodes;       // update the corrected list
+    update_json();
+    $('ul.ddlist[id="'+list+'"]').children('li[id="'+name+'"]').remove();
+    console.debug("removed " + name + " from " + list);
+    //TODO $('#hint').replaceWith(i18n_msg(i18n_removed, name, list));
+  }
+  
+  // call after updates to change the values
+  function update_json() {
+    input = document.getElementById('proposal_development')
+    input.value = JSON.stringify(json);
+    console.debug("json:" + document.getElementById('proposal_development').value);
+  }
+  
+  // creates the LI HTML and adds it to the list
+  function make_allocated(item, list) {
+    try {
+      var $list = $('ul.ddlist[id="'+list+'"]');
+      if ($list.children('li[id="'+item+'"]').length == 0) {
+        var title = $('li.available[id="'+item+'"]').attr('title');
+        var shortname = item.split('.')[0];
+        var ll = "<li class='allocated' id='"+ item + "' title='"+ title + "'>"+shortname;
+        ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='" + i18n_remove + "' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
+        ll = ll + "</li>";
+        $list.append(ll);
+        //console.debug("make li " + shortname + " for " + $list.attr('id') + "(children-" + $list.children().length + ") li=" + ll);
+      } else {
+        console.debug("cannot add - " + item + " because it exists in the list");
+      }
+    } catch(err) {
+      console.warn("Could not create li for " + name + " in list " + list + " due to " + err);
+    }
+  }
+  
   function node_selector(base_item, constraints){
-    // Set the default function
-    $.fn.drag_drop_multi_select.defaults.after_drop_action = function($item,$old,$new,e,ui){
+    // TODO - FIX CONSTRAINTS
+    if (false) {
         // Possible param $item_instance, $old_container, $new_container, event, helper
         var $target = $(e.target);
         var tid = $target.attr('id').replace("_div", "");
@@ -82,16 +191,10 @@
         }
         else {
           if ($item.parent().parent().attr('id') != $target.attr('id')) {
-            remove_item($item);
+            //remove_item($item);
             $item.remove();
           }
         }
     };
-    // Initiate the drag & drop
-    base_item.drag_drop_multi_select({
-        element_to_drag_drop_select:'.list ul li',
-        elements_to_drop:'.list',
-        elements_to_cancel_select:'.title'
-    });
   }
 

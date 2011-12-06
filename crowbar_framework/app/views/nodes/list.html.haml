@@ -19,31 +19,36 @@
         %th= t('.raid')
         %th.center Allocate?
     %tbody
-      - @nodes.sort_by{|n| n.name }.each do |node|
-        %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
-          %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
-          -unless node.admin?
-            %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
-            %td
-              -if @options[:show].include? :bios
-                = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
-              -else
-                = t 'feature_na'
-            %td
-              -if @options[:show].include? :raid
-                = select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
-              -else
-                = t 'feature_na'
-            %td.center
-              -unless node.allocated
-                = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
-              -else
-                = "-"
-          -else
-            %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description || t('.admin')}"
-            %td= t('na')
-            %td= t('na')
-            %td.center= "-"
+      - if @nodes.count > 0
+        - @nodes.sort_by{|n| n.name }.each do |node|
+          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
+            %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
+            -unless node.admin?
+              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
+              %td
+                -if @options[:show].include? :bios
+                  = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
+                -else
+                  = t 'feature_na'
+              %td
+                -if @options[:show].include? :raid
+                  = select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
+                -else
+                  = t 'feature_na'
+              %td.center
+                -unless node.allocated
+                  = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
+                -else
+                  = t 'complete'
+            -else
+              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description || t('.admin')}"
+              %td= t 'na'
+              %td= t 'na'
+              %td.center= t 'na'
+      - else
+        %tr
+          %td{ :colspan=>5 }
+            = t 'no_items'
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}
         %td.action{:colspan => 6}

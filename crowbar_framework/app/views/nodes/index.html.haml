@@ -24,7 +24,7 @@
               %td.status
                 .led{:class => node.status, :title=> node.state}
               %td
-                %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{node.description}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
+                %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{(node.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
 
 .clear
 

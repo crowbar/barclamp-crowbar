@@ -113,6 +113,7 @@ class BarclampController < ApplicationController
       flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1])
     rescue Exception => e
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
+      ret[500, flash[:notice]]
     end
 
     respond_to do |format|

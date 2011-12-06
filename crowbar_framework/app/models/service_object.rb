@@ -431,9 +431,13 @@ class ServiceObject
     @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
 
     prop = ProposalObject.find_proposal(bc, inst)
-    prop["deployment"][bc]["crowbar-status"] = status
-    prop["deployment"][bc]["crowbar-failed"] = message
-    res = prop.save
+    unless prop.nil?
+      prop["deployment"][bc]["crowbar-status"] = status
+      prop["deployment"][bc]["crowbar-failed"] = message
+      res = prop.save
+    else
+      res = true
+    end
 
     @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
     res

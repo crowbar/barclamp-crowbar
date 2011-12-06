@@ -117,7 +117,11 @@ class BarclampController < ApplicationController
 
     respond_to do |format|
       format.html {
+<<<<<<< HEAD
         redirect_to barclamp_modules_path(:id => @bc_name)
+=======
+        redirect_to :action => 'modules', :id => @bc_name 
+>>>>>>> 9ecda54525c77e139b2e0ffe944a102e99299ccf
       }
       format.xml  {
         return render :text => ret[1], :status => ret[0] if ret[0] != 200
@@ -379,10 +383,11 @@ class BarclampController < ApplicationController
           answer = @service_object.proposal_delete(params[:name])
           flash[:notice] = answer[1] if answer[0] >= 300
           flash[:notice] = t('barclamp.proposal_show.delete_proposal_success') if answer[0] == 200
-          return redirect_to barclamp_proposals_barclamp_path if answer[0] == 200
         rescue Exception => e
           flash[:notice] = e.message
         end
+        redirect_to barclamp_modules_path(:id=>(params[:barclamp] || ''))
+        return
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
           answer = @service_object.dequeue_proposal(params[:name])
@@ -410,6 +415,8 @@ class BarclampController < ApplicationController
     respond_to do |format|
       format.html {
         redirect_to barclamp_modules_path(:id=>@proposal.barclamp)
+        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        render :text => answer[1]
       }
       format.xml  {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200

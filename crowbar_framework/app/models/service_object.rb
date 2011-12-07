@@ -855,17 +855,28 @@ class ServiceObject
             pids[pid] = node
           end
           status = Process.waitall
-
           badones = status.select { |x| x[1].exitstatus != 0 }
+
           unless badones.empty?
-            message = "Failed to apply the proposal to: "
             badones.each do |baddie|
-              message = message + "#{pids[baddie[0]]} "
+              node = pids[baddie[0]]
+              filename = "log/#{node}.chef_client.log"
+              pid = run_remote_chef_client(node, "chef-client", filename)
+              pids[pid] = node
             end
-            update_proposal_status(inst, "failed", message)
-            restore_to_ready(all_nodes)
-            process_queue unless in_queue
-            return [ 405, message ] 
+            status = Process.waitall
+            badones = status.select { |x| x[1].exitstatus != 0 }
+
+            unless badones.empty?
+              message = "Failed to apply the proposal to: "
+              badones.each do |baddie|
+                message = message + "#{pids[baddie[0]]} "
+              end
+              update_proposal_status(inst, "failed", message)
+              restore_to_ready(all_nodes)
+              process_queue unless in_queue
+              return [ 405, message ] 
+            end
           end
         end
 
@@ -876,17 +887,28 @@ class ServiceObject
             pids[node] = pid
           end
           status = Process.waitall
-
           badones = status.select { |x| x[1].exitstatus != 0 }
+
           unless badones.empty?
-            message = "Failed to apply the proposal to: "
             badones.each do |baddie|
-              message = message + "#{pids[baddie[0]]} "
+              node = pids[baddie[0]]
+              filename = "log/#{node}.chef_client.log"
+              pid = run_remote_chef_client(node, "chef-client", filename)
+              pids[pid] = node
             end
-            update_proposal_status(inst, "failed", message)
-            restore_to_ready(all_nodes)
-            process_queue unless in_queue
-            return [ 405, message ] 
+            status = Process.waitall
+            badones = status.select { |x| x[1].exitstatus != 0 }
+
+            unless badones.empty?
+              message = "Failed to apply the proposal to: "
+              badones.each do |baddie|
+                message = message + "#{pids[baddie[0]]} "
+              end
+              update_proposal_status(inst, "failed", message)
+              restore_to_ready(all_nodes)
+              process_queue unless in_queue
+              return [ 405, message ] 
+            end
           end
         end
       end

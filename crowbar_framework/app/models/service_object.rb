@@ -846,7 +846,12 @@ class ServiceObject
 
       # Only take the actions if we are online
       if CHEF_ONLINE
+        # 
         # XXX: We used to do this twice - do we really need twice???
+        # Yes! We do!  The system has some transient issues that are hidden
+        # but the double run for failing nodes.  For now, we will do this.
+        # Make this better one day.
+        #
         pids = {}
         unless snodes.empty?
           snodes.each do |node|
@@ -860,6 +865,7 @@ class ServiceObject
           unless badones.empty?
             badones.each do |baddie|
               node = pids[baddie[0]]
+              @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
               filename = "log/#{node}.chef_client.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node
@@ -892,6 +898,7 @@ class ServiceObject
           unless badones.empty?
             badones.each do |baddie|
               node = pids[baddie[0]]
+              @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
               filename = "log/#{node}.chef_client.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node

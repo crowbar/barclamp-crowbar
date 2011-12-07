@@ -189,7 +189,10 @@ en:
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
     node_selector:
       title: Node Deployment
+      hint: Drag nodes for deployment from Available Nodes into the selected Role
       msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
+      remove: Remove Node
+      add: Drop Node here to add to Role
     edit_attributes_raw:
       title: Proposal Attributes
     edit_deployment_raw:
@@ -227,6 +230,12 @@ en:
   custom: Custom
   clear_msg: clear
   created_on: Created On
+  no_items: No Items
+  complete: Complete
+  yes: Yes
+  no: No
+  maybe: Maybe
+  chuck_norris: Die!!!
 
   # node.raid_set
   raid:

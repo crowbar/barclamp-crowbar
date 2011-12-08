@@ -193,6 +193,9 @@ en:
       msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
       remove: Remove Node
       add: Drop Node here to add to Role
+      no_dup: Only one instance of each node is allowed per role
+      added: Added Node '{0}' to Role '{1}'
+      removed: Removed Node '{0}' from Role '{1}'
     edit_attributes_raw:
       title: Proposal Attributes
     edit_deployment_raw:

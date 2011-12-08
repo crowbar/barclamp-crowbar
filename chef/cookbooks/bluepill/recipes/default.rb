@@ -30,3 +30,7 @@ gem_package "bluepill"
     group "root"
   end
 end
+
+cookbook_file "/etc/init.d/bluepill" do
+  mode "755"
+end

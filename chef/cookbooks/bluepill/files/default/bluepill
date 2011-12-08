@@ -8,23 +8,24 @@ case $1 in
         bluepill load "$pill"
         done;;
     stop|restart) echo "Stop is not implemented, since bluepill processes are run independently.";;
-    status) if pidof bluepilld; then
-        echo "Bluepill is running."
-	bluepill status
-        exit 0
+    status) 
+	if ps aux |grep -q [b]luepilld; then
+            echo "Bluepill is running."
+	    bluepill status
+            exit 0
         else
-        echo "Bluepill is not running."
-        exit 1
+            echo "Bluepill is not running."
+            exit 1
         fi;;
     ''|"help")
 	echo "$0: Bluepill init script"
 	echo "Supported options:"
-	echo "    start: Starts a bluepill for any .pills in /etc/bluepill."
-	echo "    status: Shows the status of running bluepills."
-	echo "    stop: Not supported.  Use bluepill directoy to stop a process."
-	echo "    restart: Not supported for the same reason that stop os not supported."
-	echo "    help: This message." ;;
+	echo "    start:   Starts a bluepill for any .pills in /etc/bluepill."
+	echo "    status:  Shows the status of running bluepills."
+	echo "    stop:    Not supported.  Use bluepill directly to stop a process."
+	echo "    restart: Not supported for the same reason that stop is not supported."
+	echo "    help:    This message." ;;
     *) 
 	echo "Assuming you meant $(which bluepill)."
-	bluepill "$@";;
+	exec bluepill "$@";;
 esac

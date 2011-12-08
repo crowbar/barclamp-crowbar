@@ -15,7 +15,6 @@
 #
 
 # clean up
-bluepill crowbar-webserver stop
 service crowbar stop
 pidof rainbows
 

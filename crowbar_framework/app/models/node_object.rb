@@ -138,10 +138,8 @@ class NodeObject < ChefObject
       "unknown"   #grey
     when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert"
       "failed"    #flashing red
-    when "hardware-installing", "hardware-installed", "hardware-updated", "hardware-updating"
-      "building"  #yellow
     else
-      "unready"   #spinner
+      "unready"   #yellow
     end
   end
   

@@ -15,4 +15,4 @@ erlc swift.erl
 erlc bdd.erl
 
 REM Self Diagnostics
-erl -s bdd test "crowbar" -s init stop -noshell
+erl -s bdd_selftest test all -s init stop -noshell

@@ -1,7 +1,7 @@
 SimpleNavigation::Configuration.run do |navigation|  
   navigation.items do |primary|
     primary.item :nodes, t('nav.nodes'), root_path do |secondary|
-      secondary.item :dashboard, t('nav.dashboard'), dashboard_path()
+      secondary.item :dashboard, t('nav.dashboard'), root_path
       secondary.item :dashboard, t('nav.list'), nodes_list_path(:allocated=>'yes') 
       # insert here for :nodes
     end

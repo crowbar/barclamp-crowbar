@@ -42,6 +42,7 @@ end
 #
 # if a line matching the filter_re also matches the add line, then do neither.
 def add_and_filter(file, add, filter_re)
+  lock = lock(@new_resource)
   need_to_add = !add.nil?
   need_to_remove = false
   lines = []
@@ -81,23 +82,20 @@ def add_and_filter(file, add, filter_re)
   } if need_to_add
 
   return updated
+
+ensure
+  unlock(lock)
 end
 
 
 action :add do
-  lock = lock(@new_resource)
   updated = add_and_filter(@new_resource.file, 
-		 @new_resource.name, @new_resource.regexp_exclude)
+			   @new_resource.name, @new_resource.regexp_exclude)
   @new_resource.updated_by_last_action(true) if updated
-  unlock(lock)
 end
 
 action :remove do
-  f = lock(@new_resource)
-  lock = lock(@new_resource)
   updated = add_and_filter(@new_resource.file,nil, 
 			   "^#{@new_resource.name}$")
   @new_resource.updated_by_last_action(true) if updated
-  unlock(lock)
-
 end 

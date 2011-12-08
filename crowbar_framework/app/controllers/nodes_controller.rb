@@ -22,7 +22,6 @@ class NodesController < ApplicationController
   # GET /nodes.xml
   def index
     @sum = 0
-    session[:node] = params[:name]
     if params.has_key?(:role)
       result = NodeObject.all #this is not efficient, please update w/ a search!
       @nodes = result.find_all { |node| node.role? params[:role] }
@@ -36,10 +35,6 @@ class NodesController < ApplicationController
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
       @nodes.each do |node|
         @sum = @sum + node.name.hash
-        if node.shortname === params[:name] 
-          @node = node 
-          get_node_and_network(node.shortname)
-        end
       end
     end
     respond_to do |format|
@@ -103,7 +98,7 @@ class NodesController < ApplicationController
       result = NodeObject.all
       result.each do |node|      
         nodes[node.shortname] = {:status=>node.status, :state=>(I18n.t node.state, :scope => :state)}
-        count = switches[node.switch_name] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
+        count = switches[node.switch_name] || {"ready"=>0, "pending"=>0, "unready"=>0, "unknown"=>0}
         count[node.status] += 1
         switches[node.switch_name] = count
         sum = sum + node.name.hash
@@ -150,7 +145,7 @@ class NodesController < ApplicationController
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
-      format.json { render :json => (params[:key].nil? ? @node : @node[params[:key]]) }
+      format.json { render :json => @node }
     end
   end
   
@@ -191,7 +186,7 @@ class NodesController < ApplicationController
   
   def get_node_and_network(node_name)
     @network = {}
-    @node = NodeObject.find_node_by_name(node_name) if @node.nil?
+    @node = NodeObject.find_node_by_name(node_name)
     if @node
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)

@@ -30,43 +30,38 @@
 
 :javascript
   var racks = {};
-  var selected = '#{session[:node]}';
   function update() {
     $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{nodes_status_path}', function(data) {
       
-      // reload path
-      var repath = '#{dashboard_path}/'+selected;
-      
       // If node count has changed, re-render the page
       var current_nodes = $('.node').length;
       if(data['count'] != current_nodes) {
-        location.href = repath;
+        location.reload();
       }
 
       // If node name sum has changed, re-render the page
       var current_sum = $('#node_sum').val();
       if(data['sum'] != current_sum) {
-        location.href = repath;
+        location.reload();
       }
       
       // Update switch-level piecharts
       $.each(data['switches'], function(key,val) {
-        var values = val['ready'] + ', ' + val['failed'] + ', ' + val['unknown'] + ', ' + (val['building']+val['unready']+val['pending']);
-        var total = val['ready']+val['unready']+val['unknown']+val['building']+val['pending']+val['failed'];
+        var values = val['ready'] + ', ' + val['failed'] + ', ' + val['unknown'] + ', ' + val['unready']+val['pending'];
+        var total = val['ready']+val['unready']+val['unknown']+val['pending']+val['failed'];
         if (racks[key]==undefined) { 
           racks[key] = total; 
         } else if (racks[key]!=total) {
-          location.href =repath;
+          location.reload();
         }
-        console.debug("pie "+values);
         $('#switch_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
         var status = "#{t :status_pie, :scope=>'nodes.index'}";
         status = status.replace("{0}", total);
         status = status.replace("{1}", val['ready']);
         status = status.replace("{2}", val['failed']);
         status = status.replace("{3}", val['unknown']);
-        status = status.replace("{4}", (val['unready']+val['pending']+val['building']));
+        status = status.replace("{4}", val['unready']+val['pending']);
         $('#switch_'+key.toLowerCase()+' th.status').attr('title', status)
       });
       

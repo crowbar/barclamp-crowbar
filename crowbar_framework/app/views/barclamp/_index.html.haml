@@ -39,21 +39,18 @@
                       - else
                         = "#{t('.failed')} - #{proposal[:message]}"
                     %td
-                      - if RAILS_ENV==='development'
-                        - button = case proposal[:status]
-                          - when 'hold' 
-                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :id => "#{prop_id}_button", :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
-                          - when "ready" 
-                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
-                          - when 'unready'
-                            = t '.in_process'
-                          - when 'failed'
-                            = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
-                          - when 'pending' 
-                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_dequeue')
-                          - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
-                      - else 
-                        = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
+                      - button = case proposal[:status]
+                        - when 'hold' 
+                          = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :id => "#{prop_id}_button", :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
+                        - when "ready" 
+                          = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
+                        - when 'unready'
+                          = t '.in_process'
+                        - when 'failed'
+                          = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
+                        - when 'pending' 
+                          = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_dequeue')
+                        - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
               - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                 - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
                   %tr{:class => ["proposal", cycle(:odd, :even)]}

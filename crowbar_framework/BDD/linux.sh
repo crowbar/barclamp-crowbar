@@ -12,5 +12,5 @@ for f in *.erl; do
   erlc $f
 done
 
-# Run Tests
-erl -s bdd test "crowbar" -s init stop -noshell
+# Run Self-test
+# erl -s bdd test "crowbar" -s init stop -noshell

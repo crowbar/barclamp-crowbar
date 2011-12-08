@@ -1,19 +1,19 @@
-# Copyright 2011, Dell
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#  http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Author: RobHirschfeld
-#
+# Copyright 2011, Dell 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#  http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+# 
+# Author: RobHirschfeld 
+# 
 require 'chef'
 require 'json'
 
@@ -36,7 +36,7 @@ class BarclampController < ApplicationController
   # Barclamp List (generic)
   #
   # Provides the restful api call for
-  # List Barclamps 	/crowbar 	GET 	Returns a json list of string names for barclamps
+  # List Barclamps 	/crowbar 	GET 	Returns a json list of string names for barclamps 
   #
   add_help(:barclamp_index)
   def barclamp_index
@@ -50,7 +50,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # List Versions 	/crowbar/<barclamp-name> 	GET 	Returns a json list of string names for the versions
+  # List Versions 	/crowbar/<barclamp-name> 	GET 	Returns a json list of string names for the versions 
   #
   add_help(:versions)
   def versions
@@ -61,8 +61,8 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name> 	POST 	Informs the barclamp instance of a change of state in the specified node
-  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name>?state=<state>&name=<hostname> 	GET 	Informs the barclamp instance of a change of state in the specified node - The get is supported here to allow for the limited function environment of the installation system.
+  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name> 	POST 	Informs the barclamp instance of a change of state in the specified node 
+  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name>?state=<state>&name=<hostname> 	GET 	Informs the barclamp instance of a change of state in the specified node - The get is supported here to allow for the limited function environment of the installation system. 
   #
   add_help(:transition, [:id, :name, :state], [:get,:post])
   def transition
@@ -74,10 +74,10 @@ class BarclampController < ApplicationController
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
-
+  
   #
   # Provides the restful api call for
-  # Show Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	GET 	Returns a json document describing the instance
+  # Show Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	GET 	Returns a json document describing the instance 
   #
   add_help(:show,[:id])
   def show
@@ -87,13 +87,13 @@ class BarclampController < ApplicationController
     respond_to do |format|
       format.html {
         return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
-        render :template => 'barclamp/show'
+        render :template => 'barclamp/show' 
       }
-      format.xml  {
+      format.xml  { 
         return render :text => @role, :status => ret[0] if ret[0] != 200
         render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
       }
-      format.json {
+      format.json { 
         return render :text => @role, :status => ret[0] if ret[0] != 200
         render :json => ServiceObject.role_to_proposal(@role, @bc_name)
       }
@@ -102,7 +102,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # Destroy Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	DELETE 	Delete will deactivate and remove the instance
+  # Destroy Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	DELETE 	Delete will deactivate and remove the instance 
   #
   add_help(:delete,[:id],[:delete])
   def delete
@@ -120,11 +120,11 @@ class BarclampController < ApplicationController
       format.html {
         redirect_to barclamp_modules_path(:id => @bc_name)
       }
-      format.xml  {
+      format.xml  { 
         return render :text => ret[1], :status => ret[0] if ret[0] != 200
         render :xml => {}
       }
-      format.json {
+      format.json { 
         return render :text => ret[1], :status => ret[0] if ret[0] != 200
         render :json => {}
       }
@@ -133,7 +133,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # List Elements 	/crowbar/<barclamp-name>/<version>/elements 	GET 	Returns a json list of roles that a node could be assigned to
+  # List Elements 	/crowbar/<barclamp-name>/<version>/elements 	GET 	Returns a json list of roles that a node could be assigned to 
   #
   add_help(:elements)
   def elements
@@ -144,7 +144,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # List Nodes Available for Element 	/crowbar/<barclamp-name>/<version>/elements/<barclamp-instance-name> 	GET 	Returns a json list of nodes that can be assigned to that element
+  # List Nodes Available for Element 	/crowbar/<barclamp-name>/<version>/elements/<barclamp-instance-name> 	GET 	Returns a json list of nodes that can be assigned to that element 
   #
   add_help(:element_info,[:id])
   def element_info
@@ -155,7 +155,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # List Proposals 	/crowbar/<barclamp-name>/<version>/proposals 	GET 	Returns a json list of proposals for instances
+  # List Proposals 	/crowbar/<barclamp-name>/<version>/proposals 	GET 	Returns a json list of proposals for instances 
   #
   add_help(:proposals)
   def proposals
@@ -163,23 +163,23 @@ class BarclampController < ApplicationController
     @proposals = ret[1]
     return render :text => @proposals, :status => ret[0] if ret[0] != 200
     respond_to do |format|
-      format.html {
+      format.html { 
         @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposal_index'
+        render :template => 'barclamp/proposal_index' 
       }
       format.xml  { render :xml => @proposals }
       format.json { render :json => @proposals }
     end
   end
-
+  
   #
   # Provides the restful api call for
-  # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances
+  # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances 
   #
   add_help(:index)
   def index
     respond_to do |format|
-      format.html {
+      format.html { 
         @title = "#{@bc_name.titlecase} #{t('barclamp.index.members')}"
         @count = -1
         members = {}
@@ -188,19 +188,19 @@ class BarclampController < ApplicationController
         i = 0
         list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
         @modules = get_proposals_from_barclamps(members).sort_by {|k,v| v[:order].to_i}
-        render 'barclamp/index'
+        render 'barclamp/index' 
       }
-      format.xml  {
+      format.xml  { 
         ret = @service_object.list_active
         @roles = ret[1]
         return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :xml => @roles
+        render :xml => @roles 
       }
-      format.json {
+      format.json { 
         ret = @service_object.list_active
         @roles = ret[1]
         return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :json => @roles
+        render :json => @roles 
       }
     end
   end
@@ -213,7 +213,7 @@ class BarclampController < ApplicationController
     @title = I18n.t('barclamp.modules.title')
     @count = 0
     barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
-    @modules = get_proposals_from_barclamps(barclamps).sort
+    @modules = get_proposals_from_barclamps(barclamps).sort 
     respond_to do |format|
       format.html { render 'index'}
       format.xml  { render :xml => @modules }
@@ -237,23 +237,23 @@ class BarclampController < ApplicationController
         modules[name][:allow_multiple_proposals] = false
         modules[name][:description] += " !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object.  You may want to set 'barclamp:\\user_managed: false' in the crowbar.yml file" if RAILS_ENV === 'development'
       end
-      ProposalObject.find_proposals(name).each do |prop|
+      ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}"))
+        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
         @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
         modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
         if prop.status === "failed"
-          modules[name][:proposals][prop.name][:message] = prop.fail_reason
+          modules[name][:proposals][prop.name][:message] = prop.fail_reason 
           modules[name][:expand] = true
         end
-      end
+      end        
     end
     modules
   end
 
   #
   # Provides the restful api call for
-  # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal
+  # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal 
   #
   add_help(:proposal_show,[:id])
   def proposal_show
@@ -279,8 +279,8 @@ class BarclampController < ApplicationController
     proposals = {}
     begin
       active = RoleObject.active params[:id]
-      result = if params[:id].nil?
-        result = ProposalObject.all
+      result = if params[:id].nil? 
+        result = ProposalObject.all 
         result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       else
         [ProposalObject.find_proposal(params[:id][/^(.*)_(.*)$/,1], params[:id][/^(.*)_(.*)$/,2])]
@@ -300,11 +300,11 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # Create Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals 	PUT 	Putting a json document will create a proposal
+  # Create Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals 	PUT 	Putting a json document will create a proposal 
   #
   add_help(:proposal_create,[:name],[:put])
   def proposal_create
-    Rails.logger.info "Proposal Create starting. Params #{params.to_s}"
+    Rails.logger.info "Proposal Create starting. Params #{params.to_s}"    
     controller = params[:controller]
     orig_id = params[:name] || params[:id]
     params[:id] = orig_id
@@ -318,24 +318,24 @@ class BarclampController < ApplicationController
       flash[:notice] = e.message
     end
     respond_to do |format|
-      format.html {
+      format.html { 
         return redirect_to barclamp_modules_path :id => params[:controller] if answer[0] != 200
         redirect_to proposal_barclamp_path :controller=> controller, :id=>orig_id
       }
       format.xml  {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
-        render :xml => answer[1]
+        render :xml => answer[1] 
       }
       format.json {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
-        render :json => answer[1]
+        render :json => answer[1] 
       }
     end
   end
 
   #
   # Provides the restful api call for
-  # Edit Proposal Instance 	/crowbar/<barclamp-name>/<version>/propsosals/<barclamp-instance-name> 	POST 	Posting a json document will replace the current proposal
+  # Edit Proposal Instance 	/crowbar/<barclamp-name>/<version>/propsosals/<barclamp-instance-name> 	POST 	Posting a json document will replace the current proposal 
   #
   add_help(:proposal_update,[:id],[:post])
   def proposal_update
@@ -360,7 +360,7 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.commit_proposal')
         @proposal = ProposalObject.find_proposal_by_id(params[:id])
-
+ 
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
@@ -397,38 +397,37 @@ class BarclampController < ApplicationController
         Rails.logger.warn "Invalid action #{params[:submit]} for #{params[:id]}"
         flash[:notice] = "Invalid action #{params[:submit]}"
       end
-      redirect_to proposal_barclamp_path(:controller => params[:barclamp], :id => params[:name])
+      redirect_to proposal_barclamp_path(:controller => params[:barclamp], :id => params[:name]) 
     end
   end
 
   #
   # Provides the restful api call for
-  # Destroy Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	DELETE 	Delete will remove a proposal
+  # Destroy Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	DELETE 	Delete will remove a proposal 
   #
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
     answer = @service_object.proposal_delete params[:id]
     flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
     respond_to do |format|
-      format.html {
-        redirect_to barclamp_modules_path(:id=>@proposal.barclamp)
+      format.html {         
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
         render :text => answer[1]
       }
       format.xml  {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
-        render :xml => answer[1]
+        render :xml => answer[1] 
       }
       format.json {
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
-        render :json => answer[1]
+        render :json => answer[1] 
       }
     end
   end
 
   #
   # Provides the restful api call for
-  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced
+  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced 
   #
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit

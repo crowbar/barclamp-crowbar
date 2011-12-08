@@ -11,6 +11,7 @@ jQuery(document).ready(function($) {
   });
   
   $('a.node_details').click(function(e) {
+    selected = $(this).attr('id');
     $('#details').load($(this).attr('href'));
     $('tr.selected').removeClass('selected');
     $(this).parents('tr').addClass('selected');
@@ -67,11 +68,14 @@ jQuery(document).ready(function($) {
 
   $('.button').live('click', function() {
     var button = $(this);
+    button2 = $('.button[source="'+button.attr('match')+'"]');
     $('#flash').attr("style", "display:none");
     button.addClass('pressed');
+    if (button2) button2.addClass('pressed');
     if(button.attr('data-remote')=='true') {
       button.bind('ajax:complete', function(){ button.removeClass('pressed'); });
-    }
+      if (button2) button2.bind('ajax:complete', function(){ button2.removeClass('pressed'); });
+    } 
   });
   
   $('input[data-default]').each(function() {

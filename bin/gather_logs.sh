@@ -20,6 +20,22 @@ fi
 mkdir -p /tmp/crowbar-logs
 tarname="${1-$(date '+%Y%m%d-%H%M%S')}"
 targetdir="/opt/dell/crowbar_framework/public/logs"
+sort_by_last() {
+    local src=() keys=() sorted=() line=""
+    while read line; do
+	[[ $line && $line != '.' && $line != '..' ]] || continue
+	src+=("$line");
+	keys+=("${line##*/}")
+    done
+    while read line; do
+	echo "${src[$line]}" |tee -a "$targetdir/debug.log"
+    done < <( (for i in "${!keys[@]}"; do 
+	    echo "$i ${keys[$i]}"; done) | \
+	sort -k 2 | \
+	cut -d ' ' -f 1)
+}
+	
+    
 (   flock -s 200
     logdir=$(mktemp -d "/tmp/crowbar-logs/$tarname-XXXXX")
     mkdir -p "$logdir"
@@ -27,26 +43,27 @@ targetdir="/opt/dell/crowbar_framework/public/logs"
     cd "$logdir"
     sshopts=(-q -o 'StrictHostKeyChecking no' 
 	-o 'UserKnownHostsFile /dev/null')
-    logs=(/var/log /etc)
+    logs=(/var/log /etc /opt/dell/crowbar_framework/log /install-logs)
+    logs+=(/var/chef/cache /var/cache/chef /opt/dell/crowbar_framework/db)
+    curlargs=(-o /dev/null -D - --connect-timeout 30 --max-time 120)
+    [[ $CROWBAR_KEY ]] && curlargs+=(--digest -u "$CROWBAR_KEY")
+    for to_get in nodes proposals roles; do
+	curl "${curlargs[@]}" "http://localhost:3000/$to_get" || :
+    done
     for node in $(sudo -H knife node list); do
 	mkdir -p "${node%%.*}"
 	tarfile="${node%%.*}-${tarname}.tar.gz"
 	(   cd "${node%%.*}"
-	    [[ $node =~ ^admin ]] && {
-		curlargs=(-o /dev/null -D - --connect-timeout 30 --max-time 120)
-		[[ $CROWBAR_KEY ]] && curlargs+=(--digest -u "$CROWBAR_KEY")
-		for to_get in nodes proposals roles; do
-		    curl "${curlargs[@]}" "http://$node:3000/$to_get" || :
-		done
-		logs+=(/opt/dell/crowbar_framework/db /opt/dell/crowbar_framework/log /install-logs)
-	    }
 	    sudo ssh "${sshopts[@]}" "${node}" \
-	    tar czf "/tmp/$tarfile" "${logs[@]}"
-	    sudo scp "${sshopts[@]}" "${node}:/tmp/${tarfile}" "${tarfile}"
+		tar czf - "${logs[@]}" |
+	    tar xzf -
 	)&
     done &>/dev/null
     wait
     cd ..
-    tar cf "$targetdir/crowbar-logs-${tarname}.tar" . &>/dev/null
+    find . -depth -print | \
+	sort_by_last / | \
+	cpio -o -H ustar | \
+	bzip2 -9 > "$targetdir/crowbar-logs-${tarname}.tar.bz2"
     rm -rf "$logdir"
 ) 200>/tmp/crowbar-logs/.lock

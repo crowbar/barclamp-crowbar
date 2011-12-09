@@ -1,37 +1,38 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: RobHirschfeld
+#
 class NodeObject < ChefObject
   extend CrowbarOffline
-  
+
   def self.find(search)
     answer = []
     if CHEF_ONLINE
       nodes = if search.nil?
         ChefObject.query_chef.search "node"
-      else 
+      else
         ChefObject.query_chef.search "node", "#{chef_escape(search)}"
       end
       if nodes[2] != 0 and !nodes[0].nil?
         nodes[0].delete_if { |x| x.nil? }
-        answer = nodes[0].map do |x| 
+        answer = nodes[0].map do |x|
           dumped = self.dump x, 'node', x.name
           RoleObject.find_roles_by_search "name:#{make_role_name(x.name)}" if dumped
           NodeObject.new x
         end
+        answer.delete_if { |x| !x.has_chef_server_roles? }
       end
     else
       files = offline_search 'node-', ''
@@ -40,7 +41,11 @@ class NodeObject < ChefObject
     return answer
   end
 
-  def self.find_all_nodes 
+  def has_chef_server_roles?
+      return !self.roles.nil? && !self.roles.empty?
+  end
+
+  def self.find_all_nodes
     self.find nil
   end
 
@@ -57,7 +62,7 @@ class NodeObject < ChefObject
     end
     return val.nil? ? nil : NodeObject.new(val)
   end
-  def self.all 
+  def self.all
     self.find nil
   end
 
@@ -97,11 +102,11 @@ class NodeObject < ChefObject
   def self.human_attribute_name(attrib)
     I18n.t attrib, :scope => "model.attributes.node"
   end
-  
+
   def self.status(nodes)
     nodes.collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
   end
-  
+
   def initialize(node)
     @role = RoleObject.find_role_by_name NodeObject.make_role_name(node.name)
     if @role.nil?
@@ -126,7 +131,7 @@ class NodeObject < ChefObject
   def name
     @node.nil? ? 'unknown' : @node.name
   end
-  
+
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
     case state.split[0].downcase
@@ -144,12 +149,12 @@ class NodeObject < ChefObject
       "unready"   #spinner
     end
   end
-  
+
   def ready?
     state === 'ready'
   end
-  
-  def state 
+
+  def state
     return 'unknown' if (@node.nil? or @role.nil?)
     if self.crowbar['state'] === 'ready' and CHEF_ONLINE and @node['ohai_time']
       since_last = Time.now.to_i-@node['ohai_time'].to_i
@@ -163,13 +168,13 @@ class NodeObject < ChefObject
     return net_info["address"] unless net_info.nil?
     @node["ipaddress"] || (I18n.t :unknown)
   end
-  
+
   def public_ip
     net_info = get_network_by_type("public")
     return net_info["address"] unless net_info.nil?
     @node["ipaddress"] || (I18n.t :unknown)
   end
-  
+
   def mac
     unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
       intf = sort_ifs[0]
@@ -182,16 +187,16 @@ class NodeObject < ChefObject
   def allocated
     (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
   end
-  
+
   def allocated=(value)
     return false if @role.nil?
     self.crowbar["crowbar"]["allocated"] = value
   end
-  
+
   def allocated?
     (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
   end
-  
+
   def ipmi_enabled?
     #placeholder until we have a better mechanism
     @node.nil? ? false : @node["crowbar"]["allocated"]
@@ -208,24 +213,24 @@ class NodeObject < ChefObject
     @node.run_list.run_list_items << "role[#{@role.name}]"
     @node.save
     save
-  end 
+  end
 
   def memory
     @node['memory']['total'] rescue nil
   end
-  
+
   def cpu
     @node['cpu']['0']['model_name'].squeeze(" ").strip rescue nil
   end
-  
+
   def uptime
     @node["uptime"]
   end
-  
+
   def asset_tag
     @node["dmi"]["chassis"]["serial_number"] rescue nil
   end
-  
+
   def number_of_drives
     self.crowbar['crowbar']['disks'].length rescue -1
   end
@@ -275,7 +280,7 @@ class NodeObject < ChefObject
     end
     @node.role?(role_name)
   end
-  
+
   def roles
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
@@ -316,7 +321,7 @@ class NodeObject < ChefObject
   def networks
     self.crowbar["crowbar"]["network"] rescue {}
   end
-  
+
   def get_network_by_type(type)
     return nil if @role.nil?
     networks.each do |intf, data|
@@ -350,7 +355,7 @@ class NodeObject < ChefObject
     answer
   end
 
-  def adapter_count 
+  def adapter_count
     interface_list.size
   end
 
@@ -483,7 +488,7 @@ class NodeObject < ChefObject
     orig_if_list = @node["crowbar"]["detected"]["network"] rescue nil
     return {} if orig_if_list.nil?
     if_list = orig_if_list.map { |x| x[0] }
-    
+
     intf_to_if_map.each do |k,v|
       v.each do |mk, mv|
         if mk == "if_list"
@@ -535,7 +540,7 @@ class NodeObject < ChefObject
       switch_name = (I18n.t :undetermined)
     end
   end
-  
+
   def switch_port
     unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
       intf = sort_ifs[0]
@@ -544,7 +549,7 @@ class NodeObject < ChefObject
       switch_name = (I18n.t :undetermined)
     end
   end
-  
+
   def location
     unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
       intf = sort_ifs[0]
@@ -555,14 +560,14 @@ class NodeObject < ChefObject
   end
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
 
-  def description    
+  def description
     @role.description.length==0 ? nil : @role.description
   end
-  
+
   def description=(value)
     @role.description = value
   end
-  
+
   def hardware
     @node["dmi"].nil? ? I18n.t('unknown') : @node["dmi"].system.product_name
   end
@@ -580,7 +585,7 @@ class NodeObject < ChefObject
     self.crowbar["crowbar"]["hardware"] = {} if self.crowbar["crowbar"]["hardware"].nil?
     self.crowbar["crowbar"]["hardware"]["raid_set"] = value unless value===NOT_SET
   end
-  
+
   def bios_set
     return NOT_SET if @role.nil?
     return NOT_SET if self.crowbar["crowbar"].nil?
@@ -594,7 +599,7 @@ class NodeObject < ChefObject
     self.crowbar["crowbar"]["hardware"] = {} if self.crowbar["crowbar"]["hardware"].nil?
     self.crowbar["crowbar"]["hardware"]["bios_set"] = value unless value===NOT_SET
   end
-  
+
   def to_hash
     return {} if @node.nil?
     nhash = @node.to_hash
@@ -638,7 +643,7 @@ class NodeObject < ChefObject
     if CHEF_ONLINE
       system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power off") unless bmc.nil?
     else
-      return puts "Node #{name} IMPI Shutdown call to #{bmc["address"]}" 
+      return puts "Node #{name} IMPI Shutdown call to #{bmc["address"]}"
     end
   end
 
@@ -648,7 +653,7 @@ class NodeObject < ChefObject
     if CHEF_ONLINE
       system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power on") unless bmc.nil?
     else
-      puts "Node #{name} IMPI Power On call to #{bmc["address"]}" 
+      puts "Node #{name} IMPI Power On call to #{bmc["address"]}"
     end
   end
 

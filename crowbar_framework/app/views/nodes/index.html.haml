@@ -74,6 +74,7 @@
         var td = $('#'+key+' td');
         var led = td.children('.led');
         if(!led.hasClass(val['status'])){
+          led.destroy();
           led.attr('class', 'led '+val['status']);
           td.effect("highlight", {color: '#666666'}, 2000);
           led.attr('title', val['state']);
@@ -88,6 +89,7 @@
           s.attr('title','#{t('raw')}: '+val['raw']);
           var head = $('#head_'+key);
           if (head.length !=0 ) {
+            head.destroy();
             head.attr('class', 'led '+val['status']);
             head.attr('title', val['state']);
           }

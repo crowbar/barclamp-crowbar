@@ -19,7 +19,7 @@ class SupportController < ApplicationController
   def logs
     ctime=Time.now.strftime("%Y%m%d-%H%M%S")
     system("sudo -i /opt/dell/bin/gather_logs.sh #{ctime}")
-    redirect_to "/logs/crowbar-logs-#{ctime}.tar"
+    redirect_to "/logs/crowbar-logs-#{ctime}.tar.bz2"
   end
   def get_cli
     system("sudo -i /opt/dell/bin/gather_cli.sh #{request.env['SERVER_ADDR']} #{request.env['SERVER_PORT']}")

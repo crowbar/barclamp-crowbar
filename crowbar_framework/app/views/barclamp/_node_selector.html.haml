@@ -19,7 +19,7 @@
         %ul 
           - NodeObject.all.each do |n|
             %li
-              %a.available{:href => 'javascript:void(0);', :class =>"draggable_a",  :id => n.name, :title =>(n.description || t('not_set')), :draggable=>'true'  }= n.shortname
+              %a.available{:href => 'javascript:void(0);', :class =>"draggable_a", :admin=>(n.admin? ? "true" : "false"),  :id => n.name, :title =>(n.description || t('not_set')), :draggable=>'true'  }= n.shortname
             
     .column_50.last
       - @proposal.all_elements.each do |element|
@@ -35,19 +35,27 @@
 .clear
 
 :javascript
-
+  
 $(document).ready(function() {
-
+    
   DragDropHelpers.fixVisualCues=true;
   var messages = {};
-  messages['no_dup'] = "#{t('.no_dup')}";
-  messages['added'] = "#{t('.added')}";
-  messages['removed'] = "#{t('.removed')}";
-  messages['error'] = "#{t('.error')}";
-  messages['constraint_max']=  "#{t('.constraint_max')}";
-  messages['constraint_unique']=  "#{t('.constraint_unique')}";
+    messages['no_dup'] = "#{t('.no_dup')}";
+    messages['added'] = "#{t('.added')}";
+    messages['removed'] = "#{t('.removed')}";
+    messages['error'] = "#{t('.error')}";
+    messages['constraint_max']=  "#{t('.constraint_max')}";
+    messages['constraint_unique']=  "#{t('.constraint_unique')}";
+    messages['constraint_admin']=  "#{t('.constraint_admin')}";
   var json = JSON.parse(document.getElementById('proposal_development').value);
-    
+  var limis;
+  var allocated = [];
+  try {
+    limits = constraints;
+  } catch(err) {
+    //no rescue needed
+  }
+
   // this populates the current deployment from the given data
   $('#deploy div.droptarget[draggable="true"]').each(function() {
     var element = $(this).attr('id');
@@ -94,21 +102,54 @@ $(document).ready(function() {
         return false;
       }
     });
-}
- 
+
   // called when an available node is dropped into the list
   function drop_item(name, list) {
     var $node = $('li.allocated[id="'+name+'"]');
     if ($node) {
-     // console.debug("dropped " + $node.attr('id') + " from " + list);
-      if (json['elements'][list] == undefined) {
-        json['elements'][list] = new Array();
+        console.debug("admin " + limits[list].admin + " is? "+$('a.available[id="'+name+'"]').attr("admin"));
+      // block admin from being used
+      if (limits[list].admin==undefined || !limits[list].admin) {
+        if ($('a.available[id="'+name+'"]').attr("admin")=="true") {
+          i18n_msg("constraint_admin",name, list, "cannot be admin");
+          return false;
+        }
       }
-      json['elements'][list].push(name);
-      update_json();
-      if (make_allocated(name, list))
+      // test uniqueness from other lists
+      if (limits[list].unique)  {
+        allocated = $.unique(allocated);
+        if (allocated.indexOf(name)!=-1) {
+          i18n_msg("constraint_unique",name,list,"must be unique");
+          return false;
+        }
+      } 
+      // test count
+      switch (limits[list].count) {
+        case null:
+        case -1:
+          // no limits!
+          break;
+        case 0: 
+          i18n_msg(error, name, list, "Constraint count limit = 0");
+          return false;
+          break;
+        default:
+          if (($('ul.ddlist[id="'+list+'"]').children().length>=limits[list].count)) {
+            i18n_msg("constraint_max",name, list, "too many");
+            return false;
+          }
+      }
+      if (make_allocated(name, list)) {
+        if (json['elements'][list] == undefined) {
+          json['elements'][list] = new Array();
+        }
+        json['elements'][list].push(name);
+        update_json();
         i18n_msg("added", name, list, 'success');
+        return true;
+      }
     }
+    return false;
   }
   
   // substitutions for i18n strings
@@ -131,6 +172,8 @@ $(document).ready(function() {
     json['elements'][list] = nodes;       // update the corrected list
     update_json();
     $('ul.ddlist[id="'+list+'"]').children('li[id="'+name+'"]').remove();
+    var a_idx = allocated.indexOf(name);
+    if (a_idx!=-1) allocated.splice(a_idx, 1)
     i18n_msg("removed", name, list, "success");
   }
   
@@ -153,6 +196,7 @@ $(document).ready(function() {
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='" + i18n_remove + "' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";
         $list.append(ll);
+        allocated.push(item);
         //console.debug("make li " + shortname + " for " + $list.attr('id') + "(children-" + $list.children().length + ") li=" + ll);
         return true;
       } else {
@@ -164,37 +208,9 @@ $(document).ready(function() {
     return false;
   }
   
-  function node_selector(base_item, constraints){
-    // TODO - FIX CONSTRAINTS
-    if (false) {
-        // Possible param $item_instance, $old_container, $new_container, event, helper
-        var $target = $(e.target);
-        var tid = $target.attr('id').replace("_div", "");
-        if (tid != "nodes") {
-          var found = false;
-          var ul = $target.find('ul');
-          var c = constraints[tid];
-          ul.children().each(function(){
-            if ($(this).attr('name') == $item.attr('name')) found = true; 
-          });
-          if (c["unique"]) {
-            $.each(constraints, function(key, value) {
-              $("#"+key).children().each(function(){
-                if ($(this).attr('name') == $item.attr('name')) found = true;
-              });
-            });
-          }
-          if (!found && (c["count"] == -1 || c["count"] > ul.children().size())) {
-            copy_item($item, tid);
-            ul.append($.fn.drag_drop_multi_select_clone($item));
-          }
-        }
-        else {
-          if ($item.parent().parent().attr('id') != $target.attr('id')) {
-            //remove_item($item);
-            $item.remove();
-          }
-        }
-    };
+  // this is needed for legacy support because the old methods pass in contraints to node_selector
+  function node_selector(base, constraints)
+  {
+    limits = constraints;
   }
-
+};

@@ -197,6 +197,7 @@ en:
       added: Added Node [0] to Role [1]
       removed: Removed Node [0] from Role [1]
       error: "Cannot add Node [0] to Role [1]. Error [2]"
+      constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
       constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
       constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
     edit_attributes_raw:

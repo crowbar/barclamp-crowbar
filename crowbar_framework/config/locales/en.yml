@@ -62,7 +62,7 @@ en:
       unready: In Progress
       pending: Pending
       building: Building
-      fail: Failed
+      failed: Failed
       none: No Proposal
       unknown: Unknown, requesting status...
     failures:

@@ -1,6 +1,19 @@
 (function(a){a.fn.konami=function(b,c){c=a.extend({},a.fn.konami.params,c);this.each(function(){var d=a(this);d.bind("konami",b).bind("keyup",function(e){a.fn.konami.checkCode(e,c,d);});});return this;};a.fn.konami.params={code:[38,38,40,40,37,39,37,39,66,65],step:0};a.fn.konami.checkCode=function(b,c,d){if(b.keyCode==c.code[c.step]){c.step++;}else{c.step=0;}if(c.step==c.code.length){d.trigger("konami");c.step=0;}};})(jQuery);
 var piechart_options = {type: 'pie', width: '17px', height: '17px', sliceColors: ["#0f0", "#f00", "#999", "#ff0"] };
 
+/**
+ * Utility method stripping any html out of a localized string.  In particular if the 
+ * key is not present in the localization file you'll see something like:
+ * <span class="missing_transaltion">need,to,strip,html</span> which will break your javascript.
+ * 
+ * @usage $.localizedValue("<span class="missing_transaltion">need,to,strip,html</span>");
+ * @param value
+ * @returns string
+ */
+jQuery.localizedValue = function(val){ 
+	return $(val).text();	
+};
+
 jQuery(document).ready(function($) {
   
   $('textarea.editor').each(function(index) {
@@ -75,7 +88,7 @@ jQuery(document).ready(function($) {
     if(button.attr('data-remote')=='true') {
       button.bind('ajax:complete', function(){ button.removeClass('pressed'); });
       if (button2) button2.bind('ajax:complete', function(){ button2.removeClass('pressed'); });
-    } 
+    }
   });
   
   $('input[data-default]').each(function() {

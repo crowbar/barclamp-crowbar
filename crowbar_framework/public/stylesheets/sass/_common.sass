@@ -29,7 +29,7 @@ a
     border: none
   &.highlight
     background: desaturate($link_color - #444, 50%)
-
+    
 ul.plain
   +plain_list
 
@@ -118,20 +118,18 @@ ul.buttons
     float: right
     margin-right: 10px
 
-li.available
-  &:hover, &:active
-    background: $button_bg
-    color: $button_fg
-
+// Drag and Drop Styles
 li.allocated
   &:hover, &:active
     background: $button_bg
     color: $button_fg
-    
-div.droptarget
+
+a.draggable_a
   &:hover, &:active
     background: $button_bg
     color: $button_fg
+  &:link, &:visited, &:hover, &:active
+    text-decoration: none
 
 a.button
   +button

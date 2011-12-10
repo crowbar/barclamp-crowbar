@@ -18,11 +18,13 @@
           %b= link_to t('barclamp.proposal_show.available_nodes'), dashboard_path
         %ul 
           - NodeObject.all.each do |n|
-            %li.available{ :id => n.name, :title => n.description, :draggable=>'true'  }= n.shortname
+            %li
+              %a.available{:href => 'javascript:void(0);', :class =>"draggable_a",  :id => n.name, :title =>(n.description || t('not_set')), :draggable=>'true'  }= n.shortname
+            
     .column_50.last
       - @proposal.all_elements.each do |element|
         %div
-          %div.ddlist{ :id=>element, :draggable=>'true'}
+          %div.droptarget{ :id=>element, :draggable=>'true'}
             - if CONVERGED_ADMIN
               %b= link_to element.humanize, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
             - else
@@ -36,15 +38,19 @@
 
 $(document).ready(function() {
 
-  var drag_from = null;
-  var i18n_remove = "#{t('.remove')}";
-  var i18n_no_dup = "#{t('.no_dup')}";
-  var i18n_added = "#{t('.added')}";
-  var i18n_removed = "#{t('.removed')}";
+  DragDropHelpers.fixVisualCues=true;
+
+  var i18n_remove = $.localizedValue('#{t('.remove')}');
+  var i18n_no_dup = $.localizedValue("#{t('.no_dup')}");
+  var i18n_added = $.localizedValue("#{t('.added')}");
+  var i18n_removed = $.localizedValue('#{t('.removed')}');
+  var i18n_error = $.localizedValue('#{t('.error')}');
+  var i18n_constraint_max = $.localizedValue('#{t('.constraint_max')}');
+  var i18n_constraint_unique = $.localizedValue('#{t('.constraint_unique')}');
   var json = JSON.parse(document.getElementById('proposal_development').value);
     
   // this populates the current deployment from the given data
-  $('#deploy div.ddlist[draggable="true"]').each(function() {
+  $('#deploy div.droptarget[draggable="true"]').each(function() {
     var element = $(this).attr('id');
     $.each(json['elements'][element], function(index, node) {
       make_allocated(node, element);
@@ -52,29 +58,19 @@ $(document).ready(function() {
   });
   
   // set draggable attributes
-  $('#deploy li.available[draggable="true"]')
-    .bind('dragsend', function( ev ) {
+  $('#deploy a.available[draggable="true"]')
+    .bind('dragend', function( ev ) {
       false;
     })
     .bind('dragstart', function( ev ) {
-      console.debug("dragging " + ev.target.id);
+      // console.debug("dragging " + ev.target.id);
       var dt = ev.originalEvent.dataTransfer;
-      // TODO make sure only li available set this!
+      // TODO make sure only a available set this!
       dt.setData("Text", ev.target.id);
     });
 
   // set droppable attributes
-  $('#deploy div.ddlist[draggable="true"]')
-    // highlight on entering drop done
-    .bind('dragenter', function(ev) {
-      $(ev.target).addClass('droptarget');
-      return false;
-    })
-    // Un-highlight on drag leaving drop zone.
-    .bind('dragleave', function(ev) {
-      $(ev.target).removeClass('droptarget');
-      return false;
-    })
+  $('#deploy div.droptarget[draggable="true"]')
     // Decide whether the thing dragged in is welcome.
     .bind('dragover', function(ev) {
         if (ev.preventDefault) ev.preventDefault(); // allows us to drop
@@ -87,8 +83,8 @@ $(document).ready(function() {
       var drag_from = ev.originalEvent.dataTransfer.getData("Text");      
       if (drag_from) {
         var list = $(this).attr('id');
-        if ($('ul.ddlist[id="'+list+'"]').children('li[id="'+drag_from+'"]').length==0) {
-          console.debug("from " + drag_from + " to " + list);
+        if ($('ul.ddlist[id="'+list+'"]').children('a[id="'+drag_from+'"]').length==0) {
+        //  console.debug("from " + drag_from + " to " + list);
           drop_item(drag_from, list);
           drag_from = null;
           return true;
@@ -107,7 +103,7 @@ $(document).ready(function() {
   function drop_item(name, list) {
     var $node = $('li.allocated[id="'+name+'"]');
     if ($node) {
-      console.debug("dropped " + $node.attr('id') + " from " + list);
+     // console.debug("dropped " + $node.attr('id') + " from " + list);
       if (json['elements'][list] == undefined) {
         json['elements'][list] = new Array();
       }
@@ -119,9 +115,10 @@ $(document).ready(function() {
   }
   
   // substitutions for i18n strings
-  function i18n_msg(msg, node, list) {
-    msg = msg.replace('{0}', node);
-    msg = msg.replace('{1}', list);
+  function i18n_msg(msg, node, list,error) {
+    msg = msg.replace('[0]', node);
+    msg = msg.replace('[1]', list);
+    msg = msg.replace('[2]', error);
     return msg;
   }
   
@@ -133,7 +130,7 @@ $(document).ready(function() {
     json['elements'][list] = nodes;       // update the corrected list
     update_json();
     $('ul.ddlist[id="'+list+'"]').children('li[id="'+name+'"]').remove();
-    console.debug("removed " + name + " from " + list);
+   // console.debug("removed " + name + " from " + list);
     //TODO $('#hint').replaceWith(i18n_msg(i18n_removed, name, list));
   }
   
@@ -141,7 +138,7 @@ $(document).ready(function() {
   function update_json() {
     input = document.getElementById('proposal_development')
     input.value = JSON.stringify(json);
-    console.debug("json:" + document.getElementById('proposal_development').value);
+    // console.debug("json:" + document.getElementById('proposal_development').value);
   }
   
   // creates the LI HTML and adds it to the list
@@ -149,7 +146,7 @@ $(document).ready(function() {
     try {
       var $list = $('ul.ddlist[id="'+list+'"]');
       if ($list.children('li[id="'+item+'"]').length == 0) {
-        var title = $('li.available[id="'+item+'"]').attr('title');
+        var title = $('a.available[id="'+item+'"]').attr('title');
         var shortname = item.split('.')[0];
         var ll = "<li class='allocated' id='"+ item + "' title='"+ title + "'>"+shortname;
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='" + i18n_remove + "' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
@@ -157,10 +154,11 @@ $(document).ready(function() {
         $list.append(ll);
         //console.debug("make li " + shortname + " for " + $list.attr('id') + "(children-" + $list.children().length + ") li=" + ll);
       } else {
-        console.debug("cannot add - " + item + " because it exists in the list");
+        // console.debug("cannot add - " + item + " because it exists in the list");
       }
     } catch(err) {
-      console.warn("Could not create li for " + name + " in list " + list + " due to " + err);
+      //TODO add error 
+      //console.warn("Could not create li for " + name + " in list " + list + " due to " + err);
     }
   }
   
@@ -175,7 +173,7 @@ $(document).ready(function() {
           var ul = $target.find('ul');
           var c = constraints[tid];
           ul.children().each(function(){
-            if ($(this).attr('name') == $item.attr('name')) found = true;
+            if ($(this).attr('name') == $item.attr('name')) found = true; 
           });
           if (c["unique"]) {
             $.each(constraints, function(key, value) {

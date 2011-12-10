@@ -254,12 +254,21 @@ class ServiceObject
           @logger.debug("queue proposal: exit #{inst} #{bc}: already queued")
           return [nodes, {}]
         end
+      end
 
-        # See if dep is in list.
+      # Make sure the deps if we aren't being queued.
+      unless queue_me
         deps.each do |dep|
-          if item["barclamp"] == dep["barclamp"] and item["inst"] == dep["inst"]
-            queue_me = true
-          end
+          prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+
+          # queue if prop doesn't exist
+          queue_me = true if prop.nil?
+          # queue if dep is queued
+          queue_me = true if prop["deployment"][dep["barclamp"]]["crowbar-queued"]
+          # queue if dep has never run
+          queue_me = true if prop["deployment"][dep["barclamp"]]["crowbar-status"].nil?
+          # queue if dep has failed
+          queue_me = true if queue_me or prop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed"
         end
       end
 
@@ -363,14 +372,19 @@ class ServiceObject
             next
           end
 
-          # See if dep is in list.
           queue_me = false
-          queue.each do |i2|
-            item["deps"].each do |dep|
-              if i2["barclamp"] == dep["barclamp"] and i2["inst"] == dep["inst"]
-                queue_me = true
-              end
-            end
+          # Make sure the deps if we aren't being queued.
+          item["deps"].each do |dep|
+            depprop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+  
+            # queue if depprop doesn't exist
+            queue_me = true if depprop.nil?
+            # queue if dep is queued
+            queue_me = true if depprop["deployment"][dep["barclamp"]]["crowbar-queued"]
+            # queue if dep has never run
+            queue_me = true if depprop["deployment"][dep["barclamp"]]["crowbar-status"].nil?
+            # queue if dep has failed
+            queue_me = true if queue_me or depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed"
           end
           next if queue_me
 

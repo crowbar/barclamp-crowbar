@@ -143,9 +143,10 @@ class ServiceObject
     pre_cached_nodes = {}
     begin
       # Check for delays and build up cache
-      delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys, pre_cached_nodes)
       if queue_me
         delay = all_new_nodes.keys
+      else
+        delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys, pre_cached_nodes)
       end
 
       # Add the entries to the nodes.
@@ -169,6 +170,8 @@ class ServiceObject
           node.save
         end
       end
+    rescue Exception => e
+      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
     ensure
       release_lock f
     end

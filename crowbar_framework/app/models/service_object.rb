@@ -409,11 +409,11 @@ class ServiceObject
 
         save_db = false
         remove_list.each do |iii| 
-          save_db = dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+          save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
         end
 
         list.each do |iii| 
-          save_db = dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+          save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
         end
       
         db.save if save_db

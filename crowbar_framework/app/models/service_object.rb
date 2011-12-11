@@ -84,6 +84,11 @@ class ServiceObject
     cat["barclamps"][@bc_name]["chef_order"] rescue order
   end
 
+  def random_password(size = 12)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
+    (1..size).collect{|a| chars[rand(chars.size)] }.join
+  end
+
 #
 # Locking Routines
 #
@@ -123,7 +128,7 @@ class ServiceObject
       next if node.nil?
       
       pre_cached_nodes[n] = node
-      delay << n if node.state != "ready" and !delay.include?(n)
+      delay << n if node.crowbar['state'] != "ready" and !delay.include?(n)
     end
     [ delay, pre_cached_nodes ]
   end

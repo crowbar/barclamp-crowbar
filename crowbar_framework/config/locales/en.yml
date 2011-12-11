@@ -219,6 +219,7 @@ en:
       key: Key
     show_deployment_raw:
       role: Role
+      nodes: Nodes
       none: No Nodes Deployed
 
 

@@ -1,15 +1,20 @@
 - if @role.elements.length > 0
-  %table{:class => "top"}
+  %table{:class => "top", :style =>"width: 100%"  }
+    %tr
+      %td{:style => "float left"}
+        = t '.role' 
+      %td
+        = t '.nodes'
     - @role.elements.sort.each do |key, value|
-      %dl
-        %dt
-          = t '.role'
-          %b
+      %tr{:class => cycle("odd", "even")}
+        %td{:style => "white-space:nowrap; width: 20%;" }
+          %em
+            %b
             - if CONVERGED_ADMIN
               = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
             - else
               = key
-        %dd= value.map{|m| m.split('.').first}.sort.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
+        %td= value.map{|m| m.split('.').first}.sort.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
   .clear
 - else
   %p= t '.none'

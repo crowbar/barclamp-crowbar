@@ -279,8 +279,8 @@ class ServiceObject
           queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
           queue_me = true if queued
           # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
-          queue_me = true if success
+          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+          queue_me = true unless success
         end
       end
 
@@ -396,8 +396,8 @@ class ServiceObject
             queued = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
             queue_me = true if queued
             # queue if dep has never run or failed
-            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
-            queue_me = true if success
+            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+            queue_me = true unless success
           end
           next if queue_me
 

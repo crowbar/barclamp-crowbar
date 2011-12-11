@@ -29,8 +29,8 @@
 .clear
 
 :javascript
-  var racks = {};
-  var selected = '#{session[:node]}';
+  racks = {};
+  selected = '#{session[:node]}';
   function update() {
     $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{nodes_status_path}', function(data) {
@@ -59,7 +59,6 @@
         } else if (racks[key]!=total) {
           location.href =repath;
         }
-        console.debug("pie "+values);
         $('#switch_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
         var status = "#{t :status_pie, :scope=>'nodes.index'}";
         status = status.replace("{0}", total);
@@ -77,12 +76,21 @@
         if(!led.hasClass(val['status'])){
           led.attr('class', 'led '+val['status']);
           td.effect("highlight", {color: '#666666'}, 2000);
+          led.attr('title', val['state']);
         }
-        led.attr('title', val['state']);
         // catch the case where we've expanded detail on a node
-        var head = $('#head_'+key);
-        if (head.length !=0 ) {
-          head.attr('class', 'led '+val['status']);
+        s = $('div.container dd.node_state');
+        h_key = "head_"+key;
+        h = $('div.container div.led[id="'+h_key+'"]');
+        if (h.attr('id')==h_key && s.text()!=val['state']) {
+          s.text(val['state']);
+          s.effect("highlight", {color: '#666666'}, 2000);
+          s.attr('title','#{t('raw')}: '+val['raw']);
+          var head = $('#head_'+key);
+          if (head.length !=0 ) {
+            head.attr('class', 'led '+val['status']);
+            head.attr('title', val['state']);
+          }
         }
       });
       

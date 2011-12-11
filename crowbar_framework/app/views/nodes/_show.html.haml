@@ -1,4 +1,4 @@
-.led{:id => "head_#{@node.shortname}", :class=>"led #{@node.status}", :title=>@node.state, :style=>'float:left;'}
+.led{:id => "head_#{@node.shortname}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
 %h1= "#{@node.shortname} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
 
 %ul.buttons
@@ -10,26 +10,26 @@
 
 .column_50.first
   %dl
-    = dl_item((NodeObject.human_attribute_name :name), @node.name)
-    = dl_item((NodeObject.human_attribute_name :state), t(@node.state, :scope => :state, :default=>@node.state.titlecase))
-    = dl_item((NodeObject.human_attribute_name :uptime), (@node.ready? ? @node.uptime : NodeObject.human_attribute_name(:na)))
-    = dl_item((NodeObject.human_attribute_name :switch_name_port), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
-    = dl_item((NodeObject.human_attribute_name :mac), @node.mac || t('unknown'))
-    = dl_item((NodeObject.human_attribute_name :allocated), (@node.allocated ? t('.active') : t('.inactive')))
+    = dl_item(t('model.attributes.node.name'), @node.name)
+    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
+    = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
+    = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
+    = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
+    = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
 
 .column_50.last
   %dl
-    = dl_item((NodeObject.human_attribute_name :description), @node.description || (I18n.t :not_set))
-    = dl_item((NodeObject.human_attribute_name :hardware), @node.hardware)
-    = dl_item((NodeObject.human_attribute_name :cpu), @node.cpu)
-    = dl_item((NodeObject.human_attribute_name :memory), format_memory(@node.memory))
-    = dl_item((NodeObject.human_attribute_name :number_of_drives), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
-    = dl_item((NodeObject.human_attribute_name :asset_tag), @node.asset_tag)
+    = dl_item(t('model.attributes.node.description'), @node.description || (I18n.t :not_set))
+    = dl_item(t('model.attributes.node.hardware'), @node.hardware)
+    = dl_item(t('model.attributes.node.cpu'), @node.cpu)
+    = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
+    = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
+    = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
 
 .clear
 
 %dl.networks
-  = dl_item((NodeObject.human_attribute_name :ip), "<ul class='plain'>#{ip_addresses(@network)}</ul>", {:escape_html=>false})
+  = dl_item(t('model.attributes.node.ip'), "<ul class='plain'>#{ip_addresses(@network)}</ul>", {:escape_html=>false})
 
 %dl.links
   %dt
@@ -42,10 +42,10 @@
         = link_to name, link, :target => '_blank'
   
 %dl.barclamps
-  = dl_item((NodeObject.human_attribute_name :barclamps), barclamps_list(@node.roles), {:escape_html=>false})
+  = dl_item(t('model.attributes.node.barclamps'), barclamps_list(@node.roles), {:escape_html=>false})
 
 %dl.roles
-  = dl_item((NodeObject.human_attribute_name :roles), roles_list(@node.roles), {:escape_html=>false})
+  = dl_item(t('model.attributes.node.roles'), roles_list(@node.roles), {:escape_html=>false})
 
 %ul.buttons
   - unless @node.admin?

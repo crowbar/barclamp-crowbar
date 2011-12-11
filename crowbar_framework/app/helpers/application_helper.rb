@@ -30,7 +30,8 @@ module ApplicationHelper
   def dl_item(term, definition, options={})
     unless definition.blank? && options[:show_if_blank] != true
       html  = "<dt>#{options[:escape_html] != false ? (h term) : (term)}</dt>"
-      html += "<dd>#{options[:escape_html] != false ? (h definition) : (definition)}</dd>"
+      dd = "<dd" + (options[:class].nil? ? "" : " class='"+options[:class]+"'") + (options[:title].nil? ? "" : " title='" + options[:title]+"'") + ">"
+      html += "#{dd}#{options[:escape_html] != false ? (h definition) : (definition)}</dd>"
       raw html
     end
   end

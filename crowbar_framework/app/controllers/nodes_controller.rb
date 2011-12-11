@@ -102,7 +102,7 @@ class NodesController < ApplicationController
     begin
       result = NodeObject.all
       result.each do |node|      
-        nodes[node.shortname] = {:status=>node.status, :state=>(I18n.t node.state, :scope => :state)}
+        nodes[node.shortname] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
         count = switches[node.switch_name] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
         count[node.status] += 1
         switches[node.switch_name] = count

@@ -99,7 +99,9 @@ class NodeObject < ChefObject
     NodeObject.new machine
   end
 
+  # depricate!  This is not a good way to do this!
   def self.human_attribute_name(attrib)
+    Rails.logger.info("please change call to human_attribute_name for #{attrib} this call is depricated!")
     I18n.t attrib, :scope => "model.attributes.node"
   end
 
@@ -143,7 +145,7 @@ class NodeObject < ChefObject
       "unknown"   #grey
     when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert"
       "failed"    #flashing red
-    when "hardware-installing", "hardware-installed", "hardware-updated", "hardware-updating"
+    when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
       "building"  #yellow
     else
       "unready"   #spinner

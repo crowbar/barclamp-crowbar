@@ -61,6 +61,7 @@ en:
       ready: Active
       unready: In Progress
       pending: Pending
+      building: Building
       fail: Failed
       none: No Proposal
       unknown: Unknown, requesting status...

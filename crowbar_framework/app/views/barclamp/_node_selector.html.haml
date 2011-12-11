@@ -107,7 +107,6 @@ $(document).ready(function() {
   function drop_item(name, list) {
     var $node = $('li.allocated[id="'+name+'"]');
     if ($node) {
-        console.debug("admin " + limits[list].admin + " is? "+$('a.available[id="'+name+'"]').attr("admin"));
       // block admin from being used
       if (limits[list].admin==undefined || !limits[list].admin) {
         if ($('a.available[id="'+name+'"]').attr("admin")=="true") {

@@ -161,7 +161,11 @@ class ServiceObject
         end
       else
         all_new_nodes.each do |n, val|
+          # Make sure we have a node.
           node = pre_cached_nodes[n]
+          node = NodeObject.find_node_by_name(n) if node.nil?
+          next if node.nil?
+          pre_cached_nodes[n] = node
 
           # Make sure the node is allocated
           node.allocated = true

@@ -37,6 +37,7 @@
 
   function led_update(td, key, val, callback) {
     if(!td.hasClass(val)){
+      td.destroy();
       td.attr('class', val+' led').attr('title', val);
       if(typeof callback == 'function'){
         callback.call();

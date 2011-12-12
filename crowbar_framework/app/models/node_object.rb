@@ -42,7 +42,7 @@ class NodeObject < ChefObject
   end
 
   def has_chef_server_roles?
-      return !self.roles.nil? && !self.roles.empty?
+      return !@role.nil?
   end
 
   def self.find_all_nodes

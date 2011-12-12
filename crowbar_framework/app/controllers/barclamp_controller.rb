@@ -277,6 +277,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_status,[],[:get])
   def proposal_status
     proposals = {}
+    i18n = {}
     begin
       active = RoleObject.active params[:id]
       result = if params[:id].nil? 
@@ -289,8 +290,9 @@ class BarclampController < ApplicationController
         prop_id = "#{prop.barclamp}_#{prop.name}"
         status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
         proposals[prop_id] = (status ? prop.status : "hold")
+        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
       end
-      render :inline => {:proposals=>proposals, :count=>proposals.length}.to_json, :cache => false
+      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
     rescue Exception=>e
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
       Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")

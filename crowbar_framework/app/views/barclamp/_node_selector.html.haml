@@ -59,9 +59,11 @@ $(document).ready(function() {
   // this populates the current deployment from the given data
   $('#deploy div.droptarget[draggable="true"]').each(function() {
     var element = $(this).attr('id');
-    $.each(json['elements'][element], function(index, node) {
-      make_allocated(node, element);
-    });
+    if (json['elements'][element]) {
+      $.each(json['elements'][element], function(index, node) {
+        make_allocated(node, element);
+      });
+    }
   });
   
   // set draggable attributes

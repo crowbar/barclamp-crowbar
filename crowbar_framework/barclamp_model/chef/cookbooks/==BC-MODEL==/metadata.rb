@@ -5,4 +5,4 @@ description      "Installs/Configures ==*BC-MODEL=="
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.me'))
 version          "0.0"
 
-depends "apt"
+depends "nagios"

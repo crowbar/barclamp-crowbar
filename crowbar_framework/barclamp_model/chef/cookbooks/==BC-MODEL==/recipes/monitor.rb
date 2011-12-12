@@ -26,6 +26,8 @@ svcs = node[:==BC-MODEL==][:monitor][:svcs]
 ports = node[:==BC-MODEL==][:monitor][:ports]
 log ("will monitor ==BC-MODEL== svcs: #{svcs.join(',')} and ports #{ports.values.join(',')}")
 
+include_recipe "nagios::common" if node["roles"].include?("nagios-client")
+
 template "/etc/nagios/nrpe.d/==BC-MODEL==_nrpe.cfg" do
   source "==BC-MODEL==_nrpe.cfg.erb"
   mode "0644"

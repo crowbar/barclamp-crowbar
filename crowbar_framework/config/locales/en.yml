@@ -248,6 +248,7 @@ en:
   no: No
   maybe: Maybe
   chuck_norris: Die!!!
+  updating: Updating...
 
   # node.raid_set
   raid:
@@ -278,6 +279,7 @@ en:
     noupdate: No Data (Off)
     ready: Ready
     readying: Readying
+    applying: Applying
     install: Install
     installing: Installing
     installed: Installed

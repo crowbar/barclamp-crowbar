@@ -258,11 +258,13 @@ class NodeObject < ChefObject
     # Rebuild list
     crowbar_run_list.run_list_items.clear
     vals.each do |item|
+      next if item[1] == -1001 # Skip deleted items
       crowbar_run_list.run_list_items << "role[#{item[0]}]"
     end
   end
 
   def delete_from_run_list(rolename)
+    crowbar["run_list_map"][rolename] = -1001 unless crowbar["run_list_map"].nil?
     crowbar_run_list.run_list_items.delete "role[#{rolename}]"
   end
 

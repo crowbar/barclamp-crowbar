@@ -673,10 +673,10 @@ class NodeObject < ChefObject
   end
 
   def bmc_set?
-    return false if @node.nil? or @node["crowbar"].nil? or @node["crowbar"]["status"].nil?
-    return false if @node["crowbar"]["status"]["ipmi"].nil?
-    return false if @node["crowbar"]["status"]["ipmi"]["address_set"].nil?
-    @node["crowbar"]["status"]["ipmi"]["address_set"]
+    return false if @node.nil? or @node["crowbar_wall"].nil? or @node["crowbar_wall"]["status"].nil?
+    return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
+    return false if @node["crowbar_wall"]["status"]["ipmi"]["address_set"].nil?
+    @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
 end

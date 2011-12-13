@@ -379,9 +379,14 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
-          answer = @service_object.proposal_delete(params[:name])
-          flash[:notice] = answer[1] if answer[0] >= 300
-          flash[:notice] = t('barclamp.proposal_show.delete_proposal_success') if answer[0] == 200
+          answer = @service_object.destroy_active(params[:name])
+          if answer[0] == 200 or answer[0] == 404
+            answer = @service_object.proposal_delete(params[:name])
+            flash[:notice] = answer[1] if answer[0] >= 300
+            flash[:notice] = t('barclamp.proposal_show.delete_proposal_success') if answer[0] == 200
+          else
+            flash[:notice] = t('barclamp.proposal_show.delete_proposal_failure') + answer[1].to_s
+          end
         rescue Exception => e
           flash[:notice] = e.message
         end

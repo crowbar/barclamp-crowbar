@@ -34,6 +34,10 @@ en:
     crowbar_ug: Crowbar Users
     crowbar_dg: Deployment
 
+  layouts:
+    application:
+      provided_by: Provided by
+      
   # Crowbar barclamp items
   crowbar:
     instructions: These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.

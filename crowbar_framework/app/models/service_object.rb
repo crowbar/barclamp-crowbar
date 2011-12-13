@@ -271,11 +271,11 @@ class ServiceObject
           # queue if prop doesn't exist
           queue_me = true if prop.nil?
           # queue if dep is queued
-          queue_me = true if prop["deployment"][dep["barclamp"]]["crowbar-queued"]
-          # queue if dep has never run
-          queue_me = true if prop["deployment"][dep["barclamp"]]["crowbar-status"].nil?
-          # queue if dep has failed
-          queue_me = true if queue_me or prop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed"
+          queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+          queue_me = true if queued
+          # queue if dep has never run or failed
+          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
+          queue_me = true if success
         end
       end
 
@@ -302,7 +302,7 @@ class ServiceObject
     begin
       elements = nil
       # The elements = item["elements"] is on purpose to get the assignment out of the element.
-      queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and elements = item["elements"] }
+      queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and ((elements = item["elements"]) or true)}
 
       remove_pending_elements(bc, inst, elements) if elements
 
@@ -332,6 +332,7 @@ class ServiceObject
 
       queue = db["proposal_queue"]
       ret = dequeue_proposal_no_lock(queue, inst, bc)
+      db.save if ret
     rescue Exception => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
@@ -387,11 +388,11 @@ class ServiceObject
             # queue if depprop doesn't exist
             queue_me = true if depprop.nil?
             # queue if dep is queued
-            queue_me = true if depprop["deployment"][dep["barclamp"]]["crowbar-queued"]
-            # queue if dep has never run
-            queue_me = true if depprop["deployment"][dep["barclamp"]]["crowbar-status"].nil?
-            # queue if dep has failed
-            queue_me = true if queue_me or depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed"
+            queued = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+            queue_me = true if queued
+            # queue if dep has never run or failed
+            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
+            queue_me = true if success
           end
           next if queue_me
 

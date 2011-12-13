@@ -14,7 +14,6 @@
               = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
             - else
               = key
-            =":&nbsp;"
         %td= value.map{|m| m.split('.').first}.sort.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
   .clear
 - else

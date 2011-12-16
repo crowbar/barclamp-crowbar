@@ -188,13 +188,12 @@ $(document).ready(function() {
   // creates the LI HTML and adds it to the list
   function make_allocated(item, list) {
     try {
-      var i18n_remove = $.localizedValue("#{t('.remove')}");
       var $list = $('ul.ddlist[id="'+list+'"]');
       if ($list.children('li[id="'+item+'"]').length == 0) {
         var title = $('a.available[id="'+item+'"]').attr('title');
         var shortname = item.split('.')[0];
         var ll = "<li class='allocated' id='"+ item + "' title='"+ title + "'>"+shortname;
-        ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='" + i18n_remove + "' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
+        ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";
         $list.append(ll);
         allocated.push(item);

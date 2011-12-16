@@ -260,6 +260,7 @@ class BarclampController < ApplicationController
     ret = @service_object.proposal_show params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     @proposal = ret[1]
+    @active = begin RoleObject.active("#{params[:controller]}_#{params[:id]}").length>0 rescue false end
     flash[:notice] = @proposal.fail_reason if @proposal.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
@@ -379,19 +380,28 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
-          answer = @service_object.destroy_active(params[:name])
-          if answer[0] == 200 or answer[0] == 404
-            answer = @service_object.proposal_delete(params[:name])
-            flash[:notice] = answer[1] if answer[0] >= 300
-            flash[:notice] = t('barclamp.proposal_show.delete_proposal_success') if answer[0] == 200
+          answer = @service_object.proposal_delete(params[:name])
+          if answer[0] == 200
+            flash[:notice] = t('barclamp.proposal_show.delete_proposal_success')
           else
-            flash[:notice] = t('barclamp.proposal_show.delete_proposal_failure') + answer[1].to_s
+            flash[:notice] = t('barclamp.proposal_show.delete_proposal_failure') + ": " + answer[1].to_s
           end
         rescue Exception => e
           flash[:notice] = e.message
         end
         redirect_to barclamp_modules_path(:id=>(params[:barclamp] || ''))
         return
+      elsif params[:submit] == t('barclamp.proposal_show.destroy_active')
+        begin
+          answer = @service_object.destroy_active(params[:name])
+          if answer[0] == 200 
+            flash[:notice] = t('barclamp.proposal_show.destroy_active_success') 
+          else
+            flash[:notice] = t('barclamp.proposal_show.destroy_active_failure') + ": " + answer[1].to_s
+          end
+        rescue Exception => e
+          flash[:notice] = e.message
+        end
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
           answer = @service_object.dequeue_proposal(params[:name])

@@ -6,25 +6,27 @@
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
 
-%input#node_sum{:type => "hidden", :name => "node_sum", :value => @sum}
 #nodes
-  - @nodes.group_by(&:switch_name).each_with_index do |switch, i|
-    .column_25{:class => column_class(i,4)}
-      %table.data.box{:id => "switch_#{switch[0].parameterize}"}
-        %thead
-          %tr
-            %th.status{:title => t('updating')}
-              - status = NodeObject.status(switch[1])
-              .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
-            %th= switch[0] == -1 ? 'Unknown' : switch[0]
-
-        %tbody
-          - switch[1].sort_by{|n| n.location.to_i }.each do |node|
-            %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.shortname }
-              %td.status{:raw=> node.state}
-                .led{:class => node.status, :title=>t("state.#{node.state}")}
-              %td.name
-                %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{(node.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
+  - if @nodes.nil?
+    = t('no_items')
+  - else
+    - @nodes.group_by(&:switch_name).each_with_index do |switch, i|
+      .column_25{:class => column_class(i,4)}
+        %table.data.box{:id => "switch_#{switch[0].parameterize}"}
+          %thead
+            %tr
+              %th.status{:title => t('updating')}
+                - status = NodeObject.status(switch[1])
+                .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
+              %th= switch[0] == -1 ? 'Unknown' : switch[0]
+  
+          %tbody
+            - switch[1].sort_by{|n| n.location.to_i }.each do |node|
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.shortname }
+                %td.status{:raw=> node.state}
+                  .led{:class => node.status, :title=>t("state.#{node.state}")}
+                %td.name
+                  %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{(node.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
   
 .clear
 
@@ -45,8 +47,7 @@
       }
 
       // If node name sum has changed, re-render the page
-      var current_sum = $('#node_sum').val();
-      if(data['sum'] != current_sum) {
+      if(data['sum'] != #{@sum}) {
         location.href = repath;
       }
       

@@ -178,9 +178,9 @@ class NodeObject < ChefObject
   end
 
   def mac
-    unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      @node["crowbar"]["switch_config"][intf]["mac"] || (I18n.t :unknown)
+      @node["crowbar_ohai"]["switch_config"][intf]["mac"] || (I18n.t :unknown)
     else
       (I18n.t :not_set)
     end
@@ -258,11 +258,13 @@ class NodeObject < ChefObject
     # Rebuild list
     crowbar_run_list.run_list_items.clear
     vals.each do |item|
+      next if item[1] == -1001 # Skip deleted items
       crowbar_run_list.run_list_items << "role[#{item[0]}]"
     end
   end
 
   def delete_from_run_list(rolename)
+    crowbar["run_list_map"][rolename] = -1001 unless crowbar["run_list_map"].nil?
     crowbar_run_list.run_list_items.delete "role[#{rolename}]"
   end
 
@@ -422,7 +424,7 @@ class NodeObject < ChefObject
 
   def sort_ifs
     bus_order = get_bus_order
-    map = @node["crowbar"]["detected"]["network"]
+    map = @node["crowbar_ohai"]["detected"]["network"]
     answer = map.sort{|a,b|
       aindex = bus_index(bus_order, a[1])
       bindex = bus_index(bus_order, b[1])
@@ -437,7 +439,7 @@ class NodeObject < ChefObject
       parts = data["pattern"].split("/")
       the_one = true
       the_one = false unless @node["network"]["mode"] =~ /#{parts[0]}/
-      the_one = false unless @node["crowbar"]["detected"]["network"].size.to_s =~ /#{parts[1]}/
+      the_one = false unless @node["crowbar_ohai"]["detected"]["network"].size.to_s =~ /#{parts[1]}/
 
       found = false
       @node.roles.each do |role|
@@ -487,7 +489,7 @@ class NodeObject < ChefObject
   def unmanaged_interfaces
     intf_to_if_map = build_node_map
 
-    orig_if_list = @node["crowbar"]["detected"]["network"] rescue nil
+    orig_if_list = @node["crowbar_ohai"]["detected"]["network"] rescue nil
     return {} if orig_if_list.nil?
     if_list = orig_if_list.map { |x| x[0] }
 
@@ -533,9 +535,9 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar"]["switch_config"][intf]["switch_name"] || (I18n.t :undetermined)
+      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"] || (I18n.t :undetermined)
       switch_name = (I18n.t :undetermined) if switch_name == -1
       switch_name.to_s.gsub(':', '-')
     else
@@ -544,18 +546,18 @@ class NodeObject < ChefObject
   end
 
   def switch_port
-    unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar"]["switch_config"][intf]["switch_port"] || (I18n.t :undetermined)
+      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] || (I18n.t :undetermined)
     else
       switch_name = (I18n.t :undetermined)
     end
   end
 
   def location
-    unless @node["crowbar"].nil? or @node["crowbar"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      location = @node["crowbar"]["switch_config"][intf]["switch_port"] || (I18n.t :not_set)
+      location = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] || (I18n.t :not_set)
     else
       location = (I18n.t :not_set)
     end
@@ -673,10 +675,10 @@ class NodeObject < ChefObject
   end
 
   def bmc_set?
-    return false if @node.nil? or @node["crowbar"].nil? or @node["crowbar"]["status"].nil?
-    return false if @node["crowbar"]["status"]["ipmi"].nil?
-    return false if @node["crowbar"]["status"]["ipmi"]["address_set"].nil?
-    @node["crowbar"]["status"]["ipmi"]["address_set"]
+    return false if @node.nil? or @node["crowbar_wall"].nil? or @node["crowbar_wall"]["status"].nil?
+    return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
+    return false if @node["crowbar_wall"]["status"]["ipmi"]["address_set"].nil?
+    @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
 end

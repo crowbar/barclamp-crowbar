@@ -29,7 +29,7 @@
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
       - if @active
         %input.button{:type => "submit", :name => "submit", :value => t('.destroy_active'), :'data-confirm' => t('.destroy_changes')}
-      - unless @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
+      - unless @active or @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
       - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name=>"submit", :source=> "dequeue2", :match=>'dequeue1', :value => t('.dequeue_proposal'), :'data-remote'=>'true'}

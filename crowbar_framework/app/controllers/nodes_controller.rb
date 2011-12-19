@@ -1,23 +1,23 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: RobHirschfeld
+#
 class NodesController < ApplicationController
 
   require 'chef'
-  
+
   # GET /nodes
   # GET /nodes.xml
   def index
@@ -36,8 +36,8 @@ class NodesController < ApplicationController
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
       @nodes.each do |node|
         @sum = @sum + node.name.hash
-        if node.shortname === params[:name] 
-          @node = node 
+        if node.shortname === params[:name]
+          @node = node
           get_node_and_network(node.shortname)
         end
       end
@@ -72,16 +72,16 @@ class NodesController < ApplicationController
           node.description = values['description']
           dirty = true
         end
-        if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(node.bios_set === 'not_set')
+        if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
           node.bios_set = values['bios']
           dirty = true
         end
-        if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(node.bios_set === 'not_set')
+        if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(values['raid'] === 'not_set')
           node.raid_set = values['raid']
           dirty = true
         end
-        if dirty 
-          node.save 
+        if dirty
+          node.save
           flash[:notice] = t('nodes.list.updated')
         else
           flash[:notice] = t('nodes.list.nochange')
@@ -101,7 +101,7 @@ class NodesController < ApplicationController
     sum = 0
     begin
       result = NodeObject.all
-      result.each do |node|      
+      result.each do |node|
         nodes[node.shortname] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
         count = switches[node.switch_name] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
         count[node.status] += 1
@@ -115,7 +115,7 @@ class NodesController < ApplicationController
       render :inline => {:nodes=>nodes, :switches=>switches, :count=>count, :error=>e.message}, :cache => false
     end
   end
-  
+
   def hit
     action = params[:req]
     name = params[:name] || params[:id]
@@ -136,7 +136,7 @@ class NodesController < ApplicationController
         machine.identify
       when 'allocate'
         machine.allocate
-      else 
+      else
         render :text=>"Invalid hit requeset '#{action}'", :status => 500
       end
     end
@@ -153,7 +153,7 @@ class NodesController < ApplicationController
       format.json { render :json => (params[:key].nil? ? @node : @node[params[:key]]) }
     end
   end
-  
+
   def edit
     @options = CrowbarService.read_options
     get_node_and_network(params[:id] || params[:name])
@@ -179,7 +179,7 @@ class NodesController < ApplicationController
     end
     redirect_to nodes_path(:selected => @node.name)
   end
-  
+
   private
 
   def save_node
@@ -188,7 +188,7 @@ class NodesController < ApplicationController
     @node.description = params[:description]
     @node.save
   end
-  
+
   def get_node_and_network(node_name)
     @network = {}
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?

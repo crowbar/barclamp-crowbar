@@ -31,6 +31,7 @@ en:
     roles: Active Roles
     proposals: Proposals
     help: Help
+    crowbar_wiki: Online Help
     crowbar_ug: Crowbar Users
     crowbar_dg: Deployment
 
@@ -178,17 +179,22 @@ en:
       title: Edit Proposal
       apply_changes: Apply changes now?
       create_proposal_success: Successfully created the proposal
-      commit_proposal: Apply Proposal
+      commit_proposal: Apply
       commit_proposal_success: Successfully applied the proposal
       commit_proposal_queued: Successfully queued the proposal until the following become ready
-      save_proposal: Save Proposal
+      save_proposal: Save
       save_proposal_success: Successfully saved changes to the proposal
-      delete_changes: Delete proposal now?
-      dequeue_proposal: Dequeue Proposal
+      dequeue_proposal: Dequeue
       dequeue_proposal_success: Successfully dequeued the proposal
-      dequeue_proposal_failure: Failed to dequeued the proposal
-      delete_proposal: Delete Proposal
+      dequeue_proposal_failure: Failed to dequeue the proposal
+      destroy_changes: Deactivate proposal now?
+      destroy_active: Deactivate
+      destroy_active_success: Successfully deactivated the proposal
+      destroy_active_failure: Failed to deactivate the proposal
+      delete_changes: Delete proposal now?
+      delete_proposal: Delete
       delete_proposal_success: Successfully deleted the proposal
+      delete_proposal_failure: Failed to delete the proposal
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).

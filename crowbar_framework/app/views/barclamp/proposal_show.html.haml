@@ -4,17 +4,18 @@
 
 .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'} 
 %h1= t '.title'
-
 -# Rails 2 needs - and Rails 3 needs =
 - form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box" } do |f|
   %p{:style=>'float:right'}
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
-      %input.button{:type => "submit", :name => "submit", :source=>"save1", :match=>"save2", :value => t('.save_proposal'), :'data-remote'=>"true"}
-      %input.button{:type => "submit", :name=>"submit", :source => "commit1", :match=>'commit2', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
-      - unless @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
+      - if @active
+        %input.button{:type => "submit", :name => "submit", :value => t('.destroy_active'), :'data-confirm' => t('.destroy_changes')}
+      - unless @active or @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
       - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name=>"submit", :source=> "dequeue1", :match=>'dequeue2', :value => t('.dequeue_proposal'), :'data-remote'=>'true'}
+      %input.button{:type => "submit", :name=>"submit", :source => "commit1", :match=>'commit2', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
+      %input.button{:type => "submit", :name => "submit", :source=>"save1", :match=>"save2", :value => t('.save_proposal'), :'data-remote'=>"true"}
   %h2= link_to "#{@proposal.barclamp.titlecase}: #{@proposal.name.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
 
   %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
@@ -26,12 +27,14 @@
 
   %p
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
-      %input.button{:type => "submit", :name=>"submit", :source => "save2", :match=>'save1', :value => t('.save_proposal'), :'data-remote'=>'true'}
-      %input.button{:type => "submit", :name=>"submit", :source => "commit2", :match=>'commit1', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
-      - unless @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
+      - if @active
+        %input.button{:type => "submit", :name => "submit", :value => t('.destroy_active'), :'data-confirm' => t('.destroy_changes')}
+      - unless @active or @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
       - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
         %input.button{:type => "submit", :name=>"submit", :source=> "dequeue2", :match=>'dequeue1', :value => t('.dequeue_proposal'), :'data-remote'=>'true'}
+      %input.button{:type => "submit", :name=>"submit", :source => "commit2", :match=>'commit1', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
+      %input.button{:type => "submit", :name=>"submit", :source => "save2", :match=>'save1', :value => t('.save_proposal'), :'data-remote'=>'true'}
 
   
 :javascript

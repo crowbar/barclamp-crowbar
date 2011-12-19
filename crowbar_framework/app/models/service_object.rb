@@ -84,6 +84,11 @@ class ServiceObject
     cat["barclamps"][@bc_name]["chef_order"] rescue order
   end
 
+  def random_password(size = 12)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
+    (1..size).collect{|a| chars[rand(chars.size)] }.join
+  end
+
 #
 # Locking Routines
 #
@@ -123,7 +128,7 @@ class ServiceObject
       next if node.nil?
       
       pre_cached_nodes[n] = node
-      delay << n if node.state != "ready" and !delay.include?(n)
+      delay << n if node.crowbar['state'] != "ready" and !delay.include?(n)
     end
     [ delay, pre_cached_nodes ]
   end
@@ -274,8 +279,8 @@ class ServiceObject
           queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
           queue_me = true if queued
           # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
-          queue_me = true if success
+          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+          queue_me = true unless success
         end
       end
 
@@ -391,8 +396,8 @@ class ServiceObject
             queued = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
             queue_me = true if queued
             # queue if dep has never run or failed
-            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "failed") rescue false
-            queue_me = true if success
+            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+            queue_me = true unless success
           end
           next if queue_me
 

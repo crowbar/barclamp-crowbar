@@ -4,6 +4,9 @@ Bluepill.application("<%= @name %>") do |app|
     <% p.keys.sort.reject{|m| m == "name"}.each do |k| -%>
     p.<%= k %> = <%= p[k].inspect %>
     <% end -%>
+    <% unless p["stop_grace_time"] -%>
+    p.stop_grace_time = 5.seconds
+    <% end -%>
   end
   <% end -%>
 end

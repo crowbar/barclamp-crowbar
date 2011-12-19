@@ -9,7 +9,7 @@
   end
   icon = node.state
   show_switch=false
-  unless node[:crowbar].nil? or node[:crowbar][:switch_config].nil?
+  unless node[:crowbar].nil? or node[:crowbar_ohai][:switch_config].nil?
     show_switch=true
     sw_port = node.switch_port
     sw_unit = node.switch_unit

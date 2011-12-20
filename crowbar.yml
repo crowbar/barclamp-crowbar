@@ -55,6 +55,32 @@ debs:
       - deb http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
       - deb http://apt.opscode.com/ maverick-0.10 main
+  ubuntu-11.04:
+    repos:
+      - deb http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
+      - deb http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
+      - deb http://archive.canonical.com/ubuntu natty partner
+      - deb-src http://archive.canonical.com/ubuntu natty partner
+      - deb http://extras.ubuntu.com/ubuntu natty main
+      - deb-src http://extras.ubuntu.com/ubuntu natty main
+      - deb http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
+      - deb-src http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
+      - deb http://apt.opscode.com/ natty-0.10 main
+  ubuntu-11.10:
+    repos:
+      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
+      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
+      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
+      - deb http://archive.canonical.com/ubuntu oneiric partner
+      - deb-src http://archive.canonical.com/ubuntu oneiric partner
+      - deb http://extras.ubuntu.com/ubuntu oneiric main
+      - deb-src http://extras.ubuntu.com/ubuntu oneiric main
+      - deb http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
+      - deb-src http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
+      - deb http://apt.opscode.com/ oneiric-0.10 main
   repos:
     # Rabbit MQ repo
     - deb http://www.rabbitmq.com/debian/ testing main

@@ -151,8 +151,8 @@ debs:
     # sudo stuff
     - sudo
     # java stuff
-    - sun-java6-jdk
-    - sun-java6-jre
+    #- sun-java6-jdk
+    #- sun-java6-jre
     - dpkg-dev
 
 rpms:

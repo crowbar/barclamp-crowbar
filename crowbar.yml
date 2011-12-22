@@ -89,7 +89,6 @@ debs:
     - rubygems1.8
     - build-essential
     - libsqlite3-dev
-    - libmysqlclient-dev
   pkgs:
     # apache stuff
     - apache2
@@ -122,11 +121,6 @@ debs:
     - libcurl4-gnutls-dev
     # minicom stuff
     - minicom
-    # mysql stuff
-    - libmysqlclient-dev
-    - mysql-client
-    - libmysql-ruby
-    - mysql-server
     # nscd stuff
     - nscd
     # openldap stuff
@@ -197,11 +191,6 @@ rpms:
     - lshw
     # minicom stuff
     - minicom
-    # mysql stuff
-    - mysql-devel
-    - mysql
-    - ruby-mysql
-    - mysql-server
     # nscd stuff
     - nscd
     # openldap stuff
@@ -247,5 +236,3 @@ gems:
     - rdoc
     - net-ssh-multi
     - formtastic-1.2.4
-    # mysql stuff
-    - mysql

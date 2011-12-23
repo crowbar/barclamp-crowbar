@@ -301,7 +301,8 @@ en:
     reinstall: Reinstall
     allocate: Allocate
     allocated: Allocated
-    problem: Ready Retrying
+    recovering: Recovering
+    problem: Problem
     delete: Information Deleted
     shutdown: Power Off
     reboot: Power Restart

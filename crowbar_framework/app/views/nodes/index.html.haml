@@ -10,18 +10,18 @@
   - if @nodes.nil?
     = t('no_items')
   - else
-    - @nodes.group_by(&:switch_name).each_with_index do |switch, i|
+    - @nodes.group_by(&:group).each_with_index do |group, i|
       .column_25{:class => column_class(i,4)}
-        %table.data.box{:id => "switch_#{switch[0].parameterize}"}
+        %table.data.box{:id => "group_#{(group[0] || t('unknown')).parameterize}"}
           %thead
             %tr
               %th.status{:title => t('updating')}
-                - status = NodeObject.status(switch[1])
+                - status = NodeObject.status(group[1])
                 .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
-              %th= switch[0] == -1 ? 'Unknown' : switch[0]
+              %th= (group[0] || t('unknown'))
   
           %tbody
-            - switch[1].sort_by{|n| n.location.to_i }.each do |node|
+            - group[1].sort_by{|n| n.group_order }.each do |node|
               %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.shortname }
                 %td.status{:raw=> node.state}
                   .led{:class => node.status, :title=>t("state.#{node.state}")}
@@ -51,8 +51,8 @@
         location.href = repath;
       }
       
-      // Update switch-level piecharts
-      $.each(data['switches'], function(key,val) {
+      // Update group-level piecharts
+      $.each(data['groups'], function(key,val) {
         var values = val['ready'] + ', ' + val['failed'] + ', ' + val['unknown'] + ', ' + (val['building']+val['unready']+val['pending']);
         var total = val['ready']+val['unready']+val['unknown']+val['building']+val['pending']+val['failed'];
         if (racks[key]==undefined) { 
@@ -60,7 +60,7 @@
         } else if (racks[key]!=total) {
           location.href =repath;
         }
-        $('#switch_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
+        $('#group_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
         var status = "#{t :status_pie, :scope=>'nodes.index'}";
         status = status.replace("{0}", total);
         status = status.replace("{1}", val['ready']);

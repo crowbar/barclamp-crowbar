@@ -97,22 +97,22 @@ class NodesController < ApplicationController
 
   def status
     nodes = {}
-    switches = {}
+    groups = {}
     sum = 0
     begin
       result = NodeObject.all
       result.each do |node|
         nodes[node.shortname] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
-        count = switches[node.switch_name] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
+        count = groups[node.group] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
         count[node.status] += 1
-        switches[node.switch_name] = count
+        groups[node.group || I18n.t('unknown') ] = count
         sum = sum + node.name.hash
       end
-      render :inline => {:sum => sum, :nodes=>nodes, :switches=>switches, :count=>nodes.length}.to_json, :cache => false
+      render :inline => {:sum => sum, :nodes=>nodes, :groups=>groups, :count=>nodes.length}.to_json, :cache => false
     rescue Exception=>e
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
       Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'")
-      render :inline => {:nodes=>nodes, :switches=>switches, :count=>count, :error=>e.message}, :cache => false
+      render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}, :cache => false
     end
   end
 

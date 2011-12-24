@@ -96,6 +96,8 @@ en:
         hardware: Hardware
         switch_name: Switch Name
         switch_port: Switch Port
+        switch_unit: Switch Unit
+        switch_name_unit_port: Switch/Unit/Port
         switch_name_port: Switch Name/Port
         uptime: Uptime
         na: Unavailable

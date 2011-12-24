@@ -537,32 +537,47 @@ class NodeObject < ChefObject
   def switch_name
     unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"] || (I18n.t :undetermined)
-      switch_name = (I18n.t :undetermined) if switch_name == -1
-      switch_name.to_s.gsub(':', '-')
+      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"] 
+      unless switch_name == -1
+        switch_name.to_s.gsub(':', '-')
+      else
+        nil
+      end
     else
-      switch_name = (I18n.t :undetermined)
+      nil
+    end
+  end
+  
+  # for stacked switches, unit is set while name is the same
+  def switch_unit
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+      intf = sort_ifs[0]
+      switch_unit = @node["crowbar_ohai"]["switch_config"][intf]["switch_unit"]
+      (switch_unit == -1 ? nil : switch_unit)
+    else
+      nil
     end
   end
 
   def switch_port
     unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] || (I18n.t :undetermined)
+      switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] 
+      (switch_port == -1 ? nil : switch_port)
     else
-      switch_name = (I18n.t :undetermined)
+      nil
     end
   end
 
-  def location
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
-      intf = sort_ifs[0]
-      location = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] || (I18n.t :not_set)
-    else
-      location = (I18n.t :not_set)
-    end
+  # logical grouping for node to align with other nodes
+  def group
+    switch_name
   end
-  # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
+
+  # order WITHIN the logical grouping
+  def group_order
+    switch_port.to_i
+  end
 
   def description
     @role.description.length==0 ? nil : @role.description

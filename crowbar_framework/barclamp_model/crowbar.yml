@@ -26,6 +26,8 @@ barclamp:
   display: ==*BC-MODEL==
   description: A way to maximize awesomeness for ==*BC-MODEL==
   proposal_schema_version: 1
+  # controlls if barclamp is shown in UI list (true=yes)
+  user_managed: true
   version: 0
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
@@ -51,6 +53,8 @@ barclamp:
 crowbar:
   layout: 1
   order: 1000
+  run_order: 1000
+  chef_order: 1000
   proposal_schema_version: 2
 
 nav:

@@ -105,10 +105,6 @@ class NodeObject < ChefObject
     I18n.t attrib, :scope => "model.attributes.node"
   end
 
-  def self.status(nodes)
-    nodes.collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
-  end
-
   def initialize(node)
     @role = RoleObject.find_role_by_name NodeObject.make_role_name(node.name)
     if @role.nil?
@@ -571,12 +567,22 @@ class NodeObject < ChefObject
 
   # logical grouping for node to align with other nodes
   def group
-    switch_name
+    if switch_name.nil?
+      shortname[0..8]
+    elsif switch_unit.nil?
+      switch_name
+    else
+      switch_name + ':' + switch_unit
+    end
   end
 
   # order WITHIN the logical grouping
   def group_order
-    switch_port.to_i
+    if switch_port.nil?
+      shortname
+    else
+      switch_port.to_i
+    end
   end
 
   def description

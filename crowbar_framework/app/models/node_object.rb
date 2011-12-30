@@ -586,7 +586,27 @@ class NodeObject < ChefObject
   end
 
   def description
-    @role.description.length==0 ? nil : @role.description
+    unless @role.description.length==0
+      @role.description
+    else
+      f = File.join 'db','node_description.yml'
+      begin
+        if File.exist? f
+          nodes = YAML::load_file f
+          unless nodes.nil?
+            desc = (nodes.key?(shortname) ? nodes[shortname]['description'] : nodes['default']['description'])
+            desc.sub('{DATE}',I18n::l(Time.now)) unless desc.nil?
+          else
+            nil
+          end
+        else
+          nil
+        end
+      rescue => exception
+        Rails.logger.warn('Optional db\node_description.yml file not correctly formatted.')
+        nil
+      end
+    end
   end
 
   def description=(value)

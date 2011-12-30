@@ -585,10 +585,10 @@ class NodeObject < ChefObject
     end
   end
 
-  def description
-    unless @role.description.length==0
+  def description(suggest=false)
+    if @role.description.length!=0
       @role.description
-    else
+    elsif suggest
       f = File.join 'db','node_description.yml'
       begin
         if File.exist? f
@@ -606,6 +606,8 @@ class NodeObject < ChefObject
         Rails.logger.warn('Optional db\node_description.yml file not correctly formatted.')
         nil
       end
+    else
+      nil
     end
   end
 

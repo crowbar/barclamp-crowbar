@@ -96,6 +96,8 @@ en:
         hardware: Hardware
         switch_name: Switch Name
         switch_port: Switch Port
+        switch_unit: Switch Unit
+        switch_name_unit_port: Switch/Unit/Port
         switch_name_port: Switch Name/Port
         uptime: Uptime
         na: Unavailable
@@ -105,7 +107,7 @@ en:
         description: Description
         roles: Roles
         barclamps: Barclamps
-        asset_tag: Asset Tag
+        asset_tag: Service Tag
       proposal:
         name: Proposal
         description: Description
@@ -129,6 +131,7 @@ en:
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
     list:
       name: Name  
+      alias: Alias  
       description: Description
       bios: BIOS
       raid: RAID
@@ -301,7 +304,8 @@ en:
     reinstall: Reinstall
     allocate: Allocate
     allocated: Allocated
-    problem: Ready Retrying
+    recovering: Recovering
+    problem: Problem
     delete: Information Deleted
     shutdown: Power Off
     reboot: Power Restart

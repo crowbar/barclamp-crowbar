@@ -6,31 +6,44 @@
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
 
-%input#node_sum{:type => "hidden", :name => "node_sum", :value => @sum}
 #nodes
-  - @nodes.group_by(&:switch_name).each_with_index do |switch, i|
-    .column_25{:class => column_class(i,4)}
-      %table.data.box{:id => "switch_#{switch[0].parameterize}"}
-        %thead
-          %tr
-            %th.status{:title => t('updating')}
-              - status = NodeObject.status(switch[1])
-              .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
-            %th= switch[0] == -1 ? 'Unknown' : switch[0]
-
-        %tbody
-          - switch[1].sort_by{|n| n.location.to_i }.each do |node|
-            %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.shortname }
-              %td.status{:raw=> node.state}
-                .led{:class => node.status, :title=>t("state.#{node.state}")}
-              %td.name
-                %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{(node.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
+  - if @nodes.nil?
+    = t('no_items')
+  - else
+    - @nodes.group_by(&:group).each_with_index do |group, i|
+      .column_25{:class => column_class(i,4)}
+        %table.data.box{:id => "group_#{(group[0] || t('unknown')).parameterize}"}
+          %thead
+            %tr
+              %th.status{:title => t('updating')}
+                - status = group[1].collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
+                .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
+              %th= (group[0] || t('unknown'))
+  
+          %tbody
+            - group[1].sort_by{|n| n.group_order }.each do |node|
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.shortname }
+                %td.status{:raw=> node.state}
+                  .led{:class => node.status, :title=>t("state.#{node.state}")}
+                %td.name
+                  %a{:href => node_path(node.shortname), :title=> "#{NodeObject.human_attribute_name :description}: #{(node.description.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.shortname.parameterize}= node.shortname
   
 .clear
 
 :javascript
-  racks = {};
+  groups = {};
   selected = '#{session[:node]}';
+  
+  function pie_title(total, ready, failed, unknown, unready, pending, building) {
+    var status = "#{t :status_pie, :scope=>'nodes.index'}";
+    status = status.replace("{0}", total);
+    status = status.replace("{1}", ready);
+    status = status.replace("{2}", failed);
+    status = status.replace("{3}", unknown);
+    status = status.replace("{4}", unready+pending+building);
+    return status;
+  }
+  
   function update() {
     $.ajaxSetup({ timeout: 3000 })
     $.getJSON('#{nodes_status_path}', function(data) {
@@ -45,28 +58,21 @@
       }
 
       // If node name sum has changed, re-render the page
-      var current_sum = $('#node_sum').val();
-      if(data['sum'] != current_sum) {
+      if(data['sum'] != #{@sum}) {
         location.href = repath;
       }
       
-      // Update switch-level piecharts
-      $.each(data['switches'], function(key,val) {
+      // Update group-level piecharts
+      $.each(data['groups'], function(key,val) {
         var values = val['ready'] + ', ' + val['failed'] + ', ' + val['unknown'] + ', ' + (val['building']+val['unready']+val['pending']);
         var total = val['ready']+val['unready']+val['unknown']+val['building']+val['pending']+val['failed'];
-        if (racks[key]==undefined) { 
-          racks[key] = total; 
-        } else if (racks[key]!=total) {
+        if (groups[key]==undefined) { 
+          groups[key] = total; 
+        } else if (groups[key]!=total) {
           location.href =repath;
         }
-        $('#switch_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
-        var status = "#{t :status_pie, :scope=>'nodes.index'}";
-        status = status.replace("{0}", total);
-        status = status.replace("{1}", val['ready']);
-        status = status.replace("{2}", val['failed']);
-        status = status.replace("{3}", val['unknown']);
-        status = status.replace("{4}", (val['unready']+val['pending']+val['building']));
-        $('#switch_'+key.toLowerCase()+' th.status').attr('title', status)
+        $('#group_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
+        $('#group_'+key.toLowerCase()+' th.status').attr('title', pie_title(total, val['ready'], val['failed'], val['unknown'], val['building'], val['unready'], val['pending']));
       });
       
       // Update nodes

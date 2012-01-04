@@ -29,8 +29,6 @@ ActionController::Routing::Routes.draw do |map|
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /.*/ }
   map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'
   
-  map.overview 'overview.:format', :controller => 'overview', :action => 'index'
-
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
   map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }

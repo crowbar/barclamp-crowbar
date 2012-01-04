@@ -13,7 +13,10 @@
     = dl_item(t('model.attributes.node.name'), @node.name)
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
-    = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
+    - if @node.switch_unit.nil?
+      = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
+    - else
+      = dl_item(t('model.attributes.node.switch_name_unit_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}")    
     = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
     = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
 

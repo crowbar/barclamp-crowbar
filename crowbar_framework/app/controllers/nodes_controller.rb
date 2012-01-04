@@ -68,9 +68,13 @@ class NodesController < ApplicationController
           node.allocated = true
           dirty = true
         end
-        if values['description'].length>0 and !(node.description === values['description'])
+        if !(node.description === values['description'])
           node.description = values['description']
           dirty = true
+        end
+        if !(node.alias === values['alias'])
+            node.alias = values['alias']
+            dirty = true
         end
         if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
           node.bios_set = values['bios']

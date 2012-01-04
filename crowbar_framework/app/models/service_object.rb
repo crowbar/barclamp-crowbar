@@ -1049,7 +1049,8 @@ class ServiceObject
       STDERR.sync = true      
 
       # Exec command
-      exec("sudo -i -u root \"ssh root@#{node} #{command}\"")
+      # the -- tells sudo to stop interpreting options
+      exec("sudo -i -u root -- ssh root@#{node} #{command}")
     }
   end
 

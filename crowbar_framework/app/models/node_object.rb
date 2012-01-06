@@ -130,6 +130,22 @@ class NodeObject < ChefObject
     @node.nil? ? 'unknown' : @node.name
   end
 
+  def alias
+      if @role.description.index('|').nil? || @role.description.split('|')[0].nil?
+          name
+      else
+         @role.description.split('|')[0]
+      end
+  end
+
+  def alias=(newAlias)
+      if @role.description.index(' | ').nil? || @role.description.split(' | ')[1].nil?
+          @role.description=newAlias+'|'
+      else
+          @role.description=newAlias+' | '+@role.description.split(' | ')[1]
+      end
+  end
+
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
     case state.split[0].downcase
@@ -533,7 +549,7 @@ class NodeObject < ChefObject
   def switch_name
     unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"] 
+      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"]
       unless switch_name == -1
         switch_name.to_s.gsub(':', '-')
       else
@@ -543,7 +559,7 @@ class NodeObject < ChefObject
       nil
     end
   end
-  
+
   # for stacked switches, unit is set while name is the same
   def switch_unit
     unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
@@ -558,7 +574,7 @@ class NodeObject < ChefObject
   def switch_port
     unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"] 
+      switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)
     else
       nil
@@ -586,33 +602,41 @@ class NodeObject < ChefObject
   end
 
   def description(suggest=false)
-    if @role.description.length!=0
-      @role.description
-    elsif suggest
-      f = File.join 'db','node_description.yml'
-      begin
-        if File.exist? f
-          nodes = YAML::load_file f
-          unless nodes.nil?
-            desc = (nodes.key?(shortname) ? nodes[shortname]['description'] : nodes['default']['description'])
-            desc.sub('{DATE}',I18n::l(Time.now)) unless desc.nil?
+      if @role.description.length!=0
+          if @role.description.index('|').nil?
+              @role.description
           else
-            nil
+              @role.description.split('|')[1]
           end
-        else
+      elsif suggest
+          f = File.join 'db','node_description.yml'
+          begin
+              if File.exist? f
+                  nodes = YAML::load_file f
+                  unless nodes.nil?
+                      desc = (nodes.key?(shortname) ? nodes[shortname]['description'] : nodes['default']['description'])
+                      desc.sub('{DATE}',I18n::l(Time.now)) unless desc.nil?
+                  else
+                      nil
+                  end
+              else
+                  nil
+              end
+          rescue => exception
+              Rails.logger.warn('Optional db\node_description.yml file not correctly formatted.')
+              nil
+          end
+      else
           nil
-        end
-      rescue => exception
-        Rails.logger.warn('Optional db\node_description.yml file not correctly formatted.')
-        nil
       end
-    else
-      nil
-    end
   end
 
   def description=(value)
-    @role.description = value
+      if @role.description.nil? || @role.description.index(' | ').nil? || @role.description.split(' | ')[0].nil?
+          @role.description=' | '+value
+      else
+          @role.description=@role.description.split(' | ')[0]+' | '+value
+      end
   end
 
   def hardware

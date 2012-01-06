@@ -14,6 +14,7 @@
     %thead
       %tr
         %th= t('.name')
+        %th= t('.alias')
         %th= t('.description')
         %th= t('.bios')
         %th= t('.raid')
@@ -24,7 +25,8 @@
           %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
             %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
             -unless node.admin?
-              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)}"
+              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias}"
+              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
               %td
                 -if @options[:show].include? :bios
                   = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
@@ -41,7 +43,8 @@
                 -else
                   = t 'complete'
             -else
-              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true) || t('.admin')}"
+              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias || t('.admin')}"
+              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description || t('.admin')}"
               %td= t 'na'
               %td= t 'na'
               %td.center= t 'na'

@@ -123,6 +123,7 @@ class NodeObject < ChefObject
   end
 
   def shortname
+    Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
     name.split('.')[0]
   end
 
@@ -130,22 +131,28 @@ class NodeObject < ChefObject
     @node.nil? ? 'unknown' : @node.name
   end
 
-  def alias
-      if @role.description.index('|').nil? || @role.description.split('|')[0].nil?
-          name
-      else
-         @role.description.split('|')[0]
-      end
+  def handle
+    name.split('.')[0]
+  end
+  
+  def alias(suggest=false) 
+    display['alias'] || (suggest ? default_loader['alias'] || handle : handle)
   end
 
   def alias=(newAlias)
-      if @role.description.index(' | ').nil? || @role.description.split(' | ')[1].nil?
-          @role.description=newAlias+'|'
-      else
-          @role.description=newAlias+' | '+@role.description.split(' | ')[1]
-      end
+    set_display "alias", newAlias
+    @role.description = chef_description
+  end
+  
+  def description(suggest=false)
+    display["description"] || (suggest ? default_loader['description'] : nil)
   end
 
+  def description=(value)
+    set_display "description", value
+    @role.description = chef_description
+  end
+  
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
     case state.split[0].downcase
@@ -547,7 +554,7 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
       switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"]
       unless switch_name == -1
@@ -581,62 +588,37 @@ class NodeObject < ChefObject
     end
   end
 
+  # used to determine if display information has been set or if defaults should be used
+  def display_set?(type)
+    !display[type].nil? and !display[type].empty?
+  end
+  
   # logical grouping for node to align with other nodes
-  def group
-    if switch_name.nil?
-      shortname[0..8]
+  def group(suggest=false)
+    if display_set? 'group'
+      display['group']
+    elsif suggest
+      default_loader['group']
+    elsif switch_name.nil?
+      self.handle[0..8]
     elsif switch_unit.nil?
       switch_name
     else
       switch_name + ':' + switch_unit
     end
   end
+  
+  def group=(value)
+    set_display "group", value
+  end
 
   # order WITHIN the logical grouping
   def group_order
     if switch_port.nil?
-      shortname
+      self.alias
     else
       switch_port.to_i
     end
-  end
-
-  def description(suggest=false)
-      if @role.description.length!=0
-          if @role.description.index('|').nil?
-              @role.description
-          else
-              @role.description.split('|')[1]
-          end
-      elsif suggest
-          f = File.join 'db','node_description.yml'
-          begin
-              if File.exist? f
-                  nodes = YAML::load_file f
-                  unless nodes.nil?
-                      desc = (nodes.key?(shortname) ? nodes[shortname]['description'] : nodes['default']['description'])
-                      desc.sub('{DATE}',I18n::l(Time.now)) unless desc.nil?
-                  else
-                      nil
-                  end
-              else
-                  nil
-              end
-          rescue => exception
-              Rails.logger.warn('Optional db\node_description.yml file not correctly formatted.')
-              nil
-          end
-      else
-          nil
-      end
-  end
-
-  def description=(value)
-      if @role.description.nil? || @role.description.index(' | ').nil? || @role.description.split(' | ')[0].nil?
-          @role.description=' | '+value
-      else
-          @role.description=@role.description.split(' | ')[0]+' | '+value
-      end
   end
 
   def hardware
@@ -746,6 +728,51 @@ class NodeObject < ChefObject
     return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
     return false if @node["crowbar_wall"]["status"]["ipmi"]["address_set"].nil?
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
+  end
+
+  private 
+
+  # this is used by the alias/description code split
+  def chef_description
+    "#{self.alias}: #{self.description}"
+  end
+
+  def display
+    if self.crowbar["crowbar"].nil? or self.crowbar["crowbar"]["display"].nil?
+      {}
+    else
+      self.crowbar["crowbar"]["display"]
+    end
+  end
+  
+  def set_display(attrib, value)
+    crowbar["crowbar"] = { "display"=>{} } if crowbar["crowbar"].nil? 
+    crowbar["crowbar"]["display"] = {} if crowbar["crowbar"]["display"].nil?
+puts "DISPLAY 1 " + crowbar["crowbar"]["display"].inspect
+    crowbar["crowbar"]["display"][attrib] = value
+puts "DISPLAY 2 " + crowbar["crowbar"]["display"].inspect
+  end
+  
+  def default_loader
+    node = name.split('.')[0]
+    default = { :alias=>node }
+    f = File.join 'db','node_description.yml'
+    begin
+      if File.exist? f
+        nodes = YAML::load_file f
+        unless nodes.nil?
+          # get values from default file
+          nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
+          nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
+          # some date replacement
+          default[:description] = default[:description].sub('{DATE}',I18n::l(Time.now)) unless default[:description].nil?
+          default[:alias] = default[:alias].sub('{NODE}',node) unless default[:alias].nil?
+        end
+      end
+    rescue => exception
+      Rails.logger.warn("Optional db\\node_description.yml file not correctly formatted.  Error #{exception.message}")
+    end
+    return default
   end
 
 end

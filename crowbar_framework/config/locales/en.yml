@@ -130,7 +130,8 @@ en:
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
     list:
-      name: Name  
+      name: Name
+      group: Group
       alias: Alias  
       description: Description
       bios: BIOS
@@ -161,6 +162,10 @@ en:
       bios: BIOS
       save_node_success: Node saved successfully
       allocate_node_success: Node allocated successfully
+      alias: Alias
+      group: Group
+      default: Using Default
+      override: Override?
       description: Description
   barclamp:
     modules:

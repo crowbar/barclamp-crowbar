@@ -22,10 +22,14 @@
 # Default if no description is set.  Use {DATE} for date
 default:
   description: Created on {DATE}.
-  
+  alias: {NODE}
+    
 # Node specific names
 admin:
-  description: Admin | Crowbar Server
+  description: Crowbar Server
+  alias: Admin
+  group: Core
 
 d00-0c-29-ef-57-88:
-  description: Node 1 | Controller
+  description: Controller
+  alias: Node 1

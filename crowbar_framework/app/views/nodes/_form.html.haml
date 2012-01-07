@@ -1,11 +1,25 @@
 .box
   -# Rails 2 needs - and Rails 3 needs =
-  - form_for :node, :'data-remote' => true, :url => update_node_path(@node.shortname), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
+  - form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
     %fieldset.inputs
       %ol
         %li.text
+          = f.label :alias, t('.alias')
+          = text_field_tag :alias, @node.alias(true), :size => 20
+        %li.text
           = f.label :description, t('.description')
-          = text_field_tag :description, @node.description(true), :size => 60
+          = text_field_tag :description, @node.description(true), :size => 40
+        %li.text
+          = f.label :group, t('.group')
+          - if @node.display_set?('group')
+            = text_field_tag :group, @node.group, :size => 20
+          - else
+            %p
+              = "#{t '.default'}: "
+              %b= @node.group
+            %p
+              = " #{t '.override'} "
+              = text_field_tag :group, @node.group(true), :size => 20
         %li.select
           = f.label :bios, t('.bios')
           -if @node.admin?

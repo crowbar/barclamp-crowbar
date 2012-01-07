@@ -16,17 +16,19 @@
         %th= t('.name')
         %th= t('.alias')
         %th= t('.description')
+        %th= t('.group')
         %th= t('.bios')
         %th= t('.raid')
         %th.center Allocate?
     %tbody
       - if @nodes.count > 0
         - @nodes.sort_by{|n| n.name }.each do |node|
-          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.shortname }
-            %td= link_to node.shortname, node_path(node.shortname), :title=> node.ip
+          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.handle }
+            %td= link_to node.handle, node_path(node.handle), :title=> node.ip
             -unless node.admin?
-              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias}"
-              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description}"
+              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :size => 15
+              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)}", :size => 30
+              %td= node.group || t('default')
               %td
                 -if @options[:show].include? :bios
                   = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
@@ -43,16 +45,17 @@
                 -else
                   = t 'complete'
             -else
-              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias || t('.admin')}"
-              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description || t('.admin')}"
+              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true) || t('.admin')}", :size => 15
+              %td= text_field_tag "node:#{node.name}:description".to_sym, node.description(true), :size => 30
+              %td= node.group
               %td= t 'na'
               %td= t 'na'
               %td.center= t 'na'
       - else
         %tr
-          %td{ :colspan=>5 }
+          %td{ :colspan=>8 }
             = t 'no_items'
     %tfoot
       %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-        %td.action{:colspan => 6}
+        %td.action{:colspan => 8}
           %input.button{:type => "submit", :name => "submit", :value => 'Save'}

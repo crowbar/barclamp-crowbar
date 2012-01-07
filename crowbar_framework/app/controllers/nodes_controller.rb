@@ -58,7 +58,7 @@ class NodesController < ApplicationController
           node = parts[1]
           area = parts[2]
           nodes[node] = {} if nodes[node].nil?
-          nodes[node][area] = v
+          nodes[node][area] = (v.empty? ? nil : v)
         end
       end
       nodes.each do |node_name, values|
@@ -68,11 +68,11 @@ class NodesController < ApplicationController
           node.allocated = true
           dirty = true
         end
-        if !(node.description === values['description'])
+        if !(node.description == values['description'])
           node.description = values['description']
           dirty = true
         end
-        if !(node.alias === values['alias'])
+        if !(node.alias == values['alias'])
             node.alias = values['alias']
             dirty = true
         end
@@ -189,6 +189,8 @@ class NodesController < ApplicationController
   def save_node
     @node.bios_set = params[:bios]
     @node.raid_set = params[:raid]
+    @node.alias = params[:alias]
+    @node.group = params[:group]
     @node.description = params[:description]
     @node.save
   end

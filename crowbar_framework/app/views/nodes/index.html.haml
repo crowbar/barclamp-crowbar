@@ -1,6 +1,7 @@
-%p{:style => 'float:right'}
-  = text_field_tag "new_group", t('.default_new'), :size => 15
-  = link_to t('.add'), "#", :class => 'button'
+- if RAILS_ENV == 'development'
+  %p{:style => 'float:right'}
+    = text_field_tag "new_group", t('.default_new'), :size => 15
+    = link_to t('.add'), "#", :class => 'button'
 %h1= t('.title')
 
 .column_100
@@ -10,6 +11,8 @@
         = render :partial => 'show'
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
+      %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
+        =t '.drag_hint'
 
 #nodes
   - if @nodes.nil?
@@ -24,7 +27,7 @@
                 - status = group[1].collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
                 .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
               %th
-                %div{ :class=>'group', :draggable=>'true', :id=>group[0] }
+                %div{ :class=>'group', :draggable=>'true', :id=>(group[1][0].display_set?('group') ? group[0] : 'USE_AUTOMATIC!' ) }
                   = (group[0] || t('unknown'))
   
           %tbody
@@ -33,7 +36,7 @@
                 %td.status{:raw=> node.state}
                   .led{:class => node.status, :title=>t("state.#{node.state}")}
                 %td.name
-                  %a{:href => node_path(node.handle), :draggable=>'true', :title=> "#{NodeObject.human_attribute_name :description}: #{(node.description.nil? ? t(:not_set) : node.description)}", :class => 'node_details', :id => node.handle.parameterize}
+                  %a{:href => node_path(node.handle), :draggable=>'true', :title=> (node.description.nil? ? t(:not_set) : node.description), :class => 'node_details', :id => node.handle.parameterize}
                     = node.alias
   
 .clear
@@ -76,7 +79,13 @@
     .bind('drop', function(ev) {
       if (ev.preventDefault) ev.preventDefault(); // allows us to drop
       var node = ev.originalEvent.dataTransfer.getData("Text");
-      console.debug(node);
+      var group = $(this).attr('id');
+      // console.debug(node + ' into ' + group );
+      if (group==='USE_AUTOMATIC!')
+        $.post('/nodes/groups/1.0/'+node+'/NONE?automatic=true');
+      else
+        $.post('/nodes/groups/1.0/'+node+'/'+group);
+      location.href = '#{dashboard_path}/'+selected;
     });
 
   function update() {

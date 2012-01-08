@@ -99,6 +99,22 @@ class NodesController < ApplicationController
     end
   end
 
+  def group_change
+    node = NodeObject.find_node_by_name params[:id]
+    if node.nil?
+      throw "Node #{params[:id]} not found.  Cannot change group" 
+    else
+      group = params[:group]
+      if params.key? 'automatic'
+        node.group=""
+      else
+        node.group=group
+      end
+      node.save
+      render :inline => "SUCCESS: added #{node.name} to #{group}.", :cache => false 
+    end
+  end
+  
   def status
     nodes = {}
     groups = {}

@@ -25,6 +25,7 @@ ActionController::Routing::Routes.draw do |map|
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /.*/ }
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
   map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index'
+  map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :constraints => { :id => /.*/ }
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /.*/ }
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /.*/ }
   map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'

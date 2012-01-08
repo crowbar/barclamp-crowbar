@@ -2,7 +2,7 @@ SimpleNavigation::Configuration.run do |navigation|
   navigation.items do |primary|
     primary.item :nodes, t('nav.nodes'), root_path do |secondary|
       secondary.item :dashboard, t('nav.dashboard'), dashboard_path()
-      secondary.item :dashboard, t('nav.list'), nodes_list_path(:allocated=>'yes') 
+      secondary.item :bulkedit, t('nav.list'), nodes_list_path(:allocated=>'yes') 
       # insert here for :nodes
     end
     primary.item :barclamps, t('nav.barclamps'), barclamp_modules_path do |secondary|

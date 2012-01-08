@@ -126,9 +126,12 @@ en:
   nodes:
     index:
       new_node: Add Node
-      title: Node list
+      title: Node Dashboard
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
+      title: Dashboard Group Manager
+      default_new: New Group
+      add: Add
     list:
       name: Name
       group: Group

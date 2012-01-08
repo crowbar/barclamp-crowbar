@@ -132,7 +132,7 @@ en:
       title: Dashboard Group Manager
       default_new: New Group
       add: Add
-      drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to automatic grouping.
+      drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
     list:
       name: Name
       group: Group
@@ -147,6 +147,7 @@ en:
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
+      hint: <i>group italics</i> indicates group is set automatically by system
     new:
       title: Add Node
     show:
@@ -268,6 +269,8 @@ en:
   maybe: Maybe
   chuck_norris: Die!!!
   updating: Updating...
+  note: Note
+  hint: Hint
 
   # node.raid_set
   raid:

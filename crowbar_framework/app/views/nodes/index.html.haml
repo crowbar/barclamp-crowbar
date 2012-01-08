@@ -27,8 +27,12 @@
                 - status = group[1].collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
                 .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
               %th
-                %div{ :class=>'group', :draggable=>'true', :id=>(group[1][0].display_set?('group') ? group[0] : 'USE_AUTOMATIC!' ) }
-                  = (group[0] || t('unknown'))
+                - if group[1][0].display_set? 'group'
+                  %div{ :class=>'group', :draggable=>'true', :id=>group[0] }
+                    =(group[0] || t('unknown'))               
+                - else
+                  %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
+                    %i= (group[0] || t('unknown'))
   
           %tbody
             - group[1].sort_by{|n| n.group_order }.each do |node|

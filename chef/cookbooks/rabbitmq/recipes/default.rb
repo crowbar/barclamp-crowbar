@@ -55,5 +55,5 @@ bash "Enable rabbit management" do
 /etc/init.d/rabbitmq-server restart
 exit 0
 EOH
-  not_if "/usr/sbin/rabbitmq-plugins list -E | grep -q rabbitmq_management"
+  not_if "su - rabbitmq -s /bin/bash -c \"/usr/sbin/rabbitmq-plugins list -E\" | grep -q rabbitmq_management"
 end

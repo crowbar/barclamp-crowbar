@@ -1,5 +1,5 @@
 .led{:id => "head_#{@node.shortname}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1= "#{@node.shortname} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
+%h1= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
 
 %ul.buttons
   - if @node.bmc_set?
@@ -10,7 +10,7 @@
 
 .column_50.first
   %dl
-    = dl_item(t('model.attributes.node.name'), @node.name)
+    = dl_item(t('model.attributes.node.name'), @node.alias)
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
     - if @node.switch_unit.nil?

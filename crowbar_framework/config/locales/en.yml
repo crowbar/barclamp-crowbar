@@ -129,10 +129,10 @@ en:
       title: Node Dashboard
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
-      title: Dashboard Group Manager
       default_new: New Group
       add: Add
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
+      new_drag: Drag nodes to use new group
     list:
       name: Name
       group: Group

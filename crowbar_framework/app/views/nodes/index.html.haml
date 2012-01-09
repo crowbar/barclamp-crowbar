@@ -1,7 +1,6 @@
-- if RAILS_ENV == 'development'
-  %p{:style => 'float:right'}
-    = text_field_tag "new_group", t('.default_new'), :size => 15
-    = link_to t('.add'), "#", :class => 'button'
+%p#add_group{:style => 'float:right'}
+  = text_field_tag "new_group", t('.default_new'), :size => 15
+  = link_to t('.add'), "javascript:add_group();", :class => 'button'
 %h1= t('.title')
 
 .column_100
@@ -11,8 +10,8 @@
         = render :partial => 'show'
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
-      %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-        =t '.drag_hint'
+        %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
+          =t '.drag_hint'
 
 #nodes
   - if @nodes.nil?
@@ -71,16 +70,19 @@
       dt.setData("Text", ev.target.id);
     });
 
-  // set droppable attributes
-  $('div.group[draggable="true"]')
+  // set droppable attributes using bind_drop
+  $('div.group[draggable="true"]').each(function() { bind_drop($(this))} );
+
+    
+  function bind_drop(div) {
     // Decide whether the thing dragged in is welcome.
-    .bind('dragover', function(ev) {
+    div.bind('dragover', function(ev) {
         if (ev.preventDefault) ev.preventDefault(); // allows us to drop
         return false;
-    })
+    });
 
     // Handle the final drop...
-    .bind('drop', function(ev) {
+    div.bind('drop', function(ev) {
       if (ev.preventDefault) ev.preventDefault(); // allows us to drop
       var node = ev.originalEvent.dataTransfer.getData("Text");
       var group = $(this).attr('id');
@@ -89,8 +91,18 @@
         $.post('/nodes/groups/1.0/'+node+'/NONE?automatic=true');
       else
         $.post('/nodes/groups/1.0/'+node+'/'+group);
+      $(this).animate({"opacity":"0"}, 5000);
       location.href = '#{dashboard_path}/'+selected;
     });
+  }
+  
+  function add_group() {
+    var new_group = $('#new_group').val();
+    new_group = new_group.replace(" ","_");
+    var add_div = $('#add_group')
+    add_div.html("<div class='group' draggable='true' id='"+new_group+"'>#{t('.new_drag')}: <strong>["+new_group+"]</strong></div>");
+    bind_drop($('#'+new_group));
+  }
 
   function update() {
     $.ajaxSetup({ timeout: 3000 })

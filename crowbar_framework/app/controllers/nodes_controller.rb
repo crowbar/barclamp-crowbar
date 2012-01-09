@@ -35,10 +35,9 @@ class NodesController < ApplicationController
       @nodes = {}
       raw_nodes = NodeObject.all
       get_node_and_network(params[:selected]) if params[:selected]
-      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
       raw_nodes.each do |node|
         @sum = @sum + node.name.hash
-        @nodes[node.handle] = node
+        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status }
         group = node.group
         @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
         @groups[group][:nodes][node.group_order] = node.handle
@@ -48,6 +47,7 @@ class NodesController < ApplicationController
           get_node_and_network(node.handle)
         end
       end
+      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
     respond_to do |format|
       format.html # index.html.haml

@@ -17,29 +17,30 @@
   - if @nodes.nil?
     = t('no_items')
   - else
-    - @nodes.group_by(&:group).each_with_index do |group, i|
-      .column_25{:class => column_class(i,4)}
-        %table.data.box{:id => "group_#{(group[0] || t('unknown')).parameterize}"}
+    - i=-1
+    - @groups.sort.each do |name, group|
+      .column_25{:class => column_class(i+=1,4)}
+        %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
           %thead
             %tr
               %th.status{:title => t('updating')}
-                - status = group[1].collect{|c| c.status}.inject(Hash.new(0)){|h,v| h[v] += 1; h}
-                .inline_piechart= [status["ready"], status["failed"], status["unknown"], status["unready"]+status["pending"]] * ","
+                .inline_piechart= [group[:status]["ready"], group[:status]["failed"], group[:status]["unknown"], group[:status]["unready"]+group[:status]["pending"]] * ","
               %th
-                - if group[1][0].display_set? 'group'
-                  %div{ :class=>'group', :draggable=>'true', :id=>group[0] }
-                    =(group[0] || t('unknown'))               
+                - unless group[:automatic]
+                  %div{ :class=>'group', :draggable=>'true', :id=>name }
+                    =(name || t('unknown'))               
                 - else
                   %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-                    %i= (group[0] || t('unknown'))
+                    %i= (name || t('unknown'))
   
           %tbody
-            - group[1].sort_by{|n| n.group_order }.each do |node|
-              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.handle }
+            - group[:nodes].sort.each do |order, handle|
+              - node = @nodes[handle]
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
                 %td.status{:raw=> node.state}
                   .led{:class => node.status, :title=>t("state.#{node.state}")}
                 %td.name
-                  %a{:href => node_path(node.handle), :draggable=>'true', :title=> (node.description.nil? ? t(:not_set) : node.description), :class => 'node_details', :id => node.handle.parameterize}
+                  %a{:href => node_path(handle), :draggable=>'true', :title=> (node.description.nil? ? t(:not_set) : node.description), :class => 'node_details', :id => handle.parameterize}
                     = node.alias
   
 .clear

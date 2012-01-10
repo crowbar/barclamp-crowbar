@@ -23,7 +23,8 @@
         %thead
           %tr
             %th.status
-              %img{:src=>"/images/icons/server_add.png"}
+              %a{:href=>"javascript:hide_group();", :title=>t('.hide')}
+                %img{:src=>"/images/icons/server_add.png"}
             %th{ :id=> 'new_group', :droptarget=>'true' }
               = "THIS TEXT GETS REPLACED"
         %tbody
@@ -107,6 +108,11 @@
       $(this).animate({"opacity":"0"}, 5000);
       location.href = '#{dashboard_path}/'+selected;
     });
+  }
+  
+  function hide_group() {
+  console.debug("foo");
+    $('#add_group_div').attr('style','display:none');
   }
   
   function add_group() {

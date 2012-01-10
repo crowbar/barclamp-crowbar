@@ -1,6 +1,6 @@
-%p#add_group{:style => 'float:right'}
+%p#add_button{:style => 'float:right'}
   = text_field_tag "new_group", t('.default_new'), :size => 15
-  = link_to t('.add'), "javascript:add_group();", :class => 'button'
+  = link_to t('.add'), "javascript:add_group();", :class => 'button', :id=>'add_button'
 %h1= t('.title')
 
 .column_100
@@ -18,14 +18,14 @@
     = t('no_items')
   - else
     - i = -1
-    .column_25{:class => column_class(1,4), :style=>'display:none' }
+    #add_group_div.column_25{:class => column_class(1,4), :style=>'display:none' }
       %table.data.box{:id => "new_group_add"}
         %thead
           %tr
             %th.status
               %img{:src=>"/images/icons/server_add.png"}
-            %th{ :id=> 'new_group_head' }
-              = "REPLACE THIS"
+            %th{ :id=> 'new_group', :droptarget=>'true' }
+              = "THIS TEXT GETS REPLACED"
         %tbody
           %tr
             %td 
@@ -110,11 +110,15 @@
   }
   
   function add_group() {
-    var new_group = $('#new_group').val();
-    new_group = new_group.replace(" ","_");
-    var add_div = $('#add_group')
-    add_div.html("<div class='group' draggable='true' id='"+new_group+"'>#{t('.new_drag')}: <strong>["+new_group+"]</strong></div>");
+    var group_div = $('#add_group_div');
+    var new_group_raw = $('#new_group').val();
+    var new_group = new_group_raw.replace(" ","_");
+    var group = $('th[droptarget="true"]');
+    group.attr('id', new_group);
+    group.text(new_group_raw);
     bind_drop($('#'+new_group));
+    group_div.attr('style', 'display:inline');
+    $('a#add_button').attr('class','button');
   }
 
   function update() {

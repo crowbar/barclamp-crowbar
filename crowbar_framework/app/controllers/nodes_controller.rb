@@ -129,7 +129,7 @@ class NodesController < ApplicationController
     begin
       result = NodeObject.all
       result.each do |node|
-        nodes[node.shortname] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
+        nodes[node.handle] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
         count = groups[node.group] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
         count[node.status] += 1
         groups[node.group || I18n.t('unknown') ] = count

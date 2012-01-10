@@ -10,7 +10,7 @@
 
 .column_50.first
   %dl
-    = dl_item(t('model.attributes.node.name'), @node.alias)
+    = dl_item(t('model.attributes.node.name'), @node.name)
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
     - if @node.switch_unit.nil?
@@ -52,7 +52,7 @@
 
 %ul.buttons
   - unless @node.admin?
-    %li= link_to "Hardware Update", hit_node_path(@node.shortname, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reinstall", hit_node_path(@node.shortname, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reset", hit_node_path(@node.shortname, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Delete", hit_node_path(@node.shortname, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reset", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Delete", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')

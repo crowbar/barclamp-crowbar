@@ -46,10 +46,9 @@
                     %i= (name || t('unknown'))
   
           %tbody
-            - j = -1
             - group[:nodes].sort.each do |order, handle|
               - node = @nodes[handle]
-              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{j+=1}")], :id => handle }
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
                 %td.status{:raw=> node[:state] }
                   .led{:class => node[:status], :title=>t("state.#{node[:state]}")}
                 %td.name

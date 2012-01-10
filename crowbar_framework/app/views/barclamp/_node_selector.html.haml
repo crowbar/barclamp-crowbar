@@ -14,16 +14,15 @@
       %em#hint= t('.hint')
     .column_40.first
       %div#nodes_div
-        %div.title
-          %b= link_to t('barclamp.proposal_show.available_nodes'), dashboard_path
         %table#node_tbl
           %thead
             %tr
-              %th= 'Node'
-          - NodeObject.all.each do |n|
-            %tr
-              %td
-                %a.available{:href => 'javascript:void(0);', :class =>"draggable_a", :admin=>(n.admin? ? "true" : "false"),  :id => n.name, :title =>(n.description || t('not_set')), :draggable=>'true'  }= n.alias
+              %th= link_to t('barclamp.proposal_show.available_nodes'), dashboard_path
+          %tbody
+            - nodes_hash().sort_by{ |k, v| v[:alias]}.each do |n, detail|
+              %tr
+                %td
+                  %a.available{:href => 'javascript:void(0);', :class =>"draggable_a", :admin=>(detail[:admin] ? "true" : "false"),  :id =>n, :title =>(detail[:title] || t('not_set')), :draggable=>'true'  }= detail[:alias]
     .column_50.last
       - @proposal.all_elements.each do |element|
         %div
@@ -195,8 +194,9 @@ $(document).ready(function() {
     try {
       var $list = $('ul.ddlist[id="'+list+'"]');
       if ($list.children('li[id="'+item+'"]').length == 0) {
-        var title = $('a.available[id="'+item+'"]').attr('title');
-        var shortname = item.split('.')[0];
+        var node = $('a.available[id="'+item+'"]');
+        var title = node.attr('title');
+        var shortname = node.text();
         var ll = "<li class='allocated' id='"+ item + "' title='"+ title + "'>"+shortname;
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";

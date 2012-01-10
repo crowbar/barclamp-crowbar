@@ -144,8 +144,10 @@ class NodeObject < ChefObject
     @role.description = chef_description
   end
   
-  def description(suggest=false)
-    display["description"] || (suggest ? default_loader['description'] : nil)
+  def description(suggest=false, use_name=false)
+    d = display["description"] || (suggest ? default_loader['description'] : nil)
+    d = "#{d} [#{name}]" if use_name
+    d
   end
 
   def description=(value)

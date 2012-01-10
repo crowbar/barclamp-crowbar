@@ -83,18 +83,30 @@ module ApplicationHelper
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else
-      begin
+      unless RAILS_ENV == 'development'
+        begin
+          render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
+        rescue ActionView::MissingTemplate
+          render :partial => 'barclamp/edit_deployment_raw'
+        rescue Exception => e
+          puts "Deployment Exception #{e.message}"
+          puts e.backtrace
+          render :partial => 'barclamp/edit_deployment_raw'
+        end
+      else
         render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
-      rescue ActionView::MissingTemplate
-        render :partial => 'barclamp/edit_deployment_raw'
-      rescue
-        puts "Deployment Exception #{e.message}"
-        puts e.backtrace
-        render :partial => 'barclamp/edit_deployment_raw'
       end
     end
   end
 
+  def nodes_hash(group=nil)
+    nodes = {}
+    NodeObject.all.each do |node|      
+      nodes[node.name] = {:handle=>node.handle, :alias=>node.alias, :title=>node.description(false, true), :admin=>node.admin?, :group=>node.group} if node.group==group or group.nil? 
+    end
+    nodes
+  end
+  
   def instance_selector(bc, name, field, proposal)
     service = eval("#{bc.camelize}Service.new nil")
     options = service.list_active[1] | service.proposals[1]

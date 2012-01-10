@@ -18,6 +18,18 @@
     = t('no_items')
   - else
     - i = -1
+    .column_25{:class => column_class(1,4), :style=>'display:none' }
+      %table.data.box{:id => "new_group_add"}
+        %thead
+          %tr
+            %th.status
+              %img{:src=>"/images/icons/server_add.png"}
+            %th{ :id=> 'new_group_head' }
+              = "REPLACE THIS"
+        %tbody
+          %tr
+            %td 
+            %td= t ('.new_drag')
     - @groups.sort.each do |name, group|
       .column_25{:class => column_class(i+=1,4)}
         %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
@@ -34,10 +46,9 @@
                     %i= (name || t('unknown'))
   
           %tbody
-            - j = -1
             - group[:nodes].sort.each do |order, handle|
               - node = @nodes[handle]
-              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{j+=1}")], :id => handle }
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
                 %td.status{:raw=> node[:state] }
                   .led{:class => node[:status], :title=>t("state.#{node[:state]}")}
                 %td.name

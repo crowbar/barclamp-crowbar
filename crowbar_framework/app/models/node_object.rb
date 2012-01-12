@@ -581,7 +581,7 @@ class NodeObject < ChefObject
   end
 
   def switch_port
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
       switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)

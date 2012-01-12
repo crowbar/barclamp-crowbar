@@ -14,12 +14,12 @@
       %em#hint= t('.hint')
     .column_40.first
       %div#nodes_div
-        %div.title
+        %div#nodes_title.title
           %b= link_to t('barclamp.proposal_show.available_nodes'), dashboard_path
         %table#node_tbl
           %thead
             %tr
-              %th= 'Node'
+              %th= ''
           - NodeObject.all.each do |n|
             %tr
               %td
@@ -41,6 +41,7 @@
   
 $(document).ready(function() {
   var oTable = $('#node_tbl').dataTable({"sScrollY": 99999,"bScrollCollapse": true,"bPaginate": false, "LengthChange": false, "bFilter": true, "bSort": false, "bInfo": false, "bAutoWidth": false});
+  $("#nodes_title").append($("#node_tbl_filter"));
   // new AutoFill( oTable );
   
   DragDropHelpers.fixVisualCues=true;

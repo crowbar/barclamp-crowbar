@@ -556,7 +556,7 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
       switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"]
       unless switch_name == -1

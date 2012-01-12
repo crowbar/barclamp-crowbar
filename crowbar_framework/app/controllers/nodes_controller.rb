@@ -41,7 +41,7 @@ class NodesController < ApplicationController
         group = node.group
         @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
         @groups[group][:nodes][node.group_order] = node.handle
-        @groups[group][:status][node.status] = @groups[group][:status][node.status].to_i + 1
+        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
         if node.handle === params[:name]
           @node = node
           get_node_and_network(node.handle)

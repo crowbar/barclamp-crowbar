@@ -157,7 +157,8 @@ class NodeObject < ChefObject
   
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
-    case state.split[0].downcase
+    subState = !state.nil? ? state.split[0].downcase : ""
+    case subState
     when "ready"
       "ready"     #green
     when "discovered", "wait", "waiting", "user", "hold", "pending", "input"

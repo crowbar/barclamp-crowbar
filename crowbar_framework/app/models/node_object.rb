@@ -136,18 +136,29 @@ class NodeObject < ChefObject
   end
   
   def alias(suggest=false) 
-    display['alias'] || (suggest ? default_loader['alias'] || handle : handle)
+    if display_set? 'alias'
+      display['alias']
+    else
+      fallback = name.split('.')[0]
+      fallback = default_loader['alias'] || fallback if suggest and !display_set? 'alias'
+      fallback
+    end
   end
 
-  def alias=(newAlias)
-    set_display "alias", newAlias
+  def alias=(value)
+    set_display "alias", value
     @role.description = chef_description
   end
   
   def description(suggest=false, use_name=false)
-    d = display["description"] || (suggest ? default_loader['description'] : nil)
-    d = "#{d} [#{name}]" if use_name
-    d
+    d = if display_set? 'description'
+      display['description']
+    elsif suggest
+      default_loader['description']
+    else
+      nil
+    end
+    (use_name ? "#{d || ""} [#{name}]" : d)
   end
 
   def description=(value)
@@ -598,10 +609,16 @@ class NodeObject < ChefObject
   
   # logical grouping for node to align with other nodes
   def group(suggest=false)
-    if display_set? 'group'
+    g = if display_set? 'group'
       display['group']
     elsif suggest
       default_loader['group']
+    else
+      nil
+    end
+    # if not set, use calculated value
+    if !g.nil?
+      g
     elsif switch_name.nil?
       self.handle[0..8]
     elsif switch_unit.nil?
@@ -734,7 +751,7 @@ class NodeObject < ChefObject
   end
 
   private 
-
+  
   # this is used by the alias/description code split
   def chef_description
     "#{self.alias}: #{self.description}"
@@ -751,19 +768,17 @@ class NodeObject < ChefObject
   def set_display(attrib, value)
     crowbar["crowbar"] = { "display"=>{} } if crowbar["crowbar"].nil? 
     crowbar["crowbar"]["display"] = {} if crowbar["crowbar"]["display"].nil?
-puts "DISPLAY 1 " + crowbar["crowbar"]["display"].inspect
-    crowbar["crowbar"]["display"][attrib] = value
-puts "DISPLAY 2 " + crowbar["crowbar"]["display"].inspect
+    crowbar["crowbar"]["display"][attrib] = (value || "").strip
   end
   
   def default_loader
-    node = name.split('.')[0]
-    default = { :alias=>node }
     f = File.join 'db','node_description.yml'
     begin
       if File.exist? f
+        default = {}
         nodes = YAML::load_file f
         unless nodes.nil?
+          node = name.split('.')[0]
           # get values from default file
           nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
           nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
@@ -771,11 +786,12 @@ puts "DISPLAY 2 " + crowbar["crowbar"]["display"].inspect
           default[:description] = default[:description].sub('{DATE}',I18n::l(Time.now)) unless default[:description].nil?
           default[:alias] = default[:alias].sub('{NODE}',node) unless default[:alias].nil?
         end
+        return default
       end
     rescue => exception
       Rails.logger.warn("Optional db\\node_description.yml file not correctly formatted.  Error #{exception.message}")
     end
-    return default
+    nil
   end
 
 end

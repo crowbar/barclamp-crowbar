@@ -218,6 +218,7 @@ en:
       msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
       remove: Remove Node
       add: Drop Node here to add to Role
+      filter: Filter available node list by entering the first letters of the node name
       no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
       added: Added Node [0] to Role [1]
       removed: Removed Node [0] from Role [1]

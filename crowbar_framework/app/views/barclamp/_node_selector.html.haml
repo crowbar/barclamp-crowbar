@@ -18,7 +18,7 @@
           %thead
             %tr
               %th
-                #nodes_title= link_to( t('barclamp.proposal_show.available_nodes'), dashboard_path) + image_tag('/images/icons/magnifier.png', options= { :style=>"float:right"})
+                #nodes_title= link_to( t('barclamp.proposal_show.available_nodes'), dashboard_path) + image_tag('/images/icons/magnifier.png', options= { :style=>"float:right", :title=>t('.filter')})
           %tbody
             - nodes_hash().sort_by{ |k, v| v[:alias]}.each do |n, detail|
               %tr
@@ -43,6 +43,7 @@
 $(document).ready(function() {
   var oTable = $('#node_tbl').dataTable({"sScrollY": 99999,"bScrollCollapse": true,"bPaginate": false, "LengthChange": false, "bFilter": true, "bSort": false, "bInfo": false, "bAutoWidth": false,
                   "oLanguage":{"sSearch":""}});
+  var even_row = true;
   $("#nodes_title").append($("#node_tbl_filter"));
   
   DragDropHelpers.fixVisualCues=true;
@@ -200,11 +201,12 @@ $(document).ready(function() {
         var node = $('a.available[id="'+item+'"]');
         var title = node.attr('title');
         var shortname = node.text();
-        var ll = "<li class='allocated' id='"+ item + "' title='"+ title + "'>"+shortname;
+        var ll = "<li class='allocated " + (even_row ? 'even' : 'odd') +"' id='"+ item + "' title='"+ title + "'>"+shortname;
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";
         $list.append(ll);
         allocated.push(item);
+        even_row = !even_row;
         //console.debug("make li " + shortname + " for " + $list.attr('id') + "(children-" + $list.children().length + ") li=" + ll);
         return true;
       } else {

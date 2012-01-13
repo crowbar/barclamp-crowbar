@@ -118,6 +118,7 @@ class NodesController < ApplicationController
         node.group=group
       end
       node.save
+      Rails.logger.info "node #{node.name} (#{node.alias}) changed its group to be #{node.group.empty? ? 'automatic' : group}."
       render :inline => "SUCCESS: added #{node.name} to #{group}.", :cache => false 
     end
   end

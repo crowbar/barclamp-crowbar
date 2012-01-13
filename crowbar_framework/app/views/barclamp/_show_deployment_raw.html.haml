@@ -1,3 +1,4 @@
+- nodes = nodes_hash()
 - if @role.elements.length > 0
   %table{:class => "top", :style =>"width: 100%"  }
     %tr
@@ -14,7 +15,12 @@
               = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
             - else
               = key
-        %td= value.map{|m| m.split('.').first}.sort.map{|m| link_to m, nodes_path(:selected => m)}.join('<br/>')
+        - members = {}
+        - nodes.each { |k,v| members[k] = v if value.member? k }
+        %td
+          - members.sort_by{ |k, v| v[:alias] }.each do |name, node|
+            %div= link_to node[:alias], nodes_path(:selected => node[:handle]), :title=>node[:title]
+
   .clear
 - else
   %p= t '.none'

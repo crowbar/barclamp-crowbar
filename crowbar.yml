@@ -194,10 +194,13 @@ rpms:
     # nscd stuff
     - nscd
     # openldap stuff
+    - nss
+    - nss-tools
     - nss_ldap
     - openldap
     - openldap-servers
     - openldap-clients
+    - krb5-workstation
     # openssh stuff
     - openssh-clients
     - openssh-server

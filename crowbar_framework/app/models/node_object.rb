@@ -144,8 +144,10 @@ class NodeObject < ChefObject
     @role.description = chef_description
   end
   
-  def description(suggest=false)
-    display["description"] || (suggest ? default_loader['description'] : nil)
+  def description(suggest=false, use_name=false)
+    d = display["description"] || (suggest ? default_loader['description'] : nil)
+    d = "#{d} [#{name}]" if use_name
+    d
   end
 
   def description=(value)
@@ -155,8 +157,7 @@ class NodeObject < ChefObject
   
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
-    subState = !state.nil? ? state[0] : ""
-    case subState
+    case state.split[0].downcase
     when "ready"
       "ready"     #green
     when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
@@ -555,7 +556,7 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
       switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"]
       unless switch_name == -1
@@ -580,7 +581,7 @@ class NodeObject < ChefObject
   end
 
   def switch_port
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
       intf = sort_ifs[0]
       switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)

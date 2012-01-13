@@ -1,16 +1,16 @@
-.led{:id => "head_#{@node.shortname}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.shortname)})"#.html_safe
+.led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
+%h1= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
 
 %ul.buttons
   - if @node.bmc_set?
-    %li= link_to "Reboot", hit_node_path(@node.shortname, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
-    %li= link_to "Shutdown", hit_node_path(@node.shortname, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Power On", hit_node_path(@node.shortname, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Identify", hit_node_path(@node.shortname, 'identify'), :class => 'button', :'data-remote' => true
+    %li= link_to "Reboot", hit_node_path(@node.handle, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
+    %li= link_to "Shutdown", hit_node_path(@node.handle, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Power On", hit_node_path(@node.handle, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Identify", hit_node_path(@node.handle, 'identify'), :class => 'button', :'data-remote' => true
 
 .column_50.first
   %dl
-    = dl_item(t('model.attributes.node.name'), @node.alias)
+    = dl_item(t('model.attributes.node.name'), @node.name)
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
     - if @node.switch_unit.nil?
@@ -52,7 +52,7 @@
 
 %ul.buttons
   - unless @node.admin?
-    %li= link_to "Hardware Update", hit_node_path(@node.shortname, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reinstall", hit_node_path(@node.shortname, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reset", hit_node_path(@node.shortname, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Delete", hit_node_path(@node.shortname, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reset", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Delete", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')

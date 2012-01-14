@@ -43,7 +43,12 @@ module ApplicationHelper
       "last"
     end
   end
-
+  
+  def format_memory(kB)
+    mem = (kB.to_f / 1024 / 1024)
+    "#{sprintf("%#1.2f", mem)} GB"
+  end
+  
   def hash_to_ul(hash)
       result = "<ul>"
       hash.each do |key,value|

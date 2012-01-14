@@ -27,12 +27,7 @@ module NodesHelper
     roles.delete_if { |role| !(role =~ /^.*-config-/) }
     (roles.map {|role| "<a href='#{nodes_path({:role=>role, :names_only=>true, :format=>'json'})}'>#{role.gsub("-config-", " ").titlecase}</a>"} * ', ') #.html_safe
   end
-  
-  def format_memory(kB)
-    mem = (kB.to_f / 1024 / 1024)
-    "#{sprintf("%#1.2f", mem)} GB"
-  end
-  
+
   def ip_addresses(ip_list)
     html = ""
     ip_list.each_pair do |network, addresses|

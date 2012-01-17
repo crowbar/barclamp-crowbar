@@ -791,7 +791,7 @@ class NodeObject < ChefObject
     rescue => exception
       Rails.logger.warn("Optional db\\node_description.yml file not correctly formatted.  Error #{exception.message}")
     end
-    nil
+    {}
   end
 
 end

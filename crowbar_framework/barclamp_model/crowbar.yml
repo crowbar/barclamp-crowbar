@@ -113,8 +113,20 @@ rpms:
   pkgs:
     # put your rpms here
     # - httpd
-  raw_pkgs:
+  raw_pkgs: 
     - http://your_site/your_special_rpm.rpm
+  pkg_sources:
+    # This is designed to pull a .src.rpm for use by the rest of the build 
+    # system.  It has the same restrictions that raw_pkgs does, with the
+    # added restriction that you must also manually specify all the packages
+    # needed to build this RPM in build_pkgs.
+  os-token:
+    # build_cmd is called after the rest of the packages and files have been
+    # staged inthe build cache.  This script will be sourced by the build
+    # system in a subshell, and should be written in bash.
+    # Full documentation on how this works is in the README.build in the 
+    # root of the main Crowbar repository.
+    build_cmd: your_shell_script.sh
     
 # gems allows you to declare the gems you need.
 # Unlike the other package types, you can ask for a specific version of a gem

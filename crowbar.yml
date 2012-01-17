@@ -150,16 +150,38 @@ debs:
     - dpkg-dev
 
 rpms:
-  repos:
-    - rpm http://rbel.frameos.org/rbel5
-    - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+  redhat-5.6:
+    repos:
+      - rpm http://rbel.frameos.org/rbel5
+      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+    build_pkgs:
+      - curl-devel
+    pkgs:
+      - curl-devel
+      - nss_ldap
+  redhat-5.7:
+    repos:
+      - rpm http://rbel.frameos.org/rbel5
+      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+    build_pkgs:
+      - curl-devel
+    pkgs:
+      - curl-devel
+      - nss_ldap
+  redhat-6.2:
+    repos:
+      - rpm http://rbel.frameos.org/rbel6
+      - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
+    build_pkgs:
+      - libcurl-devel
+    pkgs:
+      - libcurl-devel
   build_pkgs:
     - rubygems
     - ruby-devel
     - make
     - gcc
     - kernel-devel
-    - curl-devel
     - sqlite-devel
     - mysql-devel
   pkgs:
@@ -182,13 +204,11 @@ rpms:
     - patch
     # crowbar stuff
     - curl
-    - curl-devel
     - sqlite
     - sqlite-devel
     - rubygem-chef-server
     - rubygem-kwalify
     - createrepo
-    - lshw
     # minicom stuff
     - minicom
     # nscd stuff
@@ -196,7 +216,6 @@ rpms:
     # openldap stuff
     - nss
     - nss-tools
-    - nss_ldap
     - openldap
     - openldap-servers
     - openldap-clients

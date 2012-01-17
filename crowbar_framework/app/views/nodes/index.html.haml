@@ -51,7 +51,7 @@
               - node = @nodes[handle]
               %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
                 %td.status{:raw=> node[:state] }
-                  .led{:class => node[:status], :title=>t("state.#{node[:state]}")}
+                  .led{:class => node[:status], :title=>t("state.#{node[:status]}")} 
                 %td.name
                   %a{:href => node_path(handle), :draggable=>'true', :title=> (node[:description].nil? ? t(:not_set) : node[:description]), :class => 'node_details', :id => handle.parameterize}
                     = node[:alias]

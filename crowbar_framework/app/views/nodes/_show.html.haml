@@ -1,5 +1,5 @@
 .led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
+%h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
 
 %ul.buttons
   - if @node.bmc_set?

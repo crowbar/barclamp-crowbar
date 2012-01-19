@@ -276,6 +276,7 @@ en:
 
   # node.raid_set
   raid:
+    JBODOnly: JBOD
     SingleRaid10: RAID 10
     SingleRaid1: RAID 1 span
     SingleRaid5: RAID 5

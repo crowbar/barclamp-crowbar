@@ -174,8 +174,15 @@ rpms:
       - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
     build_pkgs:
       - libcurl-devel
-    pkgs:
+  centos-6.2:
+    repos:
+      - rpm http://rbel.frameos.org/rbel6
+      - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
+    build_pkgs:
       - libcurl-devel
+      - yum-plugin-downloadonly
+      - yum-plugin-priorities
+      - createrepo
   build_pkgs:
     - rubygems
     - ruby-devel

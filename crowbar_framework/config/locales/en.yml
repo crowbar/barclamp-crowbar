@@ -179,6 +179,7 @@ en:
   network:
     index:
       title: Network Switches
+      switch_details: Switch Expanded Details
       switch: Switch
       port: Port
       node: Node

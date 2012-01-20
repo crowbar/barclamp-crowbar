@@ -185,6 +185,8 @@ en:
       node: Node
       nc: N/C
       no_connection: No Connection
+    dense:
+      no_connection: No Connection
       
   barclamp:
     modules:

@@ -89,6 +89,7 @@ debs:
     - rubygems1.8
     - build-essential
     - libsqlite3-dev
+    - dpkg-dev
   pkgs:
     # apache stuff
     - apache2

@@ -16,6 +16,8 @@
 #
 class NetworkController < ApplicationController
 
+  require 'chef'
+  
   def index
     @vports = {}
     @sum = 0
@@ -33,13 +35,13 @@ class NetworkController < ApplicationController
       @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
       #build switches
       node_nics(node).each do |key, value|
-        @switches[key] = { :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{}, :max_port=>23} unless @switches.key? key
+        @switches[key] = { :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{}, :max_port=>24} unless @switches.key? key
         port = if value['switch_port'] == -1 or value['switch_port'] == "-1"
-          @vports[key] = 1 + (@vports[key] || -1)
+          @vports[key] = 1 + (@vports[key] || 0)
         else
           value['switch_port']
         end
-        @switches[key][:max_port] = port + (port.even? ? 1 : 0) if port>@switches[key][:max_port]
+        @switches[key][:max_port] = port if port>@switches[key][:max_port]
         @switches[key][:nodes][port] = node.handle
         @switches[key][:status][node.status] = (@switches[key][:status][node.status] || 0).to_i + 1
       end

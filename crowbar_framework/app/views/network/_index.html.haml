@@ -1,14 +1,16 @@
 - node = sw_details[:nodes][port]
-%td.name
-  %div.port
-    %strong.port_number{ :style=>'float:left'}= port
-    - unless node.nil?
+%td
+  - unless node.nil?
+    %div.port{ :id=>"#{switch}-#{port}", :node=>node, :title=>@nodes[node][:description] }
+      %div.port_number= port
       %div.led{ :id=>@nodes[node][:handle], :style=>'float:right', :class =>"#{@nodes[node][:status]}", :title=>t("state.#{@nodes[node][:status]}")}
       %br
-      %div.node{ :id=>node}
-        %a{:href => "/nodes/#{node}", :title=>@nodes[node][:description]}
+      %div.node
+        %a{:href => "/nodes/#{node}"}
           = (@nodes[node][:alias] || t('.nc'))
-    - else
+  - else
+    %div.port_nc
+      %div.port_number= port
       %div.led{ :style=>'float:right', :class =>"unknown"}
       %br
       %div.node{ :title=>t('.no_connection') }= t('.nc')

@@ -9,12 +9,12 @@
         %th
     %tbody
       %tr
-        - 0.step(22, 2) do |port|
-          =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
-      %tr
         - 1.step(23, 2) do |port|
           =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
-  -if sw_details[:max_port]>23
+      %tr
+        - 2.step(24, 2) do |port|
+          =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+  -if sw_details[:max_port]>24
     %table.data.switch.box{ :id=>switch }
       %thead
         %tr
@@ -24,9 +24,27 @@
           %th
       %tbody
         %tr
-          - 24.step(46, 2) do |port|
-            =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
-        %tr
           - 25.step(47, 2) do |port|
             =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+        %tr
+          - 26.step(48, 2) do |port|
+            =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
 
+.clear
+
+:javascript
+
+   // set highlights on hover
+  $('div.port')
+    .hover( 
+      //hover in
+      function(ev) {
+        var node = $(this).attr('node');
+        $('div.port[node='+node+']').addClass('edge');
+      },
+      //hover out 
+      function(ev) {
+        var node = $(this).attr('node');
+        $('div.port[node='+node+']').removeClass('edge');      
+      }
+    );

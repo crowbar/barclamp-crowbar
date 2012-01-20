@@ -5,6 +5,12 @@ SimpleNavigation::Configuration.run do |navigation|
       secondary.item :bulkedit, t('nav.list'), nodes_list_path(:allocated=>'yes') 
       # insert here for :nodes
     end
+    if RAILS_ENV == 'development'
+      primary.item :network, t('nav.network'), network_path do |secondary| 
+        secondary.item :network, t('nav.switches'), network_path 
+        # insert here for :network
+      end
+    end
     primary.item :barclamps, t('nav.barclamps'), barclamp_modules_path do |secondary|
       secondary.item :barclamps, t('nav.all_bc'), barclamp_modules_path
       secondary.item :crowbar, t('nav.crowbar_bc'), index_barclamp_path(:controller=>'crowbar')

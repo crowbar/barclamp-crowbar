@@ -1,0 +1,32 @@
+%h1= t('.title')
+- @switches.sort.each do |switch, sw_details|
+  %table.data.switch.box{ :id=>switch }
+    %thead
+      %tr
+        %th
+        %th{:colspan=>"#{(sw_details[:max_port]+1)/2}" }
+          = t('.switch') + " : " + switch
+        %th
+    %tbody
+      %tr
+        - 0.step(22, 2) do |port|
+          =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+      %tr
+        - 1.step(23, 2) do |port|
+          =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+  -if sw_details[:max_port]>23
+    %table.data.switch.box{ :id=>switch }
+      %thead
+        %tr
+          %th
+          %th{:colspan=>"#{(sw_details[:max_port]+1)/2}" }
+            = t('.switch') + " : " + switch
+          %th
+      %tbody
+        %tr
+          - 24.step(46, 2) do |port|
+            =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+        %tr
+          - 25.step(47, 2) do |port|
+            =render :partial => 'index', :locals => { :switch=> switch, :sw_details=>sw_details, :port=>port } 
+

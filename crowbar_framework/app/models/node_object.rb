@@ -146,8 +146,13 @@ class NodeObject < ChefObject
   end
 
   def alias=(value)
-    set_display "alias", value
-    @role.description = chef_description
+    value = value.strip.sub(/\s/,'-')
+    unless value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+      Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
+    else
+      set_display "alias", value
+      @role.description = chef_description
+    end
   end
   
   def description(suggest=false, use_name=false)
@@ -607,6 +612,16 @@ class NodeObject < ChefObject
     !display[type].nil? and !display[type].empty?
   end
   
+  def switch
+    if switch_name.nil?
+      self.handle[0..8]
+    elsif switch_unit.nil?
+      switch_name
+    else
+      switch_name + ':' + switch_unit
+    end
+  end
+  
   # logical grouping for node to align with other nodes
   def group(suggest=false)
     g = if display_set? 'group'
@@ -617,15 +632,7 @@ class NodeObject < ChefObject
       nil
     end
     # if not set, use calculated value
-    if !g.nil?
-      g
-    elsif switch_name.nil?
-      self.handle[0..8]
-    elsif switch_unit.nil?
-      switch_name
-    else
-      switch_name + ':' + switch_unit
-    end
+    (g.nil? ? switch : g)
   end
   
   def group=(value)

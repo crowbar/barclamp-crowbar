@@ -25,6 +25,47 @@ table.data
     td
       background: $secondary_bg
 
+table.switch
+  thead th
+    text-align: center
+    a
+      color: $text_color
+      text-decoration: none
+      font-weight: bold
+  td
+    &.tight
+      padding: 0px
+    div.port
+      background: $secondary_bg
+      border: 1px solid $border_color
+      &.tight
+        background: none
+        border: 1px solid $page_bg
+      &.edge
+        background: $secondary_bg + #322
+        border: 1px solid $notice_border_color
+      div.port_number
+        font-size: -2
+        font-weight: bold
+        float: left
+      div.node
+        text-align: center
+        a
+          color: $text_color
+          text-decoration: none
+          font-weight: bold
+    div.port_nc
+      background: $secondary_bg - #222
+      &.tight
+        border: 1px solid $page_bg
+        background: none
+      div.port_number
+        font-size: -2
+        float: left
+      div.node
+        text-align: center
+
+
 table.box
   padding: 0
   tr

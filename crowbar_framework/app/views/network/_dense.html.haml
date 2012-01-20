@@ -1,0 +1,8 @@
+- node = sw_details[:nodes][port]
+%td.tight
+  - unless node.nil?
+    %div.port.tight{ :id=>"#{switch}-#{port}", :node=>node, :title=>"#{port}: #{@nodes[node][:description]}" }
+      %div.led{ :id=>@nodes[node][:handle], :class =>"#{@nodes[node][:status]}"}
+  - else
+    %div.port_nc.tight{ :title=>"#{port} #{t('.no_connection')}"}
+      %div.led{ :class =>"unknown"}

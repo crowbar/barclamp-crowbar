@@ -24,6 +24,8 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
+    network: Network
+    switches: Switches
     list: Bulk Edit
     barclamps: Barclamps
     crowbar_bc: Crowbar
@@ -173,6 +175,19 @@ en:
       default: Using Default
       override: Override?
       description: Description
+  
+  network:
+    index:
+      title: Network Switches
+      switch_details: Switch Expanded Details
+      switch: Switch
+      port: Port
+      node: Node
+      nc: N/C
+      no_connection: No Connection
+    dense:
+      no_connection: No Connection
+      
   barclamp:
     modules:
       title: All Barclamps
@@ -273,6 +288,7 @@ en:
   updating: Updating...
   note: Note
   hint: Hint
+  virtual: Virtual
 
   # node.raid_set
   raid:

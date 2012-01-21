@@ -7,7 +7,6 @@ SimpleNavigation::Configuration.run do |navigation|
     end
     if RAILS_ENV == 'development'
       primary.item :network, t('nav.network'), network_path do |secondary| 
-        secondary.item :network, t('nav.switches'), network_path 
         # insert here for :network
       end
     end

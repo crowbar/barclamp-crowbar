@@ -26,11 +26,17 @@ ActionController::Routing::Routes.draw do |map|
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
   map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index'
   map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :constraints => { :id => /.*/ }
-  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'
+  # this route allows any barclamp to extend the nodes view
+  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'  
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /.*/ }
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /.*/ }
   
-  map.network 'network', :controller => 'network', :action=>'index'
+  # this route allows any barclamp to extend the network view
+  map.network_barclamp 'network/:controller/1.0', :action=>'network'
+  # these paths require the network barclamp 
+  map.network 'network', :controller => 'network', :action=>'switch'
+  map.switch 'network/switch/:id', :controller => 'network', :action=>'switch'
+  map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan'
   
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }

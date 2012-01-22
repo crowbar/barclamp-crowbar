@@ -113,6 +113,7 @@ class NodeObject < ChefObject
         @role = NodeObject.create_new_role(node.name, node)
       else
         Rails.logger.fatal("Node exists without role!! #{node.name}")
+        NodeObject.offline_remove('node', node.name) if !CHEF_ONLINE
       end
     end
     @node = node
@@ -765,10 +766,10 @@ class NodeObject < ChefObject
   end
 
   def display
-    if self.crowbar["crowbar"].nil? or self.crowbar["crowbar"]["display"].nil?
+    if crowbar["crowbar"].nil? or crowbar["crowbar"]["display"].nil?
       {}
     else
-      self.crowbar["crowbar"]["display"]
+      crowbar["crowbar"]["display"]
     end
   end
   

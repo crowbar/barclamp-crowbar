@@ -56,6 +56,11 @@ module CrowbarOffline
       end #unless exist
     end
     
+    def offline_remove(type, name)
+      file = File.join(OFFLINE_FILES_DIR, "#{type}-#{name}.json")
+      File.delete file
+    end
+    
     def offline_cache(o, file)
       cache = File.join('tmp', file[/#{OFFLINE_FILES_DIR}[\/\\](.*)/,1])
       File.open(cache, 'w') {  |f| f.puts o.to_json }

@@ -101,14 +101,16 @@ jQuery(document).ready(function($) {
   });
   // Toggle stuff
   $('.toggle').not('.disabled').click(function() {
-    target = $(this).attr('rel');
+    targets = $(this).attr('rel').split(',');
     $(this).toggleClass('on');
-    if( $(this).attr('data-speed') ) {
-      $('#'+target).slideToggle( $(this).attr('data-speed') );
-    } else {
-      $('#'+target).toggle();
-    }
-    return false;
+    $.each(targets, function(index, target) {
+      target = target.trim();
+      if( $(this).attr('data-speed') ) {
+        $('#'+target).slideToggle( $(this).attr('data-speed') );
+      } else {
+        $('#'+target).toggle();
+      }
+    });
   });
   
   $(document).konami(function(){

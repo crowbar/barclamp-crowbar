@@ -78,7 +78,10 @@ en:
 
   # Model Names / Attributes
   model:
-    node: Node
+    node:
+      multiple_node: Multiple nodes responded to alias request
+      invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
+      duplicate_alias: Alias not saved because a node already has the same alias
     proposal: Proposal
     service:
       name_exists: Name already exists. Please choose another.
@@ -143,6 +146,7 @@ en:
       bios: BIOS
       raid: RAID
       updated: Node List Updated
+      failed: Node Save Failed
       admin: Crowbar Server
       title_all: Bulk Edit
       title_unallocated: Bulk Edit (unallocated only)
@@ -328,3 +332,4 @@ en:
     shutdown: Power Off
     reboot: Power Restart
     poweron: Power On
+    pending: Pending

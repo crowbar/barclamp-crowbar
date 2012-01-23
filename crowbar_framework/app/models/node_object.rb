@@ -53,6 +53,21 @@ class NodeObject < ChefObject
     self.find "name:#{chef_escape(name)}"
   end
 
+  def self.find_node_by_alias(name)
+    nodes = if CHEF_ONLINE 
+      self.find "alias:#{chef_escape(name)}"
+    else
+      nodes = self.find_all_nodes.keep_if { |n| n.alias==name }
+    end
+    if nodes.length == 1
+      return nodes[0]
+    elsif nodes.length == 0
+      nil
+    else
+      raise "#{I18n.t('model.fail.multiple_node')}: #{nodes.join(',')}"
+    end
+  end
+  
   def self.find_node_by_name(name)
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = if CHEF_ONLINE
@@ -133,7 +148,7 @@ class NodeObject < ChefObject
   end
 
   def handle
-    name.split('.')[0]
+    begin name.split('.')[0] rescue name end
   end
   
   def alias(suggest=false) 
@@ -148,11 +163,20 @@ class NodeObject < ChefObject
 
   def alias=(value)
     value = value.strip.sub(/\s/,'-')
-    unless value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+    # valid DNS Name
+    if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
+      raise I18n.t('model.node.invalid_dns') + ": " + value
     else
-      set_display "alias", value
-      @role.description = chef_description
+      # don't allow duplicate alias
+      node = NodeObject.find_node_by_alias value 
+      unless node.nil?
+        Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
+        raise I18n.t('model.node.duplicate_alias') + ": " + node.name
+      else
+        set_display "alias", value
+        @role.description = chef_description
+      end
     end
   end
   
@@ -791,8 +815,8 @@ class NodeObject < ChefObject
           nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
           nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
           # some date replacement
-          default[:description] = default[:description].sub('{DATE}',I18n::l(Time.now)) unless default[:description].nil?
-          default[:alias] = default[:alias].sub('{NODE}',node) unless default[:alias].nil?
+          default[:description] = default[:description].sub(/\{DATE\}/,I18n::l(Time.now)) unless default[:description].nil?
+          default[:alias] = default[:alias].sub(/\{NODE\}/,node) unless default[:alias].nil?
         end
         return default
       end

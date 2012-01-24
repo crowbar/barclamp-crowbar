@@ -57,7 +57,7 @@ class NodeObject < ChefObject
     nodes = if CHEF_ONLINE 
       self.find "alias:#{chef_escape(name)}"
     else
-      nodes = self.find_all_nodes.keep_if { |n| n.alias==name }
+      self.find_all_nodes.keep_if { |n| n.alias==name }
     end
     if nodes.length == 1
       return nodes[0]
@@ -170,7 +170,7 @@ class NodeObject < ChefObject
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
-      unless node.nil?
+      if node
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('model.node.duplicate_alias') + ": " + node.name
       else

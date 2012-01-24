@@ -96,8 +96,8 @@ class NodesController < ApplicationController
           end
           if dirty
             begin
-              node.save << node_name
-              succeeded
+              node.save
+              succeeded << node_name
             rescue Exception=>e
               failed << node_name
             end

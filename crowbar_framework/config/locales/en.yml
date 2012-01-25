@@ -184,7 +184,7 @@ en:
   
   support:
     index:
-      title: Explored Files
+      title: Exported Files
       none_exported: There are no exported files to download
       other: Other Files
       chef: Chef Objects

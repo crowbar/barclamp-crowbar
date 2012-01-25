@@ -1,0 +1,13 @@
+%h1= t '.title'
+
+-if @exports.length == 0
+  %h3= t '.none_exported'
+-else
+  - @exports.each do |key, value|
+    -if value.length != 0
+      %h3=t ".#{key}"
+      %ul        
+        -value.sort.reverse.each do |file|
+          %li
+            %a{:href=>"\\export\\#{file}"}= file
+            = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file.sub(/\./,'-DOT-')), :title=>t('.delete_hint')

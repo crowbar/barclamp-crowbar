@@ -38,6 +38,13 @@ ActionController::Routing::Routes.draw do |map|
   map.switch 'network/switch/:id', :controller => 'network', :action=>'switch'
   map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan'
   
+  #support paths
+  map.utils 'utils', :controller=>'support', :action=>'index'
+  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }
+  map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
+  map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
+  
+  # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
   map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }

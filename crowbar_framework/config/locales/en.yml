@@ -25,6 +25,9 @@ en:
     nodes: Nodes
     dashboard: Dashboard
     network: Network
+    utils: Utilities
+    util_logs: Exported Items
+    util_chef: Chef Export
     list: Bulk Edit
     barclamps: Barclamps
     crowbar_bc: Crowbar
@@ -178,7 +181,22 @@ en:
       default: Using Default
       override: Override?
       description: Description
-      
+  
+  support:
+    index:
+      title: Explored Files
+      none_exported: There are no exported files to download
+      other: Other Files
+      chef: Chef Objects
+      cli: Command Line Utilities
+      logs: Log Files
+      delete_hint: Delete File from Export Directory
+      delete_succeeded: Delete Succeeded
+      delete_failed: Delete Failed
+    export:
+      succeed: Chef Objects Exported
+      fail: Chef Export Failed
+     
   barclamp:
     modules:
       title: All Barclamps

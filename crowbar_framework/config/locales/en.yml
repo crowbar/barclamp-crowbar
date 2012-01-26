@@ -298,6 +298,8 @@ en:
   note: Note
   hint: Hint
   virtual: Virtual
+  new: New Item!
+
 
   # node.raid_set
   raid:

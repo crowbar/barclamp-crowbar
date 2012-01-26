@@ -9,5 +9,8 @@
       %ul        
         -value.sort.reverse.each do |file|
           %li
-            %a{:href=>"\\export\\#{file}"}= file
+            -if @file==file
+              %em= t('new')
+            %a{:href=>"\\export\\#{file}"}
+              = file
             = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file.sub(/\./,'-DOT-')), :title=>t('.delete_hint')

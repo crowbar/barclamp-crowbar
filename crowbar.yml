@@ -157,6 +157,9 @@ rpms:
       - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
     build_pkgs:
       - curl-devel
+      - yum-downloadonly
+      - yum-priorities
+      - createrepo
     pkgs:
       - curl-devel
       - nss_ldap
@@ -165,6 +168,21 @@ rpms:
       - rpm http://rbel.frameos.org/rbel5
       - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
     build_pkgs:
+      - yum-downloadonly
+      - yum-priorities
+      - createrepo
+      - curl-devel
+    pkgs:
+      - curl-devel
+      - nss_ldap
+  centos-5.7:
+    repos:
+      - rpm http://rbel.frameos.org/rbel5
+      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+    build_pkgs:
+      - yum-downloadonly
+      - yum-priorities
+      - createrepo
       - curl-devel
     pkgs:
       - curl-devel
@@ -175,6 +193,8 @@ rpms:
       - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
     build_pkgs:
       - libcurl-devel
+      - yum-plugin-downloadonly
+      - createrepo
   centos-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6

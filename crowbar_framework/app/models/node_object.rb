@@ -710,6 +710,14 @@ class NodeObject < ChefObject
     nhash.merge rhash
   end
 
+  def get_bmc_user
+    @node["ipmi"]["bmc_user"] rescue nil
+  end
+
+  def get_bmc_password
+    @node["ipmi"]["bmc_password"] rescue nil
+  end
+
   def set_state(state)
     if CHEF_ONLINE
       # use the real transition function for this
@@ -723,8 +731,10 @@ class NodeObject < ChefObject
 
     if state == "reset" or state == "reinstall" or state == "update"
       if CHEF_ONLINE
-        bmc = get_network_by_type("bmc")
-        system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power cycle") unless bmc.nil?
+        bmc          = get_network_by_type("bmc")
+        bmc_user     = get_bmc_user
+        bmc_password = get_bmc_password
+        system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
       else
         NodeObject.clear_cache @node
         puts "Node #{name} to #{state} caused cache object to be deleted."
@@ -735,35 +745,37 @@ class NodeObject < ChefObject
 
   def reboot
     set_state("reboot")
-    bmc = get_network_by_type("bmc")
+    bmc          = get_network_by_type("bmc")
+    bmc_user     = get_bmc_user
+    bmc_password = get_bmc_password
     return puts "Node #{name} IMPI Reboot call to #{bmc["address"]}" unless CHEF_ONLINE
-    system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power cycle") unless bmc.nil?
+    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
   end
 
   def shutdown
     set_state("shutdown")
-    bmc = get_network_by_type("bmc")
-    if CHEF_ONLINE
-      system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power off") unless bmc.nil?
-    else
-      return puts "Node #{name} IMPI Shutdown call to #{bmc["address"]}"
-    end
+    bmc          = get_network_by_type("bmc")
+    bmc_user     = get_bmc_user
+    bmc_password = get_bmc_password
+    return puts "Node #{name} IMPI Shutdown call to #{bmc["address"]}" unless CHEF_ONLINE
+    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power off") unless bmc.nil?
   end
 
   def poweron
     set_state("poweron")
-    bmc = get_network_by_type("bmc")
-    if CHEF_ONLINE
-      system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar power on") unless bmc.nil?
-    else
-      puts "Node #{name} IMPI Power On call to #{bmc["address"]}"
-    end
+    bmc          = get_network_by_type("bmc")
+    bmc_user     = get_bmc_user
+    bmc_password = get_bmc_password
+    return puts "Node #{name} IMPI Power On call to #{bmc["address"]}" unless CHEF_ONLINE
+    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
   end
 
   def identify
-    bmc = get_network_by_type("bmc")
+    bmc          = get_network_by_type("bmc")
+    bmc_user     = get_bmc_user
+    bmc_password = get_bmc_password
     return puts "Node #{name} IMPI Identify call to #{bmc["address"]}" unless CHEF_ONLINE
-    system("ipmitool -H #{bmc["address"]} -U crowbar -P crowbar chassis identify") unless bmc.nil?
+    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
   end
 
   def allocate

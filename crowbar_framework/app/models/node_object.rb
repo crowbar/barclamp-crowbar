@@ -28,8 +28,6 @@ class NodeObject < ChefObject
       if nodes[2] != 0 and !nodes[0].nil?
         nodes[0].delete_if { |x| x.nil? }
         answer = nodes[0].map do |x|
-          dumped = self.dump x, 'node', x.name
-          RoleObject.find_roles_by_search "name:#{make_role_name(x.name)}" if dumped
           NodeObject.new x
         end
         answer.delete_if { |x| !x.has_chef_server_roles? }

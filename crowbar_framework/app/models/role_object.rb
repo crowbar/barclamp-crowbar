@@ -58,7 +58,6 @@ class RoleObject < ChefObject
       if arr[2] != 0
         roles = arr[0].map { |x| RoleObject.new x }
         roles.delete_if { |x| x.nil? or x.role.nil? }
-        arr[0].each { |role| self.dump role, 'role', role.name unless role.nil? }
       end
     else
       files = offline_search 'role-', search

@@ -39,7 +39,6 @@ class ProposalObject < ChefObject
         arr = ChefObject.query_chef.search("crowbar", "id:#{chef_escape(search)}") 
         if arr[2] != 0
           props = arr[0].map do |x| 
-            self.dump x, 'data_bag_item_crowbar-bc', x.name[/bc-(.*)/,1] unless x.nil?
             ProposalObject.new x 
           end
           props.delete_if { |x| x.nil? or x.item.nil? }

@@ -1,16 +1,34 @@
 %h1= t '.title'
-
--if @exports.length == 0
+-if @waiting
+  %em= t '.wait'
+  
+-if @exports[:count] == 0
   %h3= t '.none_exported'
 -else
   - @exports.each do |key, value|
-    -if value.length != 0
-      %h3=t ".#{key}"
-      %ul        
-        -value.sort.reverse.each do |file|
-          %li
-            -if @file==file
-              %em= t('new')
-            %a{:href=>"\\export\\#{file}"}
-              = file
-            = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file.sub(/\./,'-DOT-')), :title=>t('.delete_hint')
+    - if key != :count
+      -if value.length != 0
+        %h3=t ".#{key}"
+        %ul        
+          -value.sort.reverse.each do |file|
+            %li
+              -if @file==file
+                %em#new= t('new')
+              %a{:href=>"\\export\\#{file}"}
+                = file
+              = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file.gsub(/\./,'-DOT-')), :title=>t('.delete_hint')
+            
+.clear
+
+:javascript
+  
+  function update() {
+    $.ajaxSetup({ timeout: #{ (@waiting ? 1000 : 10000) }})
+    $.getJSON('utils?format=json', function(data) {     
+      if (data['count'] != #{@exports[:count]})
+        location.href = '#{utils_path}?file=#{params["file"]}';
+    });      
+  }
+
+  $('#new').hide(5000);
+  

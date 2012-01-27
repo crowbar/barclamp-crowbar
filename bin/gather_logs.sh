@@ -14,12 +14,15 @@
 # limitations under the License.
 #
 
+# MOVED TO LOGGING BARCLAMP!!!
+# DELETE ME (if after 1/30/12)
+
 if [[ -f /etc/crowbar.install.key ]]; then
     export CROWBAR_KEY=$(cat /etc/crowbar.install.key)
 fi
 mkdir -p /tmp/crowbar-logs
 tarname="${1-$(date '+%Y%m%d-%H%M%S')}"
-targetdir="/opt/dell/crowbar_framework/public/logs"
+targetdir="/opt/dell/crowbar_framework/public/export"
 sort_by_last() {
     local src=() keys=() sorted=() line=""
     while read line; do
@@ -64,6 +67,6 @@ sort_by_last() {
     find . -depth -print | \
 	sort_by_last / | \
 	cpio -o -H ustar | \
-	bzip2 -9 > "$targetdir/crowbar-logs-${tarname}.tar.bz2"
+	bzip2 -9 > "$targetdir/${tarname}"
     rm -rf "$logdir"
 ) 200>/tmp/crowbar-logs/.lock

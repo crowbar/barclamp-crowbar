@@ -193,6 +193,8 @@ en:
       delete_hint: Delete File from Export Directory
       delete_succeeded: Delete Succeeded
       delete_failed: Delete Failed
+      wait: Exporting... Please wait or check back later (screen will automatically update when complete)
+
     export:
       succeed: Chef Objects Exported
       fail: Chef Export Failed

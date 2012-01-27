@@ -18,31 +18,35 @@
 class SupportController < ApplicationController
   
   require 'chef'
-  
+
+  # Legacy Support (UI version moved to loggin barclamp)
   def logs
-    system("sudo -i /opt/dell/bin/gather_logs.sh #{ctime}")
-    redirect_to "/logs/crowbar-logs-#{ctime}.tar.bz2"
+    @file = "crowbar-logs-#{ctime}.tar.bz2"
+    system("sudo -i /opt/dell/bin/gather_logs.sh #{@file}")
+    redirect_to "/export/#{@file}"
   end
+  
   def get_cli
     system("sudo -i /opt/dell/bin/gather_cli.sh #{request.env['SERVER_ADDR']} #{request.env['SERVER_PORT']}")
     redirect_to "/crowbar-cli.tar.gz"
   end
   
   def index
+    @waiting = params['waiting'] == 'true'
     if params[:id]
       begin
         f = File.join(export_dir, params[:id])
-        f = f.sub(/-DOT-/,'.')
+        f = f.gsub(/-DOT-/,'.')
         File.delete f
         flash[:notice] = t('support.index.delete_succeeded') + ": " + f
       rescue
         flash[:notice] = t('support.index.delete_failed') + ": " + f
       end
     end
-    @exports = { :logs=>[], :cli=>[], :chef=>[], :other=>[] }
+    @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[] }
     Dir.entries(export_dir).each do |f|
       if f =~ /^\./
-        # ignore
+        next # ignore rest of loop
       elsif f =~ /^crowbar-logs-.*/
         @exports[:logs] << f 
       elsif f =~ /^crowbar-cli-.*/
@@ -52,9 +56,17 @@ class SupportController < ApplicationController
       else
         @exports[:other] << f
       end
+      @exports[:count] += 1
+      @file = params['file'].gsub(/-DOT-/,'.') if params['file']
+      @waiting = false if @file == f
+    end
+    respond_to do |format|
+      format.html # index.html.haml
+      format.xml  { render :xml => @exports }
+      format.json { render :json => @exports }
     end
   end
-
+  
   def export_chef
     if CHEF_ONLINE
       begin
@@ -63,14 +75,16 @@ class SupportController < ApplicationController
         RoleObject.all.each { |r| RoleObject.dump r, 'role', r.name }
         ProposalObject.all.each { |p| ProposalObject.dump p, 'data_bag_item_crowbar-bc', p.name[/bc-(.*)/,1] }
         @file = cfile ="crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
-        system "tar -czf #{File.join(export_dir,cfile)} #{File.join('db','*.json')}" 
-        flash[:notice] = I18n.t('support.export.succeed') + ": " + cfile
+        pid = fork do
+          system "tar -czf #{File.join('/tmp',cfile)} #{File.join('db','*.json')}" 
+          File.rename File.join('/tmp',cfile), File.join(export_dir,cfile)
+        end        
+        redirect_to "/utils?waiting=true&file=#{@file.gsub(/\./,'-DOT-')}"
       rescue Exception=>e
         flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
+        redirect_to "/utils"
       end
     end
-    index
-    render 'index'
   end
   
   private 

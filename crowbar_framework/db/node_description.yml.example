@@ -19,10 +19,10 @@
 # WARNING: Adding this file will degrade performance
 #   if node descriptions are not set
 # ========================================================================
-# Default if no description is set.  Use {DATE} for date
+# Default if no description is set.  Use DATE for date and NODE for node
 default:
-  description: Created on {DATE}.
-  alias: {NODE}
+  description: Created on DATE.
+  alias: NODE
     
 # Node specific names
 admin:

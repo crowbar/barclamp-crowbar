@@ -813,8 +813,8 @@ class NodeObject < ChefObject
           nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
           nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
           # some date replacement
-          default[:description] = default[:description].sub(/\{DATE\}/,I18n::l(Time.now)) unless default[:description].nil?
-          default[:alias] = default[:alias].sub(/\{NODE\}/,node) unless default[:alias].nil?
+          default['description'] = default['description'].gsub(/DATE/,I18n::l(Time.now)) unless default['description'].nil?
+          default['alias'] =default['alias'].gsub(/NODE/,node) unless default['alias'].nil?
         end
         return default
       end

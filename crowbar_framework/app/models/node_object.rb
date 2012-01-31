@@ -33,7 +33,7 @@ class NodeObject < ChefObject
         answer.delete_if { |x| !x.has_chef_server_roles? }
       end
     else
-      files = offline_search 'node-', ''
+      files = offline_search 'node-', (search[5..100] || '')
       answer = files.map! { |f| NodeObject.new(recover_json(f)) }
     end
     return answer
@@ -67,10 +67,11 @@ class NodeObject < ChefObject
   end
   
   def self.find_node_by_name(name)
-    name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = if CHEF_ONLINE
+      name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
       ChefObject.crowbar_node(name)
     else
+      name += ".#{OFFLINE_DOMAIN || ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
       self.recover_json(self.nfile('node',name))
     end
     return val.nil? ? nil : NodeObject.new(val)

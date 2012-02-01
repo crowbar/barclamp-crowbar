@@ -16,7 +16,7 @@
     - if @node.switch_unit.nil?
       = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
     - else
-      = dl_item(t('model.attributes.node.switch_name_unit_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}")    
+      = dl_item(t('model.attributes.node.switch_name_unit_port'), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))    
     = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
     = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
 

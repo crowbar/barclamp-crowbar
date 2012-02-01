@@ -33,7 +33,7 @@ class NodeObject < ChefObject
         answer.delete_if { |x| !x.has_chef_server_roles? }
       end
     else
-      files = offline_search 'node-', (search[5..100] || '')
+      files = offline_search 'node-', (search.nil? ? '' : search[5..100])
       answer = files.map! { |f| NodeObject.new(recover_json(f)) }
     end
     return answer

@@ -84,6 +84,7 @@ en:
     node:
       multiple_node: Multiple nodes responded to alias request
       invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
+      too_long_dns: Alias not saved because it exceeds FQDN 63 character length
       duplicate_alias: Alias not saved because a node already has the same alias
     proposal: Proposal
     service:
@@ -355,3 +356,4 @@ en:
     reboot: Power Restart
     poweron: Power On
     pending: Pending
+    building: Building

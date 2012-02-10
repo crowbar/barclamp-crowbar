@@ -33,16 +33,7 @@ class SupportController < ApplicationController
   
   def index
     @waiting = params['waiting'] == 'true'
-    if params[:id]
-      begin
-        f = File.join(export_dir, params[:id])
-        f = f.gsub(/-DOT-/,'.')
-        File.delete f
-        flash[:notice] = t('support.index.delete_succeeded') + ": " + f
-      rescue
-        flash[:notice] = t('support.index.delete_failed') + ": " + f
-      end
-    end
+    remove_file 'export', params[:id] if params[:id]
     @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[] }
     Dir.entries(export_dir).each do |f|
       if f =~ /^\./
@@ -67,6 +58,45 @@ class SupportController < ApplicationController
     end
   end
   
+  def import
+    @file = nil
+    if request.post? && params[:file] 
+      begin
+        tmpfile = params[:file]
+        if tmpfile.class.to_s == 'Tempfile'
+          @file = tmpfile.original_filename
+          file = File.join import_dir, @file
+          while blk = tmpfile.read(65536)
+            File.open(file, "wb") { |f| f.write(tmpfile.read) }
+          end
+          tmpfile.delete
+          flash[:notice] = t('.upload_succeeded', :scope=>'support.import') + ": " + @file
+        end
+      rescue
+        Rails.logger.error("Upload of file failed")
+        flash[:notice] = t('.upload_failed', :scope=>'support.import')
+      end
+    elsif params[:id]
+      remove_file 'import', params[:id]
+    end
+    @imports = { :count=>0, :bc=>[], :other=>[] }
+    Dir.entries(import_dir).each do |f|
+      if f =~ /^\./
+        next # ignore rest of loop
+      elsif f =~ /^.*tar.gz$/
+        @imports[:bc] << f 
+      else
+        @imports[:other] << f
+      end
+      @imports[:count] += 1
+    end
+    respond_to do |format|
+      format.html # index.html.haml
+      format.xml  { render :xml => @imports }
+      format.json { render :json => @imports }
+    end    
+  end
+  
   def export_chef
     if CHEF_ONLINE
       begin
@@ -84,6 +114,8 @@ class SupportController < ApplicationController
         flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
         redirect_to "/utils"
       end
+    else
+      flash[:notice] = 'feature not available in offline mode'
     end
   end
   
@@ -93,12 +125,31 @@ class SupportController < ApplicationController
     Time.now.strftime("%Y%m%d-%H%M%S")
   end
   
+  def import_dir
+    check_dir 'import'
+  end
+  
   def export_dir
-    d = File.join 'public', 'export'
+    check_dir 'export'
+  end
+
+  def check_dir(type)
+    d = File.join 'public', type
     unless File.directory? d
       Dir.mkdir d
     end
-    return d
+    return d    
+  end
+  
+  def remove_file(type, name)
+    begin
+      f = File.join(check_dir(type), name)
+      f = f.gsub(/-DOT-/,'.')
+      File.delete f
+      flash[:notice] = t('support.index.delete_succeeded') + ": " + f
+    rescue
+      flash[:notice] = t('support.index.delete_failed') + ": " + f
+    end
   end
   
 end 

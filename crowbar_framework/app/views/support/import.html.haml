@@ -1,0 +1,31 @@
+- o = %x[uname -a]
+- s = o.split ' ' 
+- os = s[3].split('-')[1]
+- ver = s[2].split('-')[0]
+
+%h1= t '.title'
+
+%div
+  = t('.admin_os') + ": "
+  %em= t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
+
+%h2
+  = t '.select_files'
+  %div{:style=>'float:right'}
+    %form{:action=>"import",:method=>"post",:enctype=>"multipart/form-data"}
+      %input{:type=>"file",:name=>"file"}
+      %input{:type=>"submit",:value=>t('.upload')}
+
+-if @imports[:count] == 0
+  %h3= t '.none'
+-else
+  - @imports.each do |key, value|
+    - if key != :count
+      -if value.length != 0
+        %h3=t ".#{key}"
+        %ul        
+          -value.sort.each do |file|
+            %li
+              = file
+              = link_to image_tag('/images/icons/delete.png'), utils_import_path(:id => file.gsub(/\./,'-DOT-')), :title=>t('.delete_hint')
+

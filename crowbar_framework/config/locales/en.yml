@@ -211,6 +211,11 @@ en:
       order: Order
       version: Version
       available: Available
+      action: Action
+      import: Import
+      error_file_missing: 'Error! Barclamp not found.'
+      error_import: 'Error! Import failed.'
+      success: 'Success. Barclamp Imported!'
     upload:
       succeeded: Upload Succeeded
       failed: Upload Failed

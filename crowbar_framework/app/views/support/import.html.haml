@@ -5,9 +5,6 @@
 
 %h1= t '.title'
 
-%div
-  = t('.admin_os') + ": "
-  %em= t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
 
 -if false # works, but not used at this point
   %h2
@@ -16,6 +13,14 @@
       %form{:action=>"import",:method=>"post",:enctype=>"multipart/form-data"}
         %input{:type=>"file",:name=>"file"}
         %input{:type=>"submit",:value=>t('.upload')}
+
+.column_100
+  %section.box#details
+    -if @output
+      = @output
+    -else
+      = t('.admin_os') + ": "
+      %em= t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
 
 %table.data.box
   %thead
@@ -26,6 +31,7 @@
       %th= t '.version'
       %th= t '.user'
       %th= t '.available'
+      %th= t '.action'
   %tbody
     - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
       %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
@@ -36,6 +42,9 @@
         %td= t (value['user_managed'] ? 'yes' : 'no')
         -if @imports[key]
           %td{:title=>@imports[key][:tar]}
-            = @imports[key][:barclamp]['version']
+            = t('.version') + " " + @imports[key][:barclamp]['version'].to_s
+          %td
+            = link_to t('.import'), utils_import_path(:id => @imports[key][:tar]), :class=>'button'
         -else
-          %td= t 'na'
+          %td{:colspan=>2}= t 'na'
+          

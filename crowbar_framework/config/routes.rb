@@ -21,29 +21,29 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
-  map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :constraints => { :name => /.*/ }
-  map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /.*/ }
+  map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
+  map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
-  map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index'
-  map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :constraints => { :id => /.*/ }
+  map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index', :requirements => { :name => /.*/ }
+  map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
   # this route allows any barclamp to extend the nodes view
   map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'  
-  map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /.*/ }
-  map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /.*/ }
+  map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :requirements => { :name => /.*/ }
+  map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :requirements => { :name => /.*/ }
   
   # this route allows any barclamp to extend the network view
   map.network_barclamp 'network/:controller/1.0', :action=>'network'
   # these paths require the network barclamp 
   map.network 'network', :controller => 'network', :action=>'switch'
-  map.switch 'network/switch/:id', :controller => 'network', :action=>'switch'
-  map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan'
+  map.switch 'network/switch/:id', :controller => 'network', :action=>'switch', :requirements => { :id => /.*/ }
+  map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
   
   #support paths
   map.utils 'utils', :controller=>'support', :action=>'index'
-  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }
+  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'index', :requirements => { :id => /.*/ }
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
   map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
-  map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import'
+  map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
   
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }

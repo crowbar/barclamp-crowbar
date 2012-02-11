@@ -48,7 +48,7 @@ class SupportController < ApplicationController
         @exports[:other] << f
       end
       @exports[:count] += 1
-      @file = params['file'].gsub(/-DOT-/,'.') if params['file']
+      @file = params['file'] if params['file']
       @waiting = false if @file == f
     end
     respond_to do |format|
@@ -83,6 +83,23 @@ class SupportController < ApplicationController
   def import
     @installed = ServiceObject.barclamp_catalog['barclamps']
     @imports = {}
+    if params[:id]
+      tar = File.join RAILS_ROOT, import_dir, params[:id]
+      if File.exist? tar
+        begin
+          importer = File.join '/opt', 'dell', 'bin', 'barclamp_install.rb'
+          @output = "Command: #{importer} #{tar}<br/>Results:<br/>"
+          @output += %x[sudo #{importer} #{tar}]
+          @output = @output.gsub(/\n/,"<br/>")
+          flash[:notice] = "#{t('success', :scope=>'support.import')}: #{params[:id]}"
+          #TODO! If production mode, restart required!!
+        rescue
+          flash[:notice] = "#{t('error_import', :scope=>'support.import')}: #{tar}" 
+        end
+      else
+        flash[:notice] = "#{t('error_file_missing', :scope=>'support.import')}: #{tar}" 
+      end
+    end
     Dir.entries(import_dir).each do |tar|
       if tar =~ /^.*tar.gz$/ 
         name = tar[/^(.*).tar.gz$/,1] + '.yml'
@@ -98,7 +115,7 @@ class SupportController < ApplicationController
           key = cb['barclamp']['name']
           @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'] }
           unless @installed.key? key
-            @installed[key] = {:installed=>false, :name=>key}
+            @installed[key] = {:installed=>false, :name=>key, 'order'=>cb['crowbar']['order']}
           end
         rescue
           # something happened to the YAML file!
@@ -124,7 +141,7 @@ class SupportController < ApplicationController
           system "tar -czf #{File.join('/tmp',cfile)} #{File.join('db','*.json')}" 
           File.rename File.join('/tmp',cfile), File.join(export_dir,cfile)
         end        
-        redirect_to "/utils?waiting=true&file=#{@file.gsub(/\./,'-DOT-')}"
+        redirect_to "/utils?waiting=true&file=#{@file}"
       rescue Exception=>e
         flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
         redirect_to "/utils"
@@ -159,7 +176,6 @@ class SupportController < ApplicationController
   def remove_file(type, name)
     begin
       f = File.join(check_dir(type), name)
-      f = f.gsub(/-DOT-/,'.')
       File.delete f
       flash[:notice] = t('support.index.delete_succeeded') + ": " + f
     rescue

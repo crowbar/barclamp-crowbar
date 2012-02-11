@@ -16,7 +16,7 @@
                 %em#new= t('new')
               %a{:href=>"\\export\\#{file}"}
                 = file
-              = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file.gsub(/\./,'-DOT-')), :title=>t('.delete_hint')
+              = link_to image_tag('/images/icons/delete.png'), utils_files_path(:id => file), :title=>t('.delete_hint')
             
 .clear
 

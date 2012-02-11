@@ -9,23 +9,33 @@
   = t('.admin_os') + ": "
   %em= t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
 
-%h2
-  = t '.select_files'
-  %div{:style=>'float:right'}
-    %form{:action=>"import",:method=>"post",:enctype=>"multipart/form-data"}
-      %input{:type=>"file",:name=>"file"}
-      %input{:type=>"submit",:value=>t('.upload')}
+-if false # works, but not used at this point
+  %h2
+    = t '.select_files'
+    %div{:style=>'float:right'}
+      %form{:action=>"import",:method=>"post",:enctype=>"multipart/form-data"}
+        %input{:type=>"file",:name=>"file"}
+        %input{:type=>"submit",:value=>t('.upload')}
 
--if @imports[:count] == 0
-  %h3= t '.none'
--else
-  - @imports.each do |key, value|
-    - if key != :count
-      -if value.length != 0
-        %h3=t ".#{key}"
-        %ul        
-          -value.sort.each do |file|
-            %li
-              = file
-              = link_to image_tag('/images/icons/delete.png'), utils_import_path(:id => file.gsub(/\./,'-DOT-')), :title=>t('.delete_hint')
-
+%table.data.box
+  %thead
+    %tr
+      %th= t '.installed'
+      %th= t '.order'
+      %th= t '.name'
+      %th= t '.version'
+      %th= t '.user'
+      %th= t '.available'
+  %tbody
+    - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
+      %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
+        %td= t ((value['installed'] || true) ? 'yes' : 'no')
+        %td= value['order'] || t('not_set')
+        %td{:title=>(value['description'] || t('not_set'))}= key.titlecase
+        %td= value['version'] || t('unknown')
+        %td= t (value['user_managed'] ? 'yes' : 'no')
+        -if @imports[key]
+          %td{:title=>@imports[key][:tar]}
+            = @imports[key][:barclamp]['version']
+        -else
+          %td= t 'na'

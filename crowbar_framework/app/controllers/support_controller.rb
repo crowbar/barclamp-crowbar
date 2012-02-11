@@ -58,7 +58,8 @@ class SupportController < ApplicationController
     end
   end
   
-  def import
+  # NOT USED!!!
+  def upload
     @file = nil
     if request.post? && params[:file] 
       begin
@@ -70,25 +71,39 @@ class SupportController < ApplicationController
             File.open(file, "wb") { |f| f.write(tmpfile.read) }
           end
           tmpfile.delete
-          flash[:notice] = t('.upload_succeeded', :scope=>'support.import') + ": " + @file
+          flash[:notice] = t('.succeeded', :scope=>'support.upload') + ": " + @file
         end
       rescue
         Rails.logger.error("Upload of file failed")
-        flash[:notice] = t('.upload_failed', :scope=>'support.import')
+        flash[:notice] = t('.failed', :scope=>'support.upload')
       end
-    elsif params[:id]
-      remove_file 'import', params[:id]
     end
-    @imports = { :count=>0, :bc=>[], :other=>[] }
-    Dir.entries(import_dir).each do |f|
-      if f =~ /^\./
-        next # ignore rest of loop
-      elsif f =~ /^.*tar.gz$/
-        @imports[:bc] << f 
-      else
-        @imports[:other] << f
+  end
+  
+  def import
+    @installed = ServiceObject.barclamp_catalog['barclamps']
+    @imports = {}
+    Dir.entries(import_dir).each do |tar|
+      if tar =~ /^.*tar.gz$/ 
+        name = tar[/^(.*).tar.gz$/,1] + '.yml'
+        unless File.exist? File.join(import_dir, name)
+          archive = File.join import_dir,tar
+          crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
+          if crowbar
+            %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}]
+          end
+        end
+        begin
+          cb = YAML.load_file(File.join(import_dir, name))
+          key = cb['barclamp']['name']
+          @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'] }
+          unless @installed.key? key
+            @installed[key] = {:installed=>false, :name=>key}
+          end
+        rescue
+          # something happened to the YAML file!
+        end
       end
-      @imports[:count] += 1
     end
     respond_to do |format|
       format.html # index.html.haml

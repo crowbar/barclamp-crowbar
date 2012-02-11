@@ -28,6 +28,7 @@ en:
     utils: Utilities
     util_logs: Exported Items
     util_chef: Chef Export
+    util_import: Import Barclamps
     list: Bulk Edit
     barclamps: Barclamps
     crowbar_bc: Crowbar
@@ -201,14 +202,18 @@ en:
     import:
       title: Barclamp Import
       admin_os: Crowbar Operating System
-      none: No Files to Import
-      select_files: Select Files to Upload
-      delete_hint: Delete File from Import Directory
-      upload: Upload
-      bc: Barclamps
-      other: Other Files
-      upload_succeeded: Upload Succeeded
-      upload_failed: Upload Failed
+      REMOVE_select_files: Select Files to Upload
+      REMOVE_delete_hint: Delete File from Import Directory
+      REMOVE_upload: Upload
+      installed: Installed
+      user: User Managed
+      name: Name
+      order: Order
+      version: Version
+      available: Available
+    upload:
+      succeeded: Upload Succeeded
+      failed: Upload Failed
     os:
       ubuntu-2-6-35: 'Ubuntu Linux 10.10'
      
@@ -305,8 +310,8 @@ en:
   created_on: Created On
   no_items: No Items
   complete: Complete
-  yes: Yes
-  no: No
+  'yes': 'Yes'
+  'no': 'No'
   maybe: Maybe
   chuck_norris: Die!!!
   updating: Updating...

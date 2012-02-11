@@ -59,9 +59,10 @@
         %tr
           %td{ :colspan=>8 }
             = t 'no_items'
-    %tfoot
-      %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-        %td.hint{:colspan => 6}
-          = t('note')+": "+t('.hint')
-        %td.action{:colspan => 1}
-          %input.button{:type => "submit", :name => "submit", :value => 'Save'}
+    - if @nodes.count > 0
+      %tfoot
+        %tr{ :class => cycle(:odd, :even, :name => "nodes")}
+          %td.hint{:colspan => 6}
+            = t('note')+": "+t('.hint')
+          %td.action{:colspan => 1}
+            %input.button{:type => "submit", :name => "submit", :value => 'Save'}

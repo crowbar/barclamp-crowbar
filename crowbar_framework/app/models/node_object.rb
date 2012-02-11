@@ -165,7 +165,10 @@ class NodeObject < ChefObject
     # valid DNS Name
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
-      raise I18n.t('model.node.invalid_dns') + ": " + value
+      raise "#{I18n.t('model.node.invalid_dns')}: #{value}"
+    elsif value.length+ChefObject.cloud_domain.length>62  #62+dot = 63
+      Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit"
+      raise "#{I18n.t('model.node.too_long_dns')}: #{value}.#{ChefObject.cloud_domain}"
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
@@ -239,10 +242,15 @@ class NodeObject < ChefObject
     @node["ipaddress"] || (I18n.t :unknown)
   end
 
+  def crowbar_ohai
+    nil if @node.nil?
+    @node.automatic_attrs["crowbar_ohai"]
+  end
+
   def mac
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
-      @node["crowbar_ohai"]["switch_config"][intf]["mac"] || (I18n.t :unknown)
+      self.crowbar_ohai["switch_config"][intf]["mac"] || (I18n.t :unknown)
     else
       (I18n.t :not_set)
     end
@@ -486,7 +494,7 @@ class NodeObject < ChefObject
 
   def sort_ifs
     bus_order = get_bus_order
-    map = @node["crowbar_ohai"]["detected"]["network"]
+    map = self.crowbar_ohai["detected"]["network"]
     answer = map.sort{|a,b|
       aindex = bus_index(bus_order, a[1])
       bindex = bus_index(bus_order, b[1])
@@ -501,7 +509,7 @@ class NodeObject < ChefObject
       parts = data["pattern"].split("/")
       the_one = true
       the_one = false unless @node["network"]["mode"] =~ /#{parts[0]}/
-      the_one = false unless @node["crowbar_ohai"]["detected"]["network"].size.to_s =~ /#{parts[1]}/
+      the_one = false unless self.crowbar_ohai["detected"]["network"].size.to_s =~ /#{parts[1]}/
 
       found = false
       @node.roles.each do |role|
@@ -551,7 +559,7 @@ class NodeObject < ChefObject
   def unmanaged_interfaces
     intf_to_if_map = build_node_map
 
-    orig_if_list = @node["crowbar_ohai"]["detected"]["network"] rescue nil
+    orig_if_list = self.crowbar_ohai["detected"]["network"] rescue nil
     return {} if orig_if_list.nil?
     if_list = orig_if_list.map { |x| x[0] }
 
@@ -597,9 +605,9 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node.nil? or @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node.nil? or @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = @node["crowbar_ohai"]["switch_config"][intf]["switch_name"]
+      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"]
       unless switch_name == -1
         switch_name.to_s.gsub(':', '-')
       else
@@ -612,9 +620,9 @@ class NodeObject < ChefObject
 
   # for stacked switches, unit is set while name is the same
   def switch_unit
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_unit = @node["crowbar_ohai"]["switch_config"][intf]["switch_unit"]
+      switch_unit = self.crowbar_ohai["switch_config"][intf]["switch_unit"]
       (switch_unit == -1 ? nil : switch_unit)
     else
       nil
@@ -622,9 +630,9 @@ class NodeObject < ChefObject
   end
 
   def switch_port
-    unless @node["crowbar"].nil? or @node["crowbar_ohai"].nil? or @node["crowbar_ohai"]["switch_config"].nil?
+    unless @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_port = @node["crowbar_ohai"]["switch_config"][intf]["switch_port"]
+      switch_port = self.crowbar_ohai["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)
     else
       nil

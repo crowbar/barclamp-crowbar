@@ -67,8 +67,9 @@ class SupportController < ApplicationController
           if tmpfile.class.to_s == 'Tempfile'
             @file = tmpfile.original_filename
             file = File.join import_dir, @file
+            File.open(file, "wb") { |f| }
             while blk = tmpfile.read(65536)
-              File.open(file, "wb") { |f| f.write(tmpfile.read) }
+              File.open(file, "ab") { |f| f.write(blk) }
             end
             tmpfile.delete
             flash[:notice] = t('.succeeded', :scope=>'support.upload') + ": " + @file

@@ -202,9 +202,6 @@ en:
     import:
       title: Barclamp Import
       admin_os: Crowbar Operating System
-      REMOVE_select_files: Select Files to Upload
-      REMOVE_delete_hint: Delete File from Import Directory
-      REMOVE_upload: Upload
       installed: Installed
       user: User Managed
       name: Name
@@ -216,9 +213,13 @@ en:
       error_file_missing: 'Error! Barclamp not found.'
       error_import: 'Error! Import failed.'
       success: 'Success. Barclamp Imported!'
+      select_files: Select Files to Upload
+      upload: Upload
+      delete_hint: Delete File from Import Directory
     upload:
       succeeded: Upload Succeeded
       failed: Upload Failed
+      no_file: No File for Upload
     os:
       ubuntu-2-6-35: 'Ubuntu Linux 10.10'
      

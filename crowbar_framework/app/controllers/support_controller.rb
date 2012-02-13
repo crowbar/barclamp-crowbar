@@ -58,26 +58,30 @@ class SupportController < ApplicationController
     end
   end
   
-  # NOT USED!!!
   def upload
     @file = nil
-    if request.post? && params[:file] 
-      begin
-        tmpfile = params[:file]
-        if tmpfile.class.to_s == 'Tempfile'
-          @file = tmpfile.original_filename
-          file = File.join import_dir, @file
-          while blk = tmpfile.read(65536)
-            File.open(file, "wb") { |f| f.write(tmpfile.read) }
+    if request.post?
+      if params[:file] 
+        begin
+          tmpfile = params[:file]
+          if tmpfile.class.to_s == 'Tempfile'
+            @file = tmpfile.original_filename
+            file = File.join import_dir, @file
+            while blk = tmpfile.read(65536)
+              File.open(file, "wb") { |f| f.write(tmpfile.read) }
+            end
+            tmpfile.delete
+            flash[:notice] = t('.succeeded', :scope=>'support.upload') + ": " + @file
           end
-          tmpfile.delete
-          flash[:notice] = t('.succeeded', :scope=>'support.upload') + ": " + @file
+        rescue
+          Rails.logger.error("Upload of file failed")
+          flash[:notice] = t('.failed', :scope=>'support.upload')
         end
-      rescue
-        Rails.logger.error("Upload of file failed")
-        flash[:notice] = t('.failed', :scope=>'support.upload')
+      else
+        flash[:notice] = t('.no_file', :scope=>'support.upload')
       end
     end
+    redirect_to :action=>'import'
   end
   
   def import

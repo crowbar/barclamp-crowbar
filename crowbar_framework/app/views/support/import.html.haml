@@ -5,22 +5,18 @@
 
 %h1= t '.title'
 
-
--if false # works, but not used at this point
-  %h2
-    = t '.select_files'
-    %div{:style=>'float:right'}
-      %form{:action=>"import",:method=>"post",:enctype=>"multipart/form-data"}
-        %input{:type=>"file",:name=>"file"}
-        %input{:type=>"submit",:value=>t('.upload')}
-
 .column_100
   %section.box#details
     -if @output
       = @output
     -else
-      = t('.admin_os') + ": "
-      %em= t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
+      %strong= t('.admin_os') + ": "
+      = t("#{os.downcase}-#{ver.gsub('.','-')}", :scope=> 'support.os', :default=>o)
+    %div
+      %form{:action=>"upload",:method=>"post",:enctype=>"multipart/form-data"}
+        %strong= t '.select_files'
+        %input{:type=>"file",:name=>"file"}
+        %input{:type=>"submit",:value=>t('.upload')}
 
 %table.data.box
   %thead

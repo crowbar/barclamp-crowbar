@@ -44,6 +44,7 @@ ActionController::Routing::Routes.draw do |map|
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
   map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
   map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
+  map.utils_upload 'utils/upload/:id', :controller=>'support', :action=>'upload', :requirements => { :id => /.*/ }
   
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }

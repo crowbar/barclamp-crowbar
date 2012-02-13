@@ -9,6 +9,9 @@
   "deployment": {
     "==BC-MODEL==": {
       "crowbar-revision": 0,
+      "element_states": {
+        "==BC-MODEL==-server": [ "readying", "ready", "applying" ]
+      },
       "elements": {},
       "element_order": [
         [ "==BC-MODEL==-server" ]

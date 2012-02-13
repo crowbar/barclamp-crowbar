@@ -97,7 +97,7 @@ class NodeObject < ChefObject
     role.default_attributes["crowbar"]["network"] = {} if role.default_attributes["crowbar"]["network"].nil?
     role.save
 
-    # This run_list call is to add the crowbar tracking role to the node.
+    # This run_list call is to add the crowbar tracking role to the node. (SAFE)
     machine.run_list.run_list_items << "role[#{role.name}]"
     machine.save
 
@@ -279,7 +279,7 @@ class NodeObject < ChefObject
     @node.name value
     @node[:fqdn] = value
     @node[:domain] = domain
-    # This modifying of the run_list is to handle change the name of the crowbar tracking role
+    # This modifying of the run_list is to handle change the name of the crowbar tracking role (SAFE)
     @node.run_list.run_list_items.delete "role[#{@role.name}]"
     @role.name = "crowbar-#{value.gsub(".", "_")}"
     @node.run_list.run_list_items << "role[#{@role.name}]"
@@ -318,24 +318,41 @@ class NodeObject < ChefObject
     args.length > 0 ? @role.run_list(args) : @role.run_list
   end
 
-  def add_to_run_list(rolename, priority)
+  def add_to_run_list(rolename, priority, states = nil)
+    states = [ "all" ] unless states
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    crowbar["run_list_map"][rolename] = priority
+    crowbar["run_list_map"][rolename] = { "states" => states, "priority" => priority }
 
+    # only rebuild the run_list if it effects the current state.
+    self.rebuild_run_list if states.include?("all") or states.include?(self.crowbar['state'])
+  end
+
+  def delete_from_run_list(rolename)
+    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+    crowbar["run_list_map"][rolename] = { "states" => [ "all" ], "priority" => -1001 } unless crowbar["run_list_map"].nil?
+    crowbar_run_list.run_list_items.delete "role[#{rolename}]"
+  end
+
+  def rebuild_run_list
+    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+
+    # Cull by state
+    map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
     # Sort map
-    vals = crowbar["run_list_map"].sort { |a,b| a[1] <=> b[1] }
+    vals = map.sort { |a,b| a[1]["priority"] <=> b[1]["priority"] }
 
     # Rebuild list
     crowbar_run_list.run_list_items.clear
     vals.each do |item|
-      next if item[1] == -1001 # Skip deleted items
+      next if item[1]["priority"] == -1001 # Skip deleted items
       crowbar_run_list.run_list_items << "role[#{item[0]}]"
     end
   end
 
-  def delete_from_run_list(rolename)
-    crowbar["run_list_map"][rolename] = -1001 unless crowbar["run_list_map"].nil?
-    crowbar_run_list.run_list_items.delete "role[#{rolename}]"
+  def run_list_to_roles
+    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+    a = crowbar["run_list_map"].select { |k,v| v["priority"] != -1001 }
+    a.collect! { |x| x[0] }
   end
 
   def crowbar
@@ -347,11 +364,12 @@ class NodeObject < ChefObject
     @role.default_attributes = value
   end
 
+  # This include a map walk
   def role?(role_name)
     return false if @node.nil?
-    @role.run_list.run_list_items.each do |item|
-      return true if item == "role[#{role_name}]"
-    end
+    return false if @role.nil?
+    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+    return true if crowbar["run_list_map"][role_name]
     @node.role?(role_name)
   end
 

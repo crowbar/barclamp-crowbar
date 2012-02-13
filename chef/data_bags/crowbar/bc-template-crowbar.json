@@ -31,6 +31,9 @@
   "deployment": {
     "crowbar": {
       "crowbar-revision": 0,
+      "element_states": {
+        "crowbar": [ "all" ]
+      },
       "elements": {},
       "element_order": [
         [ "crowbar" ]

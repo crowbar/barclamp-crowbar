@@ -80,7 +80,7 @@ class CrowbarService < ServiceObject
 
       catalog = ServiceObject.barclamp_catalog
       roles = RoleObject.find_roles_by_search "transitions:true AND (transition_list:all OR transition_list:#{ChefObject.chef_escape(state)})"
-      # Make sure the deployer objects run first.
+      # Sort rules for transition order (deployer should be near the beginning if not first).
       roles.sort! do |x,y| 
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
@@ -116,6 +116,11 @@ class CrowbarService < ServiceObject
           end
         end
       end
+
+      # The node is going to call chef-client on return or as a side-effet of the proces queue.
+      node = NodeObject.find_node_by_name(name)
+      node.rebuild_run_list
+      node.save
 
       # We have a node that has become ready, test to see if there are queued proposals to commit
       process_queue if state == "ready"

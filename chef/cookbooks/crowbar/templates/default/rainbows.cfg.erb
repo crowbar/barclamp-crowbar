@@ -1,5 +1,6 @@
 Rainbows! do
   use :<%= @concurrency_model %>  # concurrency model to use
+  client_max_body_size 8*1024*1024*1024 # 8GB upload size - in case we want to upload an iso.
 end
 
 timeout 3600

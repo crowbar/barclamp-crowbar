@@ -757,7 +757,10 @@ class ServiceObject
     old_elements = old_deployment["elements"] unless old_deployment.nil?
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
+    # For Role ordering
     local_chef_order = chef_order
+    role_map = new_deployment["element_states"]
+    role_map = {} unless role_map
 
     # Merge the parts based upon the element install list.
     all_nodes = []
@@ -825,7 +828,7 @@ class ServiceObject
       alist.each do |item|
         next if node.role? item
         @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_chef_order)
+        node.add_to_run_list(item, local_chef_order, role_map[item])
         save_it = true
       end
 
@@ -834,7 +837,7 @@ class ServiceObject
         # Add the config role 
         unless node.role?(role.name)
           @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_chef_order)
+          node.add_to_run_list(role.name, local_chef_order, role_map[role.name])
           save_it = true
         end
       else
@@ -978,6 +981,8 @@ class ServiceObject
     end
 
     chef_order = ServiceObject.chef_order(barclamp)
+    role_map = prop["deployment"][barclamp]["element_states"] rescue {}
+    role_map = {} unless role_map
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
@@ -999,7 +1004,7 @@ class ServiceObject
 
     save_it = false
     unless node.role?(newrole)
-      node.add_to_run_list(newrole, chef_order)
+      node.add_to_run_list(newrole, chef_order, role_map[newrole])
       save_it = true
     end
 

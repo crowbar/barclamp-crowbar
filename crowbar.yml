@@ -256,7 +256,6 @@ rpms:
     - rabbitmq-server
     # ruby stuff
     - ruby
-    - ruby-ri
     - ruby-devel
     - ruby-shadow
     # sudo stuff

@@ -278,7 +278,7 @@ gems:
   pkgs:
     # bluepill stiff
     - i18n
-    - bluepill
+    - bluepill-0.0.51
     # crowbar stuff
     - rake
     - json-1.5.2

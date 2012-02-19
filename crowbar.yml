@@ -159,7 +159,7 @@ debs:
     # runit stuff
     - runit
     # sudo stuff
-    - sudo
+    #- sudo
     # java stuff
     #- sun-java6-jdk
     #- sun-java6-jre

@@ -4,9 +4,9 @@ Feature: Barclamp
   must to be discovered and to update their status
 
   Scenario: %Update Status
-    When I go set node to the "nodes" page
+    When I go to the "nodes" page
     Then I should see "a4-ba-db-70-f8-74"
-    Then I should see "da4-ba-db-17-47-69"
+     And I should see "da4-ba-db-17-47-69"
     Then I should see "da4-ba-db-17-44-3f"
     Then I should see "admin"
     
@@ -40,5 +40,5 @@ Feature: Barclamp
     
   Scenario: %Status Works
     When AJAX requests the "nodes/status" page
-    Then key "nodes" should contain at least "6" items
+    Then key "nodes" should contain at least "1" items
       And key "[nodes][admin][state]" should be "Ready"

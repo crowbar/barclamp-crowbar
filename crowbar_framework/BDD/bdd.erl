@@ -27,8 +27,14 @@ test(ConfigName, search, Tests) ->
   Features = filelib:wildcard("*." ++ bdd_utils:config(BaseConfig,extension)),
 	application:start(inets),		% needed for getting we pages
 	application:start(crypto),  % needed for digest authentication
-	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
+	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
+	%test setup
+  Config = step_run(StartConfig, [], {step_setup, 0, []}, ConfigName),  
+  %run the tests
   Results = [{feature, FileName, test(Config, FileName, Tests)} || FileName <- Features],
+  %test teardown
+  step_run(Config, [], {step_teardown, 0, []}, ConfigName),  
+  % cleanup application services
   application:stop(crypto),
 	application:stop(inets),
 	Result = [R || {_, R} <- Results, R =/= pass],
@@ -38,19 +44,26 @@ test(ConfigName, search, Tests) ->
 	end;
 test(ConfigBase, FileName, Tests) -> 
 	[Feature | _ ] = string:tokens(FileName,"."),
-	Config = [{feature, Feature}, {file, FileName} | ConfigBase],		% stuff the file name into the config set for later
+	ConfigFile = [{feature, Feature}, {file, FileName} | ConfigBase],		% stuff the file name into the config set for later
 	{feature, Name, Scenarios} = feature_import(FileName),
 	[ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
 	io:format(" FEATURE: ~s.~n", [ScenarioName]),
-	{feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]}.
-
+	% setup the feature
+  Config = step_run(ConfigFile, [], {step_setup, 0, []}, Feature),
+  Result = {feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]},
+  step_run(Config, [], {step_teardown, 0, []}, Feature),
+  Result.
+  
+% similar to test, this can be used to invoke a single feature for testing
 feature(ConfigName, FeatureName) ->
   BaseConfig = getconfig(ConfigName),
   FileName = FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension),
 	application:start(inets),		% needed for getting we pages
 	application:start(crypto),  % needed for digest authentication
-	Config = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
+	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
+	Config = step_run(StartConfig, [], {step_setup, 0, []}, ConfigName),  % setup
   test(Config, FileName, []),
+  step_run(Config, [], {step_setup, 0, []}, ConfigName),  %teardown
 	application:stop(crypto),
 	application:stop(inets).
   
@@ -78,8 +91,20 @@ setup_scenario(Config, Scenario, Tests) ->
 	  true -> io:format("\tSKIPPED ~p~n", [Name])
 	end.
 
+print_fail([]) -> true;
+print_fail({Pass, {_Type, N, Description}}) ->
+  PF = case Pass of
+    true -> ". Pass";
+    _ -> "X FAIL"
+  end,
+  io:format("\t\t~s #~p: ~s~n", [PF, N, lists:flatten([D ++ " " || D <- Description])]);
+print_fail([Result | Results]) ->
+  print_fail(Result),
+  print_fail(Results).
+
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
+  % organize steps in the scenarios
 	{N, GivenSteps, WhenSteps, ThenSteps} = scenario_steps(RawSteps),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
@@ -92,14 +117,14 @@ test_scenario(Config, RawSteps, Name) ->
 	end,
 	bdd_utils:trace(Config, Name, N, RawSteps, Given, When),
 	% now, check the results
-	Result = [step_run(Config, When, TS) || TS <- ThenSteps],
+	Result = [{step_run(Config, When, TS), TS} || TS <- ThenSteps],
 	% now, run the then steps
-	io:format("\tSTEP: ~p (~p steps) ", [Name, N]),
-	case bdd_utils:assert(Result) of
+	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
+	case bdd_utils:assert_atoms(Result) of
 		true -> io:format("PASSED!~n",[]), pass;
-		_ -> io:format("~n\t\t*** FAIL (Result: ~p)***~n\t\tSTEPS:~n\t\t\tGIVEN: ~p~n\t\t\tWHEN: ~p~n\t\t\tTHEN: ~p~n", [Result, GivenSteps, WhenSteps, ThenSteps]), Name
+		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
 	end.
-
+  
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
 	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files)],
@@ -120,6 +145,10 @@ step_run(Config, Input, Step, [Feature | Features]) ->
       throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> io:format("ERROR: step run found ~p:~p~n", [X, Y]), throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
+
+% we don't want to FAIL for missing setup and teardown steps	
+step_run(Config, _Input, {step_setup, _, _}, []) -> io:format("\tFeature has no Setup defined~n"), Config;
+step_run(Config, _Input, {step_teardown, _, _}, []) -> io:format("\tFeature has no Teardown defined~n"), Config;
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->

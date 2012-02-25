@@ -19,6 +19,10 @@
 -import(bdd_utils).
 -import(json).
 
+step(Config, _Global, {step_setup}, _N, _) -> Config;
+
+step(Config, _Global, {step_teardown}, _N, _) -> Config;
+
 step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", State]}) ->
   Path = "/crowbar/crowbar/1.0/transition/default",
   Data = json:output([{name, Node++"."++sc:domain(Config)}, {state, State}]),

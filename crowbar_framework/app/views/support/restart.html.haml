@@ -1,0 +1,26 @@
+%h1= t '.title'
+- if params[:id] == 'in_process'
+  =t '.in_process'
+- else
+  = "put button here!"
+
+%div#status
+  = "not set"
+  
+.clear
+
+:javascript
+  
+  function update() {
+    $.ajaxSetup({ timeout: 500});
+    $.getJSON('#{START_TIME}?format=json', function(data) {   
+      console.debug(data);
+      if (data) {
+        $('#status').text('restarted');
+        location.href = "/utils/import"
+        }
+      else {
+        $('#status').text('waiting...');
+      }
+    });      
+  }

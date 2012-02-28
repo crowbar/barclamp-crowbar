@@ -220,6 +220,9 @@ en:
       succeeded: Upload Succeeded
       failed: Upload Failed
       no_file: No File for Upload
+    restart:
+      title: Restart Crowbar
+      in_process: Restart in process...
     os:
       ubuntu-2-6-35: 'Ubuntu Linux 10.10'
      

@@ -118,7 +118,7 @@ class SupportController < ApplicationController
         begin
           cb = YAML.load_file(File.join(import_dir, name))
           key = cb['barclamp']['name']
-          @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'] }
+          @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :commit=>cb['git']['commit']}
           unless @installed.key? key
             @installed[key] = {:installed=>false, :name=>key, 'order'=>cb['crowbar']['order']}
           end

@@ -206,9 +206,9 @@ en:
       user: User Managed
       name: Name
       order: Order
-      version: Version
+      version: Date
+      commit: Commit GUID
       available: Available
-      action: Action
       import: Import
       error_file_missing: 'Error! Barclamp not found.'
       error_import: 'Error! Import failed.'
@@ -228,8 +228,7 @@ en:
       server_down: Process stopped.  Restarting...
       complete: Crowbar Ready!
       button: Restart Crowbar Server
-    os:
-      ubuntu-2-6-35: 'Ubuntu Linux 10.10'
+
      
   barclamp:
     modules:

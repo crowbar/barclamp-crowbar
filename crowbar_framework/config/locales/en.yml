@@ -223,6 +223,11 @@ en:
     restart:
       title: Restart Crowbar
       in_process: Restart in process...
+      dev_restart: 'DEV MODE: You must manually restart the web server to complete this action (it may not be needed).'
+      restarting: Restart request sent...
+      server_down: Process stopped.  Restarting...
+      complete: Crowbar Ready!
+      button: Restart Crowbar Server
     os:
       ubuntu-2-6-35: 'Ubuntu Linux 10.10'
      

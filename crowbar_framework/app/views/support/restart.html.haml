@@ -1,26 +1,36 @@
 %h1= t '.title'
-- if params[:id] == 'in_process'
-  =t '.in_process'
+- if params[:id] == 'request'
+  %table
+    %tr
+      %td
+        .led{:class => 'off'}
+      %td#status
+        = "#{t '.in_process'}"
 - else
-  = "put button here!"
-
-%div#status
-  = "not set"
+  = link_to t('.button'), restart_path(:id=>'request'), :class => 'button', :id=>'restart_button'
   
 .clear
 
 :javascript
   
   function update() {
-    $.ajaxSetup({ timeout: 500});
-    $.getJSON('#{START_TIME}?format=json', function(data) {   
-      console.debug(data);
-      if (data) {
-        $('#status').text('restarted');
-        location.href = "/utils/import"
+    if (#{params[:id] == 'request'}) {
+      jUrl = '/utils/restart/#{SERVER_PID}?format=json';
+      $.get('/utils/restart/in_process');
+      $.ajaxSetup({ timeout: 100});
+      $.ajax({url: jUrl, success: function(data) {   
+        if (data) {
+          $('.led').attr('class','led ready');
+          $('#status').text('#{t(".complete")}');
+          location.href = "/utils/import";
+          }
+        else {
+          $('.led').attr('class','led pending');
+          $('#status').text('#{RAILS_ENV=="development" ? t(".dev_restart") : t(".restarting")}');
         }
-      else {
-        $('#status').text('waiting...');
-      }
-    });      
+      }, error: function(XMLHttpRequest, textStatus, errorThrown){
+        $('.led').attr('class','led in_process');
+        $('#status').text('#{t(".server_down")}');
+      }});      
+    }
   }

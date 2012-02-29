@@ -159,14 +159,14 @@ class SupportController < ApplicationController
   def restart
     if params[:id].nil?
       render
-    elsif params[:id] == "request"
-      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
-      redirect_to :controller=> 'support', :action=>'restart', :id=>'in_process'
-    elsif params[:id] == "in_process"
+    elsif params[:id].eql? "request"
       render
-    elsif params[:id] == START_TIME
+    elsif params[:id].eql? "in_process"
+      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
       render :json=>false
-    elsif params[:id] != START_TIME
+    elsif params[:id].eql? SERVER_PID
+      render :json=>false
+    elsif !params[:id].eql? SERVER_PID
       render :json=>true
     else
       render

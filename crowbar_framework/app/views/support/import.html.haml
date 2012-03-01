@@ -2,47 +2,56 @@
 - s = o.split '='
 - crowbar_os = s[1].gsub('"','')
 
-%h1= t '.title'
+-unless params[:all].nil?
+  %div{:style=>'float:right'}= link_to t('.pending'), utils_import_path, :class => 'button'
+  %h1= t '.title_all'
+-else
+  %div{:style=>'float:right'}= link_to t('all'), utils_import_path(:all=>'yes'), :class => 'button'
+  %h1= t '.title'
 
 .column_100
   %section.box#details
-    -if @output
-      = @output
-    -else
-      %strong= t('.admin_os') + ": "
-      = crowbar_os
+    %strong= t('.admin_os') + ": " + crowbar_os
     %div
       %form{:action=>"upload",:method=>"post",:enctype=>"multipart/form-data"}
         %strong= t '.select_files'
         %input{:type=>"file",:name=>"file"}
         %input{:type=>"submit",:value=>t('.upload')}
 
-%table.data.box
-  %thead
-    %tr
-      %th= t '.installed'
-      %th= t '.order'
-      %th= t '.name'
-      %th= t '.user'
-      %th= t '.version'
-      %th= t '.available'
-  %tbody
-    - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
-      %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
-        %td= t ((value['installed'] || true) ? 'yes' : 'no')
-        %td= value['order'] || t('not_set')
-        %td{:title=>(value['description'] || t('not_set'))}= key.titlecase
-        %td= t (value['user_managed'] ? 'yes' : 'no')
-        %td{:title=>t('.commit')+': '+(value['commit'] || t('unknown'))}= (value['date'] || t('unknown')).split('-')[0]
-        -if @imports[key]
-          %td{:title=>t('.commit')+': '+@imports[key][:commit]}
-            = "[X]"
-            = @imports[key][:date].split('-')[0]
-        -else
-          %td= t 'na'
-  %tfooter
-    %tr.foot
-      %td{:colspan=>5}
-      %td
-        =link_to t('.import'), utils_import_path(), :class=>'button'
-          
+- form_for :import, :url => utils_import_path, :html => { :'data-type' => 'html',  :id => 'import_barclamps', :class => "formtastic" } do |f|
+  %table.data.box
+    %thead
+      %tr
+        %th= t '.installed'
+        %th= t '.order'
+        %th= t '.name'
+        %th= t '.user'
+        %th= t '.version'
+        %th= t '.available'
+    %tbody
+      - if @imports.length==0
+        %tr
+          %td{colspan=>6}= t('no_items')
+      - else
+        - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
+          -if params[:all] or @imports[key]
+            %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
+              %td= t ((value['installed'] || true) ? 'yes' : 'no')
+              %td= value['order'] || t('not_set')
+              %td{:title=>(value['description'] || t('not_set'))}= key.titlecase
+              %td= t (value['user_managed'] ? 'yes' : 'no')
+              %td{:title=>t('.commit')+': '+(value['commit'] || t('unknown'))}= (value['date'] || t('unknown')).split('-')[0]
+              -if @imports[key]
+                - different = !(@imports[key][:commit].eql? value['commit'])
+                %td{:title=>t('.commit')+': '+@imports[key][:commit]}
+                  = check_box_tag "barclamp:#{key}", @imports[key][:tar], different
+                  = @imports[key][:date].split('-')[0]
+              -else
+                %td= t 'na'
+    %tfooter
+      %tr.foot
+        %td{:colspan=>5}
+        %td
+          -if @imports.length>0
+            %input.button{:type => "submit", :name => "submit", :value => t('.import')} 
+            

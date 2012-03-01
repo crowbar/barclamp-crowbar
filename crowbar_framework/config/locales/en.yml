@@ -201,6 +201,8 @@ en:
       fail: Chef Export Failed
     import:
       title: Barclamp Import
+      title_all: Barclamp Import (installed and pending)
+      pending: Pending Only
       admin_os: Crowbar Operating System
       installed: Installed
       user: User Managed
@@ -228,6 +230,7 @@ en:
       server_down: Process stopped.  Restarting...
       complete: Crowbar Ready!
       button: Restart Crowbar Server
+      import_log: Import Log
 
      
   barclamp:
@@ -303,6 +306,7 @@ en:
 
   # Global
   show: View
+  all: All
   destroy: Remove
   back: Go Back
   cancel: Cancel

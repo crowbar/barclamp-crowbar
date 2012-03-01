@@ -1,11 +1,23 @@
 %h1= t '.title'
-- if params[:id] == 'request'
+
+- if @init
   %table
     %tr
       %td
         .led{:class => 'off'}
       %td#status
         = "#{t '.in_process'}"
+
+  - log = File.join('tmp', SERVER_PID+'.log')
+  - if params[:id].eql? "import" and File.exist?(log)
+    %br
+    .column_100
+      %section.box#details
+        %h3= t('.import_log')
+        %div
+          - File.open(log, 'r').each do |line|
+            %p= line
+            
 - else
   = link_to t('.button'), restart_path(:id=>'request'), :class => 'button', :id=>'restart_button'
   
@@ -14,7 +26,7 @@
 :javascript
   
   function update() {
-    if (#{params[:id] == 'request'}) {
+    if (#{@init}) {
       jUrl = '/utils/restart/#{SERVER_PID}?format=json';
       $.get('/utils/restart/in_process');
       $.ajaxSetup({ timeout: 100});

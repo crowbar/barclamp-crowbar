@@ -201,14 +201,16 @@ en:
       fail: Chef Export Failed
     import:
       title: Barclamp Import
+      title_all: Barclamp Import (installed and pending)
+      pending: Pending Only
       admin_os: Crowbar Operating System
       installed: Installed
       user: User Managed
       name: Name
       order: Order
-      version: Version
+      version: Date
+      commit: Commit GUID
       available: Available
-      action: Action
       import: Import
       error_file_missing: 'Error! Barclamp not found.'
       error_import: 'Error! Import failed.'
@@ -220,8 +222,16 @@ en:
       succeeded: Upload Succeeded
       failed: Upload Failed
       no_file: No File for Upload
-    os:
-      ubuntu-2-6-35: 'Ubuntu Linux 10.10'
+    restart:
+      title: Restart Crowbar
+      in_process: Restart in process...
+      dev_restart: 'DEV MODE: You must manually restart the web server to complete this action (it may not be needed).'
+      restarting: Restart request sent...
+      server_down: Process stopped.  Restarting...
+      complete: Crowbar Ready!
+      button: Restart Crowbar Server
+      import_log: Import Log
+
      
   barclamp:
     modules:
@@ -296,6 +306,7 @@ en:
 
   # Global
   show: View
+  all: All
   destroy: Remove
   back: Go Back
   cancel: Cancel

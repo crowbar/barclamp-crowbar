@@ -86,52 +86,62 @@ class SupportController < ApplicationController
   end
   
   def import
-    @installed = ServiceObject.barclamp_catalog['barclamps']
+    @installed = ServiceObject.barclamp_catalog['barclamps'] 
     @imports = {}
-    if params[:id]
-      tar = File.join RAILS_ROOT, import_dir, params[:id]
-      if File.exist? tar
+    if request.post?
+      bcs = []
+      bc_list = []
+      importer = File.join '/opt', 'dell', 'bin', 'barclamp_install.rb'
+      params.each do |k,v|
+        if k =~ /^barclamp:(.*)/
+          tar = File.join RAILS_ROOT, import_dir, v
+          if File.exist? tar
+            bcs << tar 
+            bc_list << k.split(':')[1]
+          end
+        end 
+      end
+      if bcs.length>0
+        barclamps = bcs.map{ |i| '"'+i+'"' }.join(' ')
         begin
-          importer = File.join '/opt', 'dell', 'bin', 'barclamp_install.rb'
-          @output = "Command: #{importer} #{tar}<br/>Results:<br/>"
-          @output += %x[sudo #{importer} #{tar}]
-          @output = @output.gsub(/\n/,"<br/>")
-          flash[:notice] = "#{t('success', :scope=>'support.import')}: #{params[:id]}"
-          #TODO! If production mode, restart required!!
+          %x[sudo #{importer} #{barclamps} > tmp/#{SERVER_PID}.log]
+          flash[:notice] = "#{t('success', :scope=>'support.import')}: #{bc_list.join(', ')}"
+          redirect_to restart_path(:id=>'import')
         rescue
-          flash[:notice] = "#{t('error_import', :scope=>'support.import')}: #{tar}" 
+          flash[:notice] = "#{t('error_import', :scope=>'support.import')}: #{bc_list.join(', ')}" 
         end
       else
-        flash[:notice] = "#{t('error_file_missing', :scope=>'support.import')}: #{tar}" 
+        flash[:notice] = "#{t('error_file_missing', :scope=>'support.import')}: #{bc_list.join(', ')}" 
       end
-    end
-    Dir.entries(import_dir).each do |tar|
-      if tar =~ /^.*tar.gz$/ 
-        name = tar[/^(.*).tar.gz$/,1] + '.yml'
-        unless File.exist? File.join(import_dir, name)
-          archive = File.join import_dir,tar
-          crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
-          if crowbar
-            %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}]
+    else 
+      Dir.entries(import_dir).each do |tar|
+        if tar =~ /^.*tar.gz$/ 
+          name = tar[/^(.*).tar.gz$/,1] + '.yml'
+          unless File.exist? File.join(import_dir, name)
+            archive = File.join import_dir,tar
+            crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
+            if crowbar
+              %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}]
+            end
+          end
+          begin
+            cb = YAML.load_file(File.join(import_dir, name))
+            key = cb['barclamp']['name']
+            @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :commit=>cb['git']['commit']}
+            unless @installed.key? key
+              @installed[key] = {:installed=>false, :name=>key, 'order'=>cb['crowbar']['order']}
+            end
+          rescue
+            # something happened to the YAML file!
           end
         end
-        begin
-          cb = YAML.load_file(File.join(import_dir, name))
-          key = cb['barclamp']['name']
-          @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'] }
-          unless @installed.key? key
-            @installed[key] = {:installed=>false, :name=>key, 'order'=>cb['crowbar']['order']}
-          end
-        rescue
-          # something happened to the YAML file!
-        end
       end
-    end
-    respond_to do |format|
-      format.html # index.html.haml
-      format.xml  { render :xml => @imports }
-      format.json { render :json => @imports }
-    end    
+      respond_to do |format|
+        format.html # index.html.haml
+        format.xml  { render :xml => @imports }
+        format.json { render :json => @imports }
+      end   
+    end 
   end
   
   def export_chef
@@ -153,6 +163,25 @@ class SupportController < ApplicationController
       end
     else
       flash[:notice] = 'feature not available in offline mode'
+    end
+  end
+  
+  def restart
+    @init = false
+    if params[:id].nil?
+      render
+    elsif params[:id].eql? "request" or params[:id].eql? "import"
+      @init = true
+      render
+    elsif params[:id].eql? "in_process"
+      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
+      render :json=>false
+    elsif params[:id].eql? SERVER_PID
+      render :json=>false
+    elsif !params[:id].eql? SERVER_PID
+      render :json=>true
+    else
+      render
     end
   end
   

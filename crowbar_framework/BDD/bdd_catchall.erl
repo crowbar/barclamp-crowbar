@@ -19,6 +19,14 @@ step(_Config, _Result, {_, _N, ["after", Time, "milliseconds"]}) ->
   io:format("\t\t\tzzz...sleeping ~p milliseconds.~n", [T]),
   timer:sleep(string:to_integer(T));
 
+step(Config, _Global, {step_setup}, _N, _) -> 
+  io:format("\tNo Feature Setup Step.~n"),
+  Config;
+
+step(Config, _Global, {step_teardown}, _N, _) -> 
+  io:format("\tNo Feature Tear Down Step.~n"),
+  Config;
+
 step(_Config, _Result, {step_given, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_when, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_then, _N, ["I always pass"]}) -> true;

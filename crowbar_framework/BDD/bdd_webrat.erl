@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2012, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -32,6 +32,9 @@ click_link(Config, URL, Link) ->
 step(_Config, _Global, {step_given, _N, ["I am on the home page"]}) -> 
 	bdd_utils:debug("start from home.~n"), 
 	bdd_utils:http_get(_Config, []);
+
+step(_Config, _Global, {step_given, _N, ["I am on the", Page, "page"]}) ->
+  step(_Config, _Global, {step_given, _N, ["I went to the", Page, "page"]});
 
 step(_Config, _Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
 	bdd_utils:http_get(_Config, Page);
@@ -69,8 +72,45 @@ step(_Config, _Result, {step_then, _N, ["I should see", Text]}) ->
 	bdd_utils:debug("step_then result ~p should have ~p on the page~n", [_Result, Text]),
 	bdd_utils:html_search(Text,_Result);
 
+step(Config, _Result, {step_then, _N, ["there should be no translation errors"]}) -> 
+  TransError = bdd_utils:config(Config, translation_error),
+  bdd_utils:html_search(TransError,_Result, false);
+
+step(_Config, Result, {step_then, _N, ["I should see a link to", Link]}) ->
+  bdd_utils:assert([ 
+  	try bdd_utils:html_find_link(Link,R) of
+  		_ -> true
+  	catch
+  	  error: E -> io:format("FAIL: Did not find ~p in page (Error: ~p)~n", [Link, E]), false
+  	end
+  	|| R <- Result]
+	);
+  
 step(_Config, Result, {step_then, _N, ["I should see a button with", Button]}) -> 
-  bdd_utils:html_find_button(Button,Result);
+  try bdd_utils:html_find_button(Button,Result) of
+    _ -> true
+	catch
+	  error: E -> io:format("FAIL: Did not find ~p in page (Error: ~p)~n", [Button, E]), false
+	end;
+	
+step(_Config, Result, {step_then, _N, ["I should download a PDF"]}) -> 
+  bdd_utils:assert([
+    case string:substr(R, 1, 4) of 
+      "%PDF" -> true;
+      _ -> false
+    end
+    || R <- Result ]
+    );
+
+step(_Config, Result, {step_then, _N, ["I should download text with", Text]}) -> 
+	RE = case re:compile(Text, [multiline, dotall, {newline , anycrlf}]) of
+	  {ok, R} -> R;
+	  Error -> io:format("ERROR: Could not parse regex: '~p'.", [Error]), []
+	end,
+	case re:run(Result, RE) of
+	  {match, _} -> true;
+	  _ -> false
+	end;
 
 step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature

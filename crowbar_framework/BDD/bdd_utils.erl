@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, config/2, tokenize/1, clean_line/1, strip_doctype/1, uri/2]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, tokenize/1, clean_line/1, strip_doctype/1, uri/2]).
 -export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3]).
 -export([html_find_button/2, html_find_link/2, html_find_block/4]).
 -export([debug/3, debug/2, debug/1, trace/6]).
@@ -25,7 +25,9 @@ assert(Bools) ->
 	assert(Bools, true).
 assert(Bools, Test) ->
 	F = fun(X) -> case X of Test -> true; _ -> false end end,
-	lists:any(F, Bools).
+	lists:all(F, Bools).
+assert_atoms(Atoms) ->
+  assert([B || {B, _} <- Atoms] ).
 	
 debug(Format) -> debug(Format, []).
 debug(puts, Format) -> debug(true, Format++"~n", []);
@@ -56,7 +58,12 @@ trace(Config, Name, N, Steps, Given, When) ->
   file:close(S).
  
 html_search(Match, Results, Test) ->
-	assert([html_peek(Match,Result) || Result <- Results, Result =/= [no_op]], Test).
+	F = fun(X) -> case {X, Test} of 
+	  {true, true} -> true; 
+	  {true, false} -> false;
+	  {_, false} -> true;
+	  {_, true} -> false end end,
+	lists:any(F, ([html_peek(Match,Result) || Result <- Results, Result =/= [no_op]])).
 html_search(Match, Results) ->
 	html_search(Match, Results, true).
 
@@ -85,13 +92,13 @@ html_peek(Match, Input) ->
 	
 html_find_button(Match, Input) ->
   %<form.. <input class="button" name="submit" type="submit" value="Save"></form>
-  debug(puts,Match),
+  %debug(puts,Match),
 	Form = html_find_block("<form ", "</form>", Input, "value='"++Match++"'"),
-	debug(puts,Form),
+	%debug(puts,Form),
 	Button = html_find_block("<input ", ">", Form,  "value='"++Match++"'"),
-	debug(puts,Button),
-	RegEx = "type='submit'",
-	case re:run(Button, re:compile(RegEx)) of
+	%debug(puts,Button),
+	{ok, RegEx} = re:compile("type='submit'"),
+	case re:run(Button, RegEx) of
 	  {match, _} -> Button;
 	  _ -> io:format("ERROR: Could not find button with value  '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not html_find_button")
 	end.
@@ -99,7 +106,7 @@ html_find_button(Match, Input) ->
 % return the HREF part of an anchor tag given the content of the link
 html_find_link(Match, Input) ->
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
-	RE = case re:compile(RegEx) of
+	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
 	  Error -> io:format("ERROR: Could not parse regex: '~p'.", [Error])
 	end,

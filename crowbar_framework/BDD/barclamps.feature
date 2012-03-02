@@ -3,8 +3,8 @@ Feature: Barclamps
   The system operator, Oscar
   wants to be able to select barclamps
 
-  Scenario: %View Crowbar
-    When I go to the "crowbar" page
+  Scenario: View Crowbar
+    When I go to the "crowbar/crowbar/1.0" page
     Then I should see "Crowbar"
     Then I should see "Deployer"
     Then I should see "Dns"

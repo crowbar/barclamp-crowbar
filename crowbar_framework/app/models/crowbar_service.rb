@@ -146,10 +146,15 @@ class CrowbarService < ServiceObject
     role = role.default_attributes
     @logger.debug("Crowbar apply_role: create initial instances")
     unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
-      role["crowbar"]["instances"].each do |k,plist|
-        plist.each do |v|
+      ordered_bcs = order_instances role["crowbar"]["instances"]
+#      role["crowbar"]["instances"].each do |k,plist|
+      ordered_bcs.each do |k, plist |
+        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+        plist[:instances].each do |v|
           id = "default"
           data = "{\"id\":\"#{id}\"}" 
+          @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
+
           if v != "default"
             file = File.open(v, "r")
             data = file.readlines.to_s
@@ -200,6 +205,20 @@ class CrowbarService < ServiceObject
     @logger.debug("Crowbar apply_role: leaving: #{answer}")
     answer
   end
+
+  # look at the instances we'll create, and sort them using catalog info
+  def order_instances(bcs)
+    tmp = {}
+    bcs.each { |bc_name,instances|
+      order = ServiceObject.run_order(bc_name)
+      tmp[bc_name] = {:order =>order, :instances =>instances}
+    }
+    #sort by the order value (x,y are an array with the value of
+    #the hash entry
+    t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] } 
+    @logger.fatal("ordered instances: #{t.inspect}")
+    t
+  end 
 
   def self.read_options
     # read in default proposal, to make some vaules avilable

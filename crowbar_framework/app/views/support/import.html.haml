@@ -31,7 +31,7 @@
     %tbody
       - if @imports.length==0
         %tr
-          %td{colspan=>6}= t('no_items')
+          %td{:colspan=>6}= t('no_items')
       - else
         - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
           -if params[:all] or @imports[key]

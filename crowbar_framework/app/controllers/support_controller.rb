@@ -72,6 +72,8 @@ class SupportController < ApplicationController
               File.open(file, "ab") { |f| f.write(blk) }
             end
             tmpfile.delete
+            # update the crowbar.yml for the barclamp
+            extract_crowbar_yml(import_dir, @file, true) 
             flash[:notice] = t('.succeeded', :scope=>'support.upload') + ": " + @file
           end
         rescue
@@ -116,20 +118,13 @@ class SupportController < ApplicationController
     else 
       Dir.entries(import_dir).each do |tar|
         if tar =~ /^.*tar.gz$/ 
-          name = tar[/^(.*).tar.gz$/,1] + '.yml'
-          unless File.exist? File.join(import_dir, name)
-            archive = File.join import_dir,tar
-            crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
-            if crowbar
-              %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}]
-            end
-          end
+          name = extract_crowbar_yml(import_dir, tar, false)
           begin
             cb = YAML.load_file(File.join(import_dir, name))
             key = cb['barclamp']['name']
             @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :commit=>cb['git']['commit']}
             unless @installed.key? key
-              @installed[key] = {:installed=>false, :name=>key, 'order'=>cb['crowbar']['order']}
+              @installed[key] = {:new=>true, :name=>key, 'order'=>cb['crowbar']['order']}
             end
           rescue
             # something happened to the YAML file!
@@ -217,4 +212,15 @@ class SupportController < ApplicationController
     end
   end
   
+  def extract_crowbar_yml(import_dir, tar, regen = true)
+    archive = File.join import_dir,tar
+    name = tar[/^(.*).tar.gz$/,1] + '.yml'
+    # extra from tar if not present
+    if regen or !File.exist?(File.join(import_dir, name))
+      crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
+      %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}] if crowbar
+    end
+    return name
+  end
+
 end 

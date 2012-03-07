@@ -13,7 +13,10 @@
     %br
     .column_100
       %section.box#details
-        %h3= t('.import_log')
+        %h3
+          = t('.import_log')
+          = ':'
+          = log
         %div
           - File.open(log, 'r').each do |line|
             %p= line

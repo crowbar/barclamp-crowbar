@@ -22,9 +22,9 @@
   %table.data.box
     %thead
       %tr
+        %th= t '.name'
         %th= t '.installed'
         %th= t '.order'
-        %th= t '.name'
         %th= t '.user'
         %th= t '.version'
         %th= t '.available'
@@ -36,9 +36,10 @@
         - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
           -if params[:all] or @imports[key]
             %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
-              %td= t ((value['installed'] || true) ? 'yes' : 'no')
+              %td{:title=>(value['description'] || t('not_set'))}
+                %em= key.titlecase
+              %td= t (!value[:new] ? 'yes' : 'no')
               %td= value['order'] || t('not_set')
-              %td{:title=>(value['description'] || t('not_set'))}= key.titlecase
               %td= t (value['user_managed'] ? 'yes' : 'no')
               %td{:title=>t('.commit')+': '+(value['commit'] || t('unknown'))}= (value['date'] || t('unknown')).split('-')[0]
               -if @imports[key]

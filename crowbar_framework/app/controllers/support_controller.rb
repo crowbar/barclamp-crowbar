@@ -16,7 +16,7 @@
 # 
 
 class SupportController < ApplicationController
-  
+    
   require 'chef'
 
   # Legacy Support (UI version moved to loggin barclamp)
@@ -95,11 +95,11 @@ class SupportController < ApplicationController
       bc_list = []
       importer = File.join '/opt', 'dell', 'bin', 'barclamp_install.rb'
       params.each do |k,v|
-        if k =~ /^barclamp:(.*)/
+        if k =~ /^barclamp_(.*)/
           tar = File.join RAILS_ROOT, import_dir, v
           if File.exist? tar
             bcs << tar 
-            bc_list << k.split(':')[1]
+            bc_list << k.split('_')[1]
           end
         end 
       end
@@ -122,12 +122,28 @@ class SupportController < ApplicationController
           begin
             cb = YAML.load_file(File.join(import_dir, name))
             key = cb['barclamp']['name']
-            @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :commit=>cb['git']['commit']}
-            unless @installed.key? key
+            @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :help=>cb['barclamp']['online_help'], :commit=>cb['git']['commit'], :prereq=>[], :requires=>[]}
+            if cb['barclamp'].key? 'requires'
+              cb['barclamp']['requires'].each do |prereq|
+                next if prereq =~ /^@/
+                @imports[key][:requires] << prereq
+              end
+            end
+            unless @installed.keys.include? key
               @installed[key] = {:new=>true, :name=>key, 'order'=>cb['crowbar']['order']}
             end
-          rescue
+          rescue Exception=>e
             # something happened to the YAML file!
+            @installed[key] = {:new=>true, :name=>key, 'commit'=>e.message, 'order'=>-1} unless @installed.keys.include? key
+            @imports[key] = { :tar=>tar, :barclamp=>key, :date=>I18n.t('error_yml', :scope=>'support.import'), :commit=>I18n.t('na'), :prereq=>[]} unless @imports.keys.include? key
+          end
+        end
+        @imports.each do |key, values|
+          unless values[:requires].nil?
+            values[:requires].each do |prereq|
+              next if @imports[key][:prereq].include? prereq
+              @imports[key][:prereq] << prereq unless @installed.keys.include? prereq
+            end
           end
         end
       end

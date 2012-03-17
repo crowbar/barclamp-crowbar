@@ -201,7 +201,6 @@ rpms:
     repos:
       - rpm http://rbel.frameos.org/rbel6
       - rpm http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
-#      - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly
@@ -211,7 +210,7 @@ rpms:
   centos-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6
-      - rpm http://download.fedora.redhat.com/pub/epel/6/x86_64/epel-release-6-5.noarch.rpm
+      - rpm http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly

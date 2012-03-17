@@ -19,11 +19,11 @@
 -import(bdd_utils).
 -import(json).
 
-step(Config, _Global, {step_setup}, _N, _) -> 
+step(Config, _Global, {step_setup, _N, _}) -> 
   io:format("\tNo Global Setup Step.~n"),
   Config;
 
-step(Config, _Global, {step_teardown}, _N, _) -> 
+step(Config, _Global, {step_teardown, _N, _}) -> 
   io:format("\tNo Global Tear Down Step.~n"),
   Config;
 

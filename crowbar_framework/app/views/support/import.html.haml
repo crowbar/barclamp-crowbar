@@ -53,7 +53,7 @@
                   -else
                     - different = (!@imports[key][:commit].eql? value['commit'])
                     %div{:id=>"install_#{key}", :style=>"display:#{@imports[key][:prereq].length == 0 ? 'block' : 'block'}"}   
-                      - if @installed[key]['order']>-1
+                      - if @installed[key]['order'] and @installed[key]['order']>-1
                         = check_box_tag "barclamp_#{key}", @imports[key][:tar], different, {:different=>different, :onChange=>"check_prereq('#{key}')"}
                     -if @imports[key][:prereq].length > 0
                       %ul{:id=>key}

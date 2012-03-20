@@ -89,6 +89,8 @@ class SupportController < ApplicationController
   
   def import
     @installed = ServiceObject.barclamp_catalog['barclamps'] 
+    # handle case there we've installed a sub barclamp for the meta, but not the meta
+    @installed.delete_if { |k, v| v['order'].nil? }
     @imports = {}
     if request.post?
       bcs = []
@@ -123,14 +125,14 @@ class SupportController < ApplicationController
             cb = YAML.load_file(File.join(import_dir, name))
             key = cb['barclamp']['name']
             @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :help=>cb['barclamp']['online_help'], :commit=>cb['git']['commit'], :prereq=>[], :requires=>[]}
-            if cb['barclamp'].key? 'requires'
+            if cb['barclamp'].has_key? 'requires'
               cb['barclamp']['requires'].each do |prereq|
                 next if prereq =~ /^@/
                 @imports[key][:requires] << prereq
               end
             end
-            unless @installed.keys.include? key
-              @installed[key] = {:new=>true, :name=>key, 'order'=>cb['crowbar']['order']}
+            unless @installed.keys.include? key 
+              @installed[key] = {:new=>true, :name=>key, 'user_managed'=>(cb['barclamp']['user_managed'] || 'yes'), 'order'=>cb['crowbar']['order']}
             end
           rescue Exception=>e
             # something happened to the YAML file!
@@ -142,7 +144,7 @@ class SupportController < ApplicationController
           unless values[:requires].nil?
             values[:requires].each do |prereq|
               next if @imports[key][:prereq].include? prereq
-              @imports[key][:prereq] << prereq unless @installed.keys.include? prereq
+              @imports[key][:prereq] << prereq if @installed[prereq].nil? or @installed[prereq][:new]
             end
           end
         end

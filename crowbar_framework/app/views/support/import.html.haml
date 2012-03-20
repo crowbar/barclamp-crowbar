@@ -38,7 +38,7 @@
           %td{:colspan=>6}= t('no_items')
       - else
         - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
-          -if params[:all] or @imports[key]
+          -if params[:all] or (@imports[key] and !@imports[key][:commit].eql? value['commit'])
             %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
               %td{:title=>(value['description'] || t('not_set'))}
                 %em= key.titlecase
@@ -55,11 +55,11 @@
                     %div{:id=>"install_#{key}", :style=>"display:#{@imports[key][:prereq].length == 0 ? 'block' : 'block'}"}   
                       - if @installed[key]['order'] and @installed[key]['order']>-1
                         = check_box_tag "barclamp_#{key}", @imports[key][:tar], different, {:different=>different, :onChange=>"check_prereq('#{key}')"}
-                    -if @imports[key][:prereq].length > 0
                       %ul{:id=>key}
-                        %li= t('.missing_prereq') + ': ' 
-                        - @imports[key][:prereq].each do |pr|
-                          %li.prereq{:id => pr}= pr.titlecase
+                        -if @imports[key][:prereq].length > 0
+                          %li= t('.missing_prereq') + ': ' 
+                          - @imports[key][:prereq].each do |pr|
+                            %li.prereq{:id => pr}= pr.titlecase
                 %td{:title=>t('.commit')+': '+@imports[key][:commit]}
                   = @imports[key][:date].split('-')[0]
                   - if @imports[key][:help]

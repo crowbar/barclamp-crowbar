@@ -104,7 +104,7 @@ jQuery(document).ready(function($) {
     targets = $(this).attr('rel').split(',');
     $(this).toggleClass('on');
     $.each(targets, function(index, target) {
-      target = target.trim();
+      try { target = target.trim(); } catch(err) { true; }
       if( $(this).attr('data-speed') ) {
         $('#'+target).slideToggle( $(this).attr('data-speed') );
       } else {

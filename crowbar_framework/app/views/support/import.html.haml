@@ -1,6 +1,8 @@
-- o = %x[cat /etc/*release | grep DESCRIPTION]
-- s = o.split '='
-- crowbar_os = s[1].gsub('"','')
+- o = %x[cat /etc/*release]
+- if o =~ /DESCRIPTION/
+  - crowbar_os = o[/DISTRIB_DESCRIPTION="(.*)"/,1]
+- else
+  - crowbar_os = o.split("\n")[0]
 
 -unless params[:all].nil?
   %div{:style=>'float:right'}= link_to t('.pending'), utils_import_path, :class => 'button'

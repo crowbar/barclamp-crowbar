@@ -172,7 +172,7 @@ class NodeObject < ChefObject
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
-      if node
+      if node and !node.handle.eql?(handle)
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('model.node.duplicate_alias') + ": " + node.name
       else

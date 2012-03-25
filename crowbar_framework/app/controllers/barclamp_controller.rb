@@ -180,7 +180,7 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title = "#{@bc_name.titlecase} #{t('barclamp.index.members')}"
+        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
         @count = -1
         members = {}
         list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call

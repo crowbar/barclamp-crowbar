@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -37,6 +37,8 @@ class SupportController < ApplicationController
     @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[] }
     Dir.entries(export_dir).each do |f|
       if f =~ /^\./
+        next # ignore rest of loop
+      elsif f =~ /^KEEP_THIS.*/
         next # ignore rest of loop
       elsif f =~ /^crowbar-logs-.*/
         @exports[:logs] << f 

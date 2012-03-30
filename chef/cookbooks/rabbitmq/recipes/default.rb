@@ -47,13 +47,25 @@ template "/etc/rabbitmq/rabbitmq-env.conf" do
   mode 0644
 end
 
+user "rabbitmq" do
+  action :create
+end
+
+%w{ /var/log/rabbitmq /var/lib/rabbitmq }.each { |dir|
+  directory dir do
+    action :create
+    owner "rabbitmq"
+    group "rabbitmq"
+  end
+}
+
 package "rabbitmq-server"
 
 bash "Enable rabbit management" do
   code <<-'EOH'
-/usr/sbin/rabbitmq-plugins enable rabbitmq_management
+/usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
 /etc/init.d/rabbitmq-server restart
 exit 0
 EOH
-  not_if "su - rabbitmq -s /bin/bash -c \"/usr/sbin/rabbitmq-plugins list -E\" | grep -q rabbitmq_management"
+  not_if "su - rabbitmq -s /bin/bash -c \"/usr/lib/rabbitmq/bin/rabbitmq-plugins list -E\" | grep -q rabbitmq_management"
 end

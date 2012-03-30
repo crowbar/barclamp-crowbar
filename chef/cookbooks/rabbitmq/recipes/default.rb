@@ -49,6 +49,7 @@ end
 
 user "rabbitmq" do
   action :create
+  home "/var/lib/rabbitmq"
 end
 
 %w{ /var/log/rabbitmq /var/lib/rabbitmq }.each { |dir|

@@ -465,5 +465,12 @@ class BarclampController < ApplicationController
     render :json => {}, :status => 200 if ret
   end
 
+  add_help(:nodes,[],[:get]) 
+  def nodes
+    Rails.logger.error "JimC: You  hit the barclamp controller."
+    @nodes=NodeObject.all.find_all{ |node| node.roles.find_all{ |role| role.include? "cloudera" }}
+    render :template => 'barclamp/clouderamanager/nodes'
+  end
+
 end
 

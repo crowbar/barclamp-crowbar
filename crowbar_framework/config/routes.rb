@@ -49,6 +49,7 @@ ActionController::Routing::Routes.draw do |map|
   
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
+  map.barclamp_nodes            'crowbar/:controller/1.0/proposals/nodes', :action=>'nodes'
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
   map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
   map.commit_proposal_barclamp  'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }
@@ -70,6 +71,7 @@ ActionController::Routing::Routes.draw do |map|
   map.barclamp_modules 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :conditions => { :method => :get }
 
   map.connect 'crowbar/:barclamp/1.0/help', :action => 'help', :conditions => { :method => :get }, :controller => 'barclamp'
+  map.connect 'crowbar/:barclamp/1.0/proposals/nodes', :controller => "barclamp", :action=>'nodes'
   map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }, :controller => 'barclamp'
   map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }, :controller => 'barclamp'
   map.connect 'crowbar/:barclamp/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }, :controller => 'barclamp'

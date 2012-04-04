@@ -468,7 +468,13 @@ class BarclampController < ApplicationController
   add_help(:nodes,[],[:get]) 
   def nodes
     Rails.logger.error "JimC: You  hit the barclamp controller."
-    @nodes=NodeObject.all.find_all{ |node| node.roles.find_all{ |role| role.include? "cloudera" }}
+    nodeswithroles= NodeObject.all.find_all{ |n| n.roles != nil}
+    @cmedgenodes                    = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-edgenode" )}
+    @cmmasternamenodes              = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-masternamenode" )}
+    @cmmgmtnamenodes                = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-mgmtservices" )}
+    @cmsecondarynamenodenamenodes   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-secondarynamenode" )}
+    @cmslavenodes                   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-slavenode" )}
+    @cmwebappnodes                  = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-webapp" )}
     render :template => 'barclamp/clouderamanager/nodes'
   end
 

@@ -210,11 +210,14 @@ en:
       order: Order
       version: Date
       commit: Commit GUID
-      available: Available
+      notes: Notes
+      install: Install?
       import: Import
       error_file_missing: 'Error! Barclamp not found.'
       error_import: 'Error! Import failed.'
+      error_yml: 'Error! Could not parse Crowbar.yml'
       success: 'Success. Barclamp Imported!'
+      missing_prereq: Missing Prerequisits
       select_files: Select Files to Upload
       upload: Upload
       delete_hint: Delete File from Import Directory
@@ -334,6 +337,7 @@ en:
   updating: Updating...
   note: Note
   hint: Hint
+  help: Help
   virtual: Virtual
   new: New Item!
 

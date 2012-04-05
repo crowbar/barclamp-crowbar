@@ -19,7 +19,9 @@
         %th= t('.group')
         %th= t('.bios')
         %th= t('.raid')
-        %th.center Allocate?
+        %th.center 
+          Allocate? 
+          = check_box_tag 'all', 'all', false, {:onChange=>"check_all()"}
     %tbody
       - if @nodes.count > 0
         - @nodes.sort_by{|n| n.name }.each do |node|
@@ -66,3 +68,18 @@
             = t('note')+": "+t('.hint')
           %td.action{:colspan => 1}
             %input.button{:type => "submit", :name => "submit", :value => 'Save'}
+
+.clear
+
+:javascript
+  
+  // if all the prereqs are met (none are visiblie) then check the box
+  // and check to see if that enables/disables other barclamps
+  function check_all() {
+    var checkbox = $('#all');
+    $('input[id^=node]').each ( function(index) {
+      if (/allocate$/.test($(this).attr('id')))
+        $(this).attr('checked', (checkbox.attr('checked') != undefined) );
+    });
+  }
+  

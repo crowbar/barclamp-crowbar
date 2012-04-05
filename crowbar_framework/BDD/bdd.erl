@@ -29,11 +29,11 @@ test(ConfigName, search, Tests) ->
 	application:start(crypto),  % needed for digest authentication
 	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
 	%test setup
-  Config = step_run(StartConfig, [], {step_setup, 0, []}, ConfigName),  
+  Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  
   %run the tests
   Results = [{feature, FileName, test(Config, FileName, Tests)} || FileName <- Features],
   %test teardown
-  step_run(Config, [], {step_teardown, 0, []}, ConfigName),  
+  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(ConfigName)]),  
   % cleanup application services
   application:stop(crypto),
 	application:stop(inets),
@@ -49,9 +49,9 @@ test(ConfigBase, FileName, Tests) ->
 	[ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
 	io:format(" FEATURE: ~s.~n", [ScenarioName]),
 	% setup the feature
-  Config = step_run(ConfigFile, [], {step_setup, 0, []}, Feature),
+  Config = step_run(ConfigFile, [], {step_setup, 0, []}, [list_to_atom(Feature)]),
   Result = {feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]},
-  step_run(Config, [], {step_teardown, 0, []}, Feature),
+  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(Feature)]),
   Result.
   
 % similar to test, this can be used to invoke a single feature for testing
@@ -61,9 +61,9 @@ feature(ConfigName, FeatureName) ->
 	application:start(inets),		% needed for getting we pages
 	application:start(crypto),  % needed for digest authentication
 	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
-	Config = step_run(StartConfig, [], {step_setup, 0, []}, ConfigName),  % setup
+	Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  % setup
   test(Config, FileName, []),
-  step_run(Config, [], {step_setup, 0, []}, ConfigName),  %teardown
+  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(ConfigName)]),  %teardown
 	application:stop(crypto),
 	application:stop(inets).
   
@@ -143,7 +143,10 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  io:format("exit Did not find step: ~p~n", [Feature]),
       io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
-		X: Y -> io:format("ERROR: step run found ~p:~p~n", [X, Y]), throw("BDD ERROR: Unknown error type in BDD:step_run.")
+		X: Y -> 
+		  io:format("ERROR: step run found ~p:~p~n", [X, Y]), 
+      io:format("\tAttempted \"apply(~p, step, [[Config], [Input], ~p]).\"~n",[Feature, Step]),
+		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	

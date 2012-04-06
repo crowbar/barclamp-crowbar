@@ -465,5 +465,10 @@ class BarclampController < ApplicationController
     render :json => {}, :status => 200 if ret
   end
 
+  add_help(:nodes,[],[:get]) 
+  def nodes
+    #Empty method to override if your barclamp has a "nodes" view.
+  end
+
 end
 

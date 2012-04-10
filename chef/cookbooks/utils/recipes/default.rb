@@ -23,5 +23,7 @@ case platform
   @@ubuntu = true
 end
 
-log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware") { level :info} 
+@@is_admin = node["crowbar"]["admin_node"] rescue false
+
+log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware #{@@is_admin ? 'admin': ''}") { level :info} 
 

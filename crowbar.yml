@@ -95,7 +95,7 @@ debs:
       - deb-src http://extras.ubuntu.com/ubuntu precise main
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ oneiric-0.10 main
+      - deb http://apt.opscode.com/ precise-0.10 main
   repos:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main

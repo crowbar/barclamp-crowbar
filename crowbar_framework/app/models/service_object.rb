@@ -1,19 +1,19 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: RobHirschfeld
+#
 #
 # Also functions as a data bag item wrapper as well.
 #
@@ -33,22 +33,22 @@ class ServiceObject
   def self.allow_multiple_proposals?
     false
   end
-  
+
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end
-  
-  # ordered list of barclamps from groups in the crowbar.yml files.  
+
+  # ordered list of barclamps from groups in the crowbar.yml files.
   # Built at barclamp install time by the catalog step
   def self.members
     cat = barclamp_catalog
     cat["barclamps"][bc_name].nil? ? [] : cat["barclamps"][bc_name]['members']
   end
-  
+
   def self.barclamp_catalog
     YAML.load_file(File.join( 'config', 'catalog.yml'))
   end
-  
+
   def self.all
     bc = {}
     ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|
@@ -126,7 +126,7 @@ class ServiceObject
     nodes.each do |n|
       node = NodeObject.find_node_by_name(n)
       next if node.nil?
-      
+
       pre_cached_nodes[n] = node
       delay << n if node.crowbar['state'] != "ready" and !delay.include?(n)
     end
@@ -389,7 +389,7 @@ class ServiceObject
           # Make sure the deps if we aren't being queued.
           item["deps"].each do |dep|
             depprop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
-  
+
             # queue if depprop doesn't exist
             queue_me = true if depprop.nil?
             # queue if dep is queued
@@ -414,14 +414,14 @@ class ServiceObject
         end
 
         save_db = false
-        remove_list.each do |iii| 
+        remove_list.each do |iii|
           save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
         end
 
-        list.each do |iii| 
+        list.each do |iii|
           save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
         end
-      
+
         db.save if save_db
 
       rescue Exception => e
@@ -471,11 +471,11 @@ class ServiceObject
   def bc_name=(new_name)
     @bc_name = new_name
   end
-  
-  def bc_name 
+
+  def bc_name
     @bc_name
   end
-  
+
   def initialize(thelogger)
     @bc_name = "unknown"
     @logger = thelogger
@@ -502,7 +502,7 @@ class ServiceObject
     inst = "#{@bc_name}-config-#{inst}"
 
     role = RoleObject.find_role_by_name(inst)
-    
+
     if role.nil?
       [404, "Active instance not found"]
     else
@@ -538,14 +538,14 @@ class ServiceObject
 
   def destroy_active(inst)
     inst = "#{@bc_name}-config-#{inst}"
-    @logger.debug "Trying to deactivate role #{inst}" 
+    @logger.debug "Trying to deactivate role #{inst}"
     role = RoleObject.find_role_by_name(inst)
     if role.nil?
       [404, {}]
     else
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes
-      dep[@bc_name]["elements"] = {}      
+      dep[@bc_name]["elements"] = {}
       @logger.debug "#{inst} proposal has a crowbar-committing key" if dep[@bc_name]["config"].has_key? "crowbar-committing"
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
@@ -572,8 +572,8 @@ class ServiceObject
 
   def proposals_raw
     ProposalObject.find_proposals(@bc_name)
-  end 
-  
+  end
+
   def proposals
     props = proposals_raw
     props.map! { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
@@ -654,14 +654,34 @@ class ServiceObject
   end
 
   #
+  # This can be overridden.  Specific to node validation.
+  #
+  def validate_proposal_elements proposal_elements
+      proposal_elements.each do |role_and_elements|
+          elements = role_and_elements[1]
+          uniq_elements = elements.uniq
+          if uniq_elements.length != elements.length
+              raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
+          end
+          uniq_elements.each do |node_name|
+              nodes = NodeObject.find_nodes_by_name node_name
+              if 0 == nodes.length
+                  raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
+              end
+          end
+      end
+  end
+
+  #
   # This can be overridden to get better validation if needed.
   #
   def validate_proposal proposal
+
     path = "/opt/dell/chef/data_bags/crowbar"
     path = "schema" unless CHEF_ONLINE
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
-    
+
     errors = validator.validate(proposal)
     if errors && !errors.empty?
       strerrors = ""
@@ -676,7 +696,7 @@ class ServiceObject
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 
-    begin 
+    begin
       data_bag_item.raw_data = proposal
       data_bag_item.data_bag "crowbar"
 
@@ -741,7 +761,7 @@ class ServiceObject
     new_elements = new_deployment["elements"]
     element_order = new_deployment["element_order"]
 
-    # 
+    #
     # Attempt to queue the propsal.  If delay is empty, then run it.
     #
     deps = proposal_dependencies(role)
@@ -757,10 +777,7 @@ class ServiceObject
     old_elements = old_deployment["elements"] unless old_deployment.nil?
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
-    # For Role ordering
     local_chef_order = chef_order
-    role_map = new_deployment["element_states"]
-    role_map = {} unless role_map
 
     # Merge the parts based upon the element install list.
     all_nodes = []
@@ -781,7 +798,7 @@ class ServiceObject
           old_nodes.each do |n|
             if new_nodes.nil? or !new_nodes.include?(n)
               nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:remove] << elem 
+              nodes[n][:remove] << elem
               nodes[n][:add] << elem_remove unless elem_remove.nil?
               r_nodes << n
             end
@@ -828,20 +845,20 @@ class ServiceObject
       alist.each do |item|
         next if node.role? item
         @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_chef_order, role_map[item])
+        node.add_to_run_list(item, local_chef_order)
         save_it = true
       end
 
       # Make sure the config role is on the nodes in this barclamp, otherwise remove it
       if all_nodes.include?(node.name)
-        # Add the config role 
+        # Add the config role
         unless node.role?(role.name)
           @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_chef_order, role_map[role.name])
+          node.add_to_run_list(role.name, local_chef_order)
           save_it = true
         end
       else
-        # Remove the config role 
+        # Remove the config role
         if node.role?(role.name)
           @logger.debug("AR: Removing role #{role.name} to #{node.name}")
           node.delete_from_run_list role.name
@@ -870,13 +887,13 @@ class ServiceObject
         end
         snodes << n
       end
- 
+
       @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
       @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
       if CHEF_ONLINE
-        # 
+        #
         # XXX: We used to do this twice - do we really need twice???
         # Yes! We do!  The system has some transient issues that are hidden
         # but the double run for failing nodes.  For now, we will do this.
@@ -911,7 +928,7 @@ class ServiceObject
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
               process_queue unless in_queue
-              return [ 405, message ] 
+              return [ 405, message ]
             end
           end
         end
@@ -944,7 +961,7 @@ class ServiceObject
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
               process_queue unless in_queue
-              return [ 405, message ] 
+              return [ 405, message ]
             end
           end
         end
@@ -974,15 +991,13 @@ class ServiceObject
   end
 
   def add_role_to_instance_and_node(barclamp, instance, name, prop, role, newrole)
-    node = NodeObject.find_node_by_name name    
+    node = NodeObject.find_node_by_name name
     if node.nil?
       @logger.debug("ARTOI: couldn't find node #{name}. bailing")
-      return false 
+      return false
     end
 
     chef_order = ServiceObject.chef_order(barclamp)
-    role_map = prop["deployment"][barclamp]["element_states"] rescue {}
-    role_map = {} unless role_map
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
@@ -1004,7 +1019,7 @@ class ServiceObject
 
     save_it = false
     unless node.role?(newrole)
-      node.add_to_run_list(newrole, chef_order, role_map[newrole])
+      node.add_to_run_list(newrole, chef_order)
       save_it = true
     end
 
@@ -1015,7 +1030,7 @@ class ServiceObject
 
     if save_it
       @logger.debug("saving node")
-      node.save 
+      node.save
     end
     true
   end
@@ -1038,7 +1053,7 @@ class ServiceObject
       end
 
       # Fix the normal file descriptors.
-      begin; STDIN.reopen "/dev/null"; rescue ::Exception; end       
+      begin; STDIN.reopen "/dev/null"; rescue ::Exception; end
       if logfile_name
         begin
           STDOUT.reopen logfile_name, "a+"
@@ -1051,11 +1066,10 @@ class ServiceObject
         begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
       end
       begin; STDERR.reopen STDOUT; rescue ::Exception; end
-      STDERR.sync = true      
+      STDERR.sync = true
 
       # Exec command
-      # the -- tells sudo to stop interpreting options
-      exec("sudo -i -u root -- ssh root@#{node} #{command}")
+      exec("sudo -i -u root \"ssh root@#{node} #{command}\"")
     }
   end
 

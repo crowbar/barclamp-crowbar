@@ -24,11 +24,6 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
-    network: Network
-    utils: Utilities
-    util_logs: Exported Items
-    util_chef: Chef Export
-    util_import: Import Barclamps
     list: Bulk Edit
     barclamps: Barclamps
     crowbar_bc: Crowbar
@@ -79,14 +74,12 @@ en:
       Failed to apply the proposal to: Failed to apply proposal
       Did not fail.  Successfully applied: Did not fail.  Successfully applied
       No success information for proposal: No success information for proposal
+      duplicate_elements_in_role: Duplicate elements detected in role
+      unknown_node: Unable to find any node named 
 
   # Model Names / Attributes
   model:
-    node:
-      multiple_node: Multiple nodes responded to alias request
-      invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
-      too_long_dns: Alias not saved because it exceeds FQDN 63 character length
-      duplicate_alias: Alias not saved because a node already has the same alias
+    node: Node
     proposal: Proposal
     service:
       name_exists: Name already exists. Please choose another.
@@ -105,8 +98,6 @@ en:
         hardware: Hardware
         switch_name: Switch Name
         switch_port: Switch Port
-        switch_unit: Switch Unit
-        switch_name_unit_port: Switch/Unit/Port
         switch_name_port: Switch Name/Port
         uptime: Uptime
         na: Unavailable
@@ -116,7 +107,7 @@ en:
         description: Description
         roles: Roles
         barclamps: Barclamps
-        asset_tag: Service Tag
+        asset_tag: Asset Tag
       proposal:
         name: Proposal
         description: Description
@@ -135,30 +126,21 @@ en:
   nodes:
     index:
       new_node: Add Node
-      title: Node Dashboard
+      title: Node list
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
-      default_new: New Group
-      add: Add Group
-      hide: Hide Group
-      drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
-      new_drag: To move nodes, drag into title
     list:
-      name: Name
-      group: Group
-      alias: Alias  
+      name: Name  
       description: Description
       bios: BIOS
       raid: RAID
       updated: Node List Updated
-      failed: Node Save Failed
       admin: Crowbar Server
       title_all: Bulk Edit
       title_unallocated: Bulk Edit (unallocated only)
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
-      hint: <i>group italics</i> indicates group is set automatically by system
     new:
       title: Add Node
     show:
@@ -178,64 +160,7 @@ en:
       bios: BIOS
       save_node_success: Node saved successfully
       allocate_node_success: Node allocated successfully
-      alias: Alias
-      group: Group
-      default: Using Default
-      override: Override?
       description: Description
-  
-  support:
-    index:
-      title: Exported Files
-      none_exported: There are no exported files to download
-      other: Other Files
-      chef: Chef Objects
-      cli: Command Line Utilities
-      logs: Log Files
-      delete_hint: Delete File from Export Directory
-      delete_succeeded: Delete Succeeded
-      delete_failed: Delete Failed
-      wait: Exporting... Please wait or check back later (screen will automatically update when complete)
-    export:
-      succeed: Chef Objects Exported
-      fail: Chef Export Failed
-    import:
-      title: Barclamp Import
-      title_all: Barclamp Import (installed and pending)
-      pending: Pending Only
-      admin_os: Crowbar Operating System
-      installed: Installed
-      user: User Managed
-      name: Name
-      order: Order
-      version: Date
-      commit: Commit GUID
-      notes: Notes
-      install: Install?
-      import: Import
-      error_file_missing: 'Error! Barclamp not found.'
-      error_import: 'Error! Import failed.'
-      error_yml: 'Error! Could not parse Crowbar.yml'
-      success: 'Success. Barclamp Imported!'
-      missing_prereq: Missing Prerequisits
-      select_files: Select Files to Upload
-      upload: Upload
-      delete_hint: Delete File from Import Directory
-    upload:
-      succeeded: Upload Succeeded
-      failed: Upload Failed
-      no_file: No File for Upload
-    restart:
-      title: Restart Crowbar
-      in_process: Restart in process...
-      dev_restart: 'DEV MODE: You must manually restart the web server to complete this action (it may not be needed).'
-      restarting: Restart request sent...
-      server_down: Process stopped.  Restarting...
-      complete: Crowbar Ready!
-      button: Restart Crowbar Server
-      import_log: Import Log
-
-     
   barclamp:
     modules:
       title: All Barclamps
@@ -281,7 +206,6 @@ en:
       msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
       remove: Remove Node
       add: Drop Node here to add to Role
-      filter: Filter available node list by entering the first letters of the node name
       no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
       added: Added Node [0] to Role [1]
       removed: Removed Node [0] from Role [1]
@@ -309,7 +233,6 @@ en:
 
   # Global
   show: View
-  all: All
   destroy: Remove
   back: Go Back
   cancel: Cancel
@@ -330,21 +253,14 @@ en:
   created_on: Created On
   no_items: No Items
   complete: Complete
-  'yes': 'Yes'
-  'no': 'No'
+  yes: Yes
+  no: No
   maybe: Maybe
   chuck_norris: Die!!!
   updating: Updating...
-  note: Note
-  hint: Hint
-  help: Help
-  virtual: Virtual
-  new: New Item!
-
 
   # node.raid_set
   raid:
-    JBODOnly: JBOD
     SingleRaid10: RAID 10
     SingleRaid1: RAID 1 span
     SingleRaid5: RAID 5
@@ -387,11 +303,8 @@ en:
     reinstall: Reinstall
     allocate: Allocate
     allocated: Allocated
-    recovering: Recovering
-    problem: Problem
+    problem: Ready Retrying
     delete: Information Deleted
     shutdown: Power Off
     reboot: Power Restart
     poweron: Power On
-    pending: Pending
-    building: Building

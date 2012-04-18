@@ -31,7 +31,7 @@ end
 
 service "apache2" do
   case node[:platform]
-  when "centos","redhat","fedora","suse"
+  when "centos","redhat","fedora"
     service_name "httpd"
     # If restarted/reloaded too quickly httpd has a habit of failing.
     # This may happen with multiple recipes notifying apache to restart - like
@@ -61,7 +61,7 @@ service "apache2" do
   action :enable
 end
 
-if platform?("centos", "redhat", "fedora", "suse", "arch")
+if platform?("centos", "redhat", "fedora", "arch")
   directory node[:apache][:log_dir] do
     mode 0755
     action :create
@@ -119,61 +119,74 @@ if platform?("centos", "redhat", "fedora", "suse", "arch")
   end
 end
 
-directory "#{node[:apache][:dir]}/ssl" do
-  action :create
-  mode 0755
-  owner "root"
-  group "root"
-end
-
-directory "#{node[:apache][:dir]}/conf.d" do
-  action :create
-  mode 0755
-  owner "root"
-  group "root"
-end
-
-directory node[:apache][:cache_dir] do
-  action :create
-  mode 0755
-  owner node[:apache][:user]
-end
-
-template "apache2.conf" do
-  case node[:platform]
-  when "centos","redhat","fedora","arch"
-    path "#{node[:apache][:dir]}/conf/httpd.conf"
-  when "debian","ubuntu"
-    path "#{node[:apache][:dir]}/apache2.conf"
+if node.platform != "suse"
+  directory "#{node[:apache][:dir]}/ssl" do
+    action :create
+    mode 0755
+    owner "root"
+    group "root"
   end
-  source "apache2.conf.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  notifies :reload, resources(:service => "apache2")
-end
 
-template "security" do
-  path "#{node[:apache][:dir]}/conf.d/security"
-  source "security.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  backup false
-  notifies :reload, resources(:service => "apache2")
-end
+  directory "#{node[:apache][:dir]}/conf.d" do
+    action :create
+    mode 0755
+    owner "root"
+    group "root"
+  end
 
-template "charset" do
-  path "#{node[:apache][:dir]}/conf.d/charset"
-  source "charset.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  backup false
-  notifies :reload, resources(:service => "apache2")
+  directory node[:apache][:cache_dir] do
+    action :create
+    mode 0755
+    owner node[:apache][:user]
+  end
+
+  template "apache2.conf" do
+    case node[:platform]
+    when "centos","redhat","fedora","arch"
+      path "#{node[:apache][:dir]}/conf/httpd.conf"
+    when "debian","ubuntu"
+      path "#{node[:apache][:dir]}/apache2.conf"
+    when "suse"
+      path "#{node[:apache][:dir]}/httpd.conf"
+    end
+    source "apache2.conf.erb"
+    owner "root"
+    group "root"
+    mode 0644
+    notifies :reload, resources(:service => "apache2")
+  end
+
+  template "security" do
+    path "#{node[:apache][:dir]}/conf.d/security"
+    source "security.erb"
+    owner "root"
+    group "root"
+    mode 0644
+    backup false
+    notifies :reload, resources(:service => "apache2")
+  end
+
+  template "charset" do
+    path "#{node[:apache][:dir]}/conf.d/charset"
+    source "charset.erb"
+    owner "root"
+    group "root"
+    mode 0644
+    backup false
+    notifies :reload, resources(:service => "apache2")
+  end
+
+  template "#{node[:apache][:dir]}/sites-available/default" do
+    source "default-site.erb"
+    owner "root"
+    group "root"
+    mode 0644
+    notifies :reload, resources(:service => "apache2")
+  end
 end
 
 template "#{node[:apache][:dir]}/ports.conf" do
+  path "#{node[:apache][:dir]}/listen.conf" if node.platform == "suse"
   source "ports.conf.erb"
   group "root"
   owner "root"
@@ -182,29 +195,25 @@ template "#{node[:apache][:dir]}/ports.conf" do
   notifies :reload, resources(:service => "apache2")
 end
 
-template "#{node[:apache][:dir]}/sites-available/default" do
-  source "default-site.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  notifies :reload, resources(:service => "apache2")
+# leave the default module list untouched for now on SUSE
+# (this doesn't seem to be needed for openstack)
+if node.platfrom != "suse"
+  include_recipe "apache2::mod_status"
+  include_recipe "apache2::mod_alias"
+  include_recipe "apache2::mod_auth_basic"
+  include_recipe "apache2::mod_authn_file"
+  include_recipe "apache2::mod_authz_default"
+  include_recipe "apache2::mod_authz_groupfile"
+  include_recipe "apache2::mod_authz_host"
+  include_recipe "apache2::mod_authz_user"
+  include_recipe "apache2::mod_autoindex"
+  include_recipe "apache2::mod_dir"
+  include_recipe "apache2::mod_env"
+  include_recipe "apache2::mod_mime"
+  include_recipe "apache2::mod_negotiation"
+  include_recipe "apache2::mod_setenvif"
+  include_recipe "apache2::mod_log_config" if platform?("centos", "redhat", "fedora", "suse", "arch")
 end
-
-include_recipe "apache2::mod_status"
-include_recipe "apache2::mod_alias"
-include_recipe "apache2::mod_auth_basic"
-include_recipe "apache2::mod_authn_file"
-include_recipe "apache2::mod_authz_default"
-include_recipe "apache2::mod_authz_groupfile"
-include_recipe "apache2::mod_authz_host"
-include_recipe "apache2::mod_authz_user"
-include_recipe "apache2::mod_autoindex"
-include_recipe "apache2::mod_dir"
-include_recipe "apache2::mod_env"
-include_recipe "apache2::mod_mime"
-include_recipe "apache2::mod_negotiation"
-include_recipe "apache2::mod_setenvif"
-include_recipe "apache2::mod_log_config" if platform?("centos", "redhat", "fedora", "suse", "arch")
 
 # We don't need this.
 #apache_site "default" if platform?("centos", "redhat", "fedora")

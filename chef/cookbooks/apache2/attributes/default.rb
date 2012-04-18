@@ -19,7 +19,7 @@
 
 # Where the various parts of apache are
 case platform
-when "redhat","centos","fedora","suse"
+when "redhat","centos","fedora"
   set[:apache][:dir]     = "/etc/httpd"
   set[:apache][:log_dir] = "/var/log/httpd"
   set[:apache][:user]    = "apache"
@@ -27,6 +27,14 @@ when "redhat","centos","fedora","suse"
   set[:apache][:binary]  = "/usr/sbin/httpd"
   set[:apache][:icondir] = "/var/www/icons/"
   set[:apache][:cache_dir] = "/var/cache/httpd"
+when "suse"
+  set[:apache][:dir]     = "/etc/apache2"
+  set[:apache][:log_dir] = "/var/log/apache2"
+  set[:apache][:user]    = "wwwrun"
+  set[:apache][:group]   = "www"
+  set[:apache][:binary]  = "/usr/sbin/httpd2"
+  set[:apache][:icondir] = "/usr/share/apache2/icons/"
+  set[:apache][:cache_dir] = "/var/cache/apache2"
 when "debian","ubuntu"
   set[:apache][:dir]     = "/etc/apache2"
   set[:apache][:log_dir] = "/var/log/apache2"

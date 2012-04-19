@@ -354,8 +354,8 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-
           @service_object.validate_proposal @proposal.raw_data
+          @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue Exception => e
@@ -367,8 +367,8 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-
           @service_object.validate_proposal @proposal.raw_data
+          @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
 
           answer = @service_object.proposal_commit(params[:name])

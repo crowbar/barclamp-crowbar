@@ -79,6 +79,8 @@ en:
       Failed to apply the proposal to: Failed to apply proposal
       Did not fail.  Successfully applied: Did not fail.  Successfully applied
       No success information for proposal: No success information for proposal
+      duplicate_elements_in_role: Duplicate elements detected in role
+      unknown_node: Unable to find any node named 
 
   # Model Names / Attributes
   model:

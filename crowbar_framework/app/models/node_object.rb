@@ -369,7 +369,7 @@ class NodeObject < ChefObject
     return false if @node.nil?
     return false if @role.nil?
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    return true if crowbar["run_list_map"][role_name]
+    return true if crowbar["run_list_map"][role_name] && crowbar["run_list_map"][role_name].fetch("priority", 0) != -1001
     @node.role?(role_name)
   end
 

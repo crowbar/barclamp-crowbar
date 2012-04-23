@@ -69,11 +69,18 @@ end
   end
 }
 
-bash "Enable rabbit management" do
-  code <<-'EOH'
-/usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
-/etc/init.d/rabbitmq-server restart
-exit 0
-EOH
-  not_if "su - rabbitmq -s /bin/bash -c \"/usr/lib/rabbitmq/bin/rabbitmq-plugins list -E\" | grep -q rabbitmq_management"
+if node.platform == "suse"
+  service "rabbitmq-server" do
+    supports :status => true, :restart => true
+    action [:enable, :start]
+  end
+else
+  bash "Enable rabbit management" do
+    code <<-'EOH'
+  /usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+  /etc/init.d/rabbitmq-server restart
+  exit 0
+  EOH
+    not_if "su - rabbitmq -s /bin/bash -c \"/usr/lib/rabbitmq/bin/rabbitmq-plugins list -E\" | grep -q rabbitmq_management"
+  end
 end

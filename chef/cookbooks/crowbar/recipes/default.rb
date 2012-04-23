@@ -17,7 +17,9 @@
 # limitations under the License.
 #
 
-include_recipe "bluepill"
+if node[:platform] != "suse"
+  include_recipe "bluepill"
+end
 
 pkglist=()
 rainbows_path=""
@@ -28,10 +30,12 @@ when "ubuntu","debian"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown}
   rainbows_path=""
+when "suse"
+  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
+      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
+      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
+      rubygem-ruby-shadow }
 end
-
-gemlist=%w{rake json syslogger sass simple-navigation 
-   i18n haml net-http-digest_auth rails rainbows }
 
 pkglist.each {|p|
   package p do
@@ -39,11 +43,16 @@ pkglist.each {|p|
   end
 }
 
-gemlist.each {|g|
-  gem_package g do
-    action :install
-  end
-}
+if node[:platform] != "suse"
+  gemlist=%w{rake json syslogger sass simple-navigation 
+     i18n haml net-http-digest_auth rails rainbows }
+
+  gemlist.each {|g|
+    gem_package g do
+      action :install
+    end
+  }
+end
 
 group "crowbar"
 
@@ -53,6 +62,7 @@ user "crowbar" do
   home "/home/crowbar"
   password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
+  supports  :manage_home=>true
 end
 
 directory "/root/.chef" do

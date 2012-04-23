@@ -309,7 +309,20 @@ class NodeObject < ChefObject
   end
 
   def asset_tag
-    @node["dmi"]["chassis"]["serial_number"] rescue nil
+    if virtual?
+      "vm-#{mac.gsub(':',"-")}"
+    else
+      @node["dmi"]["chassis"]["serial_number"] rescue nil
+    end
+  end
+
+  def virtual?
+    case hardware
+      when 'VMware Virtual Platform'
+        true
+      else
+        false
+    end
   end
 
   def number_of_drives
@@ -864,6 +877,7 @@ class NodeObject < ChefObject
           # get values from default file
           nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
           nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
+          nodes[asset_tag].each { |key, value| default[key] = value } unless nodes[asset_tag].nil?
           # some date replacement
           default['description'] = default['description'].gsub(/DATE/,I18n::l(Time.now)) unless default['description'].nil?
           default['alias'] =default['alias'].gsub(/NODE/,node) unless default['alias'].nil?

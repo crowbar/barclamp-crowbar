@@ -121,6 +121,14 @@ class NodesController < ApplicationController
     end
   end
 
+  def classes
+    nodes = NodeObject.all
+    @classes = {}
+    nodes.each do |n|
+      @classes[n.name] = n.class
+    end
+  end
+  
   def group_change
     node = NodeObject.find_node_by_name params[:id]
     if node.nil?

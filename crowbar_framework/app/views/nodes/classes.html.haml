@@ -1,0 +1,12 @@
+%h1= t('.title')
+
+%table.data.box
+  %thead
+    %tr
+      %th= t('.name')
+      %th= t('.class')
+  %tbody
+    - @classes.each do |n, c|
+      %tr
+        %td= n
+        %td= c.inspect

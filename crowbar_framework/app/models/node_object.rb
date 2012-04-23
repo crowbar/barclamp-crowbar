@@ -287,6 +287,15 @@ class NodeObject < ChefObject
     save
   end
 
+  # creates a hash with key attributes of the node from ohai for comparison
+  def class
+    c = {}
+    c[:number_of_drives] = number_of_drives
+    c[:memory] = memory
+    c[:cpu] = cpu
+    c
+  end
+  
   def memory
     @node['memory']['total'] rescue nil
   end

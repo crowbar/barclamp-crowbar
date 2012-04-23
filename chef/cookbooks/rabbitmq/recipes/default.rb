@@ -33,6 +33,8 @@
 # while still using /etc/init.d/rabbitmq-server start
 # because of this we just put the rabbitmq-env.conf in place and let it rip
 
+package "rabbitmq-server"
+
 directory "/etc/rabbitmq/" do
   owner "root"
   group "root"
@@ -59,8 +61,6 @@ end
     group "rabbitmq"
   end
 }
-
-package "rabbitmq-server"
 
 bash "Enable rabbit management" do
   code <<-'EOH'

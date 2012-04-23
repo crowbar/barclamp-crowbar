@@ -204,7 +204,7 @@ end
 
 # leave the default module list untouched for now on SUSE
 # (this doesn't seem to be needed for openstack)
-if node.platfrom != "suse"
+if node.platform != "suse"
   include_recipe "apache2::mod_status"
   include_recipe "apache2::mod_alias"
   include_recipe "apache2::mod_auth_basic"

@@ -819,6 +819,10 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
+  def export
+    NodeObject.dump @node, 'node', name
+  end
+  
   private 
   
   # this is used by the alias/description code split

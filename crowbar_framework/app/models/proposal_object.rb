@@ -197,6 +197,10 @@ class ProposalObject < ChefObject
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
   end
   
+  def export
+    ProposalObject.dump @item, 'data_bag_item_crowbar-bc', @item.name[/bc-(.*)/,1]
+  end
+  
   private
   
   # 'array' is the unsorted set of objects

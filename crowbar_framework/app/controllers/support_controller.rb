@@ -163,9 +163,9 @@ class SupportController < ApplicationController
     if CHEF_ONLINE
       begin
         Dir.entries('db').each { |f| File.delete(File.expand_path(File.join('db',f))) if f=~/.*\.json$/ }
-        NodeObject.all.each { |n| NodeObject.dump n, 'node', n.name }
-        RoleObject.all.each { |r| RoleObject.dump r, 'role', r.name }
-        ProposalObject.all.each { |p| ProposalObject.dump p, 'data_bag_item_crowbar-bc', p.name[/bc-(.*)/,1] }
+        NodeObject.all.each { |n| n.export }
+        RoleObject.all.each { |r| r.export }
+        ProposalObject.all.each { |p| p.export }
         @file = cfile ="crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
         pid = fork do
           system "tar -czf #{File.join('/tmp',cfile)} #{File.join('db','*.json')}" 

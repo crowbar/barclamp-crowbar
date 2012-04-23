@@ -38,6 +38,10 @@ service "apache2" do
     # during the initial bootstrap.
     restart_command "/sbin/service httpd restart && sleep 1"
     reload_command "/sbin/service httpd graceful && sleep 1"
+  when "suse"
+    service_name "apache2"
+    restart_command "/sbin/service apache2 restart && sleep 1"
+    reload_command "/sbin/service apache2 graceful && sleep 1"
   when "debian"
     service_name "apache2"
     restart_command "/usr/sbin/invoke-rc.d apache2 restart && sleep 1"
@@ -55,6 +59,7 @@ service "apache2" do
     "centos" => { "default" => [ :restart, :reload, :status ] },
     "redhat" => { "default" => [ :restart, :reload, :status ] },
     "fedora" => { "default" => [ :restart, :reload, :status ] },
+    "suse" => { "default" => [ :restart, :reload, :status ] },
     "arch" => { "default" => [ :restart, :reload, :status ] },
     "default" => { "default" => [:restart, :reload ] }
   )
@@ -197,7 +202,7 @@ end
 
 # leave the default module list untouched for now on SUSE
 # (this doesn't seem to be needed for openstack)
-if node.platfrom != "suse"
+if node.platform != "suse"
   include_recipe "apache2::mod_status"
   include_recipe "apache2::mod_alias"
   include_recipe "apache2::mod_auth_basic"

@@ -115,9 +115,9 @@ class NodesController < ApplicationController
       end
     end
     @options = CrowbarService.read_options
-    @nodes = NodeObject.all
-    if !params[:allocated].nil?
-      @nodes = @nodes.select { |n| !n.allocated? }
+    @nodes = {}
+    NodeObject.all.each do |node|
+      @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
   end
 

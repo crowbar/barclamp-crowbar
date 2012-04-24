@@ -288,14 +288,15 @@ class NodeObject < ChefObject
   end
 
   # creates a hash with key attributes of the node from ohai for comparison
-  def class
-    c = {}
-    c[:drives] = number_of_drives
-    c[:ram] = memory
-    c[:cpu] = cpu
-    c[:hw] = hardware
-    c[:nics] = @node["network"]["interfaces"].length
-    c
+  def family
+    f = {}
+    f[:drives] = physical_drives
+    f[:ram] = memory
+    f[:cpu] = cpu
+    f[:hw] = hardware
+    f[:raid] = raid_set
+    f[:nics] = @node["network"]["interfaces"].length
+    f
   end
   
   def memory
@@ -330,7 +331,11 @@ class NodeObject < ChefObject
   def number_of_drives
     self.crowbar['crowbar']['disks'].length rescue -1
   end
-
+  
+  def physical_drives
+    self.crowbar['crowbar']['disks'].length rescue -1
+  end
+  
   def [](attrib)
     return nil if @node.nil?
     @node[attrib]

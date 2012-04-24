@@ -21,6 +21,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
+  map.nodes_class 'nodes/classes', :controller=>'nodes', :action=>'classes'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'

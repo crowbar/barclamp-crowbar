@@ -24,6 +24,7 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
+    classes: Classes
     network: Network
     utils: Utilities
     util_logs: Exported Items
@@ -161,6 +162,15 @@ en:
       all: Show All
       nochange: No Changes
       hint: <i>group italics</i> indicates group is set automatically by system
+    classes:
+      title: Node Classes
+      name: Nodes
+      units: Units
+      ram: Memory
+      drives: Drives
+      nics: NICs
+      cpu: CPU Type
+      hardware: Platform
     new:
       title: Add Node
     show:

@@ -3,6 +3,9 @@ SimpleNavigation::Configuration.run do |navigation|
     primary.item :nodes, t('nav.nodes'), root_path do |secondary|
       secondary.item :dashboard, t('nav.dashboard'), dashboard_path()
       secondary.item :bulkedit, t('nav.list'), nodes_list_path(:allocated=>'yes') 
+      if ENV['RAILS_ENV'] == 'development'
+        secondary.item :classes, t('nav.classes'), nodes_class_path
+      end
       # insert here for :nodes
     end
     primary.item :network, t('nav.network'), network_path do |secondary| 

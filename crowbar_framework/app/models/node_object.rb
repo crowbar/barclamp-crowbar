@@ -290,9 +290,11 @@ class NodeObject < ChefObject
   # creates a hash with key attributes of the node from ohai for comparison
   def class
     c = {}
-    c[:number_of_drives] = number_of_drives
-    c[:memory] = memory
+    c[:drives] = number_of_drives
+    c[:ram] = memory
     c[:cpu] = cpu
+    c[:hw] = hardware
+    c[:nics] = @node["network"]["interfaces"].length
     c
   end
   

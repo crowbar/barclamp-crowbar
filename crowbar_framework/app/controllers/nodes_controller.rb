@@ -125,7 +125,9 @@ class NodesController < ApplicationController
     nodes = NodeObject.all
     @classes = {}
     nodes.each do |n|
-      @classes[n.name] = n.class
+      c = n.class.to_s  
+      @classes[c] = {:names=>[], :class=>n.class} unless @classes.has_key? c
+      @classes[c][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
     end
   end
   

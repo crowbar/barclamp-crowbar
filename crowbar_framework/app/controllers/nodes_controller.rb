@@ -115,12 +115,22 @@ class NodesController < ApplicationController
       end
     end
     @options = CrowbarService.read_options
-    @nodes = NodeObject.all
-    if !params[:allocated].nil?
-      @nodes = @nodes.select { |n| !n.allocated? }
+    @nodes = {}
+    NodeObject.all.each do |node|
+      @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
   end
 
+  def classes
+    nodes = NodeObject.all
+    @classes = {}
+    nodes.each do |n|
+      c = n.class.to_s  
+      @classes[c] = {:names=>[], :class=>n.class} unless @classes.has_key? c
+      @classes[c][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
+    end
+  end
+  
   def group_change
     node = NodeObject.find_node_by_name params[:id]
     if node.nil?

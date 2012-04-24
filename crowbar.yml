@@ -83,9 +83,9 @@ debs:
       - deb http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
       - deb http://apt.opscode.com/ oneiric-0.10 main
-  repos:
+  #repos:
     # Rabbit MQ repo
-    - deb http://www.rabbitmq.com/debian/ testing main
+    #- deb http://www.rabbitmq.com/debian/ testing main
   build_pkgs:
     - ruby1.8-dev
     - rubygems1.8

@@ -33,3 +33,7 @@ admin:
 d00-0c-29-ef-57-88:
   description: Controller
   alias: Node 1
+
+ASSET_TAG_001:
+  description: Dell Server 2
+  alias: Node 2

@@ -21,6 +21,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
+  map.nodes_class 'nodes/classes', :controller=>'nodes', :action=>'classes'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
@@ -49,6 +50,7 @@ ActionController::Routing::Routes.draw do |map|
   
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
+  map.barclamp_nodes            'crowbar/:controller/1.0/proposals/nodes', :action=>'nodes'
   map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
   map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
   map.commit_proposal_barclamp  'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }
@@ -70,6 +72,7 @@ ActionController::Routing::Routes.draw do |map|
   map.barclamp_modules 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :conditions => { :method => :get }
 
   map.connect 'crowbar/:barclamp/1.0/help', :action => 'help', :conditions => { :method => :get }, :controller => 'barclamp'
+  map.connect 'crowbar/:barclamp/1.0/proposals/nodes', :controller => "barclamp", :action=>'nodes'
   map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }, :controller => 'barclamp'
   map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }, :controller => 'barclamp'
   map.connect 'crowbar/:barclamp/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }, :controller => 'barclamp'

@@ -180,7 +180,7 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title = "#{@bc_name.titlecase} #{t('barclamp.index.members')}"
+        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
         @count = -1
         members = {}
         list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
@@ -354,8 +354,8 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-
           @service_object.validate_proposal @proposal.raw_data
+          @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue Exception => e
@@ -367,14 +367,20 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-
           @service_object.validate_proposal @proposal.raw_data
+          @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
 
           answer = @service_object.proposal_commit(params[:name])
           flash[:notice] = answer[1] if answer[0] >= 300
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
-          flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{answer[1].inspect}" if answer[0] == 202
+          if answer[0] == 202
+            flash_msg = ""
+            answer[1].each {|node_dns|
+                flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
+            }
+            flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
+          end
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -463,6 +469,11 @@ class BarclampController < ApplicationController
     flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
     return render :text => flash[:notice], :status => 400 unless ret
     render :json => {}, :status => 200 if ret
+  end
+
+  add_help(:nodes,[],[:get]) 
+  def nodes
+    #Empty method to override if your barclamp has a "nodes" view.
   end
 
 end

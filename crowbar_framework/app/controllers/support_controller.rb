@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -16,7 +16,7 @@
 # 
 
 class SupportController < ApplicationController
-  
+    
   require 'chef'
 
   # Legacy Support (UI version moved to loggin barclamp)
@@ -37,6 +37,8 @@ class SupportController < ApplicationController
     @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[] }
     Dir.entries(export_dir).each do |f|
       if f =~ /^\./
+        next # ignore rest of loop
+      elsif f =~ /^KEEP_THIS.*/
         next # ignore rest of loop
       elsif f =~ /^crowbar-logs-.*/
         @exports[:logs] << f 
@@ -89,17 +91,19 @@ class SupportController < ApplicationController
   
   def import
     @installed = ServiceObject.barclamp_catalog['barclamps'] 
+    # handle case there we've installed a sub barclamp for the meta, but not the meta
+    @installed.delete_if { |k, v| v['order'].nil? }
     @imports = {}
     if request.post?
       bcs = []
       bc_list = []
       importer = File.join '/opt', 'dell', 'bin', 'barclamp_install.rb'
       params.each do |k,v|
-        if k =~ /^barclamp:(.*)/
+        if k =~ /^barclamp_(.*)/
           tar = File.join RAILS_ROOT, import_dir, v
           if File.exist? tar
             bcs << tar 
-            bc_list << k.split(':')[1]
+            bc_list << k.split('_')[1]
           end
         end 
       end
@@ -122,12 +126,28 @@ class SupportController < ApplicationController
           begin
             cb = YAML.load_file(File.join(import_dir, name))
             key = cb['barclamp']['name']
-            @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :commit=>cb['git']['commit']}
-            unless @installed.key? key
-              @installed[key] = {:new=>true, :name=>key, 'order'=>cb['crowbar']['order']}
+            @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :help=>cb['barclamp']['online_help'], :commit=>cb['git']['commit'], :prereq=>[], :requires=>[]}
+            if cb['barclamp'].has_key? 'requires'
+              cb['barclamp']['requires'].each do |prereq|
+                next if prereq =~ /^@/
+                @imports[key][:requires] << prereq
+              end
             end
-          rescue
+            unless @installed.keys.include? key 
+              @installed[key] = {:new=>true, :name=>key, 'user_managed'=>(cb['barclamp']['user_managed'] || 'yes'), 'order'=>cb['crowbar']['order']}
+            end
+          rescue Exception=>e
             # something happened to the YAML file!
+            @installed[key] = {:new=>true, :name=>key, 'commit'=>e.message, 'order'=>-1} unless @installed.keys.include? key
+            @imports[key] = { :tar=>tar, :barclamp=>key, :date=>I18n.t('error_yml', :scope=>'support.import'), :commit=>I18n.t('na'), :prereq=>[]} unless @imports.keys.include? key
+          end
+        end
+        @imports.each do |key, values|
+          unless values[:requires].nil?
+            values[:requires].each do |prereq|
+              next if @imports[key][:prereq].include? prereq
+              @imports[key][:prereq] << prereq if @installed[prereq].nil? or @installed[prereq][:new]
+            end
           end
         end
       end
@@ -143,9 +163,9 @@ class SupportController < ApplicationController
     if CHEF_ONLINE
       begin
         Dir.entries('db').each { |f| File.delete(File.expand_path(File.join('db',f))) if f=~/.*\.json$/ }
-        NodeObject.all.each { |n| NodeObject.dump n, 'node', n.name }
-        RoleObject.all.each { |r| RoleObject.dump r, 'role', r.name }
-        ProposalObject.all.each { |p| ProposalObject.dump p, 'data_bag_item_crowbar-bc', p.name[/bc-(.*)/,1] }
+        NodeObject.all.each { |n| n.export }
+        RoleObject.all.each { |r| r.export }
+        ProposalObject.all.each { |p| p.export }
         @file = cfile ="crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
         pid = fork do
           system "tar -czf #{File.join('/tmp',cfile)} #{File.join('db','*.json')}" 

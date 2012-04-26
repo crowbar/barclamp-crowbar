@@ -172,7 +172,7 @@ class NodeObject < ChefObject
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
-      if node
+      if node and !node.handle.eql?(handle)
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('model.node.duplicate_alias') + ": " + node.name
       else
@@ -287,6 +287,17 @@ class NodeObject < ChefObject
     save
   end
 
+  # creates a hash with key attributes of the node from ohai for comparison
+  def class
+    c = {}
+    c[:drives] = number_of_drives
+    c[:ram] = memory
+    c[:cpu] = cpu
+    c[:hw] = hardware
+    c[:nics] = @node["network"]["interfaces"].length
+    c
+  end
+  
   def memory
     @node['memory']['total'] rescue nil
   end
@@ -300,7 +311,20 @@ class NodeObject < ChefObject
   end
 
   def asset_tag
-    @node["dmi"]["chassis"]["serial_number"] rescue nil
+    if virtual?
+      "vm-#{mac.gsub(':',"-")}"
+    else
+      @node["dmi"]["chassis"]["serial_number"] rescue nil
+    end
+  end
+
+  def virtual?
+    case hardware
+      when 'VMware Virtual Platform'
+        true
+      else
+        false
+    end
   end
 
   def number_of_drives
@@ -819,6 +843,10 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
+  def export
+    NodeObject.dump @node, 'node', name
+  end
+  
   private 
   
   # this is used by the alias/description code split
@@ -851,6 +879,7 @@ class NodeObject < ChefObject
           # get values from default file
           nodes['default'].each { |key, value| default[key] = value } unless nodes['default'].nil?
           nodes[node].each { |key, value| default[key] = value } unless nodes[node].nil?
+          nodes[asset_tag].each { |key, value| default[key] = value } unless nodes[asset_tag].nil?
           # some date replacement
           default['description'] = default['description'].gsub(/DATE/,I18n::l(Time.now)) unless default['description'].nil?
           default['alias'] =default['alias'].gsub(/NODE/,node) unless default['alias'].nil?

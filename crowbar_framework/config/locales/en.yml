@@ -24,6 +24,7 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
+    classes: Classes
     network: Network
     utils: Utilities
     util_logs: Exported Items
@@ -79,6 +80,8 @@ en:
       Failed to apply the proposal to: Failed to apply proposal
       Did not fail.  Successfully applied: Did not fail.  Successfully applied
       No success information for proposal: No success information for proposal
+      duplicate_elements_in_role: Duplicate elements detected in role
+      unknown_node: Unable to find any node named 
 
   # Model Names / Attributes
   model:
@@ -159,6 +162,15 @@ en:
       all: Show All
       nochange: No Changes
       hint: <i>group italics</i> indicates group is set automatically by system
+    classes:
+      title: Node Classes
+      name: Nodes
+      units: Units
+      ram: Memory
+      drives: Drives
+      nics: NICs
+      cpu: CPU Type
+      hardware: Platform
     new:
       title: Add Node
     show:
@@ -210,11 +222,14 @@ en:
       order: Order
       version: Date
       commit: Commit GUID
-      available: Available
+      notes: Notes
+      install: Install?
       import: Import
       error_file_missing: 'Error! Barclamp not found.'
       error_import: 'Error! Import failed.'
+      error_yml: 'Error! Could not parse Crowbar.yml'
       success: 'Success. Barclamp Imported!'
+      missing_prereq: Missing Prerequisits
       select_files: Select Files to Upload
       upload: Upload
       delete_hint: Delete File from Import Directory
@@ -334,6 +349,7 @@ en:
   updating: Updating...
   note: Note
   hint: Hint
+  help: Help
   virtual: Virtual
   new: New Item!
 

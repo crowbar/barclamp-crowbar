@@ -161,6 +161,10 @@ class RoleObject < ChefObject
   def run_list
     @role.run_list
   end
+  
+  def export
+    RoleObject.dump @role, 'role', name 
+  end
 
 end
 

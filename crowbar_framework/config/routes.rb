@@ -21,7 +21,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
-  map.nodes_class 'nodes/classes', :controller=>'nodes', :action=>'classes'
+  map.nodes_families 'nodes/families', :controller=>'nodes', :action=>'families'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }
   map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
@@ -43,6 +43,7 @@ ActionController::Routing::Routes.draw do |map|
   map.utils 'utils', :controller=>'support', :action=>'index'
   map.utils_files 'utils/files/:id', :controller=>'support', :action=>'index', :requirements => { :id => /.*/ }
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
+  map.utils_export 'utils/:controller/1.0/export', :action=>'export'
   map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
   map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
   map.utils_upload 'utils/upload/:id', :controller=>'support', :action=>'upload', :requirements => { :id => /.*/ }

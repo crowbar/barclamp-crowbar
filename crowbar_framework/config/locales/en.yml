@@ -24,7 +24,7 @@ en:
   nav:
     nodes: Nodes
     dashboard: Dashboard
-    classes: Classes
+    families: Family Groups
     network: Network
     utils: Utilities
     util_logs: Exported Items
@@ -162,12 +162,13 @@ en:
       all: Show All
       nochange: No Changes
       hint: <i>group italics</i> indicates group is set automatically by system
-    classes:
-      title: Node Classes
+    families:
+      title: Node Hardware Families
       name: Nodes
       units: Units
       ram: Memory
       drives: Drives
+      raid: RAID
       nics: NICs
       cpu: CPU Type
       hardware: Platform

@@ -121,13 +121,13 @@ class NodesController < ApplicationController
     end
   end
 
-  def classes
+  def families
     nodes = NodeObject.all
-    @classes = {}
+    @families = {}
     nodes.each do |n|
-      c = n.class.to_s  
-      @classes[c] = {:names=>[], :class=>n.class} unless @classes.has_key? c
-      @classes[c][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
+      f = n.family.to_s  
+      @families[f] = {:names=>[], :family=>n.family} unless @families.has_key? f
+      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
     end
   end
   

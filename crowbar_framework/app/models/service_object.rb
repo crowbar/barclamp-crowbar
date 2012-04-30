@@ -58,30 +58,26 @@ class ServiceObject
     return bc
   end
 
-  def self.run_order(bc = bc_name, cat = nil)
+  def self.run_order(bc, cat = nil)
     return 1000 if bc == nil
     cat = barclamp_catalog if cat.nil?
-    order = cat["barclamps"][bc]["order"] rescue 1000
-    cat["barclamps"][bc]["run_order"] rescue order
+    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
+    (cat["barclamps"][bc]["run_order"] || order) rescue order
   end
 
   def run_order
-    cat = ServiceObject.barclamp_catalog
-    order = cat["barclamps"][@bc_name]["order"] rescue 1000
-    cat["barclamps"][@bc_name]["run_order"] rescue order
+    ServiceObject.run_order(@bc_name)
   end
 
-  def self.chef_order(bc = bc_name, cat = nil)
+  def self.chef_order(bc, cat = nil)
     return 1000 if bc == nil
     cat = barclamp_catalog if cat.nil?
-    order = cat["barclamps"][bc]["order"] rescue 1000
-    cat["barclamps"][bc]["chef_order"] rescue order
+    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
+    (cat["barclamps"][bc]["chef_order"] || order) rescue order
   end
 
   def chef_order
-    cat = ServiceObject.barclamp_catalog
-    order = cat["barclamps"][@bc_name]["order"] rescue 1000
-    cat["barclamps"][@bc_name]["chef_order"] rescue order
+    ServiceObject.chef_order(@bc_name)
   end
 
   def random_password(size = 12)
@@ -777,7 +773,7 @@ class ServiceObject
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     # For Role ordering
-    local_chef_order = chef_order
+    local_chef_order = chef_order()
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
 
@@ -999,7 +995,7 @@ class ServiceObject
       return false 
     end
 
-    chef_order = ServiceObject.chef_order(barclamp)
+    local_chef_order = ServiceObject.chef_order(barclamp)
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
 
@@ -1023,12 +1019,12 @@ class ServiceObject
 
     save_it = false
     unless node.role?(newrole)
-      node.add_to_run_list(newrole, chef_order, role_map[newrole])
+      node.add_to_run_list(newrole, local_chef_order, role_map[newrole])
       save_it = true
     end
 
     unless node.role?("#{barclamp}-config-#{instance}")
-      node.add_to_run_list("#{barclamp}-config-#{instance}", chef_order)
+      node.add_to_run_list("#{barclamp}-config-#{instance}", local_chef_order)
       save_it = true
     end
 

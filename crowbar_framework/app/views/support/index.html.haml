@@ -1,7 +1,7 @@
 %p{:style => 'float:right'}
   - ServiceObject.barclamp_catalog['barclamps'].each do |bc, details|
     - c = "#{bc.camelize}Controller"
-    - if eval(c).new.methods.include?('export')
+    - if (eval(c).new.methods.include?('export') rescue false)
       = link_to t("nav.#{bc}_export"), utils_export_path(:controller=>bc), :class => 'button'
   = link_to t('nav.util_chef'), export_chef_path, :class => 'button'
 

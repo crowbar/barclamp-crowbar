@@ -20,7 +20,6 @@ SimpleNavigation::Configuration.run do |navigation|
     primary.item :utils, t('nav.utils'), utils_path do |secondary| 
       secondary.item :util_import, t('nav.util_import'), utils_import_path 
       secondary.item :util_index, t('nav.util_logs'), utils_path 
-      secondary.item :util_chef, t('nav.util_chef'), export_chef_path 
       # insert here for :utils
     end
     primary.item :help, t('nav.help'), '/crowbar_users_guide.pdf', { :link => { :target => "_blank" } } do |secondary|

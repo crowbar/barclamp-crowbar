@@ -945,7 +945,7 @@ class ServiceObject
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
               filename = "log/#{node}.chef_client.log"
-              pid = run_remote_chef_client(node, "chef-client", filename)
+              pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
               pids[pid] = node
             end
             status = Process.waitall

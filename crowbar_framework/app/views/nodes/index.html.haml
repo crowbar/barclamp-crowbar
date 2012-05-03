@@ -30,7 +30,7 @@
         %tbody
           %tr
             %td 
-            %td= t ('.new_drag')
+            %td= t('.new_drag')
     - @groups.sort.each do |name, group|
       .column_25{:class => column_class(i+=1,4)}
         %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
@@ -41,10 +41,10 @@
               %th
                 - unless group[:automatic]
                   %div{ :class=>'group', :draggable=>'true', :id=>name }
-                    =(name || t('unknown'))               
+                    = truncate(name || t('unknown'), :length => 25)
                 - else
                   %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-                    %i= (name || t('unknown'))
+                    %i= truncate(name || t('unknown'), :length => 25)
   
           %tbody
             - group[:nodes].sort.each do |order, handle|
@@ -54,7 +54,7 @@
                   .led{:class => node[:status], :title=>t("state.#{node[:status]}", :default=>node[:status].titlecase)} 
                 %td.name
                   %a{:href => node_path(handle), :draggable=>'true', :title=> (node[:description].nil? ? t(:not_set) : node[:description]), :class => 'node_details', :id => handle.parameterize}
-                    = node[:alias]
+                    = truncate(node[:alias], :length => 25)
   
 .clear
 
@@ -117,14 +117,20 @@
   
   function add_group() {
     var group_div = $('#add_group_div');
-    var new_group_raw = $('#new_group').val();
-    var new_group = new_group_raw.replace(" ","_");
+    var new_group = $('#new_group').val();
     var group = $('th[droptarget="true"]');
-    group.attr('id', new_group);
-    group.text(new_group_raw);
-    bind_drop($('#'+new_group));
-    group_div.attr('style', 'display:inline');
-    $('a#add_button').attr('class','button');
+    var valid_group_regex = /^[a-zA-Z][a-zA-Z0-9._:-]+$/;
+    if (new_group.match(valid_group_regex)) {
+      group.attr('id', new_group);
+      group.text(new_group);
+      bind_drop($('#'+new_group));
+      group_div.attr('style', 'display:inline');
+      $('a#add_button').attr('class','button');
+    } 
+    else {
+      alert("#{t '.add_group_error'}");
+      $('a#add_button').attr('class','button');
+    }
   }
 
   function update() {

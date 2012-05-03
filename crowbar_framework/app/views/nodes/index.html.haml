@@ -41,10 +41,10 @@
               %th
                 - unless group[:automatic]
                   %div{ :class=>'group', :draggable=>'true', :id=>name }
-                    =(name || t('unknown'))               
+                    = truncate(name || t('unknown'), :length => 25)
                 - else
                   %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-                    %i= (name || t('unknown'))
+                    %i= truncate(name || t('unknown'), :length => 25)
   
           %tbody
             - group[:nodes].sort.each do |order, handle|
@@ -54,7 +54,7 @@
                   .led{:class => node[:status], :title=>t("state.#{node[:status]}", :default=>node[:status].titlecase)} 
                 %td.name
                   %a{:href => node_path(handle), :draggable=>'true', :title=> (node[:description].nil? ? t(:not_set) : node[:description]), :class => 'node_details', :id => handle.parameterize}
-                    = node[:alias]
+                    = truncate(node[:alias], :length => 25)
   
 .clear
 

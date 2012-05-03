@@ -234,6 +234,10 @@ class NodesController < ApplicationController
   private
 
   def save_node
+    if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
+      flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
+      return false
+    end
     begin
       @node.bios_set = params[:bios]
       @node.raid_set = params[:raid]

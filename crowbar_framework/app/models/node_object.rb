@@ -723,7 +723,7 @@ class NodeObject < ChefObject
       nil
     end
     # if not set, use calculated value
-    (g.nil? ? switch : g)
+    (g.nil? ? "sw:#{switch}" : g)
   end
   
   def group=(value)

@@ -90,6 +90,27 @@ class MachinesController < ApplicationController
     end
   end
 
+  add_help(:update,[:name],[:post])
+  def update
+    name = params[:name]
+    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
+
+    machine = NodeObject.find_node_by_name name
+    if machine.nil?
+      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      respond_to do |format|
+        format.html
+        format.json { render :text => "Host not found", :status => 404 }
+      end
+    else
+      machine.set_state("update")
+      respond_to do |format|
+        format.html { redirect_to :action => :index }
+        format.json { render :json => {} }
+      end
+    end
+  end
+
   add_help(:reset,[:name],[:post])
   def reset
     name = params[:name]
@@ -109,7 +130,6 @@ class MachinesController < ApplicationController
         format.json { render :json => {} }
       end
     end
-    redirect_to :action => :index
   end
 
   add_help(:identify,[:name],[:post])

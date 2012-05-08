@@ -17,7 +17,9 @@
 # limitations under the License.
 #
 
-include_recipe "bluepill"
+if node[:platform] != "suse"
+  include_recipe "bluepill"
+end
 
 pkglist=()
 rainbows_path=""

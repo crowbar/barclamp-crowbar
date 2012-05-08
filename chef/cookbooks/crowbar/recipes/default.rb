@@ -30,10 +30,11 @@ when "ubuntu","debian"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown}
   rainbows_path=""
+when "suse"
+  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
+      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
+      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows }
 end
-
-gemlist=%w{rake json syslogger sass simple-navigation 
-   i18n haml net-http-digest_auth rails rainbows }
 
 pkglist.each {|p|
   package p do
@@ -41,11 +42,16 @@ pkglist.each {|p|
   end
 }
 
-gemlist.each {|g|
-  gem_package g do
-    action :install
-  end
-}
+if node[:platform] != "suse"
+  gemlist=%w{rake json syslogger sass simple-navigation 
+     i18n haml net-http-digest_auth rails rainbows }
+
+  gemlist.each {|g|
+    gem_package g do
+      action :install
+    end
+  }
+end
 
 group "crowbar"
 

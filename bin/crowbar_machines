@@ -71,7 +71,8 @@ end
   "identify" => [ "action \"identify\", ARGV.shift", "identify <name> - identify a node" ],
   "allocate" => [ "action \"allocate\", ARGV.shift", "allocate <name> - allocate a node" ],
   "reset" => [ "action \"reset\", ARGV.shift", "reset <name> - reset a node" ],
-  "reinstall" => [ "action \"reinstall\", ARGV.shift", "reinstall <name> - reinstall a node" ]
+  "reinstall" => [ "action \"reinstall\", ARGV.shift", "reinstall <name> - reinstall a node" ],
+  "update" => [ "action \"update\", ARGV.shift", "update <name> - update a node (hardware only)" ]
 }
 
 

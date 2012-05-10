@@ -70,48 +70,60 @@ class NodesController < ApplicationController
       end
       succeeded = []
       failed = []
+      # before we start saving, make sure someone did not give us duplicate aliases
+      # this SHOULD Be causght by the node.save but race conditoins are breaking the constency of the DB
+      alias_dup = false
       nodes.each do |node_name, values|
-        begin
-          dirty = false
-          node = NodeObject.find_node_by_name node_name
-          if !node.allocated and values['allocate'] === 'checked'
-            node.allocated = true
-            dirty = true
-          end
-          if !(node.description == values['description'])
-            node.description = values['description']
-            dirty = true
-          end
-          if !(node.alias == values['alias'])
-              node.alias = values['alias']
+        nodes.each do |nn, vv|
+           alias_dup = true if nn!=node_name and vv['alias'] == values['alias']
+           failed << node_name if alias_dup 
+           break if alias_dup
+        end
+      end
+      unless alias_dup
+        nodes.each do |node_name, values|
+          begin
+            dirty = false
+            node = NodeObject.find_node_by_name node_name
+            if !node.allocated and values['allocate'] === 'checked'
+              node.allocated = true
               dirty = true
-          end
-          if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
-            node.bios_set = values['bios']
-            dirty = true
-          end
-          if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(values['raid'] === 'not_set')
-            node.raid_set = values['raid']
-            dirty = true
-          end
-          if dirty
-            begin
-              node.save
-              succeeded << node_name
-            rescue Exception=>e
-              failed << node_name
             end
+            if !(node.description == values['description'])
+              node.description = values['description']
+              dirty = true
+            end
+            if !(node.alias == values['alias'])
+                node.alias = values['alias']
+                dirty = true
+            end
+            if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
+              node.bios_set = values['bios']
+              dirty = true
+            end
+            if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(values['raid'] === 'not_set')
+              node.raid_set = values['raid']
+              dirty = true
+            end
+            if dirty
+              begin
+                node.save
+                succeeded << node_name
+              rescue Exception=>e
+                failed << node_name
+              end
+            end
+          rescue Exception=>e
+            failed << node_name
           end
-        rescue Exception=>e
-          failed << node_name
         end
       end
       if failed.length>0
-        flash[:notice] = failed.join(',') + ": " + t('nodes.list.failed')
+        flash[:notice] = failed.join(',') + ": " + I18n.t('failed', :scope=>'nodes.list')
       elsif succeeded.length>0
-        flash[:notice] = succeeded.join(',') + ": " + t('nodes.list.updated')
+        flash[:notice] = succeeded.join(',') + ": " + I18n.t('updated', :scope=>'nodes.list')
       else
-        flash[:notice] = t('nodes.list.nochange')
+        flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
       end
     end
     @options = CrowbarService.read_options
@@ -234,6 +246,10 @@ class NodesController < ApplicationController
   private
 
   def save_node
+    if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
+      flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
+      return false
+    end
     begin
       @node.bios_set = params[:bios]
       @node.raid_set = params[:raid]

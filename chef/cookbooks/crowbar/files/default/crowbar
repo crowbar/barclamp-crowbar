@@ -35,6 +35,9 @@ post_state() {
 
 case $1 in
     start|'')
+        # clean up files just in case
+        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
+
         # Mark us as readying, and get our cert.
 	post_state $HOSTNAME "readying"
         if [ -f /etc/default/tftpd-hpa ] ; then

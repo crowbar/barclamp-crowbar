@@ -555,8 +555,8 @@ class NodeObject < ChefObject
     bus_order = get_bus_order
     map = self.crowbar_ohai["detected"]["network"]
     answer = map.sort{|a,b|
-      aindex = bus_index(bus_order, a[1])
-      bindex = bus_index(bus_order, b[1])
+      aindex = bus_index(bus_order, a[1]["path"])
+      bindex = bus_index(bus_order, b[1]["path"])
       aindex == bindex ? a[0] <=> b[0] : aindex <=> bindex
     }
     answer.map! { |x| x[0] }
@@ -590,11 +590,16 @@ class NodeObject < ChefObject
     return {} if conduits.nil?
 
     sorted_ifs = sort_ifs
+    map = self.crowbar_ohai["detected"]["network"]
     if_remap = {}
-    count = 1
+    count_map = {}
     sorted_ifs.each do |intf|
-      if_remap["1g#{count}"] = intf
-      count = count + 1
+      speeds = map[intf]["speeds"]
+      speeds.each do |speed|
+        count = count_map[speed] || 1
+        if_remap["#{speed}#{count}"] = intf
+        count_map[speed] = count + 1
+      end
     end
 
     ans = {}

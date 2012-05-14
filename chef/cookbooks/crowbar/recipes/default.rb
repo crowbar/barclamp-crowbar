@@ -129,6 +129,13 @@ file "/opt/dell/crowbar_framework/tmp/ip.lock" do
   action :create
 end
 
+directory "/var/run/crowbar" do
+  owner "crowbar"
+  group "crowbar"
+  mode "0700"
+  action :create
+end
+
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
   web_port = node["crowbar"]["web_port"]
   realm = node["crowbar"]["realm"]
@@ -190,32 +197,53 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
-bluepill_service "crowbar-webserver" do
-  variables(:processes => [ {
-                              "name" => "rainbows",
-                              "start_command" => "rainbows -E production -c rainbows.cfg",
-                              "stdout" => "/dev/null",
-                              "stderr" => "/dev/null",
-                              "working_dir" => "/opt/dell/crowbar_framework",
-                              "uid" => "crowbar",
-                              "gid" => "crowbar",
-                              "daemonize" => true
-                            } ] )
-  action [:create, :load]
-end
+if node[:platform] != "suse"
+  bluepill_service "crowbar-webserver" do
+    variables(:processes => [ {
+                                "name" => "rainbows",
+                                "start_command" => "rainbows -E production -c rainbows.cfg",
+                                "stdout" => "/dev/null",
+                                "stderr" => "/dev/null",
+                                "working_dir" => "/opt/dell/crowbar_framework",
+                                "uid" => "crowbar",
+                                "gid" => "crowbar",
+                                "daemonize" => true
+                              } ] )
+    action [:create, :load]
+  end
 
-cookbook_file "/etc/init.d/crowbar" do
-  owner "root"
-  group "root"
-  mode "0755"
-  action :create
-  source "crowbar"
-end
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
+    action :create
+    source "crowbar"
+  end
 
-["3", "5", "2"].each do |i|
-  link "/etc/rc#{i}.d/S99xcrowbar" do
+  ["3", "5", "2"].each do |i|
+    link "/etc/rc#{i}.d/S99xcrowbar" do
+      action :create
+      to "/etc/init.d/crowbar"
+      not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    end
+  end
+else
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
+    action :create
+    source "crowbar.suse"
+  end
+
+  link "/usr/sbin/rccrowbar" do
     action :create
     to "/etc/init.d/crowbar"
-    not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    not_if "test -L /usr/sbin/rccrowbar"
+  end
+
+  bash "Enable crowbar service" do
+    code "/sbin/chkconfig crowbar on"
+    not_if "/sbin/chkconfig crowbar | grep -q on"
   end
 end

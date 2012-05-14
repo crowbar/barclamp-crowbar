@@ -198,34 +198,49 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
-%w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
-  file "/etc/logrotate.d/#{f}" do
-    action :delete
+if node[:platform] != "suse"
+  %w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
+    file "/etc/logrotate.d/#{f}" do
+      action :delete
+    end
   end
-end
 
-cookbook_file "/etc/logrotate.d/chef-server"
+  cookbook_file "/etc/logrotate.d/chef-server"
 
-template "/etc/bluepill/crowbar-webserver.pill" do
-  source "crowbar-webserver.pill.erb"
-end
+  template "/etc/bluepill/crowbar-webserver.pill" do
+    source "crowbar-webserver.pill.erb"
+  end
 
-bluepill_service "crowbar-webserver" do
-  action [:load, :start]
-end
+  bluepill_service "crowbar-webserver" do
+    action [:load, :start]
+  end
 
-cookbook_file "/etc/init.d/crowbar" do
-  owner "root"
-  group "root"
-  mode "0755"
-  action :create
-  source "crowbar"
-end
-
-["3", "5", "2"].each do |i|
-  link "/etc/rc#{i}.d/S99xcrowbar" do
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
     action :create
-    to "/etc/init.d/crowbar"
-    not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    source "crowbar"
+  end
+
+  ["3", "5", "2"].each do |i|
+    link "/etc/rc#{i}.d/S99xcrowbar" do
+      action :create
+      to "/etc/init.d/crowbar"
+      not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    end
+  end
+else
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
+    action :create
+    source "crowbar.suse"
+  end
+
+  bash "Enable crowbar service" do
+    code "/sbin/chkconfig crowbar on"
+    not_if "/sbin/chkconfig crowbar | grep -q on"
   end
 end

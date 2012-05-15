@@ -130,11 +130,20 @@ file "/opt/dell/crowbar_framework/tmp/ip.lock" do
   action :create
 end
 
-file "/var/run/crowbar-webserver.pid" do
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-  action :create
+if node[:platform] != "suse"
+  file "/var/run/crowbar-webserver.pid" do
+    owner "crowbar"
+    group "crowbar"
+    mode "0644"
+    action :create
+  end
+else
+  directory "/var/run/crowbar" do
+    owner "crowbar"
+    group "crowbar"
+    mode "0700"
+    action :create
+  end
 end
 
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?

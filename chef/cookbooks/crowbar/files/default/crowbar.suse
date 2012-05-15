@@ -125,7 +125,7 @@ test -r $RAINBOWS_CONFIG || { echo "$RAINBOWS_CONFIG does not exist";
 	if [ "$1" = "stop" ]; then exit 0;
 	else exit 6; fi; }
 
-PID_FILE=/var/run/crowbar.pid
+PID_FILE=/var/run/crowbar/crowbar.pid
 
 # Source LSB init functions
 # providing start_daemon, killproc, pidofproc, 
@@ -186,7 +186,7 @@ case "$1" in
 	## Stop daemon with killproc(8) and if this fails
 	## killproc sets the return value according to LSB.
 
-	/sbin/killproc -p $PID_FILE -TERM $RAINBOWS_BIN
+	/sbin/killproc -p $PID_FILE -TERM rainbows
 
 	# Remember status and be verbose
 	rc_status -v
@@ -248,7 +248,7 @@ case "$1" in
 	# 5--199 reserved (5--99 LSB, 100--149 distro, 150--199 appl.)
 	
 	# NOTE: checkproc returns LSB compliant status values.
-	/sbin/checkproc -p $PID_FILE $RAINBOWS_BIN
+	/sbin/checkproc -p $PID_FILE rainbows
 	# NOTE: rc_status knows that we called this init script with
 	# "status" option and adapts its messages accordingly.
 	rc_status -v

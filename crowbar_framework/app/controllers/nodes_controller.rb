@@ -97,6 +97,13 @@ class NodesController < ApplicationController
                 node.alias = values['alias']
                 dirty = true
             end
+            if !(node.group == values['group'])
+              if values['group'] and values['group'] != "" and !(values['group'] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
+                raise node.name + ": " + t('nodes.list.group_error')
+              end
+              node.group = values['group']
+              dirty = true
+            end
             if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
               node.bios_set = values['bios']
               dirty = true

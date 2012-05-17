@@ -1,0 +1,8 @@
+%h1= t '.title'
+
+%dl
+  - @index.each do |k, v|
+    %dt= link_to k, v['url']
+    %dd{:title=>v['author']}= v['title']
+
+.clear

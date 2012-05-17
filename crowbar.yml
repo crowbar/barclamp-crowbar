@@ -150,6 +150,7 @@ debs:
     # openssh stuff
     - openssh-client
     - openssh-server
+    - pandoc
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff
@@ -280,6 +281,7 @@ rpms:
     - openssh-clients
     - openssh-server
     - openssh
+    - pandoc
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff

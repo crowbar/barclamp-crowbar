@@ -49,6 +49,8 @@ en:
   # Crowbar barclamp items
   crowbar:
     instructions: These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.
+    details: Details
+    details_by: updated by
     
   # General Proposal components
   proposal:
@@ -86,8 +88,14 @@ en:
  
   # Documentation
   docs:
+    root: Master Index
     index:
       title: System Documentation
+    topic:
+      parent: Parent
+      children: Children
+      nav: Navigation
+      
   # Model Names / Attributes
   model:
     node:
@@ -360,6 +368,9 @@ en:
   help: Help
   virtual: Virtual
   new: New Item!
+  next: Next
+  prev: Previous
+
 
 
   # node.raid_set

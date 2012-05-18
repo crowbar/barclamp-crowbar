@@ -1,4 +1,4 @@
-# Copyright 2011, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
-# Auther: All the rest of us
+# Author: Dell Crowbar Team
 #
 
 barclamp:
@@ -150,7 +149,9 @@ debs:
     # openssh stuff
     - openssh-client
     - openssh-server
+    # markdown 2 html generation
     - pandoc
+    - libbibutils2
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff
@@ -281,7 +282,9 @@ rpms:
     - openssh-clients
     - openssh-server
     - openssh
+    # markdown 2 html generation
     - pandoc
+    - libbibutils2
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff

@@ -20,14 +20,42 @@ class DocsController < ApplicationController
   require 'yaml'
   require 'fileutils'
   
+  def index
+    doc_yml = File.join RAILS_ROOT, 'config', 'docs.yml'
+    @index = gen_barclamps({'root'=>{'title'=>t('docs.root')}}, File.join(RAILS_ROOT,'doc','default'), :default)
+    xref(@index)
+    if false #File.exist? doc_yml
+      #load yml
+    else #create yml
+      File.open( doc_yml, 'w' ) { |out| YAML.dump( @index, out ) }
+    end
+  end  
+
+  def topic
+    all = YAML.load_file File.join('config', 'docs.yml')
+    @topic = all[params[:id]]
+    @index = {}
+    # navigation items
+    @next = all[@topic['nexttopic']] if @topic['nexttopic']
+    @prev = all[@topic['prevtopic']] if @topic['prevtopic']
+    parent = all[@topic['parent']]
+    while parent do 
+      @index[parent['id']] = all[@topic['parent']]
+      parent = all[parent['parent']]
+    end
+    @topic['children'].each do |t|
+      @index[t] = all[t]
+    end
+  end
+  
+  private 
+  
   def gen_doc(meta, path, file)
     key = file[/(.*).md$/,1]
     meta['key']=key
     doc_path = File.join 'public', 'doc', (meta['language']==:default ? 'en' : meta['language']), meta['barclamp']
     html = File.join doc_path, file.gsub('.md','.html')
-    puts "ROB 3 #{key}, #{doc_path}, #{html}"
     begin FileUtils.mkdir_p doc_path rescue true end
-    %x[pandoc -f markdown+lhs -t html -o '#{html}' '#{File.join(path,file)}']
     meta['url'] = "doc/#{meta['language']==:default ? 'en' : meta['language']}/#{meta['barclamp']}/#{file.gsub('.md','.html')}"
     File.open(File.join(path, file), 'r').each do |s|
       break if s.strip.length==0 
@@ -40,14 +68,16 @@ class DocsController < ApplicationController
         else
           meta[meta_key] = m[1].strip
         end 
-        #puts "\t#{s}"
       end
     end
+    meta['parent'] = 'root' unless meta['parent']  # we don't want any orphans!
+    meta['id'] = key # sometimes we get the object without the key
+    from_type = meta['format'] || 'markdown+lhs'
+    %x[pandoc -f #{from_type} -t html -o '#{html}' '#{File.join(path,file)}']
     return meta
   end
   
   def gen_barclamps(index, path, language)
-    puts "ROB 1 #{path}"
     Dir.entries(path).each do |bc|
       index = gen_html(index, File.join(path, bc), language, bc) unless bc.start_with? '.'
     end
@@ -55,11 +85,10 @@ class DocsController < ApplicationController
   end
   
   def gen_html(index, path, language, barclamp)
-    puts "ROB 2 #{path}"
     Dir.entries(path).each do |f|
       if f =~ /.md$/
         meta = gen_doc({ 'language'=>language, 'barclamp'=>barclamp }, path, f)
-        index["#{barclamp}\\#{meta['key']}"] = meta
+        index["#{barclamp}\/#{meta['key']}"] = meta
       end
     end
     index
@@ -68,24 +97,16 @@ class DocsController < ApplicationController
   def xref(index)
     index.each do |k, v|
       if k and v
-        if v['parent']
-          index[v['parent']]['children'] = [] if index[v['parent']]['children']
+        if v['parent'] and index[v['parent']]
+          index[v['parent']]['children'] = [] unless index[v['parent']]['children']
           index[v['parent']]['children'] << k
         end
-        if v['nexttopic']
-          index[v['nexttopic']]['prevtopic'] = [] if index[v['nexttopic']]['prevtopic']
+        if v['nexttopic'] and index[v['nexttopic']]
+          index[v['nexttopic']]['prevtopic'] = [] unless index[v['nexttopic']]['prevtopic']
           index[v['nexttopic']]['prevtopic'] << k
         end
       end
     end
   end
   
-  def index
-    @index = gen_barclamps({}, File.join(RAILS_ROOT,'doc','default'), :default)
-    #xref(index)
-    #File.open( File.join('docs.yml'), 'w' ) do |out|
-    #  YAML.dump( @index, out )
-    #end
-  end  
-
 end

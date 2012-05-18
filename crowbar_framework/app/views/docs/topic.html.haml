@@ -1,0 +1,18 @@
+%h1= @topic['title']
+
+%section.box#nav
+  %h3= t '.navigation'
+  %div#parents
+    = "^ #{t '.parent'} #{link_to @index[@topic['parent']], docs_topic_path(:id=>@topic['parent'])}"
+  %div#sibs
+    = "< #{t 'prev'} #{link_to @prev['title'], docs_topic_path(:id=>@prev['id'])}" if @prev
+    = "> #{t 'next'} #{link_to @next['title'], docs_topic_path(:id=>@next['id'])}" if @next
+
+%topic
+  = @topic['url']
+  
+%h3= t '.children'
+- if @topic['children']
+  %ol
+    - @topic['children'].each do |child|
+      = render :partial => 'index', :locals=>{:topic=>child, :show_children=>true}

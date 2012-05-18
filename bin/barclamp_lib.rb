@@ -111,9 +111,13 @@ def authenticate(req,uri,data=nil)
     r = req.new(uri.request_uri,@headers)
     r.body = data if data
     res = http.request r
-    puts "DEBUG: (a) return code: #{res.code}" if @debug
-    puts "DEBUG: (a) return body: #{res.body}" if @debug
-    puts "DEBUG: (a) return headers: #{res.headers}" if @debug
+    if @debug
+      puts "DEBUG: (a) return code: #{res.code}"
+      puts "DEBUG: (a) return body: #{res.body}"
+      puts "DEBUG: (a) return headers:"
+      res.each_header { |h, v| puts "#{h}: #{v}" }
+    end
+
     if res['www-authenticate']
       digest_auth=Net::HTTP::DigestAuth.new
       auth=Net::HTTP::DigestAuth.new.auth_header(uri,

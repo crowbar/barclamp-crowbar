@@ -174,8 +174,9 @@ case "$1" in
 	## Start daemon with startproc(8). If this fails
 	## the return value is set appropriately by startproc.
 	
-	# TODO: DOES NOT WORK PROPERLY - NO PIDFILE, CAN'T STATUS OR STOP ETC.
-	
+	# Note: while $RAINBOWS_BIN works here, it doesn't work
+	# when using killproc - just have to use 'rainbows' unqualified
+	# there for some reason
 	/sbin/startproc -u crowbar -g crowbar -p $PID_FILE \
 		$RAINBOWS_BIN -E production -c $RAINBOWS_CONFIG -D
 	# Remember status and be verbose
@@ -223,7 +224,7 @@ case "$1" in
 	## is running.
 
 	echo -n "Reload service Crowbar "
-	/sbin/killproc -p $PID_FILE -HUP $RAINBOWS_BIN
+	/sbin/killproc -p $PID_FILE -HUP rainbows
 	rc_status -v
 	;;
     reload)
@@ -231,7 +232,7 @@ case "$1" in
 	## signaling, do nothing (!)
 
 	echo -n "Reload service Crowbar "
-	/sbin/killproc -p $PID_FILE -HUP $RAINBOWS_BIN
+	/sbin/killproc -p $PID_FILE -HUP rainbows
 	rc_status -v	
 	;;
     status)

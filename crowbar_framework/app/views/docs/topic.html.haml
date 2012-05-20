@@ -1,18 +1,29 @@
 %h1= @topic['title']
 
-%section.box#nav
-  %h3= t '.navigation'
-  %div#parents
-    = "^ #{t '.parent'} #{link_to @index[@topic['parent']], docs_topic_path(:id=>@topic['parent'])}"
-  %div#sibs
-    = "< #{t 'prev'} #{link_to @prev['title'], docs_topic_path(:id=>@prev['id'])}" if @prev
-    = "> #{t 'next'} #{link_to @next['title'], docs_topic_path(:id=>@next['id'])}" if @next
+= @topic['parent']
+= @index[@topic['parent']]
+- if @topic['parent'] or @next or @prev
+  %section.box#nav
+    %h3= t '.navigation'
+    %div#parents
+      - parent = @index[@topic['parent']]
+      = "^ #{t '.parent'} #{link_to parent['title'], docs_topic_path(:id=>parent['barclamp']+'/'+parent['id'])}" if parent
+    %div#sibs
+      = "< #{t 'prev'} #{link_to @prev['title'], docs_topic_path(:id=>@prev['barclamp']+'/'+@prev['id'])}" if @prev
+      = "> #{t 'next'} #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
 
 %topic
-  = @topic['url']
-  
-%h3= t '.children'
+  - file = File.join RAILS_ROOT, 'public', @topic['url']
+  - if RAILS_ENV == 'development'
+    %p= "Debug Document Path: #{file}"
+  = render :file => file
+   
+
 - if @topic['children']
-  %ol
-    - @topic['children'].each do |child|
-      = render :partial => 'index', :locals=>{:topic=>child, :show_children=>true}
+  %section.box#children
+    %h3= t '.children'
+    %ol
+      - @topic['children'].each do |child|
+        = render :partial => 'index', :locals=>{:topic=>child, :show_children=>true}
+
+.clear

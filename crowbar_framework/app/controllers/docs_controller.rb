@@ -22,11 +22,11 @@ class DocsController < ApplicationController
   
   def index
     doc_yml = File.join RAILS_ROOT, 'config', 'docs.yml'
-    @index = gen_barclamps({'root'=>{'title'=>t('docs.root')}}, File.join(RAILS_ROOT,'doc','default'), :default)
-    xref(@index)
-    if false #File.exist? doc_yml
-      #load yml
+    if File.exist? doc_yml and RAILS_ENV != 'development'
+      @index = YAML.load_file File.join('config', 'docs.yml')
     else #create yml
+      @index = gen_barclamps({'root'=>{'title'=>t('docs.root')}}, File.join(RAILS_ROOT,'doc','default'), :default)
+      xref @index   #find the cross references from and update the index
       File.open( doc_yml, 'w' ) { |out| YAML.dump( @index, out ) }
     end
   end  
@@ -43,8 +43,10 @@ class DocsController < ApplicationController
       @index[parent['id']] = all[@topic['parent']]
       parent = all[parent['parent']]
     end
-    @topic['children'].each do |t|
-      @index[t] = all[t]
+    if @topic['children']
+      @topic['children'].each do |t|
+        @index[t] = all[t]
+      end
     end
   end
   
@@ -60,7 +62,7 @@ class DocsController < ApplicationController
     File.open(File.join(path, file), 'r').each do |s|
       break if s.strip.length==0 
       m = s.split(':')
-      if m.length>1 and m[0].start_with? '%'
+      if m.length>1 
         meta_key = m[0][1..31].strip.downcase
         case meta_key
         when 'parent', 'nexttopic'

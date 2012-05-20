@@ -37,11 +37,13 @@ class DocsController < ApplicationController
     @index = {}
     # navigation items
     @next = all[@topic['nexttopic']] if @topic['nexttopic']
-    @prev = all[@topic['prevtopic']] if @topic['prevtopic']
-    parent = all[@topic['parent']]
-    while parent do 
-      @index[parent['id']] = all[@topic['parent']]
-      parent = all[parent['parent']]
+    @prev = all[@topic['prevtopic'][0]] if @topic['prevtopic']
+    parent = @topic['parent']
+    @parents = 0
+    while parent and all[parent] do 
+      @parents += 1
+      @index[parent] = all[parent]
+      parent = all[parent]['parent']
     end
     if @topic['children']
       @topic['children'].each do |t|

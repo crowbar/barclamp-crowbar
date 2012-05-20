@@ -1,22 +1,23 @@
 %h1= @topic['title']
 
-= @topic['parent']
-= @index[@topic['parent']]
-- if @topic['parent'] or @next or @prev
-  %section.box#nav
-    %h3= t '.navigation'
-    %div#parents
+%section.box#nav
+  %h3= t '.nav'
+  %ul
+    %li= link_to t('docs.root'), docs_path
+    - if @topic['parent'] and @topic['parent'] != 'root'
       - parent = @index[@topic['parent']]
-      = "^ #{t '.parent'} #{link_to parent['title'], docs_topic_path(:id=>parent['barclamp']+'/'+parent['id'])}" if parent
-    %div#sibs
-      = "< #{t 'prev'} #{link_to @prev['title'], docs_topic_path(:id=>@prev['barclamp']+'/'+@prev['id'])}" if @prev
-      = "> #{t 'next'} #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
+      - # this should be expanded to have multiple levels!  
+      %li= "^ #{t '.parent'}: #{link_to parent['title'], docs_topic_path(:id=>parent['barclamp']+'/'+parent['id'])}" if parent
+    - if @next or @prev
+      %li
+        = "< #{t 'prev'}: #{link_to @prev['title'], docs_topic_path(:id=>@prev['barclamp']+'/'+@prev['id'])}" if @prev
+        = "> #{t 'next'}: #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
 
 %topic
   - file = File.join RAILS_ROOT, 'public', @topic['url']
   - if RAILS_ENV == 'development'
     %p= "Debug Document Path: #{file}"
-  = render :file => file
+  = begin render :file => file rescue t '.topic_missing' end
    
 
 - if @topic['children']

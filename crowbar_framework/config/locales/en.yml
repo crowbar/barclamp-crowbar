@@ -91,10 +91,13 @@ en:
     root: Master Index
     index:
       title: System Documentation
+      details: Topic Updated
+      details_by: by
     topic:
       parent: Parent
       children: Children
       nav: Navigation
+      topic_missing: Error, generated HTML page for topic not found
       
   # Model Names / Attributes
   model:

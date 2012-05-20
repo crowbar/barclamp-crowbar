@@ -23,7 +23,7 @@ SimpleNavigation::Configuration.run do |navigation|
     primary.item :help, t('nav.help'), '/crowbar_users_guide.pdf', { :link => { :target => "_blank" } } do |secondary|
       secondary.item :help, t('nav.crowbar_wiki'), 'https://github.com/dellcloudedge/crowbar/wiki/', { :link => { :target => "_blank" } }
       secondary.item :help, t('nav.crowbar_ug'), '/crowbar_users_guide.pdf', { :link => { :target => "_blank" } }
-      if ENV['RAILS_ENV'] == 'development'
+      if RAILS_ENV == 'development'
         secondary.item :documentation, t('nav.documentation'), docs_path
       end
       # insert here for :help 

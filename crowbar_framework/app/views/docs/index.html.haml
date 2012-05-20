@@ -1,0 +1,15 @@
+%h1= t '.title'
+
+%ol
+  - @index['root']['children'].each do |item|
+    %h3= begin render "docs/#{@index[item]['barclamp']}/#{item}" rescue (render :partial => 'index', :locals=>{:topic=>item, :show_children=>true} ) end
+    - if @index[item]['children']
+      %ol
+        - @index[item]['children'].each do |section|
+          = render :partial => 'index', :locals=>{:topic=>section, :show_children=>true}
+          - if @index[section]['children']
+            %ol
+              - @index[section]['children'].each do |topic|
+                = render :partial => 'index', :locals=>{:topic=>topic, :show_children=>false}
+      
+.clear

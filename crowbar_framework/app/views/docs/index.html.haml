@@ -1,7 +1,5 @@
 %h1= t '.title'
 
-= @index['root']['children'].split(',').inspect
-
 %ol
   - @index['root']['children'].split(',').each do |item|
     %h3= begin render "docs/#{@index[item]['barclamp']}/#{item}" rescue (render :partial => 'index', :locals=>{:topic=>item, :show_children=>true} ) end

@@ -98,6 +98,8 @@ en:
       children: Children
       nav: Navigation
       topic_missing: Error, generated HTML page for topic not found
+      details: Topic Updated
+      details_by: by
       
   # Model Names / Attributes
   model:

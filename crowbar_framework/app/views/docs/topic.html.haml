@@ -1,4 +1,4 @@
-%h1= @topic['title']
+%h1{:title=>"#{t '.details'}: #{@topic['date']} #{t '.details_by'} #{@topic['author']}"}= @topic['title']
 
 %section.box#nav
   %h3= t '.nav'
@@ -8,10 +8,11 @@
       - parent = @index[@topic['parent']]
       - # this should be expanded to have multiple levels!  
       %li= "^ #{t '.parent'}: #{link_to parent['title'], docs_topic_path(:id=>parent['barclamp']+'/'+parent['id'])}" if parent
-    - if @next or @prev
-      %li
-        = "< #{t 'prev'}: #{link_to @prev['title'], docs_topic_path(:id=>@prev['barclamp']+'/'+@prev['id'])}" if @prev
-        = "> #{t 'next'}: #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
+    - if @next
+      %li= "> #{t 'next'}: #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
+    - if @prev 
+      - @prev.each do |prev|
+        %li= "< #{t 'prev'}: #{link_to @index[prev]['title'], docs_topic_path(:id=>@index[prev]['barclamp']+'/'+@index[prev]['id'])}"
 
 %topic
   - file = File.join RAILS_ROOT, 'public', @topic['url']
@@ -24,7 +25,7 @@
   %section.box#children
     %h3= t '.children'
     %ol
-      - @topic['children'].each do |child|
+      - @topic['children'].split(',').each do |child|
         = render :partial => 'index', :locals=>{:topic=>child, :show_children=>true}
 
 .clear

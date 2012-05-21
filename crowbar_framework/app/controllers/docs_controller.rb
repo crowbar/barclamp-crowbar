@@ -37,7 +37,8 @@ class DocsController < ApplicationController
     @index = {}
     # navigation items
     @next = all[@topic['nexttopic']] if @topic['nexttopic']
-    @prev = all[@topic['prevtopic'][0]] if @topic['prevtopic']
+    @prev = @topic['prevtopic']
+    @prev.each { |p| @index[p] = all[p] } if @prev
     parent = @topic['parent']
     @parents = 0
     while parent and all[parent] do 
@@ -46,7 +47,7 @@ class DocsController < ApplicationController
       parent = all[parent]['parent']
     end
     if @topic['children']
-      @topic['children'].each do |t|
+      @topic['children'].split(',').each do |t|
         @index[t] = all[t]
       end
     end
@@ -102,8 +103,21 @@ class DocsController < ApplicationController
     index.each do |k, v|
       if k and v
         if v['parent'] and index[v['parent']]
-          index[v['parent']]['children'] = [] unless index[v['parent']]['children']
-          index[v['parent']]['children'] << k
+          unless index[v['parent']].key? 'children'
+            index[v['parent']]['children'] = k
+          else
+            # now sort the children
+            children = index[v['parent']]['children'].split(',')
+            children << k
+            child_order = {}
+            children.each do |child|
+              order = begin ("%06d" % index[child]['order'].to_i) rescue "009999"  end
+              child_order[child] = "#{order}-#{index[child]['title']}"
+            end
+            child_order = child_order.sort_by { |c, cd| cd }
+            child_list = child_order.map{|c ,cd| c}.join(',')
+            index[v['parent']]['children'] = child_list
+          end
         end
         if v['nexttopic'] and index[v['nexttopic']]
           index[v['nexttopic']]['prevtopic'] = [] unless index[v['nexttopic']]['prevtopic']
@@ -111,6 +125,7 @@ class DocsController < ApplicationController
         end
       end
     end
+    index
   end
   
 end

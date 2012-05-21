@@ -2,6 +2,6 @@
   %li{:title=>"#{t '.details'}: #{v['date']} #{t '.details_by'} #{v['author']}"}
     = link_to v['title'], docs_topic_path(:id=>topic)
     - if !show_children and v['children']
-      = "(#{v['children'].length})"
+      = "(#{v['children'].split(',').length})"
     - if RAILS_ENV == 'development'
-      = "(id=#{topic})"
+      = "(id=#{topic}, order=#{v['order']})"

@@ -18,6 +18,12 @@ ActionController::Routing::Routes.draw do |map|
 
   map.root :controller => "nodes", :action=>'index'
 
+  # documentation / help
+  map.docs 'docs', :controller=>'docs', :action=>'index', :conditions => { :method => :get }
+  map.docs_topic 'docs/topic/:id', :controller=>'docs', :action=>'topic', :conditions => { :method => :get }
+  map.docs_barclamp 'docs/:controller/:id', :action=>'docs', :conditions => { :method => :get }
+
+  # nodes
   map.resources :nodes, :only => [:index, :new]
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'

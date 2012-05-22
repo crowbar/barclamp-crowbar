@@ -40,6 +40,7 @@ en:
     crowbar_wiki: Online Help
     crowbar_ug: Crowbar Users
     crowbar_dg: Deployment
+    documentation: Documentation
 
   layouts:
     application:
@@ -48,6 +49,8 @@ en:
   # Crowbar barclamp items
   crowbar:
     instructions: These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.
+    details: Details
+    details_by: updated by
     
   # General Proposal components
   proposal:
@@ -82,7 +85,22 @@ en:
       No success information for proposal: No success information for proposal
       duplicate_elements_in_role: Duplicate elements detected in role
       unknown_node: Unable to find any node named 
-
+ 
+  # Documentation
+  docs:
+    root: Master Index
+    index:
+      title: System Documentation
+      details: Topic Updated
+      details_by: by
+    topic:
+      parent: Parent
+      children: Children
+      nav: Navigation
+      topic_missing: Error, generated HTML page for topic not found
+      details: Topic Updated
+      details_by: by
+      
   # Model Names / Attributes
   model:
     node:
@@ -355,6 +373,9 @@ en:
   help: Help
   virtual: Virtual
   new: New Item!
+  next: Next
+  prev: Previous
+
 
 
   # node.raid_set

@@ -149,9 +149,6 @@ debs:
     # openssh stuff
     - openssh-client
     - openssh-server
-    # markdown 2 html generation
-    - pandoc
-    - libbibutils2
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff

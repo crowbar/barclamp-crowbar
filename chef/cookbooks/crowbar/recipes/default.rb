@@ -26,7 +26,7 @@ when "ubuntu","debian"
   pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 pandoc}
   rainbows_path="/var/lib/gems/1.8/bin/"
 when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel pandoc}
+  pkglist=%w{curl sqlite sqlite-devel}
   rainbows_path=""
 end
 

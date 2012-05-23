@@ -493,7 +493,7 @@ class NodeObject < ChefObject
   end
 
   def bus_index(bus_order, path)
-    return 999 if bus_order.nil?
+    return 999 if bus_order.nil? or path.nil?
 
     dpath = path.split(".")[0].split("/")
 
@@ -527,7 +527,7 @@ class NodeObject < ChefObject
   end
 
   def bus_index(bus_order, path)
-    return 999 if bus_order.nil?
+    return 999 if bus_order.nil? or path.nil?
 
     dpath = path.split(".")[0].split("/")
 
@@ -595,6 +595,7 @@ class NodeObject < ChefObject
     count_map = {}
     sorted_ifs.each do |intf|
       speeds = map[intf]["speeds"]
+      speeds = ['1g'] unless speeds   #legacy object support
       speeds.each do |speed|
         count = count_map[speed] || 1
         if_remap["#{speed}#{count}"] = intf
@@ -728,7 +729,7 @@ class NodeObject < ChefObject
       nil
     end
     # if not set, use calculated value
-    (g.nil? ? "sw:#{switch}" : g)
+    (g.nil? ? "sw-#{switch}" : g)
   end
   
   def group=(value)

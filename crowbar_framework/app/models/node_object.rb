@@ -493,7 +493,7 @@ class NodeObject < ChefObject
   end
 
   def bus_index(bus_order, path)
-    return 999 if bus_order.nil?
+    return 999 if bus_order.nil? or path.nil?
 
     dpath = path.split(".")[0].split("/")
 
@@ -527,7 +527,7 @@ class NodeObject < ChefObject
   end
 
   def bus_index(bus_order, path)
-    return 999 if bus_order.nil?
+    return 999 if bus_order.nil? or path.nil?
 
     dpath = path.split(".")[0].split("/")
 
@@ -729,7 +729,7 @@ class NodeObject < ChefObject
       nil
     end
     # if not set, use calculated value
-    (g.nil? ? "sw:#{switch}" : g)
+    (g.nil? ? "sw-#{switch}" : g)
   end
   
   def group=(value)

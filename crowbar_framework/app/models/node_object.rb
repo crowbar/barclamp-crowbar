@@ -406,9 +406,13 @@ class NodeObject < ChefObject
   def role?(role_name)
     return false if @node.nil?
     return false if @role.nil?
-    crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    return crowbar["run_list_map"][role_name]["priority"] != -1001 if crowbar["run_list_map"][role_name] 
-    @node.role?(role_name)
+    begin
+      crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
+      return crowbar["run_list_map"][role_name]["priority"] != -1001 if crowbar["run_list_map"][role_name] 
+      @node.role?(role_name)
+    rescue
+      return false
+    end
   end
 
   def roles

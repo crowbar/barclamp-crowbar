@@ -608,8 +608,8 @@ class NodeObject < ChefObject
       hash = {}
       v.each do |mk, mv|
         if mk == "if_list"
-          hash["if_list"] = v["if_list"].map do |y|
-            if_remap[y]
+          hash["if_list"] = v["if_list"].map do |if_ref|
+            self.map_if_ref(if_remap, if_ref)
           end
         else
           hash[mk] = mv
@@ -619,6 +619,33 @@ class NodeObject < ChefObject
     end
 
     ans
+  end
+
+  ##
+  # given a map of available interfaces on the local machine,
+  # resolve references form conduit list. The supported reference format is <sign><speed><#> where
+  #  - sign is optional, and determines behavior if exact match is not found. + allows speed upgrade, - allows downgrade
+  #    ? allows either. If no sign is specified, an exact match must be found.
+  #  - speed designates the interface speed. 10m, 100m, 1g and 10g are supported
+  def map_if_ref(if_map, ref)
+    speeds= %w{10m 100m 1g 10g}
+    m= /^([-+?]?)(\d{1,3}[mg])(\d+)$/.match(ref) # [1]=sign, [2]=speed, [3]=count
+    if_cnt = m[3]
+    desired = speeds.index(m[2])
+    found = nil
+    filter = lambda { |x|
+      found = if_map["#{speeds[x]}#{if_cnt}"] unless found
+    }
+    case m[1]
+      when '+': (desired..speeds.length).each(&filter)
+      when '-': desired.downto(0,&filter)
+      when '?':
+        (desired..speeds.length).each(&filter)
+        desired.downto(0,&filter) unless found
+      else
+        found = if_map[ref]
+      end
+    found
   end
 
   def unmanaged_interfaces

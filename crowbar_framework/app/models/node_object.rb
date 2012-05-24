@@ -262,6 +262,7 @@ class NodeObject < ChefObject
   def mac
     unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
+      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       self.crowbar_ohai["switch_config"][intf]["mac"] || (I18n.t :unknown)
     else
       (I18n.t :not_set)
@@ -332,12 +333,8 @@ class NodeObject < ChefObject
   end
 
   def virtual?
-    case hardware
-      when 'VMware Virtual Platform'
-        true
-      else
-        false
-    end
+    virtual = [ "KVM", "VMWare Virtual Platform", "VirtualBox" ]
+    virtual.include? hardware
   end
 
   def number_of_drives
@@ -672,7 +669,8 @@ class NodeObject < ChefObject
   def switch_name
     unless @node.nil? or @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
-      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"]
+      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
+      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"] unless intf.nil?
       unless switch_name == -1
         switch_name.to_s.gsub(':', '-')
       else
@@ -687,6 +685,7 @@ class NodeObject < ChefObject
   def switch_unit
     unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
+      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       switch_unit = self.crowbar_ohai["switch_config"][intf]["switch_unit"]
       (switch_unit == -1 ? nil : switch_unit)
     else
@@ -697,6 +696,7 @@ class NodeObject < ChefObject
   def switch_port
     unless @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
       intf = sort_ifs[0]
+      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       switch_port = self.crowbar_ohai["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)
     else

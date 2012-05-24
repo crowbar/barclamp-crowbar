@@ -15,7 +15,6 @@ Feature: Crowbar, Bulk Edit
     Then I should see "Bulk Edit \(unallocated only\)"
       And I should see "Allocate?"
       And I should see a link to "Show All"
-      And I should see a button with "Save"
       And I should not see "Error"
       And there should be no translation errors
 

@@ -72,7 +72,7 @@ Feature: Crowbar, Check Core Navigation
     When I click on the "Crowbar Users" menu item
     Then I should download a PDF
     
-  Scenario: Help Deployment Guide
+  Scenario: %Help Deployment Guide
     Given I am on the home page
     When I click on the "Deployment" menu item
     Then I should download a PDF

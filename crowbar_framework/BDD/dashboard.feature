@@ -3,6 +3,18 @@ Feature: Dashboard
   The system operator, Oscar
   wants to be able to check the status of nodes
 
+  Scenario: Basic Screen
+    When I go to the "dashboard" page
+    Then I should see "Node Dashboard"
+      And I should see a link to "Add Group"
+      And I should see "nodes available in the system"
+      And I should see "You may regroup nodes by dragging"
+
+  Scenario: Status Works
+    When AJAX requests the "nodes/status" page
+    Then key "nodes" should contain at least "1" items
+      And key "[nodes][admin][state]" should be "Ready"
+      
   Scenario: %I can add a node
     Given there is a node "bdd-test-dashboard-02" in state "testing"
       And pause "10" seconds to "create the node"
@@ -43,11 +55,7 @@ Feature: Dashboard
       And I should see "23.59 GB"
       And I should see "4"
       And I should see "1234567"    
-    
-  Scenario: %Status Works
-    When AJAX requests the "nodes/status" page
-    Then key "nodes" should contain at least "6" items
-      And key "[nodes][admin][state]" should be "Ready"
+
       
   Scenario: %Status Changes
     When node "d00-26-9e-cd-e0-c6.dell.com" status changes to "foo"

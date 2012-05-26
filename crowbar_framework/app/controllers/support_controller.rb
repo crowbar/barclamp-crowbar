@@ -34,7 +34,7 @@ class SupportController < ApplicationController
   def index
     @waiting = params['waiting'] == 'true'
     remove_file 'export', params[:id] if params[:id]
-    @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[] }
+    @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[], :bc_import=>[] }
     Dir.entries(export_dir).each do |f|
       if f =~ /^\./
         next # ignore rest of loop
@@ -46,6 +46,8 @@ class SupportController < ApplicationController
         @exports[:cli] << f
       elsif f =~ /^crowbar-chef-.*/
         @exports[:chef] << f 
+      elsif f =~ /(.*).import.log$/
+        @exports[:bc_import] << f 
       else
         @exports[:other] << f
       end
@@ -110,7 +112,8 @@ class SupportController < ApplicationController
       if bcs.length>0
         barclamps = bcs.map{ |i| '"'+i+'"' }.join(' ')
         begin
-          %x[sudo #{importer} #{barclamps} > tmp/#{SERVER_PID}.log]
+          logpath = File.join RAILS_ROOT, 'public', 'export', SERVER_PID+'.import.log'
+          %x[sudo #{importer} #{barclamps} > #{logpath}]
           flash[:notice] = "#{t('success', :scope=>'support.import')}: #{bc_list.join(', ')}"
           redirect_to restart_path(:id=>'import')
         rescue
@@ -121,11 +124,12 @@ class SupportController < ApplicationController
       end
     else 
       Dir.entries(import_dir).each do |tar|
-        if tar =~ /^.*tar.gz$/ 
+        if tar =~ /^.*t(ar\.|)gz$/    # match for tar.gz or tgz 
           name = extract_crowbar_yml(import_dir, tar, false)
           begin
             cb = YAML.load_file(File.join(import_dir, name))
             key = cb['barclamp']['name']
+            cb['git'] = { 'date'=> I18n.t('unknown'), 'commit'=> I18n.t('not_set') } if cb['git'].nil?
             @imports[key] = { :tar=>tar, :barclamp=>cb['barclamp'], :date=>cb['git']['date'], :help=>cb['barclamp']['online_help'], :commit=>cb['git']['commit'], :prereq=>[], :requires=>[]}
             if cb['barclamp'].has_key? 'requires'
               cb['barclamp']['requires'].each do |prereq|
@@ -234,7 +238,9 @@ class SupportController < ApplicationController
   
   def extract_crowbar_yml(import_dir, tar, regen = true)
     archive = File.join import_dir,tar
-    name = tar[/^(.*).tar.gz$/,1] + '.yml'
+    name = tar[/^(.*).tar.gz$/,1]
+    name = tar[/^(.*).tgz$/,1] if name.nil?   #alternate ending
+    name += '.yml'
     # extra from tar if not present
     if regen or !File.exist?(File.join(import_dir, name))
       crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip

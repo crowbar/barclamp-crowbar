@@ -15,7 +15,7 @@
   - @exports.each do |key, value|
     - if key != :count
       -if value.length != 0
-        %h3=t ".#{key}"
+        %h3=t ".#{key}", :default=>key.to_s.titlecase
         %ul        
           -value.sort.reverse.each do |file|
             %li

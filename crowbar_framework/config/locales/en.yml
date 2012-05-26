@@ -223,6 +223,7 @@ en:
       none_exported: There are no exported files to download
       other: Other Files
       chef: Chef Objects
+      bc_import: Barclamp Import Logs
       cli: Command Line Utilities
       logs: Log Files
       delete_hint: Delete File from Export Directory

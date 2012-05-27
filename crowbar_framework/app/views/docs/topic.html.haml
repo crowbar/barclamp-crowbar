@@ -1,31 +1,13 @@
-%h1{:title=>"#{t '.details'}: #{@topic['date']} #{t '.details_by'} #{@topic['author']}"}= @topic['title']
+%h1{:title=>"#{t '.details'}: #{@meta['date']} #{t '.details_by'} #{@meta['author']}"}= @meta['title']
 
 %section.box#nav
   %h3= t '.nav'
   %ul
     %li= link_to t('docs.root'), docs_path
-    - if @topic['parent'] and @topic['parent'] != 'root'
-      - parent = @index[@topic['parent']]
+    - if @parent
       - # this should be expanded to have multiple levels!  
-      %li= "^ #{t '.parent'}: #{link_to parent['title'], docs_topic_path(:id=>parent['barclamp']+'/'+parent['id'])}" if parent
-    - if @next
-      %li= "> #{t 'next'}: #{link_to @next['title'], docs_topic_path(:id=>@next['barclamp']+'/'+@next['id'])}" if @next
-    - if @prev 
-      - @prev.each do |prev|
-        %li= "< #{t 'prev'}: #{link_to @index[prev]['title'], docs_topic_path(:id=>@index[prev]['barclamp']+'/'+@index[prev]['id'])}"
+      %li= "^ #{t '.parent'}: #{link_to @parent['topic_meta_data']['title'], docs_topic_path(:id=>'foo')}" if parent
 
-%topic
-  - file = File.join RAILS_ROOT, 'public', @topic['url']
-  - if RAILS_ENV == 'development'
-    %p= "Debug Document Path: #{file}"
-  = begin render :file => file rescue t '.topic_missing' end
-   
-
-- if @topic['children']
-  %section.box#children
-    %h3= t '.children'
-    %ol
-      - @topic['children'].split(',').each do |child|
-        = render :partial => 'index', :locals=>{:topic=>child, :show_children=>true}
+%p= @topic.inspect
 
 .clear

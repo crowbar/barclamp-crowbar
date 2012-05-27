@@ -1,15 +1,20 @@
 %h1= t '.title'
 
 %ol
-  - @index['root']['children'].split(',').each do |item|
-    %h3= begin render "docs/#{@index[item]['barclamp']}/#{item}" rescue (render :partial => 'index', :locals=>{:topic=>item, :show_children=>true} ) end
-    - if @index[item]['children']
-      %ol
-        - @index[item]['children'].split(',').each do |section|
-          = render :partial => 'index', :locals=>{:topic=>section, :show_children=>true}
-          - if @index[section]['children']
-            %ol
-              - @index[section]['children'].split(',').each do |topic|
-                = render :partial => 'index', :locals=>{:topic=>topic, :show_children=>false}
+  - root_children = @index.delete_if { |k, v| k=='topic_meta_data' }
+  - root_children.sort_by { |k, v| v['topic_meta_data']['sort'] }.each do |book, book_details|
+    - book_meta = book_details['topic_meta_data']
+    - book_children = book_details.delete_if { |k, v| k=='topic_meta_data' }
+    %h3= render "docs/#{book_meta['barclamp']}/#{book}" rescue (render :partial => 'index', :locals=>{:id=>book, :parent=>'root', :children=>book_children.length, :meta=>book_meta, :show_children=>true} )
+    %ol
+      - book_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |section, section_details|
+        - section_meta = section_details['topic_meta_data']
+        - section_children = section_details.delete_if { |k, v| k=='topic_meta_data' }
+        = render :partial => 'index', :locals=>{:id=>section, :parent=>"root+#{book}", :children=>section_children.length, :meta=>section_meta, :show_children=>true} 
+        %ol
+          - section_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |topic, topic_details|
+            - topic_meta = topic_details['topic_meta_data']
+            - topic_children = topic_details.delete_if { |k, v| k=='topic_meta_data' }
+            = render :partial => 'index', :locals=>{:id=>topic, :parent=>"root+#{book}+#{section}", :children=>topic_children.length, :meta=>topic_meta, :show_children=>false} 
       
 .clear

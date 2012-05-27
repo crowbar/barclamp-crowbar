@@ -10,10 +10,13 @@ root:
     url:        '/'
     format:     markdown
   
+  book-gettingstarted:
+    topic_meta_data:
+      order:      100
+    
   book-userguide:
     topic_meta_data:
       order:      1000
-      next:       book-barclamps
     ui-general:
       topic_meta_data:
         order:  10

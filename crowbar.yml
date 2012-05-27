@@ -150,8 +150,7 @@ debs:
     - openssh-client
     - openssh-server
     # markdown 2 html generation
-    - pandoc
-    - libbibutils2
+    - markdown
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff
@@ -271,6 +270,8 @@ rpms:
     - minicom
     # nscd stuff
     - nscd
+    # markdown to html stuff
+    - python-markdown
     # openldap stuff
     - nss
     - nss-tools

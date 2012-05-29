@@ -333,7 +333,7 @@ class NodeObject < ChefObject
   end
 
   def virtual?
-    virtual = [ "KVM", "VMWare Virtual Platform", "VirtualBox" ]
+    virtual = [ "KVM", "VMware Virtual Platform", "VMWare Virtual Platform", "VirtualBox" ]
     virtual.include? hardware
   end
 

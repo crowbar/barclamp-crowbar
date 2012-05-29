@@ -168,6 +168,7 @@ debs:
     #- sun-java6-jre
     - dpkg-dev
     - screen
+    - alien
 
 rpms:
   redhat-5.6:

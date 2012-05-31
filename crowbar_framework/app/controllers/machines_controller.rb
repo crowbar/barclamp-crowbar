@@ -14,7 +14,6 @@
 # 
 # Author: RobHirschfeld 
 # 
-require 'chef'
 
 class MachinesController < ApplicationController
 

@@ -16,8 +16,6 @@
 #
 class NodesController < ApplicationController
 
-  require 'chef'
-
   # GET /nodes
   # GET /nodes.xml
   def index

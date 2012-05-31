@@ -16,9 +16,6 @@
 # 
 
 class SupportController < ApplicationController
-    
-  require 'chef'
-
   # Legacy Support (UI version moved to loggin barclamp)
   def logs
     @file = "crowbar-logs-#{ctime}.tar.bz2"

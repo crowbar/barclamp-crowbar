@@ -6,7 +6,6 @@ root:
     copyright:  2012 by Dell, Inc
     date:       May 25, 2012
     order:      alpha
-    source:     crowbar
     url:        '/'
     format:     markdown
   
@@ -40,6 +39,11 @@ root:
     topic_meta_data:
       order:      5000
       
+  book-documentation:
+    topic_meta_data:
+      order:      6000
+      url:        '/docs'
+
   book-licenses:
     topic_meta_data:
       order:      99999

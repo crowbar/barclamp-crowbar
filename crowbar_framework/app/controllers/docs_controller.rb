@@ -94,7 +94,7 @@ class DocsController < ApplicationController
   
   def gen_doc_index(path)
     @root = { } if @root.nil?
-    root_meta_data = { 'author'=>'Multiple Authors', 'license'=>'Apache 2', 'copyright'=>'2012 by Dell, Inc', 'date'=>I18n.t('unknown'), 'order'=>'alpha', 'source'=>'crowbar', 'url'=>'/', 'format'=>'markdown' }
+    root_meta_data = { 'author'=>'Multiple Authors', 'license'=>'Apache 2', 'copyright'=>'2012 by Dell, Inc', 'date'=>I18n.t('unknown'), 'order'=>'alpha', 'url'=>'/', 'format'=>'markdown' }
     Dir.entries(path).each do |bc_index|
       # collect all the index files
       if bc_index =~ /(.*).yml$/
@@ -112,21 +112,26 @@ class DocsController < ApplicationController
     return if topics.nil?
     topics.each do |id, details|
       if id != 'topic_meta_data'
-        topic_meta_data = meta_data.merge! details['topic_meta_data'] if details['topic_meta_data']
-        source = topic_meta_data['source']
+        topic_meta_data = ((details.nil? or details['topic_meta_data'].nil?) ? meta_data : meta_data.merge!(details['topic_meta_data']))
+        source = topic_meta_data['source'] || barclamp
         file = File.join path, 'default', source, id+'.md'
-        continue unless File.exist? file
-        title = File.open(file, 'r').readline rescue id.humanize
-        title = title[/(#*)(.*)/,2].strip rescue id.humanize
-        # build the new topic
-        t = { 'topic_meta_data' => {} }
-        t['topic_meta_data']['title'] = title
-        t['topic_meta_data']['file'] = file
-        order = ("%06d" % topic_meta_data['order'].to_i) rescue "009999"
-        t['topic_meta_data']['sort'] = order + title
-        topic_meta_data.each { |k, v| t['topic_meta_data'][k] = v }
-        # walk the tree
+puts "ROB2 #{File.exist? file} #{source} #{id} #{file}"
+        if File.exist? file
+          title = File.open(file, 'r').readline rescue id.humanize
+          title = title[/(#*)(.*)/,2].strip rescue id.humanize
+          # build the new topic
+          t = { 'topic_meta_data' => {} }
+          t['topic_meta_data']['title'] = title
+          t['topic_meta_data']['file'] = file
+          order = ("%06d" % topic_meta_data['order'].to_i) rescue "009999"
+          t['topic_meta_data']['sort'] = order + title
+          topic_meta_data.each { |k, v| t['topic_meta_data'][k] = v } 
+          # walk the tree
+        else
+          t = { 'topic_meta_data'=> {'title'=>"topic pending", 'sort'=>"999999"  }}
+        end
         p = parent.split('+')
+puts "ROB #{barclamp} #{p} #{id} #{t}"
         case p.length
         when 1
           @root[id] = t
@@ -146,7 +151,7 @@ class DocsController < ApplicationController
           raise "documentation nested to too many levels, max is 7"
         end
         # recurse the children
-        make_topics path, meta_data, barclamp, "#{parent}+#{id}", details.delete_if{ |k,v| k=='topic_meta_data' }
+        make_topics path, meta_data, barclamp, "#{parent}+#{id}", details
       end
     end
   end

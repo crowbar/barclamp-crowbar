@@ -319,6 +319,8 @@ en:
       no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
       added: Added Node [0] to Role [1]
       removed: Removed Node [0] from Role [1]
+      node_deleted: "WARNING: Node Deleted."
+      node_deleted_title: "You must remove this node in order to save the proposal."
       error: "Cannot add Node [0] to Role [1]. Error [2]"
       constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
       constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"

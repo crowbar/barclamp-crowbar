@@ -25,6 +25,9 @@
                 %td
                   %a.available{:href => 'javascript:void(0);', :class =>"draggable_a", :admin=>(detail[:admin] ? "true" : "false"),  :id =>n, :title =>(detail[:title] || t('not_set')), :draggable=>'true'  }= detail[:alias]
                   = link_to image_tag('/images/icons/link.png'), nodes_path(:selected => detail[:handle]), :title=>detail[:alias], :style=>"float:right"
+            %tr
+              %td
+                %a.available{:hidden=>"true", :admin=>"false", :id =>"-1", :title =>t('.node_deleted_title'), :draggable=>'false'  }= t('.node_deleted')
     .column_50.last
       - @proposal.all_elements.each do |element|
         %div
@@ -199,6 +202,7 @@ $(document).ready(function() {
       var $list = $('ul.ddlist[id="'+list+'"]');
       if ($list.children('li[id="'+item+'"]').length == 0) {
         var node = $('a.available[id="'+item+'"]');
+        if (node.length==0) node = $('a.available[id="-1"]');
         var title = node.attr('title');
         var shortname = node.text();
         var ll = "<li class='allocated " + (even_row ? 'even' : 'odd') +"' id='"+ item + "' title='"+ title + "'>"+shortname;

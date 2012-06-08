@@ -204,7 +204,7 @@ $(document).ready(function() {
         var node = $('a.available[id="'+item+'"]');
         if (node.length==0) node = $('a.available[id="-1"]');
         var title = node.attr('title');
-        var shortname = node.text();
+        var shortname = node.text() + ' ' + item;
         var ll = "<li class='allocated " + (even_row ? 'even' : 'odd') +"' id='"+ item + "' title='"+ title + "'>"+shortname;
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";

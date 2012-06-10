@@ -260,11 +260,11 @@ class NodeObject < ChefObject
   end
 
   def mac
-    unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
+    begin
       intf = sort_ifs[0]
-      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       self.crowbar_ohai["switch_config"][intf]["mac"] || (I18n.t :unknown)
-    else
+    rescue
+      Rails.logger.warn("mac: #{@node.name}: Switch config not detected during discovery")
       (I18n.t :not_set)
     end
   end
@@ -275,7 +275,10 @@ class NodeObject < ChefObject
 
   def allocated=(value)
     return false if @role.nil?
+    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
     self.crowbar["crowbar"]["allocated"] = value
+    @role.save
+    value
   end
 
   def allocated?
@@ -698,39 +701,39 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    unless @node.nil? or @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
+    begin
       intf = sort_ifs[0]
-      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
-      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"] unless intf.nil?
+      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"]
       unless switch_name == -1
         switch_name.to_s.gsub(':', '-')
       else
         nil
       end
-    else
+     rescue
+      Rails.logger.warn("switch_name: #{@node.name}: Switch config not detected during discovery")
       nil
     end
   end
 
   # for stacked switches, unit is set while name is the same
   def switch_unit
-    unless @node["crowbar"].nil? or self.crowbar_ohai["switch_config"].nil?
+    begin
       intf = sort_ifs[0]
-      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       switch_unit = self.crowbar_ohai["switch_config"][intf]["switch_unit"]
       (switch_unit == -1 ? nil : switch_unit)
-    else
+    rescue
+      Rails.logger.warn("switch_unit: #{@node.name}: Switch config not detected during discovery")
       nil
     end
   end
 
   def switch_port
-    unless @node["crowbar"].nil? or self.crowbar_ohai.nil? or self.crowbar_ohai["switch_config"].nil?
+    begin
       intf = sort_ifs[0]
-      raise "network not configured by crowbar_ohai during node discovery" if intf.nil?
       switch_port = self.crowbar_ohai["switch_config"][intf]["switch_port"]
       (switch_port == -1 ? nil : switch_port)
-    else
+    rescue
+      Rails.logger.warn("switch_port: #{@node.name}: Switch config not detected during discovery")
       nil
     end
   end

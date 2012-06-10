@@ -47,7 +47,7 @@ class ==^BC-MODEL==Service < ServiceObject
     all_nodes.each do |n|
       node = NodeObject.find_node_by_name n
 
-      admin_address = node.get_network_by_type("admin")["address"]
+      admin_address = node.address.addr
       node.crowbar[:==BC-MODEL==] = {} if node.crowbar[:==BC-MODEL==].nil?
       node.crowbar[:==BC-MODEL==][:api_bind_host] = admin_address
 

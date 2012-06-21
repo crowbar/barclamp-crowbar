@@ -226,7 +226,7 @@ class BarclampController < ApplicationController
   #
   def get_proposals_from_barclamps(barclamps)
     modules = {}
-    active = RoleObject.active nil
+    active = RoleObject.active
     barclamps.each do |name, details|
       props = ProposalObject.find_proposals name
       modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
@@ -260,7 +260,7 @@ class BarclampController < ApplicationController
     ret = @service_object.proposal_show params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     @proposal = ret[1]
-    @active = begin RoleObject.active("#{params[:controller]}_#{params[:id]}").length>0 rescue false end
+    @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
     flash[:notice] = @proposal.fail_reason if @proposal.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
@@ -275,17 +275,17 @@ class BarclampController < ApplicationController
   #
   # Currently, A UI ONLY METHOD
   #
-  add_help(:proposal_status,[],[:get])
+  add_help(:proposal_status,[:id, :barclamp, :name],[:get])
   def proposal_status
     proposals = {}
     i18n = {}
     begin
-      active = RoleObject.active params[:id]
+      active = RoleObject.active(params[:barclamp], params[:name])
       result = if params[:id].nil? 
         result = ProposalObject.all 
         result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       else
-        [ProposalObject.find_proposal(params[:id][/^(.*)_(.*)$/,1], params[:id][/^(.*)_(.*)$/,2])]
+        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
       end
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"

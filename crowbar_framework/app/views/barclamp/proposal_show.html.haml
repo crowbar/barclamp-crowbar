@@ -1,4 +1,6 @@
 - prop = "#{@proposal.barclamp}_#{@proposal.name}"
+- barclamp = @proposal.barclamp
+- role_name = @proposal.name
 %p{:style => 'float:right'}
   = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
 
@@ -41,7 +43,7 @@
 
   function update() {
     $.ajaxSetup({ timeout: 3000 })
-    $.getJSON('#{status_proposals_barclamp_path(:id=>prop)}', function(data) {
+    $.getJSON('#{status_proposals_barclamp_path(:id=>prop, :barclamp=>barclamp, :name=>role_name)}', function(data) {
       // Update proposals status
       $.each(data['proposals'], function(key,val) {
         var el = $('#'+key);

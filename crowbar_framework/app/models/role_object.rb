@@ -22,12 +22,11 @@ class RoleObject < ChefObject
     self.find_roles_by_search(nil)
   end
   
-  def self.active(name)
-    full = if name.nil?
+  def self.active(barclamp = nil, inst = nil)
+    full = if barclamp.nil?
       RoleObject.find_roles_by_name "*-config-*"
     else
-      name = "#{name[/^(.*)_(.*)$/,1]}-config-#{name[/^(.*)_(.*)$/,2]}"
-      RoleObject.find_roles_by_name name
+      RoleObject.find_roles_by_name "#{barclamp}-config-#{inst}"
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }
   end

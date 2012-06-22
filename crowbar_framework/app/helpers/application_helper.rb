@@ -78,7 +78,7 @@ module ApplicationHelper
         render :partial => 'barclamp/edit_attributes_raw'
       rescue Exception => e
         puts "Attribute Exception #{e.class}: #{e.message}"
-        puts e.backtrace
+        puts e.backtrace.join("\n")
         render :partial => 'barclamp/edit_attributes_raw'
       end
     end
@@ -95,7 +95,7 @@ module ApplicationHelper
           render :partial => 'barclamp/edit_deployment_raw'
         rescue Exception => e
           puts "Deployment Exception #{e.message}"
-          puts e.backtrace
+          puts e.backtrace.join("\n")
           render :partial => 'barclamp/edit_deployment_raw'
         end
       else

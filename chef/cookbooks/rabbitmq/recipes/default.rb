@@ -33,13 +33,19 @@
 # while still using /etc/init.d/rabbitmq-server start
 # because of this we just put the rabbitmq-env.conf in place and let it rip
 
+if node.platform == "suse"
 package "rabbitmq-server"
+end
 
 directory "/etc/rabbitmq/" do
   owner "root"
   group "root"
   mode 0755
   action :create
+end
+
+if node.platform != "suse"
+package "rabbitmq-server"
 end
 
 template "/etc/rabbitmq/rabbitmq-env.conf" do

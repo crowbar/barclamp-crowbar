@@ -112,8 +112,8 @@ class CrowbarService < ServiceObject
             end
           rescue Exception => e
             @logger.fatal("json/transition for #{bc}:#{rname} failed: #{e.message}")
-            @logger.fatal("#{e.backtrace}")
-            return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace}"]
+            @logger.fatal("#{e.backtrace.join("\n")}")
+            return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace.join("\n")}"]
           end
         end
       end

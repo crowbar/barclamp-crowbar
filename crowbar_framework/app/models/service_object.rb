@@ -176,7 +176,7 @@ class ServiceObject
         end
       end
     rescue Exception => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
+      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
     end
@@ -313,7 +313,7 @@ class ServiceObject
         prop.save
       end
     rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
       return false
     end
@@ -335,7 +335,7 @@ class ServiceObject
       ret = dequeue_proposal_no_lock(queue, inst, bc)
       db.save if ret
     rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return ret
     ensure

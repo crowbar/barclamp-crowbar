@@ -675,9 +675,15 @@ class ServiceObject
   def validate_proposal proposal
     path = "/opt/dell/chef/data_bags/crowbar"
     path = "schema" unless CHEF_ONLINE
-    validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
+    begin
+      validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
+    rescue Exception => e
+      Rails.logger.error("failed to load databag schema for #{@bc_name}: #{e.message}")
+      Rails.logger.debug e.backtrace.join("\n")
+      raise Chef::Exceptions::ValidationFailed.new( "failed to load databag schema for #{@bc_name}: #{e.message}" )
+    end
     Rails.logger.info "validating proposal #{@bc_name}"
-    
+
     errors = validator.validate(proposal)
     if errors && !errors.empty?
       strerrors = ""

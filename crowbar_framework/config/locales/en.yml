@@ -97,6 +97,7 @@ en:
       illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.
       already_commit: Proposal already being applied.
       cannot_find: Failed to find proposal
+      template_missing: Failed to load proposal template for barclamp '%{name}'.
     attributes:
       node:
         name: Full Name

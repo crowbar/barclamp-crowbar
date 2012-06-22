@@ -594,6 +594,7 @@ class ServiceObject
   #
   def create_proposal
     prop = ProposalObject.find_proposal("template", @bc_name)
+    raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
     prop.raw_data
   end
 

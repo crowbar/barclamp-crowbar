@@ -6,6 +6,12 @@
 # Bootstrap the Rails environment, frameworks, and default configuration
 require 'thread'
 require File.join(File.dirname(__FILE__), 'boot')
+require 'chef'
+if File.exists?("/opt/dell/barclamps/deployer/chef/cookbooks/barclamp/libraries")
+  require "/opt/dell/barclamps/deployer/chef/cookbooks/barclamp/libraries/ip.rb"
+  require "/opt/dell/barclamps/deployer/chef/cookbooks/barclamp/libraries/nic.rb"
+  require "/opt/dell/barclamps/deployer/chef/cookbooks/barclamp/libraries/nethelper.rb"
+end
 
 Rails::Initializer.run do |config|
   # Settings in config/environments/* take precedence over those specified here.

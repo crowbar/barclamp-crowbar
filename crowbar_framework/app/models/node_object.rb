@@ -49,7 +49,7 @@ class NodeObject < ChefObject
 
   def self.find_nodes_by_name(name)
     self.find "name:#{chef_escape(name)}"
-  end
+   end
 
   def self.find_node_by_alias(name)
     nodes = []
@@ -243,15 +243,11 @@ class NodeObject < ChefObject
   end
 
   def ip
-    net_info = get_network_by_type("admin")
-    return net_info["address"] unless net_info.nil?
-    @node["ipaddress"] || (I18n.t :unknown)
+    @node.address.addr rescue (@node[:ipaddress] || (I18n.t :unknown))
   end
 
   def public_ip
-    net_info = get_network_by_type("public")
-    return net_info["address"] unless net_info.nil?
-    @node["ipaddress"] || (I18n.t :unknown)
+    @node.address("public").addr rescue (@node[:ipaddress] || (I18n.t :unknown))
   end
 
   def crowbar_ohai
@@ -348,11 +344,6 @@ class NodeObject < ChefObject
     self.crowbar['crowbar']['disks'].length rescue -1
   end
   
-  def [](attrib)
-    return nil if @node.nil?
-    @node[attrib]
-  end
-
   # Function to help modify the run_list.
   def crowbar_run_list(*args)
     return nil if @role.nil?
@@ -839,10 +830,10 @@ class NodeObject < ChefObject
 
     if state == "reset" or state == "reinstall" or state == "update"
       if CHEF_ONLINE
-        bmc          = get_network_by_type("bmc")
+        bmc          = @node.address("bmc").addr rescue nil
         bmc_user     = get_bmc_user
         bmc_password = get_bmc_password
-        system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
+        system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
       else
         NodeObject.clear_cache @node
         puts "Node #{name} to #{state} caused cache object to be deleted."
@@ -853,37 +844,37 @@ class NodeObject < ChefObject
 
   def reboot
     set_state("reboot")
-    bmc          = get_network_by_type("bmc")
+    bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Reboot call to #{bmc["address"]}" unless CHEF_ONLINE
-    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
+    return puts "Node #{name} IMPI Reboot call to #{bmc}" unless CHEF_ONLINE
+    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
   end
 
   def shutdown
     set_state("shutdown")
-    bmc          = get_network_by_type("bmc")
+    bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Shutdown call to #{bmc["address"]}" unless CHEF_ONLINE
+    return puts "Node #{name} IMPI Shutdown call to #{bmc}" unless CHEF_ONLINE
     system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power off") unless bmc.nil?
   end
 
   def poweron
     set_state("poweron")
-    bmc          = get_network_by_type("bmc")
+    bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Power On call to #{bmc["address"]}" unless CHEF_ONLINE
-    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
+    return puts "Node #{name} IMPI Power On call to #{bmc}" unless CHEF_ONLINE
+    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
   end
 
   def identify
-    bmc          = get_network_by_type("bmc")
+    bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Identify call to #{bmc["address"]}" unless CHEF_ONLINE
-    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
+    return puts "Node #{name} IMPI Identify call to #{bmc}" unless CHEF_ONLINE
+    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
   end
 
   def allocate
@@ -898,6 +889,19 @@ class NodeObject < ChefObject
     return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
     return false if @node["crowbar_wall"]["status"]["ipmi"]["address_set"].nil?
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
+  end
+
+  def method_missing(m,*args,&block)
+    unless @node.respond_to?(m)
+      Rails.logger.fatal("Cannot delegate method #{m} to #{@node.class}")
+    else
+      case
+      when args && block_given? then @node.send(m,*args,&block)
+      when block_given? then @node.send(m,&block)
+      when args then @node.send(m,*args)
+      else @node.send(m)
+      end
+    end
   end
 
   def export

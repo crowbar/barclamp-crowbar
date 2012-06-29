@@ -763,10 +763,14 @@ class NodeObject < ChefObject
 
   # order WITHIN the logical grouping
   def group_order
-    if switch_port.nil?
-      self.alias
-    else
-      switch_port.to_i
+    begin
+      if switch_port.nil? or switch_port == -1
+        self.alias
+      else
+        switch_name + "%05d" % switch_unit.to_i + "%05d" % switch_port.to_i
+      end
+    rescue
+       self.alias 
     end
   end
 

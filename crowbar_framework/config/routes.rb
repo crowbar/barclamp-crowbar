@@ -34,7 +34,7 @@ ActionController::Routing::Routes.draw do |map|
   map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index', :requirements => { :name => /.*/ }
   map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
   # this route allows any barclamp to extend the nodes view
-  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'  
+  map.nodes_barclamp 'nodes/:controller/1.0/:id', :action => 'nodes'  
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :requirements => { :name => /.*/ }
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :requirements => { :name => /.*/ }
   

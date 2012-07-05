@@ -45,13 +45,19 @@ pkglist.each {|p|
 
 if node[:platform] != "suse"
   gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rails rainbows }
+     i18n haml net-http-digest_auth rainbows }
 
   gemlist.each {|g|
     gem_package g do
       action :install
     end
   }
+
+  # We specifically just want Rails 2.3.14
+  gem_package "rails" do
+    action :install
+    version "2.3.14"
+  end
 end
 
 group "crowbar"

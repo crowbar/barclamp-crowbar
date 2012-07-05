@@ -44,6 +44,14 @@ pkglist.each {|p|
 }
 
 if node[:platform] != "suse"
+
+  # Last version of rack that works with Rails 2.3.
+  # We don't want to pull in anything else.
+  gem_package "rack" do
+    action :install
+    version "1.1.3"
+  end
+
   gemlist=%w{rake json syslogger sass simple-navigation 
      i18n haml net-http-digest_auth rainbows }
 

@@ -1,4 +1,4 @@
--if request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
+-if request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-9])/
   %p
     %em= t('.msie_fail')
   = render :partial => 'barclamp/edit_deployment_raw'

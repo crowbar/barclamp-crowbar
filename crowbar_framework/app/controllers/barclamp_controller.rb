@@ -112,8 +112,9 @@ class BarclampController < ApplicationController
       ret = @service_object.destroy_active(params[:id])
       flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
     rescue Exception => e
+      Rails.logger.error "Failed to deactivate proposal: #{e.message}\n#{e.backtrace.join("\n")}"
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
-      ret[500, flash[:notice]]
+      ret = [500, flash[:notice] ]
     end
 
     respond_to do |format|

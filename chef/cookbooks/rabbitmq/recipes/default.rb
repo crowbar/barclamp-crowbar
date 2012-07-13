@@ -84,6 +84,7 @@ else
   bash "Enable rabbit management" do
     code <<-'EOH'
   /usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+  pkill -u rabbitmq
   /etc/init.d/rabbitmq-server restart
   exit 0
   EOH

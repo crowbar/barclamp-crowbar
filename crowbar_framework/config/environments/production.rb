@@ -19,10 +19,12 @@
 
 # The production environment is meant for finished, "live" apps.
 # Code is not reloaded between requests
+Crowbar::Application.configure do
+
 config.cache_classes = true
 
 # Full error reports are disabled and caching is turned on
-config.action_controller.consider_all_requests_local = false
+#config.action_controller.consider_all_requests_local = false
 config.action_controller.perform_caching             = true
 config.action_view.cache_template_loading            = true
 
@@ -48,7 +50,7 @@ config.logger.level = Logger::DEBUG
 
   CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
   CHEF_NODE_NAME ="crowbar" 
-  CHEF_SERVER_URL = "http://localhost:4000"
+  CHEF_SERVER_URL = "http://192.168.124.10:4000"
   CHEF_ONLINE = true
-  CROWBAR_VERSION = "Production"
-  
+  CROWBAR_VERSION = "v1.2-openstack-dell-4224-g126db9a-fred-ubuntu1204-openstack"
+ end 

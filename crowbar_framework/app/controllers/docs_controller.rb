@@ -23,7 +23,7 @@ class DocsController < ApplicationController
   def index
     doc_yml = File.join RAILS_ROOT, 'config', 'docs.yml'
     docs_path = File.join RAILS_ROOT, 'doc'
-    if File.exist? doc_yml and RAILS_ENV != 'development'
+    if File.exist? doc_yml and Rails.env != 'development'
       @index = YAML.load_file File.join('config', 'docs.yml')
     else #create yml
       @index = gen_doc_index docs_path

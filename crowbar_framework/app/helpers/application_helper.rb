@@ -88,7 +88,7 @@ module ApplicationHelper
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else
-      unless RAILS_ENV == 'development'
+      unless Rails.env == 'development'
         begin
           render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
         rescue ActionView::MissingTemplate

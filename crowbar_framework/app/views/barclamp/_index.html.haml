@@ -39,7 +39,7 @@
                       - else
                         = "#{t('.failed')} - #{proposal[:message]}"
                     %td
-                      - if RAILS_ENV==='development'
+                      - if Rails.env==='development'
                         - button = case proposal[:status]
                           - when 'hold' 
                             = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :id => "#{prop_id}_button", :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"

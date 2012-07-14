@@ -3,7 +3,7 @@ SimpleNavigation::Configuration.run do |navigation|
     primary.item :nodes, t('nav.nodes'), root_path do |secondary|
       secondary.item :dashboard, t('nav.dashboard'), dashboard_path()
       secondary.item :bulkedit, t('nav.list'), nodes_list_path(:allocated=>'yes') 
-      secondary.item :families, t('nav.families'), nodes_families_path if RAILS_ENV == 'development'
+      secondary.item :families, t('nav.families'), nodes_families_path if Rails.env == 'development'
       # insert here for :nodes
     end
     primary.item :network, t('nav.network'), network_path do |secondary| 
@@ -23,7 +23,7 @@ SimpleNavigation::Configuration.run do |navigation|
     primary.item :help, t('nav.help'), '/crowbar_users_guide.pdf', { :link => { :target => "_blank" } } do |secondary|
       secondary.item :help, t('nav.crowbar_wiki'), 'https://github.com/dellcloudedge/crowbar/wiki/', { :link => { :target => "_blank" } }
       secondary.item :help, t('nav.crowbar_ug'), '/crowbar_users_guide.pdf', { :link => { :target => "_blank" } }
-      secondary.item :documentation, t('nav.documentation'), docs_path if RAILS_ENV == 'development'
+      secondary.item :documentation, t('nav.documentation'), docs_path if Rails.env == 'development'
       # insert here for :help 
     end
   end

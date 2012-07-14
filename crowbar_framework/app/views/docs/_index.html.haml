@@ -4,5 +4,5 @@
     = link_to meta['title'], docs_topic_path(:id=>"#{parent.chomp('+')}#{id.length>0 ? '+' : ''}#{id}")
     - if !show_children and children>0
       = "(#{children})"
-    - if RAILS_ENV == 'development'
+    - if Rails.env == 'development'
       = "(s=#{meta['source']}, id=#{parent}+#{id}, order=#{meta['order']})"

@@ -41,7 +41,7 @@
           }
         else {
           $('.led').attr('class','led pending');
-          $('#status').text('#{RAILS_ENV=="development" ? t(".dev_restart") : t(".restarting")}');
+          $('#status').text('#{Rails.env=="development" ? t(".dev_restart") : t(".restarting")}');
         }
       }, error: function(XMLHttpRequest, textStatus, errorThrown){
         $('.led').attr('class','led in_process');

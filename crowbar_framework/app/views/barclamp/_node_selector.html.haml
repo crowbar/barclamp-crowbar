@@ -2,7 +2,7 @@
   %p
     %em= t('.msie_fail')
   = render :partial => 'barclamp/edit_deployment_raw'
-  -if RAILS_ENV === "development"
+  -if Rails.env === "development"
     %p
       = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
 -else 

@@ -785,7 +785,11 @@ class NodeObject < ChefObject
         bmc          = get_network_by_type("bmc")
         bmc_user     = get_bmc_user
         bmc_password = get_bmc_password
-        system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
+        if bmc.nil? || !system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle")
+          unless system("sudo -i -u root -- ssh root@#{@node.name} /sbin/reboot -f")
+            Rails.logger.warn("failed ipmitool power cycle and fallback ssh reboot for #{@node.name} - node in unknown state")
+          end
+        end
       else
         NodeObject.clear_cache @node
         puts "Node #{name} to #{state} caused cache object to be deleted."
@@ -794,6 +798,7 @@ class NodeObject < ChefObject
     results
   end
 
+  # Note: does not appear to be accessbile currently (2012-07-16) via crowbar UI,
   def reboot
     set_state("reboot")
     bmc          = get_network_by_type("bmc")
@@ -803,6 +808,7 @@ class NodeObject < ChefObject
     system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
   end
 
+  # Note: does not appear to be accessbile currently (2012-07-16) via crowbar UI,
   def shutdown
     set_state("shutdown")
     bmc          = get_network_by_type("bmc")

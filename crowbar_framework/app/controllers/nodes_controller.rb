@@ -190,7 +190,7 @@ class NodesController < ApplicationController
       when 'allocate'
         machine.allocate
       else
-        render :text=>"Invalid hit requeset '#{action}'", :status => 500
+        render :text=>"Invalid hit request '#{action}'", :status => 500
       end
     end
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200

@@ -328,3 +328,4 @@ gems:
     - coffee-rails
     - uglifier
     - jquery-rails
+    - bunny

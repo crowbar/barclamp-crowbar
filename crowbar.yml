@@ -293,6 +293,7 @@ rpms:
     # sudo stuff
     - sudo
     - screen
+    - graphviz
 
 gems:
   pkgs:
@@ -321,3 +322,30 @@ gems:
     - formtastic-1.2.4
     - xml-simple
     - libxml-ruby
+    - rails-3.2.6
+    - sqlite3
+    - therubyracer
+    - sass-rails
+    - coffee-rails
+    - uglifier
+    - jquery-rails
+    - bunny
+    - highline
+    - ipaddress
+    - json-1.6.1
+    - kwalify
+    - mixlib-authentication
+    - mixlib-cli
+    - mixlib-config
+    - mixlib-log
+    - mixlib-shellout
+    - moneta
+    - net-ssh
+    - ohai
+    - chef
+    - rest-client
+    - systemu
+    - uuidtools
+    - yajl-ruby
+    - rails-erd
+    - railroad

@@ -293,6 +293,7 @@ rpms:
     # sudo stuff
     - sudo
     - screen
+    - graphviz
 
 gems:
   pkgs:
@@ -346,3 +347,5 @@ gems:
     - systemu
     - uuidtools
     - yajl-ruby
+    - rails-erd
+    - railroad

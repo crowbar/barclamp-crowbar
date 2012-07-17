@@ -169,6 +169,7 @@ debs:
     - dpkg-dev
     - screen
     - alien
+    - graphviz
 
 rpms:
   redhat-5.6:

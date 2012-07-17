@@ -1,5 +1,5 @@
 [
-    {rabbit, [{tcp_listeners, {"<%= node[:rabbitmq][:address] %>", <%= node[:rabbitmq][:port] || 5672 %>}}]},
+    {rabbit, [{tcp_listeners, [{"<%= node[:rabbitmq][:address] %>", <%= node[:rabbitmq][:port] || 5672 %>}]}]},
     {rabbitmq_mochiweb, [{listeners, [{mgmt, [{ip, "<%= node[:rabbitmq][:address] %>"}, {port, 55672}]}]}]}
 ].
 

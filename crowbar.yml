@@ -329,3 +329,20 @@ gems:
     - uglifier
     - jquery-rails
     - bunny
+    - highline
+    - ipaddress
+    - json-1.6.1
+    - kwalify
+    - mixlib-authentication
+    - mixlib-cli
+    - mixlib-config
+    - mixlib-log
+    - mixlib-shellout
+    - moneta
+    - net-ssh
+    - ohai
+    - chef
+    - rest-client
+    - systemu
+    - uuidtools
+    - yajl-ruby

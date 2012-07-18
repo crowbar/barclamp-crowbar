@@ -11,7 +11,7 @@
   = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float:right;"
   %div.container#deploy
     %p
-      %em#hint= t('.hint')
+      %em#hint= t('.hint').html_safe
     .column_40.first
       %div#nodes_div
         %table#node_tbl

@@ -61,7 +61,7 @@
       %tfoot
         %tr{ :class => cycle(:odd, :even, :name => "nodes")}
           %td.hint{:colspan => 6}
-            = t('note')+": "+t('.hint')
+            = t('note')+": "+t('.hint').html_safe
           %td.action{:colspan => 1}
             %input.button{:type => "submit", :name => "submit", :value => 'Save'}
 

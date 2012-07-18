@@ -19,13 +19,13 @@ module NodesHelper
   def roles_list(roles)
     return [] if roles.nil? or roles.empty?
     roles.delete_if { |role| role =~ /^.*-config-/ }
-    (roles.map {|role| "<a href='#{nodes_path({:role=>role, :names_only=>true, :format=>'json'})}'>#{role}</a>"} * ', ') #.html_safe
+    (roles.map {|role| "<a href='#{nodes_path({:role=>role, :names_only=>true, :format=>'json'})}'>#{role}</a>"} * ', ').html_safe
   end
 
   def barclamps_list(roles)
     return [] if roles.nil? or roles.empty?
     roles.delete_if { |role| !(role =~ /^.*-config-/) }
-    (roles.map {|role| "<a href='#{nodes_path({:role=>role, :names_only=>true, :format=>'json'})}'>#{role.gsub("-config-", " ").titlecase}</a>"} * ', ') #.html_safe
+    (roles.map {|role| "<a href='#{nodes_path({:role=>role, :names_only=>true, :format=>'json'})}'>#{role.gsub("-config-", " ").titlecase}</a>"} * ', ').html_safe
   end
 
   def ip_addresses(ip_list)

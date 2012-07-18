@@ -45,7 +45,7 @@ class NodesController < ApplicationController
           get_node_and_network(node.handle)
         end
       end
-      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
+      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @nodes.empty?
     end
     respond_to do |format|
       format.html # index.html.haml

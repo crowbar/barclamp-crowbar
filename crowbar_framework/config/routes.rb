@@ -117,5 +117,4 @@ Crowbar::Application.routes.draw do
   end
 
   root :to => "nodes#index"  
-  match ':controller(/:action(/:id(.:format)))'
 end

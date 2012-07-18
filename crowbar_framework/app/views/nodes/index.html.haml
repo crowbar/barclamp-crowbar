@@ -11,7 +11,7 @@
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
         %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-          =t '.drag_hint'
+          =t('.drag_hint').html_safe
 
 #nodes
   - if @nodes.nil?

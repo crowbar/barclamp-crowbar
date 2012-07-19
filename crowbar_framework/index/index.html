@@ -1,0 +1,15 @@
+<html>
+<head>
+</head>
+<body>
+<h1>Admin Server Link Page</h1>
+<a id="crowbar" href="http://127.0.0.1:3000">crowbar</a>
+<a id="chef" href="http://127.0.0.1:4040">chef</a>
+<a id="couchdb" href="http://127.0.0.1:5984">couchdb</a> (local only)
+
+<script>
+document.getElementById("crowbar").href="http://"+window.location.host+":3000";
+document.getElementById("chef").href="http://"+window.location.host+":4040";
+</script>
+</body>
+</html>

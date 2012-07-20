@@ -95,7 +95,9 @@ class CrowbarValidator < Kwalify::Validator
            errors << Kwalify::ValidationError.new(msg, path)
          end
       when 'DomainName'
-         regex = /\A((((([a-z0-9]{1}[a-z0-9\-]{0,62}[a-z0-9]{1})|[a-z])\.)+[a-z]{2,6})|(\d{1,3}\.){3}\d{1,3}(\:\d{1,5})?)\z/
+         # http://tools.ietf.org/html/rfc1034#section-3.5
+         label = /[a-z]([a-z0-9\-]{0,61}[a-z0-9])?/i
+         regex = /\A#{label}(\.#{label})*\z/
          if value[regex].nil?
            msg = "Should be a Domain Name: #{value}"
            errors << Kwalify::ValidationError.new(msg, path)

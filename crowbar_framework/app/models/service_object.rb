@@ -715,7 +715,7 @@ class ServiceObject
     rescue Net::HTTPServerException => e
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
+      [400, "Failed to validate propsal: #{e2.message}"]
     end
   end
 

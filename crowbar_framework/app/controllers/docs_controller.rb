@@ -33,39 +33,11 @@ class DocsController < ApplicationController
 
   def topic
     begin 
-      all = YAML.load_file File.join('config', 'docs.yml')
-      @path = params[:id]
-      id = @path.split('+')
-      case id.length
-      when 1
-        @parent = nil
-        @parent_link = nil
-        @topic = nil
-      when 2 
-        @parent = nil
-        @parent_link = nil
-        @topic = all[id[1]]
-      when 3 
-        @parent = all[id[1]]
-        @parent_link = id[0..1].join('+')
-        @topic = all[id[1]][id[2]]
-      when 4
-        @parent_link = id[0..2].join('+')
-        @parent = all[id[1]][id[2]]
-        @topic = all[id[1]][id[2]][id[3]]
-      when 5
-        @parent_link = id[0..3].join('+')
-        @parent = all[id[1]][id[2]][id[3]]
-        @topic = all[id[1]][id[2]][id[3]][id[4]]
-      when 6
-        @parent_link = id[0..4].join('+')
-        @parent = all[id[1]][id[2]][id[3]][id[4]]
-        @topic = all[id[1]][id[2]][id[3]][id[4]][id[5]]
+      @topic = Docs.find_by_handle params[:id]
       else
         raise "documentation nested to too many levels, max is 6"
       end
           
-      @meta = @topic['topic_meta_data']
       file = @meta['file']
       @index = {}
       # navigation items
@@ -94,14 +66,17 @@ class DocsController < ApplicationController
   
   def gen_doc_index(path)
     @root = { } if @root.nil?
+    root = Docs.find_by_handle 'root'
     root_meta_data = { 'author'=>'Multiple Authors', 'license'=>'Apache 2', 'copyright'=>'2012 by Dell, Inc', 'date'=>I18n.t('unknown'), 'order'=>'alpha', 'url'=>'/', 'format'=>'markdown' }
     Dir.entries(path).each do |bc_index|
       # collect all the index files
       if bc_index =~ /(.*).yml$/
         bc = bc_index[/(.*).yml$/,1]
+        
         topic = YAML.load_file(File.join(path, bc_index))['root'] rescue continue
         meta_data = root_meta_data.merge! topic['topic_meta_data']
         children = topic.delete_if { |k, v| k=='topic_meta_data' }
+        
         make_topics path, meta_data, bc, 'root', children
       end
     end

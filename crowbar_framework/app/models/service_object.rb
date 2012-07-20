@@ -722,7 +722,7 @@ class ServiceObject
     rescue Net::HTTPServerException => e
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
+      [400, "Failed to validate proposal: #{e2.message}"]
     end
   end
 
@@ -775,7 +775,7 @@ class ServiceObject
     element_order = new_deployment["element_order"]
 
     # 
-    # Attempt to queue the propsal.  If delay is empty, then run it.
+    # Attempt to queue the proposal.  If delay is empty, then run it.
     #
     deps = proposal_dependencies(role)
     delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)

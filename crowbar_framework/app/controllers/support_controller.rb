@@ -16,6 +16,7 @@
 # 
 
 class SupportController < ApplicationController
+    
   # Legacy Support (UI version moved to loggin barclamp)
   def logs
     @file = "crowbar-logs-#{ctime}.tar.bz2"
@@ -190,7 +191,7 @@ class SupportController < ApplicationController
       @init = true
       render
     elsif params[:id].eql? "in_process"
-      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
+      %x[sudo bluepill crowbar-webserver restart] unless Rails.env == 'development'
       render :json=>false
     elsif params[:id].eql? SERVER_PID
       render :json=>false

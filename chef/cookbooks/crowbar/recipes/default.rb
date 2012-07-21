@@ -44,14 +44,16 @@ pkglist.each {|p|
 }
 
 if node[:platform] != "suse"
-  gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rails rainbows }
 
-  gemlist.each {|g|
-    gem_package g do
-      action :install
-    end
-  }
+  gem_package "bundler" do
+    gem_binary "gem"
+  end
+
+  bash "Install gems through bundler" do
+    code "cd /opt/dell/crowbar_framework ; bundle"
+    not_if "test -e /opt/dell/crowbar_framework/Gemfile.lock"
+  end
+
 end
 
 group "crowbar"

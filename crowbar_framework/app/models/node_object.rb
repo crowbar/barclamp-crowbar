@@ -155,7 +155,7 @@ class NodeObject < ChefObject
   end
 
   def handle
-    begin name.split('.')[0] rescue name end
+    name
   end
   
   def alias(suggest=false) 

@@ -2,7 +2,7 @@
   %p
     %em= t('.msie_fail')
   = render :partial => 'barclamp/edit_deployment_raw'
-  -if RAILS_ENV === "development"
+  -if Rails.env === "development"
     %p
       = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
 -else 
@@ -11,7 +11,7 @@
   = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float:right;"
   %div.container#deploy
     %p
-      %em#hint= t('.hint')
+      %em#hint= t('.hint').html_safe
     .column_40.first
       %div#nodes_div
         %table#node_tbl

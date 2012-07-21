@@ -16,16 +16,6 @@
 #
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
-  # Is this a Rails 2-ism - csrf_meta_tag?
-  # app/helpers/application_helper.rb
-  def csrf_meta_tag
-    if protect_against_forgery?
-      out = %(<meta name="csrf-param" content="%s"/>\n)
-      out << %(<meta name="csrf-token" content="%s"/>)
-      out % [ Rack::Utils.escape_html(request_forgery_protection_token),
-              Rack::Utils.escape_html(form_authenticity_token) ]
-    end
-  end
 
   def dl_item(term, definition, options={})
     unless definition.blank? && options[:show_if_blank] != true
@@ -88,7 +78,7 @@ module ApplicationHelper
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else
-      unless RAILS_ENV == 'development'
+      unless Rails.env == 'development'
         begin
           render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
         rescue ActionView::MissingTemplate

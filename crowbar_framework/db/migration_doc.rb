@@ -4,7 +4,7 @@ class DocBase < ActiveRecord::Migration
 
     create_table "docs", :force => true do |t|
       t.column "handle", :string, :size=>120, 
-      t.column "parent_handle", :string, :size=>120
+      t.column "parent_handle", :string, :size=>120, :default=>'root'
       t.column "title", :string, :size=>120
       t.column "author", :string, :size=>80
       t.column "license", :string,  :size=>20
@@ -14,8 +14,6 @@ class DocBase < ActiveRecord::Migration
       t.timestamps
     end
     
-    Docs.add(:handle=>'root', :barclamp=>'crowbar', :title=>I18n.t('docs.root'), :author=>'System', :license=>'Apache 2', :date=>'July 17, 2012')
-
   end
 
   def self.down

@@ -16,85 +16,71 @@
 # 
 
 class DocsController < ApplicationController
-    
-  require 'yaml'
-  META = 'topic_meta_data'
-  
+      
   def index
-    @index = Docs.find_by_handle 'root'
-    if @index.nil? or Rails.env == 'development' 
-      @index = gen_doc_index docs_path
+    @root = Doc.find_by_name 'root'
+    if @root.nil? or Rails.env == 'development'
+      @root = gen_doc_index File.join('doc')
     end
   end  
-
+  
   def topic
     begin 
-      @topic = Docs.find_by_handle params[:id]      
-      file = File.join 'doc', 'default', @topic.handle.gsub('+','/')
+      @topic = Doc.find_by_name params[:id]      
+      file = page_path 'doc', @topic.name
       # navigation items
       @text = if File.exist? file
-        html_safe %x[markdown #{from}]
+        %x[markdown #{file}]
       else
-        I18n.t '.topic_missing', :scope=>'docs.topic'
+        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + file
       end
     rescue
-      @text = I18n.t '.topic_missing', :scope=>'docs.topic'
+      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + file
       flash[:notice] = @text
     end
   end
   
-  private 
+  private
   
-  
-  def meta_data(default, parent, topic)
-    meta = default.clone
-    parent.each { |k, v| meta[k] = v unless k.include? '+' }
-    topic.each  { |k, v| meta[k] = v unless k.include? '+' }
+  def page_path(path, name, language='default')
+    File.join path, language, name.gsub("+", "/")+'.md'
   end
   
-  def gen_doc_index(path)
-    root = Doc.find_or_create {:handle=>'root', :barclamp=>'crowbar', :title=>I18n.t('docs.root'), :author=>'System', :license=>'Apache 2', :date=>'July 20, 2012')
+  def gen_doc_index(path)    
+    root = Doc.find_or_create_by_name(:name=>'root', :parent_name=>nil, :description=>I18n.t('.root', :scope=>'docs'), :author=>'System', :license=>'Apache 2', :order=>'000000', :date=>'July 20, 2012')
     Dir.entries(path).each do |bc_index|
       # collect all the index files
       if bc_index =~ /(.*).yml$/
         bc = bc_index[/(.*).yml$/,1]
-        
-        topic = YAML.load_file(File.join(path, bc_index))['root'] rescue continue
-        children = topic.delete_if { |k, v| !k.include? '+' }
-      
-        make_topics path, meta_data, bc, 'root', children
+        topic = YAML.load_file File.join(path, bc_index)
+        topic.each { |t, v| create_doc(path, 'root', t, v) }
       end
     end
     root
-  end
+  end 
 
-  def make_topics(path, meta_data, barclamp, parent, topics)
-    return if topics.nil?
-    topics.each do |id, details|
-      if id != 'topic_meta_data'
-        topic_meta_data = ((details.nil? or details['topic_meta_data'].nil?) ? meta_data : meta_data.merge!(details['topic_meta_data']))
-        source = topic_meta_data['source'] || barclamp
-        file = File.join path, 'default', source, id+'.md'
-        if File.exist? file
-          title = File.open(file, 'r').readline rescue id.humanize
-          title = title[/(#*)(.*)/,2].strip rescue id.humanize
-          # build the new topic
-          t = { 'topic_meta_data' => {} }
-          t['topic_meta_data']['title'] = title
-          t['topic_meta_data']['file'] = file
-          order = ("%06d" % topic_meta_data['order'].to_i) rescue "009999"
-          t['topic_meta_data']['sort'] = order + title
-          topic_meta_data.each { |k, v| t['topic_meta_data'][k] = v } 
-          # walk the tree
-        else
-          t = { 'topic_meta_data'=> {'title'=>"topic pending", 'sort'=>"999999"  }}
+  def create_doc(path, parent, name, values)
+    if name.to_s.include? "+"
+      values ||= {} 
+      values[:name] = name
+      values[:parent_name] = parent
+      title = name.gsub("+"," ").titleize
+      file = page_path path, 'default', name
+      values[:description] = if File.exist? file
+        begin
+          actual_title = File.open(file, 'r').readline
+          actual_title[/(#*)(.*)/,2].strip       
+        rescue 
+          title
         end
-        p = parent.split('+')
-        case p.length
-        # recurse the children
-        make_topics path, meta_data, barclamp, "#{parent}+#{id}", details
+      else 
+        title
+      end
+      values["order"] = (values["order"].to_s || '999').rjust(6,'0')
+      Doc.find_or_create_by_name(values)
+      values.each do |k, v|
+        create_doc path, name, k, v if k.to_s.include? "+"
       end
     end
   end
-  
 end

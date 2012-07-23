@@ -1,20 +1,23 @@
 %h1= t '.title'
 
-%ol
-  - root_children = @index.delete_if { |k, v| k=='topic_meta_data' }
-  - root_children.sort_by { |k, v| v['topic_meta_data']['sort'] }.each do |book, book_details|
-    - book_meta = book_details['topic_meta_data']
-    - book_children = book_details.delete_if { |k, v| k=='topic_meta_data' }
-    %h3= render "docs/#{book_meta['barclamp']}/#{book}" rescue (render :partial => 'index', :locals=>{:id=>book, :parent=>'root', :children=>book_children.length, :meta=>book_meta, :show_children=>true, :prefix=>nil} )
-    %ol
-      - book_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |section, section_details|
-        - section_meta = section_details['topic_meta_data']
-        - section_children = section_details.delete_if { |k, v| k=='topic_meta_data' }
-        = render :partial => 'index', :locals=>{:id=>section, :parent=>"root+#{book}", :children=>section_children.length, :meta=>section_meta, :show_children=>true, :prefix=>nil} 
-        %ol
-          - section_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |topic, topic_details|
-            - topic_meta = topic_details['topic_meta_data']
-            - topic_children = topic_details.delete_if { |k, v| k=='topic_meta_data' }
-            = render :partial => 'index', :locals=>{:id=>topic, :parent=>"root+#{book}+#{section}", :children=>topic_children.length, :meta=>topic_meta, :show_children=>false, :prefix=>nil} 
-      
+- @root.children.each do |book|
+  %h3{:title=>"#{t '.details'}: #{book.date} #{t '.details_by'} #{book.author}"}
+    = link_to book.description, docs_topic_path(:id=>book.name)
+    = "(p=#{book.parent_name}, o=#{book.order})" if Rails.env == 'development'
+    %div.book_topic
+      %ul
+        - book.children.each do |topic|
+          %li{:title=>"#{t '.details'}: #{topic.date} #{t '.details_by'} #{topic.author}"}
+            = link_to topic.description, docs_topic_path(:id=>topic.name)
+            = "(p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
+            - if topic.children.length > 0
+              %div.book_section
+                %ul
+                  - topic.children.each do |section|
+                    %li{:title=>"#{t '.details'}: #{section.date} #{t '.details_by'} #{section.author}"}
+                      = link_to section.description, docs_topic_path(:id=>section.name)
+                      - if section.children.length > 0
+                        = " (#{section.children.length})"
+                      = "(p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
+
 .clear

@@ -14,14 +14,25 @@
 #
 # Author: RobHirschfeld
 #
-class Doc < ActiveRecord::Base
-  
-  self.primary_key = "name"  
-  attr_accessible :name, :parent_name, :description, :author, :license, :copyright, :date, :order
+class CreateDocs < ActiveRecord::Migration
+  def self.up
 
-  belongs_to :parent, :class_name => "Doc", :foreign_key => "parent_name"
-  has_many :children, :class_name => "Doc", :foreign_key => "parent_name", :order => "[order]+[description] ASC"
+    create_table(:docs, :primary_key=>'name', :id=>false) do |t|
+      t.string :name
+      t.string :parent_name, :default=>'root'
+      t.string :description
+      t.string :url, :null=>true
+      t.string :author, :null=>true
+      t.string :license, :null=>true
+      t.string :copyright, :null=>true
+      t.string :date, :null=>true, :length=>20
+      t.string :order, :length=>5, :default => '00999'
+      t.timestamps
+    end
+    
+  end
 
-  validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
-  
+  def self.down
+    drop_table :docs
+  end
 end

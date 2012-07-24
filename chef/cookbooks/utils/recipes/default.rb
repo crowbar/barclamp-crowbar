@@ -25,10 +25,5 @@ end
 
 @@is_admin = node["crowbar"]["admin_node"] rescue false
 
-unless node[:dmi].empty?
-  product_name = node[:dmi][:system][:product_name]
-else
-  product_name = "unknown"
-end
+log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware #{@@is_admin ? 'admin': ''}") { level :info} 
 
-log("running on OS:[#{platform}] on #{product_name} hardware #{@@is_admin ? 'admin': ''}") { level :info} 

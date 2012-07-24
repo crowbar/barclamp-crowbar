@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
 
   @@users = nil
   
-  before_filter :digest_authenticate, :if => :need_to_auth?
+  #before_filter :digest_authenticate, :if => :need_to_auth?
 
   # Basis for the reflection/help system.
   

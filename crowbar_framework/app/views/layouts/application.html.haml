@@ -2,6 +2,7 @@
 %html
   %head
     %title= "Crowbar: #{ controller.action_name }"
+    = csrf_meta_tags
     = stylesheet_link_tag 'application'
     /[if IE]
       = stylesheet_link_tag 'ie', :media => "all"

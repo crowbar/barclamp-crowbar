@@ -28,6 +28,10 @@ config.cache_classes = true
 config.action_controller.perform_caching             = true
 config.action_view.cache_template_loading            = true
 
+# Disable request forgery protection in test environment
+# GREG: HACK FOR NOW!
+config.action_controller.allow_forgery_protection    = false
+
 # See everything in the log (default is :info)
 # config.log_level = :debug
 

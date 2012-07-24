@@ -200,19 +200,6 @@ template "#{node[:apache][:dir]}/ports.conf" do
   notifies :reload, resources(:service => "apache2")
 end
 
-# a vhost to redirect from port 80 to 3000 (maybe later used as a kind of landing page)
-if node.platform == "suse"
-  template "#{node[:apache][:dir]}/default-redirect.conf" do
-    path "#{node[:apache][:dir]}/vhosts.d/default-redirect.conf"
-    source "default-redirect.erb"
-    group "root"
-    owner "root"
-    mode 0644
-    notifies :reload, resources(:service => "apache2")
-  end
-end
-
-
 # leave the default module list untouched for now on SUSE
 # (this doesn't seem to be needed for openstack)
 if node.platform != "suse"

@@ -56,7 +56,8 @@ class CrowbarService < ServiceObject
         else
           node.crowbar["crowbar"]["state_debug"][state] = node.crowbar["crowbar"]["state_debug"][state] + 1
         end
-
+        node.crowbar["previous_states"] ||= Array.new
+        node.crowbar["previous_states"] << node.crowbar["state"]
         node.crowbar["state"] = state
         save_it = true
         pop_it = true

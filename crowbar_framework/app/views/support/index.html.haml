@@ -2,8 +2,8 @@
   - ServiceObject.barclamp_catalog['barclamps'].each do |bc, details|
     - c = "#{bc.camelize}Controller"
     - if (eval(c).new.methods.include?('export') rescue false)
-      = link_to t("nav.#{bc}_export"), utils_export_path(:controller=>bc), :class => 'button'
-  = link_to t('nav.util_chef'), export_chef_path, :class => 'button'
+      = link_to t("export.#{bc}_export"), utils_export_path(:controller=>bc), :class => 'button'
+  = link_to t('export.chef'), export_chef_path, :class => 'button'
 
 %h1= t '.title'
 -if @waiting

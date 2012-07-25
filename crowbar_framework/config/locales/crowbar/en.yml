@@ -286,6 +286,11 @@ en:
 
      
   barclamp:
+    crowbar:
+      edit_attributes:
+        attributes: Attributes
+      edit_deployment:
+        deployment: Deployment
     modules:
       title: All Barclamps
     index:

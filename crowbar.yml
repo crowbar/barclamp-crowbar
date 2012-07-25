@@ -32,16 +32,6 @@ crowbar:
   chef_order: 0
   proposal_schema_version: 2
 
-locale_additions:
-  en:
-    barclamp:
-      crowbar:
-        edit_attributes:
-          attributes: Attributes
-        edit_deployment:
-          deployment: Deployment
-
-
 debs:
   ubuntu-10.10:
     repos:

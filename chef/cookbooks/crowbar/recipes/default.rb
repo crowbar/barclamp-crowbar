@@ -228,16 +228,6 @@ if node[:platform] != "suse"
     end
   end
 
-  # a vhost to redirect from port 80 to 3000
-  #  (will later be switched, when crowbar moves to port 80)
-  template "#{node[:apache][:dir]}/vhosts.d/default-redirect.conf" do
-    source "default-redirect.erb"
-    group "root"
-    owner "root"
-    mode 0644
-    notifies :reload, resources(:service => "apache2")
-  end
-
 else
   cookbook_file "/etc/init.d/crowbar" do
     owner "root"
@@ -257,4 +247,15 @@ else
     code "/sbin/chkconfig crowbar on"
     not_if "/sbin/chkconfig crowbar | grep -q on"
   end
+
+  # a vhost to redirect from port 80 to 3000
+  #  (will later be switched, when crowbar moves to port 80)
+  template "#{node[:apache][:dir]}/vhosts.d/default-redirect.conf" do
+    source "default-redirect.erb"
+    group "root"
+    owner "root"
+    mode 0644
+    notifies :reload, "service[apache2]"
+  end
+
 end

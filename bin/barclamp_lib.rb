@@ -291,6 +291,37 @@ end
 def proposal_edit(name)
   usage -1 if name.nil? or name == ""
 
+  if @data.nil? or @data == ""
+    struct = get_json("/proposals/#{name}")
+
+    if struct[1] == 200
+      require 'tempfile'
+
+      file = Tempfile.new("proposal-#{name}")
+      begin
+        file.write(JSON.pretty_generate(struct[0]))
+      ensure
+        file.close
+      end
+
+      editor = ENV['EDITOR'] or "/usr/bin/vi"
+      system("#{editor} #{file.path}")
+
+      begin
+        file.open
+        #@data = JSON.pretty_generate(file.read)
+        @data = JSON.pretty_generate(JSON.parse(file.read))
+      ensure
+        file.close
+        file.unlink
+      end
+    elsif struct[1] == 404
+      [ "No current proposal for #{name}", 1 ]
+    else
+      [ "Failed to talk to service proposal show: #{struct[1]}: #{struct[0]}", 1 ]
+    end
+  end
+
   struct = post_json("/proposals/#{name}", @data)
 
   if struct[1] == 200

@@ -676,7 +676,10 @@ class ServiceObject
     path = "schema" unless CHEF_ONLINE
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
-    
+
+    # Clean up rails3 "helpers"
+    proposal.delete("utf8")
+
     errors = validator.validate(proposal)
     if errors && !errors.empty?
       strerrors = ""

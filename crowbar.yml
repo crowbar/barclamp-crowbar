@@ -340,3 +340,5 @@ gems:
     - yajl-ruby
     - rails-erd
     - railroad
+    - devise
+    - cancan

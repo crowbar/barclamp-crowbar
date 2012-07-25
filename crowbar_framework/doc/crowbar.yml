@@ -24,8 +24,11 @@ crowbar+book-barclamps:
 crowbar+book-deployguide:
   order:      5000
     
-crowbar+book-documentation:
+crowbar+book-developersguide:
   order:      6000
+  
+crowbar+book-documentation:
+  order:      7000
   url:        '/docs'
 
 crowbar+book-licenses:

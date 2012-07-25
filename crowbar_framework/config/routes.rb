@@ -27,10 +27,10 @@ Crowbar::Application.routes.draw do
 
   scope 'network' do
     version = "1.0"
-    get ":controller/#{version}", :action=>'network', :as => :network_barclamp
     get '/', :controller => 'network', :action=>'switch', :as => :network
     get 'switch(/:id)', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
     get 'vlan(/:id)', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
+    get ":controller/#{version}", :action=>'network', :as => :network_barclamp
   end
 
   scope 'utils' do
@@ -38,28 +38,28 @@ Crowbar::Application.routes.draw do
     get  '/', :controller=>'support', :action=>'index', :as => :utils
     get  'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
     get 'chef', :controller=>'support', :action=>'export_chef', :as => :export_chef
-    get ":controller/#{version}/export", :action=>'export', :as => :utils_export
-    get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
     get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
     get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
     get 'restart/:id', :controller=>'support', :action=>'restart', :constraints => { :id => /.*/ }, :as => :restart
+    get ":controller/#{version}/export", :action=>'export', :as => :utils_export
+    get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
   end
   
   get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
   scope 'nodes' do
     version = "1.0"
+    get 'status(.:format)' => "nodes#status", :as => :nodes_status
+    get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
+    get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
+    post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
+    get ":controller/#{version}", :action => 'nodes', :as => :nodes_barclamp
     constraints(:name => /.*/ ) do
       match ':name/hit/:req' => "nodes#hit", :as => :hit_node
       match ':name/edit' => "nodes#edit", :as => :edit_node
       match ':name' => "nodes#show", :as => :node
       match ':name/update' => 'nodes#update', :as => :update_node
     end
-    get 'status(.:format)' => "nodes#status", :as => :nodes_status
-    get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
-    get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
-    post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
-    get ":controller/#{version}", :action => 'nodes', :as => :nodes_barclamp
   end
   
   scope 'crowbar' do

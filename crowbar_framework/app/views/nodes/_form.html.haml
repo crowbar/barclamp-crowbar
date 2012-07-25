@@ -1,6 +1,5 @@
 .box
-  -# Rails 2 needs - and Rails 3 needs =
-  - form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
+  = form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
     %fieldset.inputs
       %ol
         %li.text

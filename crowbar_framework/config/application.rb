@@ -29,10 +29,6 @@ module Crowbar
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     # config.time_zone = 'Central Time (US & Canada)'
 
-    # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
-    # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
-    # config.i18n.default_locale = :de
-
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"
 
@@ -59,50 +55,48 @@ module Crowbar
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
 
-  # Settings in config/environments/* take precedence over those specified here.
-  # Application configuration should go into files in config/initializers
-  # -- all .rb files in that directory are automatically loaded.
-
-  # Add additional load paths for your own custom dirs
-  # config.load_paths += %W( #{RAILS_ROOT}/extras )
-
-  # Specify gems that this application depends on and have them installed with rake gems:install
-  # config.gem "bj"
-  # config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
-  # config.gem "sqlite3-ruby", :lib => "sqlite3"
-  # config.gem "aws-s3", :lib => "aws/s3"
+    # Settings in config/environments/* take precedence over those specified here.
+    # Application configuration should go into files in config/initializers
+    # -- all .rb files in that directory are automatically loaded.
   
-  unless defined? RAILS_VERSION and RAILS_VERSION.starts_with? == '3.'
+    # Add additional load paths for your own custom dirs
+    # config.load_paths += %W( #{RAILS_ROOT}/extras )
+  
+    # Specify gems that this application depends on and have them installed with rake gems:install
+    # config.gem "bj"
+    # config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
+    # config.gem "sqlite3-ruby", :lib => "sqlite3"
+    # config.gem "aws-s3", :lib => "aws/s3"
+    
     config.gem "haml"
     config.gem "sass"
     config.gem "simple-navigation"
     config.gem "i18n"
     config.gem "json"
-  end
+    
+    # Only load the plugins named here, in the order given (default is alphabetical).
+    # :all can be used as a placeholder for all plugins not explicitly named
+    # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
   
-  # Only load the plugins named here, in the order given (default is alphabetical).
-  # :all can be used as a placeholder for all plugins not explicitly named
-  # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
-
-  # Activate observers that should always be running
-  # config.active_record.observers = :cacher, :garbage_collector, :forum_observer
-
-  # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
-  # Run "rake -D time" for a list of tasks for finding time zone names.
-  config.time_zone = 'UTC'
-
-  # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
-  # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
-  # config.i18n.default_locale = :de
+    # Activate observers that should always be running
+    # config.active_record.observers = :cacher, :garbage_collector, :forum_observer
   
-  CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem" unless defined? CHEF_CLIENT_KEY
-  CHEF_NODE_NAME ="crowbar" unless defined? CHEF_NODE_NAME
-  CHEF_SERVER_URL = "http://localhost:4000" unless defined? CHEF_SERVER_URL
-  CHEF_ONLINE = true unless defined? CHEF_ONLINE
-  OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
-  CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
-  CONVERGED_ADMIN = true   #flag indicating at we can assume all Crowbar services on a single server
-  SERVER_PID = %x[ps ax | grep "rainbows master" | grep -v grep].split(' ')[0]  # get a consistent number that changes when the server restarts
+    # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
+    # Run "rake -D time" for a list of tasks for finding time zone names.
+    config.time_zone = 'UTC'
+  
+    # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
+    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.{rb,yml}').to_s]
+    # config.i18n.default_locale = :de
+    
+    CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem" unless defined? CHEF_CLIENT_KEY
+    CHEF_NODE_NAME ="crowbar" unless defined? CHEF_NODE_NAME
+    CHEF_SERVER_URL = "http://localhost:4000" unless defined? CHEF_SERVER_URL
+    CHEF_ONLINE = true unless defined? CHEF_ONLINE
+    OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
+    CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
+    CONVERGED_ADMIN = true   #flag indicating at we can assume all Crowbar services on a single server
+    SERVER_PID = %x[ps ax | grep "rainbows master" | grep -v grep].split(' ')[0]  # get a consistent number that changes when the server restarts
 
   end
 end

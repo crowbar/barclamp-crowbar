@@ -119,6 +119,21 @@ class CrowbarService < ServiceObject
         end
       end
 
+      if state == "reset" or state == "delete"
+        @logger.info("Crowbar: Destroying chef client record for #{name}")
+        client = ClientObject.find_client_by_name node.name
+        client.destroy unless client.nil?
+      end
+      if state == "delete"
+        @logger.info("Crowbar: Deleting #{name}")
+        system("knife node delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
+        system("knife client delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
+        system("knife role delete -y crowbar-#{node.name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
+        node.destroy
+        
+        [200, "#{name} deleted" ]
+      end
+
       # The node is going to call chef-client on return or as a side-effet of the proces queue.
       node = NodeObject.find_node_by_name(name)
       node.rebuild_run_list

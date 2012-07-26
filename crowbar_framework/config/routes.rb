@@ -35,8 +35,8 @@ Crowbar::Application.routes.draw do
 
   scope 'utils' do
     version = "1.0"
-    get  '/', :controller=>'support', :action=>'index', :as => :utils
-    get  'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
+    get '/', :controller=>'support', :action=>'index', :as => :utils
+    get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
     get 'chef', :controller=>'support', :action=>'export_chef', :as => :export_chef
     get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
     get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
@@ -57,8 +57,8 @@ Crowbar::Application.routes.draw do
     constraints(:name => /.*/ ) do
       match ':name/hit/:req' => "nodes#hit", :as => :hit_node
       match ':name/edit' => "nodes#edit", :as => :edit_node
-      match ':name' => "nodes#show", :as => :node
       match ':name/update' => 'nodes#update', :as => :update_node
+      match ':name' => "nodes#show", :as => :node
     end
   end
   
@@ -71,8 +71,8 @@ Crowbar::Application.routes.draw do
     get    ":controller/#{version}/proposals", :action => 'proposals', :as => :proposals_barclamp
     post   ":controller/#{version}/proposals/commit/:id", :action => 'proposal_commit', :as => :commit_proposal_barclamp
     get    ":controller/#{version}/proposals/status(/:id)(.:format)", :controller=>'barclamp', :action => 'proposal_status', :as => :status_proposals_barclamp
-    delete ":controller/#{version}/proposals/:id", :action => 'proposal_delete', :as => :delete_proposal_barclamp
     delete ":controller/#{version}/proposals/dequeue/:id", :action => 'proposal_dequeue', :as => :dequeue_barclamp
+    delete ":controller/#{version}/proposals/:id", :action => 'proposal_delete', :as => :delete_proposal_barclamp
     post   ":controller/#{version}/proposals/:id", :action => 'proposal_update', :as => :update_proposal_barclamp
     get    ":controller/#{version}/proposals/:id", :action => 'proposal_show', :as => :proposal_barclamp
     get    ":controller/#{version}/elements", :action => 'elements'

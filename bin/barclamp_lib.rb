@@ -112,6 +112,9 @@ def authenticate(req,uri,data=nil)
     r.body = data if data
     res = http.request r
     if @debug
+      puts "DEBUG: (a) hostname: #{uri.host}:#{uri.port}"
+      puts "DEBUG: (a) request: #{uri.path}"
+      puts "DEBUG: (a) method: #{req::METHOD}"
       puts "DEBUG: (a) return code: #{res.code}"
       puts "DEBUG: (a) return body: #{res.body}"
       puts "DEBUG: (a) return headers:"

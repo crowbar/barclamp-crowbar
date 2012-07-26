@@ -1,9 +1,0 @@
-<VirtualHost *:80>
-        ServerAdmin <%= node[:apache][:contact] %>
-        Redirect permanent / http://<%= node[:crowbar][:network][:admin][:address] %>:<%= node["crowbar"]["web_port"] %>/
-
-        LogLevel warn
-        ErrorLog <%= node[:apache][:log_dir] %>/error.log
-        CustomLog <%= node[:apache][:log_dir] %>/access.log combined
-        ServerSignature On
-</VirtualHost>

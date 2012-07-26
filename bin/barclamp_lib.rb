@@ -369,7 +369,7 @@ end
 def proposal_dequeue(name)
   usage -1 if name.nil? or name == ""
 
-  struct = post_json("/proposals/dequeue/#{name}", @data)
+  struct = delete_json("/proposals/dequeue/#{name}")
 
   if struct[1] == 200
     [ "Dequeued #{name}", 0 ]

@@ -333,20 +333,20 @@ class ServiceObject
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
-      return true if db.nil?
+      return [200, {}] if db.nil?
 
       queue = db["proposal_queue"]
-      ret = dequeue_proposal_no_lock(queue, inst, bc)
-      db.save if ret
+      dequeued = dequeue_proposal_no_lock(queue, inst, bc)
+      db.save if dequeued
     rescue Exception => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
-      return ret
+      return [400, e.message]
     ensure
       release_lock f
     end
     @logger.debug("dequeue proposal: exit #{inst} #{bc}")
-    ret
+    return dequeued ? [200, {}] : [400, '']
   end
 
   #

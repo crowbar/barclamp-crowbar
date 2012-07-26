@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ service crowbar stop
 pidof rainbows
 
 # start dev version of the server
+export RAILS_ENV=development
+export DEBUG=true 
 cd /opt/dell/crowbar_framework/
 chmod 777 -R .
-if which rainbows &> /dev/null; then
-  rainbows -d -E development -c rainbows-dev.cfg
-else
-  # still needed for ubuntu
-  /var/lib/gems/1.8/bin/rainbows -d -E development -c rainbows-dev.cfg
-fi
+rake db:create
+rake db:migrate
+rails s
+
 
 

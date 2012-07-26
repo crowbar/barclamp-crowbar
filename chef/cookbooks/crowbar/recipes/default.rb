@@ -54,6 +54,16 @@ if node[:platform] != "suse"
     not_if "test -e /opt/dell/crowbar_framework/Gemfile.lock"
   end
 
+  bash "Compile the Asssets" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
+    #not_if TODO add a catch!
+  end
+
+  bash "Run the database migrations" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+    #not_if TODO add a catch!
+  end
+
 end
 
 group "crowbar"

@@ -61,11 +61,11 @@ en:
       save: Save
       edit: Edit      
       dequeue: Dequeue
-      dequeue_fail: Error, could not dequeue proposal.  
+      dequeue_failure: Error, could not dequeue proposal.
       dequeue_success: Successfully dequeued proposal.  
       delete: Delete
       delete_success: Successfully deleted proposal.  
-      delete_fail: Error, could not delete proposal.  
+      delete_failure: Error, could not delete proposal.
       create: Create
       create_success: Successfully created proposal
       recall: Deactivate

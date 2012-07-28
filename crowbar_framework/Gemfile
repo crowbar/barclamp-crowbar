@@ -15,6 +15,7 @@ gem 'syslogger'
 gem 'kwalify'
 gem 'chef', '~>10.8'
 gem 'rainbows'
+gem 'amqp'
 
 # Gems used only for assets and not required
 # in production environments by default.

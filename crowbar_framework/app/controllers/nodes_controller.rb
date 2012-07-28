@@ -19,6 +19,8 @@ class NodesController < ApplicationController
   # GET /nodes
   # GET /nodes.xml
   def index
+    EventQueue.publish_event("page_request", "nodes index page")
+
     @sum = 0
     session[:node] = params[:name]
     if params.has_key?(:role)

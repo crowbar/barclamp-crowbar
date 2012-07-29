@@ -1,4 +1,4 @@
-# Getting Started
+# Getting Started with Dell Crowbar
 
 This book is designed as a quick start for new Crowbar users
 

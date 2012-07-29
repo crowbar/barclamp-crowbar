@@ -18,9 +18,15 @@
 class DocsController < ApplicationController
       
   def index
-    @root = Doc.find_by_name 'root'
+    @root = Doc.find_by_name (params[:id] || 'root')
     if @root.nil? or Rails.env == 'development'
-      @root = gen_doc_index File.join('doc')
+      Doc.delete_all
+      @root = gen_doc_index 'doc'
+    end
+    respond_to do |format|
+      format.html # index.html.haml
+      format.xml  { render :xml => @root.children }
+      format.json { render :json => @root.children }
     end
   end  
   
@@ -47,40 +53,70 @@ class DocsController < ApplicationController
   end
   
   def gen_doc_index(path)    
-    root = Doc.find_or_create_by_name(:name=>'root', :parent_name=>nil, :description=>I18n.t('.root', :scope=>'docs'), :author=>'System', :license=>'Apache 2', :order=>'000000', :date=>'July 20, 2012')
+    root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('.root', :scope=>'docs'), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
+    root = Doc.find_or_create_by_name root_default
     Dir.entries(path).each do |bc_index|
       # collect all the index files
       if bc_index =~ /(.*).yml$/
         bc = bc_index[/(.*).yml$/,1]
-        topic = YAML.load_file File.join(path, bc_index)
-        topic.each { |t, v| create_doc(path, 'root', t, v) }
+        begin 
+          topic = YAML.load_file File.join(path, bc_index)
+          default = topic.clone.delete_if{ |k, v| k.to_s.include? "+" }
+          default = root_default.merge default 
+          topic.each { |t, p| create_doc(path, bc, 'root', t, p, default) }
+        rescue 
+          flash[:notice] = I18n.t('docs.parseerror', :path=>bc_index)
+        end
       end
     end
     root
   end 
 
-  def create_doc(path, parent, name, values)
+  def create_doc(path, barclamp, parent, name, values, defaults)
+    children = {}
+    props = defaults.clone
     if name.to_s.include? "+"
-      values ||= {} 
-      values[:name] = name
-      values[:parent_name] = parent
-      title = name.gsub("+"," ").titleize
-      file = page_path path, 'default', name
-      values[:description] = if File.exist? file
-        begin
-          actual_title = File.open(file, 'r').readline
-          actual_title[/(#*)(.*)/,2].strip       
-        rescue 
-          title
+      name_bc = name.split('+')[0]
+      # guards badly formed yml
+      if values.is_a?(String)
+        children[values] = {}
+      elsif !values.nil? 
+        # split attributes from children and merge in defaults
+        values.each do |k, v|
+          if k.to_s.include? "+"
+            children[k] = v
+          else
+            props[k] = v
+          end
         end
-      else 
-        title
       end
-      values["order"] = (values["order"].to_s || '999').rjust(6,'0')
-      Doc.find_or_create_by_name(values)
-      values.each do |k, v|
-        create_doc path, name, k, v if k.to_s.include? "+"
+      if name_bc.eql? barclamp #topic is sourced from this barclamp
+        file = page_path path, name
+        title = if File.exist? file
+          begin
+            actual_title = File.open(file, 'r').readline
+            actual_title[/(#*)(.*)/,2].strip       
+          rescue 
+            name.gsub("+"," ").titleize
+          end
+        else
+          name.gsub("+"," ").titleize
+        end
+puts "$$$ #{name} #{props.inspect}"
+        t = Doc.find_or_initialize_by_name(name) 
+        t.parent_name = parent
+        t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"
+        t.description = title
+        t.author = props["author"]
+        t.license = props["license"]
+        t.copyright = props["copyright"]
+        t.date = props["date"]
+        t.save!
+      else  #refernce only from a different barclamp
+        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp))
       end
     end
+    # recurse children
+    children.each { |k, v| create_doc(path, barclamp, name, k, v, props) } unless children.nil?
   end
 end

@@ -1,11 +1,16 @@
 %p
 %section.box#nav
-  %h3= t('.nav') + ": " + @topic.description
+  %author{:style => 'float:right'}= t('details', :scope=>'docs', :date=>@topic.date, :author=>@topic.author, :license=>@topic.license)
+  %h3= t('.nav')
   %ol  
+    - p = @topic.parent
+    - while !p.name.eql? 'root'
+      %li{:title=>t('details', :scope=>'docs', :date=>p.date, :author=>p.author, :license=>p.license)}
+        = link_to p.description, docs_topic_path(:id=>p.name)
+      - p = p.parent
     %li= link_to t('docs.root'), docs_path
-    - unless @topic.parent_name.eql? 'root'
-      %li{:title=>"#{t '.details'}: #{@topic.parent.date} #{t '.details_by'} #{@topic.parent.author}"}
-        = link_to @topic.parent.description, docs_topic_path(:id=>@topic.parent_name)
+      
+
 
 %topic= @text.html_safe
 
@@ -14,7 +19,7 @@
     %h3= t '.children'
     %ol
       - @topic.children.each do |section|
-        %li{:title=>"#{t '.details'}: #{section.date} #{t '.details_by'} #{section.author}"}
+        %li{:title=>t('details', :scope=>'docs', :date=>section.date, :author=>section.author, :license=>section.license)}
           = link_to section.description, docs_topic_path(:id=>section.name)
           = "(p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
 

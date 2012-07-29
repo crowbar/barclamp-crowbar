@@ -1,23 +1,23 @@
 %h1= t '.title'
 
 - @root.children.each do |book|
-  %h3{:title=>"#{t '.details'}: #{book.date} #{t '.details_by'} #{book.author}"}
+  %h3{:title=>t('details', :scope=>'docs', :date=>book.date, :author=>book.author, :license=>book.license)}
     = link_to book.description, docs_topic_path(:id=>book.name)
-    = "(p=#{book.parent_name}, o=#{book.order})" if Rails.env == 'development'
-    %div.book_topic
-      %ul
-        - book.children.each do |topic|
-          %li{:title=>"#{t '.details'}: #{topic.date} #{t '.details_by'} #{topic.author}"}
-            = link_to topic.description, docs_topic_path(:id=>topic.name)
-            = "(p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
-            - if topic.children.length > 0
-              %div.book_section
-                %ul
-                  - topic.children.each do |section|
-                    %li{:title=>"#{t '.details'}: #{section.date} #{t '.details_by'} #{section.author}"}
-                      = link_to section.description, docs_topic_path(:id=>section.name)
-                      - if section.children.length > 0
-                        = " (#{section.children.length})"
-                      = "(p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
+    = "(n=#{book.name} p=#{book.parent_name}, o=#{book.order})" if Rails.env == 'development'
+  %div.book_topic
+    %ul
+      - book.children.each do |topic|
+        %li{:title=>t('details', :scope=>'docs', :date=>topic.date, :author=>topic.author, :license=>topic.license)}
+          = link_to topic.description, docs_topic_path(:id=>topic.name)
+          = "(n=#{topic.name} p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
+          - if topic.children.length > 0
+            %div.book_section
+              %ul
+                - topic.children.each do |section|
+                  %li{:title=>t('details', :scope=>'docs', :date=>section.date, :author=>section.author, :license=>section.license)}
+                    = link_to section.description, docs_topic_path(:id=>section.name)
+                    - if section.children.length > 0
+                      = " (#{section.children.length})"
+                    = "(n=#{section.name} p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
 
 .clear

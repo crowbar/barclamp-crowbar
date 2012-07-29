@@ -6,9 +6,15 @@ Feature: Barclamps
   Scenario: View Crowbar
     When I go to the "crowbar/crowbar/1.0" page
     Then I should see "Crowbar"
-    Then I should see "Deployer"
-    Then I should see "Dns"
-    Then I should see "Ipmi"
+      And I should see "Deployer"
+      And I should see "Dns"
+      And I should see "Ipmi"
+      And I should see "Network"
+      And I should see "Logging"
+      And I should see "Test"
+      And I should not see "OpenStack"
+      And I should not see "Hadoop"
+      And there should be no translation errors
     
   Scenario: %Check Link Crowbar
     Given I went to the "crowbar" page

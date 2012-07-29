@@ -103,18 +103,17 @@ en:
  
   # Documentation
   docs:
+    parseerror: "Parse error in %{path}"
+    missing_title: "Topic Title Missing (was referenced from %{bc})"
     root: Master Index
+    details: "Updated by %{author} on %{date} (%{license})"
     index:
       title: System Documentation
-      details: Topic Updated
-      details_by: by
     topic:
       parent: Parent
       children: Children
       nav: Navigation
       topic_missing: Error, generated HTML page for topic not found
-      details: Topic Updated
-      details_by: by
       
   # Model Names / Attributes
   model:

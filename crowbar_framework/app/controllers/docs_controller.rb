@@ -33,15 +33,15 @@ class DocsController < ApplicationController
   def topic
     begin 
       @topic = Doc.find_by_name params[:id]      
-      file = page_path 'doc', @topic.name
+      @file = page_path 'doc', @topic.name
       # navigation items
-      @text = if File.exist? file
-        %x[markdown #{file}]
+      @text = if File.exist? @file
+        %x[markdown #{@file}]
       else
-        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + file
+        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
       end
     rescue
-      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + file
+      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
     end
   end

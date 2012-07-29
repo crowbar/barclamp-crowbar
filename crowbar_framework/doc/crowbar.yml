@@ -30,6 +30,9 @@ crowbar+book-deployguide:
 crowbar+book-developersguide:
   author: Rob Hirschfeld
   order: 6000
+  crowbar+devguide-makingbarclamps:
+    - crowbar+devguide-adding-navigation
+    - crowbar+devguide-locatization
 
 crowbar+book-licenses:
   order: 99999

@@ -19,7 +19,7 @@ class DocsController < ApplicationController
       
   def index
     @root = Doc.find_by_name (params[:id] || 'root')
-    if @root.nil? or Rails.env == 'development'
+    if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
       @root = gen_doc_index 'doc'
     end
@@ -102,7 +102,6 @@ class DocsController < ApplicationController
         else
           name.gsub("+"," ").titleize
         end
-puts "$$$ #{name} #{props.inspect}"
         t = Doc.find_or_initialize_by_name(name) 
         t.parent_name = parent
         t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"

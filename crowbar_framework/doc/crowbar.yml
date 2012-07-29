@@ -29,14 +29,19 @@ crowbar+book-deployguide:
     
 crowbar+book-developersguide:
   author: Rob Hirschfeld
+  date: July 29, 2012
   order: 6000
+  crowbar+devguide+documentation:
+    order: 3000
   crowbar+devguide+makingbarclamps:
+    order: 5000
     crowbar+devguide+create-stub:
       order: 1000
     - crowbar+devguide+adding-navigation
     - crowbar+devguide+locatization
-    - crowbar+devguide+documentation
-
+  crowbar+devguide+testing:
+    order: 8000
+  
 crowbar+book-licenses:
   order: 99999
   url: '/docs'

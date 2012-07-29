@@ -12,22 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 SimpleNavigation::Configuration.run do |navigation|  
+
   menu = Nav.find_by_item 'root'
   navigation.items do |primary|
     menu.children.each do |item|
-      unless item.item == 'root'
+      if item.item != 'root' and item.path =~ /(.*)_path/ 
         primary.item item.item.to_sym, t(item.name), eval(item.path), {:title=>t(item.description, :default=>t(item.name))} do |secondary|
-          if item.children
-            item.children.each do |subitem|
-              if subitem.path.starts_with? 'http'
-                secondary.item subitem.item.to_sym, t(subitem.name), subitem.path.to_s, {:title=>t(subitem.description, :default=>t(subitem.name)), :link => { :target => "_blank" } } 
-              else
-                secondary.item subitem.item.to_sym, t(subitem.name), eval(subitem.path), {:title=>t(subitem.description, :default=>t(subitem.name)) }
-              end
-            end
+          item.children.each do |nav|
+            if nav.path.starts_with? 'http'
+              secondary.item nav.item.to_sym, t(nav.name), nav.path.to_s, {:title=>t(nav.description, :default=>t(nav.name)), :link => { :target => "_blank" } } 
+            elsif nav.path =~ /(.*)_path/ 
+              secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
+            end 
           end
         end  
       end
     end
   end
 end
+
+

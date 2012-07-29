@@ -33,6 +33,7 @@ en:
   actions: Actions
   are_you_sure: Are you sure?
   unknown: Unknown
+  error: Error
   not_set: Not set
   undetermined: Undetermined
   na: N/A

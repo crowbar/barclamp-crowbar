@@ -1,40 +1,39 @@
 # theses are the default meta_data values
-license:    Apache 2
-copyright:  2012 by Dell, Inc
-date:       May 25, 2012
+license: Apache 2
+copyright: 2012 by Dell, Inc
+author: Dell CloudEdge Team
+date: July 29, 2012
 
 crowbar+book-gettingstarted:
-  order:      100
+  order: 100
   
 crowbar+book-userguide:
-  order:      1000
+  order: 1000
   crowbar+ui-general:
-    order:  10
-    crowbar+ui-nodes:
+    order: 10
+    - crowbar+ui-nodes
   crowbar+ui-utilities:
-    order:  100
-    url:    '/utils'
+    order: 100
+    url: '/utils'
     crowbar+utils-export:
-      url:    '/utils/index'
+      url: '/utils/index'
 
 
 crowbar+book-barclamps:
-  order:      2500
-  crowbar+barclamp-info
+  order: 2500
+  crowbar+barclamp-info-meta:
+    - crowbar+barclamp-info
     
 crowbar+book-deployguide:
-  order:      5000
+  order: 5000
     
 crowbar+book-developersguide:
-  order:      6000
-  
-crowbar+book-documentation:
-  order:      7000
-  url:        '/docs'
+  author: Rob Hirschfeld
+  order: 6000
 
 crowbar+book-licenses:
-  order:      99999
-  url:        '/docs'
+  order: 99999
+  url: '/docs'
   crowbar+licenses-crowbar-meta:
-    crowbar+licenses
+    - crowbar+licenses
 

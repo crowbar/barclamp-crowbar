@@ -118,11 +118,21 @@ class CrowbarService < ServiceObject
           end
         end
       end
-
-      if state == "reset" or state == "delete"
-        @logger.info("Crowbar: Destroying chef client record for #{name}")
+      #
+      # The temp booting images need to have clients cleared.
+      #
+      if ["discovered","hardware-installed","hardware-updated","reset", "delete",
+          "hardware-installing","hardware-updating","reinstall",
+          "update","installing","installed"].member?(state) and !node.admin?
+        @logger.info("Crowbar transition: should be deleting a client entry for #{node.name}")
         client = ClientObject.find_client_by_name node.name
+        @logger.info("Crowbar transition: found and trying to delete a client entry for #{node.name}") unless client.nil?
         client.destroy unless client.nil?
+
+        # Make sure that the node can be accessed by knife ssh or ssh
+        if ["reset","reinstall","update","delete"].member?(state)
+          system("sudo rm /root/.ssh/known_hosts")
+        end
       end
       if state == "delete"
         @logger.info("Crowbar: Deleting #{name}")
@@ -130,7 +140,6 @@ class CrowbarService < ServiceObject
         system("knife client delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
         system("knife role delete -y crowbar-#{node.name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
         node.destroy
-        
         [200, "#{name} deleted" ]
       end
 

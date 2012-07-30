@@ -59,6 +59,11 @@ if node[:platform] != "suse"
     #not_if TODO add a catch!
   end
 
+  bash "Add the delayed_job components" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
+    #not_if TODO add a catch!
+  end
+
   bash "Run the database migrations" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
     #not_if TODO add a catch!

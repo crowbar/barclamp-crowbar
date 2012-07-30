@@ -343,3 +343,5 @@ gems:
     - devise
     - cancan
     - amqp
+    - delayed_job_active_record
+    - daemons

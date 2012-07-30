@@ -9,7 +9,8 @@
         = link_to p.description, docs_topic_path(:id=>p.name)
       - p = p.parent
     %li= link_to t('docs.root'), docs_path
-      
+  -if Rails.env.eql? 'development'
+    = "Source File: #{@file}"
 
 
 %topic= @text.html_safe

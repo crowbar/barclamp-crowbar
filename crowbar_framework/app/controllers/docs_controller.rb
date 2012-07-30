@@ -19,7 +19,7 @@ class DocsController < ApplicationController
       
   def index
     @root = Doc.find_by_name (params[:id] || 'root')
-    if @root.nil? or Rails.env == 'development'
+    if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
       @root = gen_doc_index 'doc'
     end
@@ -33,15 +33,15 @@ class DocsController < ApplicationController
   def topic
     begin 
       @topic = Doc.find_by_name params[:id]      
-      file = page_path 'doc', @topic.name
+      @file = page_path 'doc', @topic.name
       # navigation items
-      @text = if File.exist? file
-        %x[markdown #{file}]
+      @text = if File.exist? @file
+        %x[markdown #{@file}]
       else
-        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + file
+        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
       end
     rescue
-      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + file
+      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
     end
   end
@@ -102,7 +102,6 @@ class DocsController < ApplicationController
         else
           name.gsub("+"," ").titleize
         end
-puts "$$$ #{name} #{props.inspect}"
         t = Doc.find_or_initialize_by_name(name) 
         t.parent_name = parent
         t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"

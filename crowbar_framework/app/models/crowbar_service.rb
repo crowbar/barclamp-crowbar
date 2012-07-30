@@ -56,7 +56,8 @@ class CrowbarService < ServiceObject
         else
           node.crowbar["crowbar"]["state_debug"][state] = node.crowbar["crowbar"]["state_debug"][state] + 1
         end
-
+        node.crowbar["previous_states"] ||= Array.new
+        node.crowbar["previous_states"] << node.crowbar["state"]
         node.crowbar["state"] = state
         save_it = true
         pop_it = true
@@ -116,6 +117,21 @@ class CrowbarService < ServiceObject
             return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace}"]
           end
         end
+      end
+
+      if state == "reset" or state == "delete"
+        @logger.info("Crowbar: Destroying chef client record for #{name}")
+        client = ClientObject.find_client_by_name node.name
+        client.destroy unless client.nil?
+      end
+      if state == "delete"
+        @logger.info("Crowbar: Deleting #{name}")
+        system("knife node delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
+        system("knife client delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
+        system("knife role delete -y crowbar-#{node.name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
+        node.destroy
+        
+        [200, "#{name} deleted" ]
       end
 
       # The node is going to call chef-client on return or as a side-effet of the proces queue.

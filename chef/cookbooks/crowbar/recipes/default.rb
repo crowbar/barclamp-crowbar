@@ -25,7 +25,7 @@ pkglist=()
 rainbows_path=""
 case node[:platform]
 when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
+  pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown}
   rainbows_path="/var/lib/gems/1.8/bin/"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown}
@@ -56,6 +56,11 @@ if node[:platform] != "suse"
 
   bash "Compile the Asssets" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
+    #not_if TODO add a catch!
+  end
+
+  bash "Add the delayed_job components" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
     #not_if TODO add a catch!
   end
 

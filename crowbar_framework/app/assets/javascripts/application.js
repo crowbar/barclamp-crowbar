@@ -117,3 +117,5 @@ jQuery(document).ready(function($) {
     $("header h1 a").css('background-image','url("/images/layout/bunny.png")').css('width','279px');
   });
 });
+
+//= require active_scaffold

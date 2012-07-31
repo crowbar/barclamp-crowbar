@@ -18,7 +18,7 @@
 class DocsController < ApplicationController
       
   def index
-    @root = Doc.find_by_name (params[:id] || 'root')
+    @root = Doc.find_by_name(params[:id] || 'root')
     if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
       @root = gen_doc_index 'doc'

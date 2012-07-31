@@ -27,6 +27,7 @@ config.cache_classes = true
 #config.action_controller.consider_all_requests_local = false
 config.action_controller.perform_caching             = true
 config.action_view.cache_template_loading            = true
+config.active_support.deprecation = :notify
 
 # Disable request forgery protection in test environment
 # GREG: HACK FOR NOW!
@@ -56,5 +57,5 @@ config.logger.level = Logger::DEBUG
   CHEF_NODE_NAME ="crowbar" 
   CHEF_SERVER_URL = "http://192.168.124.10:4000"
   CHEF_ONLINE = true
-  CROWBAR_VERSION = "v1.2-openstack-dell-4224-g126db9a-fred-ubuntu1204-openstack"
+  CROWBAR_VERSION = "v1.2-openstack-dell-4887-gd698e70-dev"
  end 

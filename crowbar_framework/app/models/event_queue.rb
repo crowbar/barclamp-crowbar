@@ -15,25 +15,36 @@
 
 class EventQueue
 
-  @@channel = nil
-  @@exchange = nil
+  @configured = false
+  @channel = nil
+  @exchange = nil
 
   def self.build_exchange
-    t = Thread.new { AMQP.start }
-    sleep(1.0)
-
-    EventMachine.next_tick do
-      @@channel ||= AMQP::Channel.new(AMQP.connection)
-      @@exchange = @@channel.fanout("amqpgem.patterns.events", :durable => true, :auto_delete => false)
-      3.times do |i|
-        @@exchange.publish({"msg"=>"A warmup message #{i} from #{Time.now.strftime('%H:%M:%S %m/%b/%Y')}"}.to_json, :type => "warmup")
-      end
+    @channel ||= AMQP::Channel.new(AMQP.connection)
+    @exchange = @channel.fanout("amqpgem.patterns.events", :durable => true, :auto_delete => false)
+    3.times do |i|
+      @exchange.publish({"msg"=>"A warmup message #{i} from #{Time.now.strftime('%H:%M:%S %m/%b/%Y')}"}.to_json, :type => "warmup")
     end
   end
 
-  def self.publish_event(type, msg)
-    EventQueue.build_exchange unless @@channel
-    @@exchange.publish({"msg"=>msg}.to_json, :type => type)
+  def self.get_channel
+    @channel
+  end
+
+  def self.get_exchange
+    @exchange
+  end
+
+  def self.publish(event)
+    begin
+      build_exchange unless get_channel
+      get_exchange.publish(event.to_hash.to_json, :type => event.event_type)
+    rescue RuntimeError => e
+      t = Thread.new { AMQP.start }
+      sleep(1.0)
+      build_exchange unless get_channel
+      get_exchange.publish(event.to_hash.to_json, :type => event.event_type)
+    end
   end
  
 end

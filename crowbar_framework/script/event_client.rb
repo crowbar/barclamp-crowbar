@@ -24,16 +24,10 @@ channel.queue("", :durable => false, :auto_delete => true).bind("amqpgem.pattern
     case metadata.type
     when "warmup" then
       puts "WARMUP: #{body["msg"]}"
-    when "page_request" then
-      puts "page_request: #{body["msg"]}"
-    when "widgets.created" then
-      puts "A widget #{body[:id]} was created"
-    when "widgets.destroyed" then
-      puts "A widget #{body[:id]} was destroyed"
-    when "files.created" then
-      puts "A new file (#{body[:filename]}, #{body[:sha1]}) was uploaded"
-    when "files.indexed" then
-      puts "A new file (#{body[:filename]}, #{body[:sha1]}) was indexed"
+    when "web_event" then
+      puts "web_event: #{body["msg"]}"
+    when "job_event" then
+      puts "job_event: #{body["msg"]}"
     else
       puts "[warn] Do not know how to handle event of type #{metadata.type}"
     end

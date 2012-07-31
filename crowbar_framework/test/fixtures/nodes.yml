@@ -1,0 +1,55 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  description: MyString
+  alias: MyString
+  roles: MyString
+  fqdn: MyString
+  state: MyString
+  ip: MyString
+  public_ip: MyString
+  ohai: MyText
+  mac: MyString
+  allocated: false
+  ipmi_enabled: false
+  family: MyText
+  memory: 1
+  cpu: MyString
+  uptime: MyString
+  asset_tag: MyString
+  virtual: false
+  disks: MyText
+  networks: MyString
+  admin_node: false
+  interface_list: MyText
+  hardware: MyText
+  bmc: MyText
+  display: MyString
+
+two:
+  name: MyString
+  description: MyString
+  alias: MyString
+  roles: MyString
+  fqdn: MyString
+  state: MyString
+  ip: MyString
+  public_ip: MyString
+  ohai: MyText
+  mac: MyString
+  allocated: false
+  ipmi_enabled: false
+  family: MyText
+  memory: 1
+  cpu: MyString
+  uptime: MyString
+  asset_tag: MyString
+  virtual: false
+  disks: MyText
+  networks: MyString
+  admin_node: false
+  interface_list: MyText
+  hardware: MyText
+  bmc: MyText
+  display: MyString

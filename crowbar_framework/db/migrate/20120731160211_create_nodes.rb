@@ -15,7 +15,17 @@
 # Author: aabes
 # Author: JuddMaltin
 #
+class CreateNodes < ActiveRecord::Migration
+  def change
+    create_table :nodes do |t|
+      t.string :name
+      t.string :description
+      ######
+      # crowbar internal
+      t.string :alias
+      t.references :proposal_config # FK of latest proposal
 
-class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+      t.timestamps
+    end
+  end
 end

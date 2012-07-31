@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  direction: MyString
+  barclamp: 
+  version: MyString
+
+two:
+  name: MyString
+  direction: MyString
+  barclamp: 
+  version: MyString

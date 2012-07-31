@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  attirbutes: MyText
+  status: MyString
+  result: MyString
+  transaction_id: 1
+  node: 
+  direction: MyString
+  type: 
+
+two:
+  name: MyString
+  attirbutes: MyText
+  status: MyString
+  result: MyString
+  transaction_id: 1
+  node: 
+  direction: MyString
+  type: 

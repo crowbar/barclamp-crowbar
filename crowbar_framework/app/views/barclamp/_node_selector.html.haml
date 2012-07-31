@@ -32,10 +32,7 @@
       - @proposal.all_elements.each do |element|
         %div
           %div.droptarget{ :id=>element, :draggable=>'true'}
-            - if CONVERGED_ADMIN
-              %b= link_to element.humanize, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
-            - else
-              %b= element.humanize
+            %b= element.humanize
             %img{ :src=>'/images/icons/server_add.png', :title=>t('.add') }
           %ul.ddlist{ :id=>element }
 

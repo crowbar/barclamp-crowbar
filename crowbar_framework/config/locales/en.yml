@@ -116,6 +116,7 @@ en:
       already_commit: Proposal already being applied.
       cannot_find: Failed to find proposal
       template_missing: Failed to load proposal template for barclamp '%{name}'.
+      dependency_missing: Cannot create a proposal for '%{name}', please create a '%{dependson}' proposal first.
     attributes:
       node:
         name: Full Name

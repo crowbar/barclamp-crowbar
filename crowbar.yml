@@ -345,3 +345,4 @@ gems:
     - amqp
     - delayed_job_active_record
     - daemons
+    - active_scaffold

@@ -29,23 +29,21 @@ if platform?("centos", "redhat", "fedora")
   end
 end
 
-if platform?("suse")
-  # TODO: Maybe use 'line' provider's 'add_and_filter' somehow?
-  if File.exist?("/etc/sysconfig/apache2")
-    file = File.open("/etc/sysconfig/apache2", "r")
-    lines, modified = file.readlines, false
+# TODO: Maybe use 'line' provider's 'add_and_filter' somehow?
+if File.exist?("/etc/sysconfig/apache2")
+  file = File.open("/etc/sysconfig/apache2", "r")
+  lines, modified = file.readlines, false
+  file.close
+  lines.each do |line|
+    if line.start_with?('APACHE_SERVER_FLAGS') && line.scan('SSL') == []
+      line.gsub!(/\"(.*)\"/, '"\\1 SSL"')
+      modified = true
+    end
+  end
+  if modified
+    file = File.open("/etc/sysconfig/apache2", "w")
+    lines.each {|line| file.write(line)}
     file.close
-    lines.each do |line|
-      if line.start_with?('APACHE_SERVER_FLAGS') && line.scan('SSL') == []
-        line.gsub!(/\"(.*)\"/, '"\\1 SSL"')
-        modified = true
-      end
-    end
-    if modified
-      file = File.open("/etc/sysconfig/apache2", "w")
-      lines.each {|line| file.write(line)}
-      file.close
-    end
   end
 end
 

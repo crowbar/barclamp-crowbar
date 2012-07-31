@@ -26,7 +26,9 @@ openid_dev_pkgs = value_for_platform(
 case node[:platform]
 when "arch"
   include_recipe "pacman"
-  package "tidyhtml"
+  package "tidyhtml" do
+    action :upgrade
+  end
 end
 
 openid_dev_pkgs.each do |pkg|
@@ -36,7 +38,9 @@ openid_dev_pkgs.each do |pkg|
       action [:build, :install]
     end
   else
-    package pkg
+    package pkg do
+      action :upgrade
+    end
   end
 end
 

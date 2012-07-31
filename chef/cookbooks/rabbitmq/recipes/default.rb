@@ -33,7 +33,9 @@
 # while still using /etc/init.d/rabbitmq-server start
 # because of this we just put the rabbitmq-env.conf in place and let it rip
 
-package "rabbitmq-server"
+package "rabbitmq-server" do
+  action :upgrade
+end
 
 directory "/etc/rabbitmq/" do
   owner "root"

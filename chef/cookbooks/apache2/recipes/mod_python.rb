@@ -20,11 +20,11 @@
 case node[:platform]
   when "debian", "ubuntu"
     package "libapache2-mod-python" do
-      action :install
+      action :upgrade
     end
   when "centos", "redhat", "fedora"
     package "mod_python" do
-      action :install
+      action :upgrade
       notifies :run, resources(:execute => "generate-module-list"), :immediately
     end
 end

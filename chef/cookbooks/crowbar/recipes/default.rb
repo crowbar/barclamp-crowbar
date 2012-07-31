@@ -39,7 +39,7 @@ end
 
 pkglist.each {|p|
   package p do
-    action :install
+    action :upgrade
   end
 }
 
@@ -49,7 +49,7 @@ if node[:platform] != "suse"
 
   gemlist.each {|g|
     gem_package g do
-      action :install
+      action :upgrade
     end
   }
 end

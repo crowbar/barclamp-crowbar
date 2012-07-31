@@ -21,25 +21,25 @@ case node['platform']
 when "ubuntu","debian"
   %w{build-essential binutils-doc}.each do |pkg|
     package pkg do
-      action :install
+      action :upgrade
     end
   end
 when "centos","redhat","fedora"
   %w{gcc gcc-c++ kernel-devel make}.each do |pkg|
     package pkg do
-      action :install
+      action :upgrade
     end
   end
 end
 
 package "autoconf" do
-  action :install
+  action :upgrade
 end
 
 package "flex" do
-  action :install
+  action :upgrade
 end
 
 package "bison" do
-  action :install
+  action :upgrade
 end

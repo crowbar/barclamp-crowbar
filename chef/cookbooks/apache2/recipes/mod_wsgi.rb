@@ -19,11 +19,17 @@
 
 case node[:platform]
 when "debian","ubuntu"
-  package "libapache2-mod-wsgi"
+  package "libapache2-mod-wsgi" do
+    action :upgrade
+  end
 when "redhat","centos","fedora", "arch"
-  package "mod_wsgi"
+  package "mod_wsgi" do
+    action :upgrade
+  end
 when "suse"
-  package "apache2-mod_wsgi"
+  package "apache2-mod_wsgi" do
+    action :upgrade
+  end
 end
 
 apache_module "wsgi"

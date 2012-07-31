@@ -42,7 +42,7 @@ when "debian","ubuntu", "gentoo"
   end
 
   package "runit" do
-    action :install
+    action :upgrade
     if platform?("ubuntu", "debian")
       response_file "runit.seed"
     end

@@ -27,7 +27,9 @@ packages = case node[:platform]
   end
   
 packages.each do |pkg|
-  package pkg
+  package pkg do
+    action :upgrade
+  end
 end
 
 service "ssh" do

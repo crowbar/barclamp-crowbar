@@ -19,7 +19,7 @@
 
 if platform?("centos", "redhat", "fedora")
   package "mod_ssl" do
-    action :install
+    action :upgrade
     notifies :run, resources(:execute => "generate-module-list"), :immediately
   end
 

@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
-package "libapache2-svn"
+package "libapache2-svn" do
+  action :upgrade
+end
 
 apache_module "dav_svn"

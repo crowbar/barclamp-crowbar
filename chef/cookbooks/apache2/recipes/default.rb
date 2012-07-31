@@ -26,7 +26,7 @@ package "apache2" do
   when "arch"
     package_name "apache"
   end
-  action :install
+  action :upgrade
 end
 
 service "apache2" do

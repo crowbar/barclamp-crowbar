@@ -18,9 +18,12 @@
 #
 
 if platform?("debian", "ubuntu")
-  package "libapache2-mod-fcgid"
+  package "libapache2-mod-fcgid" do
+    action :upgrade
+  end
 elsif platform?("centos", "redhat", "fedora", "arch")
   package "mod_fcgid" do
+    action :upgrade
     notifies :run, resources(:execute => "generate-module-list"), :immediately
   end
 
@@ -30,7 +33,9 @@ elsif platform?("centos", "redhat", "fedora", "arch")
   end
 elsif platform?("suse")
   apache_lib_path = node[:architecture] == "i386" ? "/usr/lib/httpd" : "/usr/lib64/httpd"
-  package "httpd-devel"
+  package "httpd-devel" do
+    action :upgrade
+  end
   bash "install-fcgid" do
     code <<-EOH
 (cd #{Chef::Config[:file_cache_path]}; wget http://superb-east.dl.sourceforge.net/sourceforge/mod-fcgid/mod_fcgid.2.2.tgz)

@@ -22,16 +22,16 @@ include_recipe "ruby"
 case node[:platform]
 when "ubuntu","debian"
   package "rails" do
-    action :install
+    action :upgrade
   end
 else
   %w{ rails actionmailer actionpack activerecord activesupport activeresource }.each do |rails_gem|
     gem_package rails_gem do
       if node[:rails][:version]
         version node[:rails][:version]
-        action :install
+        action :upgrade
       else
-        action :install
+        action :upgrade
       end
     end
   end

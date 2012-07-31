@@ -13,7 +13,9 @@
 # limitations under the License.
 #
 
-package "minicom"
+package "minicom" do
+  action :upgrade
+end
 
 cookbook_file "/etc/minicom/minirc.switch" do
   source "minirc.switch"

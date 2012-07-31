@@ -160,6 +160,7 @@ debs:
     - screen
     - alien
     - graphviz
+    - vim
 
 rpms:
   redhat-5.6:
@@ -285,6 +286,7 @@ rpms:
     - sudo
     - screen
     - graphviz
+    - vim
 
 gems:
   pkgs:

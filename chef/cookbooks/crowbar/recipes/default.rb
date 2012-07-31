@@ -25,7 +25,7 @@ pkglist=()
 rainbows_path=""
 case node[:platform]
 when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
+  pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown}
   rainbows_path="/var/lib/gems/1.8/bin/"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown}

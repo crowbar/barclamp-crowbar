@@ -12,10 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: aabes
 # Author: JuddMaltin
 #
+class CreateClawhammerMaps < ActiveRecord::Migration
+  def change
+    create_table :cmdb_maps do |t|
+      t.string :name
+      t.string :map
+      t.string :direction
+      t.references :barclamp
+      t.string :version
 
-class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+      t.timestamps
+    end
+    add_index :cmdb_maps, :barclamp_id
+  end
 end

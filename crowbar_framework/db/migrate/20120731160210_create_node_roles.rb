@@ -15,7 +15,19 @@
 # Author: aabes
 # Author: JuddMaltin
 #
+class CreateNodeRoles < ActiveRecord::Migration
+  def change
+    create_table :node_roles do |t|
+      t.string       :name
+      t.integer      :status
+      #########
+      # nodes and roles have many node_roles
+      t.references   :node
+      t.references   :role
 
-class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+      t.timestamps
+    end
+    add_index :node_roles, :node_id
+    add_index :node_roles, :role_id
+  end
 end

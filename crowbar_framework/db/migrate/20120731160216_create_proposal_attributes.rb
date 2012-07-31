@@ -13,9 +13,15 @@
 # limitations under the License.
 #
 # Author: aabes
-# Author: JuddMaltin
 #
 
-class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+class CreateProposalAttributes < ActiveRecord::Migration
+  def change
+    create_table :proposal_attributes do |t|
+      t.string :name
+      t.string :value
+
+      t.timestamps
+    end
+  end
 end

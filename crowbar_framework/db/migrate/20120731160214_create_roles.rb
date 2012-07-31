@@ -15,7 +15,15 @@
 # Author: aabes
 # Author: JuddMaltin
 #
+class CreateRoles < ActiveRecord::Migration
+  def change
+    create_table :roles do |t|
+      t.string :name
+      t.references :node
+      t.references :barclamp
 
-class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+      t.timestamps
+    end
+    add_index :roles, :barclamp_id, :node_id
+  end
 end

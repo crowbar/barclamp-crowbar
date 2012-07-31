@@ -19,9 +19,9 @@ class NodesController < ApplicationController
   # GET /nodes
   # GET /nodes.xml
   def index
-    EventQueue.publish(Events::WebEvent.new("nodes index page"))
-    k = Delayed::Job.enqueue(Jobs::TestJob.new)
-puts "GREG: k = #{k.inspect}"
+    # EventQueue.publish(Events::WebEvent.new("nodes index page"))
+    # k = Delayed::Job.enqueue(Jobs::TestJob.new)
+    # puts "GREG: k = #{k.inspect}"
 
     @sum = 0
     session[:node] = params[:name]

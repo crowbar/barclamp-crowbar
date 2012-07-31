@@ -95,7 +95,6 @@ module Crowbar
     CHEF_ONLINE = true unless defined? CHEF_ONLINE
     OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
     CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
-    CONVERGED_ADMIN = true   #flag indicating at we can assume all Crowbar services on a single server
     SERVER_PID = %x[ps ax | grep "rainbows master" | grep -v grep].split(' ')[0]  # get a consistent number that changes when the server restarts
 
   end

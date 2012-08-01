@@ -43,7 +43,7 @@ class Barclamp < ActiveRecord::Base
         :online_help => bc['barclamp']['online_help'],
         :version     => bc['barclamp']['version'] || 2,
         
-        :roposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
+        :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
         :layout      => bc['crowbar']['layout'] || 2,
         :order       => bc['crowbar']['order'] || 0,
         :run_order   => bc['crowbar']['run_order'] || 0,

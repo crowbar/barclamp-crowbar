@@ -14,6 +14,18 @@
 # 
 Crowbar::Application.routes.draw do
 
+  namespace :scaffolds do
+    resources :barclamps do as_routes end
+    resources :barclamp_dependencies do as_routes end
+    resources :roles do as_routes end
+    resources :nodes do as_routes end
+    resources :proposals do as_routes end
+    resources :proposal_configs do as_routes end
+    resources :node_roles do as_routes end
+    resources :docs do as_routes end
+    resources :navs do as_routes end
+  end
+
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end

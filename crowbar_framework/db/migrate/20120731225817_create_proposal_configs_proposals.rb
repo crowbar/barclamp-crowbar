@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Role < ActiveRecord::Base
-  attr_accessible :name
-  belongs_to :barclamp
+class CreateProposalConfigsProposals < ActiveRecord::Migration
+  def change
+    create_table :proposal_configs_proposals do |t|
+      t.references    :proposal
+      t.references    :proposal_config
+    end
+  end
 end
-

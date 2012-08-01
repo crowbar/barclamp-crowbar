@@ -26,7 +26,7 @@ module ApplicationHelper
     end
   end
 
-  def column_class(current_column, total)
+  def cb_column_class(current_column, total)
     if (current_column % total) == 0
       "first"
     elsif (current_column % total) == (total-1)

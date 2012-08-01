@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Role < ActiveRecord::Base
-  attr_accessible :name
-  belongs_to :barclamp
+class CreateBarclamps < ActiveRecord::Migration
+  def change
+    create_table :barclamps do |t|
+      t.string :name
+      t.string :version
+      t.string :group
+      t.string :description
+      t.timestamps
+    end
+  end
 end
-

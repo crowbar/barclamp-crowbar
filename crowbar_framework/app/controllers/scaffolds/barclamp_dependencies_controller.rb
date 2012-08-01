@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::BarclampDependenciessController < ApplicationController
-  active_scaffold :barclamp do |conf|
+  active_scaffold :barclamp_dependency do |conf|
   end
 end 

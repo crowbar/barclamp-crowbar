@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::ProposalsController < ApplicationController
-  active_scaffold :barclamp do |conf|
+  active_scaffold :proposal do |conf|
   end
 end 

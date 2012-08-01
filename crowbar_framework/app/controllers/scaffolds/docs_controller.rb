@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::DocsController < ApplicationController
-  active_scaffold :barclamp do |conf|
+  active_scaffold :doc do |conf|
   end
 end 

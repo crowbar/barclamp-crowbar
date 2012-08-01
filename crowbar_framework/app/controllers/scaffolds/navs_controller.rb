@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::NavsController < ApplicationController
-  active_scaffold :barclamp do |conf|
+  active_scaffold :nav do |conf|
   end
 end 

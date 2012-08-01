@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::RolesController < ApplicationController
-  active_scaffold :barclamp do |conf|
+  active_scaffold :role do |conf|
   end
 end 

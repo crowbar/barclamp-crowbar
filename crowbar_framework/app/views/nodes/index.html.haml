@@ -18,7 +18,7 @@
     = t('no_items')
   - else
     - i = -1
-    #add_group_div.column_25{:class => column_class(1,4), :style=>'display:none' }
+    #add_group_div.column_25{:class => cb_column_class(1,4), :style=>'display:none' }
       %table.data.box{:id => "new_group_add"}
         %thead
           %tr
@@ -32,7 +32,7 @@
             %td 
             %td= t('.new_drag')
     - @groups.sort.each do |name, group|
-      .column_25{:class => column_class(i+=1,4)}
+      .column_25{:class => cb_column_class(i+=1,4)}
         %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
           %thead
             %tr

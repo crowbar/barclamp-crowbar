@@ -13,8 +13,9 @@
 # limitations under the License.
 #
 
-class Role < ActiveRecord::Base
-  attr_accessible :name
+class BarclampDependency < ActiveRecord::Base
+  attr_accessible :barclamp, :prereq
   belongs_to :barclamp
+  belongs_to :prereq, :class_name => "Barclamp"
 end
 

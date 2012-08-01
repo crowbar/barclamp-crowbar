@@ -13,8 +13,13 @@
 # limitations under the License.
 #
 
-class Role < ActiveRecord::Base
-  attr_accessible :name
-  belongs_to :barclamp
+class CreateNodeRoles < ActiveRecord::Migration
+  def change
+    create_table :node_roles do |t|
+      t.integer      :status
+      t.belongs_to   :role
+      t.belongs_to   :node
+      t.timestamps
+    end
+  end
 end
-

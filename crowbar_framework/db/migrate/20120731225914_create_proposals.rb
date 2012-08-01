@@ -12,9 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Role < ActiveRecord::Base
-  attr_accessible :name
-  belongs_to :barclamp
+class CreateProposals < ActiveRecord::Migration
+  def change
+    #####
+    #  proposals, attached to barclamps.
+    #  proposal_configs hold the actual date, with revision counts and node references.
+    create_table :proposals do |t|
+      t.references  :barclamp
+      t.string      :name
+      t.integer     :status
+      t.integer     :last_applied_rev
+      t.timestamps
+    end
+  end
 end
-

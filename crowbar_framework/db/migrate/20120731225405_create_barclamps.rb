@@ -16,10 +16,18 @@ class CreateBarclamps < ActiveRecord::Migration
   def change
     create_table :barclamps do |t|
       t.string :name
-      t.string :version
-      t.string :group
-      t.string :description
+      t.string :description,  :null=>true
+      t.string :display
+      t.integer :version
+      t.string :online_help,  :null=>true
+      t.integer :proposal_schema_version, :default=>2
+      t.integer :layout,      :default=>2
+      t.integer :order,       :default=>0
+      t.integer :run_order,   :default=>0
+      t.integer :cmdb_order,  :default=>0
+      t.string :commit,       :null=>true
+      t.date :build_on,       :null=>true
       t.timestamps
-    end
+    end   
   end
 end

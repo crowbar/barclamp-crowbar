@@ -416,4 +416,7 @@ en:
     poweron: Power On
     pending: Pending
     building: Building
+    
+  db:
+    notunique: Name item must be unique
 

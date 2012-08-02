@@ -24,6 +24,9 @@ Crowbar::Application.routes.draw do
     resources :node_roles do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
+    resources :interfaces do as_routes end
+    resources :networks do as_routes end
+    resources :ip_addresses do as_routes end
   end
 
   resources :nodes, :only => [:index, :new] do

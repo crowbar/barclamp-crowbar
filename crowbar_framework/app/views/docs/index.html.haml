@@ -16,8 +16,6 @@
                 - topic.children.each do |section|
                   %li{:title=>t('details', :scope=>'docs', :date=>section.date, :author=>section.author, :license=>section.license)}
                     = link_to section.description, docs_topic_path(:id=>section.name)
-                    - if section.children.length > 0
-                      = " (#{section.children.length})"
                     = "(n=#{section.name} p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
 
 .clear

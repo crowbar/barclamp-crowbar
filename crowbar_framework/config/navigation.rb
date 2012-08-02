@@ -16,14 +16,20 @@ SimpleNavigation::Configuration.run do |navigation|
   menu = Nav.find_by_item 'root'
   navigation.items do |primary|
     menu.children.each do |item|
-      if item.item != 'root' and item.path =~ /(.*)_path/ 
-        primary.item item.item.to_sym, t(item.name), eval(item.path), {:title=>t(item.description, :default=>t(item.name))} do |secondary|
-          item.children.each do |nav|
-            if nav.path.starts_with? 'http'
-              secondary.item nav.item.to_sym, t(nav.name), nav.path.to_s, {:title=>t(nav.description, :default=>t(nav.name)), :link => { :target => "_blank" } } 
-            elsif nav.path =~ /(.*)_path/ 
-              secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
-            end 
+      if item.item != 'root' and item.path =~ /(.*)_path/
+        if !item.development or Rails.env.eql? 'development'
+          begin
+            primary.item item.item.to_sym, t(item.name), eval(item.path), {:title=>t(item.description, :default=>t(item.name))} do |secondary|
+              item.children.each do |nav|
+                if nav.path.starts_with? 'http'
+                  secondary.item nav.item.to_sym, t(nav.name), nav.path.to_s, {:title=>t(nav.description, :default=>t(nav.name)), :link => { :target => "_blank" } } 
+                elsif nav.path =~ /(.*)_path/ 
+                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
+                end 
+              end
+            end
+          rescue
+            primary.item :menu_error, "#{t 'nav.error'}: #{item.item}", ''
           end
         end  
       end

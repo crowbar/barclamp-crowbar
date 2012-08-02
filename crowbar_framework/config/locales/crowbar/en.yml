@@ -55,6 +55,19 @@ en:
     docs: Documentation
     docs_description: Documentation
 
+    scaffold:
+      top: Scaffolds
+      top_description: Developer Tools
+      barclamps: Barclamps
+      nodes: Nodes
+      roles: Roles
+      proposals: Proposals
+      configs: Proposal Configs
+      menus: Menu Items
+      docs: Documentation Topics
+    
+    error: Render Error
+
     
   # Layout
   layouts:

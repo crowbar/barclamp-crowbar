@@ -28,7 +28,7 @@ class CreateNavs < ActiveRecord::Migration
       t.timestamps
     end
     
-    Nav.find_or_create_by_item :item=>'root', :name=>'nav.root', :description=>'nav.root_description', :path=>"root_path", :order=>0
+    Nav.find_or_create_by_item :item=>'root', :name=>'nav.root', :description=>'nav.root_description', :path=>"root_path", :order=>0, :development=>true
   
     # dashboard
     Nav.find_or_create_by_item :item=>'nodes', :parent_item=>'root', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"dashboard_path", :order=>1000
@@ -45,12 +45,12 @@ class CreateNavs < ActiveRecord::Migration
       Nav.find_or_create_by_item :item=>'crowbar', :parent_item=>'barclamps', :name=>'nav.crowbar_bc', :description=>'nav.crowbar_bc_description', :path=>"index_barclamp_path(:controller=>'crowbar')", :order=>200
 
     # utils
-    Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>4000
+    Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>6000
       Nav.find_or_create_by_item :item=>'util_import', :parent_item=>'utils', :name=>'nav.util_import', :description=>'nav.util_import_description', :path=>"utils_import_path", :order=>100
       Nav.find_or_create_by_item :item=>'util_index', :parent_item=>'utils', :name=>'nav.util_logs', :description=>'nav.util_logs_description', :path=>"utils_path", :order=>200
 
     # help
-    Nav.find_or_create_by_item :item=>'help', :parent_item=>'root', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>5000
+    Nav.find_or_create_by_item :item=>'help', :parent_item=>'root', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>9999
       Nav.find_or_create_by_item :item=>'docs', :parent_item=>'help', :name=>'nav.docs', :description=>'nav.docs_description', :path=>"docs_path", :order=>100
       Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"https://github.com/dellcloudedge/crowbar/wiki/", :order=>200
 

@@ -146,6 +146,8 @@ debs:
     # ruby stuff
     - ruby1.8
     - ruby1.8-dev
+    - ruby1.9
+    - ruby1.9-dev
     - ruby-dev
     - rubygems
     - rubygems1.8

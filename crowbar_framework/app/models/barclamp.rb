@@ -14,9 +14,10 @@
 #
 
 class Barclamp < ActiveRecord::Base
-  attr_accessible :name, :description, :display, :version, :online_help
+  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
-  attr_accessible :commit, :build_on
+  attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
+  attr_accessible :template
   
   validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
@@ -28,12 +29,11 @@ class Barclamp < ActiveRecord::Base
 
   has_many :roles
 
-  ## dependnecies are tracked using an explict join-table, barclamp_dependncies
-  ## to add a dependency, create one of those, setting prereq to the depend
-  # A quick way to achieve that is (b1,b4 are barclamp instances)
-  # b1.barclamp_dependencies << BarclampDependency.create( { :barclamp =>b1, :prereq =>b4} )
-  has_many :barclamp_dependencies, :inverse_of => :barclamp
-  has_many :prereqs, :class_name => "Barclamp", :through => :barclamp_dependencies
+  has_many :barclamp_dependencies
+  has_many :prereqs, :through=>:barclamp_dependencies
+  
+  has_many :barclamp_members
+  has_many :members, :through=>:barclamp_members
 
   #
   # Helper Barclamp function to get a list of barclamps and descriptions.
@@ -62,7 +62,6 @@ class Barclamp < ActiveRecord::Base
     [ "1.0" ]
   end
 
-  
   #legacy approach - expects name of barclamp for YML import
   def self.import_1x(bc_name)
     bc_file = File.join('barclamps', bc_name+'.yml')
@@ -75,6 +74,7 @@ class Barclamp < ActiveRecord::Base
         :description => bc['barclamp']['description'] || bc_name.humanize,
         :online_help => bc['barclamp']['online_help'],
         :version     => bc['barclamp']['version'] || 2,
+        :user_managed=> bc['barclamp']['user_managed'] || true,
         
         :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
         :layout      => bc['crowbar']['layout'] || 2,
@@ -88,7 +88,25 @@ class Barclamp < ActiveRecord::Base
         :commit      => bc['git']['commit'],
         :build_on    => bc['git']['date'] 
       )
+      
+    # memberships (if memembership is missing, we'll let you into the club anyway)
+    if bc['barclamp']['member']
+      bc['barclamp']['member'].each do |owner|
+        o = Barclamp.find_by_name owner
+        o.members << barclamp if o
+      end
+    end
 
+    # requires (will fail if prereq is missing)
+    if bc['barclamp']['requires']
+      bc['barclamp']['requires'].each do |prereq|
+        prereq = prereq[1..100] if prereq.starts_with? "@"
+        pre = Barclamp.find_by_name prereq
+        throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
+        barclamp.prereqs << pre
+      end
+    end
+    
     template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')

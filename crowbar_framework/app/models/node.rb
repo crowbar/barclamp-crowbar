@@ -14,5 +14,20 @@
 #
 
 class Node < ActiveRecord::Base
-  attr_accessible :name
+  attr_accessible :name, :description
+  
+  def method_missing(m,*args,&block)
+    puts "Node #{name} #{args.inspect} #{block.inspect}"
+    #unless node.respond_to?(m)
+    #  Rails.logger.fatal("Cannot delegate method #{m} to #{@node.class}")
+    #else
+    #  case
+    #  when args && block_given? then @node.send(m,*args,&block)
+    #  when block_given? then @node.send(m,&block)
+    #  when args then @node.send(m,*args)
+    #  else @node.send(m)
+    #  end
+    #end
+  end
+
 end

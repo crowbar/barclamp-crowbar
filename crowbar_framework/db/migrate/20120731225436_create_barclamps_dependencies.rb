@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodes < ActiveRecord::Migration
+class CreateBarclampsDependencies < ActiveRecord::Migration
   def change
-    create_table :nodes do |t|
-      t.string :name
-      t.string :description, :null=>true
-      t.integer :order, :default=>10000
-      t.timestamps
+    create_table :barclamp_dependencies, :id=>false do |t|
+      t.belongs_to  :barclamp
+      t.belongs_to  :prereq
     end
     #natural key
-    add_index(:nodes, :name, :unique => true)   
+    add_index(:barclamp_dependencies, [:barclamp_id, :prereq_id], :unique => true)   
   end
 end

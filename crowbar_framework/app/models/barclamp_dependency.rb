@@ -16,6 +16,6 @@
 class BarclampDependency < ActiveRecord::Base
   attr_accessible :barclamp, :prereq
   belongs_to :barclamp
-  belongs_to :prereq, :class_name => "Barclamp"
+  belongs_to :prereq, :class_name =>'Barclamp', :primary_key=>'id', :foreign_key=>"prereq_id"
 end
 

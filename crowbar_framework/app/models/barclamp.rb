@@ -16,7 +16,8 @@
 class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
-  attr_accessible :commit, :build_on
+  attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
+  attr_accessible :template
   
   validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
@@ -57,7 +58,25 @@ class Barclamp < ActiveRecord::Base
         :commit      => bc['git']['commit'],
         :build_on    => bc['git']['date'] 
       )
+      
+    # memberships (if memembership is missing, we'll let you into the club anyway)
+    if bc['barclamp']['member']
+      bc['barclamp']['member'].each do |owner|
+        o = Barclamp.find_by_name owner
+        o.members << barclamp if o
+      end
+    end
 
+    # requires (will fail if prereq is missing)
+    if bc['barclamp']['requires']
+      bc['barclamp']['requires'].each do |prereq|
+        prereq = prereq[1..100] if prereq.starts_with? "@"
+        pre = Barclamp.find_by_name prereq
+        throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
+        barclamp.prereqs << pre
+      end
+    end
+    
     template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')

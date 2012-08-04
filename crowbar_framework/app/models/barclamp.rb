@@ -32,6 +32,18 @@ class Barclamp < ActiveRecord::Base
   has_many :barclamp_dependencies, :inverse_of => :barclamp
   has_many :prereqs, :class_name => "Barclamp", :through => :barclamp_dependencies
 
+  #
+  # Helper Barclamp function to get a list of barclamps and descriptions.
+  #
+  def self.get_all_descriptions
+    bcs = find(:all)
+    ans = {}
+    bcs.each do |x|
+      ans[x.name] = x.description
+    end if bcs
+    ans
+  end
+
   
   #legacy approach - expects name of barclamp for YML import
   def self.import_1x(bc_name)

@@ -27,7 +27,12 @@ class BarclampController < ApplicationController
   end
 
   private :set_service_object_base
+  private :barclamp
 
+  def barclamp
+    @barclamp_object = Barclamp.find_by_name(@bc_name) unless @barclamp_object
+    @barclamp_object
+  end
 
   self.help_contents = Array.new(superclass.help_contents)
 
@@ -39,7 +44,7 @@ class BarclampController < ApplicationController
   #
   add_help(:barclamp_index)
   def barclamp_index
-    @barclamps = ServiceObject.all
+    @barclamps = Barclamp.get_all_descriptions
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
       format.xml  { render :xml => @barclamps }
@@ -53,7 +58,8 @@ class BarclampController < ApplicationController
   #
   add_help(:versions)
   def versions
-    ret = @service_object.versions
+    # GREG: This should move to barclamp object.
+    ret = [200, { :versions => [ "1.0" ] }]
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
@@ -78,6 +84,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Show Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	GET 	Returns a json document describing the instance 
   #
+# GREG: FIX THIS!
   add_help(:show,[:id])
   def show
     ret = @service_object.show_active params[:id]
@@ -103,6 +110,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Destroy Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	DELETE 	Delete will deactivate and remove the instance 
   #
+# GREG: FIX THIS!
   add_help(:delete,[:id],[:delete])
   def delete
     params[:id] = params[:id] || params[:name]
@@ -136,9 +144,7 @@ class BarclampController < ApplicationController
   #
   add_help(:elements)
   def elements
-    ret = @service_object.elements
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => @barclamp_object.roles.map { |x| x.name }
   end
 
   #
@@ -147,9 +153,7 @@ class BarclampController < ApplicationController
   #
   add_help(:element_info,[:id])
   def element_info
-    ret = @service_object.element_info
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => NodeObject.find_all_nodes
   end
 
   #
@@ -158,16 +162,14 @@ class BarclampController < ApplicationController
   #
   add_help(:proposals)
   def proposals
-    ret = @service_object.proposals
-    @proposals = ret[1]
-    return render :text => @proposals, :status => ret[0] if ret[0] != 200
+    @proposals = @barclamp_object.proposals
+    @proposals_names = @proposals.map { |x| x.name }
     respond_to do |format|
       format.html { 
-        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposal_index' 
+        render :template => 'barclamp/proposal_index'  # XXX: THIS DOESN"T EXIST
       }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
+      format.xml  { render :xml => @proposals_names }
+      format.json { render :json => @proposals_names }
     end
   end
   
@@ -175,6 +177,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances 
   #
+# GREG: FIX THIS!
   add_help(:index)
   def index
     respond_to do |format|
@@ -223,6 +226,7 @@ class BarclampController < ApplicationController
   #
   # Currently, A UI ONLY METHOD
   #
+# GREG: FIX THIS!
   def get_proposals_from_barclamps(barclamps)
     modules = {}
     active = RoleObject.active
@@ -254,6 +258,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal 
   #
+# GREG: FIX THIS!
   add_help(:proposal_show,[:id])
   def proposal_show
     ret = @service_object.proposal_show params[:id]
@@ -275,6 +280,7 @@ class BarclampController < ApplicationController
   # Currently, A UI ONLY METHOD
   #
   add_help(:proposal_status,[:id, :barclamp, :name],[:get])
+# GREG: FIX THIS!
   def proposal_status
     proposals = {}
     i18n = {}
@@ -304,6 +310,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Create Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals 	PUT 	Putting a json document will create a proposal 
   #
+# GREG: FIX THIS!
   add_help(:proposal_create,[:name],[:put])
   def proposal_create
     Rails.logger.info "Proposal Create starting. Params #{params.to_s}"    
@@ -339,6 +346,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Edit Proposal Instance 	/crowbar/<barclamp-name>/<version>/propsosals/<barclamp-instance-name> 	POST 	Posting a json document will replace the current proposal 
   #
+# GREG: FIX THIS!
   add_help(:proposal_update,[:id],[:post])
   def proposal_update
     if params[:submit].nil?  # This is RESTFul path
@@ -427,6 +435,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Destroy Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	DELETE 	Delete will remove a proposal 
   #
+# GREG: FIX THIS!
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
     answer = @service_object.proposal_delete params[:id]
@@ -451,6 +460,7 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced 
   #
+# GREG: FIX THIS!
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
     ret = @service_object.proposal_commit params[:id]
@@ -462,6 +472,7 @@ class BarclampController < ApplicationController
   # Currently, A UI ONLY METHOD
   # XXX: TODO: Make this a restful call defined somewhere.
   #
+# GREG: FIX THIS!
   add_help(:proposal_dequeue,[:id],[:post])
   def proposal_dequeue
     ret = @service_object.dequeue_proposal params[:id]

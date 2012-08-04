@@ -466,6 +466,7 @@ class ServiceObject
 
   def bc_name=(new_name)
     @bc_name = new_name
+    @barclamp_object = Barclamp.find_by_name(@bc_name)
   end
   
   def bc_name 
@@ -480,10 +481,6 @@ class ServiceObject
 #
 # API Functions
 #
-  def versions
-    [200, { :versions => [ "1.0" ] }]
-  end
-
   def transition
     [200, {}]
   end
@@ -550,30 +547,6 @@ class ServiceObject
       role.destroy
       answer
     end
-  end
-
-  def elements
-    roles = RoleObject.find_roles_by_name("#{@bc_name}-*")
-    cull_roles = RoleObject.find_roles_by_name("#{@bc_name}-config-*")
-    roles.delete_if { |r| cull_roles.include?(r) } unless roles.empty?
-    roles.map! { |r| r.name } unless roles.empty?
-    [200, roles]
-  end
-
-  def element_info
-    nodes = NodeObject.find_all_nodes
-    nodes.map! { |n| n.name } unless nodes.empty?
-    [200, nodes]
-  end
-
-  def proposals_raw
-    ProposalObject.find_proposals(@bc_name)
-  end 
-  
-  def proposals
-    props = proposals_raw
-    props.map! { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
-    [200, props]
   end
 
   def proposal_show(inst)

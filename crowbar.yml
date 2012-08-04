@@ -351,4 +351,4 @@ gems:
     - delayed_job_active_record
     - daemons
     - active_scaffold
-    - factory_girl_rails
+#    - factory_girl_rails

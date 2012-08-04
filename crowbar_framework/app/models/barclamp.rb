@@ -20,7 +20,10 @@ class Barclamp < ActiveRecord::Base
   
   validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
-  has_many :proposals
+  has_many :proposals, :conditions => 'name != "template"'
+  has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
+
+  has_many :roles
 
   ## dependnecies are tracked using an explict join-table, barclamp_dependncies
   ## to add a dependency, create one of those, setting prereq to the depend
@@ -31,15 +34,15 @@ class Barclamp < ActiveRecord::Base
 
   
   #legacy approach - expects name of barclamp for YML import
-  def self.import_1x(barclamp)
-    bc_file = File.join('barclamps', barclamp+'.yml')
+  def self.import_1x(bc_name)
+    bc_file = File.join('barclamps', bc_name+'.yml')
     throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
     bc = YAML.load_file bc_file
-    throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? barclamp
+    throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
     barclamp = Barclamp.create(
-        :name        => barclamp,
-        :display     => bc['barclamp']['display'] || barclamp.humanize,
-        :description => bc['barclamp']['description'] || barclamp.humanize,
+        :name        => bc_name,
+        :display     => bc['barclamp']['display'] || bc_name.humanize,
+        :description => bc['barclamp']['description'] || bc_name.humanize,
         :online_help => bc['barclamp']['online_help'],
         :version     => bc['barclamp']['version'] || 2,
         
@@ -49,11 +52,41 @@ class Barclamp < ActiveRecord::Base
         :run_order   => bc['crowbar']['run_order'] || 0,
         :cmdb_order  => bc['crowbar']['chef_order'] || 0,
 
+        :mode        => "full",
+        :transitions => false,
+
         :commit      => bc['git']['commit'],
         :build_on    => bc['git']['date'] 
       )
+
+    template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
+    if File.exists? template_file
+      json = JSON::load File.open(template_file, 'r')
+
+      barclamp.mode = json["deployment"][bc_name]["mode"] rescue "full"
+      barclamp.description = json["description"] rescue bc_name.humanize
+      barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
+      barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
+
+      element_order = json["deployment"][bc_name]["element_order"].flatten.uniq rescue []
+      element_order.each do |role|
+        states = json["deployment"][bc_name]["element_states"][role].join(",") rescue "all"
+        role = Role.create(:name => role, :states => states)
+        role.barclamp = barclamp
+        role.save
+      end
+
+      prop = Proposal.create(:name => "template", :status => "template")
+      prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
+      prop_config.proposal = prop
+      prop_config.save
+
+      barclamp.template = prop
+      barclamp.save
+    end
+
     return barclamp
   end
-  
+
 end
 

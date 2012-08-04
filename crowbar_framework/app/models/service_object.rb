@@ -491,18 +491,6 @@ class ServiceObject
     [200, roles]
   end
 
-  def show_active(inst)
-    inst = "#{@bc_name}-config-#{inst}"
-
-    role = RoleObject.find_role_by_name(inst)
-    
-    if role.nil?
-      [404, "Active instance not found"]
-    else
-      [200, role]
-    end
-  end
-
   def clean_proposal(proposal)
     proposal.delete("controller")
     proposal.delete("action")

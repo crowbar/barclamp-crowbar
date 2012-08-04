@@ -18,21 +18,17 @@ require 'json'
 
 class BarclampController < ApplicationController
 
-  before_filter :set_service_object_base
-  
-  def set_service_object_base
-    @service_object = ServiceObject.new logger
-    @bc_name = params[:barclamp] || params[:controller]  
-    @service_object.bc_name = @bc_name
-  end
-
-  private :set_service_object_base
-  private :barclamp
-
   def barclamp
+    @bc_name = params[:barclamp] || params[:controller] unless @bc_name
     @barclamp_object = Barclamp.find_by_name(@bc_name) unless @barclamp_object
     @barclamp_object
   end
+  private :barclamp
+
+  def operations
+    barclamp.operations(logger)
+  end
+  private :operations
 
   self.help_contents = Array.new(superclass.help_contents)
 
@@ -58,10 +54,7 @@ class BarclampController < ApplicationController
   #
   add_help(:versions)
   def versions
-    # GREG: This should move to barclamp object.
-    ret = [200, { :versions => [ "1.0" ] }]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => barclamp.versions
   end
 
   #
@@ -75,7 +68,7 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    ret = @service_object.transition(id, name, state)
+    ret = barclamp.operations.transition(id, name, state)
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
@@ -84,24 +77,24 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Show Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	GET 	Returns a json document describing the instance 
   #
-# GREG: FIX THIS!
   add_help(:show,[:id])
   def show
-    ret = @service_object.show_active params[:id]
-    @role = ret[1]
-    Rails.logger.debug "Role #{ret.inspect}"
+    prop = Proposal.find_by_name_and_barclamp(params[:id], barclamp)
+    @role = prop.active_config if prop
     respond_to do |format|
       format.html {
-        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
+        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] unless @role
         render :template => 'barclamp/show' 
       }
       format.xml  { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
+        return render :text => t('proposal.failures.show_active_failed'), 
+                      :status => 404 unless @role
+        render :xml => @role.to_role_object_hash
       }
       format.json { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :json => ServiceObject.role_to_proposal(@role, @bc_name)
+        return render :text => t('proposal.failures.show_active_failed'), 
+                      :status => 404 unless @role
+        render :json => @role.to_role_object_hash
       }
     end
   end
@@ -110,13 +103,12 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Destroy Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	DELETE 	Delete will deactivate and remove the instance 
   #
-# GREG: FIX THIS!
   add_help(:delete,[:id],[:delete])
   def delete
     params[:id] = params[:id] || params[:name]
     ret = [500, "Server Problem"]
     begin
-      ret = @service_object.destroy_active(params[:id])
+      ret = barclamp.operations.destroy_active(params[:id])
       flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
     rescue Exception => e
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
@@ -144,7 +136,7 @@ class BarclampController < ApplicationController
   #
   add_help(:elements)
   def elements
-    render :json => @barclamp_object.roles.map { |x| x.name }
+    render :json => barclamp.roles.map { |x| x.name }
   end
 
   #
@@ -162,7 +154,7 @@ class BarclampController < ApplicationController
   #
   add_help(:proposals)
   def proposals
-    @proposals = @barclamp_object.proposals
+    @proposals = barclamp.proposals
     @proposals_names = @proposals.map { |x| x.name }
     respond_to do |format|
       format.html { 
@@ -177,7 +169,6 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances 
   #
-# GREG: FIX THIS!
   add_help(:index)
   def index
     respond_to do |format|
@@ -193,16 +184,14 @@ class BarclampController < ApplicationController
         render 'barclamp/index' 
       }
       format.xml  { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :xml => @roles 
+        props = barclamp.active_proposals
+        names = props.map { |x| x.name }
+        render :xml => names
       }
       format.json { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :json => @roles 
+        props = barclamp.active_proposals
+        names = props.map { |x| x.name }
+        render :json => names
       }
     end
   end
@@ -258,21 +247,20 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal 
   #
-# GREG: FIX THIS!
   add_help(:proposal_show,[:id])
   def proposal_show
-    ret = @service_object.proposal_show params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    @proposal = ret[1]
-    @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
+    prop = Proposal.find_by_name_and_barclamp(params[:id], barclamp)
+    return render :text => t('proposal.failures.proposal_not_found'), :status => 404 unless prop
+    @proposal = prop
+    @active = prop.active_config != nil
     flash[:notice] = @proposal.fail_reason if @proposal.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
 
     respond_to do |format|
       format.html { render :template => 'barclamp/proposal_show' }
-      format.xml  { render :xml => @proposal.raw_data }
-      format.json { render :json => @proposal.raw_data }
+      format.xml  { render :xml => @proposal.current_config.to_role_object_hash }
+      format.json { render :json => @proposal.current_config.to_role_object_hash }
     end
   end
 

@@ -22,6 +22,8 @@ class CreateProposals < ActiveRecord::Migration
       t.string      :name
       t.integer     :status
       t.integer     :last_applied_rev
+      t.references  :active_config
+      t.references  :current_config
       t.timestamps
     end
   end

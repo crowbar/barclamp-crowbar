@@ -23,4 +23,21 @@ class ProposalConfig < ActiveRecord::Base
   belongs_to      :proposal, :inverse_of => :proposal_config
   has_many        :node_role
   has_many        :node, :through => :node_role
+
+
+  #
+  # This builds an old-time role hash for usage by the rest of the system for now
+  # This will be chef code part of CMDB abstraction
+  # 
+  def to_role_object_hash
+    proposal = {}
+
+    proposal["id"] = "bc-#{proposal.barclamp.name}-#{proposal.name}"
+    proposal["description"] = proposal.description
+    proposal["attributes"] = config
+    # GREG: Build deployment from node_roles and roles
+    proposal["deployment"] = {}
+    proposal
+  end
+
 end

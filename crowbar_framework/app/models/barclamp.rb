@@ -21,6 +21,9 @@ class Barclamp < ActiveRecord::Base
   validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
   has_many :proposals, :conditions => 'name != "template"'
+  has_many :active_proposals, 
+                :class_name => "Proposal", 
+                :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
 
   has_many :roles
@@ -42,6 +45,21 @@ class Barclamp < ActiveRecord::Base
       ans[x.name] = x.description
     end if bcs
     ans
+  end
+
+  #
+  # Helper function to load the service object
+  #
+  def operations(logger = nil)
+    @service = eval("#{name.camelize}Service.new logger") unless @service
+    @service
+  end
+
+  #
+  # We should set this to something one day.
+  #
+  def versions
+    [ "1.0" ]
   end
 
   

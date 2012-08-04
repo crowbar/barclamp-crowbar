@@ -64,7 +64,7 @@ class Barclamp < ActiveRecord::Base
       json = JSON::load File.open(template_file, 'r')
 
       barclamp.mode = json["deployment"][bc_name]["mode"] rescue "full"
-      barclamp.description = json["description"] rescue bc_name.humanize
+      barclamp.description = (json["description"] rescue bc_name.humanize) unless bc['barclamp']['description']
       barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
 

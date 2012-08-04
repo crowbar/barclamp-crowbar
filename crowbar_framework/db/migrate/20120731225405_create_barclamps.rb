@@ -27,7 +27,10 @@ class CreateBarclamps < ActiveRecord::Migration
       t.integer :cmdb_order,  :default=>0
       t.string :commit,       :null=>true
       t.date :build_on,       :null=>true
+      t.boolean :user_managed, :default=>true
       t.timestamps
-    end   
+    end
+    #natural key
+    add_index(:barclamps, :name, :unique => true)   
   end
 end

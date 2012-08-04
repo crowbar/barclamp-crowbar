@@ -18,19 +18,18 @@ require 'json'
 
 class BarclampController < ApplicationController
 
-  before_filter :set_service_object
+  before_filter :set_service_object_base
   
- 
-  self.help_contents = Array.new(superclass.help_contents)
-
-  def set_service_object
+  def set_service_object_base
     @service_object = ServiceObject.new logger
     @bc_name = params[:barclamp] || params[:controller]  
     @service_object.bc_name = @bc_name
   end
 
-  private :set_service_object 
+  private :set_service_object_base
 
+
+  self.help_contents = Array.new(superclass.help_contents)
 
   #
   # Barclamp List (generic)

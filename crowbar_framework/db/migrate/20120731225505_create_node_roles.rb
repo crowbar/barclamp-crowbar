@@ -19,6 +19,7 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.integer      :status
       t.belongs_to   :role
       t.belongs_to   :node
+      t.belongs_to   :proposal_config
       t.timestamps
     end
   end

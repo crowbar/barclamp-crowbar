@@ -15,7 +15,7 @@
 class CreateNodeRolesProposalConfigs < ActiveRecord::Migration
   def change
     create_table :node_roles_proposal_configs do |t|
-      t.references    :role
+      t.references    :node_role
       t.references    :proposal_config
     end
   end

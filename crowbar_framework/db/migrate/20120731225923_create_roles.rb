@@ -16,7 +16,8 @@ class CreateRoles < ActiveRecord::Migration
   def change
     create_table :roles do |t|
       t.string :name
-      t.references :barclamp
+      t.string :states
+      t.belongs_to :barclamp
       t.timestamps
     end
   end

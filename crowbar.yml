@@ -92,7 +92,6 @@ debs:
 #    - ruby1.8-dev
 #    - rubygems1.8
     - ruby1.9.1-dev
-    - rubygems1.9.1
     - build-essential
     - libsqlite3-dev
     - dpkg-dev
@@ -153,7 +152,6 @@ debs:
     - ruby-dev
     - rubygems
     - rubygems1.8
-    - rubygems1.9.1
     # runit stuff
     - runit
     # sudo stuff

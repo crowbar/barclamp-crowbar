@@ -8,11 +8,11 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   def validate_deep_compare_prop(prop, prop2)
     return if prop == nil and prop2 == nil
-    assert_false prop == nil
-    assert_false prop2 == nil
+    assert prop != nil
+    assert prop2 != nil
 
     assert_not_equal prop.id, prop2.id
-    assert_equal prop.name, prop2.name
+    assert_not_equal prop.name, prop2.name
     assert_equal prop.status, prop2.status
     assert_equal prop.last_applied_rev, prop2.last_applied_rev
     assert_equal prop.description, prop2.description
@@ -22,22 +22,22 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     # Make sure active and current are in the list of proposals.
     if prop.active_config
-      assert_true prop.proposals.map { |x| x.id }.include?(prop.active_config.id)
+      assert prop.proposal_configs.map { |x| x.id }.include?(prop.active_config.id)
     end
     if prop2.active_config
-      assert_true prop2.proposals.map { |x| x.id }.include?(prop2.active_config.id)
+      assert prop2.proposal_configs.map { |x| x.id }.include?(prop2.active_config.id)
     end
     if prop.current_config
-      assert_true prop.proposals.map { |x| x.id }.include?(prop.current_config.id)
+      assert prop.proposal_configs.map { |x| x.id }.include?(prop.current_config.id)
     end
     if prop2.current_config
-      assert_true prop2.proposals.map { |x| x.id }.include?(prop2.current_config.id)
+      assert prop2.proposal_configs.map { |x| x.id }.include?(prop2.current_config.id)
     end
 
     # Make sure that the proposals match as well.
     assert_equal prop.proposal_configs.size, prop2.proposal_configs.size
     (0..(prop.proposal_configs.size - 1)).each do |x|
-      validate_deep_compart_prop_conf(prop.proposal_configs[x], prop2.proposal_configs[x])
+      validate_deep_compare_prop_conf(prop.proposal_configs[x], prop2.proposal_configs[x])
     end
   end
 
@@ -101,7 +101,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     b = Barclamp.find_by_name("crowbar")
 
     prop = b.create_proposal
-    assert_true prop.name.starts_with("create")
+    assert prop.name.starts_with?("create")
     validate_deep_compare_prop(prop, b.template)
 
     prop = b.create_proposal("fred")
@@ -125,7 +125,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "Proposal Delete" do
     b = Barclamp.find_by_name("crowbar")
 
-    assert_true b.delete_proposal("fred")
+    assert b.delete_proposal("fred")
     b.proposals.reload
     assert_equal nil, b.get_proposal("fred")
 

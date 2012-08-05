@@ -30,7 +30,7 @@ class Barclamp < ActiveRecord::Base
   has_many :prereqs, :through=>:barclamp_dependencies
   
   has_many :barclamp_members
-  has_many :members, :through=>:barclamp_members
+  has_many :members, :through=>:barclamp_members, :order => "[order], [name] ASC"
 
   #legacy approach - expects name of barclamp for YML import
   def self.import_1x(bc_name)

@@ -51,8 +51,6 @@ class Barclamp < ActiveRecord::Base
   # Helper function to load the service object
   #
   def operations(logger = nil)
-    puts "GREG: Logger = #{logger}"
-    puts "GREG: name = #{name}"
     @service = eval("#{name.camelize}Service.new logger") unless @service
     @service.bc_name = name
     @service

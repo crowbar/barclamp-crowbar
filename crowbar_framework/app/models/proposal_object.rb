@@ -175,6 +175,7 @@ class ProposalObject < ChefObject
   end
 
   def save
+    ChefObject.chef_init
     @item["deployment"] = {} if @item["deployment"].nil?
     @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?
     if @item["deployment"][barclamp]["crowbar-revision"].nil?
@@ -192,6 +193,7 @@ class ProposalObject < ChefObject
   end
 
   def destroy
+    ChefObject.chef_init
     Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
     @item.destroy(@item.data_bag, @item["id"])
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")

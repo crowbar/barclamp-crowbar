@@ -465,10 +465,8 @@ class ServiceObject
   end
 
   def bc_name=(new_name)
-puts "GREG: #{new_name}"
     @bc_name = new_name
     @barclamp = Barclamp.find_by_name(@bc_name)
-puts "GREG: #{@barclamp}"
   end
   
   def bc_name 

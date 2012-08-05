@@ -22,4 +22,17 @@ class Proposal < ActiveRecord::Base
   attr_accessible :name, :status, :last_applied_rev
   belongs_to :barclamp
   has_many  :proposal_config, :inverse_of => :proposal
+  
+  
+  def self.find_by_guid(guid)
+    bc = guid[/(.*)_(.*)/,0]
+    name = guid[/(.*)_(.*)/,1]
+    barclamp = Barclamp.find_by_name bc
+    Proposal.find_by_name_and_barclamp_id name, barclamp.id
+  end
+
+  def guid
+    "#{barclamp.name}_#{name}".parameterize
+  end
+  
 end

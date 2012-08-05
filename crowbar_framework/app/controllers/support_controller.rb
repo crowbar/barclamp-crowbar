@@ -92,7 +92,7 @@ class SupportController < ApplicationController
   def import
     @installed = {}
     @imports = {}
-    Barclamp.all.each { |bc| @installed[bc.name] = { :o=>bc, :new=>false, :name=>bc.name, 'user_managed'=>bc.user_managed, 'order'=>bc.order }
+    Barclamp.all.each { |bc| @installed[bc.name] = { :o=>bc, :new=>false, :name=>bc.name, 'user_managed'=>bc.user_managed, 'commit'=>bc.commit, 'date'=>bc.build_on, 'order'=>bc.order } }
     if request.post?
       bcs = []
       bc_list = []

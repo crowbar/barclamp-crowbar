@@ -51,7 +51,10 @@ class Barclamp < ActiveRecord::Base
   # Helper function to load the service object
   #
   def operations(logger = nil)
+    puts "GREG: Logger = #{logger}"
+    puts "GREG: name = #{name}"
     @service = eval("#{name.camelize}Service.new logger") unless @service
+    @service.bc_name = name
     @service
   end
 
@@ -60,6 +63,24 @@ class Barclamp < ActiveRecord::Base
   #
   def versions
     [ "1.0" ]
+  end
+
+  #
+  # Proposal manipulation functions
+  #
+  def create_proposal(name = nil)
+    prop = template.deep_clone
+    prop.name = name || "created#{Time.now}"
+    prop.save!
+    prop
+  end
+
+  def delete_proposal(prop)
+
+  end
+
+  def get_proposal(name)
+    Proposal.find_by_name_and_barclamp_id(name, self.id)
   end
 
   #legacy approach - expects name of barclamp for YML import
@@ -121,16 +142,19 @@ class Barclamp < ActiveRecord::Base
         states = json["deployment"][bc_name]["element_states"][role].join(",") rescue "all"
         role = Role.create(:name => role, :states => states)
         role.barclamp = barclamp
-        role.save
+        role.save!
       end
 
       prop = Proposal.create(:name => "template", :status => "template")
       prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
       prop_config.proposal = prop
-      prop_config.save
+      prop_config.save!
+
+      prop.current_config = prop_config
+      prop.save!
 
       barclamp.template = prop
-      barclamp.save
+      barclamp.save!
     end
 
     return barclamp

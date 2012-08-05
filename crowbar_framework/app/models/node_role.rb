@@ -22,4 +22,14 @@ class NodeRole < ActiveRecord::Base
   attr_accessible :role_name, :config, :status
   has_many        :node
   belongs_to      :role
+
+  def deep_clone
+    new_nr = self.dup
+    new_nr.save
+
+    # GREG: Clone the node_role config table one day.  It still needs work.
+
+    new_nr
+  end
+
 end

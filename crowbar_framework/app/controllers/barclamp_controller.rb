@@ -68,7 +68,7 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    ret = barclamp.operations.transition(id, name, state)
+    ret = operations.transition(id, name, state)
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
@@ -79,7 +79,7 @@ class BarclampController < ApplicationController
   #
   add_help(:show,[:id])
   def show
-    prop = Proposal.find_by_name_and_barclamp(params[:id], barclamp)
+    prop = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
     @role = prop.active_config if prop
     respond_to do |format|
       format.html {
@@ -89,12 +89,12 @@ class BarclampController < ApplicationController
       format.xml  { 
         return render :text => t('proposal.failures.show_active_failed'), 
                       :status => 404 unless @role
-        render :xml => @role.to_role_object_hash
+        render :xml => @role.to_proposal_object_hash
       }
       format.json { 
         return render :text => t('proposal.failures.show_active_failed'), 
                       :status => 404 unless @role
-        render :json => @role.to_role_object_hash
+        render :json => @role.to_proposal_object_hash
       }
     end
   end
@@ -108,7 +108,7 @@ class BarclampController < ApplicationController
     params[:id] = params[:id] || params[:name]
     ret = [500, "Server Problem"]
     begin
-      ret = barclamp.operations.destroy_active(params[:id])
+      ret = operations.destroy_active(params[:id])
       flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
     rescue Exception => e
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
@@ -249,7 +249,7 @@ class BarclampController < ApplicationController
   #
   add_help(:proposal_show,[:id])
   def proposal_show
-    prop = Proposal.find_by_name_and_barclamp(params[:id], barclamp)
+    prop = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
     return render :text => t('proposal.failures.proposal_not_found'), :status => 404 unless prop
     @proposal = prop
     @active = prop.active_config != nil
@@ -259,8 +259,8 @@ class BarclampController < ApplicationController
 
     respond_to do |format|
       format.html { render :template => 'barclamp/proposal_show' }
-      format.xml  { render :xml => @proposal.current_config.to_role_object_hash }
-      format.json { render :json => @proposal.current_config.to_role_object_hash }
+      format.xml  { render :xml => @proposal.current_config.to_proposal_object_hash }
+      format.json { render :json => @proposal.current_config.to_proposal_object_hash }
     end
   end
 
@@ -308,11 +308,12 @@ class BarclampController < ApplicationController
     answer = [ 500, "Server issue" ]
     begin
       Rails.logger.info "asking for proposal of: #{params}"
-      answer = @service_object.proposal_create params
+      answer = operations.proposal_create params
       Rails.logger.info "proposal is: #{answer}"
       flash[:notice] =  answer[0] != 200 ? answer[1] : t('proposal.actions.create_success')
     rescue Exception => e
       flash[:notice] = e.message
+      Rails.logger.error e.backtrace
     end
     respond_to do |format|
       format.html { 
@@ -338,7 +339,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_update,[:id],[:post])
   def proposal_update
     if params[:submit].nil?  # This is RESTFul path
-      ret = @service_object.proposal_edit params
+      ret = operations.proposal_edit params
       return render :text => ret[1], :status => ret[0] if ret[0] != 200
       return render :json => ret[1]
     else # This is UI.
@@ -349,8 +350,8 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
+#          operations.validate_proposal @proposal.raw_data
+#          operations.validate_proposal_elements @proposal.elements
           @proposal.save
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue Exception => e
@@ -362,11 +363,11 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
+#          operations.validate_proposal @proposal.raw_data
+#          operations.validate_proposal_elements @proposal.elements
           @proposal.save
 
-          answer = @service_object.proposal_commit(params[:name])
+          answer = operations.proposal_commit(params[:name])
           flash[:notice] = answer[1] if answer[0] >= 300
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
           if answer[0] == 202
@@ -381,7 +382,7 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
-          answer = @service_object.proposal_delete(params[:name])
+          answer = operations.proposal_delete(params[:name])
           if answer[0] == 200
             flash[:notice] = t('barclamp.proposal_show.delete_proposal_success')
           else
@@ -394,7 +395,7 @@ class BarclampController < ApplicationController
         return
       elsif params[:submit] == t('barclamp.proposal_show.destroy_active')
         begin
-          answer = @service_object.destroy_active(params[:name])
+          answer = operations.destroy_active(params[:name])
           if answer[0] == 200 
             flash[:notice] = t('barclamp.proposal_show.destroy_active_success') 
           else
@@ -405,7 +406,7 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
-          answer = @service_object.dequeue_proposal(params[:name])
+          answer = operations.dequeue_proposal(params[:name])
           flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') unless answer
           flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success') if answer
         rescue Exception => e
@@ -423,10 +424,9 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Destroy Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	DELETE 	Delete will remove a proposal 
   #
-# GREG: FIX THIS!
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
-    answer = @service_object.proposal_delete params[:id]
+    answer = operations.proposal_delete params[:id]
     flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
     respond_to do |format|
       format.html {         
@@ -448,10 +448,9 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced 
   #
-# GREG: FIX THIS!
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
-    ret = @service_object.proposal_commit params[:id]
+    ret = operations.proposal_commit params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] >= 210
     render :json => ret[1], :status => ret[0]
   end
@@ -460,10 +459,9 @@ class BarclampController < ApplicationController
   # Currently, A UI ONLY METHOD
   # XXX: TODO: Make this a restful call defined somewhere.
   #
-# GREG: FIX THIS!
   add_help(:proposal_dequeue,[:id],[:post])
   def proposal_dequeue
-    ret = @service_object.dequeue_proposal params[:id]
+    ret = operations.dequeue_proposal params[:id]
     flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
     return render :text => flash[:notice], :status => 400 unless ret
     render :json => {}, :status => 200 if ret

@@ -25,19 +25,37 @@ class ProposalConfig < ActiveRecord::Base
   has_many        :node, :through => :node_role
 
 
+  def deep_clone
+    new_config = self.dup
+    new_config.save
+
+#    node_role.each do |nr|
+#      new_nr = nr.deep_clone
+#      new_nr.save
+#      new_config.node_role << new_nr
+#    end
+
+    new_config
+  end
+
   #
   # This builds an old-time role hash for usage by the rest of the system for now
   # This will be chef code part of CMDB abstraction
   # 
-  def to_role_object_hash
-    proposal = {}
+  def to_proposal_object_hash
+    phash = {}
 
-    proposal["id"] = "bc-#{proposal.barclamp.name}-#{proposal.name}"
-    proposal["description"] = proposal.description
-    proposal["attributes"] = config
+    bc_name = proposal.barclamp.name
+    phash["id"] = "bc-#{bc_name}-#{proposal.name}"
+    phash["description"] = proposal.description
+    phash["attributes"] = JSON::parse(config)
     # GREG: Build deployment from node_roles and roles
-    proposal["deployment"] = {}
-    proposal
+    phash["deployment"] = {}
+    phash["deployment"][bc_name] = {}
+    phash["deployment"][bc_name]["config"] = {}
+    phash["deployment"][bc_name]["config"]["environment"] = "#{bc_name}-config-#{proposal.name}"
+
+    phash
   end
 
 end

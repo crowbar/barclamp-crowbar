@@ -2,6 +2,31 @@
 
 This section shows you how to make barclamps.
 
+### Customization Locations
+
+To create a barclamp, you must update many places with the name of your barclamp.  While this seems redundant inside the barclamp, it is essential when your barclamp gets merged into the larger Crowbar framework.  This often means that your barclamp tree will have one or two files inside a [barclamp] subdirectory.  That's normal and you'll be glad of it when you have to troubleshoot your barclamp later.
+
+Locations of Crowbar Components in a typical barclamp
+
+* `/bin` 
+* `/chef` 
+   * `/`
+* `/crowbar_framework` 
+   * `/app` - contains the code for the barclamp.  Crowbar does not require much code for basic operations, but stubs are required
+      * `/controller`
+      * `/model`
+      * `/view`
+        * `/barclamp/[barclamp]/*.haml` - attribute & deployment view pages
+      * `/asset`
+   * `/BDD` - integrated testing framework (see DevGuide Testing)
+   * `/doc` - integrated documentation frameowkr (see DevGuide documentation) 
+      * `[barclamp].yml` - index of your barclamps additions to the documentation
+      * `/default/[topic].md` - documentation files (can be in subdirectories)
+   * `/db`   
+      * `migrate` - required to create the barclamp record so Crowbar can find your barclamp in the database
+      
+> Note: The good news is that that barclamp_model will start you off with all of these files populated!
+
 #### Requested Sections
 The following items are desired but not yet created in the documenation.
 

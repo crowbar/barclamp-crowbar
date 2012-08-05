@@ -33,7 +33,7 @@ class Barclamp < ActiveRecord::Base
   has_many :prereqs, :through=>:barclamp_dependencies
   
   has_many :barclamp_members
-  has_many :members, :through=>:barclamp_members
+  has_many :members, :through=>:barclamp_members, :order => "[order], [name] ASC"
 
   #
   # Helper Barclamp function to get a list of barclamps and descriptions.

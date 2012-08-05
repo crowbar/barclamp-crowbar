@@ -12,7 +12,7 @@
           - if topic.children.size > 0 and topic.children.size < 4
             = "(#{topic.children.size})"
           = "(n=#{topic.name} p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
-          - if topic.children.size > 0 and topic.children.size < 4
+          - if params.has_key? 'expand' and topic.children.size > 0 
             %div.book_section
               %ul
                 - topic.children.each do |section|

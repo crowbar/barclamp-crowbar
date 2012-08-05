@@ -40,7 +40,7 @@ class BarclampController < ApplicationController
   #
   add_help(:barclamp_index)
   def barclamp_index
-    @barclamps = Barclamp.get_all_descriptions
+    @barclamps = Barclamp.all
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
       format.xml  { render :xml => @barclamps }
@@ -173,14 +173,8 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
-        @count = -1
-        members = {}
-        list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
-        cat = ServiceObject.barclamp_catalog
-        i = 0
-        list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
-        @modules = get_proposals_from_barclamps(members).sort_by {|k,v| v[:order].to_i}
+        @title ||= "#{barclamp.name} #{t('barclamp.index.members')}" 
+        @modules = barclamp.members
         render 'barclamp/index' 
       }
       format.xml  { 
@@ -202,45 +196,13 @@ class BarclampController < ApplicationController
   add_help(:modules)
   def modules
     @title = I18n.t('barclamp.modules.title')
-    @count = 0
-    barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
-    @modules = get_proposals_from_barclamps(barclamps).sort 
+    @barclamp = nil
+    @modules = Barclamp.all.sort_by { |b| "%05d%s" % [b.order, b.name] }
     respond_to do |format|
       format.html { render 'index'}
       format.xml  { render :xml => @modules }
       format.json { render :json => @modules }
     end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-# GREG: FIX THIS!
-  def get_proposals_from_barclamps(barclamps)
-    modules = {}
-    active = RoleObject.active
-    barclamps.each do |name, details|
-      props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
-      begin
-        modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
-      rescue
-        Rails.logger.debug "WARNING: could not resolve barclamp #{name}.  Please correct the naming to be the object name when camelized"
-        modules[name][:allow_multiple_proposals] = false
-        modules[name][:description] = "#{modules[name][:description]} !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object.  You may want to set 'barclamp:\\user_managed: false' in the crowbar.yml file" if Rails.env === 'development'
-      end
-      ProposalObject.find_proposals(name).each do |prop|        
-        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
-        @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
-        modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
-        if prop.status === "failed"
-          modules[name][:proposals][prop.name][:message] = prop.fail_reason 
-          modules[name][:expand] = true
-        end
-      end        
-    end
-    modules
   end
 
   #

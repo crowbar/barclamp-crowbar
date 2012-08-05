@@ -41,4 +41,15 @@ class Proposal < ActiveRecord::Base
     new_prop
   end
 
+  def self.find_by_guid(guid)
+    bc = guid[/(.*)_(.*)/,0]
+    name = guid[/(.*)_(.*)/,1]
+    barclamp = Barclamp.find_by_name bc
+    Proposal.find_by_name_and_barclamp_id name, barclamp.id
+  end
+
+  def guid
+    "#{barclamp.name}_#{name}".parameterize
+  end
+  
 end

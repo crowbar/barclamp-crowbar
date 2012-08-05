@@ -38,15 +38,10 @@ class ServiceObject
     self.name.underscore[/(.*)_service$/,1]
   end
   
-  # ordered list of barclamps from groups in the crowbar.yml files.  
-  # Built at barclamp install time by the catalog step
+  # OBSOLETE - REMOVE!!! 
   def self.members
-    cat = barclamp_catalog
-    cat["barclamps"][bc_name].nil? ? [] : cat["barclamps"][bc_name]['members']
-  end
-  
-  def self.barclamp_catalog
-    YAML.load_file(File.join( 'config', 'catalog.yml'))
+    barclamp = Barclamp.find_by_name bc_name
+    barclamp.members
   end
   
   def self.all
@@ -58,11 +53,10 @@ class ServiceObject
     return bc
   end
 
+  # OBSOLETE remove the CAT
   def self.run_order(bc, cat = nil)
-    return 1000 if bc == nil
-    cat = barclamp_catalog if cat.nil?
-    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
-    (cat["barclamps"][bc]["run_order"] || order) rescue order
+    barclamp = Barclamp.find_by_name bc
+    barclamp.run_order || barclamp.order rescue 1000
   end
 
   def run_order
@@ -70,10 +64,8 @@ class ServiceObject
   end
 
   def self.chef_order(bc, cat = nil)
-    return 1000 if bc == nil
-    cat = barclamp_catalog if cat.nil?
-    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
-    (cat["barclamps"][bc]["chef_order"] || order) rescue order
+    barclamp = Barclamp.find_by_name bc
+    barclamp.chef_order || barclamp.order || 1000 rescue 1000
   end
 
   def chef_order

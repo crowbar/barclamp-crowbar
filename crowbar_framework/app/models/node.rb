@@ -14,20 +14,52 @@
 #
 
 class Node < ActiveRecord::Base
-  attr_accessible :name, :description
+  
+  attr_accessible :name, :description, :order
+  
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
+  
+  has_many :node_groups
+  has_many :groups, :through => :node_groups, :order=>"[order], [name] ASC"
+  
+  # Rob's list of CMDB attributes needed by the UI
+    #alias
+    #name
+    #ip (list)
+    #public_ip
+    #mac
+    #ipmi_enabled?
+    #physical_drives (list)
+    #memory (total)
+    #cpu (type & count)
+    #hardware (dmi product name)
+    #raid_set
+    #nics (list)
+    #uptime
+    #asset_tag
+    #number_of_drives
+    #physical_drives (list)
+    #switch name, mac, port, unit
+    #bios_set -> ["crowbar"]["hardware"]["bios_set"] 
+    #get_bmc_user -> ["ipmi"]["bmc_user"] 
+    #get_bmc_password-> ["ipmi"]["bmc_password"] 
+    #bmc_address
+
+  def cmdb_get(attribute)
+    puts "CMDB looking up #{attribute}"
+    return nil
+  end
   
   def method_missing(m,*args,&block)
-    puts "Node #{name} #{args.inspect} #{block.inspect}"
-    #unless node.respond_to?(m)
-    #  Rails.logger.fatal("Cannot delegate method #{m} to #{@node.class}")
-    #else
-    #  case
-    #  when args && block_given? then @node.send(m,*args,&block)
-    #  when block_given? then @node.send(m,&block)
-    #  when args then @node.send(m,*args)
-    #  else @node.send(m)
-    #  end
-    #end
+    method = m.to_s
+    if method.starts_with? "cmdb_"
+      return cmdb_get method[5..100]
+    else
+      puts "Node #{name} #{method.inspect} #{args.inspect} #{block.inspect}"
+      Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
+      throw "ERROR #{method} not defined for node #{name}"
+    end
   end
 
 end

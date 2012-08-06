@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbs < ActiveRecord::Migration
+class CreateNodesGroups < ActiveRecord::Migration
   def change
-    create_table :cmdbs do |t|
-      t.string :name
-      t.string :description, :null=>true
-      t.integer :order, :default=>10000
-      t.timestamps
+    create_table :node_groups, :id=>false do |t|
+      t.belongs_to  :node
+      t.belongs_to  :group
     end
     #natural key
-    add_index(:cmdbs, :name, :unique => true)   
+    add_index(:node_groups, [:node_id, :group_id], :unique => true)   
   end
 end

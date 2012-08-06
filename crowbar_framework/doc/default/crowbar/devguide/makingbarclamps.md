@@ -13,9 +13,9 @@ Locations of Crowbar Components in a typical barclamp
    * `/`
 * `/crowbar_framework` 
    * `/app` - contains the code for the barclamp.  Crowbar does not require much code for basic operations, but stubs are required
-      * `/controller`
-      * `/model`
-      * `/view`
+      * `/controllers`
+      * `/models`
+      * `/views`
         * `/barclamp/[barclamp]/*.haml` - attribute & deployment view pages
       * `/asset`
    * `/BDD` - integrated testing framework (see DevGuide Testing)
@@ -24,6 +24,7 @@ Locations of Crowbar Components in a typical barclamp
       * `/default/[topic].md` - documentation files (can be in subdirectories)
    * `/db`   
       * `migrate` - required to create the barclamp record so Crowbar can find your barclamp in the database
+        * `YYYYMMDDHHMMSS_barclamp_import_[barclamp].rb` - does the migration (see DevGuide barclamp meta data)
       
 > Note: The good news is that that barclamp_model will start you off with all of these files populated!
 

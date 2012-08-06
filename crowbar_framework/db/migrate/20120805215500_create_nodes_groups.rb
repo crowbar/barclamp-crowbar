@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-<<<<<<< HEAD
-class Cmdb < ActiveRecord::Base
-  attr_accessible :name
-  
-  has_many :cmdb_runs
-
-=======
-
-class Cmdb < ActiveRecord::Base
-  
-  attr_accessible :name, :description, :order
-  
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
->>>>>>> fa33f45aa0016cc549d2bf30956dc231a1213834
+class CreateNodesGroups < ActiveRecord::Migration
+  def change
+    create_table :node_groups, :id=>false do |t|
+      t.belongs_to  :node
+      t.belongs_to  :group
+    end
+    #natural key
+    add_index(:node_groups, [:node_id, :group_id], :unique => true)   
+  end
 end

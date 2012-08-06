@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-<<<<<<< HEAD
-class Cmdb < ActiveRecord::Base
-  attr_accessible :name
-  
-  has_many :cmdb_runs
 
-=======
+class Group < ActiveRecord::Base
+  
+  attr_accessible :name, :description, :category, :order
 
-class Cmdb < ActiveRecord::Base
-  
-  attr_accessible :name, :description, :order
-  
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
->>>>>>> fa33f45aa0016cc549d2bf30956dc231a1213834
+
+  validates_inclusion_of :category, :in => %w( ui ), :message => "Group Model Validation Error: type %s is not an allowed category"
+
+  has_many :node_groups
+  has_many :nodes, :through => :node_groups, :order=>"[order], [name] ASC"
+
 end
+

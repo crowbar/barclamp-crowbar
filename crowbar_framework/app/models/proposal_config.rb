@@ -17,13 +17,18 @@
 #  configuration details for a given proposals.
 #  proposal 
 class ProposalConfig < ActiveRecord::Base
-  attr_accessible :config
-  attr_accessible :reversion
-  attr_accessible :applied
+  attr_accessible :config, :reversion, :applied, :failed, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
   has_many        :node_role
   has_many        :node, :through => :node_role
 
+  def failed?
+    failed
+  end
+
+  def applied?
+    applied
+  end
 
   def deep_clone
     new_config = self.dup

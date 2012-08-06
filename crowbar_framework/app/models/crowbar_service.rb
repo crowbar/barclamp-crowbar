@@ -85,6 +85,7 @@ class CrowbarService < ServiceObject
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
 
+        # GREG: Fix this. Run_order should come direct from bc
         xs = ServiceObject.run_order(xname, catalog)
         ys = ServiceObject.run_order(yname, catalog)
         xs <=> ys
@@ -210,7 +211,7 @@ class CrowbarService < ServiceObject
   def order_instances(bcs)
     tmp = {}
     bcs.each { |bc_name,instances|
-      order = ServiceObject.run_order(bc_name)
+      order = ServiceObject.run_order(bc_name) # GREG: Fix this
       tmp[bc_name] = {:order =>order, :instances =>instances}
     }
     #sort by the order value (x,y are an array with the value of

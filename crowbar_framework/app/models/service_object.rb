@@ -38,40 +38,6 @@ class ServiceObject
     self.name.underscore[/(.*)_service$/,1]
   end
   
-  # OBSOLETE - REMOVE!!! 
-  def self.members
-    barclamp = Barclamp.find_by_name bc_name
-    barclamp.members
-  end
-  
-  def self.all
-    bc = {}
-    ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|
-      bc[bag.item.name[/#{ProposalObject::BC_PREFIX}(.*)/,1]] = bag.item[:description]
-    end
-    bc.delete_if { |k, v| bc.has_key? k[/^(.*)-(.*)/,0] }
-    return bc
-  end
-
-  # OBSOLETE remove the CAT
-  def self.run_order(bc, cat = nil)
-    barclamp = Barclamp.find_by_name bc
-    barclamp.run_order || barclamp.order rescue 1000
-  end
-
-  def run_order
-    ServiceObject.run_order(@bc_name)
-  end
-
-  def self.chef_order(bc, cat = nil)
-    barclamp = Barclamp.find_by_name bc
-    barclamp.chef_order || barclamp.order || 1000 rescue 1000
-  end
-
-  def chef_order
-    ServiceObject.chef_order(@bc_name)
-  end
-
   def random_password(size = 12)
     chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
@@ -706,7 +672,7 @@ class ServiceObject
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     # For Role ordering
-    local_chef_order = chef_order()
+    local_chef_order = chef_order() # GREG: Fix this cmdb_order
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
 
@@ -928,7 +894,7 @@ class ServiceObject
       return false 
     end
 
-    local_chef_order = ServiceObject.chef_order(barclamp)
+    local_chef_order = ServiceObject.chef_order(barclamp) # GREG: Fix this cmdb_order
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
 

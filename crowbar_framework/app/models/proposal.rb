@@ -26,6 +26,10 @@ class Proposal < ActiveRecord::Base
   belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
   belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
 
+  def active?
+    active_config != nil
+  end
+
   def deep_clone
     new_prop = self.dup
     new_prop.save!

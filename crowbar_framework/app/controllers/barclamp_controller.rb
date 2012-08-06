@@ -211,11 +211,10 @@ class BarclampController < ApplicationController
   #
   add_help(:proposal_show,[:id])
   def proposal_show
-    prop = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
-    return render :text => t('proposal.failures.proposal_not_found'), :status => 404 unless prop
-    @proposal = prop
-    @active = prop.active_config != nil
-    flash[:notice] = @proposal.fail_reason if @proposal.failed?
+    @proposal = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
+    return render :text => t('proposal.failures.proposal_not_found'), :status => 404 unless @proposal
+    @active = @proposal.active?
+    flash[:notice] = @proposal.active_config.fail_reason if @active and @proposal.active_config.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
 

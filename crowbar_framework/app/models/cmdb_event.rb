@@ -12,19 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbMaps < ActiveRecord::Migration
-  def change
-    create_table :cmdb_maps do |t|
-      t.string :name
-      t.string :description
-      t.string :order
-      t.string :revision
-      t.string :direction
-      t.text :map
 
-      t.references :barclamp
+class CmdbEvent < ActiveRecord::Base
+  attr_accessible :attributes, :direction, :name, :result, :status, :cmdb_run, :type
 
-      t.timestamps
-    end
-  end
+  belongs_to :cmdb_run
+
 end

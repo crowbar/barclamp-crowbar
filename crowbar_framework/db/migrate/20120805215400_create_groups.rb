@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-############
-# A proposal is a configuration for a particular barclamp.
-# It has a ""history"" of configurations that were created and applied.
-# 
-
-class Proposal < ActiveRecord::Base
-  attr_accessible :name, :status, :last_applied_rev
-  belongs_to :barclamp
-  has_many  :proposal_config, :inverse_of => :proposal
-    
+class CreateGroups < ActiveRecord::Migration
+  def change
+    create_table :groups do |t|
+      t.string      :name,  :unique=>true
+      t.string      :description, :null=>true
+      t.string      :category,  :default=>'ui'
+      t.integer     :order, :default=>10000
+    end
+    #natural key
+    add_index(:groups, [:category, :name], :unique => true)   
+  end
 end

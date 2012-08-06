@@ -13,14 +13,17 @@
 # limitations under the License.
 #
 
-############
-# A proposal is a configuration for a particular barclamp.
-# It has a ""history"" of configurations that were created and applied.
-# 
+class Group < ActiveRecord::Base
+  
+  attr_accessible :name, :description, :category, :order
 
-class Proposal < ActiveRecord::Base
-  attr_accessible :name, :status, :last_applied_rev
-  belongs_to :barclamp
-  has_many  :proposal_config, :inverse_of => :proposal
-    
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  validates_inclusion_of :category, :in => %w( ui ), :message => "Group Model Validation Error: type %s is not an allowed category"
+
+  has_many :node_groups
+  has_many :nodes, :through => :node_groups, :order=>"[order], [name] ASC"
+
 end
+

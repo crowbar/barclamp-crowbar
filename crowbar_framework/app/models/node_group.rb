@@ -13,14 +13,12 @@
 # limitations under the License.
 #
 
-############
-# A proposal is a configuration for a particular barclamp.
-# It has a ""history"" of configurations that were created and applied.
-# 
+class NodeGroup < ActiveRecord::Base
+  
+  attr_accessible :node, :group
 
-class Proposal < ActiveRecord::Base
-  attr_accessible :name, :status, :last_applied_rev
-  belongs_to :barclamp
-  has_many  :proposal_config, :inverse_of => :proposal
-    
+  belongs_to :node
+  belongs_to :group
+
 end
+

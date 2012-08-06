@@ -78,16 +78,18 @@ class CrowbarService < ServiceObject
         add_role_to_instance_and_node("crowbar", inst, name, db, crole, "crowbar")
       end
 
-      catalog = Barclamp.all
+      catalog = {}
+      Barclamp.all.each do |x|
+        catalog[x.name] = x
+      end
       roles = RoleObject.find_roles_by_search "transitions:true AND (transition_list:all OR transition_list:#{ChefObject.chef_escape(state)})"
       # Sort rules for transition order (deployer should be near the beginning if not first).
       roles.sort! do |x,y| 
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
 
-        # GREG: Fix this. Run_order should come direct from bc
-        xs = ServiceObject.run_order(xname, catalog)
-        ys = ServiceObject.run_order(yname, catalog)
+        xs = catalog[xname].run_order
+        ys = catalog[yname].run_order
         xs <=> ys
       end
 
@@ -211,7 +213,7 @@ class CrowbarService < ServiceObject
   def order_instances(bcs)
     tmp = {}
     bcs.each { |bc_name,instances|
-      order = ServiceObject.run_order(bc_name) # GREG: Fix this
+      order = Barclamp.find_by_name(bc_name).run_order rescue 1000
       tmp[bc_name] = {:order =>order, :instances =>instances}
     }
     #sort by the order value (x,y are an array with the value of

@@ -170,33 +170,25 @@ class CrowbarService < ServiceObject
           @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
 
           # Create a service to talk to.
-          service = eval("#{k.camelize}Service.new @logger")
+          barclamp = Barclamp.find_by_name(k)
 
           @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{id}")
-          answer = service.proposals
-          if answer[0] != 200
-            @logger.error("Failed to list #{k}: #{answer[0]} : #{answer[1]}")
-          else
-            unless answer[1].include?(id)
-              @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
-              answer = service.proposal_create JSON.parse(data)
-              if answer[0] != 200
-                @logger.error("Failed to create #{k}.#{id}: #{answer[0]} : #{answer[1]}")
-              end
-            end
- 
-            @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
-            answer = service.list_active
+          prop = barclamp.get_proposal(id)
+          unless prop
+            @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
+            answer = barclamp.operations(@logger).proposal_create JSON.parse(data)
             if answer[0] != 200
-              @logger.error("Failed to list active #{k}: #{answer[0]} : #{answer[1]}")
-            else
-              unless answer[1].include?(id)
-                @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
-                answer = service.proposal_commit id
-                if answer[0] != 200
-                  @logger.error("Failed to commit #{k}.#{id}: #{answer[0]} : #{answer[1]}")
-                end
-              end
+              @logger.error("Failed to create #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+            end
+          end
+ 
+          @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
+          prop = barclamp.get_proposal(id)
+          unless prop.active?
+            @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
+            answer = barclamp.operations(@logger).proposal_commit id
+            if answer[0] != 200
+              @logger.error("Failed to commit #{k}.#{id}: #{answer[0]} : #{answer[1]}")
             end
           end
 

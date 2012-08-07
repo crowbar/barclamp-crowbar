@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CmdbAttributes < ActiveRecord::Base
+class CmdbAttribute < ActiveRecord::Base
   attr_accessible :name, :description, :order, :value, :revision
   
   belongs_to :cmdb_run # each run is a CMDB read and write

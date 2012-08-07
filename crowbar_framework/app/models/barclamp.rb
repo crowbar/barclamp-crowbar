@@ -125,7 +125,7 @@ class Barclamp < ActiveRecord::Base
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
 
       element_order = json["deployment"][bc_name]["element_order"] rescue []
-      element_order.each_index do |role_array, index|
+      element_order.each_with_index do |role_array, index|
         role_array.each do |role_name|
           role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
           unless role 

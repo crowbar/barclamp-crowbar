@@ -15,9 +15,9 @@
 class CreateProposalConfigs < ActiveRecord::Migration
   def change
     create_table :proposal_configs do |t|
-      t.belongs_to     :proposal     
+      t.boolean        :applied, :default => false     
       t.text           :config
-      t.integer        :revision      
+      t.integer        :revision
       t.belongs_to     :proposal
       t.timestamps
     end

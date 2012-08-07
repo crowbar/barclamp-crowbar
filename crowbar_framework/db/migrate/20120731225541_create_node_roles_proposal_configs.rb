@@ -15,6 +15,9 @@
 class CreateNodeRolesProposalConfigs < ActiveRecord::Migration
   def change
     create_table :node_roles_proposal_configs do |t|
+      t.boolean       :failed, :default => false
+      t.boolean       :applied, :default => false
+      t.string        :failed_reason
       t.references    :node_role
       t.references    :proposal_config
     end

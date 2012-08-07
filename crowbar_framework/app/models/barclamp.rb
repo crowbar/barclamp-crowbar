@@ -23,6 +23,9 @@ class Barclamp < ActiveRecord::Base
   validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   has_many :proposals, :conditions => 'name != "template"'
+  has_many :active_proposals, 
+                :class_name => "Proposal", 
+                :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
 
   has_many :roles
@@ -32,6 +35,40 @@ class Barclamp < ActiveRecord::Base
   
   has_many :barclamp_members
   has_many :members, :through=>:barclamp_members, :order => "[order], [name] ASC"
+
+  #
+  # Helper function to load the service object
+  #
+  def operations(logger = nil)
+    @service = eval("#{name.camelize}Service.new logger") unless @service
+    @service.bc_name = name
+    @service
+  end
+
+  #
+  # We should set this to something one day.
+  #
+  def versions
+    [ "1.0" ]
+  end
+
+  #
+  # Proposal manipulation functions
+  #
+  def create_proposal(name = nil)
+    prop = template.deep_clone
+    prop.name = name || "created#{Time.now}"
+    prop.save!
+    prop
+  end
+
+  def delete_proposal(prop)
+
+  end
+
+  def get_proposal(name)
+    Proposal.find_by_name_and_barclamp_id(name, self.id)
+  end
 
   #legacy approach - expects name of barclamp for YML import
   def self.import_1x(bc_name)
@@ -87,21 +124,31 @@ class Barclamp < ActiveRecord::Base
       barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
 
-      element_order = json["deployment"][bc_name]["element_order"].flatten.uniq rescue []
-      element_order.each do |role|
-        states = json["deployment"][bc_name]["element_states"][role].join(",") rescue "all"
-        role = Role.create(:name => role, :states => states)
-        role.barclamp = barclamp
-        role.save
+      element_order = json["deployment"][bc_name]["element_order"] rescue []
+      element_order.each_with_index do |role_array, index|
+        role_array.each do |role_name|
+          role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
+          unless role 
+            states = json["deployment"][bc_name]["element_states"][role_name].join(",") rescue "all"
+            role = Role.create(:name => role_name, :states => states)
+            role.barclamp = barclamp
+            role.save!
+          end
+          reo = RoleElementOrder.create(:order => index)
+          role.role_element_orders << reo
+        end
       end
 
       prop = Proposal.create(:name => "template", :status => "template")
       prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
       prop_config.proposal = prop
-      prop_config.save
+      prop_config.save!
+
+      prop.current_config = prop_config
+      prop.save!
 
       barclamp.template = prop
-      barclamp.save
+      barclamp.save!
     end
 
     return barclamp

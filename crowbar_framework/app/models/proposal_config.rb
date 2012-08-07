@@ -30,6 +30,15 @@ class ProposalConfig < ActiveRecord::Base
     applied
   end
 
+  def config_hash
+    JSON::parse(config)
+  end
+
+  def config_hash=(chash)
+    config = chash.to_json
+    save!
+  end
+
   def deep_clone
     new_config = self.dup
     new_config.save

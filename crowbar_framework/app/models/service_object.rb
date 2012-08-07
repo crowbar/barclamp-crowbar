@@ -477,11 +477,9 @@ class ServiceObject
     new_prop.name = base_id
     new_prop.save!
     if params["attributes"]
-      new_prop.current_config.config = JSON::parse(new_prop.current_config.config).merge(params["attributes"]).to_json
-      new_prop.current_config.save!
+      chash = new_prop.current_config.config_hash
+      new_prop.current_config.config_hash = chash.merge(params["attributes"])
     end
-
-    # GREG: deal with elements/deployment update.
 
     _proposal_update new_prop
   end

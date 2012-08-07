@@ -18,9 +18,9 @@ class CreateCmdbEvents < ActiveRecord::Migration
       t.string :description
       t.string :order
 
-      t.references :node
       t.references :cmdb_run
-      t.references :cmdb
+      # t.references :node  # add node references cmdb_event through cmdb_run
+      #t.references :cmdb   # add node references cmdb through proposal_config
 
       t.timestamps
     end

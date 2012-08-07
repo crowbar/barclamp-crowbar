@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
-  def change
-    create_table :cmdb_runs do |t|
-      t.string :name
-      t.string :description
-      t.string :order
+class CmdbMaps < ActiveRecord::Base
+  attr_accessible :name, :description, :order, :map, :revision
+  
+  belongs_to :barclamp
 
-      t.references :cmdb
-      t.references :cmdb_map
+  has_many :cmdb_runs
+  has_many :cmdb_attributes
 
-      t.timestamps
-    end
-  end
 end

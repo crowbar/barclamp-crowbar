@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
+class CreateGroups < ActiveRecord::Migration
   def change
-    create_table :cmdb_runs do |t|
-      t.string :name
-      t.string :description
-      t.string :order
-
-      t.references :cmdb
-      t.references :cmdb_map
-
-      t.timestamps
+    create_table :groups do |t|
+      t.string      :name,  :unique=>true
+      t.string      :description, :null=>true
+      t.string      :category,  :default=>'ui'
+      t.integer     :order, :default=>10000
     end
+    #natural key
+    add_index(:groups, [:category, :name], :unique => true)   
   end
 end

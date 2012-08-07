@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: JuddMaltin
-#
 class CreateCmdbMaps < ActiveRecord::Migration
   def change
     create_table :cmdb_maps do |t|

@@ -103,8 +103,8 @@ module ApplicationHelper
   end
   
   def instance_selector(bc, name, field, proposal)
-    service = eval("#{bc.camelize}Service.new nil")
-    options = service.list_active[1] | service.proposals[1]
+    bar = Barclamp.find_by_name(bc)
+    options = bar.active_proposals.map { |x| x.name } | bar.proposals.map { |x| x.name }
     if options.empty?
       options = [["None", ""]]
     else

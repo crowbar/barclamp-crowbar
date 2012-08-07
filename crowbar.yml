@@ -120,6 +120,7 @@ debs:
     # crowbar stuff
     - curl
     - sqlite
+    - sqlite3
     - libsqlite3-dev
     - libshadow-ruby1.8
     - chef

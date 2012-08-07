@@ -25,7 +25,7 @@ class ServiceObject
   extend CrowbarOffline
 
   def initialize(thelogger)
-    @bc_name = bc_name
+    @bc_name = "unknown"
     @logger = thelogger
   end
 
@@ -38,40 +38,6 @@ class ServiceObject
     self.name.underscore[/(.*)_service$/,1]
   end
   
-  # OBSOLETE - REMOVE!!! 
-  def self.members
-    barclamp = Barclamp.find_by_name bc_name
-    barclamp.members
-  end
-  
-  def self.all
-    bc = {}
-    ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|
-      bc[bag.item.name[/#{ProposalObject::BC_PREFIX}(.*)/,1]] = bag.item[:description]
-    end
-    bc.delete_if { |k, v| bc.has_key? k[/^(.*)-(.*)/,0] }
-    return bc
-  end
-
-  # OBSOLETE remove the CAT
-  def self.run_order(bc, cat = nil)
-    barclamp = Barclamp.find_by_name bc
-    barclamp.run_order || barclamp.order rescue 1000
-  end
-
-  def run_order
-    ServiceObject.run_order(@bc_name)
-  end
-
-  def self.chef_order(bc, cat = nil)
-    barclamp = Barclamp.find_by_name bc
-    barclamp.chef_order || barclamp.order || 1000 rescue 1000
-  end
-
-  def chef_order
-    ServiceObject.chef_order(@bc_name)
-  end
-
   def random_password(size = 12)
     chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
@@ -458,70 +424,18 @@ class ServiceObject
 
   def bc_name=(new_name)
     @bc_name = new_name
+    @barclamp = Barclamp.find_by_name(@bc_name)
   end
   
   def bc_name 
     @bc_name
   end
   
-  def initialize(thelogger)
-    @bc_name = "unknown"
-    @logger = thelogger
-  end
-
 #
 # API Functions
 #
-  def versions
-    [200, { :versions => [ "1.0" ] }]
-  end
-
   def transition
     [200, {}]
-  end
-
-  def list_active
-    roles = RoleObject.find_roles_by_name("#{@bc_name}-config-*")
-    roles.map! { |r| r.name.gsub("#{@bc_name}-config-","") } unless roles.empty?
-    [200, roles]
-  end
-
-  def show_active(inst)
-    inst = "#{@bc_name}-config-#{inst}"
-
-    role = RoleObject.find_role_by_name(inst)
-    
-    if role.nil?
-      [404, "Active instance not found"]
-    else
-      [200, role]
-    end
-  end
-
-  def clean_proposal(proposal)
-    proposal.delete("controller")
-    proposal.delete("action")
-    proposal.delete("barclamp")
-    proposal.delete("name")
-    proposal.delete("_method")
-    proposal.delete("authenticity_token")
-  end
-
-  #
-  # Proposal is a json structure (not a ProposalObject)
-  # Use to create or update an active instance
-  #
-  def active_update(proposal, inst, in_queue)
-    begin
-      role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      clean_proposal(proposal)
-      validate_proposal proposal
-      apply_role(role, inst, in_queue)
-    rescue Net::HTTPServerException => e
-      [e.response.code, {}]
-    rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
-    end
   end
 
   def destroy_active(inst)
@@ -544,77 +458,61 @@ class ServiceObject
     end
   end
 
-  def elements
-    roles = RoleObject.find_roles_by_name("#{@bc_name}-*")
-    cull_roles = RoleObject.find_roles_by_name("#{@bc_name}-config-*")
-    roles.delete_if { |r| cull_roles.include?(r) } unless roles.empty?
-    roles.map! { |r| r.name } unless roles.empty?
-    [200, roles]
-  end
-
-  def element_info
-    nodes = NodeObject.find_all_nodes
-    nodes.map! { |n| n.name } unless nodes.empty?
-    [200, nodes]
-  end
-
-  def proposals_raw
-    ProposalObject.find_proposals(@bc_name)
-  end 
-  
-  def proposals
-    props = proposals_raw
-    props.map! { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
-    [200, props]
-  end
-
-  def proposal_show(inst)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
-    if prop.nil?
-      [404, {}]
-    else
-      [200, prop]
-    end
-  end
-
   #
   # This can be overridden to provide a better creation proposal
   #
   def create_proposal
-    prop = ProposalObject.find_proposal("template", @bc_name)
-    prop.raw_data
+    @barclamp.create_proposal
   end
 
   def proposal_create(params)
     base_id = params["id"]
-    params["id"] = "bc-#{@bc_name}-#{params["id"]}"
 
-    prop = ProposalObject.find_proposal(@bc_name, base_id)
+    prop = @barclamp.get_proposal(base_id)
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?
     return [400, I18n.t('model.service.too_short')] if base_id.length == 0
     return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
 
-    base = create_proposal
-    base["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"
-    proposal = base.merge(params)
-    clean_proposal(proposal)
-    _proposal_update proposal
+    new_prop = create_proposal
+    new_prop.name = base_id
+    new_prop.save!
+    if params["attributes"]
+      chash = new_prop.current_config.config_hash
+      new_prop.current_config.config_hash = chash.merge(params["attributes"])
+    end
+
+    _proposal_update new_prop
   end
 
   def proposal_edit(params)
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     proposal = {}.merge(params)
-    clean_proposal(proposal)
     _proposal_update proposal
   end
 
   def proposal_delete(inst)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
+    prop = @barclamp.get_proposal(inst)
     if prop.nil?
       [404, {}]
     else
-      prop.destroy
+      @barclamp.delete_proposal(prop)
       [200, {}]
+    end
+  end
+
+  #
+  # Proposal is a json structure (not a ProposalObject)
+  # Use to create or update an active instance
+  #
+  def active_update(proposal, inst, in_queue)
+    begin
+      role = ServiceObject.proposal_to_role(proposal, @bc_name)
+# GREG:      validate_proposal proposal
+      apply_role(role, inst, in_queue)
+    rescue Net::HTTPServerException => e
+      [e.response.code, {}]
+    rescue Chef::Exceptions::ValidationFailed => e2
+      [400, e2.message]
     end
   end
 
@@ -670,7 +568,8 @@ class ServiceObject
     Rails.logger.info "validating proposal #{@bc_name}"
 
     # Clean up rails3 "helpers"
-    proposal.delete("utf8")
+    # GREG: Help me
+    # proposal.delete("utf8")
 
     errors = validator.validate(proposal)
     if errors && !errors.empty?
@@ -683,14 +582,17 @@ class ServiceObject
     end
   end
 
+  #
+  # THIS IS A CHEF ROUTINE
+  #
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 
     begin 
-      data_bag_item.raw_data = proposal
+      data_bag_item.raw_data = proposal.current_config.to_proposal_object_hash
       data_bag_item.data_bag "crowbar"
 
-      validate_proposal proposal
+# GREG:     validate_proposal proposal
 
       prop = ProposalObject.new data_bag_item
       prop.save
@@ -768,7 +670,7 @@ class ServiceObject
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     # For Role ordering
-    local_chef_order = chef_order()
+    local_cmdb_order = @barclamp.cmdb_order
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
 
@@ -838,7 +740,7 @@ class ServiceObject
       alist.each do |item|
         next if node.role? item
         @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_chef_order, role_map[item])
+        node.add_to_run_list(item, local_cmdb_order, role_map[item])
         save_it = true
       end
 
@@ -847,7 +749,7 @@ class ServiceObject
         # Add the config role 
         unless node.role?(role.name)
           @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_chef_order, role_map[role.name])
+          node.add_to_run_list(role.name, local_cmdb_order, role_map[role.name])
           save_it = true
         end
       else
@@ -990,7 +892,7 @@ class ServiceObject
       return false 
     end
 
-    local_chef_order = ServiceObject.chef_order(barclamp)
+    local_cmdb_order = Barclamp.find_by_name(barclamp).cmdb_order
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
 
@@ -1014,12 +916,12 @@ class ServiceObject
 
     save_it = false
     unless node.role?(newrole)
-      node.add_to_run_list(newrole, local_chef_order, role_map[newrole])
+      node.add_to_run_list(newrole, local_cmdb_order, role_map[newrole])
       save_it = true
     end
 
     unless node.role?("#{barclamp}-config-#{instance}")
-      node.add_to_run_list("#{barclamp}-config-#{instance}", local_chef_order)
+      node.add_to_run_list("#{barclamp}-config-#{instance}", local_cmdb_order)
       save_it = true
     end
 

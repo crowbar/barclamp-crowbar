@@ -37,18 +37,6 @@ class Barclamp < ActiveRecord::Base
   has_many :members, :through=>:barclamp_members, :order => "[order], [name] ASC"
 
   #
-  # Helper Barclamp function to get a list of barclamps and descriptions.
-  #
-  def self.get_all_descriptions
-    bcs = find(:all)
-    ans = {}
-    bcs.each do |x|
-      ans[x.name] = x.description
-    end if bcs
-    ans
-  end
-
-  #
   # Helper function to load the service object
   #
   def operations(logger = nil)
@@ -136,12 +124,19 @@ class Barclamp < ActiveRecord::Base
       barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
 
-      element_order = json["deployment"][bc_name]["element_order"].flatten.uniq rescue []
-      element_order.each do |role|
-        states = json["deployment"][bc_name]["element_states"][role].join(",") rescue "all"
-        role = Role.create(:name => role, :states => states)
-        role.barclamp = barclamp
-        role.save!
+      element_order = json["deployment"][bc_name]["element_order"] rescue []
+      element_order.each_index do |role_array, index|
+        role_array.each do |role_name|
+          role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
+          unless role 
+            states = json["deployment"][bc_name]["element_states"][role_name].join(",") rescue "all"
+            role = Role.create(:name => role_name, :states => states)
+            role.barclamp = barclamp
+            role.save!
+          end
+          reo = RoleElementOrder.create(:order => index)
+          role.role_element_orders << reo
+        end
       end
 
       prop = Proposal.create(:name => "template", :status => "template")

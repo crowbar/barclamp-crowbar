@@ -41,11 +41,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     end
   end
 
-  test "Get All descriptions" do
-    descs = Barclamp.get_all_descriptions
-    assert_equal Barclamp.all.size, descs.size
-  end
-
   test "Unique Name" do
     e = assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "crowbar") }
     assert_equal "Validation failed: Name Name item must be unique", e.message

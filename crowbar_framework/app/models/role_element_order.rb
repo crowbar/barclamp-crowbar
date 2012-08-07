@@ -13,9 +13,8 @@
 # limitations under the License.
 #
 
-class Role < ActiveRecord::Base
-  attr_accessible :name, :states
-  belongs_to :barclamp
-  has_many :role_element_orders
+class RoleElementOrder < ActiveRecord::Base
+  attr_accessible :order
+  belongs_to :role
 end
 

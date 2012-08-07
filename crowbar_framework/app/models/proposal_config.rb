@@ -54,11 +54,25 @@ class ProposalConfig < ActiveRecord::Base
     phash["id"] = "bc-#{bc_name}-#{proposal.name}"
     phash["description"] = proposal.description
     phash["attributes"] = JSON::parse(config)
-    # GREG: Build deployment from node_roles and roles
     phash["deployment"] = {}
     phash["deployment"][bc_name] = {}
     phash["deployment"][bc_name]["config"] = {}
     phash["deployment"][bc_name]["config"]["environment"] = "#{bc_name}-config-#{proposal.name}"
+    phash["deployment"][bc_name]["config"]["mode"] = proposal.barclamp.mode
+    phash["deployment"][bc_name]["config"]["transitions"] = proposal.barclamp.transitions
+    phash["deployment"][bc_name]["config"]["transition_list"] = proposal.barclamp.transition_list.split(",")
+    phash["deployment"][bc_name]["element_order"] = []
+    phash["deployment"][bc_name]["element_states"] = {}
+    proposal.barclamps.roles.each do |role|
+      phash["deployment"][bc_name]["element_states"][role.name] = role.states.split(",")
+      role.role_element_orders.each do |index|
+        phash["deployment"][bc_name]["element_order"][index] = [] unless phash["deployment"][bc_name]["element_order"][index]
+        phash["deployment"][bc_name]["element_order"][index] << role.name
+      end
+    end
+
+    # GREG: Build deployment from node_roles and roles
+    phash["deployment"][bc_name]["elements"] = {}
 
     phash
   end

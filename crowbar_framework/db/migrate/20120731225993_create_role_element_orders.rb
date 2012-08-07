@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Role < ActiveRecord::Base
-  attr_accessible :name, :states
-  belongs_to :barclamp
-  has_many :role_element_orders
+class CreateRoleElementOrders < ActiveRecord::Migration
+  def change
+    create_table :role_element_orders do |t|
+      t.integer :order
+      t.belongs_to :role
+      t.timestamps
+    end
+  end
 end
-

@@ -19,4 +19,5 @@ class CmdbAttribute < ActiveRecord::Base
   belongs_to :cmdb_map
   belongs_to :node_attribute
 
+  # renamed
 end

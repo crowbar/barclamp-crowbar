@@ -174,12 +174,20 @@ case "$1" in
 	echo -n "Starting $PROGNAME "
 	## Start daemon with startproc(8). If this fails
 	## the return value is set appropriately by startproc.
-	
-	# Note: while $RAINBOWS_BIN works here, it doesn't work
-	# when using killproc - just have to use 'rainbows' unqualified
-	# there for some reason
-	/sbin/start_daemon -u crowbar -g crowbar -p $PID_FILE \
-		$RAINBOWS_BIN -E production -c $RAINBOWS_CONFIG -D
+
+	# For some reason, start_daemon doesn't find running processes
+	# (presumably this is due to the $RAINBOWS_BIN vs. unqualified
+	# 'rainbows' when checking status), so we have to do a manual
+	# status check first, before trying to start the daemon (*sigh*)
+	$0 status >/dev/null
+	if test $? -ne 0; then
+		rc_reset
+		# Note: while $RAINBOWS_BIN works here, it doesn't work
+		# when using killproc - just have to use 'rainbows' unqualified
+		# there for some reason
+		/sbin/start_daemon -u crowbar -g crowbar -p $PID_FILE \
+			$RAINBOWS_BIN -E production -c $RAINBOWS_CONFIG -D
+	fi
 	# Remember status and be verbose
 	rc_status -v
 	;;

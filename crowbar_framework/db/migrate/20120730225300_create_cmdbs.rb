@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +16,11 @@ class CreateCmdbs < ActiveRecord::Migration
   def change
     create_table :cmdbs do |t|
       t.string :name
-      t.string :description
-      t.string :order
-      t.string :connect
-      t.string :disposition
-      t.string :executor
-      t.string :initializer
-      t.string :type
-
-      t.references :proposal_config
-
+      t.string :description, :null=>true
+      t.integer :order, :default=>10000
       t.timestamps
     end
+    #natural key
+    add_index(:cmdbs, :name, :unique => true)   
   end
 end

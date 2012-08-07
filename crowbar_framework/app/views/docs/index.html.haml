@@ -9,8 +9,10 @@
       - book.children.each do |topic|
         %li{:title=>t('details', :scope=>'docs', :date=>topic.date, :author=>topic.author, :license=>topic.license)}
           = link_to topic.description, docs_topic_path(:id=>topic.name)
+          - if topic.children.size > 0 and topic.children.size < 4
+            = "(#{topic.children.size})"
           = "(n=#{topic.name} p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
-          - if topic.children.length > 0
+          - if params.has_key? 'expand' and topic.children.size > 0 
             %div.book_section
               %ul
                 - topic.children.each do |section|

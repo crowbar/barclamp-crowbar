@@ -22,4 +22,5 @@ class Proposal < ActiveRecord::Base
   attr_accessible :name, :status, :last_applied_rev
   belongs_to :barclamp
   has_many  :proposal_config, :inverse_of => :proposal
+    
 end

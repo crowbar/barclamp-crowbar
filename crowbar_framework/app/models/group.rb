@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodes < ActiveRecord::Migration
-  def change
-    create_table :nodes do |t|
-      t.string :name
-      t.string :description, :null=>true
-      t.integer :order, :default=>10000
-      t.timestamps
-    end
-    #natural key
-    add_index(:nodes, :name, :unique => true)   
-  end
+
+class Group < ActiveRecord::Base
+  
+  attr_accessible :name, :description, :category, :order
+
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  validates_inclusion_of :category, :in => %w( ui ), :message => "Group Model Validation Error: type %s is not an allowed category"
+
+  has_many :node_groups
+  has_many :nodes, :through => :node_groups, :order=>"[order], [name] ASC"
+
 end
+

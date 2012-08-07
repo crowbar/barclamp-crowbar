@@ -64,7 +64,7 @@ en:
       proposals: Proposals
       configs: Proposal Configs
       menus: Menu Items
-      docs: Documentation Topics
+      docs: Doc Topics
     
     error: Render Error
 
@@ -431,5 +431,7 @@ en:
     building: Building
     
   db:
-    notunique: Name item must be unique
+    notunique: "Item must be unique"
+    lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
+    fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
 

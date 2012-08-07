@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateBarclampDependencies < ActiveRecord::Migration
-  def change
-    create_table :barclamp_dependencies, :id=>false do |t|
-      t.integer  :prereq_id
-      t.integer  :barclamp_id
-    end
-  end
+class CmdbMap < ActiveRecord::Base
+  attr_accessible :name, :description, :order, :map, :revision
+  
+  belongs_to :barclamp
+
+  has_many :cmdb_runs
+  has_many :cmdb_attributes
+
 end

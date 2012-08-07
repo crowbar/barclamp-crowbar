@@ -27,6 +27,7 @@ Crowbar::Application.routes.draw do
     resources :interfaces do as_routes end
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
+    resources :cmdb_attributes do as_routes end
   end
 
   resources :nodes, :only => [:index, :new] do

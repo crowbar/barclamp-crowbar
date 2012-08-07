@@ -89,8 +89,9 @@ debs:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main
   build_pkgs:
-    - ruby1.8-dev
-    - rubygems1.8
+#    - ruby1.8-dev
+#    - rubygems1.8
+    - ruby1.9.1-dev
     - build-essential
     - libsqlite3-dev
     - dpkg-dev
@@ -146,6 +147,8 @@ debs:
     # ruby stuff
     - ruby1.8
     - ruby1.8-dev
+    - ruby1.9.1
+    - ruby1.9.1-dev 
     - ruby-dev
     - rubygems
     - rubygems1.8
@@ -348,3 +351,4 @@ gems:
     - delayed_job_active_record
     - daemons
     - active_scaffold
+#    - factory_girl_rails

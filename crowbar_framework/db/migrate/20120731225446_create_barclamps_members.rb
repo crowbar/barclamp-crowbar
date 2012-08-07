@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
+class CreateBarclampsMembers < ActiveRecord::Migration
   def change
-    create_table :cmdb_runs do |t|
-      t.string :name
-      t.string :description
-      t.string :order
-
-      t.references :cmdb
-      t.references :cmdb_map
-
-      t.timestamps
+    create_table :barclamp_members, :id=>false do |t|
+      t.belongs_to  :barclamp
+      t.belongs_to  :member
     end
+    #natural key
+    add_index(:barclamp_members, [:barclamp_id, :member_id], :unique => true)   
   end
 end

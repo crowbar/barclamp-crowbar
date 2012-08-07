@@ -26,6 +26,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'scaffold_configs', :parent_item=>'scaffold', :name=>'nav.scaffold.configs', :path=>"scaffolds_proposal_configs_path", :order=>3500, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_docs', :parent_item=>'scaffold', :name=>'nav.scaffold.docs', :path=>"scaffolds_docs_path", :order=>5500, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_cmdb_attributes', :parent_item=>'scaffold', :name=>'nav.scaffold.cmdb_attributes', :path=>"scaffolds_cmdb_attributes_path", :order=>5600, :development=>true
 
   end
 
@@ -37,6 +38,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.delete(Nav.find_by_item 'scaffold_configs')
     Nav.delete(Nav.find_by_item 'scaffold_nav')
     Nav.delete(Nav.find_by_item 'scaffold_docs')
+    Nav.delete(Nav.find_by_item 'scaffold_cmdb_attributes')
     Nav.delete(Nav.find_by_item 'scaffold')
   end
 end

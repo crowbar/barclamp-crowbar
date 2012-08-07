@@ -29,11 +29,6 @@ class ServiceObject
     @logger = thelogger
   end
 
-  # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
-  def self.allow_multiple_proposals?
-    false
-  end
-  
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end

@@ -148,7 +148,6 @@ class CrowbarService < ServiceObject
     @logger.debug("Crowbar apply_role: create initial instances")
     unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
       ordered_bcs = order_instances role["crowbar"]["instances"]
-#      role["crowbar"]["instances"].each do |k,plist|
       ordered_bcs.each do |k, plist |
         @logger.fatal("Deploying proposals - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|

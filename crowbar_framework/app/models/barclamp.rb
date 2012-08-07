@@ -17,7 +17,7 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
-  attr_accessible :template
+  attr_accessible :template, :allow_multiple_proposals
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
@@ -43,6 +43,10 @@ class Barclamp < ActiveRecord::Base
     @service = eval("#{name.camelize}Service.new logger") unless @service
     @service.bc_name = name
     @service
+  end
+
+  def allow_multiple_proposals?
+    return allow_multiple_proposals
   end
 
   #
@@ -76,13 +80,19 @@ class Barclamp < ActiveRecord::Base
     throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
     bc = YAML.load_file bc_file
     throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
+    # Can't do the || trick booleans because nil is false.
+    amp = bc['barclamp']['allow_multiple_proposals']
+    amp = false if amp.nil?
+    um = bc['barclamp']['user_managed']
+    um = true if um.nil?
     barclamp = Barclamp.create(
         :name        => bc_name,
         :display     => bc['barclamp']['display'] || bc_name.humanize,
         :description => bc['barclamp']['description'] || bc_name.humanize,
         :online_help => bc['barclamp']['online_help'],
         :version     => bc['barclamp']['version'] || 2,
-        :user_managed=> bc['barclamp']['user_managed'] || true,
+        :user_managed=> um,
+        :allow_multiple_proposals => amp,
         
         :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
         :layout      => bc['crowbar']['layout'] || 2,

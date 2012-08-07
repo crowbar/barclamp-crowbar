@@ -65,7 +65,8 @@ class ProposalConfig < ActiveRecord::Base
     phash["deployment"][bc_name]["element_states"] = {}
     proposal.barclamp.roles.each do |role|
       phash["deployment"][bc_name]["element_states"][role.name] = role.states.split(",")
-      role.role_element_orders.each do |index|
+      role.role_element_orders.each do |roe|
+        index = roe.order
         phash["deployment"][bc_name]["element_order"][index] = [] unless phash["deployment"][bc_name]["element_order"][index]
         phash["deployment"][bc_name]["element_order"][index] << role.name
       end

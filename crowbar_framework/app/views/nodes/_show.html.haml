@@ -22,7 +22,7 @@
 
 .column_50.last
   %dl
-    = dl_item(t('model.attributes.node.description'), @node.description || (I18n.t :not_set))
+    = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
     = dl_item(t('model.attributes.node.hardware'), @node.hardware)
     = dl_item(t('model.attributes.node.cpu'), @node.cpu)
     = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
@@ -54,5 +54,6 @@
   - unless @node.admin?
     %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_hw_update'), :title => t('.hw_update_tooltip')
     %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
-    %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
+    - if @node.allocated?
+      %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
     %li= link_to "Forget", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_forget'), :title => t('.forget_tooltip')

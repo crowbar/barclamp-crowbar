@@ -152,11 +152,11 @@ class CrowbarService < ServiceObject
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
       ordered_bcs.each do |k, plist |
-        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+        @logger.fatal("Deploying proposals - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
-          id = "default"
-          data = "{\"id\":\"#{id}\"}" 
-          @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
+          prop_id = "default"
+          data = "{\"id\":\"#{prop_id}\"}" 
+          @logger.fatal("Deploying proposal - id: #{prop_id}, name: #{v.inspect}")
 
           if v != "default"
             file = File.open(v, "r")
@@ -164,35 +164,35 @@ class CrowbarService < ServiceObject
             file.close
 
             struct = JSON.parse(data)
-            id = struct["id"].gsub("bc-#{k}-", "")
+            prop_id = struct["id"].gsub("bc-#{k}-", "")
           end
 
-          @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
+          @logger.debug("Crowbar apply_role: creating #{k}.#{prop_id}")
 
           # Create a service to talk to.
           barclamp = Barclamp.find_by_name(k)
 
-          @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{id}")
-          prop = barclamp.get_proposal(id)
+          @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{prop_id}")
+          prop = barclamp.get_proposal(prop_id)
           unless prop
-            @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
+            @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{prop_id}")
             answer = barclamp.operations(@logger).proposal_create JSON.parse(data)
             if answer[0] != 200
-              @logger.error("Failed to create #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+              @logger.error("Failed to create #{k}.#{prop_id}: #{answer[0]} : #{answer[1]}")
             end
           end
  
-          @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
-          prop = barclamp.get_proposal(id)
+          @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{prop_id}")
+          prop = barclamp.get_proposal(prop_id)
           unless prop.active?
-            @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
-            answer = barclamp.operations(@logger).proposal_commit id
+            @logger.debug("Crowbar apply_role: #{k}.#{prop_id} wasn't active: Activating")
+            answer = barclamp.operations(@logger).proposal_commit prop_id
             if answer[0] != 200
-              @logger.error("Failed to commit #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+              @logger.error("Failed to commit #{k}.#{prop_id}: #{answer[0]} : #{answer[1]}")
             end
           end
 
-          @logger.fatal("Crowbar apply_role: Done with creating: #{k}.#{id}")
+          @logger.fatal("Crowbar apply_role: Done with creating: #{k}.#{prop_id}")
         end
       end
     end

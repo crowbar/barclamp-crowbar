@@ -21,7 +21,6 @@ class CreateProposals < ActiveRecord::Migration
       t.references  :barclamp
       t.string      :name
       t.string      :description
-      t.integer     :status
       t.integer     :last_applied_rev
       t.references  :active_config
       t.references  :current_config

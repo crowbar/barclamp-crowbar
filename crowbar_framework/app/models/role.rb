@@ -14,7 +14,8 @@
 #
 
 class Role < ActiveRecord::Base
-  attr_accessible :name
+  attr_accessible :name, :states
   belongs_to :barclamp
+  has_many :role_element_orders
 end
 

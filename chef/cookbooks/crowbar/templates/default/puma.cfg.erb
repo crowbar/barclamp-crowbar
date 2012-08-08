@@ -1,0 +1,6 @@
+
+bind("tcp://<%= @web_host%>:<%= @web_port %>")
+pidfile("/var/run/crowbar/crowbar.pid")
+rackup("config.ru")
+environment("<%= @environment %>")
+

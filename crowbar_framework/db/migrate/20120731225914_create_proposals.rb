@@ -20,8 +20,10 @@ class CreateProposals < ActiveRecord::Migration
     create_table :proposals do |t|
       t.references  :barclamp
       t.string      :name
-      t.integer     :status
+      t.string      :description
       t.integer     :last_applied_rev
+      t.references  :active_config
+      t.references  :current_config
       t.timestamps
     end
   end

@@ -15,7 +15,7 @@
 
 class Node < ActiveRecord::Base
   
-  attr_accessible :name, :description, :order
+  attr_accessible :name, :description, :order, :state
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")

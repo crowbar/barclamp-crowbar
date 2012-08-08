@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateProposalConfigsProposals < ActiveRecord::Migration
+class CreateRoleElementOrders < ActiveRecord::Migration
   def change
-    create_table :proposal_configs_proposals do |t|
-      t.references    :proposal
-      t.references    :proposal_config
+    create_table :role_element_orders do |t|
+      t.integer :order
+      t.belongs_to :role
+      t.timestamps
     end
   end
 end

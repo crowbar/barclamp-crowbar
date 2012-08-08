@@ -2,6 +2,6 @@
   - @role.default_attributes[@role.barclamp].sort.each do |key, value|
     %tr{:class => cycle("odd", "even")}
       %td
-        %em= t ".#{key}", :default => key + ":&nbsp;&nbsp;&nbsp;"
-      %td= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value)
+        %em= t ".#{key}", :default => "#{key}:&nbsp;&nbsp;&nbsp;".html_safe
+      %td= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value).to_s.html_safe # have to to_s in case non-string returned
 .clear

@@ -15,9 +15,8 @@
 class CreateProposalConfigs < ActiveRecord::Migration
   def change
     create_table :proposal_configs do |t|
-      t.boolean        :applied, :default => false     
-      t.boolean        :failed, :default => false
       t.string         :failed_reason
+      t.string         :status, :default => 0
       t.text           :config
       t.integer        :revision
       t.belongs_to     :proposal

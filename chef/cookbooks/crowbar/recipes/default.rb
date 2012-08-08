@@ -212,7 +212,7 @@ if node[:platform] != "suse"
   bluepill_service "crowbar-webserver" do
     variables(:processes => [ {
                                 "name" => "puma",
-                                "start_command" => "puma -e production -C puma.cfg",
+                                "start_command" => "puma -C puma.cfg",
                                 "stdout" => "/dev/null",
                                 "stderr" => "/dev/null",
                                 "working_dir" => "/opt/dell/crowbar_framework",

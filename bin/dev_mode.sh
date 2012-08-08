@@ -17,7 +17,7 @@
 # clean up
 bluepill crowbar-webserver stop
 service crowbar stop
-pidof rainbows
+pidof puma
 
 # start dev version of the server
 export RAILS_ENV=development
@@ -26,7 +26,7 @@ cd /opt/dell/crowbar_framework/
 chmod 777 -R .
 rake db:create
 rake db:migrate
-rails s
+rails s Puma
 
 
 

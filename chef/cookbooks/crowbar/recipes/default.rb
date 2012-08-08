@@ -22,18 +22,15 @@ if node[:platform] != "suse"
 end
 
 pkglist=()
-rainbows_path=""
 case node[:platform]
 when "ubuntu","debian"
   pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown vim}
-  rainbows_path="/var/lib/gems/1.8/bin/"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown vim}
-  rainbows_path=""
 when "suse"
   pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
       rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
-      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
+      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-puma 
       rubygem-ruby-shadow  vim}
 end
 
@@ -191,39 +188,31 @@ cookbook_file "/opt/dell/crowbar_framework/config.ru" do
   mode "0644"
 end
 
-template "/opt/dell/crowbar_framework/rainbows.cfg" do
-  source "rainbows.cfg.erb"
+template "/opt/dell/crowbar_framework/puma.cfg" do
+  source "puma.cfg.erb"
   owner "crowbar"
   group "crowbar"
   mode "0644"
   variables(:web_host => "0.0.0.0", 
             :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/production.log",
-            :app_location => "/opt/dell/crowbar_framework")
+            :environment => "production")
 end
 
-template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
-  source "rainbows.cfg.erb"
+template "/opt/dell/crowbar_framework/puma-dev.cfg" do
+  source "puma.cfg.erb"
   owner "crowbar"
   group "crowbar"
   mode "0644"
   variables(:web_host => "0.0.0.0", 
             :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/development.log",
-            :app_location => "/opt/dell/crowbar_framework")
+            :environment => "development")
 end
 
 if node[:platform] != "suse"
   bluepill_service "crowbar-webserver" do
     variables(:processes => [ {
-                                "name" => "rainbows",
-                                "start_command" => "rainbows -E production -c rainbows.cfg",
+                                "name" => "puma",
+                                "start_command" => "puma -e production -C puma.cfg",
                                 "stdout" => "/dev/null",
                                 "stderr" => "/dev/null",
                                 "working_dir" => "/opt/dell/crowbar_framework",

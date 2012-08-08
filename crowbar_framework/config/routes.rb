@@ -30,6 +30,8 @@ Crowbar::Application.routes.draw do
     resources :cmdb_attributes do as_routes end
   end
 
+  devise_for :users
+
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end

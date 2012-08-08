@@ -311,7 +311,6 @@ gems:
     - bundler
     - builder
     - activesupport
-    - rainbows
     - sendfile
     - sqlite3-ruby
     - rdoc
@@ -351,5 +350,6 @@ gems:
     - amqp
     - delayed_job_active_record
     - daemons
+    - puma
     - active_scaffold
 #    - factory_girl_rails

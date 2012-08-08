@@ -21,7 +21,6 @@ require 'chef'
 require 'json'
 
 class ServiceObject
-
   extend CrowbarOffline
 
   def initialize(thelogger)
@@ -29,11 +28,6 @@ class ServiceObject
     @logger = thelogger
   end
 
-  # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
-  def self.allow_multiple_proposals?
-    false
-  end
-  
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end
@@ -403,16 +397,17 @@ class ServiceObject
     end
   end
 
-#
-# update proposal status information
-#
+  #
+  # update proposal status information
+  #
   def update_proposal_status(inst, status, message, bc = @bc_name)
     @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
 
-    prop = ProposalObject.find_proposal(bc, inst)
-    unless prop.nil?
-      prop["deployment"][bc]["crowbar-status"] = status
-      prop["deployment"][bc]["crowbar-failed"] = message
+    bc_id = Barclamp.find_by_name(bc)
+    prop = Proposal.find_by_name_and_barclamp_id(inst, bc_id)
+    if prop and prop.active?
+      prop.active_config.status = status
+      prop.active_config.failed_reason = message
       res = prop.save
     else
       res = true
@@ -438,13 +433,15 @@ class ServiceObject
     [200, {}]
   end
 
-  def destroy_active(inst)
-    inst = "#{@bc_name}-config-#{inst}"
-    @logger.debug "Trying to deactivate role #{inst}" 
-    role = RoleObject.find_role_by_name(inst)
-    if role.nil?
+  def destroy_active(prop_name)
+    @logger.debug "Trying to deactivate role #{prop_name}" 
+    prop = Proposal.find_by_name_and_barclamp_id(inst, barclamp.id)
+    if prop.nil? or not prop.active?
       [404, {}]
     else
+      # CHEF CODE HERE
+      inst = "#{@bc_name}-config-#{prop_name}"
+      role = RoleObject.find_role_by_name(inst)
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes
       dep[@bc_name]["elements"] = {}      
@@ -453,7 +450,14 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
       answer = apply_role(role, inst, false)
+
+      # CHEF: Actual undo
       role.destroy
+
+      # Clear the active config
+      prop.active_config = nil
+      prop.save!
+
       answer
     end
   end
@@ -492,7 +496,7 @@ class ServiceObject
 
   def proposal_delete(inst)
     prop = @barclamp.get_proposal(inst)
-    if prop.nil?
+    if prop.nil? or prop.active?
       [404, {}]
     else
       @barclamp.delete_proposal(prop)

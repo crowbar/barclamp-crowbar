@@ -49,6 +49,6 @@ case $1 in
 	echo "Done";;
     stop) bluepill crowbar-webserver stop;;
     status) bluepill crowbar-webserver status;;
-    restart) killall -HUP rainbows;;
+    restart) killall -HUP puma;;
     *) echo "Unknown action $1";;
 esac

@@ -28,6 +28,7 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string :commit,       :null=>true
       t.date :build_on,       :null=>true
       t.boolean :user_managed, :default=>true
+      t.boolean :allow_multiple_proposals, :default=>false
       t.string :mode,         :default=>"full"
       t.boolean :transitions,    :default=>false
       t.string :transition_list, :default=>"all"

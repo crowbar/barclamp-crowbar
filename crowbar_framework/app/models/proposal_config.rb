@@ -17,17 +17,26 @@
 #  configuration details for a given proposals.
 #  proposal 
 class ProposalConfig < ActiveRecord::Base
-  attr_accessible :config, :reversion, :applied, :failed, :failed_reason
+  STATUS_NONE    = 1
+  STATUS_QUEUED  = 2
+  STATUS_FAILED  = 3
+  STATUS_APPLIED = 4
+
+  attr_accessible :config, :reversion, :status, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
   has_many        :node_role
   has_many        :node, :through => :node_role
 
   def failed?
-    failed
+    status == STATUS_FAILED
   end
 
   def applied?
-    applied
+    status == STATUS_APPLIED
+  end
+
+  def queued?
+    status == STATUS_QUEUED
   end
 
   def config_hash

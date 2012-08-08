@@ -149,7 +149,7 @@ class Barclamp < ActiveRecord::Base
         end
       end
 
-      prop = Proposal.create(:name => "template", :status => "template")
+      prop = Proposal.create(:name => "template", :description => "template")
       prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
       prop_config.proposal = prop
       prop_config.save!

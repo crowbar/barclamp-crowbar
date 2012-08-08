@@ -22,9 +22,9 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string :online_help,  :null=>true
       t.integer :proposal_schema_version, :default=>2
       t.integer :layout,      :default=>2
-      t.integer :order,       :default=>0
-      t.integer :run_order,   :default=>0
-      t.integer :cmdb_order,  :default=>0
+      t.integer :order,       :default=>9999
+      t.integer :run_order,   :default=>1000
+      t.integer :cmdb_order,  :default=>1000
       t.string :commit,       :null=>true
       t.date :build_on,       :null=>true
       t.boolean :user_managed, :default=>true

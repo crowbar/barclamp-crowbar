@@ -72,10 +72,10 @@ class CrowbarService < ServiceObject
       # If we are discovering the node and it is an admin, 
       # make sure that we add the crowbar config
       #
-      if state == "discovering" and node.admin?
-        crole = RoleObject.find_role_by_name("crowbar-config-#{inst}")
-        db = ProposalObject.find_proposal("crowbar", inst)
-        add_role_to_instance_and_node("crowbar", inst, name, db, crole, "crowbar")
+      if state == "discovering" and node.is_admin?
+        add_role_to_instance_and_node(name, 
+                                      Barclamp.find_by_name("crowbar").get_proposal(inst), 
+                                      "crowbar")
       end
 
       run_order_hash = {}
@@ -139,15 +139,15 @@ class CrowbarService < ServiceObject
     base
   end
 
-  def apply_role (role, inst, in_queue)
+  def apply_role (role, in_queue)
     @logger.debug("Crowbar apply_role: enter")
-    answer = super
+    answer = super(role, in_queue)
     @logger.debug("Crowbar apply_role: super apply_role finished")
 
-    role = role.default_attributes
+    role = role.active_config.config_hash
     @logger.debug("Crowbar apply_role: create initial instances")
-    unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
-      ordered_bcs = order_instances role["crowbar"]["instances"]
+    unless role.nil? or role["instances"].nil?
+      ordered_bcs = order_instances role["instances"]
       ordered_bcs.each do |k, plist |
         @logger.fatal("Deploying proposals - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
@@ -214,13 +214,14 @@ class CrowbarService < ServiceObject
 
   def self.read_options
     # read in default proposal, to make some vaules avilable
-    proposals = ProposalObject.find_proposals("crowbar")
-    raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
+    proposals = Barclamp.find_by_name("crowbar").get_proposal('default')
+    raise "Can't find any crowbar proposal" if proposals.nil?
     # populate options from attributes/crowbar/*-settings
     options = { :raid=>{}, :bios=>{}, :show=>[] }
-    unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
-      options[:raid] = proposals[0]["attributes"]["crowbar"]["raid-settings"]
-      options[:bios] = proposals[0]["attributes"]["crowbar"]["bios-settings"]
+    hash = proposals.current_config.config_hash
+    if hash
+      options[:raid] = hash["raid-settings"]
+      options[:bios] = hash["bios-settings"]
       options[:show] << :raid if options[:raid].length > 0
       options[:show] << :bios if options[:bios].length > 0
     end

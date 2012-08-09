@@ -13,14 +13,10 @@
 # limitations under the License.
 #
 
-class CreateNodeRoles < ActiveRecord::Migration
-  def change
-    create_table :node_roles do |t|
-      t.string       :config
-      t.belongs_to   :role
-      t.belongs_to   :node
-      t.belongs_to   :proposal_config
-      t.timestamps
-    end
-  end
+class ProposalQueueItem < ActiveRecord::Base
+  attr_accessible :position, :queue_reason
+
+  belongs_to :proposal_queue
+  belongs_to :proposal_config
 end
+

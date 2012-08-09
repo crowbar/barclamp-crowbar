@@ -19,6 +19,8 @@ class CreateNodes < ActiveRecord::Migration
       t.string  :description, :null=>true
       t.string  :state, :null=>true
       t.integer :order, :default=>10000
+      t.boolean :admin, :default=>false
+      t.boolean :allocated, :default=>false
       t.timestamps
     end
     #natural key

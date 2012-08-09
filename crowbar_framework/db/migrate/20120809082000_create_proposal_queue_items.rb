@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodeRolesProposalConfigs < ActiveRecord::Migration
+class CreateProposalQueueItem < ActiveRecord::Migration
   def change
-    create_table :node_roles_proposal_configs do |t|
-      t.references    :node_role
-      t.references    :proposal_config
+    create_table :proposal_queue_items do |t|
+      t.integer    :position
+      t.string     :queue_reason
+      t.belongs_to :proposal_queue
+      t.belongs_to :proposal_config
+      t.timestamps
     end
   end
 end

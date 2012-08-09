@@ -20,7 +20,11 @@
 
 class Proposal < ActiveRecord::Base
   attr_accessible :name, :status, :last_applied_rev
+
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
   belongs_to :barclamp
   has_many  :proposal_config, :inverse_of => :proposal
+
     
 end

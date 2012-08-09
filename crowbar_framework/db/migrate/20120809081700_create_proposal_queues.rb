@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateProposalQueue < ActiveRecord::Migration
+class CreateProposalQueues < ActiveRecord::Migration
   def change
     create_table :proposal_queues do |t|
       t.string  :name

@@ -124,7 +124,7 @@ class ServiceObject
     elems = params["deployment"][@bc_name]["elements"] rescue nil
     new_prop.current_config.update_node_roles(elems) if elems
 
-    raw_data = proposal.current_config.to_proposal_object_hash
+    raw_data = new_prop.current_config.to_proposal_object_hash
     validate_proposal raw_data
 
     # Write out proposal object.

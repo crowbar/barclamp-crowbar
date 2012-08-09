@@ -26,8 +26,8 @@ class ProposalConfig < ActiveRecord::Base
   attr_accessible :config, :reversion, :status, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
   has_many        :node_roles
-  has_many        :nodes, :through => :node_role
-  has_many        :roles, :through => :node_role
+  has_many        :nodes, :through => :node_roles
+  has_many        :roles, :through => :node_roles
 
   def failed?
     status == STATUS_FAILED

@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class Cmdb < ActiveRecord::Base
+class CreateOsPackages < ActiveRecord::Migration
+  def change
+    create_table :os_packages do |t|
+      t.string      :name,  :unique=>true
+      t.string      :description, :null=>true
+      t.integer     :order, :default=>10000
+      t.has_one     :os
+    end
+  end
   
-  attr_accessible :name, :description, :order
-  
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
-  has_many :cmdb_runs
-
 end

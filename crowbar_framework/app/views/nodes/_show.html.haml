@@ -22,7 +22,7 @@
 
 .column_50.last
   %dl
-    = dl_item(t('model.attributes.node.description'), @node.description || (I18n.t :not_set))
+    = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
     = dl_item(t('model.attributes.node.hardware'), @node.hardware)
     = dl_item(t('model.attributes.node.cpu'), @node.cpu)
     = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))

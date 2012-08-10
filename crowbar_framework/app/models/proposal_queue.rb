@@ -146,7 +146,7 @@ class ProposalQueue < ActiveRecord::Base
 
       # Make sure the deps if we aren't being queued.
       delay = []
-      deps = prop_config.prop.barclamp.operations(@logger).proposal_dependencies(prop_config)
+      deps = prop_config.proposal.barclamp.operations(@logger).proposal_dependencies(prop_config)
       deps.each do |dep|
         prop = Proposal.find_by_name_and_barclamp_id(dep["inst"], Barclamp.find_by_name(dep["barclamp"].id))
 
@@ -175,7 +175,7 @@ class ProposalQueue < ActiveRecord::Base
       release_lock f
     end
 
-    update_proposal_status(prop_config.prop.name, ProposalConfig::STATUS_QUEUED, "", prop_config.prop.barclamp.name)
+    update_proposal_status(prop_config.proposal.name, ProposalConfig::STATUS_QUEUED, "", prop_config.proposal.barclamp.name)
     @logger.debug("queue proposal: exit #{inst} #{bc}")
     delay
   end
@@ -183,8 +183,8 @@ class ProposalQueue < ActiveRecord::Base
   def dequeue_proposal_no_lock(item)
     @logger.debug("dequeue_proposal_no_lock: enter #{item}")
     begin
-      update_proposal_status(item.proposal_config.prop.name, ProposalConfig::STATUS_NONE, "", 
-                             item.proposal_config.prop.barclamp.name)
+      update_proposal_status(item.proposal_config.proposal.name, ProposalConfig::STATUS_NONE, "", 
+                             item.proposal_config.proposal.barclamp.name)
       item.destroy
     rescue Exception => e
       @logger.error("Error dequeuing proposal for #{item}: #{e.message} #{e.backtrace}")
@@ -246,7 +246,7 @@ class ProposalQueue < ActiveRecord::Base
 
           # Make sure the deps if we aren't being queued.
           delay = []
-          deps = prop_config.prop.barclamp.operations(@logger).proposal_dependencies(prop_config)
+          deps = prop_config.proposal.barclamp.operations(@logger).proposal_dependencies(prop_config)
           deps.each do |dep|
             prop = Proposal.find_by_name_and_barclamp_id(dep["inst"], Barclamp.find_by_name(dep["barclamp"].id))
 
@@ -283,7 +283,7 @@ class ProposalQueue < ActiveRecord::Base
       # For each ready item, apply it.
       list.each do |item|
         @logger.debug("process queue: item to do: #{item.inspect}")
-        answer = item.prop_config.prop.barclamp.operations(@logger).proposal_commit(prop_config.prop.name, true)
+        answer = item.prop_config.proposal.barclamp.operations(@logger).proposal_commit(prop_config.proposal.name, true)
         @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
         loop_again = true if answer[0] != 202
       end

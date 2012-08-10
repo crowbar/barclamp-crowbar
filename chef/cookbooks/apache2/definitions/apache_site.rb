@@ -37,5 +37,12 @@ define :apache_site, :enable => true do
         only_if do ::File.symlink?("#{node[:apache][:dir]}/sites-enabled/#{params[:name]}") end
       end
     end
+  else # in case node.platform == "suse"
+    if not params[:enable] then
+      execute "disabling site #{params[:name]}" do
+        command "rm -f #{node[:apache][:dir]}/vhosts.d/#{params[:name]}"
+        notifies :reload, resources(:service => "apache2")
+      end
+    end
   end
 end

@@ -29,11 +29,12 @@ gem 'simple-navigation'
 gem 'syslogger'
 gem 'kwalify'
 gem 'chef', '~>10.8'
-gem 'rainbows'
+gem 'puma'
 gem 'amqp'
 gem 'delayed_job_active_record'
 gem 'daemons'
 gem 'active_scaffold'
+gem 'devise'
 
 # Gems used only for assets and not required
 # in production environments by default.

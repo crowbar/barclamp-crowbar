@@ -29,6 +29,8 @@ barclamp:
   # controlls if barclamp is shown in UI list (true=yes)
   user_managed: true
   version: 0
+  # Should crowbar allow multiple proposals created?
+  allow_multiple_proposals: false
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
   # All barclamps implicitly rely on the crowbar barclamp.

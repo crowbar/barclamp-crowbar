@@ -19,12 +19,33 @@
 # 
 
 class Proposal < ActiveRecord::Base
-  attr_accessible :name, :status, :last_applied_rev
+  attr_accessible :name, :status, :last_applied_rev, :description
 
   validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to :barclamp
   has_many  :proposal_config, :inverse_of => :proposal
 
-    
+  belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
+  belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
+
+  def active?
+    active_config != nil
+  end
+
+  def deep_clone
+    new_prop = self.dup
+    new_prop.save!
+
+    proposal_configs.each do |x| 
+      new_x = x.deep_clone
+      new_x.save!
+      new_prop.proposal_configs << new_x
+      new_prop.active_config = new_x if x == active_config
+      new_prop.current_config = new_x if x == current_config
+    end
+
+    new_prop
+  end
+
 end

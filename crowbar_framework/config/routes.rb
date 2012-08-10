@@ -44,7 +44,7 @@ Crowbar::Application.routes.draw do
   end
 
   scope 'network' do
-    version = "1.0"
+    version = "2.0"
     get '/', :controller => 'network', :action=>'switch', :as => :network
     get 'switch(/:id)', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
     get 'vlan(/:id)', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
@@ -52,7 +52,7 @@ Crowbar::Application.routes.draw do
   end
 
   scope 'utils' do
-    version = "1.0"
+    version = "2.0"
     get '/', :controller=>'support', :action=>'index', :as => :utils
     get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
     get 'chef', :controller=>'support', :action=>'export_chef', :as => :export_chef
@@ -67,6 +67,18 @@ Crowbar::Application.routes.draw do
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
   scope 'nodes' do
     version = "1.0"
+    get 'status(.:format)' => "nodes#status", :as => :nodes_status
+    get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
+    get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
+    post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
+    get ":controller/#{version}", :action => 'nodes', :as => :nodes_barclamp
+    constraints(:name => /.*/ ) do
+      match ':name/hit/:req' => "nodes#hit", :as => :hit_node
+      match ':name/edit' => "nodes#edit", :as => :edit_node
+      match ':name/update' => 'nodes#update', :as => :update_node
+      match ':name' => "nodes#show", :as => :node
+    end
+    version = "2.0"
     get 'status(.:format)' => "nodes#status", :as => :nodes_status
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
     get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families

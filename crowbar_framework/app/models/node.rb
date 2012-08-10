@@ -27,6 +27,8 @@ class Node < ActiveRecord::Base
     admin
   end
   
+  has_one :os
+  
   # Rob's list of CMDB attributes needed by the UI
     #alias
     #name

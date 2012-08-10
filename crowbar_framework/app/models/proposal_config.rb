@@ -136,6 +136,7 @@ class ProposalConfig < ActiveRecord::Base
     phash["deployment"][bc_name]["config"]["mode"] = proposal.barclamp.mode
     phash["deployment"][bc_name]["config"]["transitions"] = proposal.barclamp.transitions
     phash["deployment"][bc_name]["config"]["transition_list"] = proposal.barclamp.transition_list.split(",")
+    phash["deployment"][bc_name]["crowbar-revision"] = 0
     phash["deployment"][bc_name]["element_order"] = []
     phash["deployment"][bc_name]["element_states"] = {}
     proposal.barclamp.roles.each do |role|

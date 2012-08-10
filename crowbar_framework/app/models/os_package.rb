@@ -17,7 +17,7 @@ class OsPackage < ActiveRecord::Base
   
   attr_accessible :name, :description, :order
 
-  has_one :os
+  belongs_to :os, :class_name => "Os", :foreign_key => "os_id"
 
 end
 

@@ -20,10 +20,9 @@ class Node < ActiveRecord::Base
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   
-  has_many :node_groups
-  has_many :groups, :through => :node_groups, :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
-  has_one :os
+  belongs_to :os, :class_name => "Os", :foreign_key => "os_id"
   
   # Rob's list of CMDB attributes needed by the UI
     #alias

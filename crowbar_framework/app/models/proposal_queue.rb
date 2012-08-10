@@ -21,6 +21,7 @@ class ProposalQueue < ActiveRecord::Base
   def self.get_queue(name, logger)
     q = ProposalQueue.find_or_create_by_name(name)
     q.logger = logger
+    q
   end
 
   #
@@ -130,6 +131,8 @@ class ProposalQueue < ActiveRecord::Base
   #   process_queue - see what we can execute
   #
   def queue_proposal(prop_config)
+    inst = prop_config.proposal.name
+    bc = prop_config.proposal.barclamp.name
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     begin
       f = ProposalQueue.acquire_lock "queue"
@@ -184,16 +187,16 @@ class ProposalQueue < ActiveRecord::Base
                              item.proposal_config.prop.barclamp.name)
       item.destroy
     rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
-      @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
+      @logger.error("Error dequeuing proposal for #{item}: #{e.message} #{e.backtrace}")
+      @logger.debug("dequeue proposal_no_lock: exit #{item}: error")
       return false
     end
-    @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
+    @logger.debug("dequeue proposal_no_lock: exit #{item}")
     true
   end
 
   def dequeue_proposal(inst, bc = @bc_name)
-    @logger.debug("dequeue proposal: enter #{inst} #{bc}")
+    @logger.debug("dequeue proposal: enter #{item}")
     ret = false
     begin
       f = acquire_lock "queue"

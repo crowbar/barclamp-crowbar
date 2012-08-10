@@ -174,7 +174,7 @@ class ProposalObject < ChefObject
     @item = x
   end
 
-  def write(raw_data)
+  def self.write(raw_data)
     # Write out chef object.
     data_bag_item = Chef::DataBagItem.new
     begin

@@ -108,7 +108,7 @@ class ServiceObject
     prop = @barclamp.get_proposal(inst)
     return [404, {}] if prop.nil? or not prop.active? or not prop.active_config.queued?
 
-    ret = ProposalQueue.get_queue('prop_queue').dequeue_proposal(inst, @bc_name)
+    ret = ProposalQueue.get_queue('prop_queue', @logger).dequeue_proposal(inst, @bc_name)
     return [400, "error"] unless ret
     [200, {}]
   end
@@ -365,7 +365,7 @@ class ServiceObject
               end
               ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
               ProposalQueue.restore_to_ready(all_nodes)
-              ProposalQueue.get_queue('prop_queue').process_queue unless in_queue
+              ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -398,7 +398,7 @@ class ServiceObject
               end
               ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
               ProposalQueue.restore_to_ready(all_nodes)
-              ProposalQueue.get_queue('prop_queue').process_queue unless in_queue
+              ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -411,7 +411,7 @@ class ServiceObject
 
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::APPLIED, "")
     ProposalQueue.restore_to_ready(all_nodes)
-    ProposalQueue.get_queue('prop_queue').process_queue unless in_queue
+    ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
     [200, {}]
   end
 

@@ -46,7 +46,7 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Locking Routines
   #
-  def self.acquire_lock(name)
+  def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
     f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
     @logger.debug("Acquiring #{name} lock")
@@ -62,7 +62,7 @@ class ProposalQueue < ActiveRecord::Base
     f
   end
 
-  def self.release_lock(f)
+  def release_lock(f)
     @logger.debug("Release lock enter: #{f.inspect}")
     f.flock(File::LOCK_UN)
     f.close
@@ -70,7 +70,7 @@ class ProposalQueue < ActiveRecord::Base
   end
 
   # Assumes the BA-LOCK is held
-  def self.elements_not_ready(nodes)
+  def elements_not_ready(nodes)
     delay = []
     nodes.each do |n|
       next if node.state == "ready"
@@ -79,7 +79,7 @@ class ProposalQueue < ActiveRecord::Base
     delay
   end
 
-  def self.make_applying_or_delay(nodes, queue_me, set_apply)
+  def make_applying_or_delay(nodes, queue_me, set_apply)
     f = acquire_lock "BA-LOCK"
     delay = []
     begin
@@ -111,7 +111,7 @@ class ProposalQueue < ActiveRecord::Base
     delay
   end
 
-  def self.restore_to_ready(nodes)
+  def restore_to_ready(nodes)
     f = acquire_lock "BA-LOCK"
     begin
       nodes.each do |node|
@@ -135,7 +135,7 @@ class ProposalQueue < ActiveRecord::Base
     bc = prop_config.proposal.barclamp.name
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     begin
-      f = ProposalQueue.acquire_lock "queue"
+      f = acquire_lock "queue"
 
       proposal_queue_items.each do |item|
         if prop_config.id == item.proposal_config_id

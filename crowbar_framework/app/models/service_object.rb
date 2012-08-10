@@ -364,8 +364,9 @@ class ServiceObject
                 message = message + "#{pids[baddie[0]]} "
               end
               ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
-              ProposalQueue.restore_to_ready(all_nodes)
-              ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
+              q = ProposalQueue.get_queue('prop_queue', @logger)
+              q.restore_to_ready(all_nodes)
+              q.process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -397,8 +398,9 @@ class ServiceObject
                 message = message + "#{pids[baddie[0]]} "
               end
               ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
-              ProposalQueue.restore_to_ready(all_nodes)
-              ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
+              q = ProposalQueue.get_queue('prop_queue', @logger)
+              q.restore_to_ready(all_nodes)
+              q.process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -410,8 +412,9 @@ class ServiceObject
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
 
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::APPLIED, "")
-    ProposalQueue.restore_to_ready(all_nodes)
-    ProposalQueue.get_queue('prop_queue', @logger).process_queue unless in_queue
+    q = ProposalQueue.get_queue('prop_queue', @logger)
+    q.restore_to_ready(all_nodes)
+    q.process_queue unless in_queue
     [200, {}]
   end
 

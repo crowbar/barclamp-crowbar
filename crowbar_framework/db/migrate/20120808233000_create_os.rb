@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateOses < ActiveRecord::Migration
+class CreateOs < ActiveRecord::Migration
   def change
-    create_table :oses do |t|
+    create_table :os do |t|
       t.string      :name,  :unique=>true
       t.string      :description, :null=>true
       t.integer     :order, :default=>10000
     end
     #natural key
-    add_index(:oses, :name, :unique => true)   
-  end
-  
-  def up
+    add_index(:os, :name, :unique => true)   
+    #pre-populate
     Os.create(:name=>"centos-6.2")
     Os.create(:name=>"ubuntu-12.04")
     Os.create(:name=>"redhat-6.2")
   end
+  
 end

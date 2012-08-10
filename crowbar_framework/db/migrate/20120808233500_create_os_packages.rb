@@ -18,7 +18,7 @@ class CreateOsPackages < ActiveRecord::Migration
       t.string      :name,  :unique=>true
       t.string      :description, :null=>true
       t.integer     :order, :default=>10000
-      t.has_one     :os
+      t.belongs_to  :os
     end
   end
   

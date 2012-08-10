@@ -23,6 +23,8 @@ class Node < ActiveRecord::Base
   has_many :node_groups
   has_many :groups, :through => :node_groups, :order=>"[order], [name] ASC"
   
+  has_one :os
+  
   # Rob's list of CMDB attributes needed by the UI
     #alias
     #name

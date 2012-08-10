@@ -377,10 +377,9 @@ class BarclampController < ApplicationController
           flash[:notice] = answer[1] if answer[0] >= 300
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
           if answer[0] == 202
-            flash_msg = ""
-            answer[1].each {|node_dns|
-                flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
-            }
+            flash_msg = answer[1].map { |node_dns|
+                 NodeObject.find_node_by_name(node_dns).alias
+            }.join ", "
             flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
           end
         rescue Exception => e

@@ -84,6 +84,7 @@ class Barclamp < ActiveRecord::Base
         run_order[roe.order] << role
       end
     end
+    run_order
   end
 
   #legacy approach - expects name of barclamp for YML import

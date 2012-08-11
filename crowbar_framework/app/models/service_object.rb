@@ -285,8 +285,8 @@ class ServiceObject
     new_role_nodes = new_config.get_nodes_by_role
     old_role_nodes = old_config ? old_config.get_nodes_by_role : {}
     @barclamp.roles.each do |role|
-      added_nodes = (new_role_nodes[role.name] || {}) - (old_role_nodes[role.name] || {})
-      removed_nodes = (old_role_nodes[role.name] || {}) - (new_role_nodes[role.name] || {})
+      added_nodes = (new_role_nodes[role.name] || []) - (old_role_nodes[role.name] || [])
+      removed_nodes = (old_role_nodes[role.name] || []) - (new_role_nodes[role.name] || [])
 
       removed_nodes.each do |node|
         node.delete_from_run_list role.name
@@ -307,16 +307,18 @@ class ServiceObject
       end
     end
 
-    apply_role_pre_chef_call(old_config, new_config, (new_config.nodes + old_config.nodes).uniq)
+    onodes = old_config ? old_config.nodes : []
+    nnodes = new_config ? new_config.nodes : []
+    apply_role_pre_chef_call(old_config, new_config, (nnodes + onodes).uniq)
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
-    @barclamp.roles_by_order.each do |role_list|
+    @barclamp.get_roles_by_order.each do |role_list|
       nodes = role_list.collect { |role| new_role_nodes[role.name] }.flatten.uniq
       next if nodes.empty?
       snodes = []
       admin_list = []
-      batch.each do |n|
+      nodes.each do |node|
         # Run admin nodes a different way.
         if node.is_admin?
           ran_admin = true

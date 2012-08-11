@@ -125,7 +125,7 @@ class CrowbarService < ServiceObject
       node.save
 
       # We have a node that has become ready, test to see if there are queued proposals to commit
-      process_queue if state == "ready"
+      ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"
     end
 
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")

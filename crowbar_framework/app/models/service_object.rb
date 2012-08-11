@@ -440,7 +440,7 @@ class ServiceObject
   def add_role_to_instance_and_node(node_name, prop, newrole)
     node = Node.find_by_name node_name    
     if node.nil?
-      @logger.debug("ARTOI: couldn't find node #{name}. bailing")
+      @logger.debug("ARTOI: couldn't find node #{node_name}. bailing")
       return false 
     end
 

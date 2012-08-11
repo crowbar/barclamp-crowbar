@@ -81,7 +81,7 @@ class ServiceObject
 
   def destroy_active(prop_name)
     @logger.debug "Trying to deactivate role #{prop_name}" 
-    prop = @barclamp.get_proposal(inst)
+    prop = @barclamp.get_proposal(prop_name)
     return [404, {}] if prop.nil? or not prop.active?
 
     # Clear the nodes and apply the role.
@@ -99,7 +99,7 @@ class ServiceObject
     # CHEF: Actual undo
     inst = "#{@bc_name}-config-#{prop_name}"
     role = RoleObject.find_role_by_name(inst)
-    role.destroy
+    role.destroy if role
 
     answer
   end
@@ -309,12 +309,13 @@ class ServiceObject
 
     onodes = old_config ? old_config.nodes : []
     nnodes = new_config ? new_config.nodes : []
-    apply_role_pre_chef_call(old_config, new_config, (nnodes + onodes).uniq)
+    all_nodes = (nnodes+onodes).uniq
+    apply_role_pre_chef_call(old_config, new_config, all_nodes)
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
     @barclamp.get_roles_by_order.each do |role_list|
-      nodes = role_list.collect { |role| new_role_nodes[role.name] }.flatten.uniq
+      nodes = role_list.collect { |role| (new_role_nodes[role.name]||[]) }.flatten.uniq
       next if nodes.empty?
       snodes = []
       admin_list = []

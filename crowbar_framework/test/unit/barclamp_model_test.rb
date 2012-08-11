@@ -50,7 +50,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal false, b
   end
 
-  test "Rolse Relation" do
+  test "Roles Relation" do
     b = Barclamp.find_by_name("crowbar")
     r = b.roles
 
@@ -127,6 +127,17 @@ class BarclampModelTest < ActiveSupport::TestCase
     e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
     assert_equal "Validation failed: Name Name item must be unique", e.message
   end
+
+  test "Get Roles by Order" do
+    b = Barclamp.find_by_name("crowbar")
+
+    ro = b.get_roles_by_order
+    assert 1, ro.length
+    assert 1, ro[0].length
+    assert 1, ro[0][0]name, "crowbar"
+  end
+
+  test "Import 1x"
 
 end
 

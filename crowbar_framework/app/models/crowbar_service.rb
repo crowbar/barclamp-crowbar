@@ -144,10 +144,10 @@ class CrowbarService < ServiceObject
     answer = super(role, in_queue)
     @logger.debug("Crowbar apply_role: super apply_role finished")
 
-    role = role.active_config.config_hash
+    role = role.config_hash
     @logger.debug("Crowbar apply_role: create initial instances")
-    unless role.nil? or role["instances"].nil?
-      ordered_bcs = order_instances role["instances"]
+    if role and role["crowbar"] and role["crowbar"]["instances"]
+      ordered_bcs = order_instances role["crowbar"]["instances"]
       ordered_bcs.each do |k, plist |
         @logger.fatal("Deploying proposals - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|

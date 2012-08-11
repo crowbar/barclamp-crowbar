@@ -27,9 +27,8 @@ class ProposalQueue < ActiveRecord::Base
   #
   # update proposal status information
   #
-  def self.update_proposal_status(inst, status, message, bc)
-    bc_id = Barclamp.find_by_name(bc)
-    prop = Proposal.find_by_name_and_barclamp_id(inst, bc_id)
+  def self.update_proposal_status(pc, status, message)
+    prop = pc.proposal
     res = true
     if prop and prop.active?
       prop.active_config.status = status
@@ -176,7 +175,7 @@ class ProposalQueue < ActiveRecord::Base
       release_lock f
     end
 
-    self.update_proposal_status(prop_config.proposal.name, ProposalConfig::STATUS_QUEUED, "", prop_config.proposal.barclamp.name)
+    self.update_proposal_status(prop_config, ProposalConfig::STATUS_QUEUED, "")
     @logger.debug("queue proposal: exit #{inst} #{bc}")
     delay
   end
@@ -184,8 +183,7 @@ class ProposalQueue < ActiveRecord::Base
   def dequeue_proposal_no_lock(item)
     @logger.debug("dequeue_proposal_no_lock: enter #{item}")
     begin
-      self.update_proposal_status(item.proposal_config.proposal.name, ProposalConfig::STATUS_NONE, "", 
-                             item.proposal_config.proposal.barclamp.name)
+      self.update_proposal_status(item.proposal_config, ProposalConfig::STATUS_NONE, "")
       item.destroy
     rescue Exception => e
       @logger.error("Error dequeuing proposal for #{item}: #{e.message} #{e.backtrace}")

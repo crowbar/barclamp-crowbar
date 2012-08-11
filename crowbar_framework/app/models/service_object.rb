@@ -268,7 +268,7 @@ class ServiceObject
     prop.save!
 
     # Put mark on the wall that we are committing
-    ProposalQueue.update_proposal_status(new_config, ProposalConfig::COMMITTING, "")
+    ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_COMMITTING, "")
 
     # CHEF ROLE OBJECT COMMAND
     config_role = RoleObject.proposal_hash_to_role(prop.active_config.to_proposal_object_hash, @bc_name)
@@ -285,8 +285,8 @@ class ServiceObject
     new_role_nodes = new_config.get_nodes_by_role
     old_role_nodes = old_config ? old_config.get_nodes_by_role : {}
     @barclamp.roles.each do |role|
-      added_nodes = new_config - old_config
-      removed_nodes = old_config - new_config
+      added_nodes = (new_role_nodes[role.name] || {}) - (old_role_nodes[role.name] || {})
+      removed_nodes = (old_role_nodes[role.name] || {}) - (new_role_nodes[role.name] || {})
 
       removed_nodes.each do |node|
         node.delete_from_run_list role.name
@@ -363,7 +363,7 @@ class ServiceObject
               badones.each do |baddie|
                 message = message + "#{pids[baddie[0]]} "
               end
-              ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
+              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
               q = ProposalQueue.get_queue('prop_queue', @logger)
               q.restore_to_ready(all_nodes)
               q.process_queue unless in_queue
@@ -397,7 +397,7 @@ class ServiceObject
               badones.each do |baddie|
                 message = message + "#{pids[baddie[0]]} "
               end
-              ProposalQueue.update_proposal_status(new_config, ProposalConfig::FAILED, message)
+              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
               q = ProposalQueue.get_queue('prop_queue', @logger)
               q.restore_to_ready(all_nodes)
               q.process_queue unless in_queue
@@ -411,7 +411,7 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
 
-    ProposalQueue.update_proposal_status(new_config, ProposalConfig::APPLIED, "")
+    ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_APPLIED, "")
     q = ProposalQueue.get_queue('prop_queue', @logger)
     q.restore_to_ready(all_nodes)
     q.process_queue unless in_queue

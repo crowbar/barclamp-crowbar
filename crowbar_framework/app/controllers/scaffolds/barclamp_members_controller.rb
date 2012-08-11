@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::OsController < ApplicationController
-  active_scaffold :os do |conf|
+class Scaffolds::BarclampMembersController < ApplicationController
+  active_scaffold :barclamp_member do |conf|
   end
 end 

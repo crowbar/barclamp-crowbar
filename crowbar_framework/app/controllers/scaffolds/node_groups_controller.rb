@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::OsController < ApplicationController
-  active_scaffold :os do |conf|
+class Scaffolds::NodeGroupsController < ApplicationController
+  active_scaffold :node_group do |conf|
   end
 end 

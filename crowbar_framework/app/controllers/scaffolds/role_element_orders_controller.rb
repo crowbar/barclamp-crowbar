@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::OsController < ApplicationController
-  active_scaffold :os do |conf|
+class Scaffolds::RoleElementOrdersController < ApplicationController
+  active_scaffold :role_element_order do |conf|
   end
 end 

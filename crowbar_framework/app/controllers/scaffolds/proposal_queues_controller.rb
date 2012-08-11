@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::OsController < ApplicationController
-  active_scaffold :os do |conf|
+class Scaffolds::ProposalQueuesController < ApplicationController
+  active_scaffold :proposal_queue do |conf|
   end
 end 

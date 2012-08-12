@@ -17,6 +17,7 @@ Crowbar::Application.routes.draw do
   namespace :scaffolds do
     resources :barclamps do as_routes end
     resources :barclamp_dependencies do as_routes end
+    resources :groups do as_routes end
     resources :roles do as_routes end
     resources :nodes do as_routes end
     resources :proposals do as_routes end
@@ -28,6 +29,8 @@ Crowbar::Application.routes.draw do
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
     resources :cmdb_attributes do as_routes end
+    resources :os do as_routes end
+    resources :os_packages do as_routes end
   end
 
   devise_for :users
@@ -79,20 +82,12 @@ Crowbar::Application.routes.draw do
       match ':name' => "nodes#show", :as => :node
     end
     version = "2.0"
-    get 'status(.:format)' => "nodes#status", :as => :nodes_status
-    get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
-    get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
-    post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
-    get ":controller/#{version}", :action => 'nodes', :as => :nodes_barclamp
-    constraints(:name => /.*/ ) do
-      match ':name/hit/:req' => "nodes#hit", :as => :hit_node
-      match ':name/edit' => "nodes#edit", :as => :edit_node
-      match ':name/update' => 'nodes#update', :as => :update_node
-      match ':name' => "nodes#show", :as => :node
-    end
   end
   
   scope 'crowbar' do
+    version = "2.0"
+    get    ":controller/#{version}/proposals/status(/:id)(.:format)", :controller=>'barclamp', :action => 'proposal_status', :as => :status_proposals_barclamp
+
     version = "1.0"
 
     get    ":controller/#{version}/help", :action => 'help', :as => :help_barclamp
@@ -100,7 +95,6 @@ Crowbar::Application.routes.draw do
     put    ":controller/#{version}/proposals", :action => 'proposal_create', :as => :create_proposal_barclamp
     get    ":controller/#{version}/proposals", :action => 'proposals', :as => :proposals_barclamp
     post   ":controller/#{version}/proposals/commit/:id", :action => 'proposal_commit', :as => :commit_proposal_barclamp
-    get    ":controller/#{version}/proposals/status(/:id)(.:format)", :controller=>'barclamp', :action => 'proposal_status', :as => :status_proposals_barclamp
     delete ":controller/#{version}/proposals/dequeue/:id", :action => 'proposal_dequeue', :as => :dequeue_barclamp
     delete ":controller/#{version}/proposals/:id", :action => 'proposal_delete', :as => :delete_proposal_barclamp
     post   ":controller/#{version}/proposals/:id", :action => 'proposal_update', :as => :update_proposal_barclamp
@@ -137,6 +131,7 @@ Crowbar::Application.routes.draw do
     post   ":barclamp/#{version}/:action/:id", :controller => 'barclamp'
 
     match "/", :controller => 'barclamp', :action => 'barclamp_index', :via => :get, :as => :barclamp_index_barclamp
+        
   end
 
   root :to => "nodes#index"  

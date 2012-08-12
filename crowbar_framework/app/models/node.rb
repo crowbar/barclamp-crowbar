@@ -46,7 +46,7 @@ class Node < ActiveRecord::Base
     #get_bmc_user -> ["ipmi"]["bmc_user"] 
     #get_bmc_password-> ["ipmi"]["bmc_password"] 
     #bmc_address
-
+  
   def cmdb_get(attribute)
     puts "CMDB looking up #{attribute}"
     return nil

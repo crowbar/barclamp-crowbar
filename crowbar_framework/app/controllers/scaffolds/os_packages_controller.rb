@@ -13,12 +13,7 @@
 # limitations under the License.
 #
 
-class NodeGroup < ActiveRecord::Base
-  
-  attr_accessible :node, :group
-
-  belongs_to :node
-  belongs_to :group
-
-end
-
+class Scaffolds::OsPackageController < ApplicationController
+  active_scaffold :OsPackage do |conf|
+  end
+end 

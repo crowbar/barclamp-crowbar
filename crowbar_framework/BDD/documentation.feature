@@ -1,0 +1,38 @@
+Feature: Documentation
+  In order to learn how to use the system
+  The system operator, Oscar
+  wants to be able to read about the system in the documentation
+
+  Scenario: Doc Index
+    When I go to the "docs" page
+    Then I should see "System Documentation"
+      And I should see "Getting Started with Dell Crowbar"
+      And I should see "Crowbar User Guide"
+      And I should see "Barclamp Catalog"
+      And I should see "Crowbar Deployment Guide"
+      And I should see "System Licenses"
+      And there should be no translation errors
+
+  Scenario: Doc Topic
+    Given I am on the "docs" page
+    When I click on the "Crowbar User Guide" link
+    Then I should see "Crowbar User Guide"
+      And I should see "Navigation"
+      And I should see "Children"
+      And there should be no translation errors
+
+  Scenario: Doc Sub Topic
+    Given I am on the "docs/topic/crowbar+book-userguide" page
+    When I click on the "Utilities Menu" link
+    Then I should see "Utilities Menu"
+      And I should see "Navigation"
+      And I should see "Children"
+      And I should see "Master Index"
+      And I should see "Crowbar User Guide"
+      And there should be no translation errors
+
+  Scenario: Doc Sub Topic return to Main
+    Given I am on the "docs/topic/crowbar+book-userguide" page
+    When I click on the "Master Index" link
+    Then I should see "System Documentation"
+      And there should be no translation errors

@@ -232,33 +232,27 @@ class BarclampController < ApplicationController
   def proposal_status
     proposals = {}
     i18n = {}
-    begin
-      result = if params[:id].nil? 
-        result = Proposal.all 
-        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      else
-        bc = Barclamp.find_by_name(params[:barclamp])
-        [ bc.get_proposal(params[:name]) ]
-      end
-      result.each do |prop|
-        prop_id = "#{prop.barclamp}_#{prop.name}" ### XXX: THIS IS BAD SEPARATOR
-        status = "hold"
-        if prop.active?
-          status = "pending" if prop.active_config.queued?
-          status = "hold" if prop.active_config.committing?
-          status = "failed" if prop.active_config.failed?
-          status = "success" if prop.active_config.applied?
-        else
-          status = "unready"
+    i18n['unknown'] = I18n.t 'unknown', :scope=>'proposal.status', :default=>'Unknown'
+    error = ""
+    count = 0
+
+    props = Proposal.find_keys params[:id]
+    
+    unless props.nil?
+      begin
+        props.each do |prop|
+          i18n[prop.status] = I18n.t(prop.status, :scope=>'proposal.status', :default=>prop.status.humanize) unless i18n.has_key? prop.status
+          proposals[prop.id] = prop.status
         end
-        proposals[prop_id] = status
-        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
+        count = proposals.size
+      rescue Exception=>e
+        count = -1
+        error = e.message
+        Rails.logger.fatal("Failed to iterate over proposal list due to '#{error}'")
       end
-      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")
     end
+
+    render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>count, :error=>error}.to_json, :cache => false
   end
 
   #

@@ -30,13 +30,18 @@ class Proposal < ActiveRecord::Base
   belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
   belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
 
-  
   def active?
     active_config != nil
   end
 
   def status
-    'ready'
+    if active?
+      return 'unready' if active_config.committing?
+      return 'pending' if active_config.queued?
+      return 'ready' if active_config.applied?
+      return 'failed' if active_config.failed?
+    end
+    'hold'
   end
 
   def deep_clone

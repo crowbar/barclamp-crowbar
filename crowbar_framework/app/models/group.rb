@@ -22,8 +22,7 @@ class Group < ActiveRecord::Base
 
   validates_inclusion_of :category, :in => %w( ui ), :message => "Group Model Validation Error: type %s is not an allowed category"
 
-  has_many :node_groups
-  has_many :nodes, :through => :node_groups, :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
 
 end
 

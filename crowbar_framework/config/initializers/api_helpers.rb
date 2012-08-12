@@ -1,1 +1,1 @@
-require Rails.root.join('lib/sapi_helper.rb')
+require Rails.root.join('lib/api_helper.rb')

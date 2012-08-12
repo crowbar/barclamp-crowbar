@@ -59,6 +59,8 @@ en:
       top: Scaffolds
       top_description: Developer Tools
       barclamps: Barclamps
+      cmdb: DevOps CMDB
+      cmdb_attributes: CMDB Attribs
       nodes: Nodes
       roles: Roles
       proposals: Proposals

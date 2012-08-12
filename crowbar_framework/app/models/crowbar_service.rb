@@ -28,18 +28,27 @@ class CrowbarService < ServiceObject
 
     f = acquire_lock "BA-LOCK"
     begin
-      node = NodeObject.find_node_by_name name
+      chef_node = NodeObject.find_node_by_name name
+      if chef_node.nil? and (state == "discovering" or state == "testing")
+        @logger.debug("Crowbar transition: creating new chef node for #{name} to #{state}")
+        chef_node = NodeObject.create_new name
+      end
+
+      node = Node.find_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
-        node = NodeObject.create_new name
+        node = Node.create(:name => name)
+        node.admin = true if chef_node.admin?
+	node.save!
       end
-      if node.nil?
-        @logger.error("Crowbar transition leaving: node not found nor created - #{name} to #{state}")
+
+      if chef_node.nil? or node.nil?
+        @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
         return [404, "Node not found"]
       end
 
-      node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
-      node.crowbar["crowbar"]["network"] = {} if node.crowbar["crowbar"]["network"].nil?
+      chef_node.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
+      chef_node.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
 
       pop_it = false
       if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
@@ -47,17 +56,11 @@ class CrowbarService < ServiceObject
         pop_it = true
       end
 
-      if node.crowbar["state"] != state
+      if node.state != state
         @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
 
-        node.crowbar["crowbar"]["state_debug"] = {} if node.crowbar["crowbar"]["state_debug"].nil?
-        if node.crowbar["crowbar"]["state_debug"][state].nil?
-          node.crowbar["crowbar"]["state_debug"][state] = 1
-        else
-          node.crowbar["crowbar"]["state_debug"][state] = node.crowbar["crowbar"]["state_debug"][state] + 1
-        end
-
-        node.crowbar["state"] = state
+        chef_node.crowbar["state"] = state
+        node.state = state
         save_it = true
         pop_it = true
       end
@@ -65,6 +68,7 @@ class CrowbarService < ServiceObject
       release_lock f
     end
 
+    chef_node.save if save_it
     node.save if save_it
 
     if pop_it
@@ -120,9 +124,9 @@ class CrowbarService < ServiceObject
       end
 
       # The node is going to call chef-client on return or as a side-effet of the proces queue.
-      node = NodeObject.find_node_by_name(name)
-      node.rebuild_run_list
-      node.save
+      chef_node = NodeObject.find_node_by_name(name)
+      chef_node.rebuild_run_list
+      chef_node.save
 
       # We have a node that has become ready, test to see if there are queued proposals to commit
       ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"

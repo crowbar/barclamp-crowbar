@@ -67,7 +67,9 @@ class ProposalConfig < ActiveRecord::Base
       role = Role.find_by_name(role_name)
       node_list.each do |node_name|
         node = Node.find_by_name(node_name)
-        nr = NodeRole.create(:node_id => node.id, :role_id => role.id)
+        nr = NodeRole.create
+        nr.node = node
+        nr.role = role
         node_roles << nr
       end
     end
@@ -77,7 +79,9 @@ class ProposalConfig < ActiveRecord::Base
   def add_node_to_role(node, role)
     nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
     unless nr
-      nr = NodeRole.create(:node_id => node.id, :role_id => role.id)
+      nr = NodeRole.create
+      nr.node = node
+      nr.role = role
       node_roles << nr
     end
   end

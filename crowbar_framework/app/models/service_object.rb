@@ -438,6 +438,7 @@ class ServiceObject
   # XXX: Should this clone a new config?
   #
   def add_role_to_instance_and_node(node_name, prop, newrole)
+@logger.debug("ARTOI: enterin #{node_name}, #{prop}, #{newrole}")
     node = Node.find_by_name node_name    
     if node.nil?
       @logger.debug("ARTOI: couldn't find node #{node_name}. bailing")
@@ -455,6 +456,7 @@ class ServiceObject
       @logger.debug("ARTOI: couldn't find role #{newrole}. bailing")
       return false 
     end
+@logger.debug("ARTOI: add_node_to_role #{node}, #{role}")
     prop_config.add_node_to_role(node, role)
 
     # Update Chef objects.
@@ -463,6 +465,7 @@ class ServiceObject
     ro = RoleObject.proposal_hash_to_role(raw_data, prop.barclamp.name)
 
     # Update Run list
+@logger.debug("ARTOI: run list #{node}, #{role}")
     node.add_to_run_list(role.name, prop.barclamp.cmdb_order, role.states)
     node.add_to_run_list(ro.name, prop.barclamp.cmdb_order, role.states)
     node.save!

@@ -17,8 +17,11 @@ Crowbar::Application.routes.draw do
   namespace :scaffolds do
     resources :barclamps do as_routes end
     resources :barclamp_dependencies do as_routes end
+    resources :barclamp_members do as_routes end
     resources :roles do as_routes end
     resources :nodes do as_routes end
+    resources :groups do as_routes end
+    resources :node_groups do as_routes end
     resources :proposals do as_routes end
     resources :proposal_configs do as_routes end
     resources :node_roles do as_routes end
@@ -28,6 +31,11 @@ Crowbar::Application.routes.draw do
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
     resources :cmdb_attributes do as_routes end
+    resources :os do as_routes end
+    resources :os_packages do as_routes end
+    resources :proposal_queues do as_routes end
+    resources :proposal_queue_items do as_routes end
+    resources :role_element_orders do as_routes end
   end
 
   devise_for :users

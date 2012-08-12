@@ -233,26 +233,28 @@ class BarclampController < ApplicationController
   def proposal_status
     proposals = {}
     i18n = {}
-    begin
-      active = RoleObject.active(params[:barclamp], params[:name])
-      result = if params[:id].nil? 
-        result = ProposalObject.all 
-        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      else
-        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
+    i18n['unknown'] = I18n.t 'unknown', :scope=>'proposal.status', :default=>'Unknown'
+    error = ""
+    count = 0
+
+    props = Proposal.find_keys params[:id]
+    
+    unless props.nil?
+      begin
+        props.each do |prop|
+          i18n[prop.status] = I18n.t(prop.status, :scope=>'proposal.status', :default=>prop.status.humanize) unless i18n.has_key? prop.status
+          proposals[prop.id] = prop.status
+        end
+        count = proposals.size
+      rescue Exception=>e
+        count = -1
+        error = e.message
+        Rails.logger.fatal("Failed to iterate over proposal list due to '#{error}'")
       end
-      result.each do |prop|
-        prop_id = "#{prop.barclamp}_#{prop.name}"
-        status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
-        proposals[prop_id] = (status ? prop.status : "hold")
-        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
-      end
-      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
     end
+
+    render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>count, :error=>error}.to_json, :cache => false
+
   end
 
   #

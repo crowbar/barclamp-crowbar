@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
-# 
-# Author: RobHirschfeld 
 # 
 require 'json'
 
@@ -223,38 +221,6 @@ class BarclampController < ApplicationController
       format.xml  { render :xml => @proposal.current_config.to_proposal_object_hash }
       format.json { render :json => @proposal.current_config.to_proposal_object_hash }
     end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  add_help(:proposal_status,[:id, :barclamp, :name],[:get])
-# GREG: FIX THIS!
-  def proposal_status
-    proposals = {}
-    i18n = {}
-    i18n['unknown'] = I18n.t 'unknown', :scope=>'proposal.status', :default=>'Unknown'
-    error = ""
-    count = 0
-
-    props = Proposal.find_keys params[:id]
-    
-    unless props.nil?
-      begin
-        props.each do |prop|
-          i18n[prop.status] = I18n.t(prop.status, :scope=>'proposal.status', :default=>prop.status.humanize) unless i18n.has_key? prop.status
-          proposals[prop.id] = prop.status
-        end
-        count = proposals.size
-      rescue Exception=>e
-        count = -1
-        error = e.message
-        Rails.logger.fatal("Failed to iterate over proposal list due to '#{error}'")
-      end
-    end
-
-    render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>count, :error=>error}.to_json, :cache => false
-
   end
 
   #

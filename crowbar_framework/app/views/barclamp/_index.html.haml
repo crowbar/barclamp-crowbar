@@ -26,7 +26,7 @@
             %tbody
               - if barclamp.proposals.size > 0
                 - barclamp.proposals.each do |proposal|
-                  = render :partial => 'barclamp/proposal', :locals=>{ :proposal=>proposal }
+                  = render :partial => 'proposals/proposal', :locals=>{ :proposal=>proposal }
               - if barclamp.allow_multiple_proposals or barclamp.proposals.count==0
                 = form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => barclamp.name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
                   %tr{:class => ["proposal", cycle(:odd, :even)]}

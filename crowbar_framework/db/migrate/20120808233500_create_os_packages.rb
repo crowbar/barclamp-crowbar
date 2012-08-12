@@ -19,6 +19,7 @@ class CreateOsPackages < ActiveRecord::Migration
       t.string      :description, :null=>true
       t.integer     :order, :default=>10000
       t.belongs_to  :os
+      t.timestamps
     end
   end
   

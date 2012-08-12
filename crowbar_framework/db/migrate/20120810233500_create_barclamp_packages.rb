@@ -17,6 +17,7 @@ class CreateBarclampPackages < ActiveRecord::Migration
     create_table :barclamp_packages do |t|
       t.belongs_to  :barclamp
       t.belongs_to  :os_package
+      t.timestamps
     end
   end
   

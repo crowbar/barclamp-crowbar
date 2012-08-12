@@ -16,15 +16,14 @@ Crowbar::Application.routes.draw do
 
   namespace :scaffolds do
     resources :barclamps do as_routes end
-    resources :barclamp_dependencies do as_routes end
     resources :groups do as_routes end
     resources :roles do as_routes end
     resources :nodes do as_routes end
     resources :proposals do as_routes end
     resources :proposal_configs do as_routes end
-    resources :node_roles do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
+    resources :groups do as_routes end  
     resources :interfaces do as_routes end
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
@@ -84,9 +83,13 @@ Crowbar::Application.routes.draw do
     version = "2.0"
   end
   
+  scope 'proposal' do
+    version = "2.0"
+    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :as=>:proposal_status
+  end
+  
   scope 'crowbar' do
     version = "2.0"
-    get    ":controller/#{version}/proposals/status(/:id)(.:format)", :controller=>'barclamp', :action => 'proposal_status', :as => :status_proposals_barclamp
 
     version = "1.0"
 

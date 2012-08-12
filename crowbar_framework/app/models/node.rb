@@ -22,7 +22,7 @@ class Node < ActiveRecord::Base
   
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
-  belongs_to :os, :class_name => "Os", :foreign_key => "os_id"
+  belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
   # Rob's list of CMDB attributes needed by the UI
     #alias

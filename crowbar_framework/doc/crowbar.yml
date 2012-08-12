@@ -29,7 +29,7 @@ crowbar+book-deployguide:
     
 crowbar+book-developersguide:
   author: Rob Hirschfeld
-  date: August 1, 2012
+  date: August 12, 2012
   order: 6000
   crowbar+devguide+documentation:
     order: 3000
@@ -41,6 +41,8 @@ crowbar+book-developersguide:
       order: 1000
     - crowbar+devguide+adding-navigation
     - crowbar+devguide+locatization
+  crowbar+devguide+api
+    order: 6000
   crowbar+devguide+testing:
     order: 8000
   

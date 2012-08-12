@@ -39,7 +39,7 @@ class CrowbarService < ServiceObject
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
         node = Node.create(:name => name)
         node.admin = true if chef_node.admin?
-	node.save!
+        node.save!
       end
 
       if chef_node.nil? or node.nil?
@@ -82,47 +82,41 @@ class CrowbarService < ServiceObject
                                       "crowbar")
       end
 
-      run_order_hash = {}
-      Barclamp.all.each { |x| run_order_hash[x.name] = x.run_order }
-      roles = RoleObject.find_roles_by_search "transitions:true AND (transition_list:all OR transition_list:#{ChefObject.chef_escape(state)})"
-      # Sort rules for transition order (deployer should be near the beginning if not first).
-      roles.sort! do |x,y| 
-        xname = x.name.gsub(/-config-.*$/, "")
-        yname = y.name.gsub(/-config-.*$/, "")
-
-        xs = run_order_hash[xname]
-        ys = run_order_hash[yname]
-        xs <=> ys
+      # Find the active proposals that have this as a transition state
+      props = []
+      Barclamp.all.each do |x| 
+        if x.transitions
+          states = x.transition_list.split(",")
+          props << x.active_proposals if states.include?(state)
+        end
       end
+      props = props.flatten
 
-      roles.each do |role|
-        role.override_attributes.each do |bc, data|
-          jsondata = {
-            "name" => name,
-            "state" => state
-          }
-          rname = role.name.gsub("#{bc}-config-","")
-          begin
-            svc_name = "#{bc.camelize}Service"
-            @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")            
-            service = eval("#{svc_name}.new @logger")
-            answer = service.transition(rname, name, state)
-            if answer[0] != 200
-              @logger.error("Crowbar transition: finished #{bc}:#{rname} for #{name} for #{state}: FAILED #{answer[1]}")
-            else
-              @logger.debug("Crowbar transition: finished #{bc}:#{rname} for #{name} for #{state}")
-              unless answer[1]["name"].nil?
-                name = answer[1]["name"]
-              end
+      # Sort rules for transition order (deployer should be near the beginning if not first).
+      props.sort! { |x,y| x.barclamp.run_order <=> y.barclamp.run_order }
+
+      # For each prop, call the transition function.
+      props.each do |prop|
+        bco = prop.barclamp
+        begin
+          @logger.info("Crowbar transition: calling #{bco.name}:#{prop.name} for #{name} for #{state}")            
+          answer = bco.operations(@logger).transition(prop.name, name, state)
+          if answer[0] != 200
+            @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
+          else
+            @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
+            unless answer[1]["name"].nil?
+              name = answer[1]["name"]
             end
-          rescue Exception => e
-            @logger.fatal("json/transition for #{bc}:#{rname} failed: #{e.message}")
-            @logger.fatal("#{e.backtrace}")
-            return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace}"]
           end
+        rescue Exception => e
+          @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")
+          @logger.fatal("#{e.backtrace}")
+          return [500, "#{bco.name} transition to #{prop.name} failed.\n#{e.message}\n#{e.backtrace}"]
         end
       end
 
+      # GREG: THIS MAY NOT BE NEEDED
       # The node is going to call chef-client on return or as a side-effet of the proces queue.
       chef_node = NodeObject.find_node_by_name(name)
       chef_node.rebuild_run_list

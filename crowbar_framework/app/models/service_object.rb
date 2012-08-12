@@ -75,7 +75,7 @@ class ServiceObject
 #
 # API Functions
 #
-  def transition
+  def transition(prop_name, node_name, state)
     [200, {}]
   end
 

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
-#
 class ScaffoldNav < ActiveRecord::Migration
   def self.up
 
@@ -22,6 +20,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'scaffold_barclamps', :parent_item=>'scaffold', :name=>'nav.scaffold.barclamps',  :path=>"scaffolds_barclamps_path", :order=>1000, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nodes', :parent_item=>'scaffold', :name=>'nav.scaffold.nodes', :path=>"scaffolds_nodes_path", :order=>2000, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_roles', :parent_item=>'scaffold', :name=>'nav.scaffold.roles', :path=>"scaffolds_roles_path", :order=>2100, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_groups', :parent_item=>'scaffold', :name=>'nav.scaffold.groups', :path=>"scaffolds_groups_path", :order=>2300, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_proposals', :parent_item=>'scaffold', :name=>'nav.scaffold.proposals', :path=>"scaffolds_proposals_path", :order=>3500, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_configs', :parent_item=>'scaffold', :name=>'nav.scaffold.configs', :path=>"scaffolds_proposal_configs_path", :order=>3500, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400, :development=>true
@@ -34,6 +33,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.delete(Nav.find_by_item 'scaffold_barclamps')
     Nav.delete(Nav.find_by_item 'scaffold_nodes')
     Nav.delete(Nav.find_by_item 'scaffold_roles')
+    Nav.delete(Nav.find_by_item 'scaffold_groups')
     Nav.delete(Nav.find_by_item 'scaffold_proposals')
     Nav.delete(Nav.find_by_item 'scaffold_configs')
     Nav.delete(Nav.find_by_item 'scaffold_nav')

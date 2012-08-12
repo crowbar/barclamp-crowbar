@@ -62,6 +62,7 @@ en:
       cmdb: DevOps CMDB
       cmdb_attributes: CMDB Attribs
       nodes: Nodes
+      groups: Groups
       roles: Roles
       proposals: Proposals
       configs: Proposal Configs

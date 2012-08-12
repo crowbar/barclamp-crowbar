@@ -23,6 +23,7 @@ Crowbar::Application.routes.draw do
     resources :proposal_configs do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
+    resources :groups do as_routes end  
     resources :interfaces do as_routes end
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end

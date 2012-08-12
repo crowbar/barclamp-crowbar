@@ -3,17 +3,26 @@ Feature: Scaffolds
   The devoper operator, Greg
   wants to be able to quickly check the models
   
-  Scenario: %Barclamp
+  Scenario: Barclamp
     When I go to the "scaffolds/barclamps" page
     Then I should see "Barclamps"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
+      And I should see "Display"
+      And I should see "Allow multiple proposals"
+      And I should see "Build on"
+      And I should see "Cmdb order"
+      And I should see "Commit"
+      And I should see "Layout"
+      And I should see "Mode"
+      And I should see "Online help"
+      And I should see "Proposal schema version"
+      And I should see "Run order"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
-      And I should see "Found"
       And there should be no translation errors
       
   Scenario: Nodes
@@ -150,6 +159,43 @@ Feature: Scaffolds
       And I should see "Create New"
       And there should be no translation errors  
       
-  Scenario: %Os
+  Scenario: Os
+    When I go to the "scaffolds/os" page
+    Then I should see "Os"
+      And I should see "Name"
+      And I should see "Description"
+      And I should see "Order"
+      And I should see "Nodes"
+      And I should see "Packages"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors  
 
-  Scenario: %OsPackages
+  Scenario: OsPackages
+    When I go to the "scaffolds/os_packages" page
+    Then I should see "OsPackages"
+      And I should see "Name"
+      And I should see "Description"
+      And I should see "Order"
+      And I should see "Os"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors  
+      
+  Scenario: Groups
+    When I go to the "scaffolds/groups" page
+    Then I should see "Groups"
+      And I should see "Name"
+      And I should see "Description"
+      And I should see "Order"
+      And I should see "Category"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors  
+      

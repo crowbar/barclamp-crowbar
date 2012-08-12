@@ -14,6 +14,6 @@
 #
 
 class Scaffolds::OsController < ApplicationController
-  active_scaffold :Os do |conf|
+  active_scaffold :os do |conf|
   end
 end 

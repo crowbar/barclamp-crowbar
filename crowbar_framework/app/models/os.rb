@@ -21,7 +21,7 @@ class Os < ActiveRecord::Base
   validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   has_many :nodes
-  has_many :packages, :class_name => "OsPackage", :foreign_key => "os_id"
+  has_many :packages, :class_name => "OsPackage" #, :foreign_key => "os_id"
 
 end
 

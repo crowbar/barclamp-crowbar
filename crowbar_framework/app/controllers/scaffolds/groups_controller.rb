@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::BarclampDependenciesController < ApplicationController
-  active_scaffold :barclamp_dependency do |conf|
+class Scaffolds::GroupsController < ApplicationController
+  active_scaffold :group do |conf|
   end
 end 

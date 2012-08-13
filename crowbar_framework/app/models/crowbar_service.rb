@@ -33,10 +33,12 @@ class CrowbarService < ServiceObject
         node = Node.create(:name => name)
         node.admin = true if chef_node and chef_node.admin?
         node.save!
-        cno = NodeObject.create_new name
-        cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
-        cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
-        cno.save
+        unless chef_node
+          cno = NodeObject.create_new name
+          cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
+          cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
+          cno.save
+        end
       end
 
       if node.nil?

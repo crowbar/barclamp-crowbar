@@ -32,6 +32,11 @@ class Node < ActiveRecord::Base
     NodeObject.find_node_by_name name
   end
 
+  # This is an hack for now.
+  def address(net = "admin")
+    node_object.address(net)
+  end
+
   def set_state(new_state)
     state = new_state
     cno = NodeObject.find_node_by_name name

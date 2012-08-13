@@ -55,7 +55,7 @@ class CrowbarService < ServiceObject
       if node.state != state
         @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
 
-        node.state = state
+        node.set_state(state)
         node.save
         pop_it = true
       end

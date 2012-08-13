@@ -90,7 +90,7 @@ class ProposalQueue < ActiveRecord::Base
         if set_apply
           nodes.each do |node|
             # Nothing to delay so mark them applying.
-            node.state = 'applying'
+            node.set_state('applying')
             node.save
           end
         end
@@ -115,7 +115,7 @@ class ProposalQueue < ActiveRecord::Base
     begin
       nodes.each do |node|
         # Nothing to delay so mark them applying.
-        node.state = 'ready'
+        node.set_state('ready')
         node.save
       end
     ensure

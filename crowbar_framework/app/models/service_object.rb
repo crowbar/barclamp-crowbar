@@ -270,9 +270,8 @@ class ServiceObject
     # Put mark on the wall that we are committing
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_COMMITTING, "")
 
-    # CHEF ROLE OBJECT COMMAND
+    # CHEF ROLE OBJECT COMMAND - Make sure the chef object is up-to-date
     config_role = RoleObject.proposal_hash_to_role(prop.active_config.to_proposal_object_hash, @bc_name)
-    config_role_name = config_role.name
 
     #
     # Difference
@@ -282,6 +281,7 @@ class ServiceObject
     #     - add role_delete(states,priority) to node - if delete role exists
     #     - remove role(states,priority) to node
     #
+    all_nodes = []
     new_role_nodes = new_config.get_nodes_by_roles
     old_role_nodes = old_config ? old_config.get_nodes_by_roles : {}
     @barclamp.roles.each do |role|
@@ -289,22 +289,18 @@ class ServiceObject
       removed_nodes = (old_role_nodes[role.name] || []) - (new_role_nodes[role.name] || [])
 
       removed_nodes.each do |node|
-        node.delete_from_run_list role.name
         # Add the delete role if one exists, otherwise clear the config role
         drole = Role.find_by_name_and_barclamp_id("#{role.name}_remove", @barclamp.id)
         if drole
-          node.add_to_run_list(drole.name, @barclamp.cmdb_order, drole.states)
-        else 
-          node.delete_from_run_list config_role_name
+          add_role_to_instance_and_node(node.name, prop.name, drole.name)
         end
-        node.save!
       end
 
-      added_nodes.each do |node|
-        node.add_to_run_list(role.name, @barclamp.cmdb_order, role.states)
-        node.add_to_run_list(config_role_name, @barclamp.cmdb_order, role.states)
-        node.save!
-      end
+      all_nodes << removed_nodes
+      all_nodes << added_nodes
+    end
+    all_nodes.uniq.each do |node|
+      node.update_run_list
     end
 
     onodes = old_config ? old_config.nodes : []
@@ -469,10 +465,7 @@ class ServiceObject
       ro = RoleObject.proposal_hash_to_role(raw_data, prop.barclamp.name)
 
       # Update Run list
-      @logger.debug("ARTOI: run list #{node}, #{role}")
-      node.add_to_run_list(role.name, prop.barclamp.cmdb_order, role.states)
-      node.add_to_run_list(ro.name, prop.barclamp.cmdb_order, role.states)
-      node.save!
+      node.update_run_list
     end
       
     true

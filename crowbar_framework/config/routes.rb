@@ -19,6 +19,7 @@ Crowbar::Application.routes.draw do
     resources :groups do as_routes end
     resources :roles do as_routes end
     resources :nodes do as_routes end
+    resources :node_roles do as_routes end
     resources :proposals do as_routes end
     resources :proposal_configs do as_routes end
     resources :docs do as_routes end

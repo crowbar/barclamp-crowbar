@@ -89,7 +89,8 @@ class RoleObject < ChefObject
     role.description proposal["description"]
     role.default_attributes proposal["attributes"]
     role.override_attributes proposal["deployment"]
-    RoleObject.new role
+    r = RoleObject.new role
+    r.save
   end
 
   def barclamp

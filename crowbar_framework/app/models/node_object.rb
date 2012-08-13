@@ -365,6 +365,10 @@ class NodeObject < ChefObject
     crowbar_run_list.run_list_items.delete "role[#{rolename}]"
   end
 
+  def clear_run_list_map
+    crowbar["run_list_map"] = {}
+  end
+
   def rebuild_run_list
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
 

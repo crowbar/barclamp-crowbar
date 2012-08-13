@@ -1,8 +1,8 @@
 %tr{:class => ["proposal", cycle(:odd, :even)], :id => proposal.id}
   %td.status
-    .led{:class => proposal.status, :id => "#{proposal.id}_details", :title=> t('proposal.status.'+.status)}
+    .led{:class => proposal.status, :id => "#{proposal.id}_details", :title=> t('proposal.status.'+proposal.status)}
   %td{:style => "width:10%"}
-    - if proposal.active
+    - if proposal.active?
       = link_to proposal.name, show_barclamp_path(:controller=>proposal.barclamp.name, :id=>proposal.id)
     -else
       = link_to proposal.name, proposal_barclamp_path(:controller=>proposal.barclamp.name, :id=>proposal.id)

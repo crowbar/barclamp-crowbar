@@ -42,19 +42,19 @@ class Node < ActiveRecord::Base
   # GREG: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.
   def update_run_list
-    nrs = NodeRole.find_all_by_node_id(node.id)
+    nrs = NodeRole.find_all_by_node_id(self.id)
     # Get the active ones
-    nrs.select! { |x| x.proposal_config_id == x.proposal_config.active_config_id }
+    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
 
     # For each of the roles
     cno = node_object
     cno.clear_run_list_map
     nrs.each do |nr|
       next unless nr.role
-      cno.add_to_run_list(nr.role.name, nr.role.barclamp.chef_order, nr.role.states.split(","))
+      cno.add_to_run_list(nr.role.name, nr.role.barclamp.cmdb_order, nr.role.states.split(","))
       config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
       # GREG: All? or something aggregated?
-      cno.add_to_run_list(config_name, nr.role.barclamp.chef_order, ["all"])
+      cno.add_to_run_list(config_name, nr.role.barclamp.cmdb_order, ["all"])
     end
     # GREG: Still need to think about node specific data.
     cno.save

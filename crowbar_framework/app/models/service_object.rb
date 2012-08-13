@@ -299,7 +299,7 @@ class ServiceObject
       all_nodes << removed_nodes
       all_nodes << added_nodes
     end
-    all_nodes.uniq.each do |node|
+    all_nodes.flatten.uniq.each do |node|
       node.update_run_list
     end
 

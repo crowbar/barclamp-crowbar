@@ -67,10 +67,11 @@ Feature: Crowbar, Check Core Navigation
       And I should not see "Hadoop"
       And there should be no translation errors
 
-  Scenario: Help Users Guide 
+  Scenario: Help Guide 
     Given I am on the home page
-    When I click on the "Crowbar Users" menu item
-    Then I should download a PDF
+    When I click on the "Documentation" menu item
+    Then I should see "System Documentation"
+      And there should be no translation errorr
     
   Scenario: %Help Deployment Guide
     Given I am on the home page

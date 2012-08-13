@@ -15,12 +15,13 @@
 class CreateNodes < ActiveRecord::Migration
   def change
     create_table :nodes do |t|
-      t.string  :name
-      t.string  :description, :null=>true
-      t.string  :state, :null=>true
-      t.integer :order, :default=>10000
-      t.boolean :admin, :default=>false
-      t.boolean :allocated, :default=>false
+      t.string      :name
+      t.string      :description, :null=>true
+      t.string      :state, :null=>true
+      t.integer     :order, :default=>10000
+      t.boolean     :admin, :default=>false
+      t.boolean     :allocated, :default=>false
+      t.belongs_to  :os
       t.timestamps
     end
     #natural key

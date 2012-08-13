@@ -31,7 +31,7 @@ class Barclamp < ActiveRecord::Base
 
   has_many :roles
 
-  has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages"
+  has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
   has_and_belongs_to_many :members, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "member_id", :order => "[order], [name] ASC"
 

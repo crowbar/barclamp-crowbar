@@ -201,8 +201,8 @@ class CrowbarService < ServiceObject
     options = { :raid=>{}, :bios=>{}, :show=>[] }
     hash = proposals.current_config.config_hash
     if hash
-      options[:raid] = hash["raid-settings"]
-      options[:bios] = hash["bios-settings"]
+      options[:raid] = hash["crowbar"]["raid-settings"]
+      options[:bios] = hash["crowbar"]["bios-settings"]
       options[:show] << :raid if options[:raid].length > 0
       options[:show] << :bios if options[:bios].length > 0
     end

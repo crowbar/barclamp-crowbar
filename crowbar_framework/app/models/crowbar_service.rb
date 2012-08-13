@@ -77,7 +77,7 @@ class CrowbarService < ServiceObject
       Barclamp.all.each do |x| 
         if x.transitions
           states = x.transition_list.split(",")
-          props << x.active_proposals if states.include?(state)
+          props << x.active_proposals if states.include?(state) or states.include?("all")
         end
       end
       props = props.flatten

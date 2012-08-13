@@ -188,6 +188,7 @@ class ProposalConfig < ActiveRecord::Base
     elements = {}
     node_roles.each do |nr|
       next unless nr.role
+      next unless nr.node
       elements[nr.role.name] = [] unless elements[nr.role.name]
       elements[nr.role.name] << nr.node.name
     end

@@ -76,7 +76,7 @@ class ServiceObject
 # API Functions
 #
   def transition(prop_name, node_name, state)
-    [200, {}]
+    [200, ""]
   end
 
   def destroy_active(prop_name)
@@ -122,7 +122,7 @@ class ServiceObject
       new_prop.current_config.config_hash = chash.merge(params["attributes"])
     end
     elems = params["deployment"][@bc_name]["elements"] rescue nil
-    new_prop.current_config.update_node_roles(elems) if elems
+    new_prop.current_config.update_node_roles(elems) if elems and !elems.empty?
 
     raw_data = new_prop.current_config.to_proposal_object_hash
     validate_proposal raw_data
@@ -282,8 +282,8 @@ class ServiceObject
     #     - add role_delete(states,priority) to node - if delete role exists
     #     - remove role(states,priority) to node
     #
-    new_role_nodes = new_config.get_nodes_by_role
-    old_role_nodes = old_config ? old_config.get_nodes_by_role : {}
+    new_role_nodes = new_config.get_nodes_by_roles
+    old_role_nodes = old_config ? old_config.get_nodes_by_roles : {}
     @barclamp.roles.each do |role|
       added_nodes = (new_role_nodes[role.name] || []) - (old_role_nodes[role.name] || [])
       removed_nodes = (old_role_nodes[role.name] || []) - (new_role_nodes[role.name] || [])
@@ -421,7 +421,7 @@ class ServiceObject
     [200, {}]
   end
 
-  def apply_role_pre_chef_call(old_role, role, all_nodes)
+  def apply_role_pre_chef_call(old_config, new_config, all_nodes)
     # noop by default.
   end
 
@@ -437,17 +437,18 @@ class ServiceObject
   #
   # XXX: Should this clone a new config?
   #
-  def add_role_to_instance_and_node(node_name, prop, newrole)
-@logger.debug("ARTOI: enterin #{node_name}, #{prop}, #{newrole}")
+  def add_role_to_instance_and_node(node_name, prop_name, newrole)
+    @logger.debug("ARTOI: enterin #{node_name}, #{prop_name}, #{newrole}")
     node = Node.find_by_name node_name    
     if node.nil?
       @logger.debug("ARTOI: couldn't find node #{node_name}. bailing")
       return false 
     end
 
+    prop = @barclamp.get_proposal(prop_name)
     prop_config = prop.active? ? prop.active_config : prop.current_config
     if prop_config.nil?
-      @logger.debug("ARTOI: couldn't find prop_config #{prop.name}. bailing")
+      @logger.debug("ARTOI: couldn't find prop_config #{prop_name}. bailing")
       return false 
     end
 
@@ -456,20 +457,24 @@ class ServiceObject
       @logger.debug("ARTOI: couldn't find role #{newrole}. bailing")
       return false 
     end
-@logger.debug("ARTOI: add_node_to_role #{node}, #{role}")
+
+    @logger.debug("ARTOI: add_node_to_role #{node}, #{role}")
     prop_config.add_node_to_role(node, role)
 
-    # Update Chef objects.
-    raw_data = prop_config.to_proposal_object_hash
-    ProposalObject.write(raw_data)
-    ro = RoleObject.proposal_hash_to_role(raw_data, prop.barclamp.name)
+    # Update running config if active, otherwise apply/commit will catch it
+    if prop.active?
+      # Update Chef objects.
+      raw_data = prop_config.to_proposal_object_hash
+      ProposalObject.write(raw_data)
+      ro = RoleObject.proposal_hash_to_role(raw_data, prop.barclamp.name)
 
-    # Update Run list
-@logger.debug("ARTOI: run list #{node}, #{role}")
-    node.add_to_run_list(role.name, prop.barclamp.cmdb_order, role.states)
-    node.add_to_run_list(ro.name, prop.barclamp.cmdb_order, role.states)
-    node.save!
-
+      # Update Run list
+      @logger.debug("ARTOI: run list #{node}, #{role}")
+      node.add_to_run_list(role.name, prop.barclamp.cmdb_order, role.states)
+      node.add_to_run_list(ro.name, prop.barclamp.cmdb_order, role.states)
+      node.save!
+    end
+      
     true
   end
 

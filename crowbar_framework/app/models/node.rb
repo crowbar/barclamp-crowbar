@@ -28,6 +28,17 @@ class Node < ActiveRecord::Base
     admin
   end
 
+  def node_object
+    NodeObject.find_node_by_name name
+  end
+
+  def set_state(new_state)
+    state = new_state
+    cno = NodeObject.find_node_by_name name
+    cno.crowbar["state"] = state
+    cno.save
+  end
+
   # Rob's list of CMDB attributes needed by the UI
     #alias
     #name

@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -22,33 +22,27 @@ class CrowbarService < ServiceObject
   # It will create a node and assign it an admin address.
   #
   def transition(inst, name, state)
-    save_it = false
-
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
     f = acquire_lock "BA-LOCK"
     begin
-      chef_node = NodeObject.find_node_by_name name
-      if chef_node.nil? and (state == "discovering" or state == "testing")
-        @logger.debug("Crowbar transition: creating new chef node for #{name} to #{state}")
-        chef_node = NodeObject.create_new name
-      end
-
       node = Node.find_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
+        chef_node = NodeObject.find_node_by_name(name)
         node = Node.create(:name => name)
-        node.admin = true if chef_node.admin?
+        node.admin = true if chef_node and chef_node.admin?
         node.save!
+        cno = NodeObject.create_new name
+        cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
+        cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
+        cno.save
       end
 
-      if chef_node.nil? or node.nil?
+      if node.nil?
         @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
-        return [404, "Node not found"]
+        return [404, "Node not found"] # GREG: Translate
       end
-
-      chef_node.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
-      chef_node.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
 
       pop_it = false
       if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
@@ -59,17 +53,13 @@ class CrowbarService < ServiceObject
       if node.state != state
         @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
 
-        chef_node.crowbar["state"] = state
         node.state = state
-        save_it = true
+        node.save
         pop_it = true
       end
     ensure
       release_lock f
     end
-
-    chef_node.save if save_it
-    node.save if save_it
 
     if pop_it
       #
@@ -77,9 +67,7 @@ class CrowbarService < ServiceObject
       # make sure that we add the crowbar config
       #
       if state == "discovering" and node.is_admin?
-        add_role_to_instance_and_node(name, 
-                                      Barclamp.find_by_name("crowbar").get_proposal(inst), 
-                                      "crowbar")
+        add_role_to_instance_and_node(name, inst, "crowbar")
       end
 
       # Find the active proposals that have this as a transition state
@@ -112,7 +100,7 @@ class CrowbarService < ServiceObject
         rescue Exception => e
           @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")
           @logger.fatal("#{e.backtrace}")
-          return [500, "#{bco.name} transition to #{prop.name} failed.\n#{e.message}\n#{e.backtrace}"]
+          return [500, e.message]
         end
       end
 
@@ -127,14 +115,7 @@ class CrowbarService < ServiceObject
     end
 
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
-    [200, NodeObject.find_node_by_name(name).to_hash ]
-  end
-
-  def create_proposal
-    @logger.debug("Crowbar create_proposal enter")
-    base = super
-    @logger.debug("Crowbar create_proposal exit")
-    base
+    [200, ""]
   end
 
   def apply_role (role, in_queue)

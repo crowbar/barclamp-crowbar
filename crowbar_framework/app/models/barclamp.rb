@@ -75,6 +75,10 @@ class Barclamp < ActiveRecord::Base
     Proposal.find_by_name_and_barclamp_id(name, self.id)
   end
 
+  def get_role(name)
+    Role.find_by_name_and_barclamp_id(name, self.id)
+  end
+
   def get_roles_by_order
     run_order = []
     roles.each do |role|

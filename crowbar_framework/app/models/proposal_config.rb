@@ -84,6 +84,7 @@ class ProposalConfig < ActiveRecord::Base
       nr.role = role
       node_roles << nr
     end
+    true
   end
 
   def remove_node_from_role(node, role)
@@ -92,19 +93,51 @@ class ProposalConfig < ActiveRecord::Base
       nr.destroy 
       reload
     end
+    true
   end
 
   def remove_all_nodes
     nodes.delete_all
   end
 
-  def get_nodes_by_role
+  def get_nodes_by_role(role_name)
+    role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
+    nrs = NodeRole.find_all_by_role_id_and_proposal_config_id(role.id, self.id)
+    answer = []
+    nrs.each do |nr|
+      answer << nr.node
+    end
+    answer
+  end
+
+  def get_nodes_by_roles
     answer = {}
     node_roles.each do |nr|
       answer[nr.role.name] = [] unless answer[nr.role.name]
       answer[nr.role.name] << nr.node
     end
     answer
+  end
+
+  def get_node_config_hash(node)
+    nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
+    return {} unless nr
+    return {} unless nr.config
+    JSON::parse(nr.config)
+  end
+
+  def set_node_config_hash(node, hash)
+    nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
+    unless nr
+      nr = NodeRole.create
+      nr.proposal_config = self
+      nr.role = nil
+      nr.node = node
+      nr.save
+    end
+
+    nr.config = hash.to_json
+    nr.save
   end
 
   ##

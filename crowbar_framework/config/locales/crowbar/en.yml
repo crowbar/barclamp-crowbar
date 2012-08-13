@@ -59,12 +59,16 @@ en:
       top: Scaffolds
       top_description: Developer Tools
       barclamps: Barclamps
+      cmdb: DevOps CMDB
+      cmdb_attributes: CMDB Attribs
       nodes: Nodes
+      groups: Groups
       roles: Roles
       proposals: Proposals
       configs: Proposal Configs
       menus: Menu Items
       docs: Doc Topics
+      os: "Operating Systems"
     
     error: Render Error
 

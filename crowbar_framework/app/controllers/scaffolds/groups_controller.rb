@@ -12,13 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class Cmdb < ActiveRecord::Base
-  
-  attr_accessible :name, :description, :order
-  
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
-  has_many :cmdb_runs
 
-end
+class Scaffolds::GroupsController < ApplicationController
+  active_scaffold :group do |conf|
+  end
+end 

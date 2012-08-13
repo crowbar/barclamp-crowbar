@@ -18,12 +18,11 @@ class Group < ActiveRecord::Base
   attr_accessible :name, :description, :category, :order
 
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   validates_inclusion_of :category, :in => %w( ui ), :message => "Group Model Validation Error: type %s is not an allowed category"
 
-  has_many :node_groups
-  has_many :nodes, :through => :node_groups, :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
 
 end
 

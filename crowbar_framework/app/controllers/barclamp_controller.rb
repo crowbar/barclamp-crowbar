@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
-# 
-# Author: RobHirschfeld 
 # 
 require 'json'
 
@@ -222,36 +220,6 @@ class BarclampController < ApplicationController
       format.html { render :template => 'barclamp/proposal_show' }
       format.xml  { render :xml => @proposal.current_config.to_proposal_object_hash }
       format.json { render :json => @proposal.current_config.to_proposal_object_hash }
-    end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  add_help(:proposal_status,[:id, :barclamp, :name],[:get])
-# GREG: FIX THIS!
-  def proposal_status
-    proposals = {}
-    i18n = {}
-    begin
-      active = RoleObject.active(params[:barclamp], params[:name])
-      result = if params[:id].nil? 
-        result = ProposalObject.all 
-        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      else
-        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
-      end
-      result.each do |prop|
-        prop_id = "#{prop.barclamp}_#{prop.name}"
-        status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
-        proposals[prop_id] = (status ? prop.status : "hold")
-        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
-      end
-      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
     end
   end
 

@@ -116,12 +116,27 @@ step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
   Value =:= json:value(JSON, Key);
 
+step(_Config, Results, {step_then, _N, ["key",Key, "should contain",Count,"items"]}) -> 
+  {C, _} = string:to_integer(Count),
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  List = json:value(JSON, Key),
+  Items = length(List),
+  Items =:= C;
+                                                                
 step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Count,"items"]}) ->
   {C, _} = string:to_integer(Count),
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
   List = json:value(JSON, Key),
   Items = length(List),
   Items >= C;
+
+step(_Config, Results, {step_then, _N, ["key",Key,"should be a number"]}) -> 
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  nomatch =/= re:run(json:value(JSON, Key), "^[0-9]*$");
+                                                       
+step(_Config, Results, {step_then, _N, ["key",Key, "should be an empty string"]}) -> 
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  "" =:= json:value(JSON, Key);
 
 step(_Config, _Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
   bdd_utils:assert([bdd_utils:html_find_block("<li", "</li>", R, Menu) =/= [] || R <- _Result]);

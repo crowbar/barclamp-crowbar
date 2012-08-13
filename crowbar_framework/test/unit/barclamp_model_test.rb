@@ -107,6 +107,16 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal "Validation failed: Name Name item must be unique", e.message
   end
 
+  test "Naming Conventions" do
+    assert_throws { Barclamp.create(:name=>"1123") }
+    assert_throws { Barclamp.create(:name=>"1foo") }
+    assert_throws { Barclamp.create(:name=>"Ille!gal") }
+    assert_throws { Barclamp.create(:name=>" nospaces") }
+    assert_throws { Barclamp.create(:name=>"no spaces") }
+    assert_throws { Barclamp.create(:name=>"nospacesatall ") }
+    end
+  end
+  
   test "Proposal Get" do
     b = Barclamp.find_by_name("crowbar")
     assert_equal 1, b.proposals.size

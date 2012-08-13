@@ -12,13 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class Cmdb < ActiveRecord::Base
+class CreateOs < ActiveRecord::Migration
+  def change
+    create_table :os do |t|
+      t.string      :name,  :unique=>true
+      t.string      :description, :null=>true
+      t.integer     :order, :default=>10000
+      t.timestamps
+    end
+    #natural key
+    add_index(:os, :name, :unique => true)   
+    #pre-populate
+    Os.create(:name=>"centos-6.2")
+    Os.create(:name=>"ubuntu-12.04")
+    Os.create(:name=>"redhat-6.2")
+  end
   
-  attr_accessible :name, :description, :order
-  
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
-  has_many :cmdb_runs
-
 end

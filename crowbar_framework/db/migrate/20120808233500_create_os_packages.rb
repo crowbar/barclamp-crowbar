@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class BarclampMember < ActiveRecord::Base
-  attr_accessible :barclamp, :member
-  belongs_to :barclamp
-  belongs_to :member, :class_name =>'Barclamp', :primary_key=>'id', :foreign_key=>"member_id"
+class CreateOsPackages < ActiveRecord::Migration
+  def change
+    create_table :os_packages do |t|
+      t.string      :name,  :unique=>true
+      t.string      :description, :null=>true
+      t.integer     :order, :default=>10000
+      t.belongs_to  :os
+      t.timestamps
+    end
+  end
+  
 end
-

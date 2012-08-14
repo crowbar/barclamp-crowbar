@@ -59,13 +59,17 @@ en:
       top: Scaffolds
       top_description: Developer Tools
       barclamps: Barclamps
+      cmdb: DevOps CMDB
+      cmdb_attributes: CMDB Attribs
       nodes: Nodes
+      groups: Groups
       roles: Roles
       proposals: Proposals
       configs: Proposal Configs
       menus: Menu Items
       docs: Doc Topics
       cmdb: Cmdb Attributes
+      os: "Operating Systems"
     
     error: Render Error
 
@@ -144,6 +148,8 @@ en:
       illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.
       already_commit: Proposal already being applied.
       cannot_find: Failed to find proposal
+      instance_active: Can not delete active proposals.
+      unknown_delete_fail: Unknown delete failure
     attributes:
       node:
         name: Full Name
@@ -188,7 +194,7 @@ en:
       title: Node Dashboard
       status_empty: There are %i nodes available in the system.
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
-      default_new: New Group
+      default_new: New_Group
       add: Add Group
       add_group_error: Group name should start with a letter and only contain letters, digits, -, _, ., or :.
       hide: Hide Group

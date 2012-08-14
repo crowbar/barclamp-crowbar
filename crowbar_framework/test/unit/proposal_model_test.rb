@@ -22,6 +22,16 @@ class ProposalModelTest < ActiveSupport::TestCase
     assert_equal p.current_config, p_new.current_config
     assert_equal p.proposal_configs.size, p_new.proposal_configs.size
   end
+  
+  test "Naming Conventions" do
+    assert_throws { Proposal.create(:name=>"1123") }
+    assert_throws { Proposal.create(:name=>"1foo") }
+    assert_throws { Proposal.create(:name=>"Ille!gal")}
+    assert_throws { Proposal.create(:name=>" nospaces") }
+    assert_throws { Proposal.create(:name=>"no spaces") }
+    assert_throws { Proposal.create(:name=>"nospacesatall ") }
+    end
+  end
 
 end
 

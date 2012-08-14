@@ -1,4 +1,4 @@
-# Copyright 2011, Dell
+# Copy21, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: RobHirschfeld
 #
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
@@ -102,18 +100,4 @@ module ApplicationHelper
     nodes
   end
   
-  def instance_selector(bc, name, field, proposal)
-    bar = Barclamp.find_by_name(bc)
-    options = bar.active_proposals.map { |x| x.name } | bar.proposals.map { |x| x.name }
-    if options.empty?
-      options = [["None", ""]]
-    else
-      options = options.map { |x| [x,x] }
-    end
-
-    def_val = proposal.raw_data['attributes'][proposal.barclamp][field] || ""
-
-    select_tag name, options_for_select(options, def_val), :onchange => "update_value(#{field}, #{field}, 'string')"
-  end
-
 end

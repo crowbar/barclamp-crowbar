@@ -19,15 +19,29 @@
 # 
 
 class Proposal < ActiveRecord::Base
-  attr_accessible :name, :status, :last_applied_rev, :description
+  
+  attr_accessible :name, :last_applied_rev, :description
+
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to :barclamp
-  has_many   :proposal_configs, :inverse_of => :proposal
+  has_many  :proposal_configs, :inverse_of => :proposal
+
   belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
   belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
 
   def active?
     active_config != nil
+  end
+
+  def status
+    if active?
+      return 'unready' if active_config.committing?
+      return 'pending' if active_config.queued?
+      return 'ready' if active_config.applied?
+      return 'failed' if active_config.failed?
+    end
+    'hold'
   end
 
   def deep_clone

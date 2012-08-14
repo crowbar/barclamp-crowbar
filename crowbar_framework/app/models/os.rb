@@ -13,9 +13,15 @@
 # limitations under the License.
 #
 
-class BarclampDependency < ActiveRecord::Base
-  attr_accessible :barclamp, :prereq
-  belongs_to :barclamp
-  belongs_to :prereq, :class_name =>'Barclamp', :primary_key=>'id', :foreign_key=>"prereq_id"
+class Os < ActiveRecord::Base
+  
+  attr_accessible :name, :description, :order
+
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  has_many :nodes
+  has_many :packages, :class_name => "OsPackage" #, :foreign_key => "os_id"
+
 end
 

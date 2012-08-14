@@ -174,6 +174,24 @@ class ProposalObject < ChefObject
     @item = x
   end
 
+  def self.write(raw_data)
+    # Write out chef object.
+    data_bag_item = Chef::DataBagItem.new
+    begin
+      data_bag_item.raw_data = raw_data
+      data_bag_item.data_bag "crowbar"
+
+      prop = ProposalObject.new data_bag_item
+      prop.save
+      Rails.logger.info "saved proposal"
+      [200, {}]
+    rescue Net::HTTPServerException => e
+      [e.response.code, {}]
+    rescue Chef::Exceptions::ValidationFailed => e2
+      [400, e2.message]
+    end
+  end
+
   def save
     ChefObject.chef_init
     @item["deployment"] = {} if @item["deployment"].nil?

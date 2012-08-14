@@ -83,6 +83,16 @@ class RoleObject < ChefObject
     I18n.t attrib, :scope => "model.attributes.role"
   end
 
+  def self.proposal_hash_to_role(proposal, bc_name)
+    role = Chef::Role.new
+    role.name proposal["id"].gsub("bc-#{bc_name}-", "#{bc_name}-config-")
+    role.description proposal["description"]
+    role.default_attributes proposal["attributes"]
+    role.override_attributes proposal["deployment"]
+    r = RoleObject.new role
+    r.save
+  end
+
   def barclamp
     @role.name.split("-")[0]
   end

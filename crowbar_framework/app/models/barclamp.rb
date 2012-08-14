@@ -14,13 +14,14 @@
 #
 
 class Barclamp < ActiveRecord::Base
+
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   has_many :proposals, :conditions => 'name != "template"'
   has_many :active_proposals, 
@@ -30,11 +31,9 @@ class Barclamp < ActiveRecord::Base
 
   has_many :roles
 
-  has_many :barclamp_dependencies
-  has_many :prereqs, :through=>:barclamp_dependencies
-  
-  has_many :barclamp_members
-  has_many :members, :through=>:barclamp_members, :order => "[order], [name] ASC"
+  has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
+  has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
+  has_and_belongs_to_many :members, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "member_id", :order => "[order], [name] ASC"
 
   #
   # Helper function to load the service object
@@ -49,6 +48,11 @@ class Barclamp < ActiveRecord::Base
     return allow_multiple_proposals
   end
 
+  def <=>(other)
+    # use Array#<=> to compare the attributes
+    [self.order, self.name] <=> [other.order, other.name]
+  end
+  
   #
   # We should set this to something one day.
   #
@@ -66,12 +70,29 @@ class Barclamp < ActiveRecord::Base
     prop
   end
 
+  # XXX: This may be too much for what Andi planned.  This could be done as 
+  # deleted flag and not removed from the database.
   def delete_proposal(prop)
-
+    prop.destroy
   end
 
   def get_proposal(name)
     Proposal.find_by_name_and_barclamp_id(name, self.id)
+  end
+
+  def get_role(name)
+    Role.find_by_name_and_barclamp_id(name, self.id)
+  end
+
+  def get_roles_by_order
+    run_order = []
+    roles.each do |role|
+      role.role_element_orders.each do |roe|
+        run_order[roe.order] = [] unless run_order[roe.order]
+        run_order[roe.order] << role
+      end
+    end
+    run_order
   end
 
   #legacy approach - expects name of barclamp for YML import
@@ -125,11 +146,37 @@ class Barclamp < ActiveRecord::Base
       end
     end
     
+    # packages (only import 1.x for latest OS)
+    begin    
+      debs = Os.find_by_name "ubuntu-12.04"
+      bc['debs'].each do |k, v|
+        if k.eql? 'pkgs'
+          v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
+        elsif k.eql? debs.name
+          v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
+        end
+      end
+    rescue Exception => e
+      #nothing
+    end
+    begin
+      rpms = Os.find_by_name "centos-6.2"
+      bc['rpms'].each do |k, v|
+        if k.eql? 'pkgs'
+          v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>prms.id) }
+        elsif k.eql? rpms.name
+          v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>rpms.id) }
+        end
+      end
+    rescue Exception => e
+      #nothing
+    end
+    
     template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
 
-      barclamp.mode = json["deployment"][bc_name]["mode"] rescue "full"
+      barclamp.mode = json["deployment"][bc_name]["config"]["mode"] rescue "full"
       barclamp.description = (json["description"] rescue bc_name.humanize) unless bc['barclamp']['description']
       barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""

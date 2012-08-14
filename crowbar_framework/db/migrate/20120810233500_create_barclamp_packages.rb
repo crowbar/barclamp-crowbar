@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Scaffolds::BarclampDependenciesController < ApplicationController
-  active_scaffold :barclamp_dependency do |conf|
+class CreateBarclampPackages < ActiveRecord::Migration
+  def change
+    create_table :barclamp_packages do |t|
+      t.belongs_to  :barclamp
+      t.belongs_to  :os_package
+      t.timestamps
+    end
   end
-end 
+  
+end

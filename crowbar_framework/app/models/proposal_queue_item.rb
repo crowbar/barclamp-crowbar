@@ -12,15 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateProposalConfigs < ActiveRecord::Migration
-  def change
-    create_table :proposal_configs do |t|
-      t.string         :failed_reason
-      t.integer        :status, :default => 0
-      t.text           :config
-      t.integer        :revision
-      t.belongs_to     :proposal
-      t.timestamps
-    end
-  end
+
+class ProposalQueueItem < ActiveRecord::Base
+  attr_accessible :position, :queue_reason
+
+  belongs_to :proposal_queue
+  belongs_to :proposal_config
 end
+

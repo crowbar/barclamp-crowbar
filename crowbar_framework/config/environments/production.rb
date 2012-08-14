@@ -40,6 +40,7 @@ config.action_controller.allow_forgery_protection    = false
 require 'syslogger'
 config.logger = Syslogger.new("crowbar_app", Syslog::LOG_PID, Syslog::LOG_LOCAL0)
 config.logger.level = Logger::DEBUG
+config.log_level = :debug
 
 # Use a different cache store in production
 # config.cache_store = :mem_cache_store
@@ -57,5 +58,5 @@ config.logger.level = Logger::DEBUG
   CHEF_NODE_NAME ="crowbar" 
   CHEF_SERVER_URL = "http://192.168.124.10:4000"
   CHEF_ONLINE = true
-  CROWBAR_VERSION = "v1.2-openstack-dell-4887-gd698e70-dev"
+  CROWBAR_VERSION = "v1.2-openstack-dell-5318-g724c195-dev"
  end 

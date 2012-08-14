@@ -14,11 +14,10 @@
 #
 
 class Node < ActiveRecord::Base
-  
   before_save :update_fingerprint
   after_commit :default_group
   
-  attr_accessible :name, :description, :order, :state, :fingerprint
+  attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
@@ -27,6 +26,53 @@ class Node < ActiveRecord::Base
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
+  def is_admin?
+    admin
+  end
+
+  def node_object
+    NodeObject.find_node_by_name name
+  end
+
+  # This is an hack for now.
+  def address(net = "admin")
+    node_object.address(net)
+  end
+
+  def set_state(new_state)
+    state = new_state
+    cno = NodeObject.find_node_by_name name
+    cno.crowbar["state"] = state
+    cno.save
+  end
+
+  # GREG: Make this better one day.  Perf is not good.  Direct select would be better
+  # A custom query should be able to build the list straight up.
+  def update_run_list
+    nrs = NodeRole.find_all_by_node_id(self.id)
+    # Get the active ones
+    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+
+    # For each of the roles
+    cno = node_object
+    cno.clear_run_list_map
+    nrs.each do |nr|
+      if nr.role
+        # This is node role that defines run_list entry
+        cno.add_to_run_list(nr.role.name, nr.role.barclamp.cmdb_order, nr.role.states.split(","))
+        config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
+        cno.add_to_run_list(config_name, nr.role.barclamp.cmdb_order, ["all"])
+      end
+      # Has custom data.
+      if nr.config
+        hash = nr.config_hash
+        cno.crowbar.merge(hash)
+      end
+    end
+
+    cno.save
+  end
+
   # Rob's list of CMDB attributes needed by the UI
     #alias
     #name

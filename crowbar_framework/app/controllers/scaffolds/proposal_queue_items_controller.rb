@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodeRolesProposalConfigs < ActiveRecord::Migration
-  def change
-    create_table :node_roles_proposal_configs do |t|
-      t.references    :node_role
-      t.references    :proposal_config
-    end
+
+class Scaffolds::ProposalQueueItemsController < ApplicationController
+  active_scaffold :proposal_queue_item do |conf|
   end
-end
+end 

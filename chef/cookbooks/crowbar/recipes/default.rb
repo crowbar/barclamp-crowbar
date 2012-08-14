@@ -53,24 +53,28 @@ if node[:platform] != "suse"
 
   bash "Compile the Asssets" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
-    #not_if TODO add a catch!
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 
   bash "Run the database migrations" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
-    #not_if TODO add a catch!
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 
   bash "Add the delayed_job components" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
-    #not_if TODO add a catch!
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 
   bash "Run the database migrations after delay" do
     code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
-    #not_if TODO add a catch!
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 
+  bash "touch chef_install.done" do
+    code "touch /opt/dell/crowbar_framework/chef_install.done"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+  end
 end
 
 group "crowbar"

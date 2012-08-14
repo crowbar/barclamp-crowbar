@@ -4,6 +4,10 @@ require 'test_helper'
 class BarclampModelTest < ActiveSupport::TestCase
 
   def validate_deep_compare_prop_conf(conf, conf2)
+    return if conf == nil and conf2 == nil
+    assert conf != nil
+    assert conf2 != nil
+    assert_equal conf.status, conf2.status
   end
 
   def validate_deep_compare_prop(prop, prop2)
@@ -13,7 +17,6 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     assert_not_equal prop.id, prop2.id
     assert_not_equal prop.name, prop2.name
-    assert_equal prop.status, prop2.status
     assert_equal prop.last_applied_rev, prop2.last_applied_rev
     assert_equal prop.description, prop2.description
 
@@ -50,7 +53,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal false, b
   end
 
-  test "Rolse Relation" do
+  test "Roles Relation" do
     b = Barclamp.find_by_name("crowbar")
     r = b.roles
 
@@ -137,6 +140,17 @@ class BarclampModelTest < ActiveSupport::TestCase
     e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
     assert_equal "Validation failed: Name Name item must be unique", e.message
   end
+
+  test "Get Roles by Order" do
+    b = Barclamp.find_by_name("crowbar")
+
+    ro = b.get_roles_by_order
+    assert 1, ro.length
+    assert 1, ro[0].length
+    assert 1, ro[0][0]name, "crowbar"
+  end
+
+  test "Import 1x"
 
 end
 

@@ -21,3 +21,5 @@ class CmdbEvent < ActiveRecord::Base
   #belongs_to :cmdb  # through cmdb_run
 
 end
+
+

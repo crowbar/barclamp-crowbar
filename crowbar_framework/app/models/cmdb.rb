@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'chef'
+require 'json'
+
 class Cmdb < ActiveRecord::Base
   
   attr_accessible :name, :description, :order
@@ -21,4 +24,19 @@ class Cmdb < ActiveRecord::Base
   
   has_many :cmdb_runs
 
+  def init
+    Chef::Config.node_name CHEF_NODE_NAME
+    Chef::Config.client_key CHEF_CLIENT_KEY
+    Chef::Config.chef_server_url CHEF_SERVER_URL
+  end
+
+  def find(search)
+    self.init
+    a = Chef::Search::Query.search "node", "name:#{search}"
+    puts a
+    puts a.size
+
+  end
+  # self.find "name:#{chef_escape(name)}"
 end
+

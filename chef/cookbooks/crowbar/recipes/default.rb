@@ -72,7 +72,7 @@ if node[:platform] != "suse"
   end
 
   bash "touch chef_install.done" do
-    touch "touch /opt/dell/crowbar_framework/chef_install.done"
+    code "touch /opt/dell/crowbar_framework/chef_install.done"
     not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 end

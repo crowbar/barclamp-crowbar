@@ -41,7 +41,7 @@ crowbar+book-developersguide:
       order: 1000
     - crowbar+devguide+adding-navigation
     - crowbar+devguide+locatization
-  crowbar+devguide+api
+  crowbar+devguide+api:
     order: 6000
     - crowbar+devguide+api+proposal
     - crowbar+devguide+api+barclamp

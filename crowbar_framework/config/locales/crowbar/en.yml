@@ -147,6 +147,8 @@ en:
       illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.
       already_commit: Proposal already being applied.
       cannot_find: Failed to find proposal
+      instance_active: Can not delete active proposals.
+      unknown_delete_fail: Unknown delete failure
     attributes:
       node:
         name: Full Name

@@ -123,7 +123,7 @@ class ProposalConfig < ActiveRecord::Base
     nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
     return {} unless nr
     return {} unless nr.config
-    JSON::parse(nr.config)
+    nr.config_hash
   end
 
   def set_node_config_hash(node, hash)
@@ -136,8 +136,7 @@ class ProposalConfig < ActiveRecord::Base
       nr.save
     end
 
-    nr.config = hash.to_json
-    nr.save
+    nr.config_hash = hash
   end
 
   ##

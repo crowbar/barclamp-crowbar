@@ -55,13 +55,19 @@ class Node < ActiveRecord::Base
     cno = node_object
     cno.clear_run_list_map
     nrs.each do |nr|
-      next unless nr.role
-      cno.add_to_run_list(nr.role.name, nr.role.barclamp.cmdb_order, nr.role.states.split(","))
-      config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
-      # GREG: All? or something aggregated?
-      cno.add_to_run_list(config_name, nr.role.barclamp.cmdb_order, ["all"])
+      if nr.role
+        # This is node role that defines run_list entry
+        cno.add_to_run_list(nr.role.name, nr.role.barclamp.cmdb_order, nr.role.states.split(","))
+        config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
+        cno.add_to_run_list(config_name, nr.role.barclamp.cmdb_order, ["all"])
+      end
+      # Has custom data.
+      if nr.config
+        hash = nr.config_hash
+        cno.crowbar.merge(hash)
+      end
     end
-    # GREG: Still need to think about node specific data.
+
     cno.save
   end
 

@@ -23,4 +23,13 @@ class NodeRole < ActiveRecord::Base
   belongs_to      :node
   belongs_to      :role
   belongs_to      :proposal_config
+
+  def config_hash
+    JSON::parse(config)
+  end
+
+  def config_hash=(newconfig)
+    config = newconfig.to_json
+    save
+  end
 end

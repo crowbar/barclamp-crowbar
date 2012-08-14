@@ -35,8 +35,8 @@ class CrowbarService < ServiceObject
         node.save!
         unless chef_node
           cno = NodeObject.create_new name
-          cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
-          cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
+          cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
+          cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
           cno.save
         end
       end

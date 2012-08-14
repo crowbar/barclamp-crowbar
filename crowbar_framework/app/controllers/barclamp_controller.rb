@@ -171,7 +171,7 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title ||= "#{barclamp.name} #{t('barclamp.index.members')}" 
+        @title ||= "#{barclamp.display} #{t('barclamp.index.members')}" 
         @modules = barclamp.members
         render 'barclamp/index' 
       }

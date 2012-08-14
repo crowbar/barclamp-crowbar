@@ -145,19 +145,23 @@ class NodeObject < ChefObject
     !@node.nil?
   end
 
+  #DEPRICATED
   def shortname
     Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
     name.split('.')[0]
   end
 
+  #DEPRICATED
   def name
     @node.nil? ? 'unknown' : @node.name
   end
 
+  #DEPRICATED
   def handle
     name
   end
   
+  #DEPRICATED
   def alias(suggest=false) 
     if display_set? 'alias'
       display['alias']
@@ -194,6 +198,7 @@ class NodeObject < ChefObject
     return value
   end
   
+ #DEPRICATED
   def description(suggest=false, use_name=false)
     d = if display_set? 'description'
       display['description']
@@ -205,12 +210,14 @@ class NodeObject < ChefObject
     (use_name ? "#{d || ""} [#{name}]" : d)
   end
 
+ #DEPRICATED
   def description=(value)
     set_display "description", value
     @role.description = chef_description
   end
   
   def status
+    # MIGRATED BY ROB 8/18
     # if you add new states then you MUST expand the PIE chart on the nodes index page
     subState = !state.nil? ? state.split[0].downcase : ""
     case subState
@@ -229,6 +236,7 @@ class NodeObject < ChefObject
     end
   end
 
+ #Migrated 8/12
   def ready?
     state === 'ready'
   end

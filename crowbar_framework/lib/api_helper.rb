@@ -25,22 +25,30 @@ module ApiHelper
   module ClassMethods
     
     # Helper that returns SET of all (or limited listed based on ID or name)
-    def find_keys (key)
-      r = []
-      if key.nil?
-        r = all
-      else 
-        r << find_key(key)
+    def find_keys(key)
+      begin 
+        if key.nil?
+          all
+        elsif key.is_a? Integer or key =~ /^[0-9]/
+          find_all_by_id key.to_i
+        else
+          find_all_by_name key
+        end
+      rescue ActiveRecord::RecordNotFound => e
+        []
       end
-      return r
     end
   
     # Helper to allow API to use ID or name
-    def find_key (key)
-      if key.is_a? Integer or key =~ /^[0-9]/
-        find(key.to_i)
-      else
-        find_by_name(key)
+    def find_key(key)
+      begin
+        if key.is_a? Integer or key =~ /^[0-9]/
+          find key.to_i
+        else
+          find_by_name key
+        end          
+      rescue ActiveRecord::RecordNotFound => e
+        nil
       end
     end
 

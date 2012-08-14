@@ -95,8 +95,6 @@ class CrowbarService < ServiceObject
             @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
           else
             @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
-            node.reload
-            name = node.name
           end
         rescue Exception => e
           @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")

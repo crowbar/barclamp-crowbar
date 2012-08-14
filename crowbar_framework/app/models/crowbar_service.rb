@@ -35,8 +35,8 @@ class CrowbarService < ServiceObject
         node.save!
         unless chef_node
           cno = NodeObject.create_new name
-          cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
-          cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
+          cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
+          cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
           cno.save
         end
       end
@@ -95,9 +95,6 @@ class CrowbarService < ServiceObject
             @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
           else
             @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
-            unless answer[1]["name"].nil?
-              name = answer[1]["name"]
-            end
           end
         rescue Exception => e
           @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")

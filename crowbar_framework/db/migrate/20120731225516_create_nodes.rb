@@ -18,6 +18,7 @@ class CreateNodes < ActiveRecord::Migration
       t.string      :name
       t.string      :description, :null=>true
       t.string      :state, :null=>true
+      t.integer     :fingerprint, :default=>0
       t.integer     :order, :default=>10000
       t.boolean     :admin, :default=>false
       t.boolean     :allocated, :default=>false

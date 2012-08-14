@@ -24,5 +24,10 @@ class Group < ActiveRecord::Base
 
   has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
 
+  def <=>(other)
+    # use Array#<=> to compare the attributes
+    [self.order, self.name] <=> [other.order, other.name]
+  end
+
 end
 

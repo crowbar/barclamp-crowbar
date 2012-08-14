@@ -14,8 +14,10 @@
 #
 
 class Node < ActiveRecord::Base
+  before_save :update_fingerprint
+  after_commit :default_group
   
-  attr_accessible :name, :description, :order, :state, :admin, :allocated
+  attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
@@ -94,6 +96,56 @@ class Node < ActiveRecord::Base
     #get_bmc_password-> ["ipmi"]["bmc_password"] 
     #bmc_address
   
+  
+  # Friendly name for the UI
+  def alias
+    (cmdb_get("alias") || name).split(".")[0]
+  end
+
+  def ready?
+    state.eql? 'ready'
+  end
+  
+  def admin?
+    # TODO place holder
+    false
+  end
+
+  def bmc_set?
+    # TODO place holder
+    true
+  end
+  
+  def links
+    # TODO place holder for barclamp defined links
+    []
+  end
+  
+  def allocated?
+    # TODO place holder
+    false
+  end
+
+  # Makes the open ended state information into a subset of items for the UI
+  def status
+    # if you add new states then you MUST expand the PIE chart on the nodes index page
+    subState = !state.nil? ? state.split[0].downcase : ""
+    case subState
+    when "ready"
+      "ready"     #green
+    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
+      "pending"   #flashing yellow
+    when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
+      "unknown"   #grey
+    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
+      "failed"    #flashing red
+    when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
+      "building"  #yellow
+    else
+      "unready"   #spinner
+    end
+  end  
+
   def cmdb_get(attribute)
     puts "CMDB looking up #{attribute}"
     return nil
@@ -107,6 +159,25 @@ class Node < ActiveRecord::Base
       puts "Node #{name} #{method.inspect} #{args.inspect} #{block.inspect}"
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
       throw "ERROR #{method} not defined for node #{name}"
+    end
+  end
+  
+  def <=>(other)
+    # use Array#<=> to compare the attributes
+    [self.order, self.name] <=> [other.order, other.name]
+  end
+  
+  private
+  
+  def update_fingerprint
+    self.fingerprint = self.name.hash
+    self.state ||= 'unknown' 
+  end  
+  
+  def default_group
+    if groups.size == 0
+      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
+      groups << g
     end
   end
 

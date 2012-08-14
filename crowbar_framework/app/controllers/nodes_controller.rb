@@ -23,8 +23,10 @@ class NodesController < ApplicationController
     # k = Delayed::Job.enqueue(Jobs::TestJob.new)
     # puts "DEBUG: k = #{k.inspect}"
 
-    @sum = 0
-    session[:node] = params[:name]
+    @sum = Node.sum(:fingerprint)
+    @groups = Group.find_all_by_category 'ui'
+    @node = Node.find_key params[:id]
+    session[:node] = params[:id]
     if params.has_key?(:role)
       result = NodeObject.all #this is not efficient, please update w/ a search!
       @nodes = result.find_all { |node| node.role? params[:role] }
@@ -33,23 +35,10 @@ class NodesController < ApplicationController
          @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
       end
     else
-      @groups = {}
       @nodes = {}
       raw_nodes = NodeObject.all
       get_node_and_network(params[:selected]) if params[:selected]
-      raw_nodes.each do |node|
-        @sum = @sum + node.name.hash
-        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status }
-        group = node.group
-        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
-        @groups[group][:nodes][node.group_order] = node.handle
-        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
-        if node.handle === params[:name]
-          @node = node
-          get_node_and_network(node.handle)
-        end
-      end
-      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @nodes.empty?
+      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @groups.nil?
     end
     respond_to do |format|
       format.html # index.html.haml
@@ -143,9 +132,8 @@ class NodesController < ApplicationController
   end
 
   def families
-    nodes = NodeObject.all
     @families = {}
-    nodes.each do |n|
+    Node.all.each do |n|
       f = n.family.to_s  
       @families[f] = {:names=>[], :family=>n.family} unless @families.has_key? f
       @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
@@ -170,24 +158,29 @@ class NodesController < ApplicationController
   end
   
   def status
-    nodes = {}
-    groups = {}
-    sum = 0
+    
+    groups = { 0=>{"name"=>'all', "ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0} }
+    status = {}
+    state = {}
+    i18n = {}
+    sum = Node.sum(:fingerprint)
     begin
-      result = NodeObject.all
-      result.each do |node|
-        nodes[node.handle] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
-        count = groups[node.group] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
-        count[node.status] = count[node.status] + 1
-        groups[node.group || I18n.t('unknown') ] = count
-        sum = sum + node.name.hash
+      result = Node.find_keys params[:id]
+      unless result.nil?
+        result.each do |node|
+          state[node.id] = node.state
+          status[node.id] = node.status
+          i18n[node.state] = I18n.t node.state, :scope =>'state', :default=>node.state unless i18n.has_key? node.state
+          node.groups.each do |group|
+            groups[group.id] ||= {"name"=>group.name, "ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
+            groups[group.id][node.status] += 1 
+          end
+          groups[0][node.status] += 1
+        end
       end
-      render :inline => {:sum => sum, :nodes=>nodes, :groups=>groups, :count=>nodes.length}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'")
-      render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}, :cache => false
     end
+    render :inline => {:sum => sum, :status=>status, :state=>state, :i18n=>i18n, :groups=>groups, :count=>state.length}.to_json, :cache => false
+    
   end
 
   def hit
@@ -217,14 +210,15 @@ class NodesController < ApplicationController
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
   end
 
-  # GET /nodes/1
-  # GET /nodes/1.xml
+  # GET /node/2.0/1
+  # GET /node/2.0/foo.example.com
+  # GET /nodes/2.0/1.json
   def show
-    get_node_and_network(params[:id] || params[:name])
+    @node = Node.find_key params[:id]
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
-      format.json { render :json => (params[:key].nil? ? @node : @node[params[:key]]) }
+      format.json { render :json => @node }
     end
   end
 

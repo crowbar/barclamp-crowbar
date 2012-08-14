@@ -71,9 +71,17 @@ Crowbar::Application.routes.draw do
   
   get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
+
+  scope 'node' do
+    version = "2.0"
+    constraints(:id => /.*/ ) do
+      get "status/#{version}(/:id)(.:format)", :controller=>'nodes', :action=>'status', :as => :node_status
+      get "#{version}/(:id)(.:format)", :controller=>'nodes', :action=>'show', :as => :node
+    end
+  end
+  
   scope 'nodes' do
     version = "1.0"
-    get 'status(.:format)' => "nodes#status", :as => :nodes_status
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
     get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
     post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
@@ -82,14 +90,12 @@ Crowbar::Application.routes.draw do
       match ':name/hit/:req' => "nodes#hit", :as => :hit_node
       match ':name/edit' => "nodes#edit", :as => :edit_node
       match ':name/update' => 'nodes#update', :as => :update_node
-      match ':name' => "nodes#show", :as => :node
     end
-    version = "2.0"
   end
   
   scope 'proposal' do
     version = "2.0"
-    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :as=>:proposal_status
+    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :constraints => { :id => /.*/ }, :as=>:proposal_status
   end
   
   scope 'crowbar' do

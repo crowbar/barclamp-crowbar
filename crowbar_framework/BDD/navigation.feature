@@ -71,7 +71,7 @@ Feature: Crowbar, Check Core Navigation
     Given I am on the home page
     When I click on the "Documentation" menu item
     Then I should see "System Documentation"
-      And there should be no translation errorr
+      And there should be no translation errors
     
   Scenario: %Help Deployment Guide
     Given I am on the home page

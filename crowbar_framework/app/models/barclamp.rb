@@ -48,6 +48,11 @@ class Barclamp < ActiveRecord::Base
     return allow_multiple_proposals
   end
 
+  def <=>(other)
+    # use Array#<=> to compare the attributes
+    [self.order, self.name] <=> [other.order, other.name]
+  end
+  
   #
   # We should set this to something one day.
   #

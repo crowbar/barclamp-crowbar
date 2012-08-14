@@ -70,12 +70,29 @@ class Barclamp < ActiveRecord::Base
     prop
   end
 
+  # XXX: This may be too much for what Andi planned.  This could be done as 
+  # deleted flag and not removed from the database.
   def delete_proposal(prop)
-
+    prop.destroy
   end
 
   def get_proposal(name)
     Proposal.find_by_name_and_barclamp_id(name, self.id)
+  end
+
+  def get_role(name)
+    Role.find_by_name_and_barclamp_id(name, self.id)
+  end
+
+  def get_roles_by_order
+    run_order = []
+    roles.each do |role|
+      role.role_element_orders.each do |roe|
+        run_order[roe.order] = [] unless run_order[roe.order]
+        run_order[roe.order] << role
+      end
+    end
+    run_order
   end
 
   #legacy approach - expects name of barclamp for YML import
@@ -159,7 +176,7 @@ class Barclamp < ActiveRecord::Base
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
 
-      barclamp.mode = json["deployment"][bc_name]["mode"] rescue "full"
+      barclamp.mode = json["deployment"][bc_name]["config"]["mode"] rescue "full"
       barclamp.description = (json["description"] rescue bc_name.humanize) unless bc['barclamp']['description']
       barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
       barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""

@@ -17,15 +17,17 @@
 #  configuration details for a given proposals.
 #  proposal 
 class ProposalConfig < ActiveRecord::Base
-  STATUS_NONE    = 1
-  STATUS_QUEUED  = 2
-  STATUS_FAILED  = 3
-  STATUS_APPLIED = 4
+  STATUS_NONE        = 1
+  STATUS_QUEUED      = 2
+  STATUS_COMMITTING  = 3
+  STATUS_FAILED      = 4
+  STATUS_APPLIED     = 5
 
   attr_accessible :config, :reversion, :status, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
-  has_many        :node_role
-  has_many        :node, :through => :node_role
+  has_many        :node_roles
+  has_many        :nodes, :through => :node_roles
+  has_many        :roles, :through => :node_roles
 
   def failed?
     status == STATUS_FAILED
@@ -39,6 +41,14 @@ class ProposalConfig < ActiveRecord::Base
     status == STATUS_QUEUED
   end
 
+  def committing?
+    status == STATUS_COMMITTING
+  end
+
+  ##
+  # Update hash functions convert to json
+  # This tracks the attributes sections
+  #
   def config_hash
     JSON::parse(config)
   end
@@ -48,15 +58,98 @@ class ProposalConfig < ActiveRecord::Base
     save!
   end
 
+  ##
+  # Set node_roles from proposal json elements
+  #
+  def update_node_roles(elements)
+    nodes.delete_all
+    elements.each do |role_name, node_list|
+      role = Role.find_by_name(role_name)
+      node_list.each do |node_name|
+        node = Node.find_by_name(node_name)
+        nr = NodeRole.create
+        nr.node = node
+        nr.role = role
+        node_roles << nr
+      end
+    end
+    reload
+  end
+
+  def add_node_to_role(node, role)
+    nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
+    unless nr
+      nr = NodeRole.create
+      nr.node = node
+      nr.role = role
+      node_roles << nr
+    end
+    true
+  end
+
+  def remove_node_from_role(node, role)
+    nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
+    if nr
+      nr.destroy 
+      reload
+    end
+    true
+  end
+
+  def remove_all_nodes
+    nodes.delete_all
+  end
+
+  def get_nodes_by_role(role_name)
+    role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
+    nrs = NodeRole.find_all_by_role_id_and_proposal_config_id(role.id, self.id)
+    answer = []
+    nrs.each do |nr|
+      answer << nr.node
+    end
+    answer
+  end
+
+  def get_nodes_by_roles
+    answer = {}
+    node_roles.each do |nr|
+      answer[nr.role.name] = [] unless answer[nr.role.name]
+      answer[nr.role.name] << nr.node
+    end
+    answer
+  end
+
+  def get_node_config_hash(node)
+    nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
+    return {} unless nr
+    return {} unless nr.config
+    nr.config_hash
+  end
+
+  def set_node_config_hash(node, hash)
+    nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
+    unless nr
+      nr = NodeRole.create
+      nr.proposal_config = self
+      nr.role = nil
+      nr.node = node
+      nr.save
+    end
+
+    nr.config_hash = hash
+  end
+
+  ##
+  # Clone this proposal_config
+  #
   def deep_clone
     new_config = self.dup
     new_config.save
 
-#    node_role.each do |nr|
-#      new_nr = nr.deep_clone
-#      new_nr.save
-#      new_config.node_role << new_nr
-#    end
+    node_roles.each do |nr|
+      new_nr = NodeRole.create(:node_id => nr.node_id, :role_id => nr.role_id)
+      node_roles << new_nr
+    end
 
     new_config
   end
@@ -79,6 +172,7 @@ class ProposalConfig < ActiveRecord::Base
     phash["deployment"][bc_name]["config"]["mode"] = proposal.barclamp.mode
     phash["deployment"][bc_name]["config"]["transitions"] = proposal.barclamp.transitions
     phash["deployment"][bc_name]["config"]["transition_list"] = proposal.barclamp.transition_list.split(",")
+    phash["deployment"][bc_name]["crowbar-revision"] = 0
     phash["deployment"][bc_name]["element_order"] = []
     phash["deployment"][bc_name]["element_states"] = {}
     proposal.barclamp.roles.each do |role|
@@ -90,8 +184,14 @@ class ProposalConfig < ActiveRecord::Base
       end
     end
 
-    # GREG: Build deployment from node_roles and roles
-    phash["deployment"][bc_name]["elements"] = {}
+    elements = {}
+    node_roles.each do |nr|
+      next unless nr.role
+      next unless nr.node
+      elements[nr.role.name] = [] unless elements[nr.role.name]
+      elements[nr.role.name] << nr.node.name
+    end
+    phash["deployment"][bc_name]["elements"] = elements
 
     phash
   end

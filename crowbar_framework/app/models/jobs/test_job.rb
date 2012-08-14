@@ -17,7 +17,7 @@ class Jobs::TestJob < Jobs::BaseJob
 
   def perform
     super
-    puts "GREG: Jobs was tested"
+    puts "DEBUG: Jobs was tested"
   end
 
 end

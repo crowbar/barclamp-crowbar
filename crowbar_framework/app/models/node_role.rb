@@ -19,17 +19,17 @@
 # roles and nodes, with some extra info.
 
 class NodeRole < ActiveRecord::Base
-  attr_accessible :role_name, :config, :status
-  has_many        :node
+  attr_accessible :config
+  belongs_to      :node
   belongs_to      :role
+  belongs_to      :proposal_config
 
-  def deep_clone
-    new_nr = self.dup
-    new_nr.save
-
-    # GREG: Clone the node_role config table one day.  It still needs work.
-
-    new_nr
+  def config_hash
+    JSON::parse(config)
   end
 
+  def config_hash=(newconfig)
+    config = newconfig.to_json
+    save
+  end
 end

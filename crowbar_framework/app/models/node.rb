@@ -60,11 +60,9 @@ class Node < ActiveRecord::Base
     state.eql? 'ready'
   end
   
-  def admin?
-    # TODO place holder
-    false
+  def virtual?
   end
-
+  
   def bmc_set?
     # TODO place holder
     true
@@ -73,11 +71,6 @@ class Node < ActiveRecord::Base
   def links
     # TODO place holder for barclamp defined links
     []
-  end
-  
-  def allocated?
-    # TODO place holder
-    false
   end
 
   # Makes the open ended state information into a subset of items for the UI

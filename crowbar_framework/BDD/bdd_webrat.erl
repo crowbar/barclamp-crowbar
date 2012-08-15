@@ -114,7 +114,8 @@ step(_Config, Result, {step_then, _N, ["I should download text with", Text]}) ->
 
 step(_Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  false;
+  bdd_utils:debug(false, "JSON list ~p should have ~p~n", [JSON, Key]),
+  length([K || {K, _} <- JSON, K == Key])==1;
                                                                 
 step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature

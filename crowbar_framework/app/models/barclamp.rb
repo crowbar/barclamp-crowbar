@@ -24,10 +24,8 @@ class Barclamp < ActiveRecord::Base
   # Validate the name should unique 
   # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
   #
-  validates_uniqueness_of :name, 
-      :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, 
-      :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   #
   # Proposals are all stored in the proposal table
@@ -99,7 +97,7 @@ class Barclamp < ActiveRecord::Base
   #
   def create_proposal(name = nil)
     prop = template.deep_clone
-    prop.name = name || "created#{Time.now}"
+    prop.name = name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}"
     prop.save!
     prop
   end

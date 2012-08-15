@@ -74,9 +74,10 @@ Crowbar::Application.routes.draw do
 
   scope 'node' do
     version = "2.0"
+    post "#{version}/new" => "nodes#new"
     constraints(:id => /.*/ ) do
-      get "status/#{version}(/:id)(.:format)", :controller=>'nodes', :action=>'status', :as => :node_status
-      get "#{version}/(:id)(.:format)", :controller=>'nodes', :action=>'show', :as => :node
+      get "status/#{version}(/:id)(.:format)" => 'nodes#status', :as => :node_status
+      get "#{version}/(:id)(.:format)" =>'nodes#show', :as => :node
     end
   end
   

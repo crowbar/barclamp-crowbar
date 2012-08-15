@@ -26,6 +26,33 @@ A feature file is broken into specific "scenarios" to be tested.  Each scenario 
 
 A scenario must include a when statement but the given is optional.  Given is used to setup a scenario before the when action is taken.  This is very important for testing linking from a page.  For example, _given_ that I'm on the nodes list page _when_ I click on the all link _then_ I should a list that includes the admin node.  BDD's goal is to turn those types of directives into tests.
 
+#### HTML Tests
+
+The following sentences can be used for testing HTML web pages where you can change the information in "quotes".
+
+* Given I am on the home page
+* Given I am on the "dashboard" page
+* When I go to the home page
+* When I go to the "node/2.0/1" page
+* When I click on the "Dashboard" menu item
+* Then I should see "Full Name"
+* Then there should be no translation errors
+* Then I should not see "Error"
+
+> Note: This is _not_ a complete list!
+
+#### AJAX Tests
+
+The following sentences can be used for testing JSON AJAX API calls where you can change the information in 
+
+* When AJAX requests the "node/status/2.0" page
+* Then key "fingerprint" should be a number
+* Then key "[nodes][admin][state]" should be "Ready"
+* Then key "count" should be "0"
+* Then key "[groups][0]" should contain "7" items
+
+> Note: This is _not_ a complete list!
+
 ### Extending the DSL
 
 Each feature definition can add it's own ERL step parser.  The BDD system will automatically search for a step definition based on the feature name.  It will also automatically search the "crowbar" and "webrat" steps.  
@@ -54,3 +81,8 @@ The Crowbar barclamp tests include:
    * Checks for localization omissions
 * Proposal.features
    * Tests the Proposal Status API
+* Nodes.features
+   * Tests the node status API
+   * Tests the node detail page & API
+* Scaffolds.features
+   * Tests all the feature objects

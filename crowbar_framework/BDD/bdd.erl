@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/1, test/3, feature/2]).  %this is the final one
+-export([test/1, test/3, feature/2, getconfig/1]).  
 -import(bdd_utils).
 -import(digest_auth).
 

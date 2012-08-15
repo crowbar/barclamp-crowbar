@@ -21,7 +21,7 @@
               = text_field_tag :group, @node.group(true), :size => 20
         %li.select
           = f.label :bios, t('.bios')
-          -if @node.admin?
+          -if @node.is_admin?
             = t 'na'
           -elsif @options[:show].include? :bios
             = select_tag :bios, options_for_select(option_default(@options[:bios], @node.bios_set, 'bios'), @node.bios_set)
@@ -29,15 +29,15 @@
             = t 'feature_na'
         %li.select
           = f.label :raid, t('.raid')
-          -if @node.admin?
+          -if @node.is_admin?
             = t 'na'
-          -elsif @options[:show].include? :raid and !@node.admin?
+          -elsif @options[:show].include? :raid and !@node.is_admin?
             = select_tag :raid,  options_for_select(option_default(@options[:raid], @node.raid_set, 'raid'), @node.raid_set)
           -else
             = t 'feature_na'
     %fieldset.buttons
       %ol
-        -unless @node.allocated? or @node.admin?
+        -unless @node.allocated? or @node.is_admin?
           %li
             %input.button{:type => "submit", :name => "submit", :value => t('.allocate')}
         %li

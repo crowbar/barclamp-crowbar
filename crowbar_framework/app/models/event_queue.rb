@@ -13,6 +13,14 @@
 # limitations under the License.
 #
 
+#
+# This is a singleton Class that allows the Rails app to send
+# broadcast notifications to AMQP listeners.
+#
+# Events are defined in the app/model/events directory.
+#
+# Calling publish the first time will establish the outbound queue and warm the queue.
+#
 class EventQueue
 
   @configured = false

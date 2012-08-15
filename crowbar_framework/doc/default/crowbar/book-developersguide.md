@@ -1,4 +1,4 @@
-# Crowbar 2.x Developers Guide
+# Crowbar 2.x Developers' Guide
 
 Welcome to the amazing fuzziness of Crowbar!  This guide is targeted at people who want to extend Crowbar by adding new barclamps (aka modules). 
 

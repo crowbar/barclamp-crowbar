@@ -37,12 +37,12 @@ class ProposalModelTest < ActiveSupport::TestCase
   end
   
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>"1123") }
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>"1foo") }
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>"Ille!gal")}
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>" nospaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>"no spaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create(:name=>"nospacesatall ") }
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>"1123") }
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>"1foo") }
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>"Ille!gal")}
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>" nospaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>"no spaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Proposal.create!(:name=>"nospacesatall ") }
   end
 
 end

@@ -14,13 +14,12 @@
 #
 
 class Node < ActiveRecord::Base
-  before_save :update_fingerprint
-  after_commit :default_group
+  before_save :default_population
   
   attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
   
   validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
+  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
@@ -162,16 +161,14 @@ class Node < ActiveRecord::Base
   
   private
   
-  def update_fingerprint
+  # make sure some safe values are set for the node
+  def default_population
     self.fingerprint = self.name.hash
     self.state ||= 'unknown' 
+    if self.groups.size == 0
+      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
+      self.groups << g
+    end
   end  
   
-  def default_group
-    if groups.size == 0
-      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
-      groups << g
-    end
-  end
-
 end

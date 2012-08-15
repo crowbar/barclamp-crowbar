@@ -15,14 +15,37 @@
 require 'test_helper'
  
 class GroupModelTest < ActiveSupport::TestCase
-
+  
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"1123") }
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"1foo") }
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"Ille!gal") }
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>" nospaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"no spaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"nospacesatall ") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"1123") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"1foo") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"Ille!gal") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>" nospaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"no spaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"nospacesatall ") }
+  end
+  
+  test "default category" do
+    g = Group.create!(:name=>"foo")
+    assert_not_nil g, "Node Created"
+    assert_equal g.category, 'ui', "default category"
+  end
+  
+  test "alternate category" do
+    g = Group.create!(:name=>"foo", :category=>'rack')
+    assert_not_nil g, "Node created"
+    assert_equal g.name, 'foo', "name right"
+    assert_equal g.category, 'rack', "category right"
+  end
+  
+  test "only allowed categories" do
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"foo", :category=>'foo') }
+  end
+
+  test "no dup name+category" do
+    g = Group.create! :name=>"foo", :category=>'rack'
+    assert_not_nil g, "Node Created"
+    assert_raise(ActiveRecord::RecordNotUnique) { Group.create!(:name=>"foo", :category=>'rack') }
   end
 
 end

@@ -17,40 +17,48 @@ require 'test_helper'
 class NodeModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
-    Node.create :name=>"foo"
-    e = assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name => "foo") }
-    assert_equal "Validation failed: Name Name item must be unique", e.message
+    Node.create! :name=>"foo.example.com"
+    e = assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name => "foo.example.com") }
+    assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
 
-    b = Node.create(:name => "foo")
-    b = b.save
-    assert_equal false, b
+    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => "foo.example.com" }
   end
 
+  test "state unknown" do
+    n = Node.create! :name=>"unknown.node.com"
+    assert_not_nil n, "created node"
+    assert_equal n.state, 'unknown'
+  end
+  
   test "not set group" do
-    n = Node.create :name=>"not_set"
+    n = Node.create! :name=>"not-set.example.com"
+    assert_not_nil n
     g = Group.find_by_name "not_set"
     assert_not_nil g
-    assert_true n.groups.size > 0
-    assert_true n.groups.include? g
+    assert_equal g.name, "not_set"
+    assert_equal n.groups.size, 1
+    assert_equal n.groups[0].id, g.id
   end
 
   test "fingerprint" do
-    n = Node.create :name=>"fingerprint"
+    n = Node.create :name=>"fingerprint.example.com"
     assert_not_nil n.fingerprint
     assert_not_equal n.fingerprint, 0
     fp = n.fingerprint
-    n.name = "hash"
-    n.save
+    n.name = "hash.example.com"
+    n.save!
     assert_not_equal n.fingerprint, fp
   end
   
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"1123") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"1foo") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"Ille!gal") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>" nospaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"no spaces") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"nospacesatall ") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"fqdnrequired") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1no.legal.domain") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1123.foo.com") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1foo.bar.net") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"Ille!gal.foo.org") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>" nospaces.bar.it") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"no spaces.dell.com") }
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"nospacesatall.end.edu ") }
   end
 
 end

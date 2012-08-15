@@ -26,11 +26,15 @@ class Node < ActiveRecord::Base
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
   def is_admin?
-    admin
+    node_object.admin? rescue false
   end
 
+  def allocated?
+    node_object.allocated rescue true
+  end
+  
   def node_object
-    NodeObject.find_node_by_name name
+    NodeObject.find_node_by_name name 
   end
 
   # This is an hack for now.

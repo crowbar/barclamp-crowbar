@@ -3,6 +3,9 @@ Feature: Nodes
   The system operator, Oscar
   wants to be able to check the status of nodes
 
+  Scenario: REST Node Create
+    Then I should use my special step file
+
   Scenario: Status Empty
     When AJAX requests the "node/status/2.0" page
     Then key "sum" should be a number

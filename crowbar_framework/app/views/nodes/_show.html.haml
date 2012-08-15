@@ -51,7 +51,7 @@
   ="pending" #dl_item(t('roles':scope=>s), roles_list(@node.roles), {:escape_html=>false})
 
 %ul.buttons
-  - unless @node.admin?
+  - unless @node.is_admin?
     %li= link_to "Hardware Update", hit_node_path(@node.id, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
     %li= link_to "Reinstall", hit_node_path(@node.id, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
     %li= link_to "Reset", hit_node_path(@node.id, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')

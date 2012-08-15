@@ -222,6 +222,13 @@ class NodesController < ApplicationController
     end
   end
 
+  def new
+    if request.post?
+      @node = Node.create! params
+      render :json => @node
+    end
+  end
+  
   def edit
     @options = CrowbarService.read_options
     get_node_and_network(params[:id] || params[:name])

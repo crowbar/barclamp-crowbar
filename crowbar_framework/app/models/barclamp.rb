@@ -20,9 +20,25 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals
   
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  # 
+  # Validate the name should unique 
+  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
+  #
+  validates_uniqueness_of :name, 
+      :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, 
+      :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
+  #
+  # Proposals are all stored in the proposal table
+  # There is a special proposal barclamp.  This is the template proposal
+  # that defines the initial content for a new proposal
+  #
+  # The three helpers are for:
+  #   all proposals (that aren't template)
+  #   all active proposals (that aren't template and have attempted application)
+  #   the template proposal
+  # 
   has_many :proposals, :conditions => 'name != "template"'
   has_many :active_proposals, 
                 :class_name => "Proposal", 
@@ -38,6 +54,13 @@ class Barclamp < ActiveRecord::Base
   #
   # Helper function to load the service object
   #
+  # This is used to allow callers to get access to the barclamp's
+  # service functions.  There are two primary use cases,
+  # 1. barclamp controller wants a generic method to call a common routine.
+  #   @barclamp.operations.proposal_create
+  # 2. Barclamp wants to call other barclamp
+  #   Barclamp.find_by_name("network").operations(@logger).allocate_ip(...)
+  #
   def operations(logger = nil)
     @service = eval("#{name.camelize}Service.new logger") unless @service
     @service.bc_name = name
@@ -48,6 +71,9 @@ class Barclamp < ActiveRecord::Base
     return allow_multiple_proposals
   end
 
+  #
+  # Order barclamps by their order value and then their name
+  #
   def <=>(other)
     # use Array#<=> to compare the attributes
     [self.order, self.name] <=> [other.order, other.name]
@@ -61,7 +87,15 @@ class Barclamp < ActiveRecord::Base
   end
 
   #
-  # Proposal manipulation functions
+  # Override function:
+  #
+  # Creates a new proposal from the template object.  
+  # Barclamps can override this function to tweak config or add nodes
+  #
+  # Overriding functions should call super to get the template object.
+  #
+  # Input: Optional: Name
+  # Output: Proposal Object Based upon template.
   #
   def create_proposal(name = nil)
     prop = template.deep_clone
@@ -84,6 +118,11 @@ class Barclamp < ActiveRecord::Base
     Role.find_by_name_and_barclamp_id(name, self.id)
   end
 
+  #
+  # Get the roles group by the role orders.
+  # This is used to order cmdb runs by role sets
+  # This used to be the element_order structure in the json
+  #
   def get_roles_by_order
     run_order = []
     roles.each do |role|

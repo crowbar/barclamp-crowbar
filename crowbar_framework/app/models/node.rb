@@ -26,19 +26,35 @@ class Node < ActiveRecord::Base
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
+  #
+  # Helper function to test admin without calling admin. Style-thing.
+  #
   def is_admin?
     admin
   end
 
+  #
+  # Find the CMDB object for now.  This should go away as the CMDB_Attribute pieces
+  # materialize.
+  #
   def node_object
     NodeObject.find_node_by_name name
   end
 
+  #
   # This is an hack for now.
+  # XXX: Once networking is better defined, we should use those routines
+  #
   def address(net = "admin")
     node_object.address(net)
   end
 
+  #
+  # Helper function to set state.  Assumes that the node will be save outside if this routine.
+  #
+  # State needs to be reflected in two places for now.  It does save the cmdb object.
+  # As we get more CMDB work in place, this should go away.
+  #
   def set_state(new_state)
     state = new_state
     cno = NodeObject.find_node_by_name name
@@ -46,8 +62,15 @@ class Node < ActiveRecord::Base
     cno.save
   end
 
-  # GREG: Make this better one day.  Perf is not good.  Direct select would be better
+  # XXX: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.
+  #
+  # update_run_list:
+  #   Rebuilds the run_list for the CMDB system for this node based upon its active proposal
+  #   membership and its state.
+  #
+  #   This includes updating the CMDB node role with node specific data.
+  #
   def update_run_list
     nrs = NodeRole.find_all_by_node_id(self.id)
     # Get the active ones

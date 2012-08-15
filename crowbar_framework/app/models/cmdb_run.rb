@@ -19,5 +19,6 @@ class CmdbRun < ActiveRecord::Base
   belongs_to :cmdb_map
 
   has_many :cmdb_events
+  has_many :nodes
 
 end

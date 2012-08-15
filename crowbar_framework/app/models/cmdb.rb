@@ -23,6 +23,7 @@ class Cmdb < ActiveRecord::Base
   validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   has_many :cmdb_runs
+  has_many :cmdb_events, :through => :cmdb_runs
 
   def init
     Chef::Config.node_name CHEF_NODE_NAME
@@ -30,12 +31,24 @@ class Cmdb < ActiveRecord::Base
     Chef::Config.chef_server_url CHEF_SERVER_URL
   end
 
-  def find(search)
-    self.init
-    a = Chef::Search::Query.search "node", "name:#{search}"
-    puts a
-    puts a.size
+  def run
+    # create a CmdbRun object and run it and return it.
+    return nil
+  end
 
+  def node(search)
+    self.init
+    node = Chef::Node.load('admin.crowbar.org')
+    puts node.size
+    m = CmdbMap.find(1)
+    m.init_map
+    m.all_maps.each { |k|
+      v = m.map_get(k)
+      nv = eval "node" + v
+      a = CmdbAttribute.new( :name => k, :value => nv )
+      puts a.inspect
+      a.save!
+    }
   end
   # self.find "name:#{chef_escape(name)}"
 end

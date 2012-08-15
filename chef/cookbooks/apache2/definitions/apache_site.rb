@@ -39,8 +39,8 @@ define :apache_site, :enable => true do
     end
   else # in case node.platform == "suse"
     if not params[:enable] then
-      execute "disabling site #{params[:name]}" do
-        command "rm -f #{node[:apache][:dir]}/vhosts.d/#{params[:name]}"
+      file "#{node[:apache][:dir]}/vhosts.d/#{params[:name]}" do
+        action :delete
         notifies :reload, resources(:service => "apache2")
       end
     end

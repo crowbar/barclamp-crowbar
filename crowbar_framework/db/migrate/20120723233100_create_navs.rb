@@ -54,6 +54,11 @@ class CreateNavs < ActiveRecord::Migration
       Nav.find_or_create_by_item :item=>'docs', :parent_item=>'help', :name=>'nav.docs', :description=>'nav.docs_description', :path=>"docs_path", :order=>100
       Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"https://github.com/dellcloudedge/crowbar/wiki/", :order=>200
 
+    # users
+    Nav.find_or_create_by_item :item=>'users', :parent_item=>'root', :name=>'nav.users', :description=>'nav.users_description', :path=>"manage_users_path", :order=>6000
+      Nav.find_or_create_by_item :item=>'manage_users', :parent_item=>'users', :name=>'nav.manage_users', :description=>'nav.manage_users_description', :path=>"manage_users_path", :order=>100
+      Nav.find_or_create_by_item :item=>'logoff', :parent_item=>'users', :name=>'nav.log_off', :description=>'nav.logoff_description', :path=>"manage_users_path", :order=>200
+
   end
 
   def self.down

@@ -37,6 +37,8 @@ Crowbar::Application.routes.draw do
   end
 
   devise_for :users
+  get "manage_users", :controller => 'users', :action => 'index', :as => 'manage_users'
+  delete "logout_user", :controller => 'users', :action =>'destroy_user_session_path', :as => 'logout_user'
 
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection

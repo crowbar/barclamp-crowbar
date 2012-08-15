@@ -55,6 +55,10 @@ en:
     docs: Documentation
     docs_description: Documentation
 
+    users: Users
+    log_off: Log off
+    manage_users: Manage Users
+
     scaffold:
       top: Scaffolds
       top_description: Developer Tools

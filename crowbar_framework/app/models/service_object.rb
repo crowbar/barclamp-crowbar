@@ -706,6 +706,15 @@ class ServiceObject
     end
   end
 
+  #
+  # This does additional validation of the proposal, but after it has been
+  # saved. This should be used if the errors are easy to fix in the proposal.
+  #
+  # This can be overridden to get better validation if needed.
+  #
+  def validate_proposal_after_save proposal
+  end
+
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 

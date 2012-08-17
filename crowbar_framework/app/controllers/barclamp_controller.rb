@@ -359,6 +359,7 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal @proposal.raw_data
           @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
+          @service_object.validate_proposal_after_save @proposal.raw_data
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue Exception => e
           flash[:notice] = e.message
@@ -372,6 +373,7 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal @proposal.raw_data
           @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
+          @service_object.validate_proposal_after_save @proposal.raw_data
 
           answer = @service_object.proposal_commit(params[:name])
           flash[:notice] = answer[1] if answer[0] >= 300

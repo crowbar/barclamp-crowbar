@@ -20,7 +20,6 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>" nospaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"no spaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Node.create(:name=>"nospacesatall ") }
-    end
   end
 
 end

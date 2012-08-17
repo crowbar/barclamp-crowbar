@@ -30,7 +30,6 @@ class ProposalModelTest < ActiveSupport::TestCase
     assert_throws { Proposal.create(:name=>" nospaces") }
     assert_throws { Proposal.create(:name=>"no spaces") }
     assert_throws { Proposal.create(:name=>"nospacesatall ") }
-    end
   end
 
 end

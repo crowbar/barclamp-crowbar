@@ -1,0 +1,23 @@
+%h1= t('user.title')
+%table.data.box
+ %thead
+  %tr
+   %th= t('user.username')
+   %th= t('user.sign_in_count')
+   %th= t('user.failed_attempts')
+   %th= t('user.last_sign_in_at')
+   %th= t('user.last_sign_in_ip')
+  %tbody
+   - if @users.count > 0
+    - @users.each do |user|
+     %tr.node{ :class => cycle(:odd, :even) }
+      %td= user.username
+      %td= user.sign_in_count
+      %td= user.failed_attempts
+      %td= user.last_sign_in_at
+      %td= user.last_sign_in_ip
+   - else
+    %tr
+     %td{ :colspan=>5 }
+      = t 'no_items'
+

@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
 
 # Sample localization file for English. Add more files in this directory for other locales.
 # See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
@@ -131,7 +128,10 @@ en:
       parent: Parent
       children: Children
       nav: Navigation
-      topic_missing: Error, generated HTML page for topic not found
+      export: Export
+      return: "< Go Back"
+      topic_missing: Error, generated HTML page because topic source not found
+      topic_error: Error, failed to generate HTML page
       
   # Model Names / Attributes
   model:

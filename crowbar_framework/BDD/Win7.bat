@@ -12,6 +12,7 @@ erlc bdd_catchall.erl
 erlc bdd_selftest.erl
 erlc crowbar.erl
 erlc swift.erl
+erlc nodes.erl
 erlc bdd.erl
 
 REM Self Diagnostics

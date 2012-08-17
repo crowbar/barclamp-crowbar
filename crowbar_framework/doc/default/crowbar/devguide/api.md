@@ -10,3 +10,69 @@ The Crowbar API is versioned.  API urls include the Crowbar version of the API (
 
 > Legacy Note: some routes maintain a 1.0 API; however, these should all be considered deprecated!
 
+### Crowbar 2 API Pattern
+
+The Crowbar 2 API attempts to follow the following behavior pattern.
+
+#### Expectations:
+
+* Core objects can be referenced equally by name or ID.  This means that objects with natural key names are NOT allowed to start with a number (similar to FQDN restrictions)
+* JSON is the API serialization model
+* Single objects will return the simple serialization (object.json) output
+* Cross references will use database IDs (normalized xref) for returns, not natural keys or names
+* Some calls are shared by the UI and may require `?format=json`.  It is recommended at all API calls include this parameter for safety.
+
+#### Common API URL Patterns:
+
+* Basic Contract: `[object_type]/2.0/` ...
+  * object_type - (singular) such as node, barclamp, network, etc
+  * "2.0" indicates the API version (will be incremented if API changes)
+  * Result codes
+     * 200 = OK, success
+     * 500 = Error in processing.  Error given as HTML
+
+* List/Status: `[object type]/2.0`
+  * HTTP get
+  * return the serialized object.  
+
+* CRUD Operation: `[object_type]/2.0/[id]`
+  * id - name or database ID of the item.  Items that do not have natural keys are not expected to honor use of name instead of database ID.  When possible, either will be allowed.
+  * RESTful Verbs for CRUUD:
+     * Create - HTTP Post (ID is ignored)
+     * Read - HTTP Get
+        * Objects will be shallow (they will not populate child references beyond the ID(s)).
+     * Unlink/Deactivate/Dequeue - HTTP Delete 
+     * Update - HTTP Put (returns the updated object serialized)
+     * Delete - HTTP Delete (no return except 200)
+
+  > Unlink/Deactivate/Dequeue perform "unlinking" operations where the the API removed a reference but does not delete the target object 
+  
+* Action: `[object_type]/2.0/[id]/[action]/[predicate_id]`
+  * Must be HTTP PUT / POST / DELETE
+      * Delete without an action implies object is removed
+      * Delete with action implies unlinking operation
+  * action - defines the action to be taken on the ID
+  * predicate_id - (optional) object that receives the action.  As in "ID-Foo joins ID-Bar" where joins is the action and ID-Bar is the predicate.
+
+* Barclamps: `crowbar/2.0/[barclamp]/[latest | bc_version]/[id]`
+   * Barclamp - the name or ID of the barclamp being referenced
+   * Barclamp version
+      * the version of the barclamp being used in case there are multiple versions of the same barclamp installed
+      * latest uses the most recent version of the barclamp available.  This option is provided as a safe default for most API requests so that you do not have to track the version of the barclamp
+   * id - name or DB id of the barclamp configuration
+
+* Configurations: `(barclamp url) + /instance/[active | iid]`
+   * iid 
+      * name or DB if of the instance requested for the barclamp configuration
+      * convenience value returns the active instance for the barclamp
+
+#### Documentation
+
+The following table should be populated for all API calls:
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> GET  </td><td> /node/2.0/[id] </td><td> id is the node ID or name. </td><td> Json: please include an example below the table! </td><td> Jokes, etc </td></tr>
+</table>
+
+An example JSON file should be provided

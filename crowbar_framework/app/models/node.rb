@@ -19,10 +19,10 @@ class Node < ActiveRecord::Base
   attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
   
   # 
-  # Validate the name should unique 
+  # Validate the name should unique (no matter the case)
   # and that it starts with a valid FQDN
   #
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :case_sensitive => false, :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
@@ -199,6 +199,7 @@ class Node < ActiveRecord::Base
   # make sure some safe values are set for the node
   def default_population
     self.fingerprint = self.name.hash
+    self.name = self.name.to_lower
     self.state ||= 'unknown' 
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')

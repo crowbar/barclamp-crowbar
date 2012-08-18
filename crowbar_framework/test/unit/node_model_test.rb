@@ -30,6 +30,14 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal n.state, 'unknown'
   end
   
+  test "lower case required" do
+    name = "THIS.ISALL.CAPS"
+    n = Node.create! :name=>name
+    assert_not_equal n.name, name
+    assert_equal n.name, n.to_lower
+    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => Name }
+  end
+  
   test "not set group" do
     n = Node.create! :name=>"not-set.example.com"
     assert_not_nil n

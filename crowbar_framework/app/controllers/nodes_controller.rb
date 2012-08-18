@@ -222,6 +222,12 @@ class NodesController < ApplicationController
     end
   end
 
+  # RESTfule delete of the node
+  def delete
+    Node.delete Node.find_key(params[:id]).id
+    render :text => "Node #{params[:id]} deleted!"
+  end
+  
   def new
     if request.post?
       @node = Node.create! params

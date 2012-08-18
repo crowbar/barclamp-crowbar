@@ -223,7 +223,7 @@ class ServiceObject
   #
   # Function to handle the barclamp controller API request to delete proposal (proposal delete)
   # Input:
-  #   inst - String name of a proposal to dequeue
+  #   inst - String name of a proposal to delete
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
@@ -244,7 +244,7 @@ class ServiceObject
   #
   # Function to handle the barclamp controller API request to commit proposal (proposal commit)
   # Input:
-  #   inst - String name of a proposal to dequeue
+  #   inst - String name of a proposal to commit
   #   in_queue - optional boolean to indicate if we are in the queue code vs. UI/API
   #
   # Output:

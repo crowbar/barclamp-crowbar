@@ -52,6 +52,12 @@ en:
     docs: Documentation
     docs_description: Documentation
 
+    users: Users
+    manage_users: Manage Users
+    manage_users_description: Add, remove and edit users
+    sign_out: Sign Out
+    sign_out_description: End the current session
+
     scaffold:
       top: Scaffolds
       top_description: Developer Tools
@@ -442,3 +448,11 @@ en:
     lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
     fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
 
+  # Users
+  user:
+    title: Manage User Accounts
+    username: Username
+    sign_in_count: Sign In Count
+    failed_attempts: Failed Signins
+    last_sign_in_at: Last Signed In
+    last_sign_in_ip: IP of Last Sign In

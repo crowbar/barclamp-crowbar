@@ -20,32 +20,43 @@ The Crowbar 2 API attempts to follow the following behavior pattern.
 * JSON is the API serialization model
 * Single objects will return the simple serialization (object.json) output
 * Cross references will use database IDs (normalized xref) for returns, not natural keys or names
-* Some calls are shared by the UI and may require `?format=json`.  It is recommended at all API calls include this parameter for safety.
+* Some calls are shared by the UI and may require `?format=json`.  It is recommended that all API calls include this parameter for safety.
+
+  > Warning: Do NOT use API calls without the version # included!  Calls without version numbers are tightly coupled to the UI screens and do not have any contract at all.  They are expected to be used internally by the UI and not maintained for external users!
 
 #### Common API URL Patterns:
 
-* Basic Contract: `[object_type]/2.0/` ...
-  * object_type - (singular) such as node, barclamp, network, etc
+* UI URLs: _these are undocumented, unsupported for external use, and do not include a version number_
+  * Do not use these for API calls!
+
+* Basic Contract: `[key_word]/2.0/` ...
+  * key_word - groups the API into different categories
+     * reserved words such as status and crowbar
+     * resource types like node, group, etc
   * "2.0" indicates the API version (will be incremented if API changes)
   * Result codes
      * 200 = OK, success
      * 500 = Error in processing.  Error given as HTML
+     * 404 = item not found in database (may return 500 in some cases)
 
-* List/Status: `[object type]/2.0`
+* List/Status: `status/2.0/[class]/[id]?filter=X`
   * HTTP get
-  * return the serialized object.  
+  * class - not all objects are provided with list status support!  This is NOT a CRUD operation.
+  * returns performance/data specialized list format that varies per object, _not serialized_ objects.  
+  * id - (optional) may be used for opimization to return a restricted result set.  The list returned must be the same format as the list if all items are returned
+  * ?filter=X - (optional) may be used to filter the list results  
 
 * CRUD Operation: `[object_type]/2.0/[id]`
   * id - name or database ID of the item.  Items that do not have natural keys are not expected to honor use of name instead of database ID.  When possible, either will be allowed.
   * RESTful Verbs for CRUUD:
      * Create - HTTP Post (ID is ignored)
      * Read - HTTP Get
-        * Objects will be shallow (they will not populate child references beyond the ID(s)).
+       * Objects will be shallow (they will not populate child references beyond the ID(s)).
      * Unlink/Deactivate/Dequeue - HTTP Delete 
      * Update - HTTP Put (returns the updated object serialized)
      * Delete - HTTP Delete (no return except 200)
 
-  > Unlink/Deactivate/Dequeue perform "unlinking" operations where the the API removed a reference but does not delete the target object 
+  > Unlink/Deactivate/Dequeue perform "unlinking" operations where the API removed a reference but does not delete the target object 
   
 * Action: `[object_type]/2.0/[id]/[action]/[predicate_id]`
   * Must be HTTP PUT / POST / DELETE
@@ -63,7 +74,7 @@ The Crowbar 2 API attempts to follow the following behavior pattern.
 
 * Configurations: `(barclamp url) + /instance/[active | iid]`
    * iid 
-      * name or DB if of the instance requested for the barclamp configuration
+      * name or DB id of the instance requested for the barclamp configuration
       * convenience value returns the active instance for the barclamp
 
 #### Documentation

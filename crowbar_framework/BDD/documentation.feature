@@ -36,3 +36,10 @@ Feature: Documentation
     When I click on the "Master Index" link
     Then I should see "System Documentation"
       And there should be no translation errors
+
+  Scenario: Doc Export 
+    Given I am on the "docs/topic/crowbar+book-userguide" page
+    When I click on the "Export" link
+    Then I should see "Crowbar User Guide"
+      And I should see a link to "< Back"
+      And there should be no translation errors

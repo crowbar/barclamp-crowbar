@@ -51,8 +51,8 @@ step(_Config, _Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	%bdd_utils:debug("expect FAIL when going to the ~p page~n", [Page]), 
 	bdd_utils:http_get(_Config, Page, not_found);
 
-step(_Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  JSON = bdd_utils:http_get(_Config, Page),
+step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
+  JSON = bdd_utils:http_get(Config, Page),
   {ajax, json:parse(JSON), Page};
 
 step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 

@@ -40,7 +40,7 @@ class BarclampConfiguration < ActiveRecord::Base
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to :barclamp
-  has_many  :barclampInstances, :class_name => "BarclampInstance", :inverse_of => :conifguration
+  has_many  :barclamp_instances, :class_name => "BarclampInstance", :inverse_of => :conifguration
 
   belongs_to :active_config, :class_name => "BarclampInstance", :foreign_key => "active_config_id"
   belongs_to :current_config, :class_name => "BarclampInstance", :foreign_key => "current_config_id"

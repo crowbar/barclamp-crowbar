@@ -22,6 +22,8 @@ Crowbar::Application.routes.draw do
     resources :node_roles do as_routes end
     resources :proposals do as_routes end
     resources :proposal_configs do as_routes end
+    resources :barclamp_configuration do as_routes end
+    resources :barclamp_instances do as_routes end    
     resources :docs do as_routes end
     resources :navs do as_routes end
     resources :groups do as_routes end  

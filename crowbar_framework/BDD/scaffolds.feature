@@ -10,17 +10,7 @@ Feature: Scaffolds
       And I should see "Description"
       And I should see "Order"
       And I should see "Display"
-      And I should see "Allow multiple proposals"
-      And I should see "Build on"
-      And I should see "Cmdb order"
-      And I should see "Commit"
       And I should see "Layout"
-      And I should see "Mode"
-      And I should see "Online help"
-      And I should see "Proposal schema version"
-      And I should see "Run order"
-      And I should see "Created At"
-      And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors
@@ -198,4 +188,9 @@ Feature: Scaffolds
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors  
+      
+  TODO: proposal_queue_item 
+  TODO: proposal_queue 
+  TODO: role_element_order 
+  
       

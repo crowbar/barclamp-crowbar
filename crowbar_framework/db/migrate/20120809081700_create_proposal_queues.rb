@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-#
-# Stores the role application order within a barclamp.
-#
-class RoleElementOrder < ActiveRecord::Base
-  attr_accessible :order
-  belongs_to :role
+class CreateProposalQueues < ActiveRecord::Migration
+  def change
+    create_table :proposal_queues do |t|
+      t.string  :name
+      t.timestamps
+    end
+  end
 end
-

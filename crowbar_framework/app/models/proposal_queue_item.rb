@@ -13,11 +13,10 @@
 # limitations under the License.
 #
 
-#
-# Stores the role application order within a barclamp.
-#
-class RoleElementOrder < ActiveRecord::Base
-  attr_accessible :order
-  belongs_to :role
+class ProposalQueueItem < ActiveRecord::Base
+  attr_accessible :position, :queue_reason
+
+  belongs_to :proposal_queue
+  belongs_to :proposal_config
 end
 

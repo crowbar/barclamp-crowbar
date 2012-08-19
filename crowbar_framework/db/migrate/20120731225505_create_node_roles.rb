@@ -16,7 +16,7 @@
 class CreateNodeRoles < ActiveRecord::Migration
   def change
     create_table :node_roles do |t|
-      t.integer      :status
+      t.string       :config
       t.belongs_to   :role
       t.belongs_to   :node
       t.belongs_to   :proposal_config

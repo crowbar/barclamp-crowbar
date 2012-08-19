@@ -12,34 +12,64 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
-#
-# Also functions as a data bag item wrapper as well.
-#
+
 require 'chef'
 require 'json'
+
+#
+# ServiceObject is the base object for all Barclamp service objects.
+# It provides the basic barclamp operations that can be overriden by
+# the barclamp object.
+#
+# This acts a place helper routines as well.  Locking routines, random_password, ...
+#
+# The object operations by initialization from the controller or the barclamp object.
+# When initialize from those places, the object gets a @barclamp object that can be used
+# to reference its parent barclamp.  
+#
+# THIS OBJECT SHOULD NEVER BE DIRECTLY USED!!
+#
+# operations.function = Inside the barclamp controller for this object type
+# Barclamp.find_by_name("name").operations(@logger).function = Outside if the barclamp controller
+#
+# 
+# 
 
 class ServiceObject
   extend CrowbarOffline
 
+  def self.bc_name
+    self.name.underscore[/(.*)_service$/,1]
+  end
+
+  #
+  # Initialization setup routines
+  #
   def initialize(thelogger)
     @bc_name = "unknown"
     @logger = thelogger
   end
 
-  def self.bc_name
-    self.name.underscore[/(.*)_service$/,1]
+  def bc_name=(new_name)
+    @bc_name = new_name
+    @barclamp = Barclamp.find_by_name(@bc_name)
   end
   
+  def bc_name 
+    @bc_name
+  end
+  
+  #
+  # Human printable random password generator
+  #
   def random_password(size = 12)
     chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
   end
 
-#
-# Locking Routines
-#
+  #
+  # Locking Routines
+  #
   def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
     f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
@@ -63,403 +93,80 @@ class ServiceObject
     @logger.debug("Release lock exit")
   end
 
-#
-# Helper routines for queuing
-#
-
-  # Assumes the BA-LOCK is held
-  def elements_not_ready(nodes, pre_cached_nodes = {})
-    # Check to see if we should delay our commit until nodes are ready.
-    delay = []
-    nodes.each do |n|
-      node = NodeObject.find_node_by_name(n)
-      next if node.nil?
-      
-      pre_cached_nodes[n] = node
-      delay << n if node.crowbar['state'] != "ready" and !delay.include?(n)
-    end
-    [ delay, pre_cached_nodes ]
-  end
-
-  def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
-    # Create map with nodes and their element list
-    all_new_nodes = {}
-    elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
-      end
-    end
-
-    f = acquire_lock "BA-LOCK"
-    delay = []
-    pre_cached_nodes = {}
-    begin
-      # Check for delays and build up cache
-      if queue_me
-        delay = all_new_nodes.keys
-      else
-        delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys, pre_cached_nodes)
-      end
-
-      # Add the entries to the nodes.
-      if delay.empty?
-        all_new_nodes.each do |n, val|
-          node = pre_cached_nodes[n]
-
-          # Nothing to delay so mark them applying.
-          node.crowbar['state'] = 'applying'
-          node.crowbar['state_owner'] = "#{bc}-#{inst}"
-          node.save
-        end
-      else
-        all_new_nodes.each do |n, val|
-          # Make sure we have a node.
-          node = pre_cached_nodes[n]
-          node = NodeObject.find_node_by_name(n) if node.nil?
-          next if node.nil?
-          pre_cached_nodes[n] = node
-
-          # Make sure the node is allocated
-          node.allocated = true
-          node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
-          node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
-          node.save
-        end
-      end
-    rescue Exception => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
-    ensure
-      release_lock f
-    end
-
-    [ delay, pre_cached_nodes ]
-  end
-
-  def remove_pending_elements(bc, inst, elements)
-    # Create map with nodes and their element list
-    all_new_nodes = {}
-    elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
-      end
-    end
-
-    # Remove the entries from the nodes.
-    f = acquire_lock "BA-LOCK"
-    begin
-      all_new_nodes.each do |n,data|
-        node = NodeObject.find_node_by_name(n)
-        next if node.nil?
-        unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
-          node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = {}
-          node.save
-        end
-      end
-    ensure
-      release_lock f
-    end
-  end
-
-  def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
-    begin
-      nodes.each do |n|
-        node = NodeObject.find_node_by_name(n)
-        next if node.nil?
-
-        # Nothing to delay so mark them applying.
-        node.crowbar['state'] = 'ready'
-        node.crowbar['state_owner'] = ""
-        node.save
-      end
-    ensure
-      release_lock f
-    end
-  end
-
-#
-# Queuing routines:
-#   queue_proposal - attempts to queue proposal returns delay otherwise.
-#   dequeue_proposal - remove item from queue and clean up
-#   process_queue - see what we can execute
-#
-  def queue_proposal(inst, elements, deps, bc = @bc_name)
-    @logger.debug("queue proposal: enter #{inst} #{bc}")
-    delay = []
-    pre_cached_nodes = {}
-    begin
-      f = acquire_lock "queue"
-
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
-      if db.nil?
-        new_queue = Chef::DataBagItem.new
-        new_queue.data_bag "crowbar"
-        new_queue["id"] = "queue"
-        new_queue["proposal_queue"] = []
-        db = ProposalObject.new new_queue
-      end
-
-      queue_me = false
-      db["proposal_queue"].each do |item|
-        # Am I already in the queue
-        if item["barclamp"] == bc and item["inst"] == inst
-          nodes = []
-          elements.each do |elem, inodes|
-            inodes.each do |node|
-              nodes << node unless nodes.include?(node)
-            end
-          end
-          @logger.debug("queue proposal: exit #{inst} #{bc}: already queued")
-          return [nodes, {}]
-        end
-      end
-
-      # Make sure the deps if we aren't being queued.
-      unless queue_me
-        deps.each do |dep|
-          prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
-
-          # queue if prop doesn't exist
-          queue_me = true if prop.nil?
-          # queue if dep is queued
-          queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-          queue_me = true if queued
-          # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-          queue_me = true unless success
-        end
-      end
-
-      delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)
-      return [ delay, pre_cached_nodes ] if delay.empty?
-
-      db["proposal_queue"] << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
-      db.save
-    rescue Exception => e
-      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
-    ensure
-      release_lock f
-    end
-
-    prop = ProposalObject.find_proposal(bc, inst)
-    prop["deployment"][bc]["crowbar-queued"] = true
-    prop.save
-    @logger.debug("queue proposal: exit #{inst} #{bc}")
-    [ delay, pre_cached_nodes ]
-  end
-
-  def dequeue_proposal_no_lock(queue, inst, bc = @bc_name)
-    @logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
-    begin
-      elements = nil
-      # The elements = item["elements"] is on purpose to get the assignment out of the element.
-      queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and ((elements = item["elements"]) or true)}
-
-      remove_pending_elements(bc, inst, elements) if elements
-
-      prop = ProposalObject.find_proposal(bc, inst)
-      unless prop.nil?
-        prop["deployment"][bc]["crowbar-queued"] = false
-        prop.save
-      end
-    rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
-      @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
-      return false
-    end
-    @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
-    true
-  end
-
-  def dequeue_proposal(inst, bc = @bc_name)
-    @logger.debug("dequeue proposal: enter #{inst} #{bc}")
-    ret = false
-    begin
-      f = acquire_lock "queue"
-
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
-      return true if db.nil?
-
-      queue = db["proposal_queue"]
-      ret = dequeue_proposal_no_lock(queue, inst, bc)
-      db.save if ret
-    rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
-      return ret
-    ensure
-      release_lock f
-    end
-    @logger.debug("dequeue proposal: exit #{inst} #{bc}")
-    ret
-  end
-
-  #
-  # NOTE: If dependencies don't form a DAG (Directed Acyclic Graph) then we have a problem
-  # with our dependency algorithm
-  #
-  def process_queue
-    @logger.debug("process queue: enter")
-    loop_again = true
-    while loop_again
-      loop_again = false
-      list = []
-      begin
-        f = acquire_lock "queue"
-
-        db = ProposalObject.find_data_bag_item "crowbar/queue"
-        if db.nil?
-          @logger.debug("process queue: exit: queue gone")
-          return
-        end
-
-        queue = db["proposal_queue"]
-        if queue.nil? or queue.empty?
-          @logger.debug("process queue: exit: empty queue")
-          return
-        end
-
-        @logger.debug("process queue: queue: #{queue.inspect}")
-
-        # Test for ready
-        remove_list = []
-        queue.each do |item|
-          prop = ProposalObject.find_proposal(item["barclamp"], item["inst"])
-          if prop.nil?
-            remove_list << item
-            next
-          end
-
-          queue_me = false
-          # Make sure the deps if we aren't being queued.
-          item["deps"].each do |dep|
-            depprop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
-  
-            # queue if depprop doesn't exist
-            queue_me = true if depprop.nil?
-            # queue if dep is queued
-            queued = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-            queue_me = true if queued
-            # queue if dep has never run or failed
-            success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-            queue_me = true unless success
-          end
-          next if queue_me
-
-          # Create map with nodes and their element list
-          all_new_nodes = {}
-          prop["deployment"][item["barclamp"]]["elements"].each do |elem, nodes|
-            nodes.each do |node|
-              all_new_nodes[node] = [] if all_new_nodes[node].nil?
-              all_new_nodes[node] << elem
-            end
-          end
-          delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys)
-          list << item if delay.empty?
-        end
-
-        save_db = false
-        remove_list.each do |iii| 
-          save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
-        end
-
-        list.each do |iii| 
-          save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
-        end
-      
-        db.save if save_db
-
-      rescue Exception => e
-        @logger.error("Error processing queue: #{e.message}")
-        @logger.debug("process queue: exit: error")
-        return
-      ensure
-        release_lock f
-      end
-
-      @logger.debug("process queue: list: #{list.inspect}")
-
-      # For each ready item, apply it.
-      list.each do |item|
-        @logger.debug("process queue: item to do: #{item.inspect}")
-        bc = item["barclamp"]
-        inst = item["inst"]
-        service = eval("#{bc.camelize}Service.new @logger")
-        answer = service.proposal_commit(inst, true)
-        @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
-        loop_again = true if answer[0] != 202
-        $htdigest_reload = true
-      end
-      @logger.debug("process queue: exit")
-    end
-  end
-
-  #
-  # update proposal status information
-  #
-  def update_proposal_status(inst, status, message, bc = @bc_name)
-    @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
-
-    bc_id = Barclamp.find_by_name(bc)
-    prop = Proposal.find_by_name_and_barclamp_id(inst, bc_id)
-    if prop and prop.active?
-      prop.active_config.status = status
-      prop.active_config.failed_reason = message
-      res = prop.save
-    else
-      res = true
-    end
-
-    @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
-    res
-  end
-
-  def bc_name=(new_name)
-    @bc_name = new_name
-    @barclamp = Barclamp.find_by_name(@bc_name)
-  end
-  
-  def bc_name 
-    @bc_name
-  end
   
 #
 # API Functions
 #
-  def transition
+  def transition(prop_name, node_name, state)
+    [200, ""]
+  end
+
+  #
+  # Function to handle the barclamp controller API request to delete active proposal (deactivate)
+  # Input:
+  #   prop_name - String name of a proposal to deactivate
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
+  def destroy_active(prop_name)
+    @logger.debug "Trying to deactivate role #{prop_name}" 
+    prop = @barclamp.get_proposal(prop_name)
+    return [404, {}] if prop.nil? or not prop.active?
+
+    # Clear the nodes and apply the role.
+    new_prop_config = prop.active_config.deep_clone
+    new_prop_config.remove_all_nodes
+    new_prop_config.save!
+
+    # Apply new proposal_config
+    answer = apply_role(new_prop_config, false)
+
+    # Clear the active config
+    prop.active_config = nil
+    prop.save!
+
+    # CHEF: Actual undo
+    inst = "#{@bc_name}-config-#{prop_name}"
+    role = RoleObject.find_role_by_name(inst)
+    role.destroy if role
+
+    answer
+  end
+
+  #
+  # Function to handle the barclamp controller API request to dequeue proposal (dequeue)
+  # Input:
+  #   inst - String name of a proposal to dequeue
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
+  def dequeue_proposal(inst)
+    prop = @barclamp.get_proposal(inst)
+    return [404, {}] if prop.nil? or not prop.active? or not prop.active_config.queued?
+
+    ret = ProposalQueue.get_queue('prop_queue', @logger).dequeue_proposal(inst, @bc_name)
+    return [400, "error"] unless ret
     [200, {}]
   end
 
-  def destroy_active(prop_name)
-    @logger.debug "Trying to deactivate role #{prop_name}" 
-    prop = Proposal.find_by_name_and_barclamp_id(inst, barclamp.id)
-    if prop.nil? or not prop.active?
-      [404, {}]
-    else
-      # CHEF CODE HERE
-      inst = "#{@bc_name}-config-#{prop_name}"
-      role = RoleObject.find_role_by_name(inst)
-      # By nulling the elements, it functions as a remove
-      dep = role.override_attributes
-      dep[@bc_name]["elements"] = {}      
-      @logger.debug "#{inst} proposal has a crowbar-committing key" if dep[@bc_name]["config"].has_key? "crowbar-committing"
-      dep[@bc_name]["config"].delete("crowbar-committing")
-      dep[@bc_name]["config"].delete("crowbar-queued")
-      role.override_attributes = dep
-      answer = apply_role(role, inst, false)
-
-      # CHEF: Actual undo
-      role.destroy
-
-      # Clear the active config
-      prop.active_config = nil
-      prop.save!
-
-      answer
+  #
+  # Helper routine: Updates current_config
+  # 
+  def _proposal_update(new_prop, params)
+    if params["attributes"]
+      chash = new_prop.current_config.config_hash
+      new_prop.current_config.config_hash = chash.merge(params["attributes"])
     end
+    elems = params["deployment"][@bc_name]["elements"] rescue nil
+    new_prop.current_config.update_node_roles(elems) if elems and !elems.empty?
+
+    raw_data = new_prop.current_config.to_proposal_object_hash
+    validate_proposal raw_data
+
+    # Write out proposal object.
+    return ProposalObject.write(raw_data)
   end
 
   #
@@ -469,6 +176,14 @@ class ServiceObject
     @barclamp.create_proposal
   end
 
+  #
+  # Function to handle the barclamp controller API request to create a proposal
+  # Input:
+  #   params - params object from the controller (JSON config blob as a hash)
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_create(params)
     base_id = params["id"]
 
@@ -480,100 +195,107 @@ class ServiceObject
     new_prop = create_proposal
     new_prop.name = base_id
     new_prop.save!
-    if params["attributes"]
-      chash = new_prop.current_config.config_hash
-      new_prop.current_config.config_hash = chash.merge(params["attributes"])
-    end
 
-    _proposal_update new_prop
+    _proposal_update new_prop, params
   end
 
+  #
+  # Function to handle the barclamp controller API request to edit a proposal
+  #
+  # Input:
+  #   params - params object from the controller (JSON config blob as a hash)
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_edit(params)
-    params["id"] = "bc-#{@bc_name}-#{params["id"]}"
-    proposal = {}.merge(params)
-    _proposal_update proposal
+    proposal = @barclamp.get_proposal(params["id"])
+    return [404, I18n.t('model.service.cannot_find')] if prop.nil?
+
+    # Make copy of config for history.
+    new_prop_config = proposal.current_config.deep_clone
+    proposal.current_config = new_prop_config
+    proposal.save!
+
+    _proposal_update proposal, params
   end
 
+  #
+  # Function to handle the barclamp controller API request to delete proposal (proposal delete)
+  # Input:
+  #   inst - String name of a proposal to delete
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_delete(inst)
     prop = @barclamp.get_proposal(inst)
-    if prop.nil? or prop.active?
-      [404, {}]
+    if prop.nil?
+      [404, I18n.t('model.service.cannot_find')]
+    elsif prop.active?
+      [400, I18n.t('model.service.instance_active')]
     else
-      @barclamp.delete_proposal(prop)
-      [200, {}]
+      success = @barclamp.delete_proposal(prop)
+      [200, {}] if success
+      [400, I18n.t('model.service.unknown_delete_fail')] unless success
     end
   end
 
   #
-  # Proposal is a json structure (not a ProposalObject)
-  # Use to create or update an active instance
+  # Function to handle the barclamp controller API request to commit proposal (proposal commit)
+  # Input:
+  #   inst - String name of a proposal to commit
+  #   in_queue - optional boolean to indicate if we are in the queue code vs. UI/API
   #
-  def active_update(proposal, inst, in_queue)
-    begin
-      role = ServiceObject.proposal_to_role(proposal, @bc_name)
-# GREG:      validate_proposal proposal
-      apply_role(role, inst, in_queue)
-    rescue Net::HTTPServerException => e
-      [e.response.code, {}]
-    rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
-    end
-  end
-
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_commit(inst, in_queue = false)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
-
+    prop = @barclamp.get_proposal(inst)
     if prop.nil?
       [404, "#{I18n.t('.cannot_find', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
-    elsif prop["deployment"][@bc_name]["crowbar-committing"]
+    elsif prop.active? and prop.active_config.committing?
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
-      # Put mark on the wall
-      prop["deployment"][@bc_name]["crowbar-committing"] = true
-      prop.save
-
-      answer = active_update prop.raw_data, inst, in_queue
-
-      # Unmark the wall
-      prop = ProposalObject.find_proposal(@bc_name, inst)
-      prop["deployment"][@bc_name]["crowbar-committing"] = false
-      prop.save
-
-      answer
+      begin
+        apply_role(prop.current_config, in_queue)
+      rescue Net::HTTPServerException => e
+        [e.response.code, e.message]
+      rescue Chef::Exceptions::ValidationFailed => e2
+        [400, e2.message]
+      end
     end
   end
 
   #
   # This can be overridden.  Specific to node validation.
+  # proposal_elements is a hash from the elements field for the deployment/bc hash
   #
   def validate_proposal_elements proposal_elements
-      proposal_elements.each do |role_and_elements|
-          elements = role_and_elements[1]
-          uniq_elements = elements.uniq
-          if uniq_elements.length != elements.length
-              raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
-          end
-          uniq_elements.each do |node_name|
-              nodes = NodeObject.find_nodes_by_name node_name
-              if 0 == nodes.length
-                  raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
-              end
-          end
+    proposal_elements.each do |role_and_elements|
+      elements = role_and_elements[1]
+      uniq_elements = elements.uniq
+      if uniq_elements.length != elements.length
+        raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
       end
+      uniq_elements.each do |node_name|
+        nodes = NodeObject.find_nodes_by_name node_name
+        if 0 == nodes.length
+          raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
+        end
+      end
+    end
   end
 
   #
   # This can be overridden to get better validation if needed.
+  # proposal is a hash in json proposal format
   #
   def validate_proposal proposal
     path = "/opt/dell/chef/data_bags/crowbar"
     path = "schema" unless CHEF_ONLINE
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
-
-    # Clean up rails3 "helpers"
-    # GREG: Help me
-    # proposal.delete("utf8")
 
     errors = validator.validate(proposal)
     if errors && !errors.empty?
@@ -584,56 +306,7 @@ class ServiceObject
       Rails.logger.info "validation errors in proposal #{@bc_name}"
       raise Chef::Exceptions::ValidationFailed.new(strerrors)
     end
-  end
-
-  #
-  # THIS IS A CHEF ROUTINE
-  #
-  def _proposal_update(proposal)
-    data_bag_item = Chef::DataBagItem.new
-
-    begin 
-      data_bag_item.raw_data = proposal.current_config.to_proposal_object_hash
-      data_bag_item.data_bag "crowbar"
-
-# GREG:     validate_proposal proposal
-
-      prop = ProposalObject.new data_bag_item
-      prop.save
-      Rails.logger.info "saved proposal"
-      [200, {}]
-    rescue Net::HTTPServerException => e
-      [e.response.code, {}]
-    rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
-    end
-  end
-
-  #
-  # This is a role output function
-  # Can take either a RoleObject or a Role.
-  #
-  def self.role_to_proposal(role, bc_name)
-    proposal = {}
-
-    proposal["id"] = role.name.gsub("#{bc_name}-config-", "bc-#{bc_name}-")
-    proposal["description"] = role.description
-    proposal["attributes"] = role.default_attributes
-    proposal["deployment"] = role.override_attributes
-
-    proposal
-  end
-
-  #
-  # From a proposal json
-  #
-  def self.proposal_to_role(proposal, bc_name)
-    role = Chef::Role.new
-    role.name proposal["id"].gsub("bc-#{bc_name}-", "#{bc_name}-config-")
-    role.description proposal["description"]
-    role.default_attributes proposal["attributes"]
-    role.override_attributes proposal["deployment"]
-    RoleObject.new role
+    validate_proposal_elements proposal['deployment'][@bc_name]["elements"]
   end
 
   #
@@ -646,145 +319,84 @@ class ServiceObject
   # This function can be overriden to define a barclamp specific operation.
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
-  def apply_role(role, inst, in_queue)
-    # Query for this role
-    old_role = RoleObject.find_role_by_name(role.name)
-
-    nodes = {}
-
-    # Get the new elements list
-    new_deployment = role.override_attributes[@bc_name]
-    new_elements = new_deployment["elements"]
-    element_order = new_deployment["element_order"]
-
+  def apply_role(new_config, in_queue)
     # 
-    # Attempt to queue the propsal.  If delay is empty, then run it.
+    # Handled in ProposalQueue.queue_proposal
+    #   Get dependents
+    #     - if dependents aren't ready
+    #        - Queue and mark as queued, return [202, "barclamps areno't ready"]
+    #   Get nodes
+    #     - if nodes aren't ready
+    #        - Queue and mark as queued, return [202, "nodes aren't ready"]
     #
-    deps = proposal_dependencies(role)
-    delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)
-    return [202, delay] unless delay.empty?
+    queued, delay = ProposalQueue.get_queue("prop_queue", @logger).queue_proposal(new_config)
+    return [202, delay] if queued
 
-    # make sure the role is saved
-    role.save
+    # Save old active config and make this new config the active one.
+    prop = new_config.proposal
+    old_config = prop.active_config
+    prop.active_config = new_config
+    prop.save!
 
-    # Build a list of old elements
-    old_elements = {}
-    old_deployment = old_role.override_attributes[@bc_name] unless old_role.nil?
-    old_elements = old_deployment["elements"] unless old_deployment.nil?
-    element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
+    # Put mark on the wall that we are committing
+    ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_COMMITTING, "")
 
-    # For Role ordering
-    local_cmdb_order = @barclamp.cmdb_order
-    role_map = new_deployment["element_states"]
-    role_map = {} unless role_map
+    # CHEF ROLE OBJECT COMMAND - Make sure the chef object is up-to-date
+    config_role = RoleObject.proposal_hash_to_role(prop.active_config.to_proposal_object_hash, @bc_name)
 
-    # Merge the parts based upon the element install list.
+    #
+    # Difference
+    #   if node added to proposal
+    #     - add role(states,priority) to node
+    #   if node removed from proposal
+    #     - add role_delete(states,priority) to node - if delete role exists
+    #     - remove role(states,priority) to node
+    #
     all_nodes = []
-    run_order = []
-    element_order.each do | elems |
-      r_nodes = []
-      elems.each do |elem|
-        old_nodes = old_elements[elem]
-        new_nodes = new_elements[elem]
+    new_role_nodes = new_config.get_nodes_by_roles
+    old_role_nodes = old_config ? old_config.get_nodes_by_roles : {}
+    @barclamp.roles.each do |role|
+      added_nodes = (new_role_nodes[role.name] || []) - (old_role_nodes[role.name] || [])
+      removed_nodes = (old_role_nodes[role.name] || []) - (new_role_nodes[role.name] || [])
 
-        unless old_nodes.nil?
-          elem_remove = nil
-          tmprole = RoleObject.find_role_by_name "#{elem}_remove"
-          unless tmprole.nil?
-            elem_remove = tmprole.name
-          end
-
-          old_nodes.each do |n|
-            if new_nodes.nil? or !new_nodes.include?(n)
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:remove] << elem 
-              nodes[n][:add] << elem_remove unless elem_remove.nil?
-              r_nodes << n
-            end
-          end
-        end
-
-        unless new_nodes.nil?
-          new_nodes.each do |n|
-            all_nodes << n unless all_nodes.include?(n)
-            if old_nodes.nil? or !old_nodes.include?(n)
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:add] << elem
-            end
-            r_nodes << n unless r_nodes.include?(n)
-          end
+      removed_nodes.each do |node|
+        # Add the delete role if one exists, otherwise clear the config role
+        drole = Role.find_by_name_and_barclamp_id("#{role.name}_remove", @barclamp.id)
+        if drole
+          add_role_to_instance_and_node(node.name, prop.name, drole.name)
         end
       end
-      run_order << r_nodes unless r_nodes.empty?
+
+      all_nodes << removed_nodes
+      all_nodes << added_nodes
+    end
+    all_nodes.flatten.uniq.each do |node|
+      node.update_run_list
     end
 
-    # Clean the run_lists
-    admin_nodes = []
-    nodes.each do |n, lists|
-      node = pre_cached_nodes[n]
-      node = NodeObject.find_node_by_name(n) if node.nil?
-      next if node.nil?
-
-      admin_nodes << n if node.admin?
-
-      save_it = false
-
-      rlist = lists[:remove]
-      alist = lists[:add]
-
-      # Remove the roles being lost
-      rlist.each do |item|
-        next unless node.role? item
-        @logger.debug("AR: Removing role #{item} to #{node.name}")
-        node.delete_from_run_list item
-        save_it = true
-      end
-
-      # Add the roles being gained
-      alist.each do |item|
-        next if node.role? item
-        @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_cmdb_order, role_map[item])
-        save_it = true
-      end
-
-      # Make sure the config role is on the nodes in this barclamp, otherwise remove it
-      if all_nodes.include?(node.name)
-        # Add the config role 
-        unless node.role?(role.name)
-          @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_cmdb_order, role_map[role.name])
-          save_it = true
-        end
-      else
-        # Remove the config role 
-        if node.role?(role.name)
-          @logger.debug("AR: Removing role #{role.name} to #{node.name}")
-          node.delete_from_run_list role.name
-          save_it = true
-        end
-      end
-
-      @logger.debug("AR: Saving node #{node.name}") if save_it
-      node.save if save_it
-    end
-
-    apply_role_pre_chef_call(old_role, role, all_nodes)
+    #
+    # Let the barclamp do some changes before chef-client runs
+    #
+    onodes = old_config ? old_config.nodes : []
+    nnodes = new_config ? new_config.nodes : []
+    all_nodes = (nnodes+onodes).uniq
+    apply_role_pre_chef_call(old_config, new_config, all_nodes)
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
-    run_order.each do | batch |
-      next if batch.empty?
+    @barclamp.get_roles_by_order.each do |role_list|
+      nodes = role_list.collect { |role| (new_role_nodes[role.name]||[]) }.flatten.uniq
+      next if nodes.empty?
       snodes = []
       admin_list = []
-      batch.each do |n|
+      nodes.each do |node|
         # Run admin nodes a different way.
-        if admin_nodes.include?(n)
-          admin_list << n
+        if node.is_admin?
           ran_admin = true
-          next
+          admin_list << node
+        else 
+          snodes << n
         end
-        snodes << n
       end
  
       @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
@@ -801,9 +413,9 @@ class ServiceObject
         pids = {}
         unless snodes.empty?
           snodes.each do |node|
-            filename = "log/#{node}.chef_client.log"
-            pid = run_remote_chef_client(node, "chef-client", filename)
-            pids[pid] = node
+            filename = "log/#{node.name}.chef_client.log"
+            pid = run_remote_chef_client(node.name, "chef-client", filename)
+            pids[pid] = node.name
           end
           status = Process.waitall
           badones = status.select { |x| x[1].exitstatus != 0 }
@@ -824,9 +436,10 @@ class ServiceObject
               badones.each do |baddie|
                 message = message + "#{pids[baddie[0]]} "
               end
-              update_proposal_status(inst, "failed", message)
-              restore_to_ready(all_nodes)
-              process_queue unless in_queue
+              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+              q = ProposalQueue.get_queue('prop_queue', @logger)
+              q.restore_to_ready(all_nodes)
+              q.process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -834,9 +447,9 @@ class ServiceObject
 
         unless admin_list.empty?
           admin_list.each do |node|
-            filename = "log/#{node}.chef_client.log"
-            pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
-            pids[node] = pid
+            filename = "log/#{node.name}.chef_client.log"
+            pid = run_remote_chef_client(node.name, "/opt/dell/bin/single_chef_client.sh", filename)
+            pids[pid] = node.name
           end
           status = Process.waitall
           badones = status.select { |x| x[1].exitstatus != 0 }
@@ -857,9 +470,10 @@ class ServiceObject
               badones.each do |baddie|
                 message = message + "#{pids[baddie[0]]} "
               end
-              update_proposal_status(inst, "failed", message)
-              restore_to_ready(all_nodes)
-              process_queue unless in_queue
+              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+              q = ProposalQueue.get_queue('prop_queue', @logger)
+              q.restore_to_ready(all_nodes)
+              q.process_queue unless in_queue
               return [ 405, message ] 
             end
           end
@@ -870,13 +484,17 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
 
-    update_proposal_status(inst, "success", "")
-    restore_to_ready(all_nodes)
-    process_queue unless in_queue
+    ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_APPLIED, "")
+    q = ProposalQueue.get_queue('prop_queue', @logger)
+    q.restore_to_ready(all_nodes)
+    q.process_queue unless in_queue
     [200, {}]
   end
 
-  def apply_role_pre_chef_call(old_role, role, all_nodes)
+  #
+  # Override function to inject changes to nodes after role update, but before chef-client runs.
+  #
+  def apply_role_pre_chef_call(old_config, new_config, all_nodes)
     # noop by default.
   end
 
@@ -889,50 +507,46 @@ class ServiceObject
     []
   end
 
-  def add_role_to_instance_and_node(barclamp, instance, name, prop, role, newrole)
-    node = NodeObject.find_node_by_name name    
+  #
+  # XXX: Should this clone a new config?
+  #
+  # This is a helper function for places that need to add a node to a role in a proposal_config
+  #
+  def add_role_to_instance_and_node(node_name, prop_name, newrole)
+    @logger.debug("ARTOI: enterin #{node_name}, #{prop_name}, #{newrole}")
+    node = Node.find_by_name node_name    
     if node.nil?
-      @logger.debug("ARTOI: couldn't find node #{name}. bailing")
+      @logger.debug("ARTOI: couldn't find node #{node_name}. bailing")
       return false 
     end
 
-    local_cmdb_order = Barclamp.find_by_name(barclamp).cmdb_order
-    role_map = prop["deployment"][barclamp]["element_states"] rescue {}
-    role_map = {} unless role_map
-
-    prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
-    unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
-      @logger.debug("ARTOI: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
-      prop["deployment"][barclamp]["elements"][newrole] << node.name
-      prop.save
-    else
-      @logger.debug("ARTOI: node #{node.name} already in proposal: role #{newrole} for #{barclamp}")
+    prop = @barclamp.get_proposal(prop_name)
+    prop_config = prop.active? ? prop.active_config : prop.current_config
+    if prop_config.nil?
+      @logger.debug("ARTOI: couldn't find prop_config #{prop_name}. bailing")
+      return false 
     end
 
-    role.override_attributes[barclamp]["elements"][newrole] = [] if role.override_attributes[barclamp]["elements"][newrole].nil?
-    unless role.override_attributes[barclamp]["elements"][newrole].include?(node.name)
-      @logger.debug("ARTOI: updating role #{role.name} for node #{node.name} for barclamp: #{barclamp}/#{newrole}")
-      role.override_attributes[barclamp]["elements"][newrole] << node.name
-      role.save
-    else
-      @logger.debug("ARTOI: role #{role.name} already has node #{node.name} for barclamp: #{barclamp}/#{newrole}")
+    role = Role.find_by_name_and_barclamp_id(newrole, prop.barclamp.id)
+    if role.nil?
+      @logger.debug("ARTOI: couldn't find role #{newrole}. bailing")
+      return false 
     end
 
-    save_it = false
-    unless node.role?(newrole)
-      node.add_to_run_list(newrole, local_cmdb_order, role_map[newrole])
-      save_it = true
-    end
+    @logger.debug("ARTOI: add_node_to_role #{node}, #{role}")
+    prop_config.add_node_to_role(node, role)
 
-    unless node.role?("#{barclamp}-config-#{instance}")
-      node.add_to_run_list("#{barclamp}-config-#{instance}", local_cmdb_order)
-      save_it = true
-    end
+    # Update running config if active, otherwise apply/commit will catch it
+    if prop.active?
+      # Update Chef objects.
+      raw_data = prop_config.to_proposal_object_hash
+      ProposalObject.write(raw_data)
+      ro = RoleObject.proposal_hash_to_role(raw_data, prop.barclamp.name)
 
-    if save_it
-      @logger.debug("saving node")
-      node.save 
+      # Update Run list
+      node.update_run_list
     end
+      
     true
   end
 

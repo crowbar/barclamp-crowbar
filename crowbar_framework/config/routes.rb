@@ -19,6 +19,7 @@ Crowbar::Application.routes.draw do
     resources :groups do as_routes end
     resources :roles do as_routes end
     resources :nodes do as_routes end
+    resources :node_roles do as_routes end
     resources :proposals do as_routes end
     resources :proposal_configs do as_routes end
     resources :docs do as_routes end
@@ -30,9 +31,10 @@ Crowbar::Application.routes.draw do
     resources :cmdb_attributes do as_routes end
     resources :os do as_routes end
     resources :os_packages do as_routes end
+    resources :proposal_queues do as_routes end
+    resources :proposal_queue_items do as_routes end
+    resources :role_element_orders do as_routes end
   end
-
-  devise_for :users
 
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
@@ -67,9 +69,18 @@ Crowbar::Application.routes.draw do
   
   get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
+
+  scope 'node' do
+    version = "2.0"
+    post "#{version}/new" => "nodes#new"
+    constraints(:id => /.*/ ) do
+      get "status/#{version}(/:id)(.:format)" => 'nodes#status', :as => :node_status
+      get "#{version}/(:id)(.:format)" =>'nodes#show', :as => :node
+    end
+  end
+  
   scope 'nodes' do
     version = "1.0"
-    get 'status(.:format)' => "nodes#status", :as => :nodes_status
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
     get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
     post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
@@ -78,14 +89,18 @@ Crowbar::Application.routes.draw do
       match ':name/hit/:req' => "nodes#hit", :as => :hit_node
       match ':name/edit' => "nodes#edit", :as => :edit_node
       match ':name/update' => 'nodes#update', :as => :update_node
-      match ':name' => "nodes#show", :as => :node
     end
-    version = "2.0"
   end
-  
+ 
+  devise_for :users, :controllers => { :registrations => "registrations" }
+  devise_scope :user do
+    match "users/sign_out", :controller => 'users', :action =>'sign_out'
+    match "manage_users", :controller => 'users', :action => 'index'
+  end
+ 
   scope 'proposal' do
     version = "2.0"
-    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :as=>:proposal_status
+    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :constraints => { :id => /.*/ }, :as=>:proposal_status
   end
   
   scope 'crowbar' do

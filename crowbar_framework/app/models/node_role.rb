@@ -17,19 +17,30 @@
 # Node_role is an association class between a role in a proposal configuration and the
 # node that is assigned that role. This supports a many2many association between
 # roles and nodes, with some extra info.
+# 
+# The config attribute is a json blob of configuration specific to the role or node.
+#
+# This is currently used as a special case relation.  When role is nil, the node/role
+# represents node specific configuration to the proposal_config.
+#
 
 class NodeRole < ActiveRecord::Base
-  attr_accessible :role_name, :config, :status
-  has_many        :node
+  attr_accessible :config
+  belongs_to      :node
   belongs_to      :role
+  belongs_to      :proposal_config
 
-  def deep_clone
-    new_nr = self.dup
-    new_nr.save
-
-    # GREG: Clone the node_role config table one day.  It still needs work.
-
-    new_nr
+  #
+  # Helper functions to let the rest of the system operate on hash objects that 
+  # are stored in the database json blobs.
+  #
+  def config_hash
+    {} unless config
+    JSON::parse(config)
   end
 
+  def config_hash=(newconfig)
+    config = newconfig.to_json
+    save
+  end
 end

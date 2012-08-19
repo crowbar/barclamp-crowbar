@@ -13,11 +13,7 @@
 # limitations under the License.
 #
 
-#
-# Stores the role application order within a barclamp.
-#
-class RoleElementOrder < ActiveRecord::Base
-  attr_accessible :order
-  belongs_to :role
-end
-
+class Scaffolds::RoleElementOrdersController < ApplicationController
+  active_scaffold :role_element_order do |conf|
+  end
+end 

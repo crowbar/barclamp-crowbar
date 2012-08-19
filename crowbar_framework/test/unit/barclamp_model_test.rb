@@ -1,9 +1,26 @@
-
+# Copyright 2012, Dell 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#  http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+# 
 require 'test_helper'
  
 class BarclampModelTest < ActiveSupport::TestCase
 
   def validate_deep_compare_prop_conf(conf, conf2)
+    return if conf == nil and conf2 == nil
+    assert conf != nil
+    assert conf2 != nil
+    assert_equal conf.status, conf2.status
   end
 
   def validate_deep_compare_prop(prop, prop2)
@@ -13,7 +30,6 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     assert_not_equal prop.id, prop2.id
     assert_not_equal prop.name, prop2.name
-    assert_equal prop.status, prop2.status
     assert_equal prop.last_applied_rev, prop2.last_applied_rev
     assert_equal prop.description, prop2.description
 
@@ -43,14 +59,13 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
     e = assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "crowbar") }
-    assert_equal "Validation failed: Name Name item must be unique", e.message
 
     b = Barclamp.create(:name => "crowbar")
     b = b.save
     assert_equal false, b
   end
 
-  test "Rolse Relation" do
+  test "Roles Relation" do
     b = Barclamp.find_by_name("crowbar")
     r = b.roles
 
@@ -104,17 +119,15 @@ class BarclampModelTest < ActiveSupport::TestCase
     validate_deep_compare_prop(prop, b.template)
 
     e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
-    assert_equal "Validation failed: Name Name item must be unique", e.message
   end
 
   test "Naming Conventions" do
-    assert_throws { Barclamp.create(:name=>"1123") }
-    assert_throws { Barclamp.create(:name=>"1foo") }
-    assert_throws { Barclamp.create(:name=>"Ille!gal") }
-    assert_throws { Barclamp.create(:name=>" nospaces") }
-    assert_throws { Barclamp.create(:name=>"no spaces") }
-    assert_throws { Barclamp.create(:name=>"nospacesatall ") }
-    end
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"1123") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"1foo") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"Ille!gal") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>" nospaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"no spaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"nospacesatall ") }
   end
   
   test "Proposal Get" do
@@ -135,8 +148,18 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal nil, b.get_proposal("fred")
 
     e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
-    assert_equal "Validation failed: Name Name item must be unique", e.message
   end
+
+  test "Get Roles by Order" do
+    b = Barclamp.find_by_name("crowbar")
+
+    ro = b.get_roles_by_order
+    assert 1, ro.length
+    assert 1, ro[0].length
+    assert 1, ro[0][0].name, "crowbar"
+  end
+
+  test "Import 1x"
 
 end
 

@@ -1,58 +1,58 @@
-.led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})".html_safe
+- s = 'model.attributes.node'
+.led{:id => "head_#{@node.id}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state), :style=>'float:left;'}
+%h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.id)})".html_safe
 
 %ul.buttons
   - if @node.bmc_set?
-    %li= link_to "Reboot", hit_node_path(@node.handle, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
-    %li= link_to "Shutdown", hit_node_path(@node.handle, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Power On", hit_node_path(@node.handle, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Identify", hit_node_path(@node.handle, 'identify'), :class => 'button', :'data-remote' => true
+    %li= link_to "Reboot", hit_node_path(@node.id, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
+    %li= link_to "Shutdown", hit_node_path(@node.id, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Power On", hit_node_path(@node.id, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Identify", hit_node_path(@node.id, 'identify'), :class => 'button', :'data-remote' => true
 
 .column_50.first
   %dl
-    = dl_item(t('model.attributes.node.name'), @node.name)
-    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
-    = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
-    - if @node.switch_unit.nil?
-      = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
+    = dl_item(t('name', :scope=>s), @node.name)
+    = dl_item(t('state', :scope=>s), t(@node.state, :scope=>'state', :default=>@node.state), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
+    = dl_item(t('uptime', :scope=>s), (@node.ready? ? @node.cmdb_uptime : t('na', :scope=>s)))
+    - if @node.cmdb_switch_unit.nil?
+      = dl_item(t('switch_name_port', :scope=>s), "#{@node.cmdb_switch_name || t('unknown') } / #{@node.cmdb_switch_port || t('unknown')}")
     - else
-      = dl_item(t('model.attributes.node.switch_name_unit_port'), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))    
-    = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
-    = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
+      = dl_item(t('switch_name_unit_port', :scope=>s), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))    
+    = dl_item(t('mac', :scope=>s), @node.cmdb_mac || t('unknown'))
+    = dl_item(t('allocated', :scope=>s), (@node.allocated? ? t('.active') : t('.inactive')))
 
 .column_50.last
   %dl
-    = dl_item(t('model.attributes.node.description'), @node.description || (I18n.t :not_set))
-    = dl_item(t('model.attributes.node.hardware'), @node.hardware)
-    = dl_item(t('model.attributes.node.cpu'), @node.cpu)
-    = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
-    = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
-    = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
+    = dl_item(t('description', :scope=>s), @node.description || (t :not_set))
+    = dl_item(t('hardware', :scope=>s), @node.cmdb_hardware)
+    = dl_item(t('cpu', :scope=>s), @node.cmdb_cpu)
+    = dl_item(t('memory', :scope=>s), format_memory(@node.cmdb_memory))
+    = dl_item(t('number_of_drives', :scope=>s), "#{@node.cmdb_number_of_drives}, #{t('.raid')}: #{t('raid.'+(@node.cmdb_raid_set || 'not_set'))}")
+    = dl_item(t('asset_tag', :scope=>s), @node.cmdb_asset_tag)
 
 .clear
 
 %dl.networks
-  = dl_item(t('model.attributes.node.ip'), "<ul class='plain'>#{ip_addresses(@network)}</ul>", {:escape_html=>false})
+  ='pending' # dl_item(t('ip', :scope=>s), "<ul class='plain'>#{ip_addresses(@network)}</ul>", {:escape_html=>false})
 
 %dl.links
   %dt
     = t('.links')
   %dd
-    = link_to t('.bmc'), "https://#{@node.address("bmc").addr rescue 'none'}", :target => '_blank'
-    - unless @node["crowbar"]["links"].nil?
-      - @node["crowbar"]["links"].each do |name,link|
-        , 
-        = link_to name, link, :target => '_blank'
+    = link_to t('.bmc'), "https://#{@node.cmdb_bmc_address rescue 'none'}", :target => '_blank'
+    - unless @node.links.nil?
+      - @node.links.each do |link|
+        = link_to link.name, link.url, :target => '_blank', :title=>link.description
   
 %dl.barclamps
-  = dl_item(t('model.attributes.node.barclamps'), barclamps_list(@node.roles), {:escape_html=>false})
+  ="pending" # dl_item(t('barclamps':scope=>s), barclamps_list(@node.roles), {:escape_html=>false})
 
 %dl.roles
-  = dl_item(t('model.attributes.node.roles'), roles_list(@node.roles), {:escape_html=>false})
+  ="pending" #dl_item(t('roles':scope=>s), roles_list(@node.roles), {:escape_html=>false})
 
 %ul.buttons
-  - unless @node.admin?
-    %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reset", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Delete", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+  - unless @node.is_admin?
+    %li= link_to "Hardware Update", hit_node_path(@node.id, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reinstall", hit_node_path(@node.id, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reset", hit_node_path(@node.id, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Delete", hit_node_path(@node.id, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')

@@ -66,7 +66,8 @@ feature(ConfigName, FeatureName) ->
   step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(ConfigName)]),  %teardown
 	application:stop(crypto),
 	application:stop(inets).
-  
+
+% load the configuration file
 getconfig(ConfigName) ->
   {ok, ConfigBase} = file:consult(ConfigName++".config"),
   [{config, ConfigName} | ConfigBase].
@@ -91,6 +92,7 @@ setup_scenario(Config, Scenario, Tests) ->
 	  true -> io:format("\tSKIPPED ~p~n", [Name])
 	end.
 
+% output results information
 print_fail([]) -> true;
 print_fail({Pass, {_Type, N, Description}}) ->
   PF = case Pass of

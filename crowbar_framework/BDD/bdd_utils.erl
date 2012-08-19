@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, tokenize/1, clean_line/1, strip_doctype/1, uri/2]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, tokenize/1, clean_line/1, uri/2]).
 -export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3]).
 -export([html_find_button/2, html_find_link/2, html_find_block/4]).
 -export([debug/3, debug/2, debug/1, trace/6]).
@@ -58,39 +58,19 @@ trace(Config, Name, N, Steps, Given, When) ->
   file:close(S).
  
 html_search(Match, Results, Test) ->
-	F = fun(X) -> case {X, Test} of 
-	  {true, true} -> true; 
-	  {true, false} -> false;
-	  {_, false} -> true;
-	  {_, true} -> false end end,
-	lists:any(F, ([html_peek(Match,Result) || Result <- Results, Result =/= [no_op]])).
+  debug(true, "REMAP bdd_utils html_search!"),
+  html:search(Match, Results, Test).
+
 html_search(Match, Results) ->
 	html_search(Match, Results, true).
 
-strip_doctype(Input) ->
-  RegEx = "<!DOCTYPE(.*)>",
-	{ok, RE} = re:compile(RegEx),
-	case re:run(Input, RE) of
-		{match, S} -> [{Start, Length} | _] = S, 		% we only want the 1st expression!
-					  string:substr(Input, Start+1+Length);
-		_ -> Input
-	end.
-  
+
 html_peek(Match, Input) ->
-  RegEx = "<(html|HTML)(.*)"++Match++"(.*)</(html|HTML)>",
-	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:debug("html_peek compile: ~p on ~p~n", [RegEx, Input]),
-	Result = re:run(Input, RE),
-	bdd_utils:debug("html_peek match: ~p~n", [Result]),
-	%{ match, [ {_St, _Ln} | _ ] } = Result,
-	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
-	case Result of
-		{match, _} -> true;
-		_ -> Result
-	end.
-	
+  debug(true, "REMAP bdd_utils html_peek!"),
+  html:peek(Match, Input).	
 	
 html_find_button(Match, Input) ->
+  debug(true, "REMAP bdd_utils html_find_button!"),
   %<form.. <input class="button" name="submit" type="submit" value="Save"></form>
   %debug(puts,Match),
 	Form = html_find_block("<form ", "</form>", Input, "value='"++Match++"'"),
@@ -105,6 +85,7 @@ html_find_button(Match, Input) ->
 	
 % return the HREF part of an anchor tag given the content of the link
 html_find_link(Match, Input) ->
+  debug(true, "REMAP bdd_utils html_find_link!"),
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
 	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
@@ -126,6 +107,7 @@ html_find_link(Match, Input) ->
 
 % we allow for a of open tags (nesting) but only the inner close is needed
 html_find_block(OpenTag, CloseTag, Input, Match) ->
+  debug(true, "REMAP bdd_utils html_find_block!"),
   {ok, RE} = re:compile([Match]),
   CandidatesNotTested = re:split(Input, OpenTag, [{return, list}]),
   Candidates = [ html_find_block_helper(C, RE) || C <- CandidatesNotTested ],
@@ -160,6 +142,7 @@ http_get(Config, Page, not_found) ->
 http_get(Config, Page, ok) ->
 	http_get(Config, uri(Config,Page), 200, "OK(.*)").
 http_get(Config, URL, ReturnCode, StateRegEx) ->
+  debug(true, "REMAP bdd_utils html_get!"),
 	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = digest_auth:request(Config, URL),
 	{ok, StateMP} = re:compile(StateRegEx),
 	%bdd_utils:debug(true, "hppt_get has: URL ~p = ~s~n", [URL, Body]),
@@ -171,6 +154,7 @@ http_get(Config, URL, ReturnCode, StateRegEx) ->
 http_post_params(ParamsIn) -> http_post_params(ParamsIn, []).
 http_post_params([], Params) -> Params;
 http_post_params([{K, V} | P], ParamsOrig) -> 
+  debug(true, "REMAP bdd_utils html_post_params!"),
   ParamsAdd = case ParamsOrig of
     [] -> "?"++K++"="++V;
     _ -> "&"++K++"="++V
@@ -178,6 +162,7 @@ http_post_params([{K, V} | P], ParamsOrig) ->
   http_post_params(P, ParamsOrig++ParamsAdd).
 
 http_post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
+  debug(true, "REMAP bdd_utils html_post!"),
   Post = URL ++ http_post_params(Parameters),
   {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = digest_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
  	{ok, StateMP} = re:compile(StateRegEx),

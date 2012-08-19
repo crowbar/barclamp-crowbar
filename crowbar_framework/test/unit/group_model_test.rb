@@ -10,6 +10,7 @@ class GroupModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>" nospaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"no spaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Group.create(:name=>"nospacesatall ") }
+    end
   end
 
 end

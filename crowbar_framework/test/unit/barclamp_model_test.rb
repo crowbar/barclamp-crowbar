@@ -114,6 +114,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_throws { Barclamp.create(:name=>" nospaces") }
     assert_throws { Barclamp.create(:name=>"no spaces") }
     assert_throws { Barclamp.create(:name=>"nospacesatall ") }
+    end
   end
   
   test "Proposal Get" do

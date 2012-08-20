@@ -50,3 +50,13 @@ Feature: Nodes
       And there should be a key "order"
       And key "order" should be a number
       And there should be a key "updated_at"
+
+  Scenario: Node Detail using BDD setup
+    When AJAX requests the "node/2.0/bdd1.example.com?format=json" page
+    Then key "fingerprint" should be a number
+      And there should be a key "state"
+      And key "name" should be "bdd1.example.com"
+      And key "description" should be "BDD Testing Only - should be automatically removed"
+      And key "id" should match "node1" from setup
+      And key "id" should be a number
+      And key "order" should be 100

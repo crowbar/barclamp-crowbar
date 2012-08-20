@@ -14,9 +14,9 @@
 % 
 % Author: RobHirschfeld 
 % 
--module(html).
+-module(eurl).
 -export([post/3, delete/3, post_params/1, post/5]).
--export([get/2, get/3, peek/2, search/2, search/3]).
+-export([get/2, get/3, get/4, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4]).
 
 search(Match, Results, Test) ->

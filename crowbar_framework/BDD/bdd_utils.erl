@@ -4,7 +4,7 @@
 % you may not use this file except in compliance with the License. 
 % You may obtain a copy of the License at 
 % 
-%  http://www.apache.org/licenses/LICENSE-2.0 
+%  eurl://www.apache.org/licenses/LICENSE-2.0 
 % 
 % Unless required by applicable law or agreed to in writing, software 
 % distributed under the License is distributed on an "AS IS" BASIS, 
@@ -15,10 +15,11 @@
 % Author: RobHirschfeld 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, tokenize/1, clean_line/1, uri/2]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1, uri/2]).
 -export([http_get/2, http_get/3, html_peek/2, html_search/2, html_search/3]).
 -export([html_find_button/2, html_find_link/2, html_find_block/4]).
 -export([debug/3, debug/2, debug/1, trace/6]).
+-export([is_site_up/1]).
 -export([http_post_params/1, http_post/5]).
 
 assert(Bools) ->
@@ -59,7 +60,7 @@ trace(Config, Name, N, Steps, Given, When) ->
  
 html_search(Match, Results, Test) ->
   debug(true, "REMAP bdd_utils html_search!"),
-  html:search(Match, Results, Test).
+  eurl:search(Match, Results, Test).
 
 html_search(Match, Results) ->
 	html_search(Match, Results, true).
@@ -67,7 +68,7 @@ html_search(Match, Results) ->
 
 html_peek(Match, Input) ->
   debug(true, "REMAP bdd_utils html_peek!"),
-  html:peek(Match, Input).	
+  eurl:peek(Match, Input).	
 	
 html_find_button(Match, Input) ->
   debug(true, "REMAP bdd_utils html_find_button!"),
@@ -170,7 +171,18 @@ http_post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
 		{match, _} -> Body;
 		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK"
 	end. 
+	
+% Web Site Cake Not Found - GLaDOS cannot test
+is_site_up(Config) ->
+  URL = config(Config,url),
+	try eurl:get(Config, []) of
+	  _ -> ok
+	catch
+		_: {_, {_, {Z, {Reason, _}}}} -> 
+      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason])
+	end.
 
+% returns value for key from Config (error if not found)
 config(Config, Key) ->
 	case lists:keyfind(Key,1,Config) of
 	  {Key, Value} -> Value;
@@ -178,6 +190,13 @@ config(Config, Key) ->
 	  _ -> throw("Unexpected return from keyfind")
 	end.
 
+% returns value for key from Config (returns default if missing)
+config(Config, Key, Default) ->
+	case lists:keyfind(Key,1,Config) of
+	  {Key, Value} -> Value;
+	  _ -> Default
+	end.
+	
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
 	CleanLine1 = string:strip(CleanLine0, left, $\t),

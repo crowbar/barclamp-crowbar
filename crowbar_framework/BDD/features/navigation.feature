@@ -73,7 +73,7 @@ Feature: Crowbar, Check Core Navigation
     Then I should see "System Documentation"
       And there should be no translation errors
     
-  Scenario: %Help Deployment Guide
+  Scenario: %Help Deployment Guide PDF (legacy)
     Given I am on the home page
     When I click on the "Deployment" menu item
     Then I should download a PDF

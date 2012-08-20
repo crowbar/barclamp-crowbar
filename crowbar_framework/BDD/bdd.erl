@@ -16,17 +16,20 @@
 % 
 
 -module(bdd).
--export([test/1, test/3, feature/2, getconfig/1]).  
+-export([test/0, test/1, test/3, feature/1, feature/2, getconfig/1]).  
 -import(bdd_utils).
 -import(digest_auth).
 
+test() ->
+  test("default").
 test(ConfigName) -> 
   test(ConfigName, search, []).
 test(ConfigName, search, Tests) ->
   BaseConfig = getconfig(ConfigName),
-  Features = filelib:wildcard("*." ++ bdd_utils:config(BaseConfig,extension)),
+  Features = filelib:wildcard(bdd_utils:config(BaseConfig,feature_path,"features/") ++ "*." ++ bdd_utils:config(BaseConfig,extension,"feature")),
 	application:start(inets),		% needed for getting we pages
 	application:start(crypto),  % needed for digest authentication
+	bdd_utils:is_site_up(BaseConfig),
 	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
 	%test setup
   Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  
@@ -43,7 +46,8 @@ test(ConfigName, search, Tests) ->
 		_ -> bdd_selftest:test(all), Result
 	end;
 test(ConfigBase, FileName, Tests) -> 
-	[Feature | _ ] = string:tokens(FileName,"."),
+	[FeatureWithPath | _ ] = string:tokens(FileName,"."),  % strip the extension
+	Feature = string:substr(FeatureWithPath,length(bdd_utils:config(ConfigBase,feature_path,"features/"))+1),  % remove the path
 	ConfigFile = [{feature, Feature}, {file, FileName} | ConfigBase],		% stuff the file name into the config set for later
 	{feature, Name, Scenarios} = feature_import(FileName),
 	[ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
@@ -55,11 +59,14 @@ test(ConfigBase, FileName, Tests) ->
   Result.
   
 % similar to test, this can be used to invoke a single feature for testing
+feature(FeatureName) ->
+  feature("default", FeatureName).
 feature(ConfigName, FeatureName) ->
   BaseConfig = getconfig(ConfigName),
-  FileName = FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension),
+  FileName = bdd_utils:config(BaseConfig,feature_path,"features/") ++ FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension,"feature"),
 	application:start(inets),		% needed for getting we pages
 	application:start(crypto),  % needed for digest authentication
+	bdd_utils:is_site_up(BaseConfig),
 	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
 	Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  % setup
   test(Config, FileName, []),
@@ -129,7 +136,7 @@ test_scenario(Config, RawSteps, Name) ->
   
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
-	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files)],
+	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files, [crowbar, bdd_webrat, bdd_catchall])],
   step_run(Config, Input, Step, StepFiles).
 	
 % recursive attempts to run steps

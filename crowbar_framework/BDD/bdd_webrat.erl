@@ -51,8 +51,8 @@ step(_Config, _Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	%bdd_utils:debug("expect FAIL when going to the ~p page~n", [Page]), 
 	bdd_utils:http_get(_Config, Page, not_found);
 
-step(_Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  JSON = bdd_utils:http_get(_Config, Page),
+step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
+  JSON = bdd_utils:http_get(Config, Page),
   {ajax, json:parse(JSON), Page};
 
 step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
@@ -114,7 +114,8 @@ step(_Config, Result, {step_then, _N, ["I should download text with", Text]}) ->
 
 step(_Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  false;
+  bdd_utils:debug(false, "JSON list ~p should have ~p~n", [JSON, Key]),
+  length([K || {K, _} <- JSON, K == Key])==1;
                                                                 
 step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature

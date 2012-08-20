@@ -14,31 +14,58 @@
 #
 
 class Node < ActiveRecord::Base
-  before_save :update_fingerprint
-  after_commit :default_group
+  before_save :default_population
   
   attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
   
-  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
+  # 
+  # Validate the name should unique (no matter the case)
+  # and that it starts with a valid FQDN
+  #
+  validates_uniqueness_of :name, :message => I18n.t("db.notunique", :case_sensitive => false, :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
+  #
+  # Helper function to test admin without calling admin. Style-thing.
+  #
   def is_admin?
-    admin
+    node_object.admin? rescue false
   end
 
+  #
+  # Helper function to for the UI to show the right information about nodes.  
+  # NOT COMPLETE!
+  #
+  def allocated?
+    node_object.allocated rescue true
+  end
+
+  #
+  # Find the CMDB object for now.  This should go away as the CMDB_Attribute pieces
+  # materialize.
+  #
   def node_object
-    NodeObject.find_node_by_name name
+    NodeObject.find_node_by_name name 
   end
 
+  #
   # This is an hack for now.
+  # XXX: Once networking is better defined, we should use those routines
+  #
   def address(net = "admin")
     node_object.address(net)
   end
 
+  #
+  # Helper function to set state.  Assumes that the node will be save outside if this routine.
+  #
+  # State needs to be reflected in two places for now.  It does save the cmdb object.
+  # As we get more CMDB work in place, this should go away.
+  #
   def set_state(new_state)
     state = new_state
     cno = NodeObject.find_node_by_name name
@@ -46,8 +73,15 @@ class Node < ActiveRecord::Base
     cno.save
   end
 
-  # GREG: Make this better one day.  Perf is not good.  Direct select would be better
+  # XXX: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.
+  #
+  # update_run_list:
+  #   Rebuilds the run_list for the CMDB system for this node based upon its active proposal
+  #   membership and its state.
+  #
+  #   This includes updating the CMDB node role with node specific data.
+  #
   def update_run_list
     nrs = NodeRole.find_all_by_node_id(self.id)
     # Get the active ones
@@ -106,11 +140,9 @@ class Node < ActiveRecord::Base
     state.eql? 'ready'
   end
   
-  def admin?
-    # TODO place holder
-    false
+  def virtual?
   end
-
+  
   def bmc_set?
     # TODO place holder
     true
@@ -119,11 +151,6 @@ class Node < ActiveRecord::Base
   def links
     # TODO place holder for barclamp defined links
     []
-  end
-  
-  def allocated?
-    # TODO place holder
-    false
   end
 
   # Makes the open ended state information into a subset of items for the UI
@@ -169,16 +196,15 @@ class Node < ActiveRecord::Base
   
   private
   
-  def update_fingerprint
+  # make sure some safe values are set for the node
+  def default_population
     self.fingerprint = self.name.hash
+    self.name = self.name.to_lower
     self.state ||= 'unknown' 
+    if self.groups.size == 0
+      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
+      self.groups << g
+    end
   end  
   
-  def default_group
-    if groups.size == 0
-      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
-      groups << g
-    end
-  end
-
 end

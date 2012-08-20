@@ -22,6 +22,6 @@ class Doc < ActiveRecord::Base
   belongs_to :parent, :class_name => "Doc", :foreign_key => "parent_name"
   has_many :children, :class_name => "Doc", :foreign_key => "parent_name", :order => "[order]+[description] ASC"
 
-  validates_uniqueness_of :name, :on => :create, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
+  validates_uniqueness_of :name, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
   
 end

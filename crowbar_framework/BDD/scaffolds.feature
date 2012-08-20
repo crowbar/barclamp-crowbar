@@ -2,6 +2,10 @@ Feature: Scaffolds
   In order develop the system
   The devoper operator, Greg
   wants to be able to quickly check the models
+
+  TODO: proposal_queue_item 
+  TODO: proposal_queue 
+  TODO: role_element_order 
   
   Scenario: Barclamp
     When I go to the "scaffolds/barclamps" page
@@ -9,6 +13,7 @@ Feature: Scaffolds
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
+      And I should see "transition list"
       And I should see "Display"
       And I should see "Layout"
       And I should see "Search"
@@ -188,4 +193,4 @@ Feature: Scaffolds
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors  
-      
+            

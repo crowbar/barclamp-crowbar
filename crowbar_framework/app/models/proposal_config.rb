@@ -16,12 +16,17 @@
 #######
 #  configuration details for a given proposals.
 #  proposal 
+#
 class ProposalConfig < ActiveRecord::Base
-  STATUS_NONE        = 1
-  STATUS_QUEUED      = 2
-  STATUS_COMMITTING  = 3
-  STATUS_FAILED      = 4
-  STATUS_APPLIED     = 5
+
+  #
+  # Status of the proposal
+  #
+  STATUS_NONE        = 1  # Not applied, just created
+  STATUS_QUEUED      = 2  # Attempt at commit, but is queued
+  STATUS_COMMITTING  = 3  # Attempt at commit is in progress
+  STATUS_FAILED      = 4  # Attempted commit failed
+  STATUS_APPLIED     = 5  # Attempted commit succeeded
 
   attr_accessible :config, :reversion, :status, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
@@ -50,6 +55,7 @@ class ProposalConfig < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
+    {} unless config
     JSON::parse(config)
   end
 
@@ -60,6 +66,9 @@ class ProposalConfig < ActiveRecord::Base
 
   ##
   # Set node_roles from proposal json elements
+  #
+  # This is used to convert the elements section of a json config
+  # into node role objects tying the node/role/proposal_config together.
   #
   def update_node_roles(elements)
     nodes.delete_all
@@ -76,6 +85,9 @@ class ProposalConfig < ActiveRecord::Base
     reload
   end
 
+  #
+  # Helper function to tie a node and role to this propsal_config.
+  #
   def add_node_to_role(node, role)
     nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
     unless nr
@@ -87,6 +99,9 @@ class ProposalConfig < ActiveRecord::Base
     true
   end
 
+  #
+  # Helper function to remove a node/role pair from thie proposal_config.
+  #
   def remove_node_from_role(node, role)
     nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
     if nr
@@ -96,10 +111,16 @@ class ProposalConfig < ActiveRecord::Base
     true
   end
 
+  #
+  # Helper function to remove all nodes from this proposal_config
+  # 
   def remove_all_nodes
     nodes.delete_all
   end
 
+  #
+  # Helper function to build a list of nodes in a specific role (specified by name).
+  #
   def get_nodes_by_role(role_name)
     role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
     nrs = NodeRole.find_all_by_role_id_and_proposal_config_id(role.id, self.id)
@@ -110,6 +131,10 @@ class ProposalConfig < ActiveRecord::Base
     answer
   end
 
+  #
+  # Helper function to get a hash where the keys are role names and the values
+  # are lists of nodes for that role.
+  #
   def get_nodes_by_roles
     answer = {}
     node_roles.each do |nr|
@@ -119,6 +144,11 @@ class ProposalConfig < ActiveRecord::Base
     answer
   end
 
+  #
+  # Helper function to look-up a node's specific config for this proposal
+  #
+  # Returns the hash from the node role's json blob
+  #
   def get_node_config_hash(node)
     nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
     return {} unless nr
@@ -126,6 +156,11 @@ class ProposalConfig < ActiveRecord::Base
     nr.config_hash
   end
 
+  #
+  # Helper function to set the hash into the node's specific config holder.
+  #
+  # Stores the hash into the node role's json blob
+  #
   def set_node_config_hash(node, hash)
     nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
     unless nr

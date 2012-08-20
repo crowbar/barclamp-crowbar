@@ -16,10 +16,38 @@
 class CrowbarService < ServiceObject
   
   #
-  # Below are the parts to handle transition requests.
+  # Transition function for the crowbar barclamp
   #
-  # This routine handles name-based state transitions.  The system will then inform barclamps.
-  # It will create a node and assign it an admin address.
+  # This is the main entry function into crowbar.
+  #
+  # Input:
+  #   inst = Name of the instance of crowbar to operation on ("default")
+  #   name = Name of node being transitioned
+  #   state = State node should transition to
+  #
+  # Output:
+  #   [ HTTP Return Code (200 success, ...), Message for Failure ]
+  #
+  # The Crowbar Service is the main entry point into the whole transition system.
+  #
+  # General Flow:
+  # Under the BA-LOCK
+  #   If the state requested is discovering or testing, the node will be created if it 
+  #     doesn't exist.  
+  #   If the node doesn't exist, return a 404
+  #   Update the state on the node.
+  #
+  # If the node is the admin and we are discovering, make sure we have the crowbar role on the node
+  #
+  # If the state changes or is one of hardware-installing, hardware-updating, or update,
+  #   we need to the following:
+  #     find all the barclamp proposals that care that have registered to be called for this state
+  #     Order the proposals by their barclamp run_order
+  #     Call each proposal's transition function
+  #     Rebuild the CMDB structures for the node
+  #     If the node goes ready, check to see if we can apply any queued proposals.
+  #
+  # Return success
   #
   def transition(inst, name, state)
     @logger.info("Crowbar transition enter: #{name} to #{state}")
@@ -35,8 +63,8 @@ class CrowbarService < ServiceObject
         node.save!
         unless chef_node
           cno = NodeObject.create_new name
-          cno.crowbar["crowbar"] = {} if chef_node.crowbar["crowbar"].nil?
-          cno.crowbar["crowbar"]["network"] = {} if chef_node.crowbar["crowbar"]["network"].nil?
+          cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
+          cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
           cno.save
         end
       end
@@ -95,9 +123,6 @@ class CrowbarService < ServiceObject
             @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
           else
             @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
-            unless answer[1]["name"].nil?
-              name = answer[1]["name"]
-            end
           end
         rescue Exception => e
           @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")
@@ -120,6 +145,23 @@ class CrowbarService < ServiceObject
     [200, ""]
   end
 
+  #
+  # apply_role
+  # Input:
+  #   role = proposal_config object that is being applied to the system
+  #   in_queue = boolean to indicate if this is being called from the queuing system
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
+  # The Crowbar barclamp apply_role overrides the default apply path to enable
+  # the system to create and commit the initial barclamp instances as defined in the
+  # proposal_config's data.  
+  #
+  # The override calls the parent function to get this applied, but then follows that with
+  # a set of create/commit calls for each instance in the configuration.  This usually
+  # creates the default deployed barclamps.
+  #
   def apply_role (role, in_queue)
     @logger.debug("Crowbar apply_role: enter")
     answer = super(role, in_queue)
@@ -179,7 +221,10 @@ class CrowbarService < ServiceObject
     answer
   end
 
-  # look at the instances we'll create, and sort them 
+  #
+  # Helper function to order the pending instances so that
+  # they get created in a specific order.
+  #
   def order_instances(bcs)
     tmp = {}
     bcs.each { |bc_name,instances|
@@ -193,6 +238,11 @@ class CrowbarService < ServiceObject
     t
   end 
 
+  #
+  # Helper function to populate the UI RAID and BIOS toggles
+  #
+  # NOTE: HARDCODED TO DEFAULT proposal.
+  #
   def self.read_options
     # read in default proposal, to make some vaules avilable
     proposals = Barclamp.find_by_name("crowbar").get_proposal('default')
@@ -200,7 +250,7 @@ class CrowbarService < ServiceObject
     # populate options from attributes/crowbar/*-settings
     options = { :raid=>{}, :bios=>{}, :show=>[] }
     hash = proposals.current_config.config_hash
-    if hash
+    if hash and hash["crowbar"]
       options[:raid] = hash["crowbar"]["raid-settings"]
       options[:bios] = hash["crowbar"]["bios-settings"]
       options[:show] << :raid if options[:raid].length > 0

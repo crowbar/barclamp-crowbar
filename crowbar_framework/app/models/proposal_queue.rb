@@ -13,11 +13,37 @@
 # limitations under the License.
 #
 
+#
+# This class acts as a queue with bonus routines.
+#
+# A proposal queue is a place to queue proposals that don't have
+# their dependencies met.  This is not really generic.  It is very
+# specific to proposal and its queuing.
+#
+# You can create a queue by calling: ProposalQueue.get_queue(name, logger)
+#
+# A queue has the following actions:
+#   queue_proposal - attempts to queue proposal returns delay otherwise.
+#   dequeue_proposal - remove item from queue and clean up
+#   process_queue - see what we can execute
+#
+# The other public routine is:
+#   ProposalQueue.update_proposal_statue - this updates the status of a proposal with the mssage.
+#
+# The other routines are internal and have docs around them.
+#
 class ProposalQueue < ActiveRecord::Base
   attr_accessible :name
 
+  #
+  # Single queue of proposals.  The proposal_queue_item model
+  # is a helper structure to maintain an ordered list.
+  #
   has_many :proposal_queue_items, :order => "position"
 
+  #
+  # Get get_queue will return the queue by name (or creates it).
+  #
   def self.get_queue(name, logger)
     q = ProposalQueue.find_or_create_by_name(name)
     q.logger = logger
@@ -26,6 +52,7 @@ class ProposalQueue < ActiveRecord::Base
 
   #
   # update proposal status information
+  # Stores status and message on the current active_config
   #
   def self.update_proposal_status(pc, status, message)
     prop = pc.proposal
@@ -38,12 +65,18 @@ class ProposalQueue < ActiveRecord::Base
     res
   end
 
+  #
+  # Helper function to set logging structure
+  #
   def logger=(log)
     @logger = log
   end
 
   #
-  # Locking Routines
+  # Locking Routines 
+  #
+  # XXX: This should be reviewed to see if it is still needed with database 
+  # transition locking now.
   #
   def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
@@ -68,7 +101,14 @@ class ProposalQueue < ActiveRecord::Base
     @logger.debug("Release lock exit")
   end
 
+  #
+  # Helper function to test if a list of nodes are ready.
+  #
+  # Input: List of node objects
+  # Output: List of nodes that are NOT ready [ "Node <node.name>" ]
+  #
   # Assumes the BA-LOCK is held
+  #
   def elements_not_ready(nodes)
     delay = []
     nodes.each do |n|
@@ -78,7 +118,20 @@ class ProposalQueue < ActiveRecord::Base
     delay
   end
 
-  def make_applying_or_delay(nodes, queue_me, set_apply)
+  #
+  # Helper routine to test if nodes are available and if they are potentially
+  # mark them as applying.
+  #
+  # If apply is true, mark nodes otherwise just build delay list.
+  #
+  # Input:
+  #   nodes - list of Node objects to test
+  #   apply - if all are ready, mark it applying
+  #
+  # Output:
+  #   List of nodes that are NOT ready [ "Node <node.name>" ]
+  #
+  def make_applying_or_delay(nodes, apply)
     f = acquire_lock "BA-LOCK"
     delay = []
     begin
@@ -87,7 +140,7 @@ class ProposalQueue < ActiveRecord::Base
 
       # Add the entries to the nodes.
       if delay.empty?
-        if set_apply
+        if apply
           nodes.each do |node|
             # Nothing to delay so mark them applying.
             node.set_state('applying')
@@ -110,6 +163,12 @@ class ProposalQueue < ActiveRecord::Base
     delay
   end
 
+  #
+  # Helper routine to put the nodes back to ready
+  #
+  # Input: list of node objects
+  # Output: none
+  #
   def restore_to_ready(nodes)
     f = acquire_lock "BA-LOCK"
     begin
@@ -124,10 +183,16 @@ class ProposalQueue < ActiveRecord::Base
   end
 
   #
-  # Queuing routines:
+  # Public queuing routines:
   #   queue_proposal - attempts to queue proposal returns delay otherwise.
   #   dequeue_proposal - remove item from queue and clean up
   #   process_queue - see what we can execute
+  #
+  # queue_proposal 
+  #
+  # Processes the proposal_config and validates is dependencies and node readiness.
+  # If the node is not ready, it is queued until nodes or proposal become ready.
+  #
   #
   def queue_proposal(prop_config)
     inst = prop_config.proposal.name
@@ -158,7 +223,7 @@ class ProposalQueue < ActiveRecord::Base
       end
 
       # Check nodes for being ready
-      delay << make_applying_or_delay(prop_config.nodes, queue_me, true)
+      delay << make_applying_or_delay(prop_config.nodes, !queue_me)
       delay = delay.flatten
 
       # Nothing stopping use and nodes are marked applying.
@@ -180,6 +245,9 @@ class ProposalQueue < ActiveRecord::Base
     delay
   end
 
+  #
+  # Take a proposal off the queue (assumes lock is already held) and update the proposal's status
+  #
   def dequeue_proposal_no_lock(item)
     @logger.debug("dequeue_proposal_no_lock: enter #{item}")
     begin
@@ -194,7 +262,15 @@ class ProposalQueue < ActiveRecord::Base
     true
   end
 
-  def dequeue_proposal(inst, bc = @bc_name)
+  #
+  # Remove a proposal_config from the queue.  This will take the BA_LOCK
+  #
+  # Input:
+  #   inst - name of proposal
+  #   bc = name of barclamp 
+  # Assumes to dequeue the active_config on the proposal.
+  #
+  def dequeue_proposal(inst, bc)
     @logger.debug("dequeue proposal: enter #{item}")
     ret = false
     begin
@@ -220,6 +296,9 @@ class ProposalQueue < ActiveRecord::Base
   #
   # NOTE: If dependencies don't form a DAG (Directed Acyclic Graph) then we have a problem
   # with our dependency algorithm
+  #
+  # process_queue - public routine to check the queue if other proposal_configs are able to
+  # be run.  If they are ready, they are dequeued and proposal_commit is called on them.
   #
   def process_queue
     @logger.debug("process queue: enter")
@@ -257,7 +336,7 @@ class ProposalQueue < ActiveRecord::Base
           end
 
           # Check nodes for being ready
-          delay << make_applying_or_delay(prop_config.nodes, queue_me, false)
+          delay << make_applying_or_delay(prop_config.nodes, false)
           delay = delay.flatten
 
           # We are free

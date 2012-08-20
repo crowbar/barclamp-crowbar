@@ -35,6 +35,47 @@ The following items are desired but not yet created in the documenation.
 * Adding Chef cookbooks
 * ...
 
+#### Create the WebApp Pieces
+
+As a Rails app, you will need to following Rails naming conventions.  Say you name a barclamp, fred_rocks.  This means that the camelized name would be FredRocks.  
+
+#### Create the WebApp Controller
+
+The controller file lives in crowbar_framework/app/controllers.  It should be named bcname_controller.rb.  bcname is the lower case name of with the barclamp.  The class name should be the camelized name of the barclamp with Controller and it should inherit from BarclampController.
+
+It should look like this:
+class FredRocksController < BarclampController
+end
+
+For normal operation and to provide the default APIs, nothing else need to be provided.
+
+#### Create the WebApp Service Object
+
+The service object lives in the crowbar_framework/app/models directory.  It is usually named bcname_service.rb.  bcname is the lowercase version of the name.  The class name should be the camelized version of the barclamp name with Service and it should inherit from ServiceObject.
+
+It should look like this:
+class FredRocksService < ServiceObject
+end
+
+For normal operation and to provide the default APIs, nothing else need to be provided.
+
+Within this class, the following routines can be overridden:
+* create_proposal(optional: name)
+* transition(name, inst, state)
+* apply_role_pre_chef_call(old_config, new_config, all_nodes)
+* proposal_dependencies(proposal_config)
+* validate_proposal_elements(proposal_elements)
+* validate_proposal(proposal)
+
+These can be overriden, but usually aren't.  They represent the basic API calls that have complex actions within the barclamp.
+* apply_role(new_proposal_config, in_queue)
+* destroy_active(prop_name)
+* dequeue_proposal(prop_name)
+* proposal_create(params)
+* proposal_edit(params)
+* proposal_delete(prop_name)
+* proposal_commit(prop_name, in_queue)
+
 #### Importing a barclamp
 
 _this is the manual process, there is a Utility for this in the UI_

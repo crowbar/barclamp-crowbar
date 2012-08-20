@@ -12,26 +12,56 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
-#
-# Also functions as a data bag item wrapper as well.
-#
+
 require 'chef'
 require 'json'
+
+#
+# ServiceObject is the base object for all Barclamp service objects.
+# It provides the basic barclamp operations that can be overriden by
+# the barclamp object.
+#
+# This acts a place helper routines as well.  Locking routines, random_password, ...
+#
+# The object operations by initialization from the controller or the barclamp object.
+# When initialize from those places, the object gets a @barclamp object that can be used
+# to reference its parent barclamp.  
+#
+# THIS OBJECT SHOULD NEVER BE DIRECTLY USED!!
+#
+# operations.function = Inside the barclamp controller for this object type
+# Barclamp.find_by_name("name").operations(@logger).function = Outside if the barclamp controller
+#
+# 
+# 
 
 class ServiceObject
   extend CrowbarOffline
 
+  def self.bc_name
+    self.name.underscore[/(.*)_service$/,1]
+  end
+
+  #
+  # Initialization setup routines
+  #
   def initialize(thelogger)
     @bc_name = "unknown"
     @logger = thelogger
   end
 
-  def self.bc_name
-    self.name.underscore[/(.*)_service$/,1]
+  def bc_name=(new_name)
+    @bc_name = new_name
+    @barclamp = Barclamp.find_by_name(@bc_name)
   end
   
+  def bc_name 
+    @bc_name
+  end
+  
+  #
+  # Human printable random password generator
+  #
   def random_password(size = 12)
     chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
@@ -63,14 +93,6 @@ class ServiceObject
     @logger.debug("Release lock exit")
   end
 
-  def bc_name=(new_name)
-    @bc_name = new_name
-    @barclamp = Barclamp.find_by_name(@bc_name)
-  end
-  
-  def bc_name 
-    @bc_name
-  end
   
 #
 # API Functions
@@ -79,6 +101,14 @@ class ServiceObject
     [200, ""]
   end
 
+  #
+  # Function to handle the barclamp controller API request to delete active proposal (deactivate)
+  # Input:
+  #   prop_name - String name of a proposal to deactivate
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def destroy_active(prop_name)
     @logger.debug "Trying to deactivate role #{prop_name}" 
     prop = @barclamp.get_proposal(prop_name)
@@ -104,6 +134,14 @@ class ServiceObject
     answer
   end
 
+  #
+  # Function to handle the barclamp controller API request to dequeue proposal (dequeue)
+  # Input:
+  #   inst - String name of a proposal to dequeue
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def dequeue_proposal(inst)
     prop = @barclamp.get_proposal(inst)
     return [404, {}] if prop.nil? or not prop.active? or not prop.active_config.queued?
@@ -114,7 +152,7 @@ class ServiceObject
   end
 
   #
-  # Updates current_config
+  # Helper routine: Updates current_config
   # 
   def _proposal_update(new_prop, params)
     if params["attributes"]
@@ -138,6 +176,14 @@ class ServiceObject
     @barclamp.create_proposal
   end
 
+  #
+  # Function to handle the barclamp controller API request to create a proposal
+  # Input:
+  #   params - params object from the controller (JSON config blob as a hash)
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_create(params)
     base_id = params["id"]
 
@@ -153,6 +199,15 @@ class ServiceObject
     _proposal_update new_prop, params
   end
 
+  #
+  # Function to handle the barclamp controller API request to edit a proposal
+  #
+  # Input:
+  #   params - params object from the controller (JSON config blob as a hash)
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_edit(params)
     proposal = @barclamp.get_proposal(params["id"])
     return [404, I18n.t('model.service.cannot_find')] if prop.nil?
@@ -165,6 +220,14 @@ class ServiceObject
     _proposal_update proposal, params
   end
 
+  #
+  # Function to handle the barclamp controller API request to delete proposal (proposal delete)
+  # Input:
+  #   inst - String name of a proposal to delete
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_delete(inst)
     prop = @barclamp.get_proposal(inst)
     if prop.nil?
@@ -178,7 +241,15 @@ class ServiceObject
     end
   end
 
-
+  #
+  # Function to handle the barclamp controller API request to commit proposal (proposal commit)
+  # Input:
+  #   inst - String name of a proposal to commit
+  #   in_queue - optional boolean to indicate if we are in the queue code vs. UI/API
+  #
+  # Output:
+  #   [ HTTP Error Code, String Message ]
+  #
   def proposal_commit(inst, in_queue = false)
     prop = @barclamp.get_proposal(inst)
     if prop.nil?
@@ -303,6 +374,9 @@ class ServiceObject
       node.update_run_list
     end
 
+    #
+    # Let the barclamp do some changes before chef-client runs
+    #
     onodes = old_config ? old_config.nodes : []
     nnodes = new_config ? new_config.nodes : []
     all_nodes = (nnodes+onodes).uniq
@@ -417,6 +491,9 @@ class ServiceObject
     [200, {}]
   end
 
+  #
+  # Override function to inject changes to nodes after role update, but before chef-client runs.
+  #
   def apply_role_pre_chef_call(old_config, new_config, all_nodes)
     # noop by default.
   end
@@ -432,6 +509,8 @@ class ServiceObject
 
   #
   # XXX: Should this clone a new config?
+  #
+  # This is a helper function for places that need to add a node to a role in a proposal_config
   #
   def add_role_to_instance_and_node(node_name, prop_name, newrole)
     @logger.debug("ARTOI: enterin #{node_name}, #{prop_name}, #{newrole}")

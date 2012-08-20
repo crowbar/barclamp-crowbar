@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
 
 # Sample localization file for English. Add more files in this directory for other locales.
 # See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
@@ -54,6 +51,12 @@ en:
     wiki_description: Online Help
     docs: Documentation
     docs_description: Documentation
+
+    users: Users
+    manage_users: Manage Users
+    manage_users_description: Add, remove and edit users
+    sign_out: Sign Out
+    sign_out_description: End the current session
 
     scaffold:
       top: Scaffolds
@@ -131,7 +134,10 @@ en:
       parent: Parent
       children: Children
       nav: Navigation
-      topic_missing: Error, generated HTML page for topic not found
+      export: Export
+      return: "< Go Back"
+      topic_missing: Error, generated HTML page because topic source not found
+      topic_error: Error, failed to generate HTML page
       
   # Model Names / Attributes
   model:
@@ -442,3 +448,11 @@ en:
     lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
     fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
 
+  # Users
+  user:
+    title: Manage User Accounts
+    username: Username
+    sign_in_count: Sign In Count
+    failed_attempts: Failed Signins
+    last_sign_in_at: Last Signed In
+    last_sign_in_ip: IP of Last Sign In

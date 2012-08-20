@@ -131,7 +131,11 @@ def authenticate(req,uri,data=nil)
 end  
 
 def get_json(path)
-  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
+  get_json2("crowbar/#{@barclamp}/1.0#{path}")
+end
+
+def get_json2(path)
+  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -149,7 +153,11 @@ def get_json(path)
 end
 
 def post_json(path, data)
-  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
+  post_json2("crowbar/#{@barclamp}/1.0#{path}", data)
+end
+
+def post_json2(path, data)
+  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Post,uri,data)
 
   puts "DEBUG: (post) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -162,7 +170,11 @@ def post_json(path, data)
 end
 
 def put_json(path, data)
-  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
+  put_json2("crowbar/#{@barclamp}/1.0#{path}", data)
+end
+
+def put_json2(path, data)
+  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Put,uri,data)
 
   puts "DEBUG: (put) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -175,7 +187,11 @@ def put_json(path, data)
 end
 
 def delete_json(path)
-  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
+  delete_json2("crowbar/#{@barclamp}/1.0#{path}")
+end
+
+def delete_json2(path)
+  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Delete,uri)
 
   puts "DEBUG: (d) hostname: #{uri.host}:#{uri.port}" if @debug

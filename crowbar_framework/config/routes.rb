@@ -101,6 +101,12 @@ Crowbar::Application.routes.draw do
   scope 'crowbar' do
     version = "2.0"
 
+    get    "#{version}/network/2.0/networks", :controller => 'network', :action=>'networks'
+    get    "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_show'
+    post   "#{version}/network/2.0/networks", :controller => 'network', :action=>'network_create'
+    put    "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_update'
+    delete "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_delete'
+
     version = "1.0"
 
     get    ":controller/#{version}/help", :action => 'help', :as => :help_barclamp

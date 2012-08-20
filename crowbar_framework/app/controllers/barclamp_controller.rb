@@ -338,8 +338,11 @@ class BarclampController < ApplicationController
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
           answer = operations.dequeue_proposal(params[:name])
-          flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') unless answer
-          flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success') if answer
+          if answer[0] == 200
+            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success')
+          else
+            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') + ": " + answer[1].to_s
+          end
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -377,7 +380,7 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced 
+  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be edited and replaced 
   #
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
@@ -387,15 +390,22 @@ class BarclampController < ApplicationController
   end
 
   #
-  # Currently, A UI ONLY METHOD
-  # XXX: TODO: Make this a restful call defined somewhere.
+  # Provides the restful api call for
+  # Dequeue Proposal Instance   /crowbar/<barclamp-name>/<version>/proposals/dequeue/<barclamp-instance-name>   DELETE   This action will dequeue an existing proposal.
   #
-  add_help(:proposal_dequeue,[:id],[:post])
+  add_help(:proposal_dequeue,[:id],[:delete])
   def proposal_dequeue
-    ret = operations.dequeue_proposal params[:id]
-    flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
-    return render :text => flash[:notice], :status => 400 unless ret
-    render :json => {}, :status => 200 if ret
+    answer = operations.dequeue_proposal params[:id]
+    if answer[0] == 200
+      flash[:notice] = t('proposal.actions.dequeue.success')
+    else
+      flash[:notice] = t('proposal.actions.dequeue.fail') + ": " + answer[1].to_s
+    end
+    if answer[0] == 200
+      return render :json => {}, :status => answer[0]
+    else
+      return render :text => flash[:notice], :status => answer[0]
+    end
   end
 
   add_help(:nodes,[],[:get]) 

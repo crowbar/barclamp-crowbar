@@ -20,7 +20,7 @@ class Group < ActiveRecord::Base
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_format_of :category, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Category limited to [_a-zA-Z0-9]")
 
-  validates_inclusion_of :category, :in => %w(ui rack), :message => "Group Model Validation Error: type is not an allowed category"
+  validates_inclusion_of :category, :in => %w(ui rack tag), :message => "Group Model Validation Error: type is not an allowed category"
 
   has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
 

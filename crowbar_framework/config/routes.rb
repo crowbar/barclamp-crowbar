@@ -36,8 +36,6 @@ Crowbar::Application.routes.draw do
     resources :role_element_orders do as_routes end
   end
 
-  devise_for :users
-
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end
@@ -72,12 +70,24 @@ Crowbar::Application.routes.draw do
   get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
 
+  # status operations
+  scope 'status' do
+    scope '2.0' do
+      constraints(:id => /.*/ ) do
+        get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
+      end
+    end
+  end
+  
+  # node operations
   scope 'node' do
-    version = "2.0"
-    post "#{version}/new" => "nodes#new"
-    constraints(:id => /.*/ ) do
-      get "status/#{version}(/:id)(.:format)" => 'nodes#status', :as => :node_status
-      get "#{version}/(:id)(.:format)" =>'nodes#show', :as => :node
+    scope '2.0' do
+      post "/" => "nodes#new"
+      constraints(:id => /.*/ ) do
+        get "/:id(.:format)" => 'nodes#show', :as => :node
+        delete "/:id" => 'nodes#delete', :as => :node_delete
+        put "/:id" => 'nodes#edit'
+      end
     end
   end
   
@@ -93,7 +103,13 @@ Crowbar::Application.routes.draw do
       match ':name/update' => 'nodes#update', :as => :update_node
     end
   end
-  
+ 
+  devise_for :users, :controllers => { :registrations => "registrations" }
+  devise_scope :user do
+    match "users/sign_out", :controller => 'users', :action =>'sign_out'
+    match "manage_users", :controller => 'users', :action => 'index'
+  end
+ 
   scope 'proposal' do
     version = "2.0"
     get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :constraints => { :id => /.*/ }, :as=>:proposal_status

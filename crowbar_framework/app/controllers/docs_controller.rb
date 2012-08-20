@@ -32,21 +32,45 @@ class DocsController < ApplicationController
   
   def topic
     begin 
-      @topic = Doc.find_by_name params[:id]      
+      @topic = Doc.find_by_name params[:id]
       @file = page_path 'doc', @topic.name
+      html = !params.has_key?(:source)
       # navigation items
-      @text = if File.exist? @file
-        %x[markdown #{@file}]
+      if File.exist? @file
+        @text = (html ? %x[markdown #{@file}] : IO.read(@file))
+        @text += topic_expand(@topic.name, html) if params.has_key? :expand
       else
-        I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
+        @text = I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
       end
     rescue
-      @text = I18n.t('.topic_missing', :scope=>'docs.topic')  + ": " + @file
+      @text = I18n.t('.topic_error', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
+    end
+    if params.has_key? :expand
+      if html
+         render :layout => false
+      else
+         render :text=>@text, :content_type => :text 
+      end
     end
   end
   
   private
+  
+  def topic_expand(name, html=true)
+    text = "\n"
+    topic = Doc.find_by_name name
+    if topic.children.size > 0
+      topic.children.each do |t|
+        file = page_path 'doc', t.name
+        if File.exist? file
+          text += (html ? %x[markdown #{file}] : IO.read(file))
+          text += topic_expand(t.name, html)
+        end
+      end
+    end
+    return text
+  end
   
   def page_path(path, name, language='default')
     File.join path, language, name.gsub("+", "/")+'.md'

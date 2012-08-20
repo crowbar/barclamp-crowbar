@@ -3,11 +3,8 @@ Feature: Nodes
   The system operator, Oscar
   wants to be able to check the status of nodes
 
-  Scenario: REST Node Create
-    Then I should use my special step file
-
   Scenario: Status Empty
-    When AJAX requests the "node/status/2.0" page
+    When AJAX requests the "status/2.0/node" page
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"
@@ -17,7 +14,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
 
   Scenario: Status Non Nodes
-    When AJAX requests the "node/status/2.0/0" page
+    When AJAX requests the "status/2.0/node/0" page
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"

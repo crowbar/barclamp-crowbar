@@ -54,6 +54,9 @@ request(Config, URL) ->
 
 request(Config, get, {URL, Header}, HTTPOptions, Options) ->
   request(Config, get, {URL, Header, [], []}, HTTPOptions, Options);
+
+request(Config, delete, {URL}, HTTPOptions, Options) ->
+  request(Config, delete, {URL, [], [], []}, HTTPOptions, Options);
   
 request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   % prepare information that's common
@@ -72,6 +75,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   % try request
   {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
     get -> http:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
+    delete -> http:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
     _ -> http:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions, Options)
   end,
   % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
@@ -82,6 +86,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
       HeaderDigested = Header ++ [{"Authorization", AuthHeader}],
       case Method of 
         get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
+        delete -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
         _ -> http:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions, Options)
       end;
     _ -> {Status,{{Protocol,Code,Comment}, Fields, Message}}

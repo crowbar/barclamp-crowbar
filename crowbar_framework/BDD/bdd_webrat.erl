@@ -129,7 +129,7 @@ step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Coun
 
 step(_Config, Results, {step_then, _N, ["key",Key,"should be a number"]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  nomatch =/= re:run(json:value(JSON, Key), "^[0-9]*$");
+  nomatch =/= re:run(json:value(JSON, Key), "^[\-0-9]*$");
                                                        
 step(_Config, Results, {step_then, _N, ["key",Key, "should be an empty string"]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature

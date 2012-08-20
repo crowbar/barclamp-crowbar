@@ -142,7 +142,7 @@ post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
 
 % Post using JSON to convey the values
 post(Config, Path, JSON) ->
-  URL = bdd_utils:uri(Config, Path),
+  URL = uri(Config, Path),
   R = digest_auth:request(Config, post, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
 	{ok, StateMP} = re:compile("OK"),
@@ -152,7 +152,7 @@ post(Config, Path, JSON) ->
 	end. 
 
 delete(Config, Path, Id) ->
-  URL = bdd_utils:uri(Config, Path) ++ "/" ++ Id,
+  URL = uri(Config, Path) ++ "/" ++ Id,
   R = digest_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
 	{ok, StateMP} = re:compile("OK"),

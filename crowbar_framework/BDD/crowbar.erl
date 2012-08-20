@@ -19,15 +19,8 @@
 -import(bdd_utils).
 -import(json).
 
-step(Config, _Global, {step_setup, _N, _}) -> 
-  io:format("\tNo Global Setup Step.~n"),
-  Config;
-
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  io:format("\tNo Global Tear Down Step.~n"),
-  Config;
-
 step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", State]}) ->
+  throw("OBSOLETE"),
   Path = "/crowbar/crowbar/1.0/transition/default",
   Data = json:output([{name, Node++"."++sc:domain(Config)}, {state, State}]),
   Result = digest_auth:request(Config, post, {sc:url(Config) ++ Path, "application/json", "application/json", Data}, [{timeout, 10000}], []),
@@ -35,6 +28,12 @@ step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", Sta
     {ok, {_, _, Body}} -> Body;
     _ -> io:format("Post did not return ok: ~s: ~s~n", [Path, Data]), error
   end;
+
+step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"]}) -> 
+  SetupID = bdd_utils:config(Config, list_to_atom(Atom)),
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  SetupID =:= json:value(JSON, ID);
+                                                              
 
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     

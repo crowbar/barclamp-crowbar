@@ -59,4 +59,4 @@ Feature: Nodes
       And key "description" should be "BDD Testing Only - should be automatically removed"
       And key "id" should match "node1" from setup
       And key "id" should be a number
-      And key "order" should be 100
+      And key "order" should be "100"

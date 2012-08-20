@@ -136,7 +136,7 @@ test_scenario(Config, RawSteps, Name) ->
   
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
-	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files, [crowbar, bdd_webrat, bdd_catchall])],
+	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files, [bdd_webrat, bdd_catchall])],
   step_run(Config, Input, Step, StepFiles).
 	
 % recursive attempts to run steps
@@ -159,8 +159,8 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	
-step_run(Config, _Input, {step_setup, _, _}, []) -> io:format("\tFeature has no Setup defined~n"), Config;
-step_run(Config, _Input, {step_teardown, _, _}, []) -> io:format("\tFeature has no Teardown defined~n"), Config;
+step_run(Config, _Input, {step_setup, _, _}, []) -> io:format("\tFeature has no Setup define.~n"), Config;
+step_run(Config, _Input, {step_teardown, _, _}, []) -> io:format("\tFeature has no Teardown defined.~n"), Config;
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->

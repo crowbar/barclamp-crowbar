@@ -16,7 +16,7 @@
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
--export([debug/3, debug/2, debug/1, trace/6]).
+-export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6]).
 -export([is_site_up/1]).
 
 assert(Bools) ->
@@ -26,7 +26,12 @@ assert(Bools, Test) ->
 	lists:all(F, Bools).
 assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
-	
+
+% for quick debug that you want to remove later (like ruby puts)
+puts(Format) -> debug(true, Format).  
+puts(Format, Data) -> debug(true, Format, Data).
+
+% for debug statements that you want to leave in
 debug(Format) -> debug(Format, []).
 debug(puts, Format) -> debug(true, Format++"~n", []);
 debug(true, Format) -> debug(true, Format, []);

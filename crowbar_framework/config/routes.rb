@@ -70,12 +70,24 @@ Crowbar::Application.routes.draw do
   get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
   get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
 
+  # status operations
+  scope 'status' do
+    scope '2.0' do
+      constraints(:id => /.*/ ) do
+        get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
+      end
+    end
+  end
+  
+  # node operations
   scope 'node' do
-    version = "2.0"
-    post "#{version}/new" => "nodes#new"
-    constraints(:id => /.*/ ) do
-      get "status/#{version}(/:id)(.:format)" => 'nodes#status', :as => :node_status
-      get "#{version}/(:id)(.:format)" =>'nodes#show', :as => :node
+    scope '2.0' do
+      post "/" => "nodes#new"
+      constraints(:id => /.*/ ) do
+        get "/:id(.:format)" => 'nodes#show', :as => :node
+        delete "/:id" => 'nodes#delete', :as => :node_delete
+        put "/:id" => 'nodes#edit'
+      end
     end
   end
   

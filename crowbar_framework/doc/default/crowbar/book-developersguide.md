@@ -5,13 +5,13 @@ Welcome to the amazing fuzziness of Crowbar!  This guide is targeted at people w
 ## Introduction
 This document is a work in process!  Please update and then remove this tag when you feel that it’s complete!
 
-### Caution!
-
-This guide is NOT designed for Crowbar 1.x.
+> _Caution!_ This guide is NOT designed for Crowbar 1.x.
 
 ### Contributors:
 
 * Rob Hirschfeld
+* Greg Althaus
+* Mike Pittaro
 
 ### Prerequisites
 

@@ -43,9 +43,14 @@ crowbar+book-developersguide:
       crowbar+devguide+locatization:
   crowbar+devguide+api:
     order: 6000
-    crowbar+devguide+api+proposal:
-    crowbar+devguide+api+barclamp:
+    crowbar+devguide+api+status:
+      order: 1000
     crowbar+devguide+api+node:
+      order: 2000
+    crowbar+devguide+api+barclamp:
+      order: 5000
+    crowbar+devguide+api+proposal:
+      order: 9000
   crowbar+devguide+testing:
     order: 8000
   

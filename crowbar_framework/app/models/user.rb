@@ -34,7 +34,7 @@ class User < ActiveRecord::Base
   attr_accessible :username, :is_admin, :email, :password, :password_confirmation, :remember_me
   # attr_accessible :title, :body
 
- validates :username, :uniqueness => true
+ validates :username, :uniqueness => true, :case_sensitive => false
 
  def email_required?
   false

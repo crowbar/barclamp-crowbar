@@ -34,8 +34,8 @@ class NodeModelTest < ActiveSupport::TestCase
     name = "THIS.ISALL.CAPS"
     n = Node.create! :name=>name
     assert_not_equal n.name, name
-    assert_equal n.name, n.to_lower
-    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => Name }
+    assert_equal n.name, name.downcase
+    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => name }
   end
   
   test "not set group" do

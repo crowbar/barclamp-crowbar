@@ -96,10 +96,7 @@ class Barclamp < ActiveRecord::Base
   # Output: Proposal Object Based upon template.
   #
   def create_proposal(name = nil)
-    prop = template.deep_clone
-    prop.name = name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}"
-    prop.save!
-    prop
+    template.deep_clone(name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}")
   end
 
   # XXX: This may be too much for what Andi planned.  This could be done as 

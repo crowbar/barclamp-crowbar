@@ -24,6 +24,9 @@ class CrowbarService < ServiceObject
   def transition(inst, name, state)
     save_it = false
 
+    return [404, "No state specified"] if state.nil?
+    # FIXME: validate state
+
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
     f = acquire_lock "BA-LOCK"

@@ -26,9 +26,9 @@ class ProposalModelTest < ActiveSupport::TestCase
     b = Barclamp.find_by_name("crowbar")
     p = Proposal.find_by_name_and_barclamp_id("template", b.id)
 
-    p_new = p.deep_clone
+    p_new = p.deep_clone("newname")
     assert_not_equal p.id, p_new.id
-    assert_equal p.name, p_new.name
+    assert_equal "newname", p_new.name
     assert_equal p.status, p_new.status
  
     assert_equal p.active_config, p_new.active_config

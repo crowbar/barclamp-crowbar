@@ -159,7 +159,5 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert ro[0][0].name, "crowbar"
   end
 
-  test "Import 1x"
-
 end
 

@@ -38,6 +38,7 @@ class Proposal < ActiveRecord::Base
   attr_accessible :name, :last_applied_rev, :description
 
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   belongs_to :barclamp
   has_many  :proposal_configs, :inverse_of => :proposal
@@ -73,8 +74,9 @@ class Proposal < ActiveRecord::Base
   #   1. cloning the template for a new proposal during create.
   #   2. creating a copy of an existing proposal to seed a new barclamp instance.
   #
-  def deep_clone
+  def deep_clone(name)
     new_prop = self.dup
+    new_prop.name = name
     new_prop.save!
 
     proposal_configs.each do |x| 

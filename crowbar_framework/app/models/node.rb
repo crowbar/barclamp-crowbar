@@ -199,7 +199,7 @@ class Node < ActiveRecord::Base
   # make sure some safe values are set for the node
   def default_population
     self.fingerprint = self.name.hash
-    self.name = self.name.to_lower
+    self.name = self.name.downcase
     self.state ||= 'unknown' 
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')

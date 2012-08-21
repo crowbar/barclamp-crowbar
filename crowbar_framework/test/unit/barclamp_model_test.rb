@@ -76,7 +76,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Template Relation" do
-    b = Barclamp.find_by_name("ganglia")
+    b = Barclamp.find_by_name("crowbar")
     t = b.template
 
     p = Proposal.find_by_name_and_barclamp_id("template", b.id)

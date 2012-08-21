@@ -143,6 +143,8 @@ class Barclamp < ActiveRecord::Base
     amp = false if amp.nil?
     um = bc['barclamp']['user_managed']
     um = true if um.nil?
+    gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
+    gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
     barclamp = Barclamp.create(
         :name        => bc_name,
         :display     => bc['barclamp']['display'] || bc_name.humanize,
@@ -161,8 +163,8 @@ class Barclamp < ActiveRecord::Base
         :mode        => "full",
         :transitions => false,
 
-        :commit      => bc['git']['commit'],
-        :build_on    => bc['git']['date'] 
+        :commit      => gitcommit,
+        :build_on    => gitdate
       )
       
     # memberships (if memembership is missing, we'll let you into the club anyway)

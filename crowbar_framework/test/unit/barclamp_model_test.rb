@@ -156,7 +156,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     ro = b.get_roles_by_order
     assert 1, ro.length
     assert 1, ro[0].length
-    assert 1, ro[0][0].name, "crowbar"
+    assert ro[0][0].name, "crowbar"
   end
 
   test "Import 1x"

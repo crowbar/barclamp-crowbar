@@ -93,8 +93,15 @@ class ServiceObject
 # Locking Routines
 #
   def acquire_lock(name)
-    @logger.debug("Acquire #{name} lock enter")
-    f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
+    @logger.debug("Acquire #{name} lock enter as uid #{Process.uid}")
+    path = "tmp/#{name}.lock"
+    begin
+      f = File.new(path, File::RDWR|File::CREAT, 0644)
+    rescue
+      @logger.error("Couldn't open #{path} for locking: #$!")
+      @logger.error("cwd was #{Dir.getwd})")
+      raise "Couldn't open #{path} for locking: #$!"
+    end
     @logger.debug("Acquiring #{name} lock")
     rc = false
     count = 0
@@ -110,8 +117,12 @@ class ServiceObject
 
   def release_lock(f)
     @logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
-    f.close
+    if f
+      f.flock(File::LOCK_UN)
+      f.close
+    else
+      @logger.warn("release_lock called without valid file")
+    end
     @logger.debug("Release lock exit")
   end
 

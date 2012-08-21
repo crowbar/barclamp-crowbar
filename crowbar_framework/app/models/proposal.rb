@@ -38,7 +38,7 @@ class Proposal < ActiveRecord::Base
   attr_accessible :name, :last_applied_rev, :description
 
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   belongs_to :barclamp
   has_many  :proposal_configs, :inverse_of => :proposal

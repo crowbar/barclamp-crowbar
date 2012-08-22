@@ -16,6 +16,7 @@
 #
 
 require 'chef/mixin/deep_merge'
+require 'pp'
 
 class NodeObject < ChefObject
   extend CrowbarOffline
@@ -409,6 +410,39 @@ class NodeObject < ChefObject
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
 
+  def mycompare(depth, a, b)
+    a.each_pair do |k, v|
+      path = (depth + [k]).join ">"
+      old = v.pretty_inspect.rstrip
+
+      if ! b.has_key? k
+        if depth.size > 1
+          # log which attributes we would have zapped if we were still using
+          # the very broken recursive_merge!
+          Rails.logger.debug("bnc#775654: would have deleted #{path}; keeping value: #{old}")
+        end
+        next
+      end
+
+      new = b[k].pretty_inspect
+
+      if v.kind_of? Hash
+        if b[k].kind_of? Hash
+          mycompare(depth + [ k ], v, b[k])
+        else
+          Rails.logger.warn("bnc#775654: attr type mismatch: #{path}: #{old} -> #{new}")
+        end
+      else
+
+        if v != b[k]
+          #Rails.logger.debug("bnc#775654: #{path}: #{old} -> #{new}")
+        else
+          #Rails.logger.warn("no change: #{path}: #{old} -> #{new}")
+        end
+      end
+    end
+  end
+
   def save
     if @role.default_attributes["crowbar-revision"].nil?
       @role.default_attributes["crowbar-revision"] = 0
@@ -418,6 +452,8 @@ class NodeObject < ChefObject
       @role.default_attributes["crowbar-revision"] = @role.default_attributes["crowbar-revision"] + 1
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+
+    mycompare(['top'], @node.normal_attrs, @role.default_attributes)
 
     Chef::Mixin::DeepMerge::deep_merge!(@node.normal_attrs, @role.default_attributes)
 

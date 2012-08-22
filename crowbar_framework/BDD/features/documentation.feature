@@ -41,5 +41,5 @@ Feature: Documentation
     Given I am on the "docs/topic/crowbar+book-userguide" page
     When I click on the "Export" link
     Then I should see "Crowbar User Guide"
-      And I should see a link to "< Back"
+      And I should see a link to "&lt; Go Back"
       And there should be no translation errors

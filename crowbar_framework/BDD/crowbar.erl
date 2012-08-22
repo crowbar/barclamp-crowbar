@@ -19,16 +19,7 @@
 -import(bdd_utils).
 -import(json).
 
-step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", State]}) ->
-  throw("OBSOLETE"),
-  Path = "/crowbar/crowbar/1.0/transition/default",
-  Data = json:output([{name, Node++"."++sc:domain(Config)}, {state, State}]),
-  Result = digest_auth:request(Config, post, {sc:url(Config) ++ Path, "application/json", "application/json", Data}, [{timeout, 10000}], []),
-  case Result of
-    {ok, {_, _, Body}} -> Body;
-    _ -> io:format("Post did not return ok: ~s: ~s~n", [Path, Data]), error
-  end;
-
+% helper for checking to make sure the ID of the object your are using it the same as the one from setup
 step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"]}) -> 
   SetupID = bdd_utils:config(Config, list_to_atom(Atom)),
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature

@@ -16,63 +16,108 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, test/3, feature/1, feature/2, getconfig/1]).  
+-export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
 -import(bdd_utils).
 -import(digest_auth).
+%-export([start/1, run/2, stop/1]).   % internal access to the testing process
 
-test() ->
-  test("default").
-test(ConfigName) -> 
-  test(ConfigName, search, []).
-test(ConfigName, search, Tests) ->
+test()                   -> test("default").
+test(ConfigName)         -> 
   BaseConfig = getconfig(ConfigName),
+  % start the test config & run the global tests
+  StartedConfig = start(BaseConfig),
+  % get the list of features to test
   Features = filelib:wildcard(bdd_utils:config(BaseConfig,feature_path,"features/") ++ "*." ++ bdd_utils:config(BaseConfig,extension,"feature")),
-	application:start(inets),		% needed for getting we pages
-	application:start(crypto),  % needed for digest authentication
-	bdd_utils:is_site_up(BaseConfig),
-	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
-	%test setup
-  Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  
   %run the tests
-  Results = [{feature, FileName, test(Config, FileName, Tests)} || FileName <- Features],
-  %test teardown
-  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(ConfigName)]),  
+  Results = run(StartedConfig, [], Features),
   % cleanup application services
-  application:stop(crypto),
-	application:stop(inets),
-	Result = [R || {_, R} <- Results, R =/= pass],
-	case Result of
-		[] -> pass;
-		_ -> bdd_selftest:test(all), Result
-	end;
-test(ConfigBase, FileName, Tests) -> 
-	[FeatureWithPath | _ ] = string:tokens(FileName,"."),  % strip the extension
-	Feature = string:substr(FeatureWithPath,length(bdd_utils:config(ConfigBase,feature_path,"features/"))+1),  % remove the path
-	ConfigFile = [{feature, Feature}, {file, FileName} | ConfigBase],		% stuff the file name into the config set for later
+  stop(StartedConfig),
+	case [R || {_, R} <- Results, R =/= pass] of
+	  [] -> pass;
+	  _ -> Results
+	end.
+	  
+% similar to test, this can be used to invoke a single feature for testing
+feature(Feature)             -> feature("default", Feature).
+feature(ConfigName, Feature) ->
+  Config = getconfig(ConfigName),
+  FileName = bdd_utils:config(Config,feature_path,"features/") ++ Feature ++ "." ++ bdd_utils:config(Config,extension,"feature"),
+  FeatureConfig = run(Config, Feature, FileName),
+	[{feature, _F, R} | _ ] = stop(FeatureConfig),
+	R.
+
+% helper that finds the feature from the FileName
+feature_name(Config, FileName) ->
+  RegEx = bdd_utils:config(Config,feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(Config,extension,"feature"),
+	{ok, RE} = re:compile(RegEx, [caseless]),
+	case re:run(FileName, RE) of 
+	  {match,[{0,_},{Start,Length}]} -> string:sub_string(FileName, Start+1, Start+Length);
+	  _ -> FileName
+	end.
+
+% recursive runner with error catching
+run(_Config, [], [])                  -> [];
+run(Config, [], [FileName | Features]) ->
+  Feature = feature_name(Config, FileName),
+	R = try run(Config, Feature, FileName) of
+		Run -> 
+	    {feature, _Name, Result} = lists:keyfind(feature,1,Run),
+	    io:format("\tRESULTS: ~p.~n", [Result]),
+      Result
+	catch
+		X: Y -> io:format("ERROR: feature error ~p:~p~n", [X, Y]),
+		[error]
+	end,
+  [R | run(Config, [], Features)];
+
+% the main runner requires you to have the feature & filename defined
+run(Config, Feature, FileName)     ->
+  % figure out the file name
+  Fatom = list_to_atom(Feature),
+  % start inet client if not running
+	RunningConfig = start(Config),                                              
+	%store the digest header
+	StartConfig = digest_auth:header(RunningConfig, sc:url(RunningConfig)),     
+  % stuff the feature & file name into the config set
+  FeatureConfig = [{feature, Feature}, {file, FileName} | StartConfig],		     
+  % import the feature information
 	{feature, Name, Scenarios} = feature_import(FileName),
 	[ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
+	% setup UI
 	io:format(" FEATURE: ~s.~n", [ScenarioName]),
-	% setup the feature
-  Config = step_run(ConfigFile, [], {step_setup, 0, []}, [list_to_atom(Feature)]),
-  Result = {feature, ScenarioName, [setup_scenario(Config, Scenario, Tests) || Scenario <- Scenarios]},
-  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(Feature)]),
-  Result.
-  
-% similar to test, this can be used to invoke a single feature for testing
-feature(FeatureName) ->
-  feature("default", FeatureName).
-feature(ConfigName, FeatureName) ->
-  BaseConfig = getconfig(ConfigName),
-  FileName = bdd_utils:config(BaseConfig,feature_path,"features/") ++ FeatureName ++ "." ++ bdd_utils:config(BaseConfig,extension,"feature"),
-	application:start(inets),		% needed for getting we pages
-	application:start(crypto),  % needed for digest authentication
-	bdd_utils:is_site_up(BaseConfig),
-	StartConfig = digest_auth:header(BaseConfig, sc:url(BaseConfig)),   %store the digest header
-	Config = step_run(StartConfig, [], {step_setup, 0, []}, [list_to_atom(ConfigName)]),  % setup
-  test(Config, FileName, []),
-  step_run(Config, [], {step_teardown, 0, []}, [list_to_atom(ConfigName)]),  %teardown
-	application:stop(crypto),
-	application:stop(inets).
+  % setup the tests
+	SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
+  % run the tests
+  Result = {feature, ScenarioName, [setup_scenario(SetupConfig, Scenario, []) || Scenario <- Scenarios]},
+  % tear down
+  step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
+  % return setup before we added feature stuff
+	[Result | StartConfig].
+	
+start(Config) ->
+  Started = bdd_utils:config(Config, started, false),
+  Global = bdd_utils:config(Config, global_setup, default),
+  case Started of
+    false -> 
+      application:start(crypto),
+      application:start(inets),
+    	bdd_utils:is_site_up(Config),
+      SetupConfig = step_run(Config, [], {step_setup, 0, "Global"}, [Global]),  
+      [{started, true} | SetupConfig ];
+  	_ -> Config
+	end.
+	
+stop(Config) ->
+  Started = bdd_utils:config(Config, started, false),
+  Global = bdd_utils:config(Config, global_setup, default),
+  case Started of
+    true -> 
+      TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),  
+      application:stop(crypto),
+      application:stop(inets),
+  	  lists:delete({started, true}, TearDownConfig);
+  	_ -> Config  
+	end.
 
 % load the configuration file
 getconfig(ConfigName) ->
@@ -159,8 +204,8 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	
-step_run(Config, _Input, {step_setup, _, _}, []) -> io:format("\tFeature has no Setup define.~n"), Config;
-step_run(Config, _Input, {step_teardown, _, _}, []) -> io:format("\tFeature has no Teardown defined.~n"), Config;
+step_run(Config, _Input, {step_setup, _, Feature}, []) -> io:format("\tFeature ~p has no Setup defined.~n", [Feature]), Config;
+step_run(Config, _Input, {step_teardown, _, Feature}, []) -> io:format("\tFeature ~p has no Teardown defined.~n", [Feature]), Config;
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->

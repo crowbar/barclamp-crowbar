@@ -7,8 +7,10 @@ Crowbar includes a Business Driven Development (BDD) framework written in Erlang
 1. `cd /opt/dell/crowbar_framework/BDD`
 1. `linux.sh` or `Win7.bat` to compile the erlang code depending on your platform (may give an error, that's ok)
 1. `erl` to start a command shell for erlang
-  1. `bdd:test("crowbar").` will run all the tests and report the results
-  1. `bdd:feature("crowbar","name").` will run just the named feature set
+  1. `bdd:test().` will run all the tests and report the results
+  1. `bdd:feature("name").` will run just the named feature set
+
+> You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
 
 ### BDD DSL
 
@@ -22,7 +24,7 @@ The BDD domain specific language (DSL) that's designed to be very natural langua
 
 Test files all end with the extension `.feature` and contain "plain English" scripts for testing features.  This is know as the BDD DSL (domain specific la language).  While it looks like plain language, it is very specifically mapped into the testing framework and _must_ follow the DSL guidelines.
 
-A feature file is broken into specific "scenarios" to be tested.  Each scenario is effectively a test and has multiple steps.  They all start with a known state expressed using given or when instructions.  The state is then tested using then checks.  The concept is to mirror actions that a user takes: when the user goes this action then they should see this results.  Yes, it's that simple!
+A feature file (in the `features` directory) is broken into specific "scenarios" to be tested.  Each scenario is effectively a test and has multiple steps.  They all start with a known state expressed using given or when instructions.  The state is then tested using then checks.  The concept is to mirror actions that a user takes: when the user goes this action then they should see this results.  Yes, it's that simple!
 
 A scenario must include a when statement but the given is optional.  Given is used to setup a scenario before the when action is taken.  This is very important for testing linking from a page.  For example, _given_ that I'm on the nodes list page _when_ I click on the all link _then_ I should a list that includes the admin node.  BDD's goal is to turn those types of directives into tests.
 
@@ -144,6 +146,19 @@ For example, the Nodes feature setup and tear down look like this:
 Some handly Erlang tips:
 
 * `Config = bdd:getconfig("crowbar")` will load the configuration file for passing into Step routines for manual testing
+
+### BDD Code Files
+
+* bdd - contains the core running logic
+* bdd_utils - utilities used across all modules of the bdd system
+* eurl - HTTP get, post, delete functions (like curl)
+* json - JSON parser converts to and from lists
+* digest_auth - Wrapps http to provide secure access
+* bdd_catchall - last step file executed, has fall back steps
+* bdd_webrat - handles most basic web & AJAX based steps
+* default - the fall back step file (global setup/teardown goes here)
+* crowbar - Crowbar specific logic
+* [feature] - Each feature can have a specific step file
 
 ### Test Files
 

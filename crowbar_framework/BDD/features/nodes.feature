@@ -24,8 +24,8 @@ Feature: Nodes
       And key "count" should be "0"
       And key "[groups][0]" should contain "7" items
 
-  Scenario: Node Detail AJAX
-    When I go to the "node/2.0/1" page
+  Scenario: Node Detail
+    When I go to the "node/2.0/bdd1.example.com" page
     Then I should see "Full Name"
       And I should see "State"
       And I should see "Uptime"
@@ -38,7 +38,7 @@ Feature: Nodes
       And I should see a link to "Edit"
 
   Scenario: Node Detail AJAX
-    When AJAX requests the "node/2.0/1?format=json" page
+    When AJAX requests the "node/2.0/bdd1.example.com?format=json" page
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And there should be a key "name"

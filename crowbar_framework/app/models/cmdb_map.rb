@@ -20,4 +20,36 @@ class CmdbMap < ActiveRecord::Base
   has_many :cmdb_runs
   has_many :cmdb_attributes
 
+  # get code from map name
+  def init_map
+    @my_map = ActiveSupport::JSON.decode(self.map)
+    puts "getting map #{@my_map.keys}"
+  end
+
+  def all_maps
+    @my_map.keys
+  end
+
+  def map_get(attribute)
+    self.init_map if @my_map.empty?
+    puts "MAP looking up #{attribute}"
+    cmdb_type = 'chef'
+    #puts @my_map[attribute]
+    #puts @my_map[attribute][cmdb_type]
+    return @my_map[attribute][cmdb_type]
+  end
+  
+  def method_missing(m,*args,&block)
+    method = m.to_s
+    if method.starts_with? "map_"
+      return map_get method[4..100]
+    else
+      puts "Node #{name} #{method.inspect} #{args.inspect} #{block.inspect}"
+      Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
+      throw "ERROR #{method} not defined for node #{name}"
+    end
+  end
 end
+
+
+

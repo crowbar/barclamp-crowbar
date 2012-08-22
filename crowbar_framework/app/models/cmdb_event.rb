@@ -17,7 +17,11 @@ class CmdbEvent < ActiveRecord::Base
   attr_accessible :attributes, :direction, :name, :result, :status, :cmdb_run, :type
 
   belongs_to :cmdb_run
-  #belongs_to :node  # through cmdb_run
-  #belongs_to :cmdb  # through cmdb_run
+  belongs_to :node  # through cmdb_run
+  belongs_to :cmdb  # through cmdb_run
+
+  
 
 end
+
+

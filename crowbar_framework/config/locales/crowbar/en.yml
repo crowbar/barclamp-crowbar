@@ -71,6 +71,7 @@ en:
       configs: Proposal Configs
       menus: Menu Items
       docs: Doc Topics
+      cmdb: Cmdb Attributes
       os: "Operating Systems"
     
     error: Render Error

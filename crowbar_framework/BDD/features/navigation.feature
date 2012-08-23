@@ -23,7 +23,6 @@ Feature: Crowbar, Check Core Navigation
     Then I should see a menu for "Dashboard"
       And I should see a menu for "Bulk&amp;Edit"
       And I should see "nodes available in the system"
-      And I should see "admin"
       And there should be no translation errors
 
   Scenario: Dashboard Nav
@@ -73,7 +72,7 @@ Feature: Crowbar, Check Core Navigation
     Then I should see "System Documentation"
       And there should be no translation errors
     
-  Scenario: %Help Deployment Guide
+  Scenario: %Help Deployment Guide PDF (legacy)
     Given I am on the home page
     When I click on the "Deployment" menu item
     Then I should download a PDF

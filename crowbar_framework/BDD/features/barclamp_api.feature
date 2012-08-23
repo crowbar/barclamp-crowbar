@@ -10,7 +10,7 @@ Feature: Dashboard
       And I should see "nodes available in the system"
       And I should see "You may regroup nodes by dragging"
 
-  Scenario: Status Works
+  Scenario: %Status Works
     When AJAX requests the "nodes/status" page
     Then key "nodes" should contain at least "1" items
       And key "[nodes][admin][state]" should be "Ready"

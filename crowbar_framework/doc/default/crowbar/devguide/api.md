@@ -65,11 +65,9 @@ The Crowbar 2 API attempts to follow the following behavior pattern.
   * action - defines the action to be taken on the ID
   * predicate_id - (optional) object that receives the action.  As in "ID-Foo joins ID-Bar" where joins is the action and ID-Bar is the predicate.
 
-* Barclamps: `crowbar/2.0/[barclamp]/[latest | bc_version]/[id]`
-   * Barclamp - the name or ID of the barclamp being referenced
-   * Barclamp version
-      * the version of the barclamp being used in case there are multiple versions of the same barclamp installed
-      * latest uses the most recent version of the barclamp available.  This option is provided as a safe default for most API requests so that you do not have to track the version of the barclamp
+* Barclamps: `crowbar/2.0/[barclamp]/[bc_version]/[id]`
+   * barclamp - the name or ID of the barclamp being referenced
+   * bc_version - the version of the barclamp being used.  This allows the barclamp to offer an API contract independent of Crowbar.  For example, it would be possible to have an update to the Network barclamp that adds to the API (2.0 -> 2.1) and callers would need to be able to identify/require a version.  It is anticipated that Barclamps will honor previous versions where possible.
    * id - name or DB id of the barclamp configuration
 
 * Configurations: `(barclamp url) + /instance/[active | iid]`

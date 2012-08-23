@@ -26,7 +26,7 @@
     $.ajaxSetup({ timeout: #{ (@waiting ? 1000 : 10000) }})
     $.getJSON('utils?format=json', function(data) {     
       if (data['count'] != #{@exports[:count]})
-        location.href = '#{utils_path}?file=#{params["file"]}';
+        location.href = '#{utils_path}?file=#{Haml::Helpers.html_escape params["file"]}';
     });      
   }
 

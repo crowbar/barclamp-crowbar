@@ -54,16 +54,18 @@ if node[:platform] != "suse"
   }
 end
 
-group "crowbar"
-
-user "crowbar" do
-  comment "Crowbar User"
-  gid "crowbar"
-  home "/home/crowbar"
-  password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
-  shell "/bin/bash"
-  supports  :manage_home=>true
-end
+# Do not create crowbar group and user as part of the recipe (bnc#776988)
+# This will be handled in the package crowbar
+#group "crowbar"
+#
+#user "crowbar" do
+#  comment "Crowbar User"
+#  gid "crowbar"
+#  home "/home/crowbar"
+#  password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
+#  shell "/bin/bash"
+#  supports  :manage_home=>true
+#end
 
 directory "/root/.chef" do
   owner "root"

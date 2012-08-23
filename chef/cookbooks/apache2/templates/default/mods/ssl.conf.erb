@@ -59,14 +59,17 @@ SSLMutex  file:/var/run/apache2/ssl_mutex
 #   List the ciphers that the client is permitted to negotiate.
 #   See the mod_ssl documentation for a complete list.
 #   enable only secure ciphers:
-SSLCipherSuite HIGH:MEDIUM:!ADH
+#   SSLCipherSuite HIGH:MEDIUM:!ADH
 #   Use this instead if you want to allow cipher upgrades via SGC facility.
 #   In this case you also have to use something like 
 #        SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
 #   see http://httpd.apache.org/docs/2.2/ssl/ssl_howto.html.en#upgradeenc
 #SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
 
-# enable only secure protocols: SSLv3 and TLSv1, but not SSLv2
-SSLProtocol all -SSLv2
+# defaults from SUSE apache2-vhost-ssl.template
+SSLCipherSuite ALL:!aNULL:!eNULL:!SSLv2:!LOW:!EXP:!MD5:@STRENGTH
+
+# 4 possible values: All, SSLv2, SSLv3, TLSv1. Allow TLS only:
+SSLProtocol all -SSLv2 -SSLv3
 
 </IfModule>

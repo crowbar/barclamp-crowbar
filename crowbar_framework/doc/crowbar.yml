@@ -53,6 +53,13 @@ crowbar+book-developersguide:
       order: 9000
   crowbar+devguide+testing:
     order: 8000
+    crowbar+devguide+testing+devtool:
+      order: 100
+    crowbar+devguide+testing+units:
+      order: 1000
+    crowbar+devguide+testing+bdd:
+      order: 2000
+    
   
 crowbar+book-licenses:
   order: 99999

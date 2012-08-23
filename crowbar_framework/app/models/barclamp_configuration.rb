@@ -14,37 +14,36 @@
 #
 
 ############
-# A proposal is a configuration for a particular barclamp.
-# It has a ""history"" of configurations that were created and applied.
+# A 'configuration' of a barclamp represents a deployed (or deployable) cluster of the 
+# barclamp's technology (e.g. mySql, NTP, openstack Nova, etc)
+# It has a ""history"" of configuration instances that were created and applied.
 #
-# Proposal_configs is the history relation. It contains all historical configurations.
+# 'instances' is the history relation. It contains all historical configurations.
 # active_config is the currently active proposal config (or queued or committing)
-# current_config is the most recently editted/created proposal_config. (It might not be applied).
+# current_config is the most recently editted/created instance. (It might not be applied).
 #
-# Proposal usage:
-#   When a barclamp is imported, a template proposal is created with a base configuration.
-#   This is currently provided from the crowbar.yml and <barclamp>.json files.
+# Configuraiton usage:
+#   When a barclamp is imported, a template configuration is created with a default values.
+#   The barclamp provides these defaults in the crowbar.yml and <barclamp>.json files.
 #
-#   When an instance of the barclamp is created, the template object is cloned to become the 
-#   instance.  The deep_clone routine is used to build a complete deep copy of the template for
+#   When a 'configuration' of the barclamp is created, the template object is cloned.
+#   The deep_clone routine is used to build a complete deep copy of the template for
 #   future editting.
 #
-#   As the proposal is editted, the deep copies of the proposal_configs are generated to 
-#   represent changes overtime.
+#   As the configuration is editted, 'instances' are saved to capture changes overtime.
 # 
 
-class Proposal < ActiveRecord::Base
+class BarclampConfiguration < ActiveRecord::Base
   
   attr_accessible :name, :last_applied_rev, :description
 
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   belongs_to :barclamp
-  has_many  :proposal_configs, :inverse_of => :proposal
+  has_many  :barclamp_instances, :class_name => "BarclampInstance", :inverse_of => :conifguration
 
-  belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
-  belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
+  belongs_to :active_config, :class_name => "BarclampInstance", :foreign_key => "active_config_id"
+  belongs_to :current_config, :class_name => "BarclampInstance", :foreign_key => "current_config_id"
 
   def active?
     active_config != nil
@@ -68,21 +67,20 @@ class Proposal < ActiveRecord::Base
   # Deep clone routine.  In Rails3.1+, clone was changed to dup.
   #
   # Dup copies the object and recreates a new id.
-  # Recursively copy the proposal_configs under the object.
+  # Recursively copy the 'instances' under the object.
   #
   # This would be used for two cases: 
-  #   1. cloning the template for a new proposal during create.
-  #   2. creating a copy of an existing proposal to seed a new barclamp instance.
+  #   1. cloning the template for a new configuration during create.
+  #   2. creating a copy of an existing configuration to seed a new barclamp.
   #
-  def deep_clone(name)
+  def deep_clone
     new_prop = self.dup
-    new_prop.name = name
     new_prop.save!
 
-    proposal_configs.each do |x| 
+    instances.each do |x| 
       new_x = x.deep_clone
       new_x.save!
-      new_prop.proposal_configs << new_x
+      new_prop.instances << new_x
       new_prop.active_config = new_x if x == active_config
       new_prop.current_config = new_x if x == current_config
     end

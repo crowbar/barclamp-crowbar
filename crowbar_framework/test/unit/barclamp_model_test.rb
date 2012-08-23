@@ -76,7 +76,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Template Relation" do
-    b = Barclamp.find_by_name("ganglia")
+    b = Barclamp.find_by_name("crowbar")
     t = b.template
 
     p = Proposal.find_by_name_and_barclamp_id("template", b.id)
@@ -132,6 +132,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   
   test "Proposal Get" do
     b = Barclamp.find_by_name("crowbar")
+    prop = b.create_proposal("fred")
     assert_equal 1, b.proposals.size
 
     assert_equal nil, b.get_proposal("John")
@@ -142,12 +143,16 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   test "Proposal Delete" do
     b = Barclamp.find_by_name("crowbar")
+    prop = b.create_proposal("fred")
+    b.reload
 
-    assert b.delete_proposal("fred")
+    assert b.delete_proposal(b.get_proposal("fred"))
     b.proposals.reload
     assert_equal nil, b.get_proposal("fred")
 
-    e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
+    prop = b.create_proposal("fred")
+    b.proposals.reload
+    assert_equal 1, b.proposals.size
   end
 
   test "Get Roles by Order" do
@@ -156,10 +161,8 @@ class BarclampModelTest < ActiveSupport::TestCase
     ro = b.get_roles_by_order
     assert 1, ro.length
     assert 1, ro[0].length
-    assert 1, ro[0][0].name, "crowbar"
+    assert ro[0][0].name, "crowbar"
   end
-
-  test "Import 1x"
 
 end
 

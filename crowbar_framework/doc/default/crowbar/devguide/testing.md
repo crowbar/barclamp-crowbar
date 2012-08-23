@@ -1,6 +1,25 @@
 ## Testing Crowbar
 
+### Rails Testing
+
+Crowbar includes rails tests.  These tests us the already present rails test framework and fixtures.  
+
+The current tests reside under test.  Unit tests can be added under unit and currently are only focused on model testing.
+
+Steps to execute tests on an installed admin node:
+1. `cd /opt/dell/crowbar_framework`
+1. `rake db:drop`
+1. `rake db:migrate`
+1. `rake db:fixtures:dump`
+1. `rake test:units`
+
+Each barclamp can add tests by dumping them into the test directory.  The unit tests will pick them up and attempt to run them.
+
+### BDD Testing
+
 Crowbar includes a Business Driven Development (BDD) framework written in Erlang that is based on the Cucumber DSL.
+
+The intent of these tests are to focus on the responses and requests to the web-interface and RESTful API.
 
 ### Using the BDD tool
 
@@ -180,3 +199,17 @@ The Crowbar barclamp tests include:
    * Tests the node detail page & API
 * Scaffolds.features
    * Tests all the feature objects
+
+### Dev Tool Helpers 
+
+The dev tool has been updated to allow for running these tests from in a build environment.  
+
+The following commands work for Unix environments:
+1. `./dev setup-unit-tests`   # builds a unit test environment in /tmp/crowbar
+1. `./dev reload-unit-tests`  # builds fixtures and migrates data for /tmp/crowbar
+1. `./dev run-unit-tests`     # executes the unit tests and BDD tests
+1. `./dev clear-unit-tests`   # Removes the /tmp/crowbar environment
+
+For debugging, the /tmp/crowbar environment can be used as a rails app.  The server can be run by running:
+* `script/rails s Puma`
+

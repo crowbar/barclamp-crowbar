@@ -253,8 +253,8 @@ class CrowbarService < ServiceObject
     if hash and hash["crowbar"]
       options[:raid] = hash["crowbar"]["raid-settings"]
       options[:bios] = hash["crowbar"]["bios-settings"]
-      options[:show] << :raid if options[:raid].length > 0
-      options[:show] << :bios if options[:bios].length > 0
+      options[:show] << :raid if !options[:raid].nil? && options[:raid].length > 0
+      options[:show] << :bios if !options[:bios].nil? && options[:bios].length > 0
     end
     options
   end

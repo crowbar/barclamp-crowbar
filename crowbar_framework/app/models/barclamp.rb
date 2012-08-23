@@ -96,10 +96,7 @@ class Barclamp < ActiveRecord::Base
   # Output: Proposal Object Based upon template.
   #
   def create_proposal(name = nil)
-    prop = template.deep_clone
-    prop.name = name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}"
-    prop.save!
-    prop
+    template.deep_clone(name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}")
   end
 
   # XXX: This may be too much for what Andi planned.  This could be done as 
@@ -143,6 +140,8 @@ class Barclamp < ActiveRecord::Base
     amp = false if amp.nil?
     um = bc['barclamp']['user_managed']
     um = true if um.nil?
+    gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
+    gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
     barclamp = Barclamp.create(
         :name        => bc_name,
         :display     => bc['barclamp']['display'] || bc_name.humanize,
@@ -161,8 +160,8 @@ class Barclamp < ActiveRecord::Base
         :mode        => "full",
         :transitions => false,
 
-        :commit      => bc['git']['commit'],
-        :build_on    => bc['git']['date'] 
+        :commit      => gitcommit,
+        :build_on    => gitdate
       )
       
     # memberships (if memembership is missing, we'll let you into the club anyway)

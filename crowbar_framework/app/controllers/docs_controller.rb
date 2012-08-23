@@ -48,7 +48,7 @@ class DocsController < ApplicationController
     end
     if params.has_key? :expand
       if html
-         render :layout => false
+         render :layout => 'doc_export'
       else
          render :text=>@text, :content_type => :text 
       end

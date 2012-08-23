@@ -21,22 +21,12 @@ json(Name, Description, Order) ->
 	
 step(Config, _Global, {step_setup, _N, _}) -> 
   Path = "node/2.0",
-  Node1 = "bdd1.example.com",
-  % just in case, cleanup first (ignore result)
-  eurl:delete(Config, Path, Node1),
   % create node(s) for tests
+  Node1 = "bdd1.example.com",
   Node = json(Node1, "BDD Testing Only - should be automatically removed", 100),
-  Result = eurl:post(Config, Path, Node),
-  {"id", Key} = lists:keyfind("id",1,Result),
-  io:format("\tCreated Node ~p (id=~p) for testing.~n", [Node1, Key]),
-  [{node1, Key} | Config];
+  bdd_utils:setup_create(Config, Path, node1, Node1, Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   Path = "node/2.0",
   % find the node from setup and remove it
-  Node = lists:keyfind(node1, 1, Config),
-  {node1, Key} = Node,
-  eurl:delete(Config, Path, Key),
-  io:format("\tRemoved Node ID ~p for Tear Down Step.~n", [Key]),
-  lists:delete(Node, Config).
-  
+  bdd_utils:teardown_destroy(Config, Path, node1).

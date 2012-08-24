@@ -91,6 +91,18 @@ Crowbar::Application.routes.draw do
     end
   end
   
+  # group operations
+  scope 'group' do
+    scope '2.0' do
+      post "/" => "groups#new"
+      constraints(:id => /.*/ ) do
+        get "/:id(.:format)" => 'groups#show', :as => :groups
+        delete "/:id" => 'groups#delete', :as => :gropu_delete
+        put "/:id" => 'groups#edit'
+      end
+    end
+  end
+  
   scope 'nodes' do
     version = "1.0"
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list

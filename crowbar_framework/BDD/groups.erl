@@ -13,27 +13,25 @@
 % limitations under the License. 
 % 
 % 
--module(nodes).
--export([step/3, json/3, g/1]).
+-module(groups).
+-export([step/3, json/3, json/4]).
 
 g(Item) ->
   case Item of
-    path -> "node/2.0";
-    name -> "bdd1.example.com";
-    atom -> node1
+    path -> "group/2.0";
+    name1 -> "bddthings";
+    atom1 -> group1
   end.
-  
-json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
+json(Name, Description, Order, Category) ->
+  json:output([{"name",Name},{"description", Description}, {"category", Category}, {"order", Order}]).
 	
 step(Config, _Global, {step_setup, _N, _}) -> 
-  Path = g(path),
   % create node(s) for tests
-  Node1 = g(name),
-  Node = json(Node1, "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, Path, node1, Node1, Node);
+  JSON = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
+  bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  Path = g(path),
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, Path, node1).
+  bdd_utils:teardown_destroy(Config, g(path), g(atom1)).

@@ -4,7 +4,7 @@
 % you may not use this file except in compliance with the License. 
 % You may obtain a copy of the License at 
 % 
-%  eurl://www.apache.org/licenses/LICENSE-2.0 
+%  http://www.apache.org/licenses/LICENSE-2.0 
 % 
 % Unless required by applicable law or agreed to in writing, software 
 % distributed under the License is distributed on an "AS IS" BASIS, 
@@ -17,6 +17,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6]).
+-export([setup_create/5, teardown_destroy/3]).
 -export([is_site_up/1]).
 
 assert(Bools) ->
@@ -96,3 +97,25 @@ clean_line(Raw) ->
 tokenize(Step) ->
 	Tokens = string:tokens(Step,"\""),
 	[string:strip(X) || X<- Tokens].
+	
+
+% helper common to all setups using REST
+setup_create(Config, Path, Atom, Name, JSON) ->
+  % just in case - cleanup to prevent collision
+  eurl:delete(Config, Path, Name),
+  % create node(s) for tests
+  Result = eurl:post(Config, Path, JSON),
+  % get the ID of the created object
+  {"id", Key} = lists:keyfind("id",1,Result),
+  % friendly message
+  io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
+  % add the new ID to the config list
+  [{Atom, Key} | Config].
+  
+% helper common to all setups using REST
+teardown_destroy(Config, Path, Atom) ->
+  Item = lists:keyfind(Atom, 1, Config),
+  {Atom, Key} = Item,
+  eurl:delete(Config, Path, Key),
+  io:format("\tRemoved key ~s & id ~s in teardown step.~n", [Atom, Key]),
+  lists:delete(Item, Config).

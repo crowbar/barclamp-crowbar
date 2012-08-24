@@ -61,8 +61,9 @@ crowbar+book-developersguide:
       order: 1000
     crowbar+devguide+testing+bdd:
       order: 2000
-    
-  
+  crowbar+devguide+building:
+    order: 9000
+
 crowbar+book-licenses:
   order: 99999
   url: '/docs'

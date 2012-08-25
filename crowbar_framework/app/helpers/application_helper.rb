@@ -118,7 +118,7 @@ module ApplicationHelper
     if options.empty?
       options = [["None", ""]]
     else
-      options = options.map { |x| [x,x] }
+      options = options.map { |x| [x.humanize,x] }
     end
 
     def_val = proposal.raw_data['attributes'][proposal.barclamp][field] || ""

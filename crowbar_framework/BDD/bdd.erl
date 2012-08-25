@@ -19,6 +19,7 @@
 -export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
 -import(bdd_utils).
 -import(digest_auth).
+-export([step_run/3, step_run/4]).
 %-export([start/1, run/2, stop/1]).   % internal access to the testing process
 
 test()                   -> test("default").

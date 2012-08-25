@@ -15,5 +15,5 @@
 #
 
 
-nohup /opt/dell/bin/looper_chef_client.sh &
+nohup /opt/dell/bin/blocking_chef_client.sh &
 

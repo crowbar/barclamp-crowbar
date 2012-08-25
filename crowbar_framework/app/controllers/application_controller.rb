@@ -23,9 +23,8 @@ class ApplicationController < ActionController::Base
 
   @@users = nil
   
-  before_filter :digest_authenticate, :if => :need_to_auth?
-  
-  
+  #before_filter :digest_authenticate, :if => :need_to_auth?
+
   # Basis for the reflection/help system.
   
   # First, a place to stash the help contents.  
@@ -33,7 +32,7 @@ class ApplicationController < ActionController::Base
   # these contents are inherited by children, but can be 
   # overridden or appended to by child classes without messing up 
   # the contents we are building here.
-  class_inheritable_accessor :help_contents
+  class_attribute :help_contents
   self.help_contents = []
   
   # Class method for adding method-specific help/API information 

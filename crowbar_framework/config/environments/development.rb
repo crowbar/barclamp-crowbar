@@ -19,23 +19,31 @@
 # In the development environment your application's code is reloaded on
 # every request.  This slows down response time but is perfect for development
 # since you don't have to restart the webserver when you make code changes.
+Crowbar::Application.configure do
+
 config.cache_classes = false
 
 # Log error messages when you accidentally call methods on nil.
 config.whiny_nils = true
 
 # Show full error reports and disable caching
-config.action_controller.consider_all_requests_local = true
-config.action_view.debug_rjs                         = true
+#config.action_controller.consider_all_requests_local = true
+#config.action_view.debug_rjs                         = true
 config.action_controller.perform_caching             = false
+
+# Disable request forgery protection in test environment
+# GREG: HACK FOR NOW!
+config.action_controller.allow_forgery_protection    = false
 
 # Don't care if the mailer can't send
 config.action_mailer.raise_delivery_errors = false
 
 CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
+CHEF_NODE_NAME ="crowbar"
+CHEF_SERVER_URL = "http://192.168.124.10:4000"
 CROWBAR_VERSION = "Development"
 CHEF_ONLINE = File.exist? CHEF_CLIENT_KEY
 OFFLINE_FILES_DIR = 'db'
 #OFFLINE_DOMAIN = 'dell.com'  #used when the cache domain is not the same as the server domain
 
-
+end

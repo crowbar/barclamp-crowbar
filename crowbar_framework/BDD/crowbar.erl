@@ -15,28 +15,51 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3]).
+-export([step/3, g/1]).
 -import(bdd_utils).
 -import(json).
 
-step(Config, _Global, {step_setup, _N, _}) -> 
-  io:format("\tNo Global Setup Step.~n"),
-  Config;
+g(Item) ->
+  case Item of
+    node_name -> "global-node.testing.com";
+    node_atom -> global_node
+  end.
 
+% node setup
+step(Config, _Global, {step_setup, _N, Test}) -> 
+  Node = nodes:json(g(node_name), Test ++ " BDD Testing Only - should be automatically removed", 100),
+  bdd_utils:setup_create(Config, nodes:g(path), g(node_atom), g(node_name), Node);
+
+% find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  io:format("\tNo Global Tear Down Step.~n"),
-  Config;
-
-step(Config, _Global, {step_given, _N, ["there is a node", Node, "in state", State]}) ->
-  Path = "/crowbar/crowbar/1.0/transition/default",
-  Data = json:output([{name, Node++"."++sc:domain(Config)}, {state, State}]),
-  Result = digest_auth:request(Config, post, {sc:url(Config) ++ Path, "application/json", "application/json", Data}, [{timeout, 10000}], []),
-  case Result of
-    {ok, {_, _, Body}} -> Body;
-    _ -> io:format("Post did not return ok: ~s: ~s~n", [Path, Data]), error
-  end;
+  bdd_utils:teardown_destroy(Config, nodes:g(path), g(node_atom));
+  
+% helper for checking to make sure the ID of the object your are using it the same as the one from setup
+step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"]}) -> 
+  SetupID = bdd_utils:config(Config, list_to_atom(Atom)),
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  SetupID =:= json:value(JSON, ID);
+                                                              
+% combine multiple steps into a single event
+%step(_Config, _Result, {step_then, _N, ["the object should comply with API rules"]}) -> false;
+step(Config, Result, {step_then, N, ["the object should comply with API rules"]}) -> 
+  R = [bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","id"]}),
+       bdd_webrat:step(Config, Result, {step_then, N, ["And key", "id", "should be a number"]}),
+       bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","order"]}),
+       bdd_webrat:step(Config, Result, {step_then, N, ["And key", "order", "should be a number"]}),
+       bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","updated_at"]})],
+  case R of 
+    [false, _, _, _, _] -> io:format("FAILED: API rules check: id exists.");
+    [_, false, _, _, _] -> io:format("FAILED: API rules check: id number.");
+    [_, _, false, _, _] -> io:format("FAILED: API rules check: order exists.");
+    [_, _, _, false, _] -> io:format("FAILED: API rules check: order number.");
+    [_, _, _, _, false] -> io:format("FAILED: API rules check: updated_at exists.")
+  end,
+  bdd_utils:assert(R);
 
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     
 step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.
 
+  
+      

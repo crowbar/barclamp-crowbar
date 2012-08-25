@@ -1,8 +1,0 @@
-- unless id == 'topic_meta_data'
-  %li{:title=>"#{t '.details'}: #{meta['date']} #{t '.details_by'} #{meta['author']}"}
-    = prefix unless prefix.nil?
-    = link_to meta['title'], docs_topic_path(:id=>"#{parent.chomp('+')}#{id.length>0 ? '+' : ''}#{id}")
-    - if !show_children and children>0
-      = "(#{children})"
-    - if RAILS_ENV == 'development'
-      = "(s=#{meta['source']}, id=#{parent}+#{id}, order=#{meta['order']})"

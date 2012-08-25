@@ -1,4 +1,4 @@
-# Copyright 2011, Dell
+# Copy21, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
-#
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
-  # Is this a Rails 2-ism - csrf_meta_tag?
-  # app/helpers/application_helper.rb
-  def csrf_meta_tag
-    if protect_against_forgery?
-      out = %(<meta name="csrf-param" content="%s"/>\n)
-      out << %(<meta name="csrf-token" content="%s"/>)
-      out % [ Rack::Utils.escape_html(request_forgery_protection_token),
-              Rack::Utils.escape_html(form_authenticity_token) ]
-    end
-  end
 
   def dl_item(term, definition, options={})
     unless definition.blank? && options[:show_if_blank] != true
@@ -36,7 +24,7 @@ module ApplicationHelper
     end
   end
 
-  def column_class(current_column, total)
+  def cb_column_class(current_column, total)
     if (current_column % total) == 0
       "first"
     elsif (current_column % total) == (total-1)
@@ -88,7 +76,7 @@ module ApplicationHelper
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else
-      unless RAILS_ENV == 'development'
+      unless Rails.env == 'development'
         begin
           render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
         rescue ActionView::MissingTemplate
@@ -112,18 +100,4 @@ module ApplicationHelper
     nodes
   end
   
-  def instance_selector(bc, name, field, proposal)
-    service = eval("#{bc.camelize}Service.new nil")
-    options = service.list_active[1] | service.proposals[1]
-    if options.empty?
-      options = [["None", ""]]
-    else
-      options = options.map { |x| [x,x] }
-    end
-
-    def_val = proposal.raw_data['attributes'][proposal.barclamp][field] || ""
-
-    select_tag name, options_for_select(options, def_val), :onchange => "update_value(#{field}, #{field}, 'string')"
-  end
-
 end

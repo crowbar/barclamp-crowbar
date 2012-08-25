@@ -20,7 +20,7 @@
         %input{:type=>"file",:name=>"file"}
         %input{:type=>"submit",:value=>t('.upload')}
 
-- form_for :import, :url => utils_import_path, :html => { :'data-type' => 'html',  :id => 'import_barclamps', :class => "formtastic" } do |f|
+= form_for :import, :url => utils_import_path, :html => { :'data-type' => 'html',  :id => 'import_barclamps', :class => "formtastic" } do |f|
   %table.data.box
     %thead
       %tr

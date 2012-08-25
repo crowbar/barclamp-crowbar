@@ -4,21 +4,21 @@
 %h1= t('.title')
 
 .column_100
-  - unless @nodes.empty?
+  - unless false
     %section.box#details
       - if @node
         = render :partial => 'show'
       - else
-        %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
+        %p= t("status_empty", :scope=>"nodes.index") % Node.count
         %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-          =t '.drag_hint'
+          =t('.drag_hint').html_safe
 
 #nodes
-  - if @nodes.nil?
+  - if @groups.nil?
     = t('no_items')
   - else
     - i = -1
-    #add_group_div.column_25{:class => column_class(1,4), :style=>'display:none' }
+    #add_group_div.column_25{:class => cb_column_class(1,4), :style=>'display:none' }
       %table.data.box{:id => "new_group_add"}
         %thead
           %tr
@@ -31,30 +31,29 @@
           %tr
             %td 
             %td= t('.new_drag')
-    - @groups.sort.each do |name, group|
-      .column_25{:class => column_class(i+=1,4)}
-        %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
+    - @groups.sort.each do |group|
+      .column_25{:class => cb_column_class(i+=1,4)}
+        %table.data.box{:id => "group_#{group.id}"}
           %thead
             %tr
               %th.status{:title => t('updating')}
-                .inline_piechart= [group[:status]["ready"], group[:status]["failed"], group[:status]["unknown"], group[:status]["unready"]+group[:status]["pending"]] * ","
-              %th
+                .inline_piechart= [0, 0, 1, 0, 0]*','
+              %th.group{:title=>group.description}
                 - unless group[:automatic]
-                  %div{ :class=>'group', :draggable=>'true', :id=>name }
-                    = truncate(name || t('unknown'), :length => 25)
+                  %div{ :class=>'group', :draggable=>'true', :id=>group.id }
+                    = truncate(group.name, :length => 25)
                 - else
                   %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-                    %i= truncate(name || t('unknown'), :length => 25)
+                    %i= truncate(group.name, :length => 25)
   
           %tbody
-            - group[:nodes].sort.each do |order, handle|
-              - node = @nodes[handle]
-              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
-                %td.status{:raw=> node[:state] }
-                  .led{:class => node[:status], :title=>t("state.#{node[:status]}", :default=>node[:status].titlecase)} 
+            - group.nodes.each do |node|
+              %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => node.id }
+                %td.status{:raw=> node.state }
+                  .led{:class => node.status, :title=>t(node.status, :scope=>'status', :default=>node.status)} 
                 %td.name
-                  %a{:href => node_path(handle), :draggable=>'true', :title=> (node[:description].nil? ? t(:not_set) : node[:description]), :class => 'node_details', :id => handle.parameterize}
-                    = truncate(node[:alias], :length => 25)
+                  %a{:href => node_path(node.id), :draggable=>'true', :title=> (node.description.nil? ? t(:not_set) : node.description), :class => 'node_details', :id => node.id}
+                    = truncate(node.alias, :length => 25)
   
 .clear
 
@@ -135,7 +134,7 @@
 
   function update() {
     $.ajaxSetup({ timeout: 3000 })
-    $.getJSON('#{nodes_status_path}', function(data) {
+    $.getJSON('#{node_status_path}', function(data) {
       
       // reload path
       var repath = '#{dashboard_path}/'+selected;

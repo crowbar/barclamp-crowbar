@@ -26,21 +26,11 @@ barclamp:
     - crowbar
 
 crowbar:
-  layout: 1
+  layout: 2
   order: 0
   run_order: 0
   chef_order: 0
   proposal_schema_version: 2
-
-locale_additions:
-  en:
-    barclamp:
-      crowbar:
-        edit_attributes:
-          attributes: Attributes
-        edit_deployment:
-          deployment: Deployment
-
 
 debs:
   ubuntu-10.10:
@@ -99,8 +89,9 @@ debs:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main
   build_pkgs:
-    - ruby1.8-dev
-    - rubygems1.8
+#    - ruby1.8-dev
+#    - rubygems1.8
+    - ruby1.9.1-dev
     - build-essential
     - libsqlite3-dev
     - dpkg-dev
@@ -129,6 +120,7 @@ debs:
     # crowbar stuff
     - curl
     - sqlite
+    - sqlite3
     - libsqlite3-dev
     - libshadow-ruby1.8
     - chef
@@ -156,6 +148,8 @@ debs:
     # ruby stuff
     - ruby1.8
     - ruby1.8-dev
+    - ruby1.9.1
+    - ruby1.9.1-dev 
     - ruby-dev
     - rubygems
     - rubygems1.8
@@ -169,6 +163,8 @@ debs:
     - dpkg-dev
     - screen
     - alien
+    - graphviz
+    - vim
 
 rpms:
   redhat-5.6:
@@ -293,6 +289,8 @@ rpms:
     # sudo stuff
     - sudo
     - screen
+    - graphviz
+    - vim
 
 gems:
   pkgs:
@@ -313,7 +311,6 @@ gems:
     - bundler
     - builder
     - activesupport
-    - rainbows
     - sendfile
     - sqlite3-ruby
     - rdoc
@@ -321,3 +318,38 @@ gems:
     - formtastic-1.2.4
     - xml-simple
     - libxml-ruby
+    - rails-3.2.6
+    - sqlite3
+    - therubyracer
+    - sass-rails
+    - coffee-rails
+    - uglifier
+    - jquery-rails
+    - bunny
+    - highline
+    - ipaddress
+    - json-1.6.1
+    - kwalify
+    - mixlib-authentication
+    - mixlib-cli
+    - mixlib-config
+    - mixlib-log
+    - mixlib-shellout
+    - moneta
+    - net-ssh
+    - ohai
+    - chef
+    - rest-client
+    - systemu
+    - uuidtools
+    - yajl-ruby
+    - rails-erd
+    - railroad
+    - devise
+    - cancan
+    - amqp
+    - delayed_job_active_record
+    - daemons
+    - puma
+    - active_scaffold
+#    - factory_girl_rails

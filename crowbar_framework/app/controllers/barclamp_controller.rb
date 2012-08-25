@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -12,24 +12,23 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
 require 'json'
 
 class BarclampController < ApplicationController
 
-  before_filter :controller_to_barclamp
-
-  def controller_to_barclamp
-    @bc_name = params[:barclamp] || params[:controller]
-    @service_object.bc_name = @bc_name
+  def barclamp
+    @bc_name = params[:barclamp] || params[:controller] unless @bc_name
+    @barclamp_object = Barclamp.find_by_name(@bc_name) unless @barclamp_object
+    @barclamp_object
   end
+  private :barclamp
+
+  def operations
+    barclamp.operations(logger)
+  end
+  private :operations
 
   self.help_contents = Array.new(superclass.help_contents)
-  def initialize
-    super()
-    @service_object = ServiceObject.new logger
-  end
 
   #
   # Barclamp List (generic)
@@ -39,7 +38,7 @@ class BarclampController < ApplicationController
   #
   add_help(:barclamp_index)
   def barclamp_index
-    @barclamps = ServiceObject.all
+    @barclamps = Barclamp.all
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
       format.xml  { render :xml => @barclamps }
@@ -53,9 +52,7 @@ class BarclampController < ApplicationController
   #
   add_help(:versions)
   def versions
-    ret = @service_object.versions
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => barclamp.versions
   end
 
   #
@@ -69,9 +66,9 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    ret = @service_object.transition(id, name, state)
+    ret = operations.transition(id, name, state)
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => Node.find_by_name(name).node_object.to_hash
   end
   
   #
@@ -80,21 +77,22 @@ class BarclampController < ApplicationController
   #
   add_help(:show,[:id])
   def show
-    ret = @service_object.show_active params[:id]
-    @role = ret[1]
-    Rails.logger.debug "Role #{ret.inspect}"
+    prop = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
+    @role = prop.active_config if prop
     respond_to do |format|
       format.html {
-        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
+        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] unless @role
         render :template => 'barclamp/show' 
       }
       format.xml  { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
+        return render :text => t('proposal.failures.show_active_failed'), 
+                      :status => 404 unless @role
+        render :xml => @role.to_proposal_object_hash
       }
       format.json { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :json => ServiceObject.role_to_proposal(@role, @bc_name)
+        return render :text => t('proposal.failures.show_active_failed'), 
+                      :status => 404 unless @role
+        render :json => @role.to_proposal_object_hash
       }
     end
   end
@@ -108,11 +106,11 @@ class BarclampController < ApplicationController
     params[:id] = params[:id] || params[:name]
     ret = [500, "Server Problem"]
     begin
-      ret = @service_object.destroy_active(params[:id])
+      ret = operations.destroy_active(params[:id])
       flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
     rescue Exception => e
       flash[:notice] = t('proposal.actions.delete_fail') + e.message
-      ret[500, flash[:notice]]
+      ret = [500, flash[:notice] + "\n" + e.backtrace.join("\n")]
     end
 
     respond_to do |format|
@@ -136,9 +134,7 @@ class BarclampController < ApplicationController
   #
   add_help(:elements)
   def elements
-    ret = @service_object.elements
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => barclamp.roles.map { |x| x.name }
   end
 
   #
@@ -147,9 +143,7 @@ class BarclampController < ApplicationController
   #
   add_help(:element_info,[:id])
   def element_info
-    ret = @service_object.element_info
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    render :json => NodeObject.find_all_nodes
   end
 
   #
@@ -158,16 +152,14 @@ class BarclampController < ApplicationController
   #
   add_help(:proposals)
   def proposals
-    ret = @service_object.proposals
-    @proposals = ret[1]
-    return render :text => @proposals, :status => ret[0] if ret[0] != 200
+    @proposals = barclamp.proposals
+    @proposals_names = @proposals.map { |x| x.name }
     respond_to do |format|
       format.html { 
-        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposal_index' 
+        render :template => 'barclamp/proposal_index'  # XXX: THIS DOESN"T EXIST
       }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
+      format.xml  { render :xml => @proposals_names }
+      format.json { render :json => @proposals_names }
     end
   end
   
@@ -179,27 +171,19 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
-        @count = -1
-        members = {}
-        list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
-        cat = ServiceObject.barclamp_catalog
-        i = 0
-        list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
-        @modules = get_proposals_from_barclamps(members).sort_by {|k,v| v[:order].to_i}
+        @title ||= "#{barclamp.display} #{t('barclamp.index.members')}" 
+        @modules = barclamp.members
         render 'barclamp/index' 
       }
       format.xml  { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :xml => @roles 
+        props = barclamp.active_proposals
+        names = props.map { |x| x.name }
+        render :xml => names
       }
       format.json { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :json => @roles 
+        props = barclamp.active_proposals
+        names = props.map { |x| x.name }
+        render :json => names
       }
     end
   end
@@ -210,9 +194,8 @@ class BarclampController < ApplicationController
   add_help(:modules)
   def modules
     @title = I18n.t('barclamp.modules.title')
-    @count = 0
-    barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
-    @modules = get_proposals_from_barclamps(barclamps).sort 
+    @barclamp = nil
+    @modules = Barclamp.all.sort_by { |b| "%05d%s" % [b.order, b.name] }
     respond_to do |format|
       format.html { render 'index'}
       format.xml  { render :xml => @modules }
@@ -221,82 +204,22 @@ class BarclampController < ApplicationController
   end
 
   #
-  # Currently, A UI ONLY METHOD
-  #
-  def get_proposals_from_barclamps(barclamps)
-    modules = {}
-    active = RoleObject.active
-    barclamps.each do |name, details|
-      props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
-      begin
-        modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
-      rescue
-        Rails.logger.debug "WARNING: could not resolve barclamp #{name}.  Please correct the naming to be the object name when camelized"
-        modules[name][:allow_multiple_proposals] = false
-        modules[name][:description] = "#{modules[name][:description]} !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object.  You may want to set 'barclamp:\\user_managed: false' in the crowbar.yml file" if RAILS_ENV === 'development'
-      end
-      ProposalObject.find_proposals(name).each do |prop|        
-        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
-        @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
-        modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
-        if prop.status === "failed"
-          modules[name][:proposals][prop.name][:message] = prop.fail_reason 
-          modules[name][:expand] = true
-        end
-      end        
-    end
-    modules
-  end
-
-  #
   # Provides the restful api call for
   # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal 
   #
   add_help(:proposal_show,[:id])
   def proposal_show
-    ret = @service_object.proposal_show params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    @proposal = ret[1]
-    @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
-    flash[:notice] = @proposal.fail_reason if @proposal.failed?
+    @proposal = Proposal.find_by_name_and_barclamp_id(params[:id], barclamp.id)
+    return render :text => t('proposal.failures.proposal_not_found'), :status => 404 unless @proposal
+    @active = @proposal.active?
+    flash[:notice] = @proposal.active_config.fail_reason if @active and @proposal.active_config.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
 
     respond_to do |format|
       format.html { render :template => 'barclamp/proposal_show' }
-      format.xml  { render :xml => @proposal.raw_data }
-      format.json { render :json => @proposal.raw_data }
-    end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  add_help(:proposal_status,[:id, :barclamp, :name],[:get])
-  def proposal_status
-    proposals = {}
-    i18n = {}
-    begin
-      active = RoleObject.active(params[:barclamp], params[:name])
-      result = if params[:id].nil? 
-        result = ProposalObject.all 
-        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      else
-        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
-      end
-      result.each do |prop|
-        prop_id = "#{prop.barclamp}_#{prop.name}"
-        status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
-        proposals[prop_id] = (status ? prop.status : "hold")
-        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
-      end
-      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
-    rescue Exception=>e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
+      format.xml  { render :xml => @proposal.current_config.to_proposal_object_hash }
+      format.json { render :json => @proposal.current_config.to_proposal_object_hash }
     end
   end
 
@@ -313,11 +236,12 @@ class BarclampController < ApplicationController
     answer = [ 500, "Server issue" ]
     begin
       Rails.logger.info "asking for proposal of: #{params}"
-      answer = @service_object.proposal_create params
+      answer = operations.proposal_create params
       Rails.logger.info "proposal is: #{answer}"
       flash[:notice] =  answer[0] != 200 ? answer[1] : t('proposal.actions.create_success')
     rescue Exception => e
       flash[:notice] = e.message
+      Rails.logger.error e.backtrace
     end
     respond_to do |format|
       format.html { 
@@ -342,21 +266,21 @@ class BarclampController < ApplicationController
   add_help(:proposal_update,[:id],[:post])
   def proposal_update
     if params[:submit].nil?  # This is RESTFul path
-      ret = @service_object.proposal_edit params
+      ret = operations.proposal_edit params
       return render :text => ret[1], :status => ret[0] if ret[0] != 200
       return render :json => ret[1]
     else # This is UI.
-      params[:id] = "bc-#{params[:barclamp]}-#{params[:name]}"
+      params[:id] = params[:name]
       if params[:submit] == t('barclamp.proposal_show.save_proposal')
-        @proposal = ProposalObject.find_proposal_by_id(params[:id])
-
         begin
-          @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
-          @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
-          @proposal.save
-          flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
+          tparams = { "attributes" => {},
+                      "deployment" => {},
+                      "id" => params[:name] } 
+          tparams["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
+          tparams["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
+          ret = operations.proposal_edit tparams
+          flash[:notice] = t('barclamp.proposal_show.save_proposal_success') if ret[0] == 200
+          flash[:notice] = ret[1] if ret[0] != 200
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -364,28 +288,32 @@ class BarclampController < ApplicationController
         @proposal = ProposalObject.find_proposal_by_id(params[:id])
  
         begin
-          @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
-          @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
-          @proposal.save
+          tparams = { "attributes" => {},
+                      "deployment" => {},
+                      "id" => params[:name] } 
+          tparams["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
+          tparams["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
+          ret = operations.proposal_edit tparams
+          flash[:notice] = ret[1] if ret[0] != 200
 
-          answer = @service_object.proposal_commit(params[:name])
-          flash[:notice] = answer[1] if answer[0] >= 300
-          flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
-          if answer[0] == 202
-            flash_msg = ""
-            answer[1].each {|node_dns|
-                flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
-            }
-            flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
+          if ret[0] == 200
+            answer = operations.proposal_commit(params[:name])
+            flash[:notice] = answer[1] if answer[0] >= 300
+            flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
+            if answer[0] == 202
+              flash_msg = ""
+              answer[1].each {|node_dns|
+                  flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
+              }
+              flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
+            end
           end
         rescue Exception => e
           flash[:notice] = e.message
         end
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
-          answer = @service_object.proposal_delete(params[:name])
+          answer = operations.proposal_delete(params[:name])
           if answer[0] == 200
             flash[:notice] = t('barclamp.proposal_show.delete_proposal_success')
           else
@@ -398,7 +326,7 @@ class BarclampController < ApplicationController
         return
       elsif params[:submit] == t('barclamp.proposal_show.destroy_active')
         begin
-          answer = @service_object.destroy_active(params[:name])
+          answer = operations.destroy_active(params[:name])
           if answer[0] == 200 
             flash[:notice] = t('barclamp.proposal_show.destroy_active_success') 
           else
@@ -409,9 +337,12 @@ class BarclampController < ApplicationController
         end
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
-          answer = @service_object.dequeue_proposal(params[:name])
-          flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') unless answer
-          flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success') if answer
+          answer = operations.dequeue_proposal(params[:name])
+          if answer[0] == 200
+            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success')
+          else
+            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') + ": " + answer[1].to_s
+          end
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -429,7 +360,7 @@ class BarclampController < ApplicationController
   #
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
-    answer = @service_object.proposal_delete params[:id]
+    answer = operations.proposal_delete params[:id]
     flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
     respond_to do |format|
       format.html {         
@@ -449,25 +380,32 @@ class BarclampController < ApplicationController
 
   #
   # Provides the restful api call for
-  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be editted and replaced 
+  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be edited and replaced 
   #
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
-    ret = @service_object.proposal_commit params[:id]
+    ret = operations.proposal_commit params[:id]
     return render :text => ret[1], :status => ret[0] if ret[0] >= 210
     render :json => ret[1], :status => ret[0]
   end
 
   #
-  # Currently, A UI ONLY METHOD
-  # XXX: TODO: Make this a restful call defined somewhere.
+  # Provides the restful api call for
+  # Dequeue Proposal Instance   /crowbar/<barclamp-name>/<version>/proposals/dequeue/<barclamp-instance-name>   DELETE   This action will dequeue an existing proposal.
   #
-  add_help(:proposal_dequeue,[:id],[:post])
+  add_help(:proposal_dequeue,[:id],[:delete])
   def proposal_dequeue
-    ret = @service_object.dequeue_proposal params[:id]
-    flash[:notice] = (ret[0]==200 ? t('proposal.actions.dequeue.success') : t('proposal.actions.dequeue.fail'))
-    return render :text => flash[:notice], :status => 400 unless ret
-    render :json => {}, :status => 200 if ret
+    answer = operations.dequeue_proposal params[:id]
+    if answer[0] == 200
+      flash[:notice] = t('proposal.actions.dequeue.success')
+    else
+      flash[:notice] = t('proposal.actions.dequeue.fail') + ": " + answer[1].to_s
+    end
+    if answer[0] == 200
+      return render :json => {}, :status => answer[0]
+    else
+      return render :text => flash[:notice], :status => answer[0]
+    end
   end
 
   add_help(:nodes,[],[:get]) 

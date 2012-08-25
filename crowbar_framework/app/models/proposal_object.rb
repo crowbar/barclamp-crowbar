@@ -174,7 +174,26 @@ class ProposalObject < ChefObject
     @item = x
   end
 
+  def self.write(raw_data)
+    # Write out chef object.
+    data_bag_item = Chef::DataBagItem.new
+    begin
+      data_bag_item.raw_data = raw_data
+      data_bag_item.data_bag "crowbar"
+
+      prop = ProposalObject.new data_bag_item
+      prop.save
+      Rails.logger.info "saved proposal"
+      [200, {}]
+    rescue Net::HTTPServerException => e
+      [e.response.code, {}]
+    rescue Chef::Exceptions::ValidationFailed => e2
+      [400, e2.message]
+    end
+  end
+
   def save
+    ChefObject.chef_init
     @item["deployment"] = {} if @item["deployment"].nil?
     @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?
     if @item["deployment"][barclamp]["crowbar-revision"].nil?
@@ -192,6 +211,7 @@ class ProposalObject < ChefObject
   end
 
   def destroy
+    ChefObject.chef_init
     Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
     @item.destroy(@item.data_bag, @item["id"])
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")

@@ -14,8 +14,5 @@
 # 
 
 class CrowbarController < BarclampController
-  def initialize
-    @service_object = CrowbarService.new(logger)
-  end
 end
 

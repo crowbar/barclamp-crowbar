@@ -29,6 +29,8 @@ barclamp:
   # controlls if barclamp is shown in UI list (true=yes)
   user_managed: true
   version: 0
+  # Should crowbar allow multiple proposals created?
+  allow_multiple_proposals: false
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
   # All barclamps implicitly rely on the crowbar barclamp.
@@ -57,9 +59,6 @@ crowbar:
   chef_order: 1000
   proposal_schema_version: 2
 
-nav:
-  barclamps:
-    ==BC-MODEL==: barclamp_modules_path(:id=>'==BC-MODEL==')
 
 # debs, gems, rpms and extra_files allow you declare the OS packages,
 # gems, and raw files that this barclamp needs.
@@ -156,14 +155,3 @@ extra_files:
   # if bulding Crowbar staged on Redhat.
   - http://java.oracle.com/java-version-x64-rpm.bin java
   
-
-locale_additions:
-  en:
-    nav:
-      ==BC-MODEL==: ==*BC-MODEL==
-    barclamp:
-      ==BC-MODEL==_edit_attributes: 
-        attributes: Attributes
-        foo: Comic Choice
-      ==BC-MODEL==_edit_deployment: 
-        deployment: Deployment

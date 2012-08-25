@@ -1,4 +1,4 @@
-ENV["RAILS_ENV"] ||= ENV["RACK_ENV"]
-require "#{::File.expand_path('config/environment')}"
-use Rails::Rack::Static
-run ActionController::Dispatcher.new
+# This file is used by Rack-based servers to start the application.
+
+require ::File.expand_path('../config/environment',  __FILE__)
+run Crowbar::Application

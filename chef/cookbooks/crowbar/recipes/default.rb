@@ -22,19 +22,16 @@ if node[:platform] != "suse"
 end
 
 pkglist=()
-rainbows_path=""
 case node[:platform]
 when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
-  rainbows_path="/var/lib/gems/1.8/bin/"
+  pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown vim}
 when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown}
-  rainbows_path=""
+  pkglist=%w{curl sqlite sqlite-devel python-markdown vim}
 when "suse"
   pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
       rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
-      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
-      rubygem-ruby-shadow }
+      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-puma 
+      rubygem-ruby-shadow  vim}
 end
 
 pkglist.each {|p|
@@ -45,26 +42,38 @@ pkglist.each {|p|
 
 if node[:platform] != "suse"
 
-  # Last version of rack that works with Rails 2.3.
-  # We don't want to pull in anything else.
-  gem_package "rack" do
+  gem_package "bundler" do
     gem_binary "gem"
-    options("-v=1.1.3")
   end
 
-  gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rainbows }
+  bash "Install gems through bundler" do
+    code "cd /opt/dell/crowbar_framework ; bundle"
+    not_if "test -e /opt/dell/crowbar_framework/Gemfile.lock"
+  end
 
-  gemlist.each {|g|
-    gem_package g do
-      action :install
-    end
-  }
+  bash "Compile the Asssets" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+  end
 
-  # We specifically just want Rails 2.3.14
-  gem_package "rails" do
-    gem_binary "gem"
-    options("-v=2.3.14")
+  bash "Run the database migrations" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+  end
+
+  bash "Add the delayed_job components" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+  end
+
+  bash "Run the database migrations after delay" do
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+  end
+
+  bash "touch chef_install.done" do
+    code "touch /opt/dell/crowbar_framework/chef_install.done"
+    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 end
 
@@ -183,39 +192,31 @@ cookbook_file "/opt/dell/crowbar_framework/config.ru" do
   mode "0644"
 end
 
-template "/opt/dell/crowbar_framework/rainbows.cfg" do
-  source "rainbows.cfg.erb"
+template "/opt/dell/crowbar_framework/puma.cfg" do
+  source "puma.cfg.erb"
   owner "crowbar"
   group "crowbar"
   mode "0644"
   variables(:web_host => "0.0.0.0", 
             :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/production.log",
-            :app_location => "/opt/dell/crowbar_framework")
+            :environment => "production")
 end
 
-template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
-  source "rainbows.cfg.erb"
+template "/opt/dell/crowbar_framework/puma-dev.cfg" do
+  source "puma.cfg.erb"
   owner "crowbar"
   group "crowbar"
   mode "0644"
   variables(:web_host => "0.0.0.0", 
             :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/development.log",
-            :app_location => "/opt/dell/crowbar_framework")
+            :environment => "development")
 end
 
 if node[:platform] != "suse"
   bluepill_service "crowbar-webserver" do
     variables(:processes => [ {
-                                "name" => "rainbows",
-                                "start_command" => "rainbows -E production -c rainbows.cfg",
+                                "name" => "puma",
+                                "start_command" => "puma -C puma.cfg",
                                 "stdout" => "/dev/null",
                                 "stderr" => "/dev/null",
                                 "working_dir" => "/opt/dell/crowbar_framework",

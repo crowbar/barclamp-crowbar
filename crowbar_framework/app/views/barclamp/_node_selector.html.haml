@@ -2,7 +2,7 @@
   %p
     %em= t('.msie_fail')
   = render :partial => 'barclamp/edit_deployment_raw'
-  -if RAILS_ENV === "development"
+  -if Rails.env === "development"
     %p
       = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
 -else 
@@ -11,7 +11,7 @@
   = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float:right;"
   %div.container#deploy
     %p
-      %em#hint= t('.hint')
+      %em#hint= t('.hint').html_safe
     .column_40.first
       %div#nodes_div
         %table#node_tbl
@@ -32,10 +32,7 @@
       - @proposal.all_elements.each do |element|
         %div
           %div.droptarget{ :id=>element, :draggable=>'true'}
-            - if CONVERGED_ADMIN
-              %b= link_to element.humanize, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
-            - else
-              %b= element.humanize
+            %b= element.humanize
             %img{ :src=>'/images/icons/server_add.png', :title=>t('.add') }
           %ul.ddlist{ :id=>element }
 
@@ -204,7 +201,7 @@ $(document).ready(function() {
         var node = $('a.available[id="'+item+'"]');
         if (node.length==0) node = $('a.available[id="-1"]');
         var title = node.attr('title');
-        var shortname = node.text() + ' ' + item;
+        var shortname = node.text();
         var ll = "<li class='allocated " + (even_row ? 'even' : 'odd') +"' id='"+ item + "' title='"+ title + "'>"+shortname;
         ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";

@@ -10,11 +10,7 @@
       %tr{:class => cycle("odd", "even")}
         %td{:style => "white-space:nowrap; width: 20%;" }
           %em
-            %b
-            - if CONVERGED_ADMIN
-              = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
-            - else
-              = key
+            %b= key
         - members = {}
         - nodes.each { |k,v| members[k] = v if value.member? k }
         %td

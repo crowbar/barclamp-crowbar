@@ -7,7 +7,7 @@
     %h1= t('.title_unallocated')
 
 - # filter to only show unallocated nodes, with an option to display all
-- form_for :node, :'data-remote' => true, :url => '/nodes/list', :html => { :'data-type' => 'html',  :id => 'update_nodes_list', :class => "formtastic" } do |f|
+= form_for :node, :'data-remote' => true, :url => '/nodes/list', :html => { :'data-type' => 'html',  :id => 'update_nodes_list', :class => "formtastic" } do |f|
   -if !params[:allocated].nil?
     = hidden_field_tag "allocated", 'yes'
   %table.data.box
@@ -61,7 +61,7 @@
       %tfoot
         %tr{ :class => cycle(:odd, :even, :name => "nodes")}
           %td.hint{:colspan => 6}
-            = t('note')+": "+t('.hint')
+            = t('note')+": "+t('.hint').html_safe
           %td.action{:colspan => 1}
             %input.button{:type => "submit", :name => "submit", :value => 'Save'}
 

@@ -16,6 +16,7 @@
 # 
 
 class SupportController < ApplicationController
+    
   # Legacy Support (UI version moved to loggin barclamp)
   def logs
     @file = "crowbar-logs-#{ctime}.tar.bz2"
@@ -89,10 +90,9 @@ class SupportController < ApplicationController
   end
   
   def import
-    @installed = ServiceObject.barclamp_catalog['barclamps'] 
-    # handle case there we've installed a sub barclamp for the meta, but not the meta
-    @installed.delete_if { |k, v| v['order'].nil? }
+    @installed = {}
     @imports = {}
+    Barclamp.all.each { |bc| @installed[bc.name] = { :o=>bc, :new=>false, :name=>bc.name, 'user_managed'=>bc.user_managed, 'commit'=>bc.commit, 'date'=>bc.build_on, 'order'=>bc.order } }
     if request.post?
       bcs = []
       bc_list = []
@@ -190,7 +190,7 @@ class SupportController < ApplicationController
       @init = true
       render
     elsif params[:id].eql? "in_process"
-      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
+      %x[sudo bluepill crowbar-webserver restart] unless Rails.env == 'development'
       render :json=>false
     elsif params[:id].eql? SERVER_PID
       render :json=>false

@@ -26,7 +26,7 @@ case node[:platform]
 when "ubuntu","debian"
   pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown vim}
 when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown vim gcc-g++}
+  pkglist=%w{curl sqlite sqlite-devel python-markdown vim gcc-c++}
 when "suse"
   pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
       rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml

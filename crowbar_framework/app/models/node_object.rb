@@ -262,7 +262,10 @@ class NodeObject < ChefObject
 
   def allocated=(value)
     return false if @role.nil?
+    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
     self.crowbar["crowbar"]["allocated"] = value
+    @role.save
+    value
   end
 
   def allocated?

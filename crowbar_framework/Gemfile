@@ -24,7 +24,6 @@ gem 'sqlite3'
 
 gem 'therubyracer'
 gem 'haml'
-gem 'tilt'
 gem 'sass-rails',   '~> 3.2.3'
 gem 'simple-navigation'
 gem 'syslogger'

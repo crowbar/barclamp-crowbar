@@ -26,7 +26,7 @@ case node[:platform]
 when "ubuntu","debian"
   pkglist=%w{curl sqlite sqlite3 libsqlite3-dev libshadow-ruby1.8 markdown vim}
 when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown vim}
+  pkglist=%w{curl sqlite sqlite-devel python-markdown vim gcc-c++}
 when "suse"
   pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
       rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
@@ -41,6 +41,10 @@ pkglist.each {|p|
 }
 
 if node[:platform] != "suse"
+
+  gem_package "tilt" do
+    gem_binary "gem"
+  end
 
   gem_package "bundler" do
     gem_binary "gem"
@@ -62,7 +66,7 @@ if node[:platform] != "suse"
   end
 
   bash "Add the delayed_job components" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production script/rails generate delayed_job:active_record"
     not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 

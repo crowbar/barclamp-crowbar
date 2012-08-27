@@ -62,7 +62,7 @@ if node[:platform] != "suse"
   end
 
   bash "Add the delayed_job components" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rails generate delayed_job:active_record"
+    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production script/rails generate delayed_job:active_record"
     not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
   end
 

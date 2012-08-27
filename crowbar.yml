@@ -290,7 +290,7 @@ rpms:
     - sudo
     - screen
     - graphviz
-    - vim
+    - vim-enhanced
 
 gems:
   pkgs:

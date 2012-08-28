@@ -423,7 +423,16 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
+    # Remember ssh keys, so they don't get blown away by dodgy merge (bnc#775654)
+    ssh_tmp = {}
+    @node["crowbar"]["ssh"].each {|k,v|
+      ssh_tmp[k] = v
+    } unless @node["crowbar"].nil? || @node["crowbar"]["ssh"].nil?
+
     recursive_merge!(@node.normal_attrs, @role.default_attributes)
+
+    # Restore ssh keys after dodgy merge (bnc#775654)
+    @node["crowbar"]["ssh"] = ssh_tmp unless ssh_tmp.empty?
 
     if CHEF_ONLINE
       @role.save

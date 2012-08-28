@@ -85,8 +85,9 @@ en:
 
   # Model Names / Attributes
   model:
-    node:
+    fail:
       multiple_node: Multiple nodes responded to alias request
+    node:
       invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
       too_long_dns: Alias not saved because it exceeds FQDN 63 character length
       duplicate_alias: Alias not saved because a node already has the same alias

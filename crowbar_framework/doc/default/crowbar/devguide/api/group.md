@@ -2,7 +2,11 @@
 
 Group APIs are used to manage groups.  Groups are used to organized things
 
-#### Group CRUD: Read
+#### Group CRUD
+
+Create, Read, Update, Delete actions for Groups
+
+##### Read
 
 By default, returns HTML for node information
 
@@ -36,7 +40,7 @@ Details:
 * category - one of the allowed categories in lowercase: ui, rack 
 * all Node properties serialized
 
-#### Gruop CRUD: Create
+##### Group CRUD: Create
 
 Creates a new group
 
@@ -65,7 +69,7 @@ Details:
   * rack
 * order - optional (default 10000) 
 
-#### Group CRUD: Delete 
+##### Group CRUD: Delete 
 
 Deletes a group
 
@@ -85,3 +89,69 @@ None.
 Details:
 
 * id - Group name or database ID
+
+#### Node Actions on Groups
+
+These actions are for adding, removing, or moving nodes in groups
+
+##### Add Node
+
+Adds a node to an existing group
+
+**Input:**
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> POST  </td><td> /group/2.0/[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
+</table>
+
+**Input:**
+
+All data is contained in the URL
+
+Details:
+
+* group-id: id of the group
+* node-id: id if the node (can be name) 
+
+##### Move Node
+
+Moves a node from an existing group to an another group _in the same category_.  This is effectively a combined delete/add action.
+
+**Input:**
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> PUT  </td><td> /group/2.0/[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
+</table>
+
+**Input:**
+
+All data is contained in the URL
+
+Details:
+
+* group-id: id of the group
+* node-id: id if the node (can be name) 
+
+
+##### Delete Node
+
+Removes a node from an existing group 
+
+**Input:**
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> DELETE </td><td> /group/2.0/[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
+</table>
+
+**Input:**
+
+All data is contained in the URL
+
+Details:
+
+* group-id: id of the group
+* node-id: id if the node (can be name) 
+

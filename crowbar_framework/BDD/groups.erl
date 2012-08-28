@@ -14,8 +14,22 @@
 % 
 % 
 -module(groups).
--export([step/3, json/3, json/4]).
-
+-export([step/3, json/3, json/4, validate/1]).
+	
+validate(JSON) ->
+  try JSON of
+    [{"category",_Category}, {"created_at",_CreatedAt}, 
+     {"description",_Description}, {"id",Id}, {"name",Name}, 
+     {"order",Order}, {"updated_at",_UpdatedAt}]
+    -> R = [bdd_utils:is_a(number, Order), 
+            bdd_utils:is_a(name, Name), 
+            bdd_utils:is_a(number, Id)],
+      bdd_utils:assert(R)
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
+ 
 g(Item) ->
   case Item of
     path -> "group/2.0";

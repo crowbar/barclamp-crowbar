@@ -209,6 +209,7 @@ class NodesController < ApplicationController
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
   end
 
+  # GET /node/1
   # GET /node/2.0/1
   # GET /node/2.0/foo.example.com
   # GET /nodes/2.0/1.json

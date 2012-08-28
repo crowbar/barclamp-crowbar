@@ -66,43 +66,60 @@ Crowbar::Application.routes.draw do
     get ":controller/#{version}/export", :action=>'export', :as => :utils_export
     get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
   end
-  
-  get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
-  get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
 
-  # status operations
-  scope 'status' do
-    scope '2.0' do
-      constraints(:id => /.*/ ) do
-        get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
-      end
+  # UI only routes
+  scope :defaults => {:format=> 'html'} do
+    get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
+    constraints(:id=> /.*/) do
+      get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
+      get "node/ui/:id" => 'nodes#show', :as => 'node'
     end
   end
-  
-  # node operations
-  scope 'node' do
-    scope '2.0' do
-      post "/" => "nodes#new"
-      constraints(:id => /.*/ ) do
-        get "/:id(.:format)" => 'nodes#show', :as => :node
-        delete "/:id" => 'nodes#delete', :as => :node_delete
-        put "/:id" => 'nodes#edit'
+
+  # API routes
+  scope :defaults => {:format=> 'json'} do
+
+    # status operations
+    scope 'status' do
+      scope '2.0' do
+        constraints(:id => /.*/ ) do
+          get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
+        end
       end
     end
-  end
-  
-  # group operations
-  scope 'group' do
-    scope '2.0' do
-      post "/" => "groups#new"
-      constraints(:id => /.*/ ) do
-        get "/:id(.:format)" => 'groups#show', :as => :groups
-        delete "/:id" => 'groups#delete', :as => :gropu_delete
-        put "/:id" => 'groups#edit'
+    
+    # node operations
+    scope 'node' do
+      scope '2.0' do
+        post "/" => "nodes#new"
+        constraints(:id => /.*/ ) do
+          get "/:id" => 'nodes#show'
+          delete "/:id" => 'nodes#delete'
+          put "/:id" => 'nodes#edit'
+        end
       end
     end
+    
+    # group operations
+    scope 'group' do
+      scope '2.0' do
+        post "/" => "groups#new"
+        constraints(:id => /.*/ ) do
+          get "/:id(.:format)" => 'groups#show', :as => :groups
+          delete "/:id" => 'groups#delete', :as => :group_delete
+          put "/:id" => 'groups#edit'
+          get "/:id/node(.:format)" => 'groups#node_list'
+          constraints(:node => /.*/ ) do
+            post "/:id/node/:node(.:format)" => 'groups#node_add'
+            delete "/:id/node/:node(.:format)" => 'groups#node_delete'
+            put "/:id/node/:node(.:format)" => 'groups#node_move'
+          end
+        end
+      end
+    end
+
   end
-  
+
   scope 'nodes' do
     version = "1.0"
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list

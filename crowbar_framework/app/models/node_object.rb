@@ -353,7 +353,10 @@ class NodeObject < ChefObject
   def add_to_run_list(rolename, priority, states = nil)
     states = [ "all" ] unless states
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    crowbar["run_list_map"][rolename] = { "states" => states, "priority" => priority }
+    val = { "states" => states, "priority" => priority }
+    crowbar["run_list_map"][rolename] = val
+    Rails.logger.debug("crowbar[run_list_map][#{rolename}] = #{val.inspect}")
+    Rails.logger.debug("current state is #{self.crowbar['state']}")
 
     # only rebuild the run_list if it effects the current state.
     self.rebuild_run_list if states.include?("all") or states.include?(self.crowbar['state'])
@@ -372,6 +375,7 @@ class NodeObject < ChefObject
     map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
     # Sort map
     vals = map.sort { |a,b| a[1]["priority"] <=> b[1]["priority"] }
+    Rails.logger.debug("rebuilt run_list will be #{vals.inspect}")
 
     # Rebuild list
     crowbar_run_list.run_list_items.clear

@@ -17,6 +17,7 @@
 #
 # Also functions as a data bag item wrapper as well.
 #
+require 'pp'
 require 'chef'
 require 'json'
 
@@ -522,6 +523,7 @@ class ServiceObject
   end
 
   def clean_proposal(proposal)
+    @logger.debug "clean_proposal"
     proposal.delete("controller")
     proposal.delete("action")
     proposal.delete("barclamp")
@@ -777,6 +779,8 @@ class ServiceObject
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
   def apply_role(role, inst, in_queue)
+    @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
+
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
@@ -794,6 +798,8 @@ class ServiceObject
     delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)
     return [202, delay] unless delay.empty?
 
+    @logger.debug "delay empty - running proposal"
+
     # make sure the role is saved
     role.save
 
@@ -802,6 +808,9 @@ class ServiceObject
     old_deployment = old_role.override_attributes[@bc_name] unless old_role.nil?
     old_elements = old_deployment["elements"] unless old_deployment.nil?
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
+
+    @logger.debug "old_deployment #{old_deployment.pretty_inspect}"
+    @logger.debug "new_deployment #{new_deployment.pretty_inspect}"
 
     # For Role ordering
     local_chef_order = chef_order
@@ -812,10 +821,15 @@ class ServiceObject
     all_nodes = []
     run_order = []
     element_order.each do | elems |
+      @logger.debug "elems #{elems.inspect}"
       r_nodes = []
       elems.each do |elem|
         old_nodes = old_elements[elem]
         new_nodes = new_elements[elem]
+
+        @logger.debug "elem #{elem.inspect}"
+        @logger.debug "old_nodes #{old_nodes.inspect}"
+        @logger.debug "new_nodes #{new_nodes.inspect}"
 
         unless old_nodes.nil?
           elem_remove = nil
@@ -826,6 +840,7 @@ class ServiceObject
 
           old_nodes.each do |n|
             if new_nodes.nil? or !new_nodes.include?(n)
+              @logger.debug "remove node #{n}"
               nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
               nodes[n][:remove] << elem 
               nodes[n][:add] << elem_remove unless elem_remove.nil?
@@ -838,6 +853,7 @@ class ServiceObject
           new_nodes.each do |n|
             all_nodes << n unless all_nodes.include?(n)
             if old_nodes.nil? or !old_nodes.include?(n)
+              @logger.debug "add node #{n}"
               nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
               nodes[n][:add] << elem
             end
@@ -845,10 +861,12 @@ class ServiceObject
           end
         end
       end
+      @logger.debug "r_nodes #{r_nodes.inspect}"
+      @logger.debug "run_order #{run_order.inspect}"
       run_order << r_nodes unless r_nodes.empty?
     end
 
-    # Clean the run_lists
+    @logger.debug "Clean the run_lists for #{nodes.inspect}"
     admin_nodes = []
     nodes.each do |n, lists|
       node = pre_cached_nodes[n]
@@ -861,6 +879,9 @@ class ServiceObject
 
       rlist = lists[:remove]
       alist = lists[:add]
+
+      @logger.debug "rlist #{rlist.pretty_inspect}"
+      @logger.debug "alist #{alist.pretty_inspect}"
 
       # Remove the roles being lost
       rlist.each do |item|
@@ -905,11 +926,14 @@ class ServiceObject
     ran_admin = false
     run_order.each do | batch |
       next if batch.empty?
+      @logger.debug "batch #{batch.inspect}"
+
       snodes = []
       admin_list = []
       batch.each do |n|
         # Run admin nodes a different way.
         if admin_nodes.include?(n)
+          @logger.debug "#{n} is in admin_nodes #{admin_nodes.inspect}"
           admin_list << n
           ran_admin = true
           next

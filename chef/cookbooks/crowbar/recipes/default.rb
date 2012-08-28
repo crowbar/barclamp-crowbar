@@ -42,13 +42,12 @@ pkglist.each {|p|
 
 if node[:platform] != "suse"
 
-  gem_package "tilt" do
-    gem_binary "gem"
-  end
-
-  gem_package "bundler" do
-    gem_binary "gem"
-  end
+  # For some reaason gem_package doesn't work on Redhat.
+  %w{tilt puma bundler}.each { |gem|
+    bash "Install #{gem} gem" do
+      code "gem install #{gem}"
+    end
+  }
 
   bash "Install gems through bundler" do
     code "cd /opt/dell/crowbar_framework ; bundle"

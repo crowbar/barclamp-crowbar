@@ -53,7 +53,7 @@ class NodeObject < ChefObject
 
   def self.find_node_by_alias(name)
     nodes = if CHEF_ONLINE 
-      self.find "alias:#{chef_escape(name)}"
+      self.find "crowbar_display_alias:#{chef_escape(name)}"
     else
       self.find_all_nodes.keep_if { |n| n.alias==name }
     end

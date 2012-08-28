@@ -791,6 +791,7 @@ class ServiceObject
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     # For Role ordering
+    runlist_priority_map = new_deployment["element_run_list_order"] || { }
     local_chef_order = chef_order()
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
@@ -860,8 +861,9 @@ class ServiceObject
       # Add the roles being gained
       alist.each do |item|
         next if node.role? item
-        @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_chef_order, role_map[item])
+        priority = runlist_priority_map[item] || local_chef_order
+        @logger.debug("AR: Adding role #{item} to #{node.name} with priority #{priority}")
+        node.add_to_run_list(item, priority, role_map[item])
         save_it = true
       end
 
@@ -869,8 +871,9 @@ class ServiceObject
       if all_nodes.include?(node.name)
         # Add the config role 
         unless node.role?(role.name)
-          @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_chef_order, role_map[role.name])
+          priority = runlist_priority_map[role.name] || local_chef_order
+          @logger.debug("AR: Adding role #{role.name} to #{node.name} with priority #{priority}")
+          node.add_to_run_list(role.name, priority, role_map[role.name])
           save_it = true
         end
       else
@@ -1013,9 +1016,12 @@ class ServiceObject
       return false 
     end
 
-    local_chef_order = ServiceObject.chef_order(barclamp)
+    runlist_priority_map = prop["deployment"][barclamp]["element_run_list_order"] rescue {}
+    runlist_priority_map ||= {}
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
+
+    local_chef_order = runlist_priority_map[newrole] || ServiceObject.chef_order(barclamp)
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)

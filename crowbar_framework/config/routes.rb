@@ -116,7 +116,7 @@ Crowbar::Application.routes.draw do
     end
   end
  
-  devise_for :users, :controllers => { :registrations => "registrations" }
+  devise_for :users
   devise_scope :user do
     match "users/sign_out", :controller => 'users', :action =>'sign_out'
     match "manage_users", :controller => 'users', :action => 'index'

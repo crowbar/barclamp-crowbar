@@ -49,6 +49,8 @@ crowbar+book-developersguide:
       order: 2000
     crowbar+devguide+api+group:
       order: 2200
+    crowbar+devguide+api+network:
+      order: 2400
     crowbar+devguide+api+barclamp:
       order: 5000
     crowbar+devguide+api+proposal:

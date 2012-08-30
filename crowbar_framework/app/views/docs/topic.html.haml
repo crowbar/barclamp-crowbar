@@ -4,12 +4,16 @@
       = link_to t('.export'), docs_topic_path(:id=>@topic.name, :expand=>true), :class => 'button', :id=>'expand_button'
     %h3= t('.nav')
     %ol  
+      %li= link_to t('docs.root'), docs_path
       - p = @topic.parent
+      - stack = []
       - while !p.name.eql? 'root'
+        - stack.push p
+        - p = p.parent
+      - while stack.length > 0
+        - p = stack.pop
         %li{:title=>t('details', :scope=>'docs', :date=>p.date, :author=>p.author, :license=>p.license)}
           = link_to p.description, docs_topic_path(:id=>p.name)
-        - p = p.parent
-      %li= link_to t('docs.root'), docs_path
     -if Rails.env.eql? 'development'
       = "Source File: #{@file}"
 -else

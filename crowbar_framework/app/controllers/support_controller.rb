@@ -160,24 +160,6 @@ class SupportController < ApplicationController
     end 
   end
   
-  def export_chef
-    begin
-      Dir.entries('db').each { |f| File.delete(File.expand_path(File.join('db', f))) if f=~/.*\.json$/ }
-      NodeObject.all.each { |n| n.export }
-      RoleObject.all.each { |r| r.export }
-      ProposalObject.all.each { |p| p.export }
-      @file = cfile ="crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
-      pid = fork do
-        system "tar -czf #{File.join('/tmp', cfile)} #{File.join('db', '*.json')}"
-        File.rename File.join('/tmp', cfile), File.join(export_dir, cfile)
-      end
-      redirect_to "/utils?waiting=true&file=#{@file}"
-    rescue Exception => e
-      flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
-      redirect_to "/utils"
-    end
-  end
-  
   def restart
     @init = false
     if params[:id].nil?

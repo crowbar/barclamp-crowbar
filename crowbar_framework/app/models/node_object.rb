@@ -878,10 +878,6 @@ class NodeObject < ChefObject
     end
   end
 
-  def export
-    NodeObject.dump @node, 'node', name
-  end
-  
   private 
   
   # this is used by the alias/description code split

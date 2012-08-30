@@ -19,21 +19,6 @@ class ChefObject
   @@CrowbarDomain = nil
   
   NOT_SET = 'not_set'
-  
-  def self.cloud_domain
-    begin
-      # NOTE: We are using a global here to avoid lookups.  We need to consider some better cache/expiration strategy
-      if @@CrowbarDomain.nil?
-        bag = ProposalObject.find_proposal('dns', 'default')
-        @@CrowbarDomain = bag[:attributes][:dns][:domain] || OFFLINE_DOMAIN
-      end
-      return @@CrowbarDomain
-    rescue Exception => e
-      Rails.logger.warn("Could not lookup domain name from Crowbar DNS barclamp attributes/dns/domain key.  Error #{e.message}.")
-      @@CrowbarDomain = OFFLINE_DOMAIN # reset to make sure we do not cache it
-      return %x{dnsdomainname}.strip
-    end
-  end
 
   def self.query_chef
     begin
@@ -72,39 +57,6 @@ class ChefObject
       Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")
       return nil
     end
-  end
-
-
-  OFFLINE_FILES_DIR = 'db'
-
-  def self.dump(o, serial, name)
-    file = nfile(serial, name)
-    unless File.exist? file
-      begin
-        File.open(file, 'w') do |f|
-          f.puts o.to_json
-        end
-        Rails.logger.info("Dumped Chef #{serial} #{name} object to '#{file}'")
-      rescue Exception => e
-        Rails.logger.warn("Error dumping Chef #{serial} object to '#{name}' with '#{e.inspect}'")
-      end #dump object
-      return true
-    else
-      return false
-    end #unless exist
-  end
-
-  private
-
-  def self.nfile(serial, name)
-    n = if name.nil?
-          "#{serial}.index"
-        elsif serial.nil?
-          "#{name}.json"
-        else
-          "#{serial}-#{name}.json"
-        end
-    File.join(OFFLINE_FILES_DIR, n)
   end
 
 end

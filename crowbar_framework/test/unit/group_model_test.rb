@@ -45,7 +45,7 @@ class GroupModelTest < ActiveSupport::TestCase
   test "no dup name+category" do
     g = Group.create! :name=>"foo", :category=>'rack'
     assert_not_nil g, "Node Created"
-    assert_raise(ActiveRecord::RecordNotUnique) { Group.create!(:name=>"foo", :category=>'rack') }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"foo", :category=>'rack') }
   end
 
 

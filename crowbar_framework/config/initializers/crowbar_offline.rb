@@ -1,1 +1,1 @@
-require Rails.root.join('lib/crowbar_offline.rb')
+#require Rails.root.join('lib/crowbar_offline.rb')

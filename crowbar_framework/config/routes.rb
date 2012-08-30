@@ -59,7 +59,6 @@ Crowbar::Application.routes.draw do
     version = "2.0"
     get '/', :controller=>'support', :action=>'index', :as => :utils
     get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
-    get 'chef', :controller=>'support', :action=>'export_chef', :as => :export_chef
     get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
     get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
     get 'restart/:id', :controller=>'support', :action=>'restart', :constraints => { :id => /.*/ }, :as => :restart

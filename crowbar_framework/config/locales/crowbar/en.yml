@@ -445,6 +445,7 @@ en:
     
   db:
     notunique: "Item must be unique"
+    notuniqueincategory: "Item must be unique in category"
     lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
     fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
 

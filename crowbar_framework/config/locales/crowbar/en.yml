@@ -58,6 +58,15 @@ en:
     sign_out: Sign Out
     sign_out_description: End the current session
 
+    books:
+      crowbar+book-barclamps: Barclamps
+      crowbar+book-deployguide: Deploy Guide
+      crowbar+book-developersguide: Dev Guide
+      crowbar+book-gettingstarted: Getting Started
+      crowbar+book-licenses: Licenses
+      crowbar+book-releasenotes: Release Notes
+      crowbar+book-userguide: User Guide
+    
     scaffold:
       top: Scaffolds
       top_description: Developer Tools
@@ -126,7 +135,7 @@ en:
   docs:
     parseerror: "Parse error in %{path}"
     missing_title: "Topic Title Missing (was referenced from %{bc})"
-    root: Master Index
+    root: System Documentation (Master Index)
     details: "Updated by %{author} on %{date} (%{license})"
     index:
       title: System Documentation

@@ -40,10 +40,14 @@ Crowbar::Application.routes.draw do
     get 'status', :on => :collection
   end
 
+  # 2.0 API Pattern
+  scope '2.0' do
+  end
+
   # documentation / help
   scope 'docs' do
     get '/', :controller=>'docs', :action=>'index', :as => "docs"
-    get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic"
+    get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic", :constraints => { :id => /.*/ }
     get ':controller/:id', :action=>'docs', :as => "docs_barclamp"
   end
 

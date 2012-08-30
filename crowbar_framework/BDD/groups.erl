@@ -35,6 +35,8 @@ g(Item) ->
     path -> "group/2.0";
     name1 -> "bddthings";
     atom1 -> group1
+    name2 -> "bdddelete";
+    atom2 -> group2
   end.
 
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
@@ -44,8 +46,11 @@ json(Name, Description, Order, Category) ->
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   JSON = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON);
+  bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON),
+  JSON = json(g(name2), "BDD Testing Only - should be automatically removed", 200),
+  bdd_utils:setup_create(Config, g(path), g(atom2), g(name2), JSON);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
+  bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
   bdd_utils:teardown_destroy(Config, g(path), g(atom1)).

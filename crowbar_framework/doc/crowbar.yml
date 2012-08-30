@@ -47,6 +47,7 @@ crowbar+book-developersguide:
       order: 1000
     crowbar+devguide+api+node:
       order: 2000
+      author: Greg Althaus
     crowbar+devguide+api+group:
       order: 2200
     crowbar+devguide+api+barclamp:

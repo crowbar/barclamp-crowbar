@@ -18,10 +18,12 @@
 class DocsController < ApplicationController
       
   def index
-    @root = Doc.find_by_name(params[:id] || 'root')
+    @id = params[:id].gsub("%2B",'+') rescue nil
+    @root = Doc.find_by_name(@id || 'root')
     if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
       @root = gen_doc_index 'doc'
+      @root = Doc.find_by_name(@id) if @id
     end
     respond_to do |format|
       format.html # index.html.haml
@@ -33,6 +35,7 @@ class DocsController < ApplicationController
   def topic
     begin 
       @topic = Doc.find_by_name params[:id]
+      @topic = Doc.find_by_name params[:id].gsub("/","+") unless @topic
       @file = page_path 'doc', @topic.name
       html = !params.has_key?(:source)
       # navigation items

@@ -43,10 +43,10 @@ barclamps:
   network: 
     user_managed: true
     description: Instantiates network interfaces on the crowbar managed systems. Also manages the address pool
-  dell-branding: 
+  dell_branding: 
     user_managed: false
     members: 
-      dell-branding: 999
+      dell_branding: 999
     description: 
   ganglia: 
     user_managed: true

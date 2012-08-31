@@ -22,7 +22,7 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Sub Topic
-    Given I am on the "docs/topic/crowbar+book-userguide" page
+    Given I am on the "docs/topic/crowbar/book-userguide" page
     When I click on the "Utilities Menu" link
     Then I should see "Utilities Menu"
       And I should see "Navigation"
@@ -32,13 +32,13 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Sub Topic return to Main
-    Given I am on the "docs/topic/crowbar+book-userguide" page
-    When I click on the "Master Index" link
+    Given I am on the "docs/topic/crowbar/book-userguide" page
+    When I click on the "System Documentation \(Master Index\)" link
     Then I should see "System Documentation"
       And there should be no translation errors
 
   Scenario: Doc Export 
-    Given I am on the "docs/topic/crowbar+book-userguide" page
+    Given I am on the "docs/topic/crowbar/book-userguide" page
     When I click on the "Export" link
     Then I should see "Crowbar User Guide"
       And I should see a link to "&lt; Go Back"

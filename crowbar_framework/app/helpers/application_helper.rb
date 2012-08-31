@@ -93,6 +93,7 @@ module ApplicationHelper
   end
 
   def nodes_hash(group=nil)
+    # POSSIBLE OBSOLETE IN 2.X
     nodes = {}
     NodeObject.all.each do |node|      
       nodes[node.name] = {:handle=>node.handle, :alias=>node.alias, :title=>node.description(false, true), :admin=>node.admin?, :group=>node.group} if node.group==group or group.nil? 

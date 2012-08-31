@@ -1,4 +1,4 @@
-%h1= t '.title'
+%h1= @root.description || t('.title')
 
 - @root.children.each do |book|
   %h3{:title=>t('details', :scope=>'docs', :date=>book.date, :author=>book.author, :license=>book.license)}

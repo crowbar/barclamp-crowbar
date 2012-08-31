@@ -14,13 +14,29 @@
 % 
 % 
 -module(groups).
--export([step/3, json/3, json/4]).
-
+-export([step/3, json/3, json/4, g/1, validate/1]).
+	
+validate(JSON) ->
+  try JSON of
+    [{"category",_Category}, {"created_at",_CreatedAt}, 
+     {"description",_Description}, {"id",Id}, {"name",Name}, 
+     {"order",Order}, {"updated_at",_UpdatedAt}]
+    -> R = [bdd_utils:is_a(number, Order), 
+            bdd_utils:is_a(name, Name), 
+            bdd_utils:is_a(number, Id)],
+      bdd_utils:assert(R)
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
+ 
 g(Item) ->
   case Item of
-    path -> "group/2.0";
+    path -> "2.0/group";
     name1 -> "bddthings";
-    atom1 -> group1
+    atom1 -> group1;
+    name2 -> "bdddelete";
+    atom2 -> group2
   end.
 
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
@@ -29,9 +45,14 @@ json(Name, Description, Order, Category) ->
 	
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  JSON = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON);
+  JSON1 = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
+  Config1 = bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON1),
+  JSON2 = json(g(name2), "BDD Testing Only - should be automatically removed", 200),
+  Config2 = bdd_utils:setup_create(Config1, g(path), g(atom2), g(name2), JSON2),
+  Config2;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, g(path), g(atom1)).
+  Config2 = bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
+  Config1 = bdd_utils:teardown_destroy(Config2, g(path), g(atom1)),
+  Config1.

@@ -40,10 +40,11 @@ Crowbar::Application.routes.draw do
     get 'status', :on => :collection
   end
 
+
   # documentation / help
   scope 'docs' do
     get '/', :controller=>'docs', :action=>'index', :as => "docs"
-    get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic"
+    get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic", :constraints => { :id => /.*/ }
     get ':controller/:id', :action=>'docs', :as => "docs_barclamp"
   end
 
@@ -66,43 +67,41 @@ Crowbar::Application.routes.draw do
     get ":controller/#{version}/export", :action=>'export', :as => :utils_export
     get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
   end
-  
-  get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
-  get "dashboard/:name", :controller => 'nodes', :action => 'index', :constraints => { :name => /.*/ }, :as => 'dashboard_detail'
 
-  # status operations
-  scope 'status' do
+  # UI only routes
+  scope :defaults => {:format=> 'html'} do
+    get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
+    constraints(:id=> /.*/) do
+      get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
+      get "node/:id" => 'nodes#show', :as => 'node'
+    end
+  end
+
+  # Digest Auth 
+  get 'digest' => 'digest#index'  
+  
+  # API routes (must be json and must prefix 2.0)
+  scope :defaults => {:format=> 'json'} do
+    # 2.0 API Pattern
     scope '2.0' do
       constraints(:id => /.*/ ) do
-        get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
+
+        # status operations
+        scope 'status' do
+          get "node(/:id)" => 'nodes#status', :as=>'node_status'
+        end
+        
+        # basic CRUD operations
+        resources :node, :controller=>'nodes'
+        resources :group, :controller=>'groups'
+        
+        # group + node CRUD operations
+        match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /.*/ }
+
       end
     end
   end
-  
-  # node operations
-  scope 'node' do
-    scope '2.0' do
-      post "/" => "nodes#new"
-      constraints(:id => /.*/ ) do
-        get "/:id(.:format)" => 'nodes#show', :as => :node
-        delete "/:id" => 'nodes#delete', :as => :node_delete
-        put "/:id" => 'nodes#edit'
-      end
-    end
-  end
-  
-  # group operations
-  scope 'group' do
-    scope '2.0' do
-      post "/" => "groups#new"
-      constraints(:id => /.*/ ) do
-        get "/:id(.:format)" => 'groups#show', :as => :groups
-        delete "/:id" => 'groups#delete', :as => :gropu_delete
-        put "/:id" => 'groups#edit'
-      end
-    end
-  end
-  
+
   scope 'nodes' do
     version = "1.0"
     get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list

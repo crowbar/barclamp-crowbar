@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(eurl).
--export([post/3, delete/3, post_params/1, post/5]).
+-export([post/3, delete/3, post_params/1, post/5, uri/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4]).
 
@@ -65,11 +65,13 @@ find_link(Match, Input) ->
 	end,
 	AnchorTag = case re:run(Input, RE) of
 	  {match, [{AStart, ALength} | _]} -> string:substr(Input, AStart+1,AStart+ALength);
+	  nomatch -> io:format("ERROR: Could not find ~s in request  (you may need to escape characters).", [Match]);
 	  {_, _} -> io:format("ERROR: Could not find Anchor tags enclosing '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not find_link")
 	end,
 	{ok, HrefREX} = re:compile("\\bhref=(['\"])([^\\s]+?)(\\1)", [multiline, dotall, {newline , anycrlf}]),
 	Href = case re:run(AnchorTag, HrefREX) of
 	  {match, [_1, _2, {HStart, HLength} | _]} -> string:substr(AnchorTag, HStart+1,HLength);
+	  nomatch -> io:format("ERROR: Could not find ~s in request (you may need to escape characters)", [Match]);
 	  {_, _} -> io:format("ERROR: Could not find href= information in substring '~p'~n", [AnchorTag]), throw("could not html_find_link")
 	end,
 	bdd_utils:debug("find_link anchor ~p~n", [AnchorTag]),

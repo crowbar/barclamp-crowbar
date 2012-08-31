@@ -18,7 +18,7 @@
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6]).
 -export([setup_create/5, teardown_destroy/3]).
--export([is_site_up/1]).
+-export([is_site_up/1, is_a/2]).
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -60,16 +60,26 @@ trace(Config, Name, N, Steps, Given, When) ->
   [io:format(S, "~n==== When ====~n~p",[X]) || X <- (When), X =/= []],
   io:format(S, "~n==== End of Test Dump (~p) ====", [N]),
   file:close(S).
- 
+
+% test for types
+is_a(Type, Value) ->
+  case Type of 
+    number -> nomatch =/= re:run(Value, "^[\-0-9]*$");
+    name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    empty -> "" =:= Value;
+    _ -> false
+  end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
-  URL = config(Config,url),
-	try eurl:get(Config, []) of
-	  _ -> ok
+  URL = eurl:uri(Config,config(Config,digest_page, "digest")),
+  AzConfig = digest_auth:header(Config, URL),
+	try eurl:get(AzConfig, []) of
+	  _ -> AzConfig
 	catch
 		_: {_, {_, {Z, {Reason, _}}}} -> 
-      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason])
+      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason]),
+      Config
 	end.
 
 % returns value for key from Config (error if not found)

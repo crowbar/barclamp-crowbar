@@ -460,10 +460,19 @@ en:
   # Users
   user:
     title: Manage User Accounts
+    options: "Options"
     username: Username
+    sign_in: Sign In
+    sign_out: Sign Out
+    sign_up: "Sign up"
+    forgot: "Forgot your password?"
+    no_confirm: "Didn't receive confirmation instructions?"
+    no_unlock: "Didn't receive unlock instructions?"
+    provider: "Sign in with %{provider}"
     sign_in_count: Sign In Count
     failed_attempts: Failed Signins
     last_sign_in_at: Last Signed In
     last_sign_in_ip: IP of Last Sign In
     digest_success: User Authenticated using Digest Authentication
-    signed_in_as: You are signed in as 
+    signed_in_as: "You are signed in as %{user}"
+    eula: User License

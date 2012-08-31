@@ -24,7 +24,7 @@ class ApplicationController < ActionController::Base
   @@users = nil
   
   #before_filter :digest_authenticate, :if => :need_to_auth?
-  before_filter :authenticate_user!  
+  before_filter :authenticate_user!
 
   # Basis for the reflection/help system.
   
@@ -110,7 +110,7 @@ class ApplicationController < ActionController::Base
   def need_to_auth?()
     return false unless File::exists? "htdigest"
     ip = session[:ip_address] rescue nil
-    puts "checking session saved: #{ip} remote #{request.remote_addr}"    
+    #puts "checking session saved: #{ip} remote #{request.remote_addr}"    
     return false if ip == request.remote_addr
     return true
   end
@@ -118,21 +118,21 @@ class ApplicationController < ActionController::Base
   def digest_authenticate
     load_users()    
     ret = authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
-    puts "return is: #{ret}"
+    #puts "return is: #{ret}"
     ## only create the session if we're authenticated
     if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
-      puts "authenticated user !!"
+      #puts "authenticated user !!"
       session[:ip_address] = request.remote_addr
     end
   end
   
   def find_user(username) 
-    puts "have username: #{username}"
-    puts "have @@users: #{@@users.nil? ? "nil" : @@users.inspect}"
+    #puts "have username: #{username}"
+    #puts "have @@users: #{@@users.nil? ? "nil" : @@users.inspect}"
     return false if !@@users || !username
     user = @@users[username]
     return false unless user
-    puts "have user with password: #{user[:password]}"
+    #puts "have user with password: #{user[:password]}"
     return user[:password] || false   
   end
   

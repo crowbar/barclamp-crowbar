@@ -209,6 +209,7 @@ class NodesController < ApplicationController
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
   end
 
+  # GET /node/1
   # GET /node/2.0/1
   # GET /node/2.0/foo.example.com
   # GET /nodes/2.0/1.json
@@ -221,13 +222,14 @@ class NodesController < ApplicationController
     end
   end
 
-  # RESTfule delete of the node
-  def delete
+  # RESTful DELETE of the node resource
+  def destroy
     Node.delete Node.find_key(params[:id]).id
     render :text => "Node #{params[:id]} deleted!"
   end
   
-  def new
+  # RESTfule POST of the node resource
+  def create
     if request.post?
       @node = Node.create! params
       render :json => @node
@@ -239,6 +241,7 @@ class NodesController < ApplicationController
     get_node_and_network(params[:id] || params[:name])
   end
 
+  # RESTfule PUT of the node resource
   def update
     if request.post?
       get_node_and_network(params[:id] || params[:name])

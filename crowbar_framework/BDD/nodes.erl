@@ -18,7 +18,7 @@
 
 g(Item) ->
   case Item of
-    path -> "node/2.0";
+    path -> "2.0/node";
     name -> "bdd1.example.com";
     atom -> node1
   end.

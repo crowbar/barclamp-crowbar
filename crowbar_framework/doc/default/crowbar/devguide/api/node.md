@@ -12,7 +12,7 @@ By default, returns HTML for node information
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> GET  </td><td> /node/2.0/[id]?format=json </td><td> id is the node ID or name. </td><td> json extension required to return json  </td></tr>
+<tr><td> GET  </td><td> 2.0/node/[id]?format=json </td><td> id is the node ID or name. </td><td> json extension required to return json  </td></tr>
 </table>
 
 
@@ -45,7 +45,7 @@ Creates a new node
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> POST  </td><td> /node/2.0/ </td><td> json definition (see Node Show) </td><td> must be a legal object </td></tr>
+<tr><td> POST  </td><td> /2.0/node </td><td> json definition (see Node Show) </td><td> must be a legal object </td></tr>
 </table>
 
 **Input:**
@@ -70,7 +70,7 @@ Deletes a node
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> DELETE  </td><td> /node/2.0/[id] </td><td> Database ID or name </td><td> must be an existing object ID </td></tr>
+<tr><td> DELETE  </td><td> /2.0/node/[id] </td><td> Database ID or name </td><td> must be an existing object ID </td></tr>
 </table>
 
 No body.

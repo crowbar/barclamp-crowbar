@@ -3,5 +3,5 @@
 erl_crash.dump
 trace_*.txt
 *.beam
-
+/crowbar_framework/log/test.*
 /crowbar_framework/db/node_description.yml

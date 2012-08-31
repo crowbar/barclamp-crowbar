@@ -19,6 +19,13 @@ SimpleNavigation::Configuration.run do |navigation|
       if item.item != 'root' and item.path =~ /(.*)_path/
         begin
           primary.item item.item.to_sym, t(item.name), eval(item.path), {:title=>t(item.description, :default=>t(item.name))} do |secondary|
+            # make the top level help appear on the menu (for help only)
+            if item.item.eql? 'help'
+              Doc.find_by_name('root').children.each do |doc|
+                secondary.item doc.name.to_sym, t(doc.name, :scope=>'nav.books'), docs_path(:id=>doc.name.html_safe), {:title=>doc.description }
+              end
+            end
+            # render menu items from the database
             item.children.each do |nav|
               if nav.path.starts_with? 'http'
                 secondary.item nav.item.to_sym, t(nav.name), nav.path.to_s, {:title=>t(nav.description, :default=>t(nav.name)), :link => { :target => "_blank" } } 

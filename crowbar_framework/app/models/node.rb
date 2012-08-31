@@ -29,7 +29,7 @@ class Node < ActiveRecord::Base
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
-  #
+  #'
   # Helper function to test admin without calling admin. Style-thing.
   #
   def is_admin?
@@ -175,7 +175,24 @@ class Node < ActiveRecord::Base
 
   def cmdb_get(attribute)
     puts "CMDB looking up #{attribute}"
-    return nil
+    begin 
+      case attribute 
+      when "alias"
+        name.split(".")[0]
+      when "switch_name"
+        node_object.switch_name 
+      when "switch_unit"
+        node_object.switch_unit 
+      when "switch_port"
+        node_object.switch_port
+      when "asset_tag"
+        node_object.asset_tag
+      else 
+        "!! CMDB GET MISSING FOR #{attribute} !!"
+      end
+    rescue
+      "!! CMDB ERROR for #{attribute} !!"
+    end
   end
   
   def method_missing(m,*args,&block)
@@ -202,7 +219,7 @@ class Node < ActiveRecord::Base
     self.name = self.name.downcase
     self.state ||= 'unknown' 
     if self.groups.size == 0
-      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set')
+      g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')
       self.groups << g
     end
   end  

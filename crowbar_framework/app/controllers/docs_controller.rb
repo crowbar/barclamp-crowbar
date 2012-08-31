@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
 # 
 
 class DocsController < ApplicationController
       
   def index
-    @root = Doc.find_by_name(params[:id] || 'root')
+    @id = params[:id].gsub("%2B",'+') rescue nil
+    @root = Doc.find_by_name(@id || 'root')
     if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
       @root = gen_doc_index 'doc'
+      @root = Doc.find_by_name(@id) if @id
     end
     respond_to do |format|
       format.html # index.html.haml
@@ -33,6 +34,7 @@ class DocsController < ApplicationController
   def topic
     begin 
       @topic = Doc.find_by_name params[:id]
+      @topic = Doc.find_by_name params[:id].gsub("/","+") unless @topic
       @file = page_path 'doc', @topic.name
       html = !params.has_key?(:source)
       # navigation items
@@ -85,7 +87,7 @@ class DocsController < ApplicationController
         bc = bc_index[/(.*).yml$/,1]
         begin 
           topic = YAML.load_file File.join(path, bc_index)
-          default = topic.clone.delete_if{ |k, v| k.to_s.include? "+" }
+          default = topic.clone.delete_if{ |k, v| k.to_s.gsub("+","/").include? "/" }
           default = root_default.merge default 
           topic.each { |t, p| create_doc(path, bc, 'root', t, p, default) }
         rescue 
@@ -99,15 +101,16 @@ class DocsController < ApplicationController
   def create_doc(path, barclamp, parent, name, values, defaults)
     children = {}
     props = defaults.clone
-    if name.to_s.include? "+"
-      name_bc = name.split('+')[0]
+    name = name.gsub("+","/")
+    if name.to_s.include? "/"
+      name_bc = name.split('/')[0]
       # guards badly formed yml
       if values.is_a?(String)
         children[values] = {}
       elsif !values.nil? 
         # split attributes from children and merge in defaults
         values.each do |k, v|
-          if k.to_s.include? "+"
+          if k.to_s.include? "/"
             children[k] = v
           else
             props[k] = v
@@ -121,10 +124,10 @@ class DocsController < ApplicationController
             actual_title = File.open(file, 'r').readline
             actual_title[/(#*)(.*)/,2].strip       
           rescue 
-            name.gsub("+"," ").titleize
+            name.gsub("/"," ").titleize
           end
         else
-          name.gsub("+"," ").titleize
+          name.gsub("/"," ").titleize
         end
         t = Doc.find_or_initialize_by_name(name) 
         t.parent_name = parent

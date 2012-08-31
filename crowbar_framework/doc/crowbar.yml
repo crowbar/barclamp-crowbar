@@ -2,73 +2,71 @@
 license: Apache 2
 copyright: 2012 by Dell, Inc
 author: Dell CloudEdge Team
-date: July 29, 2012
+date: Aug 30, 2012
 
-crowbar+book-gettingstarted:
+crowbar/book-gettingstarted:
   order: 100
   
-crowbar+book-userguide:
+crowbar/book-userguide:
   order: 1000
-  crowbar+userguide+ui-general:
+  crowbar/userguide/ui-general:
     order: 10
-    - crowbar+userguide+ui-nodes
-  crowbar+userguide+ui-utilities:
+    - crowbar/userguide/ui-nodes
+  crowbar/userguide/ui-utilities:
     order: 100
     url: '/utils'
-    crowbar+userguide+utils-export:
+    crowbar/userguide/utils-export:
       url: '/utils/index'
 
 
-crowbar+book-barclamps:
+crowbar/book-barclamps:
   order: 2500
-  crowbar+barclamp-info-meta:
-    - crowbar+barclamp-info
+  crowbar/barclamp-info-meta:
+    - crowbar/barclamp-info
     
-crowbar+book-deployguide:
+crowbar/book-deployguide:
   order: 5000
     
-crowbar+book-developersguide:
+crowbar/book-developersguide:
   author: Rob Hirschfeld
-  date: August 12, 2012
+  date: August 30, 2012
   order: 6000
-  crowbar+devguide+documentation:
+  crowbar/devguide/documentation:
     order: 3000
-  crowbar+devguide+makingbarclamps:
+  crowbar/devguide/makingbarclamps:
     order: 5000
-    crowbar+devguide+create-stub:
+    crowbar/devguide/create-stub:
       order: 1000
-    crowbar+devguide+barclamp-metadata:
+    crowbar/devguide/barclamp-metadata:
       order: 1000
-      crowbar+devguide+adding-navigation:
-      crowbar+devguide+locatization:
-  crowbar+devguide+api:
+      crowbar/devguide/adding-navigation:
+      crowbar/devguide/locatization:
+  crowbar/devguide/api:
     order: 6000
-    crowbar+devguide+api+status:
+    crowbar/devguide/api/status:
       order: 1000
-    crowbar+devguide+api+node:
+    crowbar/devguide/api/node:
       order: 2000
-    crowbar+devguide+api+group:
+    crowbar/devguide/api/group:
       order: 2200
-    crowbar+devguide+api+network:
-      order: 2400
-    crowbar+devguide+api+barclamp:
+    crowbar/devguide/api/barclamp:
       order: 5000
-    crowbar+devguide+api+proposal:
+    crowbar/devguide/api/proposal:
       order: 9000
-  crowbar+devguide+testing:
+  crowbar/devguide/testing:
     order: 8000
-    crowbar+devguide+testing+devtool:
+    crowbar/devguide/testing/devtool:
       order: 100
-    crowbar+devguide+testing+units:
+    crowbar/devguide/testing/units:
       order: 1000
-    crowbar+devguide+testing+bdd:
+    crowbar/devguide/testing/bdd:
       order: 2000
-  crowbar+devguide+building:
+  crowbar/devguide/building:
     order: 9000
 
-crowbar+book-licenses:
+crowbar/book-licenses:
   order: 99999
   url: '/docs'
-  crowbar+licenses-crowbar-meta:
-    - crowbar+licenses
+  crowbar/licenses-crowbar-meta:
+    - crowbar/licenses
 

@@ -102,8 +102,8 @@ start(Config) ->
     false -> 
       application:start(crypto),
       application:start(inets),
-    	bdd_utils:is_site_up(Config),
-      SetupConfig = step_run(Config, [], {step_setup, 0, "Global"}, [Global]),  
+    	AzConfig = bdd_utils:is_site_up(Config),
+      SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       [{started, true} | SetupConfig ];
   	_ -> Config
 	end.

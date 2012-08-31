@@ -51,7 +51,6 @@ class CreateNavs < ActiveRecord::Migration
 
     # help
     Nav.find_or_create_by_item :item=>'help', :parent_item=>'root', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>9999
-      Nav.find_or_create_by_item :item=>'docs', :parent_item=>'help', :name=>'nav.docs', :description=>'nav.docs_description', :path=>"docs_path", :order=>100
       Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"https://github.com/dellcloudedge/crowbar/wiki/", :order=>200
 
     # users

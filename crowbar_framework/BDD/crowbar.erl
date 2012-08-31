@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, g/1]).
+-export([step/3, validate/1, g/1]).
 -import(bdd_utils).
 -import(json).
 
@@ -25,6 +25,28 @@ g(Item) ->
     node_atom -> global_node
   end.
 
+validate(JSON) ->
+  try JSON of
+    J ->
+        {"created_at", _CreatedAt} = lists:keyfind("created_at", 1, J),
+        {"description",_Description} = lists:keyfind("description", 1, J),
+        {"id",Id} = lists:keyfind("id", 1, J),
+        {"name",Name} = lists:keyfind("name", 1, J), 
+        {"order",Order}  = lists:keyfind("order", 1, J), 
+        {"updated_at",_UpdatedAt} = lists:keyfind("updated_at", 1, J), 
+        R = [bdd_utils:is_a(number, Order), 
+            bdd_utils:is_a(name, Name), 
+            bdd_utils:is_a(number, Id)],
+        case bdd_utils:assert(R)of
+          true -> true;
+          false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
+        end
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
+	
+	
 % node setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
   Node = nodes:json(g(node_name), Test ++ " BDD Testing Only - should be automatically removed", 100),
@@ -39,23 +61,17 @@ step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"
   SetupID = bdd_utils:config(Config, list_to_atom(Atom)),
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
   SetupID =:= json:value(JSON, ID);
-                                                              
-% combine multiple steps into a single event
-%step(_Config, _Result, {step_then, _N, ["the object should comply with API rules"]}) -> false;
-step(Config, Result, {step_then, N, ["the object should comply with API rules"]}) -> 
-  R = [bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","id"]}),
-       bdd_webrat:step(Config, Result, {step_then, N, ["And key", "id", "should be a number"]}),
-       bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","order"]}),
-       bdd_webrat:step(Config, Result, {step_then, N, ["And key", "order", "should be a number"]}),
-       bdd_webrat:step(Config, Result, {step_then, N, ["And there should be a key","updated_at"]})],
-  case R of 
-    [false, _, _, _, _] -> io:format("FAILED: API rules check: id exists.");
-    [_, false, _, _, _] -> io:format("FAILED: API rules check: id number.");
-    [_, _, false, _, _] -> io:format("FAILED: API rules check: order exists.");
-    [_, _, _, false, _] -> io:format("FAILED: API rules check: order number.");
-    [_, _, _, _, false] -> io:format("FAILED: API rules check: updated_at exists.")
-  end,
-  bdd_utils:assert(R);
+                                                                
+% validate object based on basic rules for Crowbar
+step(_Config, Result, {step_then, _N, ["the object is properly formatted"]}) -> 
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+  crowbar:validate(JSON);
+  
+% validate object based on it the validate method in it's ERL file (if any)
+step(_Config, Result, {step_then, _N, ["the", Type, "object is properly formatted"]}) -> 
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+  Feature = list_to_atom(Type),
+  apply(Feature, validate, [JSON]);
 
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     

@@ -24,4 +24,8 @@ class Doc < ActiveRecord::Base
 
   validates_uniqueness_of :name, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
   
+  def tree
+    
+  end
+  
 end

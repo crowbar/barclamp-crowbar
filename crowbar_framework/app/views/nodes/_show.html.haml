@@ -17,7 +17,7 @@
     - if @node.cmdb_switch_unit.nil?
       = dl_item(t('switch_name_port', :scope=>s), "#{@node.cmdb_switch_name || t('unknown') } / #{@node.cmdb_switch_port || t('unknown')}")
     - else
-      = dl_item(t('switch_name_unit_port', :scope=>s), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))    
+      = dl_item(t('switch_name_unit_port', :scope=>s), link_to("#{@node.cmdb_switch_name || t('unknown') } / #{@node.cmdb_switch_unit || ''} / #{@node.cmdb_switch_port || t('unknown')}", switch_path(:node=>@node.id)))    
     = dl_item(t('mac', :scope=>s), @node.cmdb_mac || t('unknown'))
     = dl_item(t('allocated', :scope=>s), (@node.allocated? ? t('.active') : t('.inactive')))
 

@@ -21,6 +21,6 @@ class Nav < ActiveRecord::Base
   belongs_to :parent, :class_name => "Nav", :foreign_key => "parent_item"
   has_many :children, :class_name => "Nav", :foreign_key => "parent_item", :order => "[order] ASC", :conditions=>(Rails.env.eql?('development') ? [] : ['development=?', false])
   
-  validates_uniqueness_of :item, :case_sensitive => false, :on => :create, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_uniqueness_of :item, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
 end

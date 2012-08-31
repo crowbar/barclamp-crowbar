@@ -12,3 +12,5 @@ Steps to execute tests on an installed admin node:
 1. `rake test:units`
 
 Each barclamp can add tests by dumping them into the test directory.  The unit tests will pick them up and attempt to run them.
+
+> If you want to run just 1 test file, use `rake test:units TEST=test/unit/i18n_test.rb` or similar

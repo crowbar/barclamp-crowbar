@@ -11,10 +11,17 @@
   
   %body
     %header
+      - if current_user != nil
+        %div{:style=>'float:right; padding-right: 5px; padding-top:3px'}
+          =t 'user.singed_in_as'
+          =current_user.username
+          %span .
+          =link_to( "Sign out.", destroy_user_session_path, :method=>'delete', :style=>'padding-left:10px' )
       .container
         %h1
           %a{:href => "/"}
             %span logo
+        -if current_user != nil
         %nav
           = render_navigation :expand_all => true, :skip_if_empty => true
     

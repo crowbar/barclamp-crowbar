@@ -14,7 +14,7 @@
 % 
 % 
 -module(groups).
--export([step/3, json/3, json/4, validate/1]).
+-export([step/3, json/3, json/4, g/1, validate/1]).
 	
 validate(JSON) ->
   try JSON of
@@ -34,7 +34,7 @@ g(Item) ->
   case Item of
     path -> "group/2.0";
     name1 -> "bddthings";
-    atom1 -> group1
+    atom1 -> group1;
     name2 -> "bdddelete";
     atom2 -> group2
   end.

@@ -40,9 +40,6 @@ Crowbar::Application.routes.draw do
     get 'status', :on => :collection
   end
 
-  # 2.0 API Pattern
-  scope '2.0' do
-  end
 
   # documentation / help
   scope 'docs' do
@@ -76,52 +73,29 @@ Crowbar::Application.routes.draw do
     get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
     constraints(:id=> /.*/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
-      get "node/ui/:id" => 'nodes#show', :as => 'node'
+      get "node/:id" => 'nodes#show', :as => 'node'
     end
   end
 
   # API routes
   scope :defaults => {:format=> 'json'} do
+    # 2.0 API Pattern
+    scope '2.0' do
+      constraints(:id => /.*/ ) do
 
-    # status operations
-    scope 'status' do
-      scope '2.0' do
-        constraints(:id => /.*/ ) do
-          get "node(/:id)(.:format)" => 'nodes#status', :as=>'node_status'
+        # status operations
+        scope 'status' do
+          get "node(/:id)" => 'nodes#status', :as=>'node_status'
         end
-      end
-    end
-    
-    # node operations
-    scope 'node' do
-      scope '2.0' do
-        post "/" => "nodes#new"
-        constraints(:id => /.*/ ) do
-          get "/:id" => 'nodes#show'
-          delete "/:id" => 'nodes#delete'
-          put "/:id" => 'nodes#edit'
-        end
-      end
-    end
-    
-    # group operations
-    scope 'group' do
-      scope '2.0' do
-        post "/" => "groups#new"
-        constraints(:id => /.*/ ) do
-          get "/:id(.:format)" => 'groups#show', :as => :groups
-          delete "/:id" => 'groups#delete', :as => :group_delete
-          put "/:id" => 'groups#edit'
-          get "/:id/node(.:format)" => 'groups#node_list'
-          constraints(:node => /.*/ ) do
-            post "/:id/node/:node(.:format)" => 'groups#node_add'
-            delete "/:id/node/:node(.:format)" => 'groups#node_delete'
-            put "/:id/node/:node(.:format)" => 'groups#node_move'
-          end
-        end
-      end
-    end
+        
+        resources :node
+        resources :group
+        
+        # group + node CRUD operations
+        match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /.*/ }
 
+      end
+    end
   end
 
   scope 'nodes' do

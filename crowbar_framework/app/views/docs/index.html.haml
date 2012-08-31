@@ -1,3 +1,6 @@
+- unless @root.name.eql? 'root'
+  %p{:style => 'float:right'}
+    = link_to t('docs.root'), docs_path, :class => 'button'
 %h1= @root.description || t('.title')
 
 - @root.children.each do |book|

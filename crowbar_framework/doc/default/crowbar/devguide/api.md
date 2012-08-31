@@ -24,6 +24,9 @@ The Crowbar 2 API attempts to follow the following behavior pattern.
 
   > Warning: Do NOT use API calls without the version # included!  Calls without version numbers are tightly coupled to the UI screens and do not have any contract at all.  They are expected to be used internally by the UI and not maintained for external users!
 
+#### Digest Authentication
+API callers may bypass the login screen and use digest authentication for all requests by visiting the `/digest` page before making requests to establish a digest session.  API calls will respect either digest or session based logins.
+
 #### Common API URL Patterns:
 
 * UI URLs: _these are undocumented, unsupported for external use, and do not include a version number_

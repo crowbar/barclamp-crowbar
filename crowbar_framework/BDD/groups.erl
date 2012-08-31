@@ -32,7 +32,7 @@ validate(JSON) ->
  
 g(Item) ->
   case Item of
-    path -> "group/2.0";
+    path -> "2.0/group";
     name1 -> "bddthings";
     atom1 -> group1;
     name2 -> "bdddelete";
@@ -45,12 +45,14 @@ json(Name, Description, Order, Category) ->
 	
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  JSON = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON),
-  JSON = json(g(name2), "BDD Testing Only - should be automatically removed", 200),
-  bdd_utils:setup_create(Config, g(path), g(atom2), g(name2), JSON);
+  JSON1 = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
+  Config1 = bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON1),
+  JSON2 = json(g(name2), "BDD Testing Only - should be automatically removed", 200),
+  Config2 = bdd_utils:setup_create(Config1, g(path), g(atom2), g(name2), JSON2),
+  Config2;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
-  bdd_utils:teardown_destroy(Config, g(path), g(atom1)).
+  Config2 = bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
+  Config1 = bdd_utils:teardown_destroy(Config2, g(path), g(atom1)),
+  Config1.

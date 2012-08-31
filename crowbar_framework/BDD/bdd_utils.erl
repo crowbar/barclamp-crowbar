@@ -72,12 +72,14 @@ is_a(Type, Value) ->
 	
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
-  URL = config(Config,url),
-	try eurl:get(Config, []) of
-	  _ -> ok
+  URL = eurl:uri(Config,config(Config,digest_page, "digest")),
+  AzConfig = digest_auth:header(Config, URL),
+	try eurl:get(AzConfig, []) of
+	  _ -> AzConfig
 	catch
 		_: {_, {_, {Z, {Reason, _}}}} -> 
-      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason])
+      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason]),
+      Config
 	end.
 
 % returns value for key from Config (error if not found)

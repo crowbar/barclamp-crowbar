@@ -90,7 +90,7 @@ class GroupsController < ApplicationController
   end
 
   # RESTful delete of the node
-  def delete
+  def destroy
     if request.delete?
       Group.delete Group.find_key(params[:id]).id
       render :text => "Group #{params[:id]} deleted!"
@@ -100,7 +100,7 @@ class GroupsController < ApplicationController
   end
   
   # RESTful create
-  def new
+  def create
     if request.post?
       @group = Group.create! params
       render :json => @group

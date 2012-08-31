@@ -4,7 +4,7 @@ Feature: Nodes
   wants to be able to check the status of nodes
 
   Scenario: Status Empty
-    When AJAX requests the "status/2.0/node" page
+    When AJAX requests the "2.0/status/node" page
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"
@@ -14,7 +14,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
 
   Scenario: Status Non Nodes
-    When AJAX requests the "status/2.0/node/0" page
+    When AJAX requests the "2.0/status/node/0" page
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"
@@ -25,7 +25,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
 
   Scenario: Node Detail
-    When I go to the "node/ui/bdd1.example.com" page
+    When I go to the "node/bdd1.example.com" page
     Then I should see "Full Name"
       And I should see "State"
       And I should see "Uptime"
@@ -38,7 +38,7 @@ Feature: Nodes
       And I should see a link to "Edit"
 
   Scenario: Node Detail AJAX
-    When AJAX requests the "node/2.0/bdd1.example.com" page
+    When AJAX requests the "2.0/node/bdd1.example.com" page
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And there should be a key "name"
@@ -53,7 +53,7 @@ Feature: Nodes
       And the object is properly formatted
 
   Scenario: Node Detail using BDD setup
-    When AJAX requests the "node/2.0/bdd1.example.com?format=json" page
+    When AJAX requests the "2.0/node/bdd1.example.com" page
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And key "name" should be "bdd1.example.com"

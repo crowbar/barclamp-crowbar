@@ -77,7 +77,10 @@ Crowbar::Application.routes.draw do
     end
   end
 
-  # API routes
+  # Digest Auth 
+  get 'digest' => 'digest#index'  
+  
+  # API routes (must be json and must prefix 2.0)
   scope :defaults => {:format=> 'json'} do
     # 2.0 API Pattern
     scope '2.0' do
@@ -88,8 +91,9 @@ Crowbar::Application.routes.draw do
           get "node(/:id)" => 'nodes#status', :as=>'node_status'
         end
         
-        resources :node
-        resources :group
+        # basic CRUD operations
+        resources :node, :controller=>'nodes'
+        resources :group, :controller=>'groups'
         
         # group + node CRUD operations
         match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /.*/ }

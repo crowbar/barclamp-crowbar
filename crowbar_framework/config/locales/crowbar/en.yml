@@ -465,4 +465,8 @@ en:
     failed_attempts: Failed Signins
     last_sign_in_at: Last Signed In
     last_sign_in_ip: IP of Last Sign In
+<<<<<<< HEAD
     digest_success: User Authenticated using Digest Authentication
+=======
+    singed_in_as: You are signed in as 
+>>>>>>> b43234ce6cdae86ca5f5d0a18b812baebd939acb

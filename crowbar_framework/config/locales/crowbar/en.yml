@@ -59,13 +59,13 @@ en:
     sign_out_description: End the current session
 
     books:
-      crowbar/book-barclamps: Barclamps
-      crowbar/book-deployguide: Deploy Guide
-      crowbar/book-developersguide: Dev Guide
-      crowbar/book-gettingstarted: Getting Started
-      crowbar/book-licenses: Licenses
-      crowbar/book-releasenotes: Release Notes
-      crowbar/book-userguide: User Guide
+      crowbar/barclamps: Barclamps
+      crowbar/deployguide: Deploy Guide
+      crowbar/devguide: Dev Guide
+      crowbar/gettingstarted: Getting Started
+      crowbar/licenses: Licenses
+      crowbar/releasenotes: Release Notes
+      crowbar/userguide: User Guide
     
     scaffold:
       top: Scaffolds
@@ -475,4 +475,6 @@ en:
     last_sign_in_ip: IP of Last Sign In
     digest_success: User Authenticated using Digest Authentication
     signed_in_as: "You are signed in as %{user}"
-    eula: User License
+    digested_as: "Digest [%{user}] Authenticated"
+    license: License Details
+    license_accept: "By signing in, you are accepting the relevant licenses"

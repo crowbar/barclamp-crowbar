@@ -31,10 +31,13 @@ class DigestController < ApplicationController
 
   private
   
-    # does the magic auth
-    def authenticate
-      authenticate_or_request_with_http_digest(REALM) do |username|
-        USERS[username]
-      end
+  # does the magic auth
+  def authenticate
+    authenticate_or_request_with_http_digest(REALM) do |username|
+      session[:ip_address] = request.remote_addr
+      session[:digest_user] = username
+      USERS[username]
     end
+  end
+
 end

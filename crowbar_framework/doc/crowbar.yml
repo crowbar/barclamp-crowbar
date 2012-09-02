@@ -2,12 +2,27 @@
 license: Apache 2
 copyright: 2012 by Dell, Inc
 author: Dell CloudEdge Team
-date: Aug 30, 2012
+date: Sept 2, 2012
 
-crowbar/book-gettingstarted:
+crowbar/gettingstarted:
   order: 100
+  crowbar/gettingstarted/beforeyoubegin:
+    order: 1000
+  crowbar/gettingstarted/firststeps:
+    order: 3000
+  crowbar/gettingstarted/running:
+    order: 6000
+  crowbar/gettingstarted/nextsteps:
+    order: 9000
+
+crowbar/releasenotes:
+  order: 500
+  crowbar/releasenotes/version1x:
+    order: 1000
+  crowbar/releasenotes/version20:
+    order: 2000
   
-crowbar/book-userguide:
+crowbar/userguide:
   order: 1000
   crowbar/userguide/ui-general:
     order: 10
@@ -18,17 +33,17 @@ crowbar/book-userguide:
     crowbar/userguide/utils-export:
       url: '/utils/index'
 
-
-crowbar/book-barclamps:
+crowbar/barclamps:
   order: 2500
-  crowbar/barclamp-info-meta:
-    - crowbar/barclamp-info
+  crowbar/barclamps/crowbar: 
+    - crowbar/barclamps/crowbar/barclamp
     
-crowbar/book-deployguide:
+crowbar/deployguide:
   order: 5000
+  crowbar/deployguide/introduction:
+    order: 100
     
-crowbar/book-developersguide:
-  author: Rob Hirschfeld
+crowbar/devguide:
   date: August 30, 2012
   order: 6000
   crowbar/devguide/documentation:
@@ -64,9 +79,8 @@ crowbar/book-developersguide:
   crowbar/devguide/building:
     order: 9000
 
-crowbar/book-licenses:
+crowbar/licenses:
   order: 99999
-  url: '/docs'
-  crowbar/licenses-crowbar-meta:
-    - crowbar/licenses
+  crowbar/licenses/crowbar:
+    - crowbar/licenses/crowbar/licenses
 

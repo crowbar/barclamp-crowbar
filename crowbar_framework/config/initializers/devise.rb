@@ -1,3 +1,17 @@
+# Copyright 2011, Dell 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#  http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+# 
 #Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
@@ -55,13 +69,13 @@ Devise.setup do |config|
   # It can be set to an array that will enable http authentication only for the
   # given strategies, for example, `config.http_authenticatable = [:token]` will
   # enable it only for token authentication.
-  # config.http_authenticatable = false
+  config.http_authenticatable = true
 
   # If http headers should be returned for AJAX requests. True by default.
   # config.http_authenticatable_on_xhr = true
 
   # The realm used in Http Basic Authentication. "Application" by default.
-  # config.http_authentication_realm = "Application"
+  config.http_authentication_realm = "Crowbar - By selecting OK are agreeing to the License Agreement"
 
   # It will change confirmation, password recovery and other workflows
   # to behave the same regardless if the e-mail provided was right or wrong.
@@ -223,10 +237,10 @@ Devise.setup do |config|
   # If you want to use other strategies, that are not supported by Devise, or
   # change the failure app, you can configure them inside the config.warden block.
   #
-  # config.warden do |manager|
-  #   manager.intercept_401 = false
-  #   manager.default_strategies(:scope => :user).unshift :some_external_strategy
-  # end
+  #config.warden do |manager|
+     #manager.intercept_401 = false
+     #manager.default_strategies(:scope => :user).unshift :some_external_strategy
+  #end
 
   # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine

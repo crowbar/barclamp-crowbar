@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2012, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
 
 require 'uri'
 
@@ -21,10 +19,7 @@ require 'uri'
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
 
-  @@users = nil
-  
-  #before_filter :digest_authenticate, :if => :need_to_auth?
-  before_filter :authenticate_user!
+  before_filter :authenticate_user! #, :if => :need_to_auth?
 
   # Basis for the reflection/help system.
   
@@ -104,73 +99,9 @@ class ApplicationController < ActionController::Base
   
   private  
   
-  @@auth_load_mutex = Mutex.new
-  @@realm = ""
-  
-  def need_to_auth?()
-    return false unless File::exists? "htdigest"
-    ip = session[:ip_address] rescue nil
-    #puts "checking session saved: #{ip} remote #{request.remote_addr}"    
-    return false if ip == request.remote_addr
-    return true
+  #return true if we digest signed in
+  def need_to_auth?
+    not request.remote_addr.eql? session[:ip_address] 
   end
-  
-  def digest_authenticate
-    load_users()    
-    ret = authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
-    #puts "return is: #{ret}"
-    ## only create the session if we're authenticated
-    if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
-      #puts "authenticated user !!"
-      session[:ip_address] = request.remote_addr
-    end
-  end
-  
-  def find_user(username) 
-    #puts "have username: #{username}"
-    #puts "have @@users: #{@@users.nil? ? "nil" : @@users.inspect}"
-    return false if !@@users || !username
-    user = @@users[username]
-    return false unless user
-    #puts "have user with password: #{user[:password]}"
-    return user[:password] || false   
-  end
-  
-  ##
-  # load the ""user database"" but be careful about thread contention.
-  # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
-  $htdigest_reload =true
-  $htdigest_timestamp = Time.now()
-  def load_users
-    unless $htdigest_reload
-      f = File.new("htdigest")
-      if $htdigest_timestamp != f.mtime
-        $htdigest_timestamp = f.mtime
-        $htdigest_reload = true
-      end
-    end
-    return if @@users and !$htdigest_reload  
 
-    ## only 1 thread should load stuff..(and reset the flag)
-    @@auth_load_mutex.synchronize  do
-      $htdigest_reload = false if $htdigest_reload   
-    end
-
-    puts "reloading htdigest"
-    ret = {}
-    data = IO.readlines("htdigest")
-    data.each { |entry|
-      next if entry.strip.length ==0
-      list = entry.split(":") ## format: user : realm : hashed pass
-      user = list[0].strip rescue nil
-      password = list[2].strip rescue nil
-      realm = list[1].strip rescue nil
-      ret[user] ={:realm => realm, :password => password}  
-    }
-    @@auth_load_mutex.synchronize  do 
-        @@users = ret.dup
-        @@realm = @@users.values[0][:realm]
-    end
-    ret
-  end
 end

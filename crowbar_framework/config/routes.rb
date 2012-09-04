@@ -122,6 +122,7 @@ Crowbar::Application.routes.draw do
  
   devise_for :users
   devise_scope :user do
+    match "users/sign_in", :controller => 'users', :action =>'sign_in', :as=> :sign_in
     match "users/sign_out", :controller => 'users', :action =>'sign_out'
     match "manage_users", :controller => 'users', :action => 'index'
   end

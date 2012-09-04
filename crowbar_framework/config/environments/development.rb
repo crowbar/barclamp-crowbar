@@ -42,8 +42,5 @@ CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
 CHEF_NODE_NAME ="crowbar"
 CHEF_SERVER_URL = "http://192.168.124.10:4000"
 CROWBAR_VERSION = "Development"
-CHEF_ONLINE = File.exist? CHEF_CLIENT_KEY
-OFFLINE_FILES_DIR = 'db'
-#OFFLINE_DOMAIN = 'dell.com'  #used when the cache domain is not the same as the server domain
 
 end

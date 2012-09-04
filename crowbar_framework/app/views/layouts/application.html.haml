@@ -27,14 +27,12 @@
           %nav
             = link_to t('user.sign_in'),  sign_in_path
     
-    - if flash[:notice] || !CHEF_ONLINE
+    - if flash[:notice]
       .notice#flash
         .container
           %p
             = flash[:notice]
             = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
-          - if !CHEF_ONLINE
-            %p= t "offline"
 
     #main_body.container
       = yield

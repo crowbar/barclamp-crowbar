@@ -24,6 +24,7 @@ export RAILS_ENV=development
 export DEBUG=true 
 cd /opt/dell/crowbar_framework/
 chmod 777 -R .
+chown crowbar -R .
 rake db:create
 rake db:migrate
 rails s Puma

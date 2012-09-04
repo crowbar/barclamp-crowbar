@@ -11,19 +11,21 @@
   
   %body
     %header
-      - if current_user != nil
-        %div{:style=>'float:right; padding-right: 5px; padding-top:3px'}
-          =t 'user.singed_in_as'
-          =current_user.username
-          %span .
-          =link_to( "Sign out.", destroy_user_session_path, :method=>'delete', :style=>'padding-left:10px' )
       .container
         %h1
           %a{:href => "/"}
             %span logo
-        -if current_user != nil
-        %nav
-          = render_navigation :expand_all => true, :skip_if_empty => true
+        - if current_user
+          %div{:style=>'float:right; padding-top:10px; z-index:10; height:0px'}
+            = t 'user.signed_in_as', :user=>current_user.username
+            (
+            = link_to t('user.sign_out'), destroy_user_session_path, :method=>'delete'
+            )
+          %nav
+            = render_navigation :expand_all => true, :skip_if_empty => true
+        - else
+          %nav
+            = link_to t('user.sign_in'),  sign_in_path
     
     - if flash[:notice] || !CHEF_ONLINE
       .notice#flash

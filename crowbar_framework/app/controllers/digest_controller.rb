@@ -21,6 +21,7 @@ class DigestController < ApplicationController
   REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
   USERS = { "crowbar" => Digest::MD5.hexdigest(["crowbar",REALM,"crowbar"].join(":"))}  #ha1 digest password
 
+  skip_before_filter :authenticate_user!
   before_filter :authenticate
 
   # Will only show this page if you digest auth

@@ -77,22 +77,28 @@ class DocsController < ApplicationController
     return text
   end
   
+  # helper builds the path for routines later
   def page_path(path, name, language='default')
     File.join path, language, name.gsub("+", "/")+'.md'
   end
   
+  # creates the table of contents from the files
   def gen_doc_index(path)    
     root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('.root', :scope=>'docs'), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
     root = Doc.find_or_create_by_name root_default
-    Dir.entries(path).each do |bc_index|
+    Barclamp.all.sort.each do |barclamp|
+      bc = barclamp.name
+      bc_index = File.join path, "#{bc}.yml"
       # collect all the index files
-      if bc_index =~ /(.*).yml$/
-        bc = bc_index[/(.*).yml$/,1]
+      if File.exist? bc_index
         begin 
-          topic = YAML.load_file File.join(path, bc_index)
+          topic = YAML.load_file bc_index
           default = topic.clone.delete_if{ |k, v| k.to_s.gsub("+","/").include? "/" }
           default = root_default.merge default 
+          # explore the YML file for meta data
           topic.each { |t, p| create_doc(path, bc, 'root', t, p, default) }
+          # pickup files just based on directoy search
+          discover_docs(path, barclamp, default)
         rescue 
           flash[:notice] = I18n.t('docs.parseerror', :path=>bc_index)
         end
@@ -101,6 +107,47 @@ class DocsController < ApplicationController
     root
   end 
 
+  # find the parent of a doc using the membership associations
+  def find_parent(barclamp, directory)
+    parts = directory.split('/')
+    # look for parent
+    p = Doc.find_by_name parts[2..1000].join('/')
+    # if not found, try the barclamp parent
+    if p.nil?
+      barclamp.parents.each do |parent|
+        parts[2] = parent.name
+        p = Doc.find_by_name parts[2..1000].join('/')
+        break if p
+      end
+    end
+    return p
+  end
+  
+  # scan the directories and find files that were not in the YML catalogs
+  def discover_docs(path, barclamp, defaults, language='default', tree=nil)
+    scan = (tree ? tree : File.join(path, language, barclamp.name))
+    Dir.entries(scan).each do |doc_file|
+      if doc_file =~ /(.*).md$/
+        doc = doc_file[/(.*).md$/,1]
+        name = "#{scan}/#{doc}"[/#{path}\/#{language}\/(.*)/,1]
+        # don't add if we already have it
+        unless Doc.find_by_name name
+          # you must have a parent to add a doc
+          parent = find_parent barclamp, scan
+          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent 
+        else
+        end
+      elsif ['.', '..'].include? doc_file
+        # nothing, it's the currrent dir
+      else
+        # recurse into the child directories
+        tree = File.join(scan, doc_file)
+        discover_docs(path, barclamp, defaults, language, tree) if File.directory?(tree)
+      end
+    end
+  end
+  
+  # using information from the catalog, add the entries into the database
   def create_doc(path, barclamp, parent, name, values, defaults)
     children = {}
     props = defaults.clone
@@ -122,30 +169,38 @@ class DocsController < ApplicationController
       end
       if name_bc.eql? barclamp #topic is sourced from this barclamp
         file = page_path path, name
-        title = if File.exist? file
-          begin
-            actual_title = File.open(file, 'r').readline
-            actual_title[/(#*)(.*)/,2].strip       
-          rescue 
-            name.gsub("/"," ").titleize
-          end
-        else
-          name.gsub("/"," ").titleize
-        end
-        t = Doc.find_or_initialize_by_name(name) 
-        t.parent_name = parent
-        t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"
-        t.description = title
-        t.author = props["author"]
-        t.license = props["license"]
-        t.copyright = props["copyright"]
-        t.date = props["date"]
-        t.save!
-      else  #refernce only from a different barclamp
+        doc_to_db name, file, props, parent
+      else  #reference only from a different barclamp
         Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp))
       end
     end
     # recurse children
     children.each { |k, v| create_doc(path, barclamp, name, k, v, props) } unless children.nil?
   end
+  
+  # helper used by explicit and discovered adds
+  def doc_to_db(name, file, props, parent)
+    # title comes from the first line of the file
+    title = if File.exist? file
+      begin
+        actual_title = File.open(file, 'r').readline
+        actual_title[/(#*)(.*)/,2].strip       
+      rescue 
+        # if that fails, use the name/path
+        name.gsub("/"," ").titleize
+      end
+    else
+      name.gsub("/"," ").titleize
+    end
+    t = Doc.find_or_initialize_by_name(name) 
+    t.parent_name = parent
+    t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"
+    t.description = title
+    t.author = props["author"]
+    t.license = props["license"]
+    t.copyright = props["copyright"]
+    t.date = props["date"]
+    t.save!
+  end
+
 end

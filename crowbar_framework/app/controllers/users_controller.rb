@@ -16,6 +16,8 @@ class UsersController < Devise::SessionsController
 
   # remove the user credientals
   def sign_out
+    session[:ip_address] = nil
+    session[:digest_user] = nil
     destroy
   end
 

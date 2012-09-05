@@ -98,6 +98,11 @@ Crowbar::Application.routes.draw do
         # group + node CRUD operations
         match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /.*/ }
 
+        get    "crowbar/2.0/network/networks", :controller => 'network', :action=>'networks'
+        get    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_show'
+        post   "crowbar/2.0/network/networks", :controller => 'network', :action=>'network_create'
+        put    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_update'
+        delete "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_delete'
       end
     end
   end
@@ -129,12 +134,6 @@ Crowbar::Application.routes.draw do
   
   scope 'crowbar' do
     version = "2.0"
-
-    get    "#{version}/network/2.0/networks", :controller => 'network', :action=>'networks'
-    get    "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_show'
-    post   "#{version}/network/2.0/networks", :controller => 'network', :action=>'network_create'
-    put    "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_update'
-    delete "#{version}/network/2.0/networks/:id", :controller => 'network', :action=>'network_delete'
 
     version = "1.0"
 

@@ -19,7 +19,7 @@ require 'uri'
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
 
-  before_filter :authenticate_user! #, :if => :need_to_auth?
+  before_filter :authenticate_user!, :if => :need_to_auth?
 
   # Basis for the reflection/help system.
   

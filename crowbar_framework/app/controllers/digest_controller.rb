@@ -26,7 +26,11 @@ class DigestController < ApplicationController
 
   # Will only show this page if you digest auth
   def index
-    render :text => t('user.digest_success', :default=>'success')
+    if session[:digest_user]
+      render :text => t('user.digest_success', :default=>'success')
+    else
+      render :text => "digest", :status => :unauthorized
+    end
   end
 
   private
@@ -38,6 +42,7 @@ class DigestController < ApplicationController
       session[:digest_user] = username
       USERS[username]
     end
+    warden.custom_failure! if performed?
   end
 
 end

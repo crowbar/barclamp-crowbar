@@ -16,8 +16,6 @@
 # 
 class RoleObject < ChefObject
 
-  extend CrowbarOffline
-
   def self.all
     self.find_roles_by_search(nil)
   end
@@ -33,49 +31,35 @@ class RoleObject < ChefObject
   
   def self.find_roles_by_name(name)
     roles = []
-    if CHEF_ONLINE
-      #TODO this call could be moved to fild_roles_by_search
-      arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
-      if arr[2] != 0
-        roles = arr[0].map { |x| RoleObject.new x }
-        roles.delete_if { |x| x.nil? or x.role.nil? }
-      end
-    else
-      roles = find_roles_by_search name
+    #TODO this call could be moved to fild_roles_by_search
+    arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
+    if arr[2] != 0
+      roles = arr[0].map { |x| RoleObject.new x }
+      roles.delete_if { |x| x.nil? or x.role.nil? }
     end
     roles
   end
 
   def self.find_roles_by_search(search)
     roles = []
-    if CHEF_ONLINE
-      arr = if search.nil?
-        ChefObject.query_chef.search "role"
-      else
-        ChefObject.query_chef.search "role", search
-      end
-      if arr[2] != 0
-        roles = arr[0].map { |x| RoleObject.new x }
-        roles.delete_if { |x| x.nil? or x.role.nil? }
-      end
-    else
-      files = offline_search 'role-', search
-      roles = files.map! { |f| RoleObject.new(recover_json(f)) }
+    arr = if search.nil?
+            ChefObject.query_chef.search "role"
+          else
+            ChefObject.query_chef.search "role", search
+          end
+    if arr[2] != 0
+      roles = arr[0].map { |x| RoleObject.new x }
+      roles.delete_if { |x| x.nil? or x.role.nil? }
     end
     roles
   end
 
   def self.find_role_by_name(name)
-    if CHEF_ONLINE
-      begin
-        chef_init
-        return RoleObject.new Chef::Role.load(name)
-      rescue
-        return nil
-      end
-    else
-      answer = self.recover_json(self.nfile('role',name))
-      return answer.nil? ? nil : RoleObject.new(answer)
+    begin
+      chef_init
+      return RoleObject.new Chef::Role.load(name)
+    rescue
+      return nil
     end
   end
 
@@ -149,11 +133,7 @@ class RoleObject < ChefObject
       @role.override_attributes[barclamp]["crowbar-revision"] = @role.override_attributes[barclamp]["crowbar-revision"] + 1
     end
     Rails.logger.debug("Saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
-    if CHEF_ONLINE
-      @role.save
-    else
-      RoleObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
-    end
+    @role.save
     Rails.logger.debug("Done saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
   end
 
@@ -169,10 +149,6 @@ class RoleObject < ChefObject
 
   def run_list
     @role.run_list
-  end
-  
-  def export
-    RoleObject.dump @role, 'role', name 
   end
 
 end

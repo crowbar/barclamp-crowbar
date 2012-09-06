@@ -36,7 +36,6 @@ require 'json'
 # 
 
 class ServiceObject
-  extend CrowbarOffline
 
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
@@ -293,7 +292,6 @@ class ServiceObject
   #
   def validate_proposal proposal
     path = "/opt/dell/chef/data_bags/crowbar"
-    path = "schema" unless CHEF_ONLINE
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
 
@@ -403,86 +401,84 @@ class ServiceObject
       @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
-      if CHEF_ONLINE
-        # 
-        # XXX: We used to do this twice - do we really need twice???
-        # Yes! We do!  The system has some transient issues that are hidden
-        # but the double run for failing nodes.  For now, we will do this.
-        # Make this better one day.
-        #
-        pids = {}
-        unless snodes.empty?
-          snodes.each do |node|
-            filename = "log/#{node.name}.chef_client.log"
-            pid = run_remote_chef_client(node.name, "chef-client", filename)
-            pids[pid] = node.name
+      #
+      # XXX: We used to do this twice - do we really need twice???
+      # Yes! We do!  The system has some transient issues that are hidden
+      # but the double run for failing nodes.  For now, we will do this.
+      # Make this better one day.
+      #
+      pids = {}
+      unless snodes.empty?
+        snodes.each do |node|
+          filename = "log/#{node.name}.chef_client.log"
+          pid = run_remote_chef_client(node.name, "chef-client", filename)
+          pids[pid] = node.name
+        end
+        status = Process.waitall
+        badones = status.select { |x| x[1].exitstatus != 0 }
+
+        unless badones.empty?
+          badones.each do |baddie|
+            node = pids[baddie[0]]
+            @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
+            filename = "log/#{node}.chef_client.log"
+            pid = run_remote_chef_client(node, "chef-client", filename)
+            pids[pid] = node
           end
           status = Process.waitall
           badones = status.select { |x| x[1].exitstatus != 0 }
 
           unless badones.empty?
+            message = "Failed to apply the proposal to: "
             badones.each do |baddie|
-              node = pids[baddie[0]]
-              @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "log/#{node}.chef_client.log"
-              pid = run_remote_chef_client(node, "chef-client", filename)
-              pids[pid] = node
+              message = message + "#{pids[baddie[0]]} "
             end
-            status = Process.waitall
-            badones = status.select { |x| x[1].exitstatus != 0 }
-
-            unless badones.empty?
-              message = "Failed to apply the proposal to: "
-              badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
-              end
-              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
-              q = ProposalQueue.get_queue('prop_queue', @logger)
-              q.restore_to_ready(all_nodes)
-              q.process_queue unless in_queue
-              return [ 405, message ] 
-            end
+            ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            q = ProposalQueue.get_queue('prop_queue', @logger)
+            q.restore_to_ready(all_nodes)
+            q.process_queue unless in_queue
+            return [405, message]
           end
         end
+      end
 
-        unless admin_list.empty?
-          admin_list.each do |node|
-            filename = "log/#{node.name}.chef_client.log"
-            pid = run_remote_chef_client(node.name, "/opt/dell/bin/single_chef_client.sh", filename)
-            pids[pid] = node.name
+      unless admin_list.empty?
+        admin_list.each do |node|
+          filename = "log/#{node.name}.chef_client.log"
+          pid = run_remote_chef_client(node.name, "/opt/dell/bin/single_chef_client.sh", filename)
+          pids[pid] = node.name
+        end
+        status = Process.waitall
+        badones = status.select { |x| x[1].exitstatus != 0 }
+
+        unless badones.empty?
+          badones.each do |baddie|
+            node = pids[baddie[0]]
+            @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
+            filename = "log/#{node}.chef_client.log"
+            pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
+            pids[pid] = node
           end
           status = Process.waitall
           badones = status.select { |x| x[1].exitstatus != 0 }
 
           unless badones.empty?
+            message = "Failed to apply the proposal to: "
             badones.each do |baddie|
-              node = pids[baddie[0]]
-              @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "log/#{node}.chef_client.log"
-              pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
-              pids[pid] = node
+              message = message + "#{pids[baddie[0]]} "
             end
-            status = Process.waitall
-            badones = status.select { |x| x[1].exitstatus != 0 }
-
-            unless badones.empty?
-              message = "Failed to apply the proposal to: "
-              badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
-              end
-              ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
-              q = ProposalQueue.get_queue('prop_queue', @logger)
-              q.restore_to_ready(all_nodes)
-              q.process_queue unless in_queue
-              return [ 405, message ] 
-            end
+            ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            q = ProposalQueue.get_queue('prop_queue', @logger)
+            q.restore_to_ready(all_nodes)
+            q.process_queue unless in_queue
+            return [405, message]
           end
         end
       end
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
+    system("sudo -i /opt/dell/bin/single_chef_client.sh") if !ran_admin
 
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_APPLIED, "")
     q = ProposalQueue.get_queue('prop_queue', @logger)

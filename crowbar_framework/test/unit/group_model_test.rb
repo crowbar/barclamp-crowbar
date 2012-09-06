@@ -45,8 +45,7 @@ class GroupModelTest < ActiveSupport::TestCase
   test "no dup name+category" do
     g = Group.create! :name=>"foo", :category=>'rack'
     assert_not_nil g, "Node Created"
-    # Note: the exception that is thrown in a build environment running sqlite3 is StatementInvalid
-    assert_raise(ActiveRecord::StatementInvalid) { Group.create!(:name=>"foo", :category=>'rack') }
+    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"foo", :category=>'rack') }
   end
 
 

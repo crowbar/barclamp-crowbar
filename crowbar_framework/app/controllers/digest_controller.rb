@@ -26,15 +26,23 @@ class DigestController < ApplicationController
 
   # Will only show this page if you digest auth
   def index
-    render :text => t('user.digest_success', :default=>'success')
+    if session[:digest_user]
+      render :text => t('user.digest_success', :default=>'success')
+    else
+      render :text => "digest", :status => :unauthorized
+    end
   end
 
   private
   
-    # does the magic auth
-    def authenticate
-      authenticate_or_request_with_http_digest(REALM) do |username|
-        USERS[username]
-      end
+  # does the magic auth
+  def authenticate
+    authenticate_or_request_with_http_digest(REALM) do |username|
+      session[:ip_address] = request.remote_addr
+      session[:digest_user] = username
+      USERS[username]
     end
+    warden.custom_failure! if performed?
+  end
+
 end

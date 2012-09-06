@@ -56,7 +56,6 @@ class CreateNavs < ActiveRecord::Migration
     # users
     Nav.find_or_create_by_item :item=>'users', :parent_item=>'root', :name=>'nav.users', :description=>'nav.users_description', :path=>"manage_users_path", :order=>6000
       Nav.find_or_create_by_item :item=>'manage_users', :parent_item=>'users', :name=>'nav.manage_users', :description=>'nav.manage_users_description', :path=>"manage_users_path", :order=>100
-      Nav.find_or_create_by_item :item=>'signout', :parent_item=>'users', :name=>'nav.sign_out', :description=>'nav.sign_out_description', :path=>"destroy_user_session_path", :order=>200
 
   end
 

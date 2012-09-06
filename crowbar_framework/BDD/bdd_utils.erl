@@ -74,7 +74,7 @@ is_a(Type, Value) ->
 is_site_up(Config) ->
   URL = eurl:uri(Config,config(Config,digest_page, "digest")),
   AzConfig = digest_auth:header(Config, URL),
-	try eurl:get(AzConfig, []) of
+	try eurl:get(AzConfig, config(Config,digest_page, "digest")) of
 	  _ -> AzConfig
 	catch
 		_: {_, {_, {Z, {Reason, _}}}} -> 

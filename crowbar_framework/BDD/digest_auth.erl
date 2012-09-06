@@ -114,6 +114,7 @@ calcResponse(DigestLine, User, Password, URI, Method, Nc) ->
 	DigestParams = [ realm_key(R, []) || R <- string:tokens(DigestParamsStr,",")],
 	%% Calculate digest
 	Realm = proplists:get_value("realm", DigestParams),
+bdd_utils:puts("$$ ~p ~p~n", [Realm, DigestParams]),
 	Opaque = proplists:get_value("opaque", DigestParams),
 	Nonce = proplists:get_value("nonce", DigestParams),
 	CNonce = hex(integer_to_list(erlang:trunc(random:uniform()*10000000000000000))),

@@ -1,13 +1,14 @@
 !!!
 %html
   %head
-    %title= "Crowbar: #{ controller.action_name }"
+    %title= "Crowbar"
     = csrf_meta_tags
     = stylesheet_link_tag 'application'
     /[if IE]
       = stylesheet_link_tag 'ie', :media => "all"
     = javascript_include_tag 'application'
     = csrf_meta_tag
+    %link{:rel=>"SHORTCUT ICON", :href=>"/images/icons/bunny.ico"}
   
   %body
     %header
@@ -15,9 +16,12 @@
         %h1
           %a{:href => "/"}
             %span logo
-        - if current_user
+        - if current_user or session[:digest_user]
           %div{:style=>'float:right; padding-top:10px; z-index:10; height:0px'}
-            = t 'user.signed_in_as', :user=>current_user.username
+            -if session[:digest_user]
+              = t 'user.digested_as', :user=>session[:digest_user]
+            -else 
+              = t 'user.signed_in_as', :user=>current_user.username
             (
             = link_to t('user.sign_out'), destroy_user_session_path, :method=>'delete'
             )

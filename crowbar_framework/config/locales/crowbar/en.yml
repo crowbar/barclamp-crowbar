@@ -473,8 +473,14 @@ en:
     failed_attempts: Failed Signins
     last_sign_in_at: Last Signed In
     last_sign_in_ip: IP of Last Sign In
+    is_admin: Is Admin
+    select: Select
     digest_success: User Authenticated using Digest Authentication
     signed_in_as: "You are signed in as %{user}"
     digested_as: "Digest [%{user}] Authenticated"
     license: License Details
     license_accept: "By signing in, you are accepting the relevant licenses"
+    add: Add User
+    delete: Delete Selected
+    reset_password: Reset Password
+    unlock: Unlock

@@ -14,6 +14,7 @@
 # 
 
 require 'uri'
+require 'digest/md5'
 
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
@@ -101,7 +102,17 @@ class ApplicationController < ActionController::Base
   
   #return true if we digest signed in
   def need_to_auth?
-    not request.remote_addr.eql? session[:ip_address] 
-  end
 
+    # if we're using digest in this request then do the digest auth
+    if request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=')
+      #request the digest auth (this should NOT happen unless you are already digested)
+      authenticate_with_http_digest(User::DIGEST_REALM) do |username|
+        User.find_by_username(username).digest_password
+      end
+      return false
+    else
+      return true
+    end
+  end
+  
 end

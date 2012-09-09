@@ -82,8 +82,13 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   case Code of
     401 -> 
       DigestLine = proplists:get_value("www-authenticate", Fields),
-      AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
-      HeaderDigested = Header ++ [{"Authorization", AuthHeader}],
+    	HeaderDigested = case DigestLine of
+	      [$D, $i, $g, $e, $s, $t, $  | _] -> 
+	              AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
+	              Header ++ [{"Authorization", AuthHeader}];
+	      [$B, $a, $s, $i, $c, $ | _] -> Header;
+	      S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
+	    end,
       case Method of 
         get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
         delete -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
@@ -114,7 +119,6 @@ calcResponse(DigestLine, User, Password, URI, Method, Nc) ->
 	DigestParams = [ realm_key(R, []) || R <- string:tokens(DigestParamsStr,",")],
 	%% Calculate digest
 	Realm = proplists:get_value("realm", DigestParams),
-bdd_utils:puts("$$ ~p ~p~n", [Realm, DigestParams]),
 	Opaque = proplists:get_value("opaque", DigestParams),
 	Nonce = proplists:get_value("nonce", DigestParams),
 	CNonce = hex(integer_to_list(erlang:trunc(random:uniform()*10000000000000000))),

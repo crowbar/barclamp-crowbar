@@ -4,6 +4,13 @@
 %h1= t 'user.sign_in'
 
 %section.box#login
+  - if flash[:alert]
+    .notice#flash
+      .container
+        %p
+          = flash[:alert]
+          = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
+
   = form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f|
     %dl
       %dt= f.label :username

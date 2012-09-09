@@ -15,26 +15,20 @@
 # Author: RobHirschfeld
 #
 class NodeObject < ChefObject
-  extend CrowbarOffline
 
   def self.find(search)
     answer = []
-    if CHEF_ONLINE
-      nodes = if search.nil?
-        ChefObject.query_chef.search "node"
-      else
-        ChefObject.query_chef.search "node", "#{chef_escape(search)}"
+    nodes = if search.nil?
+              ChefObject.query_chef.search "node"
+            else
+              ChefObject.query_chef.search "node", "#{chef_escape(search)}"
+            end
+    if nodes[2] != 0 and !nodes[0].nil?
+      nodes[0].delete_if { |x| x.nil? }
+      answer = nodes[0].map do |x|
+        NodeObject.new x
       end
-      if nodes[2] != 0 and !nodes[0].nil?
-        nodes[0].delete_if { |x| x.nil? }
-        answer = nodes[0].map do |x|
-          NodeObject.new x
-        end
-        answer.delete_if { |x| !x.has_chef_server_roles? }
-      end
-    else
-      files = offline_search 'node-', (search.nil? ? '' : search[5..100])
-      answer = files.map! { |f| NodeObject.new(recover_json(f)) }
+      answer.delete_if { |x| !x.has_chef_server_roles? }
     end
     return answer
   end
@@ -53,17 +47,13 @@ class NodeObject < ChefObject
 
   def self.find_node_by_alias(name)
     nodes = []
-    if CHEF_ONLINE 
-      #self.find "alias:#{chef_escape(name)}"
-      # this way is SAFE but very slow - replace when we get a real database
-      candidates = []
-      self.find_all_nodes.each { |n| candidates << n.name  }
-      candidates.each do |n|
-        node = self.find_node_by_name n
-        nodes << node if node.alias == name
-      end
-    else
-      nodes = self.find_all_nodes.keep_if { |n| n.alias==name }
+    #self.find "alias:#{chef_escape(name)}"
+    # this way is SAFE but very slow - replace when we get a real database
+    candidates = []
+    self.find_all_nodes.each { |n| candidates << n.name }
+    candidates.each do |n|
+      node = self.find_node_by_name n
+      nodes << node if node.alias == name
     end
     if nodes.length == 1
       return nodes[0]
@@ -75,15 +65,11 @@ class NodeObject < ChefObject
   end
   
   def self.find_node_by_name(name)
-    val = if CHEF_ONLINE
-      name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-      ChefObject.crowbar_node(name)
-    else
-      name += ".#{OFFLINE_DOMAIN || ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-      self.recover_json(self.nfile('node',name))
-    end
+    name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
+    val = ChefObject.crowbar_node(name)
     return val.nil? ? nil : NodeObject.new(val)
   end
+
   def self.all
     self.find nil
   end
@@ -94,12 +80,7 @@ class NodeObject < ChefObject
 
   def self.create_new_role(new_name, machine)
     name = make_role_name new_name
-    if CHEF_ONLINE
-      role = RoleObject.new Chef::Role.new
-    else
-      self.create_object 'role', name, "NodeObject Create New Role"
-      role = RoleObject.find_role_by_name(name)
-    end
+    role = RoleObject.new Chef::Role.new
     role.name = name
     role.default_attributes["crowbar"] = {}
     role.default_attributes["crowbar"]["network"] = {} if role.default_attributes["crowbar"]["network"].nil?
@@ -135,7 +116,6 @@ class NodeObject < ChefObject
         @role = NodeObject.create_new_role(node.name, node)
       else
         Rails.logger.fatal("Node exists without role!! #{node.name}")
-        NodeObject.offline_remove('node', node.name) if !CHEF_ONLINE
       end
     end
     @node = node
@@ -192,7 +172,7 @@ class NodeObject < ChefObject
         set_display "alias", value
         @role.description = chef_description
         # move this to event driven model one day
-        system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE
+        system("sudo -i /opt/dell/bin/single_chef_client.sh")
       end
     end
     return value
@@ -243,7 +223,7 @@ class NodeObject < ChefObject
 
   def state
     return 'unknown' if (@node.nil? or @role.nil?)
-    if self.crowbar['state'] === 'ready' and CHEF_ONLINE and @node['ohai_time']
+    if self.crowbar['state'] === 'ready' and @node['ohai_time']
       since_last = Time.now.to_i-@node['ohai_time'].to_i
       return 'noupdate' if since_last > 1200 # or 20 mins
     end
@@ -441,13 +421,8 @@ class NodeObject < ChefObject
 
     recursive_merge!(@node.normal_attrs, @role.default_attributes)
 
-    if CHEF_ONLINE
-      @role.save
-      @node.save
-    else
-      NodeObject.offline_cache(@node, NodeObject.nfile('node', @node.name))
-      NodeObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
-    end
+    @role.save
+    @node.save
     Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
   end
 
@@ -834,26 +809,13 @@ class NodeObject < ChefObject
   end
 
   def set_state(state)
-    if CHEF_ONLINE
-      # use the real transition function for this
-      cb = CrowbarService.new Rails.logger
-      results = cb.transition "default", @node.name, state
-    else
-      puts "Node #{name} Chef State Changed to #{state}"
-      self.crowbar['state'] = state
-      save
-    end
-
+    # use the real transition function for this
+    cb = CrowbarService.new Rails.logger
+    results = cb.transition "default", @node.name, state
     if state == "reset" or state == "reinstall" or state == "update"
-      if CHEF_ONLINE
-        bmc          = @node.address("bmc").addr rescue nil
-        bmc_user     = get_bmc_user
-        bmc_password = get_bmc_password
-        system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
-      else
-        NodeObject.clear_cache @node
-        puts "Node #{name} to #{state} caused cache object to be deleted."
-      end
+      bmc          = @node.address("bmc").addr rescue nil
+      bmc_user     = get_bmc_user
+      bmc_password = get_bmc_password
     end
     results
   end
@@ -863,7 +825,6 @@ class NodeObject < ChefObject
     bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Reboot call to #{bmc}" unless CHEF_ONLINE
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
   end
 
@@ -872,7 +833,6 @@ class NodeObject < ChefObject
     bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Shutdown call to #{bmc}" unless CHEF_ONLINE
     system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power off") unless bmc.nil?
   end
 
@@ -881,7 +841,6 @@ class NodeObject < ChefObject
     bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Power On call to #{bmc}" unless CHEF_ONLINE
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
   end
 
@@ -889,7 +848,6 @@ class NodeObject < ChefObject
     bmc          = @node.address("bmc").addr rescue nil
     bmc_user     = get_bmc_user
     bmc_password = get_bmc_password
-    return puts "Node #{name} IMPI Identify call to #{bmc}" unless CHEF_ONLINE
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
   end
 
@@ -920,10 +878,6 @@ class NodeObject < ChefObject
     end
   end
 
-  def export
-    NodeObject.dump @node, 'node', name
-  end
-  
   private 
   
   # this is used by the alias/description code split

@@ -60,7 +60,6 @@ Crowbar::Application.routes.draw do
     version = "2.0"
     get '/', :controller=>'support', :action=>'index', :as => :utils
     get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
-    get 'chef', :controller=>'support', :action=>'export_chef', :as => :export_chef
     get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
     get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
     get 'restart/:id', :controller=>'support', :action=>'restart', :constraints => { :id => /.*/ }, :as => :restart
@@ -124,6 +123,7 @@ Crowbar::Application.routes.draw do
   devise_scope :user do
     match "users/sign_in", :controller => 'users', :action =>'sign_in', :as=> :sign_in
     match "users/sign_out", :controller => 'users', :action =>'sign_out'
+    match "users/sign_up", :controller => 'users', :action =>'sign_up'
     match "manage_users", :controller => 'users', :action => 'index'
   end
  

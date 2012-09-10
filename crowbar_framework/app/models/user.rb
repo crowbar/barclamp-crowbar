@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'digest/md5'
 
 class User < ActiveRecord::Base
   # Include default devise modules. Others available are:
@@ -37,6 +38,13 @@ class User < ActiveRecord::Base
   # attr_accessible :title, :body
 
  validates :username, :uniqueness => {:case_sensitive => false}
+
+ DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
+
+ # hack for now works if your password is crowbar only, replace w/ working password lookup & validation!
+ def digest_password
+  Digest::MD5.hexdigest([username,DIGEST_REALM,"crowbar"].join(":"))
+ end
 
  def email_required?
   false

@@ -17,10 +17,6 @@ require 'digest/md5'
 
 class DigestController < ApplicationController
   
-  # This is a hack just to get use restarted on digest!
-  REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
-  USERS = { "crowbar" => Digest::MD5.hexdigest(["crowbar",REALM,"crowbar"].join(":"))}  #ha1 digest password
-
   skip_before_filter :authenticate_user!
   before_filter :authenticate
 
@@ -37,10 +33,12 @@ class DigestController < ApplicationController
   
   # does the magic auth
   def authenticate
-    authenticate_or_request_with_http_digest(REALM) do |username|
+
+    authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|
+      u = User.find_by_username(username)
       session[:ip_address] = request.remote_addr
-      session[:digest_user] = username
-      USERS[username]
+      session[:digest_user] = u.username
+      u.digest_password
     end
     warden.custom_failure! if performed?
   end

@@ -69,12 +69,18 @@ jQuery(document).ready(function($) {
     $('.led.unready, .led.in_process, .led.spin').sprite({fps: 6, no_of_frames: 8});
   }
 
+  // Stop Animate spinning LEDs
+  function deanimate() {
+    $('.led.unready, .led.in_process, .led.spin').destroy();
+  }
+
   animate(); // Call this again when new animatable elements are created...
   
   // Auto-run update functions periodically
   if(typeof update == 'function') { 
     setInterval(function() {
       update();
+      deanimate();
       animate();
     }, 10000);
   }

@@ -693,41 +693,32 @@ class NodeObject < ChefObject
 
   # Switch config is actually a node set property from customer ohai.  It is really on the node and not the role
   def switch_name
-    begin
-      intf = sort_ifs[0]
-      switch_name = self.crowbar_ohai["switch_config"][intf]["switch_name"]
-      unless switch_name == -1
-        switch_name.to_s.gsub(':', '-')
-      else
-        nil
-      end
-     rescue
-      Rails.logger.warn("switch_name: #{@node.name}: Switch config not detected during discovery")
-      nil
-    end
+    switch_find_info('name')
   end
 
   # for stacked switches, unit is set while name is the same
   def switch_unit
-    begin
-      intf = sort_ifs[0]
-      switch_unit = self.crowbar_ohai["switch_config"][intf]["switch_unit"]
-      (switch_unit == -1 ? nil : switch_unit)
-    rescue
-      Rails.logger.warn("switch_unit: #{@node.name}: Switch config not detected during discovery")
-      nil
-    end
+    switch_find_info('unit')
   end
 
   def switch_port
+    switch_find_info('port')
+  end
+
+  # DRY version of the switch name/unit/port code
+  def switch_find_info(type)
+    info = nil
     begin
-      intf = sort_ifs[0]
-      switch_port = self.crowbar_ohai["switch_config"][intf]["switch_port"]
-      (switch_port == -1 ? nil : switch_port)
+      sort_ifs.each do |intf|
+        info = self.crowbar_ohai["switch_config"][intf]["switch_"+type]
+        next if info == -1  # try next interface in case this is not in use
+        info = info.name = name.to_s.gsub(':', '-')
+        break  # if we got this far then we are done
+      end
     rescue
-      Rails.logger.warn("switch_port: #{@node.name}: Switch config not detected during discovery")
-      nil
+      Rails.logger.warn("Switch {type} Error: #{@node.name}: Switch config not detected during discovery")
     end
+    info
   end
 
   # used to determine if display information has been set or if defaults should be used

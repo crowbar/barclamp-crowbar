@@ -837,7 +837,11 @@ class NodeObject < ChefObject
         return nil
       end
       Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
-      unless system("sudo -i -u root -- ssh root@#{@node.name} #{ssh_command}")
+      # Have to redirect stdin, stdout, stderr and background reboot
+      # command on the client else ssh never disconnects when client dies
+      # `timeout` and '-o ConnectTimeout=10' are there in case anything
+      # else goes wrong...
+      unless system("sudo -i -u root -- timeout -k 5s 15s ssh -o ConnectTimeout=10 root@#{@node.name} '#{ssh_command} </dev/null >/dev/null 2>&1 &'")
         Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
         return nil
       end

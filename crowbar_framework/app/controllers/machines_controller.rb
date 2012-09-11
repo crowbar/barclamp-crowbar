@@ -56,7 +56,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -76,7 +76,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -118,7 +118,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -139,7 +139,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -160,7 +160,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -181,7 +181,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -202,7 +202,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -223,7 +223,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }
@@ -244,7 +244,7 @@ class MachinesController < ApplicationController
 
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
       respond_to do |format|
         format.html
         format.json { render :text => "Host not found", :status => 404 }

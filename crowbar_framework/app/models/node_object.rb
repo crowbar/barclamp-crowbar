@@ -52,16 +52,8 @@ class NodeObject < ChefObject
   end
 
   def self.find_node_by_alias(name)
-    nodes = []
-    if CHEF_ONLINE 
-      #self.find "alias:#{chef_escape(name)}"
-      # this way is SAFE but very slow - replace when we get a real database
-      candidates = []
-      self.find_all_nodes.each { |n| candidates << n.name  }
-      candidates.each do |n|
-        node = self.find_node_by_name n
-        nodes << node if node.alias == name
-      end
+    nodes = if CHEF_ONLINE 
+      self.find "crowbar_display_alias:#{chef_escape(name)}"
     else
       nodes = self.find_all_nodes.keep_if { |n| n.alias==name }
     end

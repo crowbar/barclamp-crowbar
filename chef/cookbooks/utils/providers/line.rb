@@ -17,6 +17,7 @@
 def lock(new_resource)
   filename = "/tmp/#{new_resource.file.gsub("/","_")}.lock"
   f = ::File.new(filename, ::File::RDWR|::File::CREAT, 0644)
+  raise "Couldn't open #{filename} for locking" unless f
   rc = false
   count = 0
   while rc == false do

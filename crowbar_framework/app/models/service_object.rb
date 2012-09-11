@@ -89,8 +89,15 @@ class ServiceObject
 # Locking Routines
 #
   def acquire_lock(name)
-    @logger.debug("Acquire #{name} lock enter")
-    f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
+    @logger.debug("Acquire #{name} lock enter as uid #{Process.uid}")
+    path = "tmp/#{name}.lock"
+    begin
+      f = File.new(path, File::RDWR|File::CREAT, 0644)
+    rescue
+      @logger.error("Couldn't open #{path} for locking: #$!")
+      @logger.error("cwd was #{Dir.getwd})")
+      raise "Couldn't open #{path} for locking: #$!"
+    end
     @logger.debug("Acquiring #{name} lock")
     rc = false
     count = 0
@@ -106,8 +113,12 @@ class ServiceObject
 
   def release_lock(f)
     @logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
-    f.close
+    if f
+      f.flock(File::LOCK_UN)
+      f.close
+    else
+      @logger.warn("release_lock called without valid file")
+    end
     @logger.debug("Release lock exit")
   end
 
@@ -176,7 +187,7 @@ class ServiceObject
         end
       end
     rescue Exception => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
+      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
     end
@@ -313,7 +324,7 @@ class ServiceObject
         prop.save
       end
     rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
       return false
     end
@@ -329,20 +340,20 @@ class ServiceObject
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
-      return true if db.nil?
+      return [200, {}] if db.nil?
 
       queue = db["proposal_queue"]
-      ret = dequeue_proposal_no_lock(queue, inst, bc)
-      db.save if ret
+      dequeued = dequeue_proposal_no_lock(queue, inst, bc)
+      db.save if dequeued
     rescue Exception => e
-      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace}")
+      @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
-      return ret
+      return [400, e.message]
     ensure
       release_lock f
     end
     @logger.debug("dequeue proposal: exit #{inst} #{bc}")
-    ret
+    return dequeued ? [200, {}] : [400, '']
   end
 
   #
@@ -590,6 +601,7 @@ class ServiceObject
   #
   def create_proposal
     prop = ProposalObject.find_proposal("template", @bc_name)
+    raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
     prop.raw_data
   end
 
@@ -674,9 +686,15 @@ class ServiceObject
   def validate_proposal proposal
     path = "/opt/dell/chef/data_bags/crowbar"
     path = "schema" unless CHEF_ONLINE
-    validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
+    begin
+      validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
+    rescue Exception => e
+      Rails.logger.error("failed to load databag schema for #{@bc_name}: #{e.message}")
+      Rails.logger.debug e.backtrace.join("\n")
+      raise Chef::Exceptions::ValidationFailed.new( "failed to load databag schema for #{@bc_name}: #{e.message}" )
+    end
     Rails.logger.info "validating proposal #{@bc_name}"
-    
+
     errors = validator.validate(proposal)
     if errors && !errors.empty?
       strerrors = ""
@@ -773,6 +791,7 @@ class ServiceObject
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     # For Role ordering
+    runlist_priority_map = new_deployment["element_run_list_order"] || { }
     local_chef_order = chef_order()
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
@@ -842,8 +861,9 @@ class ServiceObject
       # Add the roles being gained
       alist.each do |item|
         next if node.role? item
-        @logger.debug("AR: Adding role #{item} to #{node.name}")
-        node.add_to_run_list(item, local_chef_order, role_map[item])
+        priority = runlist_priority_map[item] || local_chef_order
+        @logger.debug("AR: Adding role #{item} to #{node.name} with priority #{priority}")
+        node.add_to_run_list(item, priority, role_map[item])
         save_it = true
       end
 
@@ -851,8 +871,9 @@ class ServiceObject
       if all_nodes.include?(node.name)
         # Add the config role 
         unless node.role?(role.name)
-          @logger.debug("AR: Adding role #{role.name} to #{node.name}")
-          node.add_to_run_list(role.name, local_chef_order, role_map[role.name])
+          priority = runlist_priority_map[role.name] || local_chef_order
+          @logger.debug("AR: Adding role #{role.name} to #{node.name} with priority #{priority}")
+          node.add_to_run_list(role.name, priority, role_map[role.name])
           save_it = true
         end
       else
@@ -995,9 +1016,12 @@ class ServiceObject
       return false 
     end
 
-    local_chef_order = ServiceObject.chef_order(barclamp)
+    runlist_priority_map = prop["deployment"][barclamp]["element_run_list_order"] rescue {}
+    runlist_priority_map ||= {}
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
+
+    local_chef_order = runlist_priority_map[newrole] || ServiceObject.chef_order(barclamp)
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)

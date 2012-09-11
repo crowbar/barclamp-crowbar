@@ -112,13 +112,13 @@ class CrowbarService < ServiceObject
             end
           rescue Exception => e
             @logger.fatal("json/transition for #{bc}:#{rname} failed: #{e.message}")
-            @logger.fatal("#{e.backtrace}")
-            return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace}"]
+            @logger.fatal("#{e.backtrace.join("\n")}")
+            return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace.join("\n")}"]
           end
         end
       end
 
-      # The node is going to call chef-client on return or as a side-effet of the proces queue.
+      # The node is going to call chef-client on return or as a side-effect of the process queue.
       node = NodeObject.find_node_by_name(name)
       node.rebuild_run_list
       node.save

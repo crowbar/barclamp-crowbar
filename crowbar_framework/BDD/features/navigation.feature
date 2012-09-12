@@ -6,7 +6,9 @@ Feature: Crowbar, Check Core Navigation
   Scenario: Translation Check
     When I go to the home page
     Then there should be no translation errors
-    
+       And I should see "Digest"
+       And I should see "Authenticated"
+          
   Scenario: Home Page Nav
     When I go to the home page
     Then I should see a menu for "Nodes"
@@ -31,10 +33,10 @@ Feature: Crowbar, Check Core Navigation
     Then I should see "nodes available in the system"
       And there should be no translation errors
 
-  Scenario: Barclamps Nav
+  Scenario: %Barclamps Nav
     Given I am on the home page
     When I click on the "Barclamps" menu item
-    Then I should see "Barclamps"  
+    Then I should see "All Barclamps"  
       And I should see "crowbar"
       And I should see "deployer"
       And I should see "provisioner"
@@ -45,25 +47,25 @@ Feature: Crowbar, Check Core Navigation
   Scenario: All Barclamps Nav
     Given I am on the home page
     When I click on the "All Barclamps" menu item
-    Then I should see "All Barclamps"  
-      And I should see "crowbar"
-      And I should see "deployer"
-      And I should see "provisioner"
-      And I should see "dns"
-      And I should see "ntp"
+    Then I should see "All Barclamps" in the body
+      And I should see "crowbar" in the body
+      And I should see "deployer" in the body
+      And I should see "provisioner" in the body
+      And I should see "dns" in the body
+      And I should see "ntp" in the body
       And there should be no translation errors
 
   Scenario: Crowbar Barclamps Nav
     Given I am on the home page
     When I click on the "Crowbar" menu item
-    Then I should see "Crowbar Members"  
-      And I should see "crowbar"
-      And I should see "deployer"
-      And I should see "provisioner"
-      And I should see "dns"
-      And I should see "ntp"
-      And I should not see "Nova"
-      And I should not see "Hadoop"
+    Then I should see "Crowbar Members" in the body  
+      And I should see "crowbar" in the body
+      And I should see "deployer" in the body
+      And I should see "provisioner" in the body
+      And I should see "dns" in the body
+      And I should see "ntp" in the body
+      And I should not see "Nova" in the body
+      And I should not see "Hadoop" in the body
       And there should be no translation errors
 
   Scenario: Help Guide 

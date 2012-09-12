@@ -56,6 +56,15 @@ step(Config, _Global, {step_setup, _N, Test}) ->
 step(Config, _Global, {step_teardown, _N, _}) -> 
   bdd_utils:teardown_destroy(Config, nodes:g(path), g(node_atom));
   
+% helper for limiting checks to body
+step(_Config, Result, {step_then, _N, ["I should see", Text, "in the body"]}) -> 
+  bdd_webrat:step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", "main_body"]});
+
+% helper for limiting checks to body
+step(_Config, Result, {step_then, _N, ["I should not see", Text, "in the body"]}) -> 
+  bdd_webrat:step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", "main_body"]});
+
+
 % helper for checking to make sure the ID of the object your are using it the same as the one from setup
 step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"]}) -> 
   SetupID = bdd_utils:config(Config, list_to_atom(Atom)),

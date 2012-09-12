@@ -36,7 +36,6 @@ class DigestController < ApplicationController
 
     authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|
       u = User.find_by_username(username)
-      session[:ip_address] = request.remote_addr
       session[:digest_user] = u.username
       u.digest_password
     end

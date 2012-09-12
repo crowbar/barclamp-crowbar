@@ -14,4 +14,6 @@
 # 
 # 
 
-require Rails.root.join('lib/api_helper.rb')
+# This initializer (re)builds the documentation set on startup 
+Doc.delete_all
+Doc.gen_doc_index 'doc'

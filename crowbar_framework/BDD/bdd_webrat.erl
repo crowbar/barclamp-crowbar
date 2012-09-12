@@ -59,10 +59,20 @@ step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) ->
 step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) -> 
 	bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [_Result, Text]),
 	eurl:search(Text,_Result, false);
+
+step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
+	bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	Section = eurl:find_div(Result, Id),
+	eurl:search(Text,Section, false);
 	
 step(_Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
 	bdd_utils:debug("step_then result ~p should have ~p on the page~n", [_Result, Text]),
 	eurl:search(Text,_Result);
+
+step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
+	bdd_utils:debug("step_then result ~p should have ~p on the page~n", [Result, Text]),
+	Section = eurl:find_div(Result, Id),
+	eurl:search(Text,Section);
 
 step(Config, _Result, {step_then, _N, ["there should be no translation errors"]}) -> 
   TransError = bdd_utils:config(Config, translation_error),

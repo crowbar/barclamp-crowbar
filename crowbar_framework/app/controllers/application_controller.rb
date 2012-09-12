@@ -103,14 +103,19 @@ class ApplicationController < ActionController::Base
   #return true if we digest signed in
   def need_to_auth?
 
-    # if we're using digest in this request then do the digest auth
-    if request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=')
-      #request the digest auth (this should NOT happen unless you are already digested)
-      authenticate_with_http_digest(User::DIGEST_REALM) do |username|
-        User.find_by_username(username).digest_password
+    begin 
+      # if we're using digest in this request then do the digest auth
+      if request.headers["HTTP_AUTHORIZATION"] and request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=')
+        #request the digest auth (this should NOT happen unless you are already digested)
+        authenticate_with_http_digest(User::DIGEST_REALM) do |username|
+          session[:digest_user] = username unless session[:digest_user].eql?(username)
+          User.find_by_username(username).digest_password
+        end
+        return false
+      else
+        return true
       end
-      return false
-    else
+    rescue
       return true
     end
   end

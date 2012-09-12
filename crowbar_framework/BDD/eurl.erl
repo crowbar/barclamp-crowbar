@@ -17,7 +17,7 @@
 -module(eurl).
 -export([post/3, delete/3, post_params/1, post/5, uri/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
--export([find_button/2, find_link/2, find_block/4]).
+-export([find_button/2, find_link/2, find_block/4, find_div/2]).
 
 search(Match, Results, Test) ->
 	F = fun(X) -> case {X, Test} of 
@@ -61,7 +61,7 @@ find_link(Match, Input) ->
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
 	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
-	  Error -> io:format("ERROR: Could not parse regex: '~p'.", [Error])
+	  Error -> io:format("ERROR: Could not parse regex '~p' given '~p'.~n", [Error, RegEx])
 	end,
 	AnchorTag = case re:run(Input, RE) of
 	  {match, [{AStart, ALength} | _]} -> string:substr(Input, AStart+1,AStart+ALength);
@@ -78,6 +78,22 @@ find_link(Match, Input) ->
 	%bdd_utils:debug(, "html_find_link href regex~p~n", [re:run(AnchorTag, HrefREX)]),
 	bdd_utils:debug("find_link found path ~p~n", [Href]),
 	Href.
+
+find_div([], _)       -> not_found;
+find_div(Input, Id)   ->
+  Start = string:str(Input,"<div"),
+  case Start of
+    0 -> not_found;
+    _ -> Block = string:substr(Input, Start+5),
+         Close = string:str(Block,">"),
+         Tag = string:substr(Block, 1, Close-1),
+         Next = string:substr(Block, Close+1),
+         RegEx = "[id|ID]=['|\""++Id++"['|\"]",
+         case re:run(Tag, RegEx) of
+           {match, _} -> Next;
+           nomatch -> find_div(Next, Id)
+         end
+  end.
 
 % we allow for a of open tags (nesting) but only the inner close is needed
 find_block(OpenTag, CloseTag, Input, Match) ->

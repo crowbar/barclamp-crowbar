@@ -14,17 +14,21 @@
 % 
 % 
 -module(dashboard).
--export([step/3]).
+-export([step/3, g/1]).
 
+g(Item) ->
+  case Item of
+    name -> "dashboard1.example.com";
+    atom -> dashboard1;
+    _ -> nodes:g(Item)
+  end.
 	
 step(Config, _Global, {step_setup, _N, _}) -> 
-  Path = "node/2.0",
   % create node(s) for tests
-  Node1 = "dashboard1.example.com",
-  Node = nodes:json(Node1, "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, Path, dash1, Node1, Node);
+  Node = nodes:json(g(name), g(description), 100),
+  bdd_utils:setup_create(Config, g(path), g(atom), g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  Path = "node/2.0",
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, Path, dash1).
+  bdd_utils:teardown_destroy(Config, g(path), g(atom)).
+

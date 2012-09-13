@@ -22,7 +22,9 @@
 g(Item) ->
   case Item of
     node_name -> "global-node.testing.com";
-    node_atom -> global_node
+    node_atom -> global_node;
+    description -> "BDD Testing Only - should be automatically removed";
+    _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
 
 validate(JSON) ->
@@ -49,7 +51,7 @@ validate(JSON) ->
 	
 % node setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
-  Node = nodes:json(g(node_name), Test ++ " BDD Testing Only - should be automatically removed", 100),
+  Node = nodes:json(g(node_name), Test ++ g(description), 100),
   bdd_utils:setup_create(Config, nodes:g(path), g(node_atom), g(node_name), Node);
 
 % find the node from setup and remove it

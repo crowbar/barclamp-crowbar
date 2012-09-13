@@ -33,22 +33,22 @@ Feature: Crowbar, Check Core Navigation
     Then I should see "nodes available in the system"
       And there should be no translation errors
 
-  Scenario: %Barclamps Nav
+  Scenario: Barclamps Nav
     Given I am on the home page
     When I click on the "Barclamps" menu item
-    Then I should see "All Barclamps"  
-      And I should see "crowbar"
-      And I should see "deployer"
-      And I should see "provisioner"
-      And I should see "dns"
-      And I should see "ntp"
+    Then I should see "All Barclamps" in the body  
+      And I should see "crowbar" in the body
+      And I should see "deployer" in the body
+      And I should see "provisioner" in the body
+      And I should see "dns" in the body
+      And I should see "ntp" in the body
       And there should be no translation errors
 
   Scenario: All Barclamps Nav
     Given I am on the home page
     When I click on the "All Barclamps" menu item
     Then I should see "All Barclamps" in the body
-      And I should see "crowbar" in the body
+      And I should see "crowbar" in the body 
       And I should see "deployer" in the body
       And I should see "provisioner" in the body
       And I should see "dns" in the body
@@ -70,11 +70,6 @@ Feature: Crowbar, Check Core Navigation
 
   Scenario: Help Guide 
     Given I am on the home page
-    When I click on the "Documentation" menu item
-    Then I should see "System Documentation"
+    When I click on the "Help" menu item
+    Then I should see "System Documentation (Master Index)"
       And there should be no translation errors
-    
-  Scenario: %Help Deployment Guide PDF (legacy)
-    Given I am on the home page
-    When I click on the "Deployment" menu item
-    Then I should download a PDF

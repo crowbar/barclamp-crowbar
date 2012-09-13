@@ -732,7 +732,7 @@ class NodeObject < ChefObject
     elsif switch_unit.nil?
       switch_name
     else
-      switch_name + ':' + switch_unit
+      "#{switch_name}:#{switch_unit}"
     end
   end
   

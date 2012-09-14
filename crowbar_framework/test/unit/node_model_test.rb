@@ -18,10 +18,14 @@ class NodeModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
     Node.create! :name=>"foo.example.com"
-    e = assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name => "foo.example.com") }
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Node.create!(:name => "foo.example.com") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
 
-    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => "foo.example.com" }
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "foo.example.com" }
+  end
+
+  test "name too long" do
+    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.com") }
   end
 
   test "state unknown" do

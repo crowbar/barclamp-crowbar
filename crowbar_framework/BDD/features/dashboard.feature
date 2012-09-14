@@ -8,5 +8,5 @@ Feature: Dashboard
     Then I should see "Node Dashboard"
       And I should see a link to "Add Group"
       And I should see "nodes available in the system"
-      And I should see "dashboard1.example.com"
+      And I should see "dashboard1"
       And I should see "You may regroup nodes by dragging"

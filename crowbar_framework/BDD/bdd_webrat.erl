@@ -52,7 +52,7 @@ step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) ->
 	click_link(Config, URL, Link);
 
 step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
-  [Block] = eurl:find_block("<li", "</li>", Given, ">"++Menu++"</a>"),
+  [Block] = eurl:find_block("<li", "</li>", Given, ">"++Menu++"</a>", 250),
   URL = eurl:find_link(Menu, Block),
   click_link(Config, URL, Menu);
 
@@ -62,7 +62,8 @@ step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) ->
 
 step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
 	bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
-	Section = eurl:find_div(Result, Id),
+	Body = [eurl:html_body(R) || R <- Result],
+	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
 	
 step(_Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
@@ -71,7 +72,8 @@ step(_Config, _Result, {step_then, _N, ["I should see", Text]}) ->
 
 step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
 	bdd_utils:debug("step_then result ~p should have ~p on the page~n", [Result, Text]),
-	Section = eurl:find_div(Result, Id),
+	Body = [eurl:html_body(R) || R <- Result],
+	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section);
 
 step(Config, _Result, {step_then, _N, ["there should be no translation errors"]}) -> 

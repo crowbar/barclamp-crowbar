@@ -20,7 +20,8 @@ g(Item) ->
   case Item of
     path -> "2.0/node";
     name -> "bdd1.example.com";
-    atom -> node1
+    atom -> node1;
+    _ -> crowbar:g(Item)
   end.
   
 json(Name, Description, Order) ->

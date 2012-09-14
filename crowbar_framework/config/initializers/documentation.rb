@@ -15,5 +15,10 @@
 # 
 
 # This initializer (re)builds the documentation set on startup 
-Doc.delete_all
-Doc.gen_doc_index 'doc'
+begin
+  Doc.delete_all
+  Doc.gen_doc_index 'doc'
+rescue
+  # don't sweat it, we'll do it later
+  true
+end

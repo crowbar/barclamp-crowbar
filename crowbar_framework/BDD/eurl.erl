@@ -17,7 +17,7 @@
 -module(eurl).
 -export([post/3, delete/3, post_params/1, post/5, uri/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
--export([find_button/2, find_link/2, find_block/4, find_div/2]).
+-export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
 search(Match, Results, Test) ->
 	F = fun(X) -> case {X, Test} of 
@@ -28,9 +28,29 @@ search(Match, Results, Test) ->
 	lists:any(F, ([peek(Match,Result) || Result <- Results, Result =/= [no_op]])).
 search(Match, Results) ->
 	search(Match, Results, true).
+
+html_peek(Input, RegEx) ->
+	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
+	bdd_utils:debug("html:peek compile: ~p on ~p~n", [RegEx, Input]),
+	Result = re:run(Input, RE),
+	bdd_utils:debug("html:peek match: ~p~n", [Result]),
+	%{ match, [ {_St, _Ln} | _ ] } = Result,
+	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
+	case Result of
+		{match, [_A, _B, _C, _D, {Start, Length} | _Tail ]} -> string:substr(Input, Start-5, Length+13);
+		_ -> false
+	end.
+  
+html_body(Input) ->
+  RegEx = "<(html|HTML)(.*)<(body|BODY)>(.*)</(body|BODY)>(.*)</(html|HTML)>",
+  html_peek(Input, RegEx).
+  
+html_head(Input) ->
+  RegEx = "<(html|HTML)(.*)<(head|HEAD)>(.*)</(head|HEAD)>(.*)</(html|HTML)>",
+  html_peek(Input, RegEx).
   
 peek(Match, Input) ->
-  RegEx = "<(html|HTML)(.*)"++Match++"(.*)</(html|HTML)>",
+  RegEx = Match,
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
 	bdd_utils:debug("html:peek compile: ~p on ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
@@ -44,12 +64,8 @@ peek(Match, Input) ->
 	
 	
 find_button(Match, Input) ->
-  %<form.. <input class="button" name="submit" type="submit" value="Save"></form>
-  %debug(puts,Match),
 	Form = find_block("<form ", "</form>", Input, "value='"++Match++"'"),
-	%debug(puts,Form),
 	Button = find_block("<input ", ">", Form,  "value='"++Match++"'"),
-	%debug(puts,Button),
 	{ok, RegEx} = re:compile("type='submit'"),
 	case re:run(Button, RegEx) of
 	  {match, _} -> Button;
@@ -96,17 +112,21 @@ find_div(Input, Id)   ->
   end.
 
 % we allow for a of open tags (nesting) but only the inner close is needed
-find_block(OpenTag, CloseTag, Input, Match) ->
+find_block(OpenTag, CloseTag, Input, Match)         -> find_block(OpenTag, CloseTag, Input, Match, 1000).
+find_block(OpenTag, CloseTag, Input, Match, MaxLen) ->
   {ok, RE} = re:compile([Match]),
   CandidatesNotTested = re:split(Input, OpenTag, [{return, list}]),
   Candidates = [ find_block_helper(C, RE) || C <- CandidatesNotTested ],
   Block = case [ C || C <- Candidates, C =/= false ] of
     [B] -> B;
-    [B, _] -> B;
+    [B | _] -> B;
     _ -> []
   end,
-  [Inside | _ ] = re:split(Block, CloseTag, [{parts, 2}, {return, list}]),
-  [Inside].
+  case re:split(Block, CloseTag, [{parts, 2}, {return, list}]) of
+    [Inside] -> [Inside];
+    [Inside | _ ] -> [Inside];
+    [] -> [string:substr(Block,0,MaxLen)]  % we need a fall back limit just in case
+  end.
 
 find_block_helper(Test, RE) ->
 	case re:run(Test, RE) of

@@ -49,7 +49,15 @@ class Node < ActiveRecord::Base
   # materialize.
   #
   def node_object
-    NodeObject.find_node_by_name name 
+    return @node_object if @node_object
+    @node_object = NodeObject.find_node_by_name name 
+  end
+
+  #
+  # XXX: Remove this as we better.
+  #
+  def crowbar
+    node_object.crowbar
   end
 
   #
@@ -58,6 +66,15 @@ class Node < ActiveRecord::Base
   #
   def address(net = "admin")
     node_object.address(net)
+  end
+
+  def provisioner_state
+    crowbar["provisioner_state"]
+  end
+
+  def provisioner_state=(val)
+    crowbar["provisioner_state"] = val
+    node_object.save
   end
 
   #

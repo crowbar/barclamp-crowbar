@@ -103,9 +103,11 @@ class Node < ActiveRecord::Base
   #
   def fix_node_object
     cno = node_object
-    cno.crowbar["state"] = state
-    cno.crowbar["allocated"] = allocated
-    cno.save
+    if cno
+      cno.crowbar["state"] = state
+      cno.crowbar["allocated"] = allocated
+      cno.save
+    end
   end
 
   #

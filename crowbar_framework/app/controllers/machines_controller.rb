@@ -118,7 +118,7 @@ class MachinesController < ApplicationController
     name = params[:name]
     name = "#{name}.#{session[:domain]}" unless session[:domain].nil? || name.include?(".")
 
-    machine = NodeObject.find_node_by_name name
+    machine = Node.find_by_name name
     if machine.nil?
       flash.now[:notice] = "ERROR: Could not node for name #{name}"
       respond_to do |format|

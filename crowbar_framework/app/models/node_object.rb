@@ -809,53 +809,27 @@ class NodeObject < ChefObject
   end
 
   def set_state(state)
-    # use the real transition function for this
-    cb = CrowbarService.new Rails.logger
-    results = cb.transition "default", @node.name, state
-    if state == "reset" or state == "reinstall" or state == "update"
-      bmc          = @node.address("bmc").addr rescue nil
-      bmc_user     = get_bmc_user
-      bmc_password = get_bmc_password
-    end
-    results
+    raise Exception.new("set_state should not be called here anymore")
   end
 
   def reboot
-    set_state("reboot")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
+    raise Exception.new("reboot should not be called here anymore")
   end
 
   def shutdown
-    set_state("shutdown")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power off") unless bmc.nil?
+    raise Exception.new("shutdown should not be called here anymore")
   end
 
   def poweron
-    set_state("poweron")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
+    raise Exception.new("poweron should not be called here anymore")
   end
 
   def identify
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
+    raise Exception.new("poweron should not be called here anymore")
   end
 
   def allocate
-    return if @node.nil?
-    return if @role.nil?
-    self.allocated = true
-    save
+    raise Exception.new("allocate should not be called here anymore")
   end
 
   def bmc_set?

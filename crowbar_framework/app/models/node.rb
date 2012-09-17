@@ -29,7 +29,7 @@ class Node < ActiveRecord::Base
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
   
-  #'
+  #
   # Helper function to test admin without calling admin. Style-thing.
   #
   def is_admin?
@@ -37,11 +37,15 @@ class Node < ActiveRecord::Base
   end
 
   #
-  # Helper function to for the UI to show the right information about nodes.  
-  # NOT COMPLETE!
+  # Helper function for allocated
   #
   def allocated?
-    node_object.allocated rescue true
+    allocated
+  end
+
+  def allocate
+    allocated = true
+    save
   end
 
   #
@@ -68,27 +72,83 @@ class Node < ActiveRecord::Base
     node_object.address(net)
   end
 
+  #
+  # XXX: Remove this as we better.
+  #
   def provisioner_state
     crowbar["provisioner_state"]
   end
 
+  #
+  # XXX: Remove this as we better.
+  #
   def provisioner_state=(val)
     crowbar["provisioner_state"] = val
-    node_object.save
   end
 
   #
+  # Override save so we can temporaily save the node_object.
+  #
+  def fix_node_object
+    node_object.crowbar["state"] = node.state
+    node_object.crowbar["allocated"] = node.allocated
+  end
+
+  #
+  # XXX: Remove this as we better.
+  #
+  alias :super_save :save
+  def save
+    @node_object.save if @node_object
+    super_save
+  end
+
+  #
+  # XXX: Remove this as we better.
+  #
+  alias :super_save! :save!
+  def save!
+    @node_object.save if @node_object
+    super_save!
+  end
+  
+  #
   # Helper function to set state.  Assumes that the node will be save outside if this routine.
   #
-  # State needs to be reflected in two places for now.  It does save the cmdb object.
-  # As we get more CMDB work in place, this should go away.
+  # Use transition function to set state.
   #
   def set_state(new_state)
-    state = new_state
-    cno = NodeObject.find_node_by_name name
-    cno.crowbar["state"] = state
-    cno.save
+    # use the real transition function for this
+    cb = CrowbarService.new Rails.logger
+    cb.transition "default", name, new_state
   end
+
+  def ipmi_cmd(cmd)
+    bmc          = node_object.address("bmc").addr rescue nil
+    bmc_user     = node_object.get_bmc_user
+    bmc_password = node_object.get_bmc_password
+    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} #{cmd}") unless bmc.nil?
+  end
+
+  def reboot
+    set_state("reboot")
+    ipmi_cmd("power cycle")
+  end
+
+  def shutdown
+    set_state("shutdown")
+    ipmi_cmd("power off")
+  end
+
+  def poweron
+    set_state("poweron")
+    ipmi_cmd("power on")
+  end
+
+  def identify
+    ipmi_cmd("chassis identify")
+  end
+
 
   # XXX: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.

@@ -184,7 +184,7 @@ class NodesController < ApplicationController
   def hit
     action = params[:req]
     name = params[:name] || params[:id]
-    machine = NodeObject.find_node_by_name name
+    machine = Node.find_by_name name
     if machine.nil?
       render :text=>"Could not find node '#{name}'", :status => 404
     else

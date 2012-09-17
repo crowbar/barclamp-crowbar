@@ -21,5 +21,9 @@ class Role < ActiveRecord::Base
   belongs_to :barclamp
   has_many :role_element_orders
 
+  def to_s
+    "Role: #{name}"
+  end
+
 end
 

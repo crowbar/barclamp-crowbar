@@ -90,8 +90,8 @@ class Node < ActiveRecord::Base
   # Override save so we can temporaily save the node_object.
   #
   def fix_node_object
-    node_object.crowbar["state"] = node.state
-    node_object.crowbar["allocated"] = node.allocated
+    node_object.crowbar["state"] = state
+    node_object.crowbar["allocated"] = allocated
   end
 
   #
@@ -99,6 +99,7 @@ class Node < ActiveRecord::Base
   #
   alias :super_save :save
   def save
+    fix_node_object
     @node_object.save if @node_object
     super_save
   end
@@ -108,6 +109,7 @@ class Node < ActiveRecord::Base
   #
   alias :super_save! :save!
   def save!
+    fix_node_object
     @node_object.save if @node_object
     super_save!
   end
@@ -180,7 +182,6 @@ class Node < ActiveRecord::Base
         cno.crowbar.merge(hash)
       end
     end
-
     cno.save
   end
 
@@ -286,6 +287,10 @@ class Node < ActiveRecord::Base
   def <=>(other)
     # use Array#<=> to compare the attributes
     [self.order, self.name] <=> [other.order, other.name]
+  end
+
+  def to_s
+    "Node: #{name}"
   end
   
   private

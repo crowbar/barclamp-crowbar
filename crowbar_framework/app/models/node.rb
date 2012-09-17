@@ -53,12 +53,11 @@ class Node < ActiveRecord::Base
   # materialize.
   #
   def node_object
-    return @node_object if @node_object
-    @node_object = NodeObject.find_node_by_name name 
+    NodeObject.find_node_by_name name 
   end
 
   #
-  # XXX: Remove this as we better.
+  # XXX: Remove this as we better.  THIS SHOULD BE READ_ONLY
   #
   def crowbar
     node_object.crowbar
@@ -83,15 +82,30 @@ class Node < ActiveRecord::Base
   # XXX: Remove this as we better.
   #
   def provisioner_state=(val)
-    crowbar["provisioner_state"] = val
+    cno = node_object
+    cno.crowbar["provisioner_state"] = val
+    cno.save
+  end
+
+  def get_os
+    node_object.crowbar["crowbar"]["os"] rescue nil
+  end
+
+  def set_os(target_os)
+    cno = node_object
+    cno.crowbar["crowbar"] ||= Mash.new
+    cno.crowbar["crowbar"]["os"] = target_os
+    cno.save
   end
 
   #
   # Override save so we can temporaily save the node_object.
   #
   def fix_node_object
-    node_object.crowbar["state"] = state
-    node_object.crowbar["allocated"] = allocated
+    cno = node_object
+    cno.crowbar["state"] = state
+    cno.crowbar["allocated"] = allocated
+    cno.save
   end
 
   #
@@ -100,7 +114,6 @@ class Node < ActiveRecord::Base
   alias :super_save :save
   def save
     fix_node_object
-    @node_object.save if @node_object
     super_save
   end
 
@@ -110,7 +123,6 @@ class Node < ActiveRecord::Base
   alias :super_save! :save!
   def save!
     fix_node_object
-    @node_object.save if @node_object
     super_save!
   end
   

@@ -25,7 +25,7 @@ class NodeModelTest < ActiveSupport::TestCase
   end
 
   test "name too long" do
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.com") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.com") }
   end
 
   test "state unknown" do
@@ -39,7 +39,7 @@ class NodeModelTest < ActiveSupport::TestCase
     n = Node.create! :name=>name
     assert_not_equal n.name, name
     assert_equal n.name, name.downcase
-    assert_raise(ActiveRecord::RecordInvalid) { b = Node.create! :name => name }
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { b = Node.create! :name => name }
   end
   
   test "not set group" do
@@ -63,14 +63,14 @@ class NodeModelTest < ActiveSupport::TestCase
   end
   
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"fqdnrequired") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1no.legal.domain") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1123.foo.com") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"1foo.bar.net") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"Ille!gal.foo.org") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>" nospaces.bar.it") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"no spaces.dell.com") }
-    assert_raise(ActiveRecord::RecordInvalid) { Node.create!(:name=>"nospacesatall.end.edu ") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"fqdnrequired") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"1no.legal.domain") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"1123.foo.com") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"1foo.bar.net") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"Ille!gal.foo.org") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>" nospaces.bar.it") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"no spaces.dell.com") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"nospacesatall.end.edu ") }
   end
 
 end

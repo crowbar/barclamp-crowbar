@@ -37,18 +37,39 @@ class User < ActiveRecord::Base
   attr_accessible :username, :is_admin, :email, :password, :password_confirmation, :remember_me, :encrypted_password
   # attr_accessible :title, :body
 
- validates :username, :uniqueness => {:case_sensitive => false}
+  validates :username, :uniqueness => {:case_sensitive => false}
 
- DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
+  DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
 
- # hack for now works if your password is crowbar only, replace w/ working password lookup & validation!
- def digest_password
-  Digest::MD5.hexdigest([username,DIGEST_REALM,"crowbar"].join(":"))
- end
-
- def email_required?
-  false
- end
-
+  def digest_password(new_pass)
+    self.encrypted_password = digester(new_pass)
+  end
+  
+  def email_required?
+    false
+  end
+ 
+  def valid_password?(password)
+    # try default password test first DatabaseAuthenticatable valid_password?
+    # see https://github.com/plataformatec/devise/blob/master/lib/devise/models/database_authenticatable.rb
+    return false if encrypted_password.blank?
+    begin
+      bcrypt   = ::BCrypt::Password.new(encrypted_password)
+      password = ::BCrypt::Engine.hash_secret("#{password}#{self.class.pepper}", bcrypt.salt)
+      return true if Devise.secure_compare(password, encrypted_password)
+    rescue
+      # ignore, keep going
+    end
+    
+    # now the compromise, fall back to MD5 emthod as backup
+    return digester(password).eql?(encrypted_password)
+  end
+ 
+  private
+ 
+  def digester(pass)
+    Digest::MD5.hexdigest([username,DIGEST_REALM,pass].join(":"))
+  end
+ 
 end
 

@@ -109,7 +109,7 @@ class ApplicationController < ActionController::Base
         #request the digest auth (this should NOT happen unless you are already digested)
         authenticate_with_http_digest(User::DIGEST_REALM) do |username|
           session[:digest_user] = username unless session[:digest_user].eql?(username)
-          User.find_by_username(username).digest_password
+          User.find_by_username(username).encrypted_password
         end
         return false
       else

@@ -28,12 +28,83 @@ class Node < ActiveRecord::Base
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
+
+  #
+  # Find a set of nodes by role name
+  #
+  def self.find_by_role_name(role_name)
+    role = Role.find_by_name(role_name)
+    return [] unless role
+
+    nrs = NodeRole.find_all_by_node_id_and_role_id(self.id, role.id)
+    # Get the active ones
+    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+    nrs.map { |x| nrs.node }
+  end
+
+  #
+  # Create function that integrates with CMDB functions.
+  #
+  def self.create_with_cmdb(name)
+    chef_node = NodeObject.find_node_by_name(name)
+    node = Node.create(:name => name)
+    node.admin = true if chef_node and chef_node.admin?
+    node.save!
+    unless chef_node
+      cno = NodeObject.create_new name
+      cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
+      cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
+      cno.save
+    end
+    node
+  end
+
+  #
+  # Update the CMDB view of the node at this point.
+  #
+  def update_cmdb
+    cno = NodeObject.find_node_by_name(name)
+    if cno
+      cno.crowbar["state"] = state
+      cno.crowbar["allocated"] = allocated
+      # GREG: UPDATE THE Chef node role from all the node role objects
+      cno.rebuild_run_list
+      cno.save
+    end
+  end
+
+  def reset_cmdb_access
+    if ["discovered","hardware-installed","hardware-updated","reset", "delete",
+        "hardware-installing","hardware-updating","reinstall",
+        "update","installing","installed"].member?(state) and !is_admin?
+      Rails.logger.info("Crowbar transition: should be deleting a client entry for #{name}")
+      client = ClientObject.find_client_by_name name
+      Rails.logger.info("Crowbar transition: found and trying to delete a client entry for #{name}") unless client.nil?
+      client.destroy unless client.nil?
+
+      # Make sure that the node can be accessed by knife ssh or ssh
+      if ["reset","reinstall","update","delete"].member?(state)
+        system("sudo rm /root/.ssh/known_hosts")
+      end
+    end
+  end
+
+  def delete_cmdb
+    @logger.info("Crowbar: Deleting #{name}")
+    system("knife node delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
+    system("knife client delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
+    system("knife role delete -y crowbar-#{name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
+  end
   
+  def cmdb_hash
+    NodeObject.find_node_by_name name 
+  end
+
   #
   # Helper function to test admin without calling admin. Style-thing.
   #
   def is_admin?
-    node_object.admin? rescue false
+    admin
   end
 
   #
@@ -49,65 +120,14 @@ class Node < ActiveRecord::Base
   end
 
   #
-  # Find the CMDB object for now.  This should go away as the CMDB_Attribute pieces
-  # materialize.
-  #
-  def node_object
-    NodeObject.find_node_by_name name 
-  end
-
-  #
-  # XXX: Remove this as we better.  THIS SHOULD BE READ_ONLY
-  #
-  def crowbar
-    node_object.crowbar
-  end
-
-  #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines
   #
   def address(net = "admin")
-    node_object.address(net)
+    cmdb_hash.address(net)
   end
-
-  #
-  # XXX: Remove this as we better.
-  #
-  def provisioner_state
-    crowbar["provisioner_state"]
-  end
-
-  #
-  # XXX: Remove this as we better.
-  #
-  def provisioner_state=(val)
-    cno = node_object
-    cno.crowbar["provisioner_state"] = val
-    cno.save
-  end
-
-  def get_os
-    node_object.crowbar["crowbar"]["os"] rescue nil
-  end
-
-  def set_os(target_os)
-    cno = node_object
-    cno.crowbar["crowbar"] ||= Mash.new
-    cno.crowbar["crowbar"]["os"] = target_os
-    cno.save
-  end
-
-  #
-  # Override save so we can temporaily save the node_object.
-  #
-  def fix_node_object
-    cno = node_object
-    if cno
-      cno.crowbar["state"] = state
-      cno.crowbar["allocated"] = allocated
-      cno.save
-    end
+  def public_ip
+    cmdb_hash.public_ip
   end
 
   #
@@ -115,7 +135,7 @@ class Node < ActiveRecord::Base
   #
   alias :super_save :save
   def save
-    fix_node_object
+    update_cmdb
     super_save
   end
 
@@ -124,8 +144,17 @@ class Node < ActiveRecord::Base
   #
   alias :super_save! :save!
   def save!
-    fix_node_object
+    update_cmdb
     super_save!
+  end
+  
+  #
+  # XXX: Remove this as we better.
+  #
+  alias :super_destroy :destroy
+  def destroy
+    delete_cmdb
+    super_destroy
   end
   
   #
@@ -140,9 +169,9 @@ class Node < ActiveRecord::Base
   end
 
   def ipmi_cmd(cmd)
-    bmc          = node_object.address("bmc").addr rescue nil
-    bmc_user     = node_object.get_bmc_user
-    bmc_password = node_object.get_bmc_password
+    bmc          = cmdb_hash.address("bmc").addr rescue nil
+    bmc_user     = cmdb_hash.get_bmc_user
+    bmc_password = cmdb_hash.get_bmc_password
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} #{cmd}") unless bmc.nil?
   end
 
@@ -165,6 +194,12 @@ class Node < ActiveRecord::Base
     ipmi_cmd("chassis identify")
   end
 
+  def run_list(pending = true)
+    nrs = NodeRole.find_all_by_node_id(self.id)
+    # Get the active ones
+    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+    nrs.map { |x| x.role }
+  end
 
   # XXX: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.
@@ -181,7 +216,7 @@ class Node < ActiveRecord::Base
     nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
 
     # For each of the roles
-    cno = node_object
+    cno = cmdb_hash
     cno.clear_run_list_map
     nrs.each do |nr|
       if nr.role
@@ -233,6 +268,7 @@ class Node < ActiveRecord::Base
   end
   
   def virtual?
+    cmdb_hash.virtual?
   end
   
   def bmc_set?
@@ -272,13 +308,23 @@ class Node < ActiveRecord::Base
       when "alias"
         name.split(".")[0]
       when "switch_name"
-        node_object.switch_name 
+        cmdb_hash.switch_name 
       when "switch_unit"
-        node_object.switch_unit 
+        cmdb_hash.switch_unit 
       when "switch_port"
-        node_object.switch_port
+        cmdb_hash.switch_port
       when "asset_tag"
-        node_object.asset_tag
+        cmdb_hash.asset_tag
+      when "ip"
+        cmdb_hash.ip
+      when "cpu"
+        cmdb_hash.cpu
+      when "memory"
+        cmdb_hash.memory
+      when "number_of_drives"
+        cmdb_hash.memory
+      when "disks"
+        cmdb_hash["crowbar"]["disks"]
       else 
         "!! CMDB GET MISSING FOR #{attribute} !!"
       end

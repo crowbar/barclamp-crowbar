@@ -254,19 +254,15 @@ class NodeObject < ChefObject
   end
 
   def allocated
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+    raise Exception.new("allocated should not be called here anymore")
   end
 
   def allocated=(value)
-    return false if @role.nil?
-    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    self.crowbar["crowbar"]["allocated"] = value
-    @role.save
-    value
+    raise Exception.new("allocated should not be called here anymore")
   end
 
   def allocated?
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+    raise Exception.new("allocated? should not be called here anymore")
   end
 
   def ipmi_enabled?

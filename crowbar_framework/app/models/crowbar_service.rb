@@ -57,16 +57,7 @@ class CrowbarService < ServiceObject
       node = Node.find_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
-        chef_node = NodeObject.find_node_by_name(name)
-        node = Node.create(:name => name)
-        node.admin = true if chef_node and chef_node.admin?
-        node.save!
-        unless chef_node
-          cno = NodeObject.create_new name
-          cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
-          cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
-          cno.save
-        end
+        node = Node.create_with_cmdb(name)
       end
 
       if node.nil?
@@ -133,33 +124,12 @@ class CrowbarService < ServiceObject
       #
       # The temp booting images need to have clients cleared.
       #
-      if ["discovered","hardware-installed","hardware-updated","reset", "delete",
-          "hardware-installing","hardware-updating","reinstall",
-          "update","installing","installed"].member?(state) and !node.admin?
-        @logger.info("Crowbar transition: should be deleting a client entry for #{node.name}")
-        client = ClientObject.find_client_by_name node.name
-        @logger.info("Crowbar transition: found and trying to delete a client entry for #{node.name}") unless client.nil?
-        client.destroy unless client.nil?
-
-        # Make sure that the node can be accessed by knife ssh or ssh
-        if ["reset","reinstall","update","delete"].member?(state)
-          system("sudo rm /root/.ssh/known_hosts")
-        end
-      end
+      node.reset_cmdb_access
       if state == "delete"
         @logger.info("Crowbar: Deleting #{name}")
-        system("knife node delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
-        system("knife client delete -y #{node.name} -u chef-webui -k /etc/chef/webui.pem")
-        system("knife role delete -y crowbar-#{node.name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
         node.destroy
         [200, "#{name} deleted" ]
       end
-
-      # GREG: THIS MAY NOT BE NEEDED
-      # The node is going to call chef-client on return or as a side-effet of the proces queue.
-      chef_node = NodeObject.find_node_by_name(name)
-      chef_node.rebuild_run_list
-      chef_node.save
 
       # We have a node that has become ready, test to see if there are queued proposals to commit
       ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"

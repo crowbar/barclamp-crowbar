@@ -37,7 +37,7 @@ class DigestController < ApplicationController
     authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|
       u = User.find_by_username(username)
       session[:digest_user] = u.username
-      u.digest_password
+      u.encrypted_password
     end
     warden.custom_failure! if performed?
   end

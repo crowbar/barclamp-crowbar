@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(eurl).
--export([post/3, delete/3, post_params/1, post/5, uri/2]).
+-export([post/3, delete/3, post_params/1, post/5, uri/2, path/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
@@ -136,6 +136,9 @@ find_block_helper(Test, RE) ->
 
 uri(Config, Path) ->
 	{url, Base} = lists:keyfind(url,1,Config),
+	path(Base,Path).
+	
+path(Base, Path) ->
   case {string:right(Base,1),string:left(Path,1)} of
     {"/", "/"}-> Base ++ string:substr(Path,2);
     {_, "/"}  -> Base ++ Path;

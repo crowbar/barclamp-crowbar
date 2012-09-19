@@ -38,7 +38,7 @@ Feature: Nodes
       And I should see a link to "Edit"
 
   Scenario: Node Detail AJAX
-    When AJAX requests the "2.0/node/bdd1.example.com" page
+    When AJAX gets the node "bdd1.example.com"
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And there should be a key "name"

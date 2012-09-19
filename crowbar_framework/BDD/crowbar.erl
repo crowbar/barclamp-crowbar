@@ -48,7 +48,6 @@ validate(JSON) ->
 		false
 	end. 
 	
-	
 % node setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
   Node = nodes:json(g(node_name), Test ++ g(description), 100),

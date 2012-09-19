@@ -22,7 +22,7 @@ class MachinesController < ApplicationController
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
       begin
-        @app = NodeObject.find_all_nodes
+        @app = Node.all
       rescue
         flash.now[:notice] = "ERROR: Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
         @app = []

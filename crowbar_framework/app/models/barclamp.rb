@@ -232,6 +232,16 @@ class Barclamp < ActiveRecord::Base
           role.role_element_orders << reo
         end
       end
+      
+      # import users from databags
+      if json["attributes"] and json["attributes"]["crowbar"] and json["attributes"]["crowbar"]["users"]
+        json["attributes"]["crowbar"]["users"].each do |user, password|
+          pass = password['password']
+          u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
+          u.digest_password(pass)
+          u.save!
+        end
+      end
 
       prop = Proposal.create(:name => "template", :description => "template")
       prop_config = ProposalConfig.create(:config => json["attributes"].to_json)

@@ -27,7 +27,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     session[:node] = params[:id]
     if params.has_key?(:role)
-      result = NodeObject.all #this is not efficient, please update w/ a search!
+      result = Node.all #this is not efficient, please update w/ a search!
       @nodes = result.find_all { |node| node.role? params[:role] }
       if params.has_key?(:names_only)
          names = @nodes.map { |node| node.handle }
@@ -35,7 +35,7 @@ class NodesController < ApplicationController
       end
     else
       @nodes = {}
-      raw_nodes = NodeObject.all
+      raw_nodes = Node.all
       get_node_and_network(params[:selected]) if params[:selected]
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @groups.nil?
     end
@@ -73,7 +73,7 @@ class NodesController < ApplicationController
         nodes.each do |node_name, values|
           begin
             dirty = false
-            node = NodeObject.find_node_by_name node_name
+            node = Node.find_by_name node_name
             if !node.allocated and values['allocate'] === 'checked'
               node.allocated = true
               dirty = true
@@ -124,7 +124,7 @@ class NodesController < ApplicationController
     end
     @options = CrowbarService.read_options
     @nodes = {}
-    NodeObject.all.each do |node|
+    Node.all.each do |node|
       @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
   end
@@ -139,7 +139,7 @@ class NodesController < ApplicationController
   end
   
   def group_change
-    node = NodeObject.find_node_by_name params[:id]
+    node = Node.find_by_name params[:id]
     if node.nil?
       raise "Node #{params[:id]} not found.  Cannot change group" 
     else
@@ -282,7 +282,7 @@ class NodesController < ApplicationController
 
   def get_node_and_network(node_name)
     @network = {}
-    @node = NodeObject.find_node_by_name(node_name) if @node.nil?
+    @node = Node.find_by_name(node_name) if @node.nil?
     if @node
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)

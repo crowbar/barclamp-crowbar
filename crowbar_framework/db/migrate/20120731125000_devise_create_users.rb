@@ -5,6 +5,10 @@ class DeviseCreateUsers < ActiveRecord::Migration
       t.string :email,              :null => false, :default => ""
       t.string :encrypted_password, :null => false, :default => ""
 
+      # crowbar additions
+      t.string :username,           :null=>false, :default=>""
+      t.boolean :is_admin,          :default=>false, :null=>false
+
       ## Recoverable
       t.string   :reset_password_token
       t.datetime :reset_password_sent_at
@@ -35,22 +39,21 @@ class DeviseCreateUsers < ActiveRecord::Migration
 
 
       t.timestamps
-  end
-
-  add_column :users, :username, :string, {:default=>"", :null=>false}
-  add_column :users, :is_admin, :boolean, {:default=>false, :null=>false}
-
-
-  add_index :users, :email
-  add_index :users, :username, :unique => true
-  add_index :users, :reset_password_token, :unique => true
-  add_index :users, :confirmation_token,   :unique => true
-  add_index :users, :unlock_token,         :unique => true
-  # add_index :users, :authentication_token, :unique => true
-
-  u = User.find_or_create_by_username :email=>'', :password=>'crowbar',  :password_confirmation => 'crowbar', :username=>'crowbar', :is_admin=>true
-  u.digest_password 'crowbar'
-  u.save
+    end
+    
+    add_index :users, :email
+    add_index :users, :username, :unique => true
+    add_index :users, :reset_password_token, :unique => true
+    add_index :users, :confirmation_token,   :unique => true
+    add_index :users, :unlock_token,         :unique => true
+    # add_index :users, :authentication_token, :unique => true
+  
+    if Rails.env == 'development'
+      u = User.find_or_create_by_username!(:username=>'developer', :password=>'replace!me', :is_admin=>true)
+      u.digest_password('Cr0wbar!')
+      u.save!
+    end
 
   end
+  
 end

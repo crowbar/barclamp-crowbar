@@ -48,7 +48,9 @@ class DeviseCreateUsers < ActiveRecord::Migration
   add_index :users, :unlock_token,         :unique => true
   # add_index :users, :authentication_token, :unique => true
 
-  User.find_or_create_by_username :email=>'', :password=>'crowbar',  :password_confirmation => 'crowbar', :username=>'crowbar', :is_admin=>true
+  u = User.find_or_create_by_username :email=>'', :password=>'crowbar',  :password_confirmation => 'crowbar', :username=>'crowbar', :is_admin=>true
+  u.digest_password 'crowbar'
+  u.save
 
   end
 end

@@ -26,13 +26,14 @@ g(Item) ->
   
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
-	
+
+step(_Config, _Given, {step_when, _N, ["AJAX gets the node",Name]}) -> 
+  bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
+                                                               
 step(Config, _Global, {step_setup, _N, _}) -> 
-  Path = g(path),
   % create node(s) for tests
-  Node1 = g(name),
-  Node = json(Node1, "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, Path, node1, Node1, Node);
+  Node = json(g(name), "BDD Testing Only - should be automatically removed", 100),
+  bdd_utils:setup_create(Config, g(path), node1, g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   Path = g(path),

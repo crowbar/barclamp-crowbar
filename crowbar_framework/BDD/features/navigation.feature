@@ -71,5 +71,6 @@ Feature: Crowbar, Check Core Navigation
   Scenario: Help Guide 
     Given I am on the home page
     When I click on the "Help" menu item
-    Then I should see "System Documentation (Master Index)"
+    Then I should see "System Documentation" in the body
+      And I should see "(Master Index)" in the body
       And there should be no translation errors

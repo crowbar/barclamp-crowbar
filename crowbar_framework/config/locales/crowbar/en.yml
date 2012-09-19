@@ -135,7 +135,7 @@ en:
   docs:
     parseerror: "Parse error in %{path}"
     missing_title: "Topic Title Missing (was referenced from %{bc})"
-    root: System Documentation (Master Index)
+    root: "System Documentation (Master Index)"
     details: "Updated by %{author} on %{date} (%{license})"
     index:
       title: System Documentation
@@ -206,16 +206,16 @@ en:
     index:
       new_node: Add Node
       title: Node Dashboard
-      status_empty: There are %i nodes available in the system.
-      status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
+      status_empty: "There are %i nodes available in the system."
+      status_pie: "Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending"
       default_new: New_Group
       add: Add Group
-      add_group_error: Group name should start with a letter and only contain letters, digits, -, _, ., or :.
+      add_group_error: "Group name should start with a letter and only contain letters, digits, -, _, ., or :."
       hide: Hide Group
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
       new_drag: To move nodes, drag into title
     list:
-      group_error: Group should start with a letter and only contain letters, digits, -, _, ., or :.
+      group_error: "Group should start with a letter and only contain letters, digits, -, _, ., or :."
       name: Name
       group: Group
       alias: Alias  
@@ -230,7 +230,7 @@ en:
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
-      hint: <i>group italics</i> indicates group is set automatically by system
+      hint: "<i>group italics</i> indicates group is set automatically by system"
     families:
       title: Node Hardware Families
       name: Nodes
@@ -278,7 +278,7 @@ en:
       delete_hint: Delete File from Export Directory
       delete_succeeded: Delete Succeeded
       delete_failed: Delete Failed
-      wait: Exporting... Please wait or check back later (screen will automatically update when complete)
+      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
     export:
       succeed: Chef Objects Exported
       fail: Chef Export Failed

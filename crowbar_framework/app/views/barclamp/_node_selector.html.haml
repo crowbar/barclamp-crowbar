@@ -1,4 +1,4 @@
--if request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-9])/
+-if request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
   %p
     %em= t('.msie_fail')
   = render :partial => 'barclamp/edit_deployment_raw'
@@ -58,7 +58,8 @@ $(document).ready(function() {
     messages['constraint_max']=  "#{t('.constraint_max')}";
     messages['constraint_unique']=  "#{t('.constraint_unique')}";
     messages['constraint_admin']=  "#{t('.constraint_admin')}";
-  var json = JSON.parse(document.getElementById('proposal_development').value);
+  var json = "";
+  json = (document.getElementById('proposal_development')) ? JSON.parse(document.getElementById('proposal_development').value) : json;
   var limis;
   var allocated = [];
   try {
@@ -192,8 +193,10 @@ $(document).ready(function() {
   // call after updates to change the values
   function update_json() {
     input = document.getElementById('proposal_development')
-    input.value = JSON.stringify(json);
-    // console.debug("json:" + document.getElementById('proposal_development').value);
+    if(input){
+      input.value = JSON.stringify(json);
+      // console.debug("json:" + document.getElementById('proposal_development').value);
+    }
   }
   
   // creates the LI HTML and adds it to the list
@@ -201,7 +204,7 @@ $(document).ready(function() {
     try {
       var $list = $('ul.ddlist[id="'+list+'"]');
       if ($list.children('li[id="'+item+'"]').length == 0) {
-        var node = $('a.available[id="'+item+'"]');
+        var node = $('a.available[id="'+item+'"]', $('#nodes_div'));
         if (node.length==0) node = $('a.available[id="-1"]');
         var title = node.attr('title');
         var shortname = node.text(); 

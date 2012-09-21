@@ -176,7 +176,7 @@ test_scenario(Config, RawSteps, Name) ->
 	% now, run the then steps
 	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
 	case bdd_utils:assert_atoms(Result) of
-		true -> io:format("PASSED!~n",[]), pass;
+		true -> bdd_utils:untrace(Config, Name, N), io:format("PASSED!~n",[]), pass;
 		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
 	end.
   

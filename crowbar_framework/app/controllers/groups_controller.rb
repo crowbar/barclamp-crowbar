@@ -15,52 +15,28 @@
 #
 class GroupsController < ApplicationController
 
-  # GET to list nodes belonging to a greoup
-  def node_list
-    if request.get?
-      @group = Group.find_key params[:id]
-      if @group 
-        render :json => @group.nodes
-      else
-        throw "Could not find Group #{params[:id]}."
-      end
-    else
-      throw "HTTP GET required to compelte this action"
-    end
-  end
-
   # POST to add a node to the group
-  def node_add
-    if request.post?
-      @group = Group.find_key params[:id]
+  def node_action
+    @group = Group.find_key params[:id]
+    throw "Could not find Group #{params[:id]}." unless @group
+
+    unless request.get?
       @node = Node.find_key params[:node]
-      if @group and @node
+      throw "Could not find Node #{params[:node]}." unless @node
+      if request.post?
         @group.nodes << @node
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
-      end
-    else
-      throw "HTTP POST required to compelte this action"
-    end
-  end
-  
-  # DELETE to remove a node from a group
-  def node_delete
-    if request.delete?
-      @group = Group.find_key params[:id]
-      @node = Node.find_key params[:node]
-      if @group and @node
+      elsif request.put?
+        category = @group.category
+        @nodes.groups.each { |g| @nodes.groups.delete(g) if g.category.eql?(category) }
+        @nodes.groups << @group
+      elsif request.delete?
         @group.nodes.delete(@node)
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
       end
-    else
-      throw "HTTP DELETE required to complete this action"
     end
+    render :json => {@group=>@group.nodes.each{ |n| n.id=>n.name }}
+    
   end
-  
+    
   # PUT to move a node between groups
   def node_move
     if request.put?

@@ -36,18 +36,35 @@ g(Item) ->
     name1 -> "bddthings";
     atom1 -> group1;
     name2 -> "bdddelete";
-    atom2 -> group2
+    atom2 -> group2;
+    _ -> crowbar:g(Item)
   end.
 
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
 json(Name, Description, Order, Category) ->
   json:output([{"name",Name},{"description", Description}, {"category", Category}, {"order", Order}]).
 	
+step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) -> 
+  bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
+      
+step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) -> 
+  GroupPath = eurl:path(g(path),Group),
+  NodePath = eurl:path("node",Node),
+  AddPath = eurl:path(GroupPath, NodePath),
+  Result = eurl:post(Config, AddPath, []),
+  validate(Result);
+  
+step(_Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
+  false;
+  
+step(_Config, _Result, {step_then, _N, ["the node",Node,"should be in group",Group]}) -> 
+  false;
+                                                                
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  JSON1 = json(g(name1), "BDD Testing Only - should be automatically removed", 100),
+  JSON1 = json(g(name1), g(description), 100),
   Config1 = bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON1),
-  JSON2 = json(g(name2), "BDD Testing Only - should be automatically removed", 200),
+  JSON2 = json(g(name2), g(description), 200),
   Config2 = bdd_utils:setup_create(Config1, g(path), g(atom2), g(name2), JSON2),
   Config2;
 

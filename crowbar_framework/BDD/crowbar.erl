@@ -47,8 +47,9 @@ validate(JSON) ->
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
 		false
 	end. 
-	
-% node setup
+
+
+% global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
   Node = nodes:json(g(node_name), Test ++ g(description), 100),
   bdd_utils:setup_create(Config, nodes:g(path), g(node_atom), g(node_name), Node);
@@ -56,7 +57,25 @@ step(Config, _Global, {step_setup, _N, Test}) ->
 % find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
   bdd_utils:teardown_destroy(Config, nodes:g(path), g(node_atom));
-  
+
+% NODES 
+step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
+  JSON = nodes:json(Node, nodes:g(description), 200),
+  eurl:post(Config, nodes:g(path), JSON);
+
+step(Config, _Result, {step_then, _N, ["throw away node",Node]}) -> 
+  eurl:delete(Config, nodes:g(path), Node),
+  true;
+
+% GROUPS
+step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
+  JSON = groups:json(Group, groups:g(description), 200, Category),
+  eurl:post(Config, groups:g(path), JSON);
+
+step(Config, _Result, {step_then, _N, ["throw away group",Group]}) -> 
+  eurl:delete(Config, groups:g(path), Group),
+  true;
+
 % helper for limiting checks to body
 step(_Config, Result, {step_then, _N, ["I should see", Text, "in the body"]}) -> 
   bdd_webrat:step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", "main_body"]});

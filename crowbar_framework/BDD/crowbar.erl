@@ -72,6 +72,8 @@ step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -
   JSON = groups:json(Group, groups:g(description), 200, Category),
   eurl:post(Config, groups:g(path), JSON);
 
+% ============================  THEN STEPS =========================================
+
 step(Config, _Result, {step_then, _N, ["throw away group",Group]}) -> 
   eurl:delete(Config, groups:g(path), Group),
   true;
@@ -102,9 +104,16 @@ step(_Config, Result, {step_then, _N, ["the", Type, "object is properly formatte
   Feature = list_to_atom(Type),
   apply(Feature, validate, [JSON]);
 
+% ============================  FINALLY STEPS =========================================
+% remove the node
+step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) -> 
+  eurl:delete(Config, nodes:g(path), Node);
+
+% remove the group
+step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 
+  eurl:delete(Config, groups:g(path), Group);
+
+% ============================  LAST RESORT =========================================
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     
 step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.
-
-  
-      

@@ -160,7 +160,8 @@ print_fail([Result | Results]) ->
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
   % organize steps in the scenarios
-	{N, GivenSteps, WhenSteps, ThenSteps} = scenario_steps(RawSteps),
+	{N, GivenSteps, WhenSteps, ThenSteps, FinalSteps} = scenario_steps(RawSteps),
+	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
 	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
@@ -173,8 +174,9 @@ test_scenario(Config, RawSteps, Name) ->
 	bdd_utils:trace(Config, Name, N, RawSteps, Given, When),
 	% now, check the results
 	Result = [{step_run(Config, When, TS), TS} || TS <- ThenSteps],
-	% now, run the then steps
-	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
+	% safe to cleanup with the finally steps (we don't care about the result of those)
+	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
+	% now, check the results of the then steps
 	case bdd_utils:assert_atoms(Result) of
 		true -> bdd_utils:untrace(Config, Name, N), io:format("PASSED!~n",[]), pass;
 		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
@@ -196,10 +198,10 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		error: function_clause -> step_run(Config, Input, Step, Features);
 		exit: {noproc, {gen_server, call, Details}} -> 
 		  io:format("exit Did not find step: ~p~n", [Feature]),
-      io:format("ERROR: web server not responding.  Details: ~p~n",[Details]), 
+      io:format("~nERROR: web server not responding.  Details: ~p~n",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> 
-		  io:format("ERROR: step run found ~p:~p~n", [X, Y]), 
+		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
       io:format("\tAttempted \"apply(~p, step, [[Config], [Input], ~p]).\"~n",[Feature, Step]),
 		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
@@ -218,8 +220,8 @@ step_run(_Config, _Input, Step, []) ->
 % Each step is given a line number to help w/ debug
 scenario_steps(Steps) ->
 	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
-	scenario_steps(Steps, 1, [], [], [], unknown).
-scenario_steps([H | T], N, Given, When, Then, LastStep) ->
+	scenario_steps(Steps, 1, [], [], [], [], unknown).
+scenario_steps([H | T], N, Given, When, Then, Finally, LastStep) ->
 	CleanStep = bdd_utils:clean_line(H),
 	{Type, StepRaw} = step_type(CleanStep),
 	StepPrep = {Type, bdd_utils:tokenize(StepRaw)},
@@ -228,15 +230,16 @@ scenario_steps([H | T], N, Given, When, Then, LastStep) ->
 	  {Type, SS} -> {Type, SS}
 	end,
 	case Step of
-		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, step_given);
-		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, step_when);
-		{step_then, S} -> scenario_steps(T, N+1, Given, When, [{step_then, N, S} | Then], step_then);
-		{empty, _} -> scenario_steps(T, N, Given, When, Then, empty);
-		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(T, N+1, Given, When, Then, unknown)		
+		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, Finally, step_given);
+		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, Finally, step_when);
+		{step_then, S} -> scenario_steps(T, N+1, Given, When, [{step_then, N, S} | Then], Finally, step_then);
+		{step_finally, S} -> scenario_steps(T, N+1, Given, When, Then, [{step_finally, N, S} | Finally], step_finally);
+		{empty, _} -> scenario_steps(T, N, Given, When, Then, Finally, empty);
+		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(T, N+1, Given, When, Then, Finally, unknown)		
 	end;
-scenario_steps([], N, Given, When, Then, _) ->
+scenario_steps([], N, Given, When, Then, Finally, _) ->
 	% returns number of steps and breaks list into types, may be expanded for more times in the future!
-	{N, Given, When, Then}.
+	{N, Given, When, Then, Finally}.
 	
 % figure out what type of step we are doing (GIVEN, WHEN, THEN, etc), return value
 step_type([$G, $i, $v, $e, $n, 32 | Given]) ->
@@ -245,6 +248,8 @@ step_type([$W, $h, $e, $n, 32 | When] ) ->
 	{ step_when, When };
 step_type([$T, $h, $e, $n, 32 | Then ]) -> 
 	{ step_then, Then };
+step_type([$F, $i, $n, $a, $l, $l, $y, 32 | Finally ]) -> 
+	{ step_finally, Finally };
 step_type([$A, $n, $d, 32 | Next ]) -> 
 	{ step_and, Next };
 step_type([]) ->

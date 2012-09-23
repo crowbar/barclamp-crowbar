@@ -18,42 +18,33 @@ class GroupsController < ApplicationController
   # POST to add a node to the group
   def node_action
     @group = Group.find_key params[:id]
-    throw "Could not find Group #{params[:id]}." unless @group
-
-    unless request.get?
-      @node = Node.find_key params[:node]
-      throw "Could not find Node #{params[:node]}." unless @node
-      if request.post?
-        @group.nodes << @node
-      elsif request.put?
-        category = @group.category
-        @nodes.groups.each { |g| @nodes.groups.delete(g) if g.category.eql?(category) }
-        @nodes.groups << @group
-      elsif request.delete?
-        @group.nodes.delete(@node)
-      end
-    end
-    render :json => {@group=>@group.nodes.each{ |n| n.id=>n.name }}
-    
-  end
-    
-  # PUT to move a node between groups
-  def node_move
-    if request.put?
-      @group = Group.find_key params[:id]
-      @node = Node.find_key params[:node]
-      if @group and @node
-        category = @group.category
-        @nodes.groups.each { |g| @nodes.groups.delete(g) if g.category.eql?(category) }
-        @nodes.groups << @group
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
-      end
+    unless @group
+      render :json => {:error=>"Could not find Group '#{params[:id]}'."}, :status => 404
+      return
     else
-      throw "HTTP PUT required to compelte this action"
+      unless request.get?
+        @node = Node.find_key params[:node]
+        unless @node
+          render :json => {:error=>"Could not find Node '#{params[:node]}'."}, :status => 404
+          return
+        else
+          if request.post?
+            @group.nodes << @node unless @group.nodes.include? @node
+          elsif request.put?
+            category = @group.category
+            @node.groups.each { |g| g.nodes.delete(@node) if g.category.eql?(category) }
+            @node.groups << @group unless @group.nodes.include? @node
+          elsif request.delete?
+            @group.nodes.delete(@node) if @group.nodes.include? @node
+          end
+        end
+      end
+      result = {}
+      @group.nodes.each { |n| result[n.id] = n.name }
+      render :json => {:id=>@group.id, :name=>@group.name, :category=>@group.category, :nodes=>result}
     end
-  end  
+  end
+
   
   # GET /group/2.0/1
   # GET /group/2.0/group

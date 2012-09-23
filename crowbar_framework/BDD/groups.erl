@@ -29,7 +29,7 @@ validate(JSON) ->
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
 		false
 	end. 
- 
+	
 g(Item) ->
   case Item of
     path -> "2.0/group";
@@ -37,33 +37,87 @@ g(Item) ->
     atom1 -> group1;
     name2 -> "bdddelete";
     atom2 -> group2;
+    name_node1 -> "group1.node.test";
+    atom_node1 -> gnode1;
     _ -> crowbar:g(Item)
   end.
 
+% Returns the JSON List Nodes in the Group
+get_group_nodes(Config, Group) ->
+  GroupPath = eurl:path(g(path),Group),
+  Path = eurl:path(GroupPath, "node"),
+  Result = eurl:get(Config, Path),
+  group_nodes(json:parse(Result), Group).
+  
+% Given a ERLANG list from the GET, will return the node list
+group_nodes(Result, Group) ->
+  {"name", Group} = lists:keyfind("name", 1, Result),   % make sure this is the group we think 
+  {"nodes", Nodes} = lists:keyfind("nodes", 1, Result),
+  Nodes.
+  
+% DRY the path creation
+group_node_path(Group, Node) ->
+  GroupPath = eurl:path(g(path),Group),
+  NodePath = eurl:path("node",Node),
+  eurl:path(GroupPath, NodePath).
+
+% Build Group JSON  
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
 json(Name, Description, Order, Category) ->
   json:output([{"name",Name},{"description", Description}, {"category", Category}, {"order", Order}]).
 	
+% STEPS!
 step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) -> 
   bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
       
+step(Config, _Given, {step_given, _N, ["REST adds the node",Node,"to",Group]}) -> 
+  step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]});
+  
 step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) -> 
-  GroupPath = eurl:path(g(path),Group),
-  NodePath = eurl:path("node",Node),
-  AddPath = eurl:path(GroupPath, NodePath),
-  Result = eurl:post(Config, AddPath, []),
-  validate(Result);
-  
-step(_Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
-  false;
-  
-step(_Config, _Result, {step_then, _N, ["the node",Node,"should be in group",Group]}) -> 
-  false;
-                                                                
+  Result = eurl:post(Config, group_node_path(Group, Node), []),
+  {nodes, group_nodes(Result, Group)};
+
+step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]}) -> 
+  eurl:delete(Config, group_node_path(Group, Node), []);
+
+step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFrom,"to",GroupTo]}) -> 
+  %first check old group
+  Nodes = get_group_nodes(Config, GroupFrom),
+  1 = length([ N || {_ID, N} <- Nodes, N =:= Node]),
+  Result = eurl:put(Config, group_node_path(GroupTo, Node), []),
+  {nodes, group_nodes(Result, GroupTo)};                                                                                                                                                                     
+step(Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
+  {C, _} = string:to_integer(Count),
+  Nodes = get_group_nodes(Config, Group),
+  Items = length(Nodes),
+  Items >= C;
+
+step(Config, _Result, {step_then, _N, ["the group",Group,"should have",Count,"nodes"]}) -> 
+  {C, _} = string:to_integer(Count),
+  Nodes = get_group_nodes(Config, Group),
+  length(Nodes) =:= C;
+
+step(Config, _Result, {step_then, _N, ["the node",Node,"should be in group",Group]}) -> 
+  Nodes = get_group_nodes(Config, Group),
+  Name = [ N || {_ID, N} <- Nodes, N =:= Node],
+  length(Name) =:= 1;
+
+step(Config, _Result, {step_then, _N, ["the node",Node,"should not be in group",Group]}) -> 
+  Nodes = get_group_nodes(Config, Group),
+  Name = [ N || {_ID, N} <- Nodes, N =:= Node],
+  length(Name) =:= 0;
+
+step(Config, _Given, {step_finally, _N, ["REST removes the node",Node,"from",Group]}) -> 
+  step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]});
+                                              
 step(Config, _Global, {step_setup, _N, _}) -> 
+
   % create node(s) for tests
+  JSON0 = nodes:json(g(name_node1), g(description), 100),
+  Config0 = bdd_utils:setup_create(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
+  % create groups(s) for tests
   JSON1 = json(g(name1), g(description), 100),
-  Config1 = bdd_utils:setup_create(Config, g(path), g(atom1), g(name1), JSON1),
+  Config1 = bdd_utils:setup_create(Config0, g(path), g(atom1), g(name1), JSON1),
   JSON2 = json(g(name2), g(description), 200),
   Config2 = bdd_utils:setup_create(Config1, g(path), g(atom2), g(name2), JSON2),
   Config2;
@@ -72,4 +126,5 @@ step(Config, _Global, {step_teardown, _N, _}) ->
   % find the node from setup and remove it
   Config2 = bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
   Config1 = bdd_utils:teardown_destroy(Config2, g(path), g(atom1)),
-  Config1.
+  Config0 = bdd_utils:teardown_destroy(Config1, nodes:g(path), g(atom_node1)),
+  Config0.

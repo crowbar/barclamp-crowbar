@@ -15,7 +15,10 @@ By default, returns HTML for node information
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> GET  </td><td> 2.0/group/[id] </td><td> id is the group ID or name. </td><td> json extension required to return json  </td></tr>
+<tr><td> GET  </td>
+  <td> 2.0/group/[id] </td>
+  <td> id is the group ID or name. </td>
+  <td> json extension required to return json  </td></tr>
 </table>
 
 
@@ -48,12 +51,16 @@ Creates a new group
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> POST  </td><td> 2.0/node/ </td><td> json definition (see Node Show) </td><td> must be a legal object </td></tr>
+<tr><td> POST  </td>
+  <td> 2.0/node/ </td>
+  <td> json definition (see Node Show) </td>
+  <td> must be a legal object </td></tr>
 </table>
 
 **Input:**
 
-    {
+    { 
+      "id":1
       "name":"fqdn.example.com",
       "description":"description",
       "category":"ui"
@@ -77,7 +84,10 @@ Deletes a group
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> DELETE  </td><td> 2.0/group/[id] </td><td> Database ID or name </td><td> must be an existing object ID </td></tr>
+<tr><td> DELETE  </td>
+  <td> 2.0/group/[id] </td>
+  <td> Database ID or name </td>
+  <td> must be an existing object ID </td></tr>
 </table>
 
 No body.
@@ -90,68 +100,61 @@ Details:
 
 * id - Group name or database ID
 
-#### Node Actions on Groups
+#### Node Actions on Groups 
 
-These actions are for adding, removing, or moving nodes in groups
+These actions are for showing adding, removing, or moving nodes in groups
 
-##### Add Node
+On success, They all return the same result as the Show method
 
-Adds a node to an existing group
-
-**Input:**
-
-<table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> POST  </td><td> 2.0/group[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
-</table>
-
-**Input:**
-
-All data is contained in the URL
-
-Details:
-
-* group-id: id of the group
-* node-id: id if the node (can be name) 
-
-##### Move Node
-
-Moves a node from an existing group to an another group _in the same category_.  This is effectively a combined delete/add action.
+> _Note_: This these methods are used by the UI for drag and drop group management
 
 **Input:**
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> PUT  </td><td> 2.0/group/[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
+<tr><td> GET  </td>
+  <td> 2.0/group/[group-id]/node </td>
+  <td> none </td>
+  <td> json list of nodes (see below) </td>
+  <td> Shows nodes that below to group </td></tr>
+<tr><td> POST </td>
+  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> none </td>
+  <td> json definition (see Node Show) </td>
+  <td> Add node to group </td></tr>
+<tr><td> PUT  </td>
+  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> none </td>
+  <td> json definition (see Group Node Show) </td>
+  <td> Move Node from Group 1 to Group 2 </td></tr>
+<tr><td> DELETE </td>
+  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> none </td>
+  <td> json definition (see Node Show) </td>
+  <td> Removes a node from an existing group </td></tr>
 </table>
 
-**Input:**
+> _Note_: Move a node from an existing group to an another group _in the same category_.  This is effectively a combined delete/add action.
 
-All data is contained in the URL
 
 Details:
 
-* group-id: id of the group
+* All data is contained in the URL (no body required)
+* group-id: id of the group (can be name)
 * node-id: id if the node (can be name) 
 
+**Output:**
 
-##### Delete Node
+    {
+      "id": #
+      "nodes": {"[group_id#]":"[group_name]"},
+      "name":"[group_name]",
+      "category":"[group_category]"}
+    }
 
-Removes a node from an existing group 
+**Errors:**
 
-**Input:**
+* 404 if node requested is not found
+* 404 if group requested is not found
 
-<table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> DELETE </td><td> 2.0/group/[group-id]/node/[node-id] </td><td> json definition (see Node Show) </td><td> must be a legal objects </td></tr>
-</table>
-
-**Input:**
-
-All data is contained in the URL
-
-Details:
-
-* group-id: id of the group
-* node-id: id if the node (can be name) 
 

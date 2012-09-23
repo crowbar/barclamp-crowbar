@@ -9,6 +9,17 @@ Feature: Groups
       And there should be a key "category"
       And the "groups" object is properly formatted
 
+  Scenario: %Group Add
+    Given REST adds the group "simpleadd"
+    When AJAX gets the group "simpleadd"
+    Then the object is properly formatted
+    Finally REST removes the group "simpleadd"
+
+  Scenario: %Group Delete
+    Given REST adds the group "simpledelete"
+    When REST removes the group "simpledelete"
+    Then there is not a "ui" group "simpledelete"
+
   Scenario: Add Node to Group
     Given there is a node "group1.add.test"
       And there is a "ui" group "add2me"

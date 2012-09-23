@@ -14,13 +14,24 @@ The intent of these tests are to focus on the responses and requests to the web-
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
 
+> Note: The default tests run as a the "developer" user so you must be in development mode to use them!
+
+#### Test Debugging
+
+The BDD system generates trace files for each test executed.  These trace files have the results of all the steps for each scenario.  If the test passes, the trace file is deleted automatically. 
+
+Reviewing the trace output on failed tests is the fastest way to determine if there is a problem with the system or the test because it will show you the page results that are being examined.
+
 ### BDD DSL
 
-The BDD domain specific language (DSL) that's designed to be very natural language like.  There are 3 primary clauses in the DSL:
+The BDD domain specific language (DSL) that's designed to be very natural language like.  There are 4 primary clauses in the DSL:
 
 1. **Given** ... some background thing has happened
 1. **When** ... take some action
 1. **Then** ... get some result
+1. **Finally** ... cleanup actions (optional)
+
+Feature files may also include **setup** and **tear down* steps that are essential for creating input data for tests.  In some cases, tests require information to be in place _before_ the Given step.
 
 ### Writing Feature Tests
 
@@ -36,26 +47,31 @@ The following sentences can be used for testing HTML web pages where you can cha
 
 * Given I am on the home page
 * Given I am on the "dashboard" page
+* Given there is a node "foo.example.com"
 * When I go to the home page
 * When I go to the "node/2.0/1" page
 * When I click on the "Dashboard" menu item
 * Then I should see "Full Name"
 * Then there should be no translation errors
 * Then I should not see "Error"
+* Finally throw away node "foo.example.com"
 
 > Note: This is _not_ a complete list!
 
-#### AJAX Tests
+#### REST/AJAX Tests
 
-The following sentences can be used for testing JSON AJAX API calls where you can change the information in 
+The following sentences can be used for testing REST JSON (aka AJAX) API calls where you can change the information in 
 
-* When AJAX requests the "node/status/2.0" page
+* When REST requests the "2.0/node/status" page
 * Then key "fingerprint" should be a number
 * Then key "[nodes][admin][state]" should be "Ready"
 * Then key "count" should be "0"
 * Then key "[groups][0]" should contain "7" items
+* Finally throw away node "foo.bar.com"
 
 > Note: This is _not_ a complete list!
+
+> Note: We are migrating to use "REST" instead of "AJAX"
 
 ### Extending the DSL
 
@@ -161,6 +177,14 @@ Some handly Erlang tips:
 * default - the fall back step file (global setup/teardown goes here)
 * crowbar - Crowbar specific logic
 * [feature] - Each feature can have a specific step file
+
+#### In the feature specific code files, you will find the following
+
+The Global routine "g" that provides paths for the Feature type.  
+
+Setup and Teardown steps for the Feature.
+
+REST API items that are specific to that Feature; however, some of these are common and should be moved to the Crowbar (or CrowbarREST file).
 
 ### Test Files
 

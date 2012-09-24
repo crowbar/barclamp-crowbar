@@ -5,6 +5,7 @@ Crowbar includes rails tests.  These tests us the already present rails test fra
 The current tests reside under test.  Unit tests can be added under unit and currently are only focused on model testing.
 
 Steps to execute tests on an installed admin node:
+
 1. `cd /opt/dell/crowbar_framework`
 1. `rake db:drop`
 1. `rake db:migrate`

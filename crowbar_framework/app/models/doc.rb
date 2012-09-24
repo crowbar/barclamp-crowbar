@@ -26,7 +26,7 @@ class Doc < ActiveRecord::Base
   
   # creates the table of contents from the files
   def self.gen_doc_index(path)    
-    root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('root', :scope=>'docs'), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
+    root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('root', :scope=>'docs', :default=>"System Documentation (Master Index)"), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
     root = Doc.find_or_create_by_name root_default
     Barclamp.all.sort.each do |barclamp|
       bc = barclamp.name

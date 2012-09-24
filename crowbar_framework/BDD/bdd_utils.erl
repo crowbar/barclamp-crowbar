@@ -16,7 +16,7 @@
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
--export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6]).
+-export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([setup_create/5, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2]).
 
@@ -61,6 +61,10 @@ trace(Config, Name, N, Steps, Given, When) ->
   io:format(S, "~n==== End of Test Dump (~p) ====", [N]),
   file:close(S).
 
+untrace(Config, Name, N) ->
+  File = trace_setup(Config, Name, N),
+  file:delete(File).
+  
 % test for types
 is_a(Type, Value) ->
   case Type of 

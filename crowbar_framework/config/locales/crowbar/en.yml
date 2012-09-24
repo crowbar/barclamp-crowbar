@@ -214,6 +214,7 @@ en:
       hide: Hide Group
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
       new_drag: To move nodes, drag into title
+      no_polling: "Notice: Status Update Polling Disabled"
     list:
       group_error: "Group should start with a letter and only contain letters, digits, -, _, ., or :."
       name: Name

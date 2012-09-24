@@ -41,7 +41,6 @@ class BarclampController < ApplicationController
     @barclamps = Barclamp.all
     respond_to do |format|
       format.html { render :template => 'barclamp/barclamp_index' }
-      format.xml  { render :xml => @barclamps }
       format.json { render :json => @barclamps }
     end
   end
@@ -83,11 +82,6 @@ class BarclampController < ApplicationController
       format.html {
         return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] unless @role
         render :template => 'barclamp/show' 
-      }
-      format.xml  { 
-        return render :text => t('proposal.failures.show_active_failed'), 
-                      :status => 404 unless @role
-        render :xml => @role.to_proposal_object_hash
       }
       format.json { 
         return render :text => t('proposal.failures.show_active_failed'), 

@@ -15,69 +15,36 @@
 #
 class GroupsController < ApplicationController
 
-  # GET to list nodes belonging to a greoup
-  def node_list
-    if request.get?
-      @group = Group.find_key params[:id]
-      if @group 
-        render :json => @group.nodes
-      else
-        throw "Could not find Group #{params[:id]}."
-      end
+  # POST to add a node to the group
+  def node_action
+    @group = Group.find_key params[:id]
+    unless @group
+      render :json => {:error=>"Could not find Group '#{params[:id]}'."}, :status => 404
+      return
     else
-      throw "HTTP GET required to compelte this action"
+      unless request.get?
+        @node = Node.find_key params[:node]
+        unless @node
+          render :json => {:error=>"Could not find Node '#{params[:node]}'."}, :status => 404
+          return
+        else
+          if request.post?
+            @group.nodes << @node unless @group.nodes.include? @node
+          elsif request.put?
+            category = @group.category
+            @node.groups.each { |g| g.nodes.delete(@node) if g.category.eql?(category) }
+            @node.groups << @group unless @group.nodes.include? @node
+          elsif request.delete?
+            @group.nodes.delete(@node) if @group.nodes.include? @node
+          end
+        end
+      end
+      result = {}
+      @group.nodes.each { |n| result[n.id] = n.name }
+      render :json => {:id=>@group.id, :name=>@group.name, :category=>@group.category, :nodes=>result}
     end
   end
 
-  # POST to add a node to the group
-  def node_add
-    if request.post?
-      @group = Group.find_key params[:id]
-      @node = Node.find_key params[:node]
-      if @group and @node
-        @group.nodes << @node
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
-      end
-    else
-      throw "HTTP POST required to compelte this action"
-    end
-  end
-  
-  # DELETE to remove a node from a group
-  def node_delete
-    if request.delete?
-      @group = Group.find_key params[:id]
-      @node = Node.find_key params[:node]
-      if @group and @node
-        @group.nodes.delete(@node)
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
-      end
-    else
-      throw "HTTP DELETE required to complete this action"
-    end
-  end
-  
-  # PUT to move a node between groups
-  def node_move
-    if request.put?
-      @group = Group.find_key params[:id]
-      @node = Node.find_key params[:node]
-      if @group and @node
-        category = @group.category
-        @nodes.groups.each { |g| @nodes.groups.delete(g) if g.category.eql?(category) }
-        @nodes.groups << @group
-        render :json => @group
-      else
-        throw "Could not find one or both of Group #{params[:id]} or Node #{params[:node]}."
-      end
-    else
-      throw "HTTP PUT required to compelte this action"
-    end
-  end  
   
   # GET /group/2.0/1
   # GET /group/2.0/group

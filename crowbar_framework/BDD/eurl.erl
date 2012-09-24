@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(eurl).
--export([post/3, delete/3, post_params/1, post/5, uri/2, path/2]).
+-export([post/3, put/3, delete/3, post_params/1, post/5, uri/2, path/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
@@ -183,15 +183,22 @@ post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
 
 % Post using JSON to convey the values
 post(Config, Path, JSON) ->
+  put_post(Config, Path, JSON, post).
+
+put(Config, Path, JSON) ->
+  put_post(Config, Path, JSON, put).
+  
+% Put using JSON to convey the values
+put_post(Config, Path, JSON, Action) ->
   URL = uri(Config, Path),
-  R = digest_auth:request(Config, post, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
+  R = digest_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
 	{ok, StateMP} = re:compile("OK"),
 	case re:run(State, StateMP) of
 		{match, _} -> json:parse(Body);
 		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK. " ++ Body
 	end. 
-
+	
 delete(Config, Path, Id) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
   R = digest_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  

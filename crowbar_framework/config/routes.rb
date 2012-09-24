@@ -83,25 +83,25 @@ Crowbar::Application.routes.draw do
   scope :defaults => {:format=> 'json'} do
     # 2.0 API Pattern
     scope '2.0' do
-      constraints(:id => /.*/ ) do
+      constraints(:id => /([a-zA-Z0-9\-\.\_]*)/ ) do
 
         # status operations
         scope 'status' do
           get "node(/:id)" => 'nodes#status', :as=>'node_status'
         end
-        
-        # basic CRUD operations
-        resources :node, :controller=>'nodes'
-        resources :group, :controller=>'groups'
-        
+                
         # group + node CRUD operations
-        match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /.*/ }
+        match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
 
         get    "crowbar/2.0/network/networks", :controller => 'network', :action=>'networks'
         get    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_show'
         post   "crowbar/2.0/network/networks", :controller => 'network', :action=>'network_create'
         put    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_update'
         delete "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_delete'
+
+        # basic CRUD operations
+        resources :node, :controller=>'nodes'
+        resources :group, :controller=>'groups'
       end
     end
   end

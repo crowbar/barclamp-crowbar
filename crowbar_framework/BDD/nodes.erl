@@ -27,8 +27,8 @@ g(Item) ->
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
-step(_Config, _Given, {step_when, _N, ["AJAX gets the node",Name]}) -> 
-  bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
+step(Config, _Given, {step_when, _N, ["AJAX gets the node",Name]}) -> 
+  bdd_webrat:step(Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
                                                                
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests

@@ -278,8 +278,8 @@ class ServiceObject
         raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
       end
       uniq_elements.each do |node_name|
-        nodes = NodeObject.find_nodes_by_name node_name
-        if 0 == nodes.length
+        node = Node.find_by_name node_name
+        if node.nil?
           raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
         end
       end

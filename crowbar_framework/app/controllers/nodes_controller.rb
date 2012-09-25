@@ -27,15 +27,15 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     session[:node] = params[:id]
     if params.has_key?(:role)
-      result = NodeObject.all #this is not efficient, please update w/ a search!
+      result = Node.all #this is not efficient, please update w/ a search!
       @nodes = result.find_all { |node| node.role? params[:role] }
       if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.handle }
+         names = @nodes.map { |node| node.name }
          @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
       end
     else
       @nodes = {}
-      raw_nodes = NodeObject.all
+      raw_nodes = Node.all
       get_node_and_network(params[:selected]) if params[:selected]
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @groups.nil?
     end
@@ -73,7 +73,7 @@ class NodesController < ApplicationController
         nodes.each do |node_name, values|
           begin
             dirty = false
-            node = NodeObject.find_node_by_name node_name
+            node = Node.find_by_name node_name
             if !node.allocated and values['allocate'] === 'checked'
               node.allocated = true
               dirty = true
@@ -124,8 +124,8 @@ class NodesController < ApplicationController
     end
     @options = CrowbarService.read_options
     @nodes = {}
-    NodeObject.all.each do |node|
-      @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
+    Node.all.each do |node|
+      @nodes[node.name] = node if params[:allocated].nil? or !node.allocated?
     end
   end
 
@@ -134,12 +134,12 @@ class NodesController < ApplicationController
     Node.all.each do |n|
       f = n.family.to_s  
       @families[f] = {:names=>[], :family=>n.family} unless @families.has_key? f
-      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
+      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.name}
     end
   end
   
   def group_change
-    node = NodeObject.find_node_by_name params[:id]
+    node = Node.find_by_name params[:id]
     if node.nil?
       raise "Node #{params[:id]} not found.  Cannot change group" 
     else
@@ -184,7 +184,7 @@ class NodesController < ApplicationController
   def hit
     action = params[:req]
     name = params[:name] || params[:id]
-    machine = NodeObject.find_node_by_name name
+    machine = Node.find_by_name name
     if machine.nil?
       render :text=>"Could not find node '#{name}'", :status => 404
     else
@@ -216,7 +216,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render :json => @node }
+      format.json { render :json => @node.cmdb_hash }
     end
   end
 
@@ -282,16 +282,18 @@ class NodesController < ApplicationController
 
   def get_node_and_network(node_name)
     @network = {}
-    @node = NodeObject.find_node_by_name(node_name) if @node.nil?
+    @node = Node.find_by_name(node_name) if @node.nil?
+    @node = Node.find_by_id(node_name) if @node.nil?
     if @node
-      intf_if_map = @node.build_node_map
+      chef_node = @node.cmdb_hash
+      intf_if_map = chef_node.build_node_map # HACK: XXX: This should be something else
       # build network information (this may need to move into the object)
-      @node.networks.each do |intf, data|
+      chef_node.networks.each do |intf, data|
         @network[data["usage"]] = {} if @network[data["usage"]].nil?
         if data["usage"] == "bmc"
           ifname = "bmc"
         else
-          ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
+          ifname, ifs, team = chef_node.lookup_interface_info(data["conduit"])
           if ifname.nil? or ifs.nil?
             ifname = "Unknown"
           else
@@ -300,7 +302,7 @@ class NodesController < ApplicationController
         end
         @network[data["usage"]][ifname] = data["address"] || 'n/a'
       end
-      @network['[not managed]'] = @node.unmanaged_interfaces
+      @network['[not managed]'] = chef_node.unmanaged_interfaces
     end
     @network.sort
   end

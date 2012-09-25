@@ -231,4 +231,8 @@ class ProposalConfig < ActiveRecord::Base
     phash
   end
 
+  def to_s
+    "PC: #{proposal.name} #{proposal.active?}"
+  end
+
 end

@@ -67,7 +67,7 @@ class BarclampController < ApplicationController
 
     ret = operations.transition(id, name, state)
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => Node.find_by_name(name).node_object.to_hash
+    render :json => Node.find_by_name(name).cmdb_hash.to_hash
   end
   
   #
@@ -137,7 +137,7 @@ class BarclampController < ApplicationController
   #
   add_help(:element_info,[:id])
   def element_info
-    render :json => NodeObject.find_all_nodes
+    render :json => Node.all
   end
 
   #
@@ -297,7 +297,7 @@ class BarclampController < ApplicationController
             if answer[0] == 202
               flash_msg = ""
               answer[1].each {|node_dns|
-                  flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
+                  flash_msg << Node.find_by_name(node_dns).alias << ", "
               }
               flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
             end

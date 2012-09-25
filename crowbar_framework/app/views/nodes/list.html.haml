@@ -25,8 +25,8 @@
     %tbody
       - if @nodes.count > 0
         - @nodes.sort_by{|handle, n| n.name }.each do |handle, node|
-          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.handle }
-            %td= link_to node.name.split('.')[0], node_path(node.handle), :title=> node.ip
+          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.name }
+            %td= link_to node.name.split('.')[0], node_path(node.name), :title=> node.ip
             -unless node.admin?
               %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :size => 15
               %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :size => 30

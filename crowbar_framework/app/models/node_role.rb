@@ -35,12 +35,12 @@ class NodeRole < ActiveRecord::Base
   # are stored in the database json blobs.
   #
   def config_hash
-    {} unless config
-    JSON::parse(config)
+    return {} unless self.config
+    JSON::parse(self.config)
   end
 
   def config_hash=(newconfig)
-    config = newconfig.to_json
+    self.config = newconfig.to_json
     save
   end
 end

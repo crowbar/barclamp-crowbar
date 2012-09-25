@@ -22,7 +22,7 @@ class MachinesController < ApplicationController
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
       begin
-        @app = NodeObject.find_all_nodes
+        @app = Node.all
       rescue
         flash.now[:notice] = "ERROR: Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
         @app = []
@@ -118,7 +118,7 @@ class MachinesController < ApplicationController
     name = params[:name]
     name = "#{name}.#{session[:domain]}" unless session[:domain].nil? || name.include?(".")
 
-    machine = NodeObject.find_node_by_name name
+    machine = Node.find_by_name name
     if machine.nil?
       flash.now[:notice] = "ERROR: Could not node for name #{name}"
       respond_to do |format|
@@ -129,7 +129,7 @@ class MachinesController < ApplicationController
       yield machine # execute the operation block passed in the method invocation
       respond_to do |format|
         format.html { redirect_to :action => :index }
-        format.json { render :json => {} }
+        format.json { render :json => machine.cmdb_hash }
       end
     end
   end

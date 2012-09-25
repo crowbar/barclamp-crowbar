@@ -65,9 +65,9 @@ class Node < ActiveRecord::Base
   def update_cmdb
     cno = NodeObject.find_node_by_name(name)
     if cno
-      cno.crowbar["state"] = state
+      cno.crowbar["state"] = self.state
       cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
-      cno.crowbar["crowbar"]["allocated"] = allocated
+      cno.crowbar["crowbar"]["allocated"] = self.allocated
       # GREG: UPDATE THE Chef node role from all the node role objects
       cno.rebuild_run_list
       cno.save
@@ -99,25 +99,6 @@ class Node < ActiveRecord::Base
   
   def cmdb_hash
     NodeObject.find_node_by_name name 
-  end
-
-  #
-  # Helper function to test admin without calling admin. Style-thing.
-  #
-  def is_admin?
-    admin
-  end
-
-  #
-  # Helper function for allocated
-  #
-  def allocated?
-    allocated
-  end
-
-  def allocate
-    allocated = true
-    save
   end
 
   #
@@ -157,6 +138,26 @@ class Node < ActiveRecord::Base
     delete_cmdb
     super_destroy
   end
+
+  #
+  # Helper function to test admin without calling admin. Style-thing.
+  #
+  def is_admin?
+    admin
+  end
+
+  #
+  # Helper function for allocated
+  #
+  def allocated?
+    self.allocated
+  end
+
+  def allocate
+    self.allocated = true
+    save
+  end
+
   
   #
   # Helper function to set state.  Assumes that the node will be save outside if this routine.

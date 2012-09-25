@@ -66,7 +66,8 @@ class Node < ActiveRecord::Base
     cno = NodeObject.find_node_by_name(name)
     if cno
       cno.crowbar["state"] = state
-      cno.crowbar["allocated"] = allocated
+      cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
+      cno.crowbar["crowbar"]["allocated"] = allocated
       # GREG: UPDATE THE Chef node role from all the node role objects
       cno.rebuild_run_list
       cno.save

@@ -136,7 +136,7 @@ class CrowbarService < ServiceObject
     end
 
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
-    [200, ""]
+    [200, node.cmdb_hash]
   end
 
   #

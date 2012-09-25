@@ -96,7 +96,7 @@ module ApplicationHelper
     # POSSIBLE OBSOLETE IN 2.X
     nodes = {}
     Node.all.each do |node|      
-      nodes[node.name] = {:handle=>node.handle, :alias=>node.alias, :title=>node.description(false, true), :admin=>node.id_admin?, :group=>node.group} if node.group==group or group.nil? 
+      nodes[node.name] = {:handle=>node.name, :alias=>node.alias, :title=>node.description(false, true), :admin=>node.id_admin?, :group=>node.group} if node.group==group or group.nil? 
     end
     nodes
   end

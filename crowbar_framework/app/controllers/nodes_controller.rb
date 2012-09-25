@@ -30,7 +30,7 @@ class NodesController < ApplicationController
       result = Node.all #this is not efficient, please update w/ a search!
       @nodes = result.find_all { |node| node.role? params[:role] }
       if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.handle }
+         names = @nodes.map { |node| node.name }
          @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
       end
     else
@@ -125,7 +125,7 @@ class NodesController < ApplicationController
     @options = CrowbarService.read_options
     @nodes = {}
     Node.all.each do |node|
-      @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
+      @nodes[node.name] = node if params[:allocated].nil? or !node.allocated?
     end
   end
 
@@ -134,7 +134,7 @@ class NodesController < ApplicationController
     Node.all.each do |n|
       f = n.family.to_s  
       @families[f] = {:names=>[], :family=>n.family} unless @families.has_key? f
-      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
+      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.name}
     end
   end
   
@@ -216,7 +216,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render :json => @node }
+      format.json { render :json => @node.cmdb_hash }
     end
   end
 
@@ -283,15 +283,17 @@ class NodesController < ApplicationController
   def get_node_and_network(node_name)
     @network = {}
     @node = Node.find_by_name(node_name) if @node.nil?
+    @node = Node.find_by_id(node_name) if @node.nil?
     if @node
-      intf_if_map = @node.build_node_map
+      chef_node = @node.cmdb_hash
+      intf_if_map = chef_node.build_node_map # HACK: XXX: This should be something else
       # build network information (this may need to move into the object)
-      @node.networks.each do |intf, data|
+      chef_node.networks.each do |intf, data|
         @network[data["usage"]] = {} if @network[data["usage"]].nil?
         if data["usage"] == "bmc"
           ifname = "bmc"
         else
-          ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
+          ifname, ifs, team = chef_node.lookup_interface_info(data["conduit"])
           if ifname.nil? or ifs.nil?
             ifname = "Unknown"
           else
@@ -300,7 +302,7 @@ class NodesController < ApplicationController
         end
         @network[data["usage"]][ifname] = data["address"] || 'n/a'
       end
-      @network['[not managed]'] = @node.unmanaged_interfaces
+      @network['[not managed]'] = chef_node.unmanaged_interfaces
     end
     @network.sort
   end

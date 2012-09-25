@@ -127,7 +127,7 @@ class NodeObject < ChefObject
 
   #DEPRICATED
   def shortname
-    Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
+    Rails.logger.warn("shortname is depricated!  Please change this call to use name or alias")
     name.split('.')[0]
   end
 
@@ -165,7 +165,7 @@ class NodeObject < ChefObject
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
-      if node and !node.handle.eql?(handle)
+      if node and !node.name.eql?(name)
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('duplicate_alias', :scope=>'model.node') + ": " + node.name
       else
@@ -719,7 +719,7 @@ class NodeObject < ChefObject
   
   def switch
     if switch_name.nil?
-      self.handle[0..8]
+      self.name[0..8]
     elsif switch_unit.nil?
       switch_name
     else

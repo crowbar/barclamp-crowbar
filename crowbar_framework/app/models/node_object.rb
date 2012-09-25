@@ -65,7 +65,6 @@ class NodeObject < ChefObject
   end
   
   def self.find_node_by_name(name)
-    name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = ChefObject.crowbar_node(name)
     return val.nil? ? nil : NodeObject.new(val)
   end
@@ -127,7 +126,7 @@ class NodeObject < ChefObject
 
   #DEPRICATED
   def shortname
-    Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
+    Rails.logger.warn("shortname is depricated!  Please change this call to use name or alias")
     name.split('.')[0]
   end
 
@@ -165,7 +164,7 @@ class NodeObject < ChefObject
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
-      if node and !node.handle.eql?(handle)
+      if node and !node.name.eql?(name)
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('duplicate_alias', :scope=>'model.node') + ": " + node.name
       else
@@ -254,19 +253,15 @@ class NodeObject < ChefObject
   end
 
   def allocated
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+    raise Exception.new("allocated should not be called here anymore")
   end
 
   def allocated=(value)
-    return false if @role.nil?
-    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    self.crowbar["crowbar"]["allocated"] = value
-    @role.save
-    value
+    raise Exception.new("allocated should not be called here anymore")
   end
 
   def allocated?
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+    raise Exception.new("allocated? should not be called here anymore")
   end
 
   def ipmi_enabled?
@@ -723,7 +718,7 @@ class NodeObject < ChefObject
   
   def switch
     if switch_name.nil?
-      self.handle[0..8]
+      self.name[0..8]
     elsif switch_unit.nil?
       switch_name
     else
@@ -809,53 +804,27 @@ class NodeObject < ChefObject
   end
 
   def set_state(state)
-    # use the real transition function for this
-    cb = CrowbarService.new Rails.logger
-    results = cb.transition "default", @node.name, state
-    if state == "reset" or state == "reinstall" or state == "update"
-      bmc          = @node.address("bmc").addr rescue nil
-      bmc_user     = get_bmc_user
-      bmc_password = get_bmc_password
-    end
-    results
+    raise Exception.new("set_state should not be called here anymore")
   end
 
   def reboot
-    set_state("reboot")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power cycle") unless bmc.nil?
+    raise Exception.new("reboot should not be called here anymore")
   end
 
   def shutdown
-    set_state("shutdown")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc["address"]} -U #{bmc_user} -P #{bmc_password} power off") unless bmc.nil?
+    raise Exception.new("shutdown should not be called here anymore")
   end
 
   def poweron
-    set_state("poweron")
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} power on") unless bmc.nil?
+    raise Exception.new("poweron should not be called here anymore")
   end
 
   def identify
-    bmc          = @node.address("bmc").addr rescue nil
-    bmc_user     = get_bmc_user
-    bmc_password = get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} chassis identify") unless bmc.nil?
+    raise Exception.new("poweron should not be called here anymore")
   end
 
   def allocate
-    return if @node.nil?
-    return if @role.nil?
-    self.allocated = true
-    save
+    raise Exception.new("allocate should not be called here anymore")
   end
 
   def bmc_set?

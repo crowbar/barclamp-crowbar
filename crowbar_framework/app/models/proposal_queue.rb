@@ -144,14 +144,12 @@ class ProposalQueue < ActiveRecord::Base
           nodes.each do |node|
             # Nothing to delay so mark them applying.
             node.set_state('applying')
-            node.save
           end
         end
       else
         nodes.each do |node|
           # Make sure the node is allocated
-          node.allocated = true
-          node.save
+          node.allocate
         end
       end
     rescue Exception => e
@@ -175,7 +173,6 @@ class ProposalQueue < ActiveRecord::Base
       nodes.each do |node|
         # Nothing to delay so mark them applying.
         node.set_state('ready')
-        node.save
       end
     ensure
       release_lock f

@@ -10,15 +10,7 @@
           = text_field_tag :description, @node.description(true), :size => 40
         %li.text
           = f.label :group, t('.group')
-          - if @node.display_set?('group')
-            = text_field_tag :group, @node.group, :size => 20
-          - else
-            %p
-              = "#{t '.default'}: "
-              %b= @node.group
-            %p
-              = " #{t '.override'} "
-              = text_field_tag :group, @node.group(true), :size => 20
+          = select_tag :group, options_for_select(Group.find_by_category('ui')), @node.group, :size => 20
         %li.select
           = f.label :bios, t('.bios')
           -if @node.is_admin?

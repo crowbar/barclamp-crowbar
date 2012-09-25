@@ -68,7 +68,12 @@ class Node < ActiveRecord::Base
       cno.crowbar["state"] = self.state
       cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
       cno.crowbar["crowbar"]["allocated"] = self.allocated
-      # GREG: UPDATE THE Chef node role from all the node role objects
+
+      # Get the active ones and merge into config
+      nrs = NodeRole.find_all_by_node_id(self.id)
+      nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+      nrs.each { |nr| cno.crowbar.merge!(nr.config_hash) }
+
       cno.rebuild_run_list
       cno.save
     end

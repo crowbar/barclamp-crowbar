@@ -65,7 +65,6 @@ class NodeObject < ChefObject
   end
   
   def self.find_node_by_name(name)
-    name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = ChefObject.crowbar_node(name)
     return val.nil? ? nil : NodeObject.new(val)
   end

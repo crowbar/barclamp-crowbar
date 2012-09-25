@@ -103,19 +103,22 @@ class ApplicationController < ActionController::Base
   #return true if we digest signed in
   def need_to_auth?
 
-    begin 
+    begin
+      # if we're already logged in, then bypass the digest checks
+      return true if current_user 
       # if we're using digest in this request then do the digest auth
-      if request.headers["HTTP_AUTHORIZATION"] and request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=')
+      if params[:format].eql?('json') or (request.headers["HTTP_AUTHORIZATION"] and request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username='))
         #request the digest auth (this should NOT happen unless you are already digested)
-        authenticate_with_http_digest(User::DIGEST_REALM) do |username|
+        return !authenticate_with_http_digest(User::DIGEST_REALM) do |username|
           session[:digest_user] = username unless session[:digest_user].eql?(username)
           User.find_by_username(username).encrypted_password
         end
-        return false
+      # use devise
       else
         return true
       end
     rescue
+      # use devise as backup
       return true
     end
   end

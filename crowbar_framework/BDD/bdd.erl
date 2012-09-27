@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
+-export([test/0, test/1, feature/1, feature/2, getconfig/1, start/1, stop/1]).  
 -import(bdd_utils).
 -import(digest_auth).
 -export([step_run/3, step_run/4]).

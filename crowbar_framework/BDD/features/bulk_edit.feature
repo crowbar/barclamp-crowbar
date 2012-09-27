@@ -6,7 +6,7 @@ Feature: Crowbar, Bulk Edit
   Scenario: Primary Nav
     When I go to the home page
     Then I should see a menu for "Bulk&nbspEdit"
-      And I should not see "Error"
+      And I should not see "something went wrong"
       And there should be no translation errors
 
   Scenario: %Bulk Edit Nav (default)
@@ -15,7 +15,7 @@ Feature: Crowbar, Bulk Edit
     Then I should see "Bulk Edit \(unallocated only\)"
       And I should see "Allocate?"
       And I should see a link to "Show All"
-      And I should not see "Error"
+      And I should not see "something went wrong"
       And there should be no translation errors
 
   Scenario: %Bulk Edit Nav (show all)
@@ -25,6 +25,6 @@ Feature: Crowbar, Bulk Edit
       And I should see "Allocate?"
       And I should see a link to "Show Unallocated"
       And I should see a button with "Save"
-      And I should not see "Error"
+      And I should not see "something went wrong"
       And there should be no translation errors
 

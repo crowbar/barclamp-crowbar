@@ -210,7 +210,9 @@ en:
       status_pie: "Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending"
       default_new: New_Group
       add: Add Group
-      add_group_error: "Group name should start with a letter and only contain letters, digits, -, _, ., or :."
+      remove_group: Remove Group
+      add_group_error: "Group name must start with a letter and only contain letters, digits and _"
+      add_group_exists: "Group name already exists"
       hide: Hide Group
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
       new_drag: To move nodes, drag into title

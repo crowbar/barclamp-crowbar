@@ -36,6 +36,5 @@ step(Config, _Global, {step_setup, _N, _}) ->
   bdd_utils:setup_create(Config, g(path), node1, g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  Path = g(path),
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, Path, node1).
+  bdd_utils:teardown_destroy(Config, g(path), node1).

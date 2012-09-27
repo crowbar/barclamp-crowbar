@@ -76,6 +76,30 @@ These can be overriden, but usually aren't.  They represent the basic API calls 
 * proposal_delete(prop_name)
 * proposal_commit(prop_name, in_queue)
 
+#### Creating Barclamp Views
+
+Crowbar has pre-wired routes that allow barclamps to create custom view pages without changing the routes file.  These views must conform to the following pattern in the Barclamp Controller object.
+
+<table>
+  <tr><th>Method</th><th>Route</th><th>Path</th></tr>
+  <tr>
+    <td>node</td>
+    <td>barclamp_node_path(:controller=>_)</td>
+    <td>/barclamp/[:controller]/node/[:id]</td></tr>
+  <tr>
+    <td>network</td>
+    <td>barclamp_network_path(:controller=>_)</td>
+    <td>/barclamp/[:controller]/network/[:id]</td></tr>
+  <tr>
+    <td>util</td>
+    <td>barclamp_util_path(:controller=>_)</td>
+    <td>/barclamp/[:controller]/util/[:id]</td></tr>
+</table>
+
+> All these methods can optionally take :id as long as :id is limited to valid ID/Names
+
+> Please review the 'adding-navigation` DevGuide topic for information about including the view in the menu.
+
 #### Importing a barclamp
 
 _this is the manual process, there is a Utility for this in the UI_

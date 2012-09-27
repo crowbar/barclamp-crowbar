@@ -256,7 +256,7 @@ en:
       active: Allocated
       inactive: Not Allocated
       raid: RAID
-    form:
+    edit:
       allocate: Allocate
       save: Save
       raid: RAID

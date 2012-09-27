@@ -216,7 +216,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render :json => @node.cmdb_hash }
+      format.json { render :json => @node }
     end
   end
 
@@ -235,8 +235,9 @@ class NodesController < ApplicationController
   end
   
   def edit
-    @options = CrowbarService.read_options
-    get_node_and_network(params[:id] || params[:name])
+    @node = Node.find_key params[:id]
+    @groups = {}
+    Group.find(:all, :conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
   end
 
   # RESTfule PUT of the node resource

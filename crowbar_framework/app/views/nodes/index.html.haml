@@ -12,7 +12,7 @@
         = render :partial => 'show'
       - else
         %p= t("status_empty", :scope=>"nodes.index") % Node.count
-        %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
+        %div{ :class=>'group', :draggable=>'true', :id=>Group.find_or_create_by_name_and_category('not_set', 'ui').id }
           =t('.drag_hint').html_safe
 
 #nodes
@@ -34,12 +34,17 @@
             %td 
             %td= t('.new_drag')
     - @groups.sort.each do |group|
+      - next if group.name.eql? 'not_set' and group.nodes.count == 0
       .column_25{:class => cb_column_class(i+=1,4)}
         %table.data.box{:id => "group_#{group.id}"}
           %thead
             %tr
-              %th.status{:title => t('updating')}
-                .inline_piechart= [0, 0, 1, 0, 0]*','
+              - if group.nodes.count == 0
+                %th.status{:title => t('.remove_group')}
+                  %img{ :src=>'/images/icons/delete.png', :title=>t('.remove_group'), :onclick=>"javascript:remove_group(#{group.id});" }
+              - else
+                %th.status{:title => t('updating')}
+                  .inline_piechart= [0, 0, 1, 0, 0]*','
               %th.group{:title=>group.description}
                 - unless group[:automatic]
                   %div{ :class=>'group', :draggable=>'true', :id=>group.id }
@@ -102,38 +107,48 @@
       var node = ev.originalEvent.dataTransfer.getData("Text");
       var group = $(this).attr('id');
       // console.debug(node + ' into ' + group );
-      if (group==='USE_AUTOMATIC!')
-        $.post('/nodes/groups/1.0/'+node+'/NONE?automatic=true');
-      else
-        $.post('/nodes/groups/1.0/'+node+'/'+group);
-      $(this).animate({"opacity":"0"}, 5000);
-      location.href = '#{dashboard_path}/'+selected;
+      $.ajax({url:'/2.0/group/'+group+'/node/'+node, dataType:'json', type:"PUT", 
+        statusCode: { 200: function(data) { location.href = '#{dashboard_path}/'+selected; }}
+      });
     });
   }
   
   function hide_group() {
-  console.debug("foo");
     $('#add_group_div').attr('style','display:none');
+  }
+  
+  function remove_group(id) {
+    $.ajax({url:'/2.0/group/'+id, type:"DELETE", dataType: 'json',
+      statusCode: { 200: function(data) { $('#group_'+id).remove(); } }
+    });
   }
   
   function add_group() {
     var group_div = $('#add_group_div');
     var new_group = $('#new_group').val();
     var group = $('th[droptarget="true"]');
-    var valid_group_regex = /^[a-zA-Z][a-zA-Z0-9._:-]+$/;
+    var valid_group_regex = /^[a-zA-Z][a-zA-Z0-9._-]+$/;
     if (new_group.match(valid_group_regex)) {
-      group.attr('id', new_group);
-      group.text(new_group);
-      bind_drop($('#'+new_group));
-      group_div.attr('style', 'display:inline');
-      $('a#add_button').attr('class','button');
-    } 
+      // Create the group json and post it
+      var group_data = {'name': new_group, 'description': new_group, 'category': 'ui'}
+      $.ajax({url:"/2.0/group", data:group_data, type:'POST', dataType:'json', 
+        success:function(data) {
+          // on success, add to the UI
+          var id = data['id']
+          group.attr('id', id);
+          group.text(new_group);
+          bind_drop($('#'+id.toString()));
+          group_div.attr('style', 'display:inline');
+          $('a#add_button').attr('class','button');}, 
+        error:function(data) { 
+          alert("#{t '.add_group_exists'}"); $('a#add_button').attr('class','button'); }
+      })} 
     else {
       alert("#{t '.add_group_error'}");
       $('a#add_button').attr('class','button');
     }
   }
-
+  
   function update() {
     // use nopoll parameter for debugging to prevent activity on web server
     if (#{params.include?(:nopoll) ? 'false' : 'true'}) {
@@ -156,20 +171,22 @@
         
         // Update group-level piecharts
         $.each(data['groups'], function(key,val) {
+          k = key.toString();
           var values = val['ready'] + ', ' + val['failed'] + ', ' + val['unknown'] + ', ' + (val['building']+val['unready']+val['pending']);
           var total = val['ready']+val['unready']+val['unknown']+val['building']+val['pending']+val['failed'];
-          if (groups[key]==undefined) { 
-            groups[key] = total; 
-          } else if (groups[key]!=total) {
+          if (groups[k]==undefined) { 
+            groups[k] = total; 
+          } else if (groups[k]!=total) {
             location.href =repath;
           }
-          $('#group_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
-          $('#group_'+key.toLowerCase()+' th.status').attr('title', pie_title(total, val['ready'], val['failed'], val['unknown'], val['building'], val['unready'], val['pending']));
+          $('#group_'+k+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
+          $('#group_'+k+' th.status').attr('title', pie_title(total, val['ready'], val['failed'], val['unknown'], val['building'], val['unready'], val['pending']));
         });
         
         // Update nodes
-        $.each(data['nodes'], function(key,val) {
-          var td = $('#'+key+' td.status');
+        $.each(data['status'], function(key,val) {
+          k = key.toString();
+          var td = $('#'+k+' td.status');
           var led = td.children('.led');
           if(!(td.attr('raw') === val['raw'])) {
             led.destroy();
@@ -180,13 +197,13 @@
           }
           // catch the case where we've expanded detail on a node
           s = $('div.container dd.node_state');
-          h_key = "head_"+key;
+          h_key = "head_"+k;
           h = $('div.container div.led[id="'+h_key+'"]');
           if (h.attr('id')==h_key && s.text()!=val['state']) {
             s.text(val['state']);
             s.effect("highlight", {color: '#666666'}, 2000);
             s.attr('title','#{t('raw')}: '+val['raw']);
-            var head = $('#head_'+key);
+            var head = $('#head_'+k);
             if (head.length !=0 ) {
               head.destroy();
               head.attr('class', 'led '+val['status']);

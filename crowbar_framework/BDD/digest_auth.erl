@@ -99,7 +99,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
 
 %% Simplifed version of request that returns the Auth Header to save future round trips  
 header(Config, URL) ->
-  {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} = http:request(URL),
+  {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} = http:request(URL++"/digest"),
   % if 401, then get the auth info and retry
   case {Status, Code} of
     {ok, 401} -> Config ++ [{digest_field, proplists:get_value("www-authenticate", Fields)}];

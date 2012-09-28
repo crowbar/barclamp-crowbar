@@ -17,8 +17,8 @@ require 'digest/md5'
 
 class DigestController < ApplicationController
   
-  skip_before_filter :authenticate_user!
-  before_filter :authenticate
+  skip_before_filter :crowbar_auth
+  before_filter :digest_auth!
 
   # Will only show this page if you digest auth
   def index
@@ -27,19 +27,6 @@ class DigestController < ApplicationController
     else
       render :text => "digest", :status => :unauthorized
     end
-  end
-
-  private
-  
-  # does the magic auth
-  def authenticate
-
-    authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|
-      u = User.find_by_username(username)
-      session[:digest_user] = u.username
-      u.encrypted_password
-    end
-    warden.custom_failure! if performed?
   end
 
 end

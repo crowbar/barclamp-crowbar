@@ -1,0 +1,8 @@
+/var/log/chef/server*log /var/log/chef/merb*log /var/log/chef/solr.log /var/log/rabbitmq/*.log {
+  rotate 12
+  weekly
+  compress
+  postrotate
+	bluepill chef-server restart > /dev/null
+  endscript
+}

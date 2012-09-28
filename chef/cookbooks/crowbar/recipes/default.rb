@@ -180,6 +180,14 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
+%w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
+  file "/etc/logrotate.d/#{f}" do
+    action :delete
+  end
+end
+
+cookbook_file "/etc/logrotate.d/chef-server"
+
 bluepill_service "crowbar-webserver" do
   variables(:processes => [ {
                               "name" => "rainbows",

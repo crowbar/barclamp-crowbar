@@ -20,7 +20,7 @@ require 'digest/md5'
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
 
-  before_filter :authenticate_user!, :if => :need_to_auth?
+  before_filter :crowbar_auth
 
   # Basis for the reflection/help system.
   
@@ -99,27 +99,29 @@ class ApplicationController < ActionController::Base
   # private stuff below.
   
   private  
+
+  def digest_auth!
+    authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|
+      u = User.find_by_username(username)
+      session[:digest_user] = u.username
+      u.encrypted_password
+    end
+    warden.custom_failure! if performed?
+  end
   
   #return true if we digest signed in
-  def need_to_auth?
-
-    begin
-      # if we're already logged in, then bypass the digest checks
-      return true if current_user 
-      # if we're using digest in this request then do the digest auth
-      if params[:format].eql?('json') or (request.headers["HTTP_AUTHORIZATION"] and request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username='))
-        #request the digest auth (this should NOT happen unless you are already digested)
-        return !authenticate_with_http_digest(User::DIGEST_REALM) do |username|
-          session[:digest_user] = username unless session[:digest_user].eql?(username)
-          User.find_by_username(username).encrypted_password
-        end
-      # use devise
+  def crowbar_auth
+    if current_user
+      authenticate_user!
+    else
+      if request.headers["HTTP_AUTHORIZATION"] and request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=')
+        digest_auth!
       else
-        return true
+        respond_to do |format|
+          format.html { authenticate_user!  }
+          format.json { digest_auth!  }
+        end
       end
-    rescue
-      # use devise as backup
-      return true
     end
   end
   

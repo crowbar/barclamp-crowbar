@@ -121,9 +121,14 @@ module ApplicationHelper
       options = options.map { |x| [x.humanize,x] }
     end
 
-    def_val = proposal.raw_data['attributes'][proposal.barclamp][field] || ""
+    def_val = proposal.raw_data['attributes'][proposal.barclamp] || ""
+    for f in field.split('/')
+      next if f.empty?
+      break if def_val == ""
+      def_val = def_val[f] || ""
+    end
 
-    select_tag name, options_for_select(options, def_val), :onchange => "update_value(#{field}, #{field}, 'string')"
+    select_tag name, options_for_select(options, def_val), :onchange => "update_value(\'#{field}\', \'#{name}\', 'string')"
   end
 
 end

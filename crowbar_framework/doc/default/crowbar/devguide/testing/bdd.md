@@ -11,6 +11,7 @@ The intent of these tests are to focus on the responses and requests to the web-
 1. `erl` to start a command shell for erlang
   1. `bdd:test().` will run all the tests and report the results
   1. `bdd:feature("name").` will run just the named feature set
+  1. `bdd:steps().` will show you all the available step definitions
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
 
@@ -56,7 +57,8 @@ The following sentences can be used for testing HTML web pages where you can cha
 * Then I should not see "Error"
 * Finally throw away node "foo.example.com"
 
-> Note: This is _not_ a complete list!
+> Note: This is _not_ a complete list!  To get a complete list of the tests use the `bdd:steps().` command.
+
 
 #### REST/AJAX Tests
 

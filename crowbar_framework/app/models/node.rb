@@ -59,6 +59,18 @@ class Node < ActiveRecord::Base
     node
   end
 
+  # if there key is a hash, recurse.  Otherwise, take the addin value.
+  def hash_merge!(base, addin)
+    addin.keys.each do |key|
+      if addin[key].is_a? Hash and base[key].is_a? Hash
+        base[key] = hash_merge!(base[key], addin[key])
+        next
+      end
+      base[key] = addin[key]
+    end
+    base
+  end
+
   #
   # Update the CMDB view of the node at this point.
   #
@@ -72,7 +84,7 @@ class Node < ActiveRecord::Base
       # Get the active ones and merge into config
       nrs = NodeRole.find_all_by_node_id(self.id)
       nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-      nrs.each { |nr| cno.crowbar.merge!(nr.config_hash) }
+      nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
 
       cno.rebuild_run_list
       cno.save

@@ -101,6 +101,17 @@ class CrowbarService < ServiceObject
             "state" => state
           }
           rname = role.name.gsub("#{bc}-config-","")
+          # Need a lock here, because if many nodes are discovered
+          # simultaneously, adding them to a proposal can race,
+          # leaving some nodes not present in proposals. e.g.:
+          # NtpService::transition uses find_proposal and
+          # later saves it with add_role_to_instance_and_node().
+          # If this runs for two nodes at the same time, they both
+          # find the proposal, then both modify it, then both save
+          # it in lockstep.  Naturally the second save clobbers
+          # the first, so the first node won't be present in that
+          # proposal.
+          bc_lock = acquire_lock "#{bc}:#{rname}"
           begin
             svc_name = "#{bc.camelize}Service"
             @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")            
@@ -118,6 +129,8 @@ class CrowbarService < ServiceObject
             @logger.fatal("json/transition for #{bc}:#{rname} failed: #{e.message}")
             @logger.fatal("#{e.backtrace.join("\n")}")
             return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace.join("\n")}"]
+          ensure
+            release_lock bc_lock
           end
         end
       end

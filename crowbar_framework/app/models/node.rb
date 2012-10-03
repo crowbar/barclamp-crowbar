@@ -36,10 +36,10 @@ class Node < ActiveRecord::Base
     role = Role.find_by_name(role_name)
     return [] unless role
 
-    nrs = NodeRole.find_all_by_node_id_and_role_id(self.id, role.id)
+    nrs = NodeRole.find_all_by_role_id(role.id)
     # Get the active ones
     nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-    nrs.map { |x| nrs.node }
+    nrs.map { |x| x.node }
   end
 
   #

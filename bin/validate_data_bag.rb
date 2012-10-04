@@ -18,10 +18,15 @@ require 'rubygems'
 require 'kwalify'
 require 'uri'
 
-VALIDATOR_PRIMARY = '/opt/dell/crowbar_framework/app/models/crowbar_validator.rb'
-VALIDATOR_BACKUP = '/opt/dell/barclamps/crowbar/crowbar_framework/app/models/crowbar_validator.rb'
+require File.join(File.dirname(__FILE__), 'validate_data_bag' )
 
-require '/opt/dell/crowbar_framework/app/models/crowbar_validator.rb' #(File.exist? VALIDATOR_PRIMARY ? VALIDATOR_PRIMARY : VALIDATOR_BACKUP)
+VALIDATOR_FILE = '/opt/dell/crowbar_framework/app/models/crowbar_validator.rb'
+
+if File.exists?(VALIDATOR_FILE)
+  require VALIDATOR_FILE
+else
+  require File.join(File.dirname(__FILE__),'../crowbar_framework/app/models/crowbar_validator.rb')
+end
 
 def validate(schema_filename, config_filename)
   ## validate schema definition

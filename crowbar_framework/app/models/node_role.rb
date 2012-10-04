@@ -40,7 +40,8 @@ class NodeRole < ActiveRecord::Base
   end
 
   def config_hash=(newconfig)
-    self.config = newconfig.to_json
-    save
+    self.config = newconfig ? newconfig.to_json : nil
+    save!
+    self.config
   end
 end

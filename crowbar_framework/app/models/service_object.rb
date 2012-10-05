@@ -79,6 +79,7 @@ class ServiceObject
   def acquire_lock(name)
     @logger.debug("Acquire #{name} lock enter")
     f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
+    raise IOError.new("File not available: tmp/#{name}.lock") unless f
     @logger.debug("Acquiring #{name} lock")
     rc = false
     count = 0
@@ -93,6 +94,7 @@ class ServiceObject
   end
 
   def release_lock(f)
+    raise IOError.new("Invalid file") unless f
     @logger.debug("Release lock enter: #{f.inspect}")
     f.flock(File::LOCK_UN)
     f.close

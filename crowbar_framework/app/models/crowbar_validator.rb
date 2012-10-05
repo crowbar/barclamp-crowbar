@@ -106,6 +106,12 @@ class CrowbarValidator < Kwalify::Validator
            msg = "Should be an IP Address: #{value}"
            errors << Kwalify::ValidationError.new(msg, path)
          end
+      when 'CidrIpAddress'
+         regex = /\A(?:25[0-5]|(?:2[0-4]|1\d|[1-9])?\d)(?:\.(?:25[0-5]|(?:2[0-4]|1\d|[1-9])?\d)){3}(\/(?:[1-2]?\d|3[0-2]))?\z/
+         if value[regex].nil?
+           msg = "Should be a CIDR IP Address: #{value}"
+           errors << Kwalify::ValidationError.new(msg, path)
+         end
       when 'IpAddressMap'
          regex = /\A(?:25[0-5]|(?:2[0-4]|1\d|[1-9])?\d)(?:\.(?:25[0-5]|(?:2[0-4]|1\d|[1-9])?\d)){3}\z/
          value.each_key do |key|

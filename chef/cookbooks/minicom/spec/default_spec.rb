@@ -12,12 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'chefspec'
 
-package "minicom"
+describe 'minicom::default' do
 
-cookbook_file "/etc/minicom/minirc.switch" do
-  owner "root"
-  group "root"
-  source "minirc.switch"
+  before(:each) do
+    @chef_run = ChefSpec::ChefRunner.new
+    @chef_run.converge 'minicom::default'
+  end
+
+  it "should install the minicom package" do
+    @chef_run.should install_package 'minicom'
+  end
+
+  it "should create file minirc.switch" do
+    file = "/etc/minicom/minirc.switch"
+    @chef_run.should create_cookbook_file file
+    @chef_run.cookbook_file(file).should be_owned_by('root', 'root')
+  end
+
 end
 

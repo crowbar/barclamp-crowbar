@@ -36,7 +36,6 @@ require 'json'
 # 
 
 class ServiceObject
-
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end
@@ -46,7 +45,7 @@ class ServiceObject
   #
   def initialize(thelogger)
     @bc_name = "unknown"
-    @logger = thelogger
+    @logger = thelogger || Rails.logger
   end
 
   def bc_name=(new_name)
@@ -58,11 +57,19 @@ class ServiceObject
     @bc_name
   end
   
+  def logger
+    @logger
+  end
+
+  def barclamp
+    @baclamp
+  end
+
   #
   # Human printable random password generator
   #
   def random_password(size = 12)
-    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
   end
 

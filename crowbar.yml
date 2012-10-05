@@ -357,4 +357,6 @@ gems:
     - email_spec
     - database_cleaner
     - launchy
+    - chefspec
 #    - factory_girl_rails
+#    - foodcritic

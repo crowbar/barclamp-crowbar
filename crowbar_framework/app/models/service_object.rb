@@ -73,35 +73,6 @@ class ServiceObject
     (1..size).collect{|a| chars[rand(chars.size)] }.join
   end
 
-  #
-  # Locking Routines
-  #
-  def acquire_lock(name)
-    @logger.debug("Acquire #{name} lock enter")
-    f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
-    raise IOError.new("File not available: tmp/#{name}.lock") unless f
-    @logger.debug("Acquiring #{name} lock")
-    rc = false
-    count = 0
-    while rc == false do
-      count = count + 1
-      @logger.debug("Attempt #{name} Lock: #{count}")
-      rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-      sleep 1 if rc == false
-    end
-    @logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-    f
-  end
-
-  def release_lock(f)
-    raise IOError.new("Invalid file") unless f
-    @logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
-    f.close
-    @logger.debug("Release lock exit")
-  end
-
-  
 #
 # API Functions
 #

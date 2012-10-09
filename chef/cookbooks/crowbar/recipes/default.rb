@@ -89,6 +89,7 @@ user "crowbar" do
   password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
   supports  :manage_home=>true
+  not_if "egrep -qi '^crowbar:' /etc/passwd"
 end
 
 directory "/root/.chef" do

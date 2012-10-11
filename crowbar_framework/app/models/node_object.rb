@@ -282,19 +282,6 @@ class NodeObject < ChefObject
     @node.nil? ? false : @node["crowbar"]["allocated"]
   end
 
-  def rename(value, domain)
-    return "unknown" if @node.nil?
-    @node.name value
-    @node[:fqdn] = value
-    @node[:domain] = domain
-    # This modifying of the run_list is to handle change the name of the crowbar tracking role (SAFE)
-    @node.run_list.run_list_items.delete "role[#{@role.name}]"
-    @role.name = "crowbar-#{value.gsub(".", "_")}"
-    @node.run_list.run_list_items << "role[#{@role.name}]"
-    @node.save
-    save
-  end
-
   # creates a hash with key attributes of the node from ohai for comparison
   def family
     f = {}

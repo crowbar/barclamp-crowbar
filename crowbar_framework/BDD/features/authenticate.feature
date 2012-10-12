@@ -8,14 +8,6 @@ Feature: Authentication Works
     Then I should see "Sign In"
       And I should see "Username"
       And I should see "Password"
-
-  Scenario: Home Page Redirect
-    When I check the home page
-    Then I should get a "200" error
-      
-  Scenario: Digest Login gives 401
-    When I go to the digest login page
-    Then I should get a "401" error
           
   Scenario: API Login gives 401
     When I go to node status page

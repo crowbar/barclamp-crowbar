@@ -352,4 +352,11 @@ gems:
     - daemons
     - puma
     - active_scaffold
+    - rcov
+    - rspec-rails
+    - email_spec
+    - database_cleaner
+    - launchy
+    - chefspec
 #    - factory_girl_rails
+#    - foodcritic

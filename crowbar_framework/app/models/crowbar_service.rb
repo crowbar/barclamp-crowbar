@@ -52,7 +52,7 @@ class CrowbarService < ServiceObject
   def transition(inst, name, state)
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
-    f = acquire_lock "BA-LOCK"
+    f = CrowbarUtils.acquire_lock "BA-LOCK"
     begin
       node = Node.find_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
@@ -79,7 +79,7 @@ class CrowbarService < ServiceObject
         pop_it = true
       end
     ensure
-      release_lock f
+      CrowbarUtils.release_lock f
     end
 
     if pop_it

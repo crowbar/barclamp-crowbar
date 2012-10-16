@@ -154,9 +154,8 @@ get(Config, Page, not_found) ->
 get(Config, Page, ok) ->
 	get(Config, uri(Config,Page), 200, "OK(.*)").
 get(Config, URL, ReturnCode, StateRegEx) ->
-	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = digest_auth:request(Config, URL),
+	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = simple_auth:request(Config, URL),
 	{ok, StateMP} = re:compile(StateRegEx),
-	%bdd_utils:debug(true, "hppt_get has: URL ~p = ~s~n", [URL, Body]),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
 		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK"
@@ -174,7 +173,7 @@ post_params([{K, V} | P], ParamsOrig) ->
 % Post using Parameters to convey the values
 post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
   Post = URL ++ post_params(Parameters),
-  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = digest_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
+  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = simple_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
@@ -191,7 +190,7 @@ put(Config, Path, JSON) ->
 % Put using JSON to convey the values
 put_post(Config, Path, JSON, Action) ->
   URL = uri(Config, Path),
-  R = digest_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
+  R = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
 	{ok, StateMP} = re:compile("OK"),
 	case re:run(State, StateMP) of
@@ -201,7 +200,7 @@ put_post(Config, Path, JSON, Action) ->
 	
 delete(Config, Path, Id) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
-  R = digest_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
+  R = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
 	{ok, StateMP} = re:compile("OK"),
 	case re:run(State, StateMP) of

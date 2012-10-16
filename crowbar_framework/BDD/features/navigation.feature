@@ -1,4 +1,4 @@
-Feature: Crowbar, Check Core Navigation
+Feature: Navigation, Check Core Navigation
   In order use the system
   The system operator, Oscar
   wants to be able to navigate around
@@ -6,8 +6,6 @@ Feature: Crowbar, Check Core Navigation
   Scenario: Translation Check
     When I go to the home page
     Then there should be no translation errors
-       And I should see "Digest"
-       And I should see "Authenticated"
           
   Scenario: Home Page Nav
     When I go to the home page

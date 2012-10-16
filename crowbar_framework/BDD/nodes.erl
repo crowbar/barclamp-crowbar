@@ -33,9 +33,8 @@ step(Config, _Given, {step_when, _N, ["AJAX gets the node",Name]}) ->
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = json(g(name), "BDD Testing Only - should be automatically removed", 100),
-  bdd_utils:setup_create(Config, g(path), node1, g(name), Node);
+  bdd_utils:setup_create(Config, g(path), g(atom), g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  Path = g(path),
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, Path, node1).
+  bdd_utils:teardown_destroy(Config, g(path), g(atom)).

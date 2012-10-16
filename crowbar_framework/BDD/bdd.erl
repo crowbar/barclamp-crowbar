@@ -18,9 +18,9 @@
 -module(bdd).
 -export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
 -import(bdd_utils).
--import(digest_auth).
+-import(simple_auth).
 -export([step_run/3, step_run/4]).
-%-export([start/1, run/2, stop/1]).   % internal access to the testing process
+-export([start/1, stop/1]).   % internal access to the testing process
 
 test()                   -> test("default").
 test(ConfigName)         -> 
@@ -33,10 +33,10 @@ test(ConfigName)         ->
   Results = run(StartedConfig, [], Features),
   % cleanup application services
   stop(StartedConfig),
-	case [R || {_, R} <- Results, R =/= pass] of
-	  [] -> pass;
-	  _ -> Results
-	end.
+  case [R || {_, R} <- Results, R =/= pass] of
+    [] -> pass;
+    _ -> Results
+  end.
 	  
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature)             -> feature("default", Feature).
@@ -44,8 +44,8 @@ feature(ConfigName, Feature) ->
   Config = getconfig(ConfigName),
   FileName = bdd_utils:config(Config,feature_path,"features/") ++ Feature ++ "." ++ bdd_utils:config(Config,extension,"feature"),
   FeatureConfig = run(Config, Feature, FileName),
-	[{feature, _F, R} | _ ] = stop(FeatureConfig),
-	R.
+  [{feature, _F, R} | _ ] = stop(FeatureConfig),
+  R.
 
 % helper that finds the feature from the FileName
 feature_name(Config, FileName) ->
@@ -76,24 +76,22 @@ run(Config, Feature, FileName)     ->
   % figure out the file name
   Fatom = list_to_atom(Feature),
   % start inet client if not running
-	RunningConfig = start(Config),                                              
-	%store the digest header
-	StartConfig = digest_auth:header(RunningConfig, sc:url(RunningConfig)),     
+  StartConfig = start(Config),                                              
   % stuff the feature & file name into the config set
   FeatureConfig = [{feature, Feature}, {file, FileName} | StartConfig],		     
   % import the feature information
-	{feature, Name, Scenarios} = feature_import(FileName),
-	[ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
-	% setup UI
-	io:format(" FEATURE: ~s.~n", [ScenarioName]),
+  {feature, Name, Scenarios} = feature_import(FileName),
+  [ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
+  % setup UI
+  io:format(" FEATURE: ~s.~n", [ScenarioName]),
   % setup the tests
-	SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
+  SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
   Result = {feature, ScenarioName, [setup_scenario(SetupConfig, Scenario, []) || Scenario <- Scenarios]},
   % tear down
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
-	[Result | StartConfig].
+  [Result | StartConfig].
 	
 start(Config) ->
   Started = bdd_utils:config(Config, started, false),
@@ -102,23 +100,23 @@ start(Config) ->
     false -> 
       application:start(crypto),
       application:start(inets),
-    	AzConfig = bdd_utils:is_site_up(Config),
+      AzConfig = bdd_utils:is_site_up(Config),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       [{started, true} | SetupConfig ];
-  	_ -> Config
-	end.
-	
+    _ -> Config
+  end.
+
 stop(Config) ->
   Started = bdd_utils:config(Config, started, false),
   Global = bdd_utils:config(Config, global_setup, default),
   case Started of
     true -> 
-      TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),  
+      TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),
       application:stop(crypto),
       application:stop(inets),
-  	  lists:delete({started, true}, TearDownConfig);
-  	_ -> Config  
-	end.
+      lists:delete({started, true}, TearDownConfig);
+    _ -> Config  
+  end.
 
 % load the configuration file
 getconfig(ConfigName) ->
@@ -127,23 +125,23 @@ getconfig(ConfigName) ->
   
 % read in the feature file
 feature_import(FileName) ->
-	{ok, Features} = file:read_file(FileName),
-	[Header | Body] = re:split(Features,"Scenario:"),
-	Name = bdd_utils:clean_line(string:tokens(binary_to_list(Header),"\n")),
-	Scenarios = [binary_to_list(S) || S <- Body],
-	{feature, Name, Scenarios}.
+  {ok, Features} = file:read_file(FileName),
+  [Header | Body] = re:split(Features,"Scenario:"),
+  Name = bdd_utils:clean_line(string:tokens(binary_to_list(Header),"\n")),
+  Scenarios = [binary_to_list(S) || S <- Body],
+  {feature, Name, Scenarios}.
 	
 % run the scenarios, test list allows you to pick which tests
 setup_scenario(Config, Scenario, Tests) ->
-	[RawName | RawSteps] = string:tokens(Scenario, "\n"),
-	Name = bdd_utils:clean_line(RawName),
+  [RawName | RawSteps] = string:tokens(Scenario, "\n"),
+  Name = bdd_utils:clean_line(RawName),
   [First | _ ] = Name,
-	Member = lists:member(Name,Tests),
-	if 
-	  First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
-	  Member; length(Tests) =:= 0 -> test_scenario(Config, RawSteps, Name);
-	  true -> io:format("\tSKIPPED ~p~n", [Name])
-	end.
+  Member = lists:member(Name,Tests),
+  if 
+    First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
+    Member; length(Tests) =:= 0 -> test_scenario(Config, RawSteps, Name);
+    true -> io:format("\tSKIPPED ~p~n", [Name])
+  end.
 
 % output results information
 print_fail([]) -> true;

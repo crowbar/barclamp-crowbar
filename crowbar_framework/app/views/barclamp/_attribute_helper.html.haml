@@ -10,9 +10,20 @@
     // Do type conversions
     if (type == 'boolean') {
       value = (value == 'true' || value == 'True')
-    }
-    else if (type == 'integer') {
-      value = parseInt(value)
+    } else if (type == 'integer') {
+      value = parseInt(value);
+    } else if (type == 'array-string') {
+      value = value.split(' ');
+    } else if (type == 'array-boolean') {
+      value = value.split(' ');
+      for (i in value) {
+        value[i] = (value[i] == 'true' || value[i] == 'True');
+      }
+    } else if (type == 'array-integer') {
+      value = value.split(' ');
+      for (i in value) {
+        value[i] = parseInt(value[i]);
+      }
     }
 
     // Start the path processing

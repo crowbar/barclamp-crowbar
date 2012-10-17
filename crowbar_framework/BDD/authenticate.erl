@@ -22,24 +22,24 @@ g(Item) ->
   end.
   
                                                               
-%step(Config, _Global, {step_setup, _N, _}) -> false;
+step(Config, _Global, {step_setup, _N, _}) -> 
+  % "hide" authentication credentials on config list in prep for testing 
+  AuthField = proplists:get_value(auth_field, Config),
+  %io:format("~nDEBUG\t auth - removing auth_field ~p~n",[AuthField]),
+  lists:delete({auth_field, AuthField}, Config) ++ [{hidden_auth_field, AuthField}];
 
-%step(Config, _Global, {step_teardown, _N, _}) -> false;
+step(Config, _Global, {step_teardown, _N, _}) -> 
+  % restore hidden authentication credentials on config list
+  AuthField = proplists:get_value(hidden_auth_field, Config),
+  %io:format("~nDEBUG\t auth - restoring auth_field ~p~n",[AuthField]),
+  lists:delete({hidden_auth_field, AuthField}, Config)  ++ [{auth_field, AuthField}];
 
-step(Config, _Given, {step_when, _N, ["I go to the digest login page"]}) -> 
-  URL = eurl:uri(Config, "digest"),
-  {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = http:request(URL),
-  {digest, Code};
+%----------------------
 
 step(Config, _Given, {step_when, _N, ["I go to home page"]}) ->
-  URL = eurl:uri(Config, []),
-  {_Status,{{_Protocol,_Code,_Comment}, _Fields, Message}} = http:request(URL),
+  URL = eurl:uri(Config, []), 
+  {_Status,{{_Protocol,_Code,_Comment}, _Fields, Message}} = simple_auth:request(Config,URL),
   Message;
-
-step(Config, _Given, {step_when, _N, ["I check the home page"]}) ->
-  URL = eurl:uri(Config, []),
-  {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = http:request(URL),
-  {digest, Code};
 
 step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   URL = eurl:uri(Config, "2.0/status/node"),
@@ -49,7 +49,7 @@ step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
 step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
   C = [{url, bdd_utils:config(Config, url)}, {user, User}, {password, Pass}],
   URL = eurl:uri(C, "digest"),
-  {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = digest_auth:request(C,URL),
+  {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request(C,URL),
   R;
 
 step(_Config, Result, {step_then, _N, ["I should get a",Code,"error"]}) -> 

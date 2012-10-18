@@ -55,10 +55,11 @@ class CrowbarService < ServiceObject
     f = CrowbarUtils.acquire_lock "BA-LOCK"
     node = nil
     begin
-      node = Node.find_by_name name ||
-        ['discovering','testing'].member?(state) &&
-        ( @logger.debug("Crowbar transition: creating new node for #{name} to #{state}") 
-          Node.create_with_cmdb(name))
+      node = Node.find_by_name name
+      if node.nil? && ['discovering','testing'].member?(state)
+        @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
+        node = Node.create_with_cmdb(name)
+      end
       if node.nil?
         @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
         return [404, "Node not found"] # GREG: Translate

@@ -53,88 +53,71 @@ class CrowbarService < ServiceObject
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
     f = CrowbarUtils.acquire_lock "BA-LOCK"
+    node = nil
     begin
-      node = Node.find_by_name name
-      if node.nil? and (state == "discovering" or state == "testing")
-        @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
-        node = Node.create_with_cmdb(name)
-      end
-
+      node = Node.find_by_name name ||
+        ['discovering','testing'].member?(state) &&
+        ( @logger.debug("Crowbar transition: creating new node for #{name} to #{state}") 
+          Node.create_with_cmdb(name))
       if node.nil?
         @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
         return [404, "Node not found"] # GREG: Translate
       end
-
-      pop_it = false
-      if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
-        @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")
-        pop_it = true
+      unless (node.state != state) ||
+          ['hardware-installing','hardware-updating','update'].member?(state)
+        @logger.info("Crowbar transition: no state transition needed for #{name}")
+        return [200,node.cmdb_hash]
       end
-
-      if node.state != state
-        @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
-
-        node.state = state
-        node.save
-        pop_it = true
-      end
+      node.state = state
+      node.save
     ensure
       CrowbarUtils.release_lock f
     end
 
-    if pop_it
-      #
-      # If we are discovering the node and it is an admin, 
-      # make sure that we add the crowbar config
-      #
-      if state == "discovering" and node.is_admin?
-        add_role_to_instance_and_node(name, inst, "crowbar")
+    #
+    # If we are discovering the node and it is an admin, 
+    # make sure that we add the crowbar config
+    #
+    if state == "discovering" and node.is_admin?
+      add_role_to_instance_and_node(name, inst, "crowbar")
+    end
+    
+    # Find the active proposals that have this as a transition state
+    props = []
+    Barclamp.all.each do |x| 
+      if x.transitions
+        states = x.transition_list.split(",")
+        props << x.active_proposals if states.include?(state) or states.include?("all")
       end
-
-      # Find the active proposals that have this as a transition state
-      props = []
-      Barclamp.all.each do |x| 
-        if x.transitions
-          states = x.transition_list.split(",")
-          props << x.active_proposals if states.include?(state) or states.include?("all")
+    end
+    props.flatten.sort{|x,y|x.barclamp.run_order <=> y.barclamp.run_order}.each do |prop|
+      bco = prop.barclamp
+      begin
+        @logger.info("Crowbar transition: calling #{bco.name}:#{prop.name} for #{name} for #{state}") 
+        answer = bco.operations(@logger).transition(prop.name, name, state)
+        if answer[0] != 200
+          @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
+        else
+          @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
         end
+      rescue Exception => e
+        @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")
+        @logger.fatal("#{e.backtrace}")
+        return [500, e.message]
       end
-      props = props.flatten
-
-      # Sort rules for transition order (deployer should be near the beginning if not first).
-      props.sort! { |x,y| x.barclamp.run_order <=> y.barclamp.run_order }
-
-      # For each prop, call the transition function.
-      props.each do |prop|
-        bco = prop.barclamp
-        begin
-          @logger.info("Crowbar transition: calling #{bco.name}:#{prop.name} for #{name} for #{state}")            
-          answer = bco.operations(@logger).transition(prop.name, name, state)
-          if answer[0] != 200
-            @logger.error("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}: FAILED #{answer[1]}")
-          else
-            @logger.debug("Crowbar transition: finished #{bco.name}:#{prop.name} for #{name} for #{state}")
-          end
-        rescue Exception => e
-          @logger.fatal("json/transition for #{bco.name}:#{prop.name} failed: #{e.message}")
-          @logger.fatal("#{e.backtrace}")
-          return [500, e.message]
-        end
-      end
-      #
-      # The temp booting images need to have clients cleared.
-      #
-      node.reset_cmdb_access
-      if state == "delete"
-        @logger.info("Crowbar: Deleting #{name}")
-        node.destroy
-        [200, "#{name} deleted" ]
-      end
-
-      # We have a node that has become ready, test to see if there are queued proposals to commit
-      ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"
+    end
+    #
+    # The temp booting images need to have clients cleared.
+    #
+    node.reset_cmdb_access
+    if state == "delete"
+      @logger.info("Crowbar: Deleting #{name}")
+      node.destroy
+      [200, "#{name} deleted" ]
     end
 
+    # We have a node that has become ready, test to see if there are queued proposals to commit
+    ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
     [200, node.cmdb_hash]
   end

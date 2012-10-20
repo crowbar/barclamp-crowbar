@@ -34,10 +34,12 @@
 # 
 
 class Proposal < ActiveRecord::Base
+
+  VALIDATION_EXPR = /^[a-zA-Z][_a-zA-Z0-9]*$/
   
   attr_accessible :name, :last_applied_rev, :description
 
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :name, :with=>VALIDATION_EXPR, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   belongs_to :barclamp

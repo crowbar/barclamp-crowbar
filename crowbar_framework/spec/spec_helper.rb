@@ -1,5 +1,5 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
-ENV["RAILS_ENV"] ||= 'test'
+ENV["RAILS_ENV"] ||= 'development'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
 require 'email_spec'
@@ -41,14 +41,15 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = "random"
 
+# Turn off for now.  May not need this.
   # Setup DatabaseCleaner helpers
-  config.before(:suite) do
-    DatabaseCleaner.strategy = :truncation
-  end
-  config.before(:each) do
-    DatabaseCleaner.start
-  end
-  config.after(:each) do
-    DatabaseCleaner.clean
-  end
+#  config.before(:suite) do
+#    DatabaseCleaner.strategy = :truncation
+#  end
+#  config.before(:each) do
+#    DatabaseCleaner.start
+#  end
+#  config.after(:each) do
+#    DatabaseCleaner.clean
+#  end
 end

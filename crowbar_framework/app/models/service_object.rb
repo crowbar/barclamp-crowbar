@@ -62,7 +62,7 @@ class ServiceObject
   end
 
   def barclamp
-    @baclamp
+    @barclamp
   end
 
   #
@@ -141,6 +141,7 @@ class ServiceObject
     elems = params["deployment"][@bc_name]["elements"] rescue nil
     new_prop.current_config.update_node_roles(elems) if elems and !elems.empty?
 
+    # Chef Code Here
     raw_data = new_prop.current_config.to_proposal_object_hash
     validate_proposal raw_data
 
@@ -151,8 +152,10 @@ class ServiceObject
   #
   # This can be overridden to provide a better creation proposal
   #
-  def create_proposal
-    @barclamp.create_proposal
+  # The @barclamp.create_proposal routine must be called to create the base objects.
+  #
+  def create_proposal(name)
+    @barclamp.create_proposal(name)
   end
 
   #
@@ -164,15 +167,17 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_create(params)
+    return [400, I18n.t('model.service.empty_parameters')] unless params
     base_id = params["id"]
+    return [400, I18n.t('model.service.missing_id')] unless base_id
+    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
+    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] unless base_id =~ Proposal::VALIDATION_EXPR
 
+    raise CrowbarException.new("Abstract Service Object") unless @barclamp
     prop = @barclamp.get_proposal(base_id)
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?
-    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
-    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
 
-    new_prop = create_proposal
-    new_prop.name = base_id
+    new_prop = create_proposal(base_id)
     new_prop.save!
 
     _proposal_update new_prop, params
@@ -271,7 +276,7 @@ class ServiceObject
   # proposal is a hash in json proposal format
   #
   def validate_proposal proposal
-    path = "/opt/dell/chef/data_bags/crowbar"
+    path = "#{::Rails.root}/barclamps/schemas"
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
 

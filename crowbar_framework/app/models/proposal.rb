@@ -92,6 +92,7 @@ class Proposal < ActiveRecord::Base
       new_prop.active_config = new_x if x == active_config
       new_prop.current_config = new_x if x == current_config
     end
+    new_prop.save!
 
     new_prop
   end

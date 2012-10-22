@@ -18,13 +18,68 @@ require 'spec_helper'
 describe ProposalQueue do
 
   # Always make sure that acquire_lock and release_lock are called
-  def validate_locking
+  def validate_locking(count = 1)
     CrowbarUtils.stub!(:acquire_lock)
-    CrowbarUtils.should_receive(:acquire_lock).exactly(1).times.and_return(:lock)
+    CrowbarUtils.should_receive(:acquire_lock).exactly(count).times.and_return(:lock)
     CrowbarUtils.stub!(:require_lock)
-    CrowbarUtils.should_receive(:release_lock).exactly(1).times do |arg|
+    CrowbarUtils.should_receive(:release_lock).exactly(count).times do |arg|
       arg.should be :lock
     end
+  end
+
+  describe "item ordering" do
+    it "should return empty with new queue" do
+      q = ProposalQueue.get_queue("greg", :log)
+      q.proposal_queue_items.empty?.should be true
+    end
+
+    def create_item(pcid, pos, mes)
+      item = ProposalQueueItem.new
+      item.proposal_config_id = pcid
+      item.position = pos
+      item.queue_reason = mes
+      item.save
+      item
+    end
+
+    it "should return item once item is added to queue" do
+      item = create_item(9, 10, "message")
+
+      q = ProposalQueue.get_queue("greg", :log)
+      q.proposal_queue_items << item
+      q.save
+
+      q2 = ProposalQueue.get_queue("greg", :log)
+      q2.proposal_queue_items.empty?.should be false
+      q2.proposal_queue_items[0].proposal_config_id.should be 9
+      q2.proposal_queue_items[0].position.should be 10
+      q2.proposal_queue_items[0].queue_reason.should eq("message")
+    end
+
+    it "should return ordered item once items are added to queue" do
+      item1 = create_item(9, 19, "message1")
+      item2 = create_item(10, 20, "message2")
+      item3 = create_item(11, 21, "message3")
+
+      q = ProposalQueue.get_queue("greg", :log)
+      q.proposal_queue_items << item2
+      q.proposal_queue_items << item3
+      q.proposal_queue_items << item1
+      q.save
+
+      q2 = ProposalQueue.get_queue("greg", :log)
+      q2.proposal_queue_items.empty?.should be false
+      q2.proposal_queue_items[0].proposal_config_id.should be 9
+      q2.proposal_queue_items[0].position.should be 19
+      q2.proposal_queue_items[0].queue_reason.should eq("message1")
+      q2.proposal_queue_items[1].proposal_config_id.should be 10
+      q2.proposal_queue_items[1].position.should be 20
+      q2.proposal_queue_items[1].queue_reason.should eq("message2")
+      q2.proposal_queue_items[2].proposal_config_id.should be 11
+      q2.proposal_queue_items[2].position.should be 21
+      q2.proposal_queue_items[2].queue_reason.should eq("message3")
+    end
+
   end
 
   describe "Self.get_gueue" do
@@ -274,8 +329,436 @@ describe ProposalQueue do
     end
   end
 
-  describe "queue_proposal" do
+  def make_proposal_config()
+    barclamp = Barclamp.find_by_name("crowbar")
+
+    # Not active - dep1
+    proposal = barclamp.create_proposal("dep1")
+
+    # Active but not applied - dep2
+    proposal = barclamp.create_proposal("dep2")
+    proposal.active_config = proposal.current_config
+    proposal.current_config.status = ProposalConfig::STATUS_QUEUED
+    proposal.save
+
+    # Active and applied - dep3
+    proposal = barclamp.create_proposal("dep3")
+    proposal.active_config = proposal.current_config
+    proposal.current_config.status = ProposalConfig::STATUS_APPLIED
+    proposal.current_config.save
+    proposal.save
+
+    proposal = barclamp.create_proposal("temp")
+    proposal.current_config
   end
 
+  describe "can_proposal_config_run" do
+    it "should return 1,[] for a proposal with no nodes and no deps and will apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be true
+      end.and_return([]) 
+
+      pos, delay = q.can_proposal_config_run(pc, true)
+      pos.should be 1
+      delay.should eq([])
+    end
+
+    it "should return 1,[] for a proposal with no nodes and no deps and will not apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return([]) 
+
+      pos, delay = q.can_proposal_config_run(pc, false)
+      pos.should be 1
+      delay.should eq([])
+    end
+
+    it "should return 1,props for a proposal that is missing dependencies and no nodes could apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([{ "inst" => "dep0", "barclamp" => "crowbar" },
+                          { "inst" => "dep1", "barclamp" => "crowbar" },
+                          { "inst" => "dep2", "barclamp" => "crowbar" },
+                          { "inst" => "dep3", "barclamp" => "crowbar" }])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return([]) 
+
+      pos, delay = q.can_proposal_config_run(pc, true)
+      pos.should be 1
+      delay.should eq(["Proposal crowbar.dep0","Proposal crowbar.dep1","Proposal crowbar.dep2"])
+    end
+
+    it "should return 1,props for a proposal that is missing dependencies and no nodes wont apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([{ "inst" => "dep0", "barclamp" => "crowbar" },
+                          { "inst" => "dep1", "barclamp" => "crowbar" },
+                          { "inst" => "dep2", "barclamp" => "crowbar" },
+                          { "inst" => "dep3", "barclamp" => "crowbar" }])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return([]) 
+
+      pos, delay = q.can_proposal_config_run(pc, false)
+      pos.should be 1
+      delay.should eq(["Proposal crowbar.dep0","Proposal crowbar.dep1","Proposal crowbar.dep2"])
+    end
+
+    it "should return 1,nodes for a proposal that is not missing dependencies and nodes can apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be true
+      end.and_return(["Node n1", "Node n2"]) 
+
+      pos, delay = q.can_proposal_config_run(pc, true)
+      pos.should be 1
+      delay.should eq(["Node n1","Node n2"])
+    end
+
+    it "should return 1,nodes for a proposal that is not missing dependencies and nodes not apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return(["Node n1", "Node n2"]) 
+
+      pos, delay = q.can_proposal_config_run(pc, false)
+      pos.should be 1
+      delay.should eq(["Node n1","Node n2"])
+    end
+
+    it "should return 1,probs for a proposal that is missing dependencies and nodes could apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([{ "inst" => "dep0", "barclamp" => "crowbar" },
+                          { "inst" => "dep1", "barclamp" => "crowbar" },
+                          { "inst" => "dep2", "barclamp" => "crowbar" },
+                          { "inst" => "dep3", "barclamp" => "crowbar" }])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be true
+      end.and_return(["Node n1", "Node n2"]) 
+
+      pos, delay = q.can_proposal_config_run(pc, true)
+      pos.should be 1
+      delay.should eq(["Proposal crowbar.dep0","Proposal crowbar.dep1","Proposal crowbar.dep2","Node n1","Node n2"])
+    end
+
+    it "should return 1,probs for a proposal that is missing dependencies and nodes wont apply" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([{ "inst" => "dep0", "barclamp" => "crowbar" },
+                          { "inst" => "dep1", "barclamp" => "crowbar" },
+                          { "inst" => "dep2", "barclamp" => "crowbar" },
+                          { "inst" => "dep3", "barclamp" => "crowbar" }])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return(["Node n1", "Node n2"]) 
+
+      pos, delay = q.can_proposal_config_run(pc, false)
+      pos.should be 1
+      delay.should eq(["Proposal crowbar.dep0","Proposal crowbar.dep1","Proposal crowbar.dep2","Node n1","Node n2"])
+    end
+
+    it "should return 21,props for a proposal that is missing dependencies and pending items" do
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      pc.proposal.barclamp.operations(Rails.logger).should_receive(:proposal_dependencies).exactly(1).times.and_return([{ "inst" => "dep0", "barclamp" => "crowbar" },
+                          { "inst" => "dep1", "barclamp" => "crowbar" },
+                          { "inst" => "dep2", "barclamp" => "crowbar" },
+                          { "inst" => "dep3", "barclamp" => "crowbar" }])
+
+      ProposalQueue.should_receive(:make_applying_or_delay).exactly(1).times do |arg1, arg2|
+        arg2.should be false
+      end.and_return([]) 
+
+      i1 = ProposalQueueItem.new
+      i1.proposal_config_id = Proposal.find_by_name("dep1").current_config.id
+      i1.proposal_queue_id = q.id
+      i1.position = 10
+      i1.queue_reason = "jjj"
+      i1.save
+
+      i2 = ProposalQueueItem.new
+      i2.proposal_config_id = Proposal.find_by_name("dep2").current_config.id
+      i2.proposal_queue_id = q.id
+      i2.position = 20
+      i1.queue_reason = "kkk"
+      i2.save
+
+      pos, delay = q.can_proposal_config_run(pc, true)
+      pos.should be 21
+      delay.should eq(["Proposal crowbar.dep0","Proposal crowbar.dep1","Proposal crowbar.dep2"])
+    end
+  end
+
+  describe "queue_proposal" do  
+    it "should return true for a proposal that is already queued" do
+      validate_locking(1)
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+
+      item = ProposalQueueItem.new
+      item.queue_reason = "fred"
+      item.proposal_config_id = pc.id
+      item.proposal_queue_id = q.id
+      item.position = 13
+      item.save
+
+      ProposalQueue.should_receive(:update_proposal_status).exactly(0).times
+      answer, message = q.queue_proposal(pc)
+      answer.should be true
+      message.should eq("fred")
+    end
+    it "should return false for a proposal that can run" do
+      validate_locking(1)
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:can_proposal_config_run).exactly(1).times.and_return([0, []])
+      ProposalQueue.should_receive(:update_proposal_status).exactly(0).times
+
+      answer, message = q.queue_proposal(pc)
+      answer.should be false
+      message.should eq("")
+    end
+    it "should return true for a proposal that can not run" do
+      validate_locking(1)
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:can_proposal_config_run).exactly(1).times.and_return([3, ["a", "b"]])
+
+      ProposalQueue.should_receive(:update_proposal_status).exactly(1).times do |a1,a2,a3|
+        a1.id.should be pc.id
+        a2.should be ProposalConfig::STATUS_QUEUED
+        a3.should eq("")
+      end
+
+      answer, message = q.queue_proposal(pc)
+      answer.should be true
+      message.should eq("a,b")
+
+      item = ProposalQueueItem.find_by_proposal_config_id_and_proposal_queue_id(pc.id, q.id)
+      item.position.should be 3
+      item.queue_reason.should eq("a,b")
+    end
+    it "should return true for an exception" do
+      validate_locking(1)
+      pc = make_proposal_config
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:can_proposal_config_run).exactly(1).times.and_raise(Exception.new("test"))
+      ProposalQueue.should_receive(:update_proposal_status).exactly(0).times
+
+      answer, message = q.queue_proposal(pc)
+      answer.should be true
+      message.should match /^Error: crowbar:temp: test/
+    end
+  end
+
+  describe "dequeue_proposal_nolock" do
+    it "should return true and if item is nil" do
+      ProposalQueue.should_receive(:update_proposal_status).exactly(0).times
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal_no_lock(nil)
+      answer.should be true
+    end
+    it "should return true and remove the item" do
+      item = mock(ProposalQueueItem)
+      item.should_receive(:destroy).exactly(1).times
+      item.should_receive(:proposal_config).exactly(1).times.and_return(nil)
+      ProposalQueue.should_receive(:update_proposal_status).exactly(1).times
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal_no_lock(item)
+      answer.should be true
+    end
+    it "should return false on an exception" do
+      item = mock(ProposalQueueItem)
+      item.should_receive(:destroy).exactly(1).times.and_raise(Exception.new("test"))
+      item.should_receive(:proposal_config).exactly(1).times.and_return(nil)
+      ProposalQueue.should_receive(:update_proposal_status).exactly(1).times
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal_no_lock(item)
+      answer.should be false
+    end
+  end
+
+  describe "dequeue_proposal" do
+    it "should return false on an exception" do
+      validate_locking(1)
+      Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_raise(Exception.new("test"))
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal("cow", "crowbar")
+      answer.should be false
+    end
+    it "should return true if no proposal is found" do
+      validate_locking(1)
+      Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(nil)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal("cow", "crowbar")
+      answer.should be true
+    end
+    it "should return true if proposal is found but not active" do
+      validate_locking(1)
+      p = mock(Proposal)
+      p.should_receive(:active?).exactly(1).times.and_return(false)
+      Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(p)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      answer = q.dequeue_proposal("cow", "crowbar")
+      answer.should be true
+    end
+    it "should return true if proposal is found and active and not queued" do
+      validate_locking(1)
+      pc = mock(ProposalConfig)
+      pc.should_receive(:id).exactly(1).times.and_return(3)
+      p = mock(Proposal)
+      p.should_receive(:active?).exactly(1).times.and_return(true)
+      p.should_receive(:active_config).exactly(1).times.and_return(pc)
+      Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(p)
+      ProposalQueueItem.should_receive(:find_by_proposal_config_id).exactly(1).times.and_return(nil)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:dequeue_proposal_no_lock).exactly(1).times.and_return(true)
+      answer = q.dequeue_proposal("cow", "crowbar")
+      answer.should be true
+    end
+    it "should return true if proposal is found and active and queued" do
+      validate_locking(1)
+      pc = mock(ProposalConfig)
+      pc.should_receive(:id).exactly(1).times.and_return(3)
+      p = mock(Proposal)
+      p.should_receive(:active?).exactly(1).times.and_return(true)
+      p.should_receive(:active_config).exactly(1).times.and_return(pc)
+      Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(p)
+      ProposalQueueItem.should_receive(:find_by_proposal_config_id).exactly(1).times.and_return(:item)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:dequeue_proposal_no_lock).exactly(1).times.and_return(true)
+      answer = q.dequeue_proposal("cow", "crowbar")
+      answer.should be true
+    end
+  end
+
+  describe "process_queue" do
+    it "should return success with a nil queue" do
+      validate_locking(1)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:proposal_queue_items).exactly(1).times.and_return(nil)
+      ret, count, message = q.process_queue
+      ret.should be true
+      count.should be 0
+      message.should eq("")
+    end
+    it "should return success with an empty queue" do
+      validate_locking(1)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:proposal_queue_items).exactly(1).times.and_return([])
+      ret, count, message = q.process_queue
+      ret.should be true
+      count.should be 0
+      message.should eq("")
+    end
+    it "should return success and 0 with a queue of items not ready" do
+      validate_locking(1)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      item1 = mock(ProposalQueueItem)
+      item1.should_receive(:proposal_config).exactly(1).times.and_return(:cow)
+      item2 = mock(ProposalQueueItem)
+      item2.should_receive(:proposal_config).exactly(1).times.and_return(:chicken)
+      q.should_receive(:proposal_queue_items).exactly(1).times.and_return([item1, item2])
+      q.should_receive(:can_proposal_config_run).exactly(2).times.and_return([1, ["dog"]])
+      q.should_receive(:dequeue_proposal_no_lock).exactly(0).times
+      ret, count, message = q.process_queue
+      ret.should be true
+      count.should be 0
+      message.should eq("")
+    end
+    it "should return success and 1 with a queue of 1 ready and 1 not ready item" do
+      validate_locking(2)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      item1 = mock(ProposalQueueItem)
+      item1.should_receive(:proposal_config).exactly(2).times.and_return(:cow)
+
+      bo = mock(CrowbarService)
+      bo.should_receive(:proposal_commit).exactly(1).times.and_return([200, ""])
+      b = mock(Barclamp)
+      b.should_receive(:operations).exactly(1).times.and_return(bo)
+      p = mock(Proposal)
+      p.should_receive(:barclamp).exactly(1).times.and_return(b)
+      p.should_receive(:name).exactly(1).times.and_return("fred")
+      pc = mock(ProposalConfig)
+      pc.should_receive(:proposal).exactly(1).times.and_return(p)
+      item2 = mock(ProposalQueueItem)
+      item2.should_receive(:proposal_config).exactly(2).times.and_return(pc)
+      q.should_receive(:proposal_queue_items).exactly(2).times.and_return([item2, item1],[item1])
+      q.should_receive(:can_proposal_config_run).exactly(2).times.and_return([1, []], [1,["dog"]], [1,["dog"]]) 
+      q.should_receive(:dequeue_proposal_no_lock).exactly(1).times do |arg|
+        arg.should be item2
+      end
+      q.should_receive(:reload).exactly(1).times
+      ret, count, message = q.process_queue
+      message.should eq("")
+      count.should be 1
+      ret.should be true
+    end
+
+    it "should return success and 1 with a queue of 1 ready and 1 not ready item and loop around" do
+      validate_locking(1)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      item1 = mock(ProposalQueueItem)
+      item1.should_receive(:proposal_config).exactly(1).times.and_return(:cow)
+
+      bo = mock(CrowbarService)
+      bo.should_receive(:proposal_commit).exactly(1).times.and_return([202, ""])
+      b = mock(Barclamp)
+      b.should_receive(:operations).exactly(1).times.and_return(bo)
+      p = mock(Proposal)
+      p.should_receive(:barclamp).exactly(1).times.and_return(b)
+      p.should_receive(:name).exactly(1).times.and_return("fred")
+      pc = mock(ProposalConfig)
+      pc.should_receive(:proposal).exactly(1).times.and_return(p)
+      item2 = mock(ProposalQueueItem)
+      item2.should_receive(:proposal_config).exactly(2).times.and_return(pc)
+      q.should_receive(:proposal_queue_items).exactly(1).times.and_return([item2, item1])
+      q.should_receive(:can_proposal_config_run).exactly(2).times.and_return([1, []], [1,["dog"]])
+      q.should_receive(:dequeue_proposal_no_lock).exactly(1).times do |arg|
+        arg.should be item2
+      end
+      q.should_receive(:reload).exactly(0).times
+      ret, count, message = q.process_queue
+      ret.should be true
+      count.should be 1
+      message.should eq("")
+    end
+
+    it "should return false when receiving and exception while dequeuing items" do
+      validate_locking(1)
+      q = ProposalQueue.get_queue("greg", Rails.logger)
+      q.should_receive(:proposal_queue_items).exactly(1).times.and_raise(Exception.new("test"))
+      ret, count, message = q.process_queue
+      ret.should be false
+      count.should be 0
+      message.should match /Error: test/
+    end
+
+  end
 end
 

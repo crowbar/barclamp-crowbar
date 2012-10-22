@@ -60,7 +60,7 @@ end
 For normal operation and to provide the default APIs, nothing else need to be provided.
 
 Within this class, the following routines can be overridden:
-* create_proposal(optional: name)
+* create_proposal(name)
 * transition(name, inst, state)
 * apply_role_pre_chef_call(old_config, new_config, all_nodes)
 * proposal_dependencies(proposal_config)

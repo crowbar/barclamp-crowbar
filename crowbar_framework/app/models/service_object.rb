@@ -378,7 +378,7 @@ class ServiceObject
           ran_admin = true
           admin_list << node
         else 
-          snodes << n
+          snodes << node
         end
       end
  
@@ -419,8 +419,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            ProposalQueue.restore_to_ready(all_nodes)
             q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.restore_to_ready(all_nodes)
             q.process_queue unless in_queue
             return [405, message]
           end
@@ -453,8 +453,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            ProposalQueue.restore_to_ready(all_nodes)
             q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.restore_to_ready(all_nodes)
             q.process_queue unless in_queue
             return [405, message]
           end
@@ -466,8 +466,8 @@ class ServiceObject
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if !ran_admin
 
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_APPLIED, "")
+    ProposalQueue.restore_to_ready(all_nodes)
     q = ProposalQueue.get_queue('prop_queue', @logger)
-    q.restore_to_ready(all_nodes)
     q.process_queue unless in_queue
     [200, {}]
   end

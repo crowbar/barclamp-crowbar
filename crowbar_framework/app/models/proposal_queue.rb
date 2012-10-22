@@ -60,7 +60,7 @@ class ProposalQueue < ActiveRecord::Base
     if prop and prop.active?
       prop.active_config.status = status
       prop.active_config.failed_reason = message
-      res = prop.active_config.save!
+      res = prop.active_config.save
     end
     res
   end
@@ -68,6 +68,9 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Helper function to set logging structure
   #
+  def logger
+    @logger
+  end
   def logger=(log)
     @logger = log
   end
@@ -80,11 +83,12 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Assumes the BA-LOCK is held
   #
-  def elements_not_ready(nodes)
+  def self.elements_not_ready(nodes)
+    return [] unless nodes
     delay = []
     nodes.each do |n|
-      next if node.state == "ready"
-      delay << "Node node.name"
+      next if n.state == "ready"
+      delay << "Node #{n.name}"
     end
     delay
   end
@@ -101,13 +105,16 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Output:
   #   List of nodes that are NOT ready [ "Node <node.name>" ]
+  #   If an exception occurs, delay will contain "Error: Message" in the list.
   #
-  def make_applying_or_delay(nodes, apply)
+  def self.make_applying_or_delay(nodes, apply)
+    return [] unless nodes
+
     f = CrowbarUtils.acquire_lock "BA-LOCK"
     delay = []
     begin
       # Check for delays 
-      delay = elements_not_ready(nodes)
+      delay = ProposalQueue.elements_not_ready(nodes)
 
       # Add the entries to the nodes.
       if delay.empty?
@@ -124,7 +131,7 @@ class ProposalQueue < ActiveRecord::Base
         end
       end
     rescue Exception => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
+      delay << "Error: #{e.message} #{e.backtrace.join("\n")}"
     ensure
       CrowbarUtils.release_lock f
     end
@@ -138,7 +145,7 @@ class ProposalQueue < ActiveRecord::Base
   # Input: list of node objects
   # Output: none
   #
-  def restore_to_ready(nodes)
+  def self.restore_to_ready(nodes)
     f = CrowbarUtils.acquire_lock "BA-LOCK"
     begin
       nodes.each do |node|
@@ -191,7 +198,7 @@ class ProposalQueue < ActiveRecord::Base
       end
 
       # Check nodes for being ready
-      delay << make_applying_or_delay(prop_config.nodes, !queue_me)
+      delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, !queue_me)
       delay = delay.flatten
 
       # Nothing stopping use and nodes are marked applying.
@@ -304,7 +311,7 @@ class ProposalQueue < ActiveRecord::Base
           end
 
           # Check nodes for being ready
-          delay << make_applying_or_delay(prop_config.nodes, false)
+          delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, false)
           delay = delay.flatten
 
           # We are free

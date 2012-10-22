@@ -126,6 +126,9 @@ describe ServiceObject  do
     end
   end
 
+  describe "Apply Role" do
+  end
+
 end
 
 

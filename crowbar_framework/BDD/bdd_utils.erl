@@ -77,7 +77,7 @@ is_a(Type, Value) ->
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
   URL = sc:url(Config),
-  bdd_utils:puts("\t is_site_up: URL: ~p.~n", [URL]),
+  io:format("~nBDD TESTING SITE: ~p.~n", [URL]),
   AzConfig = simple_auth:header(Config, URL),
   case proplists:get_value(auth_error,AzConfig) of
     undefined -> AzConfig; % success

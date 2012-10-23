@@ -205,7 +205,6 @@ describe ProposalQueue do
     end
 
     def make_applying_or_delay_empty_list(apply)
-      validate_locking
       answer = ProposalQueue.make_applying_or_delay([], apply)
       answer.should eq([])
     end
@@ -217,8 +216,6 @@ describe ProposalQueue do
     end
 
     it "should return an empty list and not touch the nodes if apply is false and nodes are ready" do
-      validate_locking
-
       n1 = mock(Node)
       n1.should_receive(:state).exactly(1).times.and_return("ready")
       n1.should_receive(:name).exactly(0).times
@@ -229,42 +226,50 @@ describe ProposalQueue do
       answer.should eq([])
     end
     it "should return an empty list and set_state of nodes if apply and nodes are ready" do
-      validate_locking
-
       n1 = mock(Node)
       n1.should_receive(:state).exactly(1).times.and_return("ready")
       n1.should_receive(:name).exactly(0).times
-      n1.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("applying")
-      end
+      n1.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+        arg1.should eq("applying")
+        arg2.should eq("ready")
+      end.and_return([200, ""])
       n1.should_receive(:allocate).exactly(0).times
       answer = ProposalQueue.make_applying_or_delay([n1], true)
       answer.should eq([])
     end
     it "should return an empty list and set_state of nodes if apply and nodes (more than one) are ready" do
-      validate_locking
-
-      n1 = mock(Node)
-      n1.should_receive(:state).exactly(1).times.and_return("ready")
-      n1.should_receive(:name).exactly(0).times
-      n1.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("applying")
+      nodes = [ mock(Node), mock(Node), mock(Node) ]
+      nodes.each do |n|
+        n.should_receive(:state).exactly(1).times.and_return("ready")
+        n.should_receive(:name).exactly(0).times
+        n.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+          arg1.should eq("applying")
+          arg2.should eq("ready")
+        end.and_return([200, ""])
+        n.should_receive(:allocate).exactly(0).times
       end
-      n1.should_receive(:allocate).exactly(0).times
-      n2 = mock(Node)
-      n2.should_receive(:state).exactly(1).times.and_return("ready")
-      n2.should_receive(:name).exactly(0).times
-      n2.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("applying")
-      end
-      n2.should_receive(:allocate).exactly(0).times
-      answer = ProposalQueue.make_applying_or_delay([n1,n2], true)
+      answer = ProposalQueue.make_applying_or_delay(nodes, true)
       answer.should eq([])
+    end
+    it "should return a list of failed nodes if apply and some nodes fail to set ready" do
+      nodes = [ mock(Node), mock(Node), mock(Node) ]
+      count = 0
+      nodes.each do |n|
+        n.should_receive(:state).exactly(1).times.and_return("ready")
+        if count == 0
+          n.should_receive(:name).exactly(0).times
+        else
+          n.should_receive(:name).exactly(1).times.and_return("node#{count}")
+        end
+        n.should_receive(:set_state).exactly(count == 0 ? 2 : 1).times.and_return([(count == 0 ? 200 : 409), ""])
+        n.should_receive(:allocate).exactly(1).times
+        count += 1
+      end
+      answer = ProposalQueue.make_applying_or_delay(nodes, true)
+      answer.should eq(["Node node1", "Node node2"])
     end
 
     def make_applying_or_delay(apply)
-      validate_locking
-
       n1 = mock(Node)
       n1.should_receive(:state).exactly(1).times.and_return("unready")
       n1.should_receive(:name).exactly(1).times.and_return("n1")
@@ -286,8 +291,6 @@ describe ProposalQueue do
     end
 
     def make_applying_or_delay_exception(apply)
-      validate_locking
-
       ProposalQueue.stub!(:elements_not_ready)
       ProposalQueue.should_receive(:elements_not_ready).and_raise(Exception.new("message"))
 
@@ -304,24 +307,20 @@ describe ProposalQueue do
 
   describe "restore_to_ready" do
     it "should set all nodes' state to ready" do
-      validate_locking
-
-      n1 = mock(Node)
-      n1.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("ready")
+      nodes = [ mock(Node), mock(Node) ]
+      nodes.each do |n|
+        n.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+          arg1.should eq("ready")
+          arg2.should eq("applying")
+        end
       end
-      n2 = mock(Node)
-      n2.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("ready")
-      end
-      ProposalQueue.restore_to_ready([n1,n2])
+      ProposalQueue.restore_to_ready(nodes)
     end
-    it "should return exception but unlock" do
-      validate_locking
-
+    it "should return exception" do
       n1 = mock(Node)
-      n1.should_receive(:set_state).exactly(1).times do |arg|
-        arg.should eq("ready")
+      n1.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+        arg1.should eq("ready")
+        arg2.should eq("applying")
       end
       n2 = mock(Node)
       n2.should_receive(:set_state).and_raise(Exception.new("message"))

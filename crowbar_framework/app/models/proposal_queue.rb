@@ -76,12 +76,10 @@ class ProposalQueue < ActiveRecord::Base
   end
 
   #
-  # Helper function to test if a list of nodes are ready.
+  # Helper routine to test if nodes are ready or not.
+  # Returns a list of nodes not ready.
   #
-  # Input: List of node objects
-  # Output: List of nodes that are NOT ready [ "Node <node.name>" ]
-  #
-  # Assumes the BA-LOCK is held
+  # This is soft and not locked.  The apply path will lock and confirm.
   #
   def self.elements_not_ready(nodes)
     return [] unless nodes
@@ -110,7 +108,6 @@ class ProposalQueue < ActiveRecord::Base
   def self.make_applying_or_delay(nodes, apply)
     return [] unless nodes
 
-    f = CrowbarUtils.acquire_lock "BA-LOCK"
     delay = []
     begin
       # Check for delays 
@@ -119,12 +116,24 @@ class ProposalQueue < ActiveRecord::Base
       # Add the entries to the nodes.
       if delay.empty?
         if apply
+          list = []
           nodes.each do |node|
             # Nothing to delay so mark them applying.
-            node.set_state('applying')
+            answer, message = node.set_state('applying', 'ready')
+            list << node if answer < 300
+            delay << "Node #{node.name}" if answer == 409
+          end
+
+          # Error on setting state
+          if list.length != nodes.length
+            list.each do |node|
+              node.set_state('ready', 'applying')
+            end
           end
         end
-      else
+      end
+
+      unless delay.empty?
         nodes.each do |node|
           # Make sure the node is allocated
           node.allocate
@@ -132,8 +141,6 @@ class ProposalQueue < ActiveRecord::Base
       end
     rescue Exception => e
       delay << "Error: #{e.message} #{e.backtrace.join("\n")}"
-    ensure
-      CrowbarUtils.release_lock f
     end
 
     delay
@@ -146,14 +153,9 @@ class ProposalQueue < ActiveRecord::Base
   # Output: none
   #
   def self.restore_to_ready(nodes)
-    f = CrowbarUtils.acquire_lock "BA-LOCK"
-    begin
-      nodes.each do |node|
-        # Nothing to delay so mark them applying.
-        node.set_state('ready')
-      end
-    ensure
-      CrowbarUtils.release_lock f
+    nodes.each do |node|
+      # Nothing to delay so mark them applying.
+      node.set_state('ready','applying')
     end
   end
 

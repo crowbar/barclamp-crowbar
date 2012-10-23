@@ -29,6 +29,10 @@ class Node < ActiveRecord::Base
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
+  # for to_api_hash
+  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
+                    "admin", "allocated", "os_id", "created_at", "updated_at"]
+
   #
   # Find a set of nodes by role name
   #
@@ -371,7 +375,14 @@ class Node < ActiveRecord::Base
   def to_s
     "Node: #{name}"
   end
-  
+
+  # customize node hash delivered through api (as json)
+  # maybe a mixin, later...
+  def self.to_api_hash(attribute_hash)
+    attribute_hash.reject{|k,v| !API_ATTRIBUTES.include?(k) }
+  end
+
+
   private
   
   # make sure some safe values are set for the node
@@ -383,6 +394,6 @@ class Node < ActiveRecord::Base
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')
       self.groups << g rescue nil 
     end
-  end  
-  
+  end
+
 end

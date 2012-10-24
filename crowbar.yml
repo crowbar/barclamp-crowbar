@@ -33,45 +33,6 @@ crowbar:
   proposal_schema_version: 2
 
 debs:
-  ubuntu-10.10:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu maverick partner
-      - deb-src http://archive.canonical.com/ubuntu maverick partner
-      - deb http://extras.ubuntu.com/ubuntu maverick main
-      - deb-src http://extras.ubuntu.com/ubuntu maverick main
-      - deb http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ maverick-0.10 main
-  ubuntu-11.04:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu natty partner
-      - deb-src http://archive.canonical.com/ubuntu natty partner
-      - deb http://extras.ubuntu.com/ubuntu natty main
-      - deb-src http://extras.ubuntu.com/ubuntu natty main
-      - deb http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ natty-0.10 main
-  ubuntu-11.10:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu oneiric partner
-      - deb-src http://archive.canonical.com/ubuntu oneiric partner
-      - deb http://extras.ubuntu.com/ubuntu oneiric main
-      - deb-src http://extras.ubuntu.com/ubuntu oneiric main
-      - deb http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ oneiric-0.10 main
   ubuntu-12.04:
     repos:
       - deb http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
@@ -149,7 +110,7 @@ debs:
     - ruby1.8
     - ruby1.8-dev
     - ruby1.9.1
-    - ruby1.9.1-dev 
+    - ruby1.9.1-dev
     - ruby-dev
     - rubygems
     - rubygems1.8
@@ -167,48 +128,6 @@ debs:
     - vim
 
 rpms:
-  redhat-5.6:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - curl-devel
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
-  redhat-5.7:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - curl-devel
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
-  centos-5.7:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - curl-devel
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
   redhat-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6
@@ -294,62 +213,64 @@ rpms:
 
 gems:
   pkgs:
-    # bluepill stiff
-    - i18n
-    - state_machine-0.9.4
-    - bluepill-0.0.51
-    # crowbar stuff
-    - rake
-    - json-1.5.2
-    - syslogger
-    - sass
-    - simple-navigation
-    - haml
-    - net-http-digest_auth
-    - rails-2.3.14
-    - activesupport-2.3.14
-    - bundler
-    - builder
+    - active_scaffold
     - activesupport
-    - sendfile
-    - sqlite3-ruby
-    - rdoc
-    - net-ssh-multi
-    - formtastic-1.2.4
-    - xml-simple
-    - libxml-ruby
-    - rails-3.2.6
-    - sqlite3
-    - therubyracer
-    - sass-rails
-    - coffee-rails
-    - uglifier
-    - jquery-rails
+    - amqp
+    - bluepill
+    - builder
+    - bundler
     - bunny
+    - cancan
+    - chef
+    - chefspec
+    - coffee-rails
+    - daemons
+    - database_cleaner
+    - delayed_job_active_record
+    - devise
+    - email_spec
+    - formtastic
+    - haml
     - highline
+    - i18n
     - ipaddress
-    - json-1.6.1
+    - jquery-rails
+    - json
     - kwalify
+    - launchy
+    - libxml-ruby
     - mixlib-authentication
     - mixlib-cli
     - mixlib-config
     - mixlib-log
     - mixlib-shellout
     - moneta
+    - net-http-digest_auth
     - net-ssh
+    - net-ssh-multi
     - ohai
-    - chef
-    - rest-client
-    - systemu
-    - uuidtools
-    - yajl-ruby
-    - rails-erd
-    - railroad
-    - devise
-    - cancan
-    - amqp
-    - delayed_job_active_record
-    - daemons
     - puma
-    - active_scaffold
+    - railroad
+    - rails-3.2.6
+    - rails-erd
+    - rake
+    - rcov
+    - rdoc
+    - rest-client
+    - rspec-rails
+    - sass
+    - sass-rails
+    - sendfile
+    - simple-navigation
+    - sqlite3
+    - sqlite3-ruby
+    - state_machine
+    - syslogger
+    - systemu
+    - therubyracer
+    - uglifier
+    - uuidtools
+    - xml-simple
+    - yajl-ruby
 #    - factory_girl_rails
+#    - foodcritic

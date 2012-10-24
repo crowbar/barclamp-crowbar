@@ -36,7 +36,6 @@ require 'json'
 # 
 
 class ServiceObject
-
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end
@@ -46,7 +45,7 @@ class ServiceObject
   #
   def initialize(thelogger)
     @bc_name = "unknown"
-    @logger = thelogger
+    @logger = thelogger || Rails.logger
   end
 
   def bc_name=(new_name)
@@ -58,41 +57,22 @@ class ServiceObject
     @bc_name
   end
   
+  def logger
+    @logger
+  end
+
+  def barclamp
+    @barclamp
+  end
+
   #
   # Human printable random password generator
   #
   def random_password(size = 12)
-    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
   end
 
-  #
-  # Locking Routines
-  #
-  def acquire_lock(name)
-    @logger.debug("Acquire #{name} lock enter")
-    f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
-    @logger.debug("Acquiring #{name} lock")
-    rc = false
-    count = 0
-    while rc == false do
-      count = count + 1
-      @logger.debug("Attempt #{name} Lock: #{count}")
-      rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-      sleep 1 if rc == false
-    end
-    @logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-    f
-  end
-
-  def release_lock(f)
-    @logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
-    f.close
-    @logger.debug("Release lock exit")
-  end
-
-  
 #
 # API Functions
 #
@@ -161,6 +141,7 @@ class ServiceObject
     elems = params["deployment"][@bc_name]["elements"] rescue nil
     new_prop.current_config.update_node_roles(elems) if elems and !elems.empty?
 
+    # Chef Code Here
     raw_data = new_prop.current_config.to_proposal_object_hash
     validate_proposal raw_data
 
@@ -171,8 +152,10 @@ class ServiceObject
   #
   # This can be overridden to provide a better creation proposal
   #
-  def create_proposal
-    @barclamp.create_proposal
+  # The @barclamp.create_proposal routine must be called to create the base objects.
+  #
+  def create_proposal(name)
+    @barclamp.create_proposal(name)
   end
 
   #
@@ -184,15 +167,17 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_create(params)
+    return [400, I18n.t('model.service.empty_parameters')] unless params
     base_id = params["id"]
+    return [400, I18n.t('model.service.missing_id')] unless base_id
+    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
+    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] unless base_id =~ Proposal::VALIDATION_EXPR
 
+    raise CrowbarException.new("Abstract Service Object") unless @barclamp
     prop = @barclamp.get_proposal(base_id)
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?
-    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
-    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
 
-    new_prop = create_proposal
-    new_prop.name = base_id
+    new_prop = create_proposal(base_id)
     new_prop.save!
 
     _proposal_update new_prop, params
@@ -291,7 +276,7 @@ class ServiceObject
   # proposal is a hash in json proposal format
   #
   def validate_proposal proposal
-    path = "/opt/dell/chef/data_bags/crowbar"
+    path = "#{::Rails.root}/barclamps/schemas"
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
 
@@ -393,7 +378,7 @@ class ServiceObject
           ran_admin = true
           admin_list << node
         else 
-          snodes << n
+          snodes << node
         end
       end
  
@@ -434,8 +419,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            ProposalQueue.restore_to_ready(all_nodes)
             q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.restore_to_ready(all_nodes)
             q.process_queue unless in_queue
             return [405, message]
           end
@@ -468,8 +453,8 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} "
             end
             ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+            ProposalQueue.restore_to_ready(all_nodes)
             q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.restore_to_ready(all_nodes)
             q.process_queue unless in_queue
             return [405, message]
           end
@@ -481,8 +466,8 @@ class ServiceObject
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if !ran_admin
 
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_APPLIED, "")
+    ProposalQueue.restore_to_ready(all_nodes)
     q = ProposalQueue.get_queue('prop_queue', @logger)
-    q.restore_to_ready(all_nodes)
     q.process_queue unless in_queue
     [200, {}]
   end

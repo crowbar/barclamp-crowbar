@@ -76,15 +76,15 @@ is_a(Type, Value) ->
 	
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
-  URL = eurl:uri(Config,config(Config,digest_page, "digest")),
-  AzConfig = digest_auth:header(Config, URL),
-	try eurl:get(AzConfig, config(Config,digest_page, "digest")) of
-	  _ -> AzConfig
-	catch
-		_: {_, {_, {Z, {Reason, _}}}} -> 
-      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message ~p:~p~n", [URL, Z, Reason]),
+  URL = sc:url(Config),
+  io:format("~nBDD TESTING SITE: ~p.~n", [URL]),
+  AzConfig = simple_auth:header(Config, URL),
+  case proplists:get_value(auth_error,AzConfig) of
+    undefined -> AzConfig; % success
+    Reason -> 
+      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
       Config
-	end.
+  end.
 
 % returns value for key from Config (error if not found)
 config(Config, Key) ->

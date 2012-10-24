@@ -15,9 +15,9 @@
 
 class ==^BC-MODEL==Service < ServiceObject
 
-  def create_proposal
+  def create_proposal(name)
     @logger.debug("==*BC-MODEL== create_proposal: entering")
-    base = super
+    base = super(name)
 
     nodes = Node.all
     nodes.delete_if { |n| n.nil? or n.is_admin? }

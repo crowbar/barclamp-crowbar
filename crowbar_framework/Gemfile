@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-source 'http://127.0.0.1:3001'
+source "http://127.0.0.1:3001"
 #source 'http://rubygems.org'
 
 gem 'rails', '3.2.6'
@@ -52,6 +52,16 @@ gem 'jquery-rails'
 group :development do
   gem "rails-erd"
 end
+
+gem "chefspec", :group => [:development, :test]
+gem "rcov", :group => [:development, :test]
+gem "rspec-rails", ">= 2.10.1", :group => [:development, :test]
+# These to require Ruby 1.9.3
+#gem "factory_girl_rails", ">= 3.3.0", :group => [:development, :test]
+#gem "foodcritic", :group => [:development, :test]
+gem "email_spec", ">= 1.2.1", :group => [:development, :test]
+gem "database_cleaner", ">= 0.7.2", :group => [:development, :test]
+gem "launchy", ">= 2.1.0", :group => [:development, :test]
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'

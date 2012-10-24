@@ -1,6 +1,6 @@
 ### BDD Testing
 
-Crowbar includes a Business Driven Development (BDD) framework written in Erlang that is based on the Cucumber DSL.
+Crowbar includes a Business Driven Development (BDD) framework written in Erlang that is based on the Cucumber DSL (Domain Specific Language).
 
 The intent of these tests are to focus on the responses and requests to the web-interface and RESTful API.
 
@@ -15,7 +15,7 @@ The intent of these tests are to focus on the responses and requests to the web-
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
 
-> Note: The default tests run as a the "developer" user so you must be in development mode to use them!
+> Note: The default tests run as the "developer" user so you must be in development mode to use them!
 
 #### Test Debugging
 
@@ -25,22 +25,22 @@ Reviewing the trace output on failed tests is the fastest way to determine if th
 
 ### BDD DSL
 
-The BDD domain specific language (DSL) that's designed to be very natural language like.  There are 4 primary clauses in the DSL:
+The BDD DSL is designed to be very natural language like.  There are 4 primary clauses in the DSL:
 
 1. **Given** ... some background thing has happened
 1. **When** ... take some action
 1. **Then** ... get some result
 1. **Finally** ... cleanup actions (optional)
 
-Feature files may also include **setup** and **tear down* steps that are essential for creating input data for tests.  In some cases, tests require information to be in place _before_ the Given step.
+Feature files may also include **setup** and **tear down** steps that are essential for creating input data for tests.  In some cases, tests require information to be in place _before_ the Given step.
 
 ### Writing Feature Tests
 
-Test files all end with the extension `.feature` and contain "plain English" scripts for testing features.  This is know as the BDD DSL (domain specific la language).  While it looks like plain language, it is very specifically mapped into the testing framework and _must_ follow the DSL guidelines.
+Test files all end with the extension `.feature` and contain "plain English" scripts for testing features.  This is known as the BDD DSL.  While it looks like plain language, it is very specifically mapped into the testing framework and _must_ follow the DSL guidelines.
 
-A feature file (in the `features` directory) is broken into specific "scenarios" to be tested.  Each scenario is effectively a test and has multiple steps.  They all start with a known state expressed using given or when instructions.  The state is then tested using then checks.  The concept is to mirror actions that a user takes: when the user goes this action then they should see this results.  Yes, it's that simple!
+A feature file (in the `features` directory) is broken into specific "scenarios" to be tested.  Each scenario is effectively a test and has multiple steps.  They all start with a known state expressed using given or when instructions.  The state is then tested using then checks.  The concept is to mirror actions that a user takes: when the user takes this action then they should see these results.  Yes, it's that simple!
 
-A scenario must include a when statement but the given is optional.  Given is used to setup a scenario before the when action is taken.  This is very important for testing linking from a page.  For example, _given_ that I'm on the nodes list page _when_ I click on the all link _then_ I should a list that includes the admin node.  BDD's goal is to turn those types of directives into tests.
+A scenario must include a when statement but the given statement is optional.  Given is used to setup a scenario before the when action is taken.  This is very important for testing linking from a page.  For example, _given_ that I'm on the nodes list page _when_ I click on the all link _then_ I should get a list that includes the admin node.  BDD's goal is to turn those types of directives into tests.
 
 #### HTML Tests
 
@@ -93,7 +93,7 @@ All of the BDD tests decompose into the same Erlang method, known as the `step` 
 A step is a standard Erlang function with 3 parameters:
 
 1. The BDD configuration file
-1. The pass forward file that is represents the accumulated output of previous steps
+1. The pass forward file that represents the accumulated output of previous steps
 1. The DSL tuple populated by BDD as follows
    1. keyword (setup, teardown, given, when, or then)
    1. step number
@@ -108,7 +108,7 @@ Let's look at an example step:
 
 This step will match the DSL `Given I went to the "dashboard" page` in the scenario.  It simply does an HTTP get using the BDD utilities.  The `http_get` routine takes the base URL from the config file and adds the page information from the sentence.  BDD will take the result of this step function and add it to the `Given` list that is passed into all following 'when' steps.
 
-  > Reminder: Erlang variables that start with _ are considered optional and don't throw a warning if they are not used.  If you plan to use those variables, you can use keep the _; however, I recommend removing the underscore for clarity.
+  > Reminder: Erlang variables that start with "\_" are considered optional and don't throw a warning if they are not used.  If you plan to use those variables, you can keep the "\_", however, I recommend removing it for clarity.
 
 There is a simple output expectation from all steps:
 
@@ -117,28 +117,28 @@ There is a simple output expectation from all steps:
 * when steps add to the Results list that is passed into the Results steps
 * results steps return true if the test passes or something else if it fails
 
-One of the most important step files is known as "webrat" as a hold over from Cucumber.  The `bdd_webrat` file contains most of the HTML & AJAX routines you will ever need for routine testing.  It is also a great place to look for examples of step programming.
+One of the most important step files is known as "webrat" as a hold over from Cucumber.  The `bdd_webrat.erl` file contains most of the HTML & AJAX routines you will ever need for routine testing.  It is also a great place to look for examples of step programming.
 
 #### Adding Pre & Post Conditions
 
 To add pre/post-configuration for a Feature file, you must have an Erlang step file with the same name as the feature file.  For example, if you have a feature called `nodes.feature` then you must have a `nodes.erl` to create setup and tear down steps for that feature file.
 
-Setup Steps use the `step_teardown` atom:
+Setup Steps use the `step_setup` atom:
 
     step(Config, _Global, {step_setup, _N, _}) -> 
       io:format("\tNo Feature Setup Step.~n"),
       Config;
 
-> Setup step stores adds results to the Config file.  You should use `[{item, value} | Config]` to ensure that your values get added to the Config list and are available for the features' steps.
-> _Global is always an empty list (`[]`) for setup steps
-_
+> This setup step adds results to the Config file.  You should use `[{item, value} | Config]` to ensure that your values get added to the Config list and are available for the features' steps.
+> _Global is always an empty list (`[]`) for setup steps.
+
 Teardown Steps use the `step_teardown` atom:
 
     step(Config, _Global, {step_teardown, _N, _}) -> 
       io:format("\tNo Feature Tear Down Step.~n"),
       Config;
 
-To perform actions, replace or augment the code in the steps to perform the needed operations.  The from the Setup action is added to the `Global` list that is passed into all the steps called within the feature.  This allows you to reference items created in setup during subsequent tests.  You should remember to unwind any action from the setup in the teardown.
+To perform actions, replace or augment the code in the steps to perform the needed operations.  The result from the Setup action is added to the `Global` list that is passed into all the steps called within the feature.  This allows you to reference items created in setup during subsequent tests.  You should remember to unwind any action from the setup in the teardown.
 
 For example, the Nodes feature setup and tear down look like this:
 
@@ -163,22 +163,22 @@ For example, the Nodes feature setup and tear down look like this:
 
 ### Debugging
 
-Some handly Erlang tips:
+Some handy Erlang tips:
 
 * `Config = bdd:getconfig("crowbar")` will load the configuration file for passing into Step routines for manual testing
 
 ### BDD Code Files
 
-* bdd - contains the core running logic
-* bdd_utils - utilities used across all modules of the bdd system
-* eurl - HTTP get, post, delete functions (like curl)
-* json - JSON parser converts to and from lists
-* digest_auth - Wrapps http to provide secure access
-* bdd_catchall - last step file executed, has fall back steps
-* bdd_webrat - handles most basic web & AJAX based steps
-* default - the fall back step file (global setup/teardown goes here)
-* crowbar - Crowbar specific logic
-* [feature] - Each feature can have a specific step file
+* bdd.erl - contains the core running logic
+* bdd_utils.erl - utilities used across all modules of the bdd system
+* eurl.erl - HTTP get, post, delete functions (like curl)
+* json.erl - JSON parser converts to and from lists
+* digest_auth.erl - Wrapps http to provide secure access
+* bdd_catchall.erl - last step file executed, has fall back steps
+* bdd_webrat.erl - handles most basic web & AJAX based steps
+* default.erl - the fall back step file (global setup/teardown goes here)
+* crowbar.erl - Crowbar specific logic
+* [feature].erl - Each feature can have a specific step file
 
 #### In the feature specific code files, you will find the following
 
@@ -194,17 +194,17 @@ Each barclamp is expected to add it's own tests to the suite
 
 The Crowbar barclamp tests include:
 
-* Dashboard.features
+* dashboard.feature
    * Tests the nodes UI view
-* Documentation.features
-   * Tests the documentation / help system
-* Navigation.features
+* documentation.feature
+   * Tests the documentation/help system
+* navigation.feature
    * Tests the basic menu system
    * Checks for localization omissions
-* Proposal.features
+* proposals.feature
    * Tests the Proposal Status API
-* Nodes.features
+* nodes.feature
    * Tests the node status API
    * Tests the node detail page & API
-* Scaffolds.features
+* scaffolds.feature
    * Tests all the feature objects

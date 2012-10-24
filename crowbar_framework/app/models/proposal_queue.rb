@@ -60,7 +60,7 @@ class ProposalQueue < ActiveRecord::Base
     if prop and prop.active?
       prop.active_config.status = status
       prop.active_config.failed_reason = message
-      res = prop.active_config.save!
+      res = prop.active_config.save
     end
     res
   end
@@ -68,37 +68,11 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Helper function to set logging structure
   #
+  def logger
+    @logger
+  end
   def logger=(log)
     @logger = log
-  end
-
-  #
-  # Locking Routines 
-  #
-  # XXX: This should be reviewed to see if it is still needed with database 
-  # transition locking now.
-  #
-  def acquire_lock(name)
-    @logger.debug("Acquire #{name} lock enter")
-    f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
-    @logger.debug("Acquiring #{name} lock")
-    rc = false
-    count = 0
-    while rc == false do
-      count = count + 1
-      @logger.debug("Attempt #{name} Lock: #{count}")
-      rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-      sleep 1 if rc == false
-    end
-    @logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-    f
-  end
-
-  def release_lock(f)
-    @logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
-    f.close
-    @logger.debug("Release lock exit")
   end
 
   #
@@ -109,11 +83,12 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Assumes the BA-LOCK is held
   #
-  def elements_not_ready(nodes)
+  def self.elements_not_ready(nodes)
+    return [] unless nodes
     delay = []
     nodes.each do |n|
-      next if node.state == "ready"
-      delay << "Node node.name"
+      next if n.state == "ready"
+      delay << "Node #{n.name}"
     end
     delay
   end
@@ -130,13 +105,16 @@ class ProposalQueue < ActiveRecord::Base
   #
   # Output:
   #   List of nodes that are NOT ready [ "Node <node.name>" ]
+  #   If an exception occurs, delay will contain "Error: Message" in the list.
   #
-  def make_applying_or_delay(nodes, apply)
-    f = acquire_lock "BA-LOCK"
+  def self.make_applying_or_delay(nodes, apply)
+    return [] unless nodes
+
+    f = CrowbarUtils.acquire_lock "BA-LOCK"
     delay = []
     begin
       # Check for delays 
-      delay = elements_not_ready(nodes)
+      delay = ProposalQueue.elements_not_ready(nodes)
 
       # Add the entries to the nodes.
       if delay.empty?
@@ -153,9 +131,9 @@ class ProposalQueue < ActiveRecord::Base
         end
       end
     rescue Exception => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace}")
+      delay << "Error: #{e.message} #{e.backtrace.join("\n")}"
     ensure
-      release_lock f
+      CrowbarUtils.release_lock f
     end
 
     delay
@@ -167,15 +145,15 @@ class ProposalQueue < ActiveRecord::Base
   # Input: list of node objects
   # Output: none
   #
-  def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
+  def self.restore_to_ready(nodes)
+    f = CrowbarUtils.acquire_lock "BA-LOCK"
     begin
       nodes.each do |node|
         # Nothing to delay so mark them applying.
         node.set_state('ready')
       end
     ensure
-      release_lock f
+      CrowbarUtils.release_lock f
     end
   end
 
@@ -196,7 +174,7 @@ class ProposalQueue < ActiveRecord::Base
     bc = prop_config.proposal.barclamp.name
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     begin
-      f = acquire_lock "queue"
+      f = CrowbarUtils.acquire_lock "queue"
 
       proposal_queue_items.each do |item|
         if prop_config.id == item.proposal_config_id
@@ -220,7 +198,7 @@ class ProposalQueue < ActiveRecord::Base
       end
 
       # Check nodes for being ready
-      delay << make_applying_or_delay(prop_config.nodes, !queue_me)
+      delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, !queue_me)
       delay = delay.flatten
 
       # Nothing stopping use and nodes are marked applying.
@@ -234,7 +212,7 @@ class ProposalQueue < ActiveRecord::Base
     rescue Exception => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
     ensure
-      release_lock f
+      CrowbarUtils.release_lock f
     end
 
     self.update_proposal_status(prop_config, ProposalConfig::STATUS_QUEUED, "")
@@ -271,7 +249,7 @@ class ProposalQueue < ActiveRecord::Base
     @logger.debug("dequeue proposal: enter #{item}")
     ret = false
     begin
-      f = acquire_lock "queue"
+      f = CrowbarUtils.acquire_lock "queue"
 
       prop = Proposal.find_by_name_and_barclamp_id(inst, Barclamp.find_by_name(bc).id)
       return true unless prop
@@ -284,7 +262,7 @@ class ProposalQueue < ActiveRecord::Base
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return ret
     ensure
-      release_lock f
+      CrowbarUtils.release_lock f
     end
     @logger.debug("dequeue proposal: exit #{inst} #{bc}")
     ret
@@ -304,7 +282,7 @@ class ProposalQueue < ActiveRecord::Base
       loop_again = false
       list = []
       begin
-        f = acquire_lock "queue"
+        f = CrowbarUtils.acquire_lock "queue"
 
         if proposal_queue_items.nil? or proposal_queue_items.empty?
           @logger.debug("process queue: exit: empty queue")
@@ -333,7 +311,7 @@ class ProposalQueue < ActiveRecord::Base
           end
 
           # Check nodes for being ready
-          delay << make_applying_or_delay(prop_config.nodes, false)
+          delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, false)
           delay = delay.flatten
 
           # We are free
@@ -350,7 +328,7 @@ class ProposalQueue < ActiveRecord::Base
         @logger.debug("process queue: exit: error")
         return
       ensure
-        release_lock f
+        CrowbarUtils.release_lock f
       end
 
       @logger.debug("process queue: list: #{list.inspect}")

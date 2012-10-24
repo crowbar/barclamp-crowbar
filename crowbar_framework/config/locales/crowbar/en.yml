@@ -157,6 +157,8 @@ en:
       duplicate_alias: Alias not saved because a node already has the same alias
     proposal: Proposal
     service:
+      empty_parameters: Must specify calling parameters
+      missing_id: Missing id.
       name_exists: Name already exists. Please choose another.
       too_short: Invalid name.  Name must have some characters.
       illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.

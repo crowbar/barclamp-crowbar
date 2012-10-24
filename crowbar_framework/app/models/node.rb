@@ -185,10 +185,10 @@ class Node < ActiveRecord::Base
   #
   # Use transition function to set state.
   #
-  def set_state(new_state)
+  def set_state(new_state, old_state = nil)
     # use the real transition function for this
     cb = CrowbarService.new Rails.logger
-    cb.transition "default", name, new_state
+    cb.transition "default", name, new_state, old_state
   end
 
   def ipmi_cmd(cmd)

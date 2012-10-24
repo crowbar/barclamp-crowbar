@@ -24,6 +24,7 @@ class CrowbarService < ServiceObject
   #   inst = Name of the instance of crowbar to operation on ("default")
   #   name = Name of node being transitioned
   #   state = State node should transition to
+  #   old_state = optional parameter that should be used as test and set.
   #
   # Output:
   #   [ HTTP Return Code (200 success, ...), Message for Failure ]
@@ -49,10 +50,10 @@ class CrowbarService < ServiceObject
   #
   # Return success
   #
-  def transition(inst, name, state)
+  def transition(inst, name, state, old_state = nil)
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
-    f = CrowbarUtils.acquire_lock "BA-LOCK"
+    f = CrowbarUtils.acquire_lock "BA-LOCK-#{name}"
     node = nil
     begin
       node = Node.find_by_name name
@@ -63,6 +64,10 @@ class CrowbarService < ServiceObject
       if node.nil?
         @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
         return [404, "Node not found"] # GREG: Translate
+      end
+      if old_state and old_state != node.state
+        @logger.error("Crowbar transition leaving: node #{name} expected to be #{old_state} but was at #{node.state}")
+        return [409, "Node not in correct state: #{node.state} #{old_state}"] # GREG: Translate
       end
       unless (node.state != state) ||
           ['hardware-installing','hardware-updating','update'].member?(state)

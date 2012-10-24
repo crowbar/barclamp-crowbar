@@ -76,12 +76,10 @@ class ProposalQueue < ActiveRecord::Base
   end
 
   #
-  # Helper function to test if a list of nodes are ready.
+  # Helper routine to test if nodes are ready or not.
+  # Returns a list of nodes not ready.
   #
-  # Input: List of node objects
-  # Output: List of nodes that are NOT ready [ "Node <node.name>" ]
-  #
-  # Assumes the BA-LOCK is held
+  # This is soft and not locked.  The apply path will lock and confirm.
   #
   def self.elements_not_ready(nodes)
     return [] unless nodes
@@ -110,7 +108,6 @@ class ProposalQueue < ActiveRecord::Base
   def self.make_applying_or_delay(nodes, apply)
     return [] unless nodes
 
-    f = CrowbarUtils.acquire_lock "BA-LOCK"
     delay = []
     begin
       # Check for delays 
@@ -119,12 +116,24 @@ class ProposalQueue < ActiveRecord::Base
       # Add the entries to the nodes.
       if delay.empty?
         if apply
+          list = []
           nodes.each do |node|
             # Nothing to delay so mark them applying.
-            node.set_state('applying')
+            answer, message = node.set_state('applying', 'ready')
+            list << node if answer < 300
+            delay << "Node #{node.name}" if answer == 409
+          end
+
+          # Error on setting state
+          if list.length != nodes.length
+            list.each do |node|
+              node.set_state('ready', 'applying')
+            end
           end
         end
-      else
+      end
+
+      unless delay.empty?
         nodes.each do |node|
           # Make sure the node is allocated
           node.allocate
@@ -132,8 +141,6 @@ class ProposalQueue < ActiveRecord::Base
       end
     rescue Exception => e
       delay << "Error: #{e.message} #{e.backtrace.join("\n")}"
-    ensure
-      CrowbarUtils.release_lock f
     end
 
     delay
@@ -146,15 +153,47 @@ class ProposalQueue < ActiveRecord::Base
   # Output: none
   #
   def self.restore_to_ready(nodes)
-    f = CrowbarUtils.acquire_lock "BA-LOCK"
-    begin
-      nodes.each do |node|
-        # Nothing to delay so mark them applying.
-        node.set_state('ready')
-      end
-    ensure
-      CrowbarUtils.release_lock f
+    nodes.each do |node|
+      # Nothing to delay so mark them applying.
+      node.set_state('ready','applying')
     end
+  end
+
+  #
+  # Helper function:
+  #
+  # Test if proposal_config can run
+  # return: next insertion point, delay list 
+  #
+  def can_proposal_config_run(prop_config, should_apply)
+    # Make sure the deps if we aren't being queued.
+    delay = []
+    pos = 1
+    queue_me = false
+    deps = prop_config.proposal.barclamp.operations(@logger).proposal_dependencies(prop_config)
+    deps.each do |dep|
+      bc_name = dep["barclamp"]
+      inst_name = dep["inst"]
+      prop = Proposal.find_by_name_and_barclamp_id(inst_name, Barclamp.find_by_name(bc_name).id)
+
+      # Make sure we an applied active proposal
+      unless prop and prop.active? and prop.active_config.applied?
+        queue_me = true
+        delay << "Proposal #{bc_name}.#{inst_name}"
+        if prop
+          pac_id = prop.active? ? prop.active_config.id : prop.current_config.id
+          item = ProposalQueueItem.find_by_proposal_config_id_and_proposal_queue_id(pac_id, self.id)
+          npos = item ? item.position + 1 : 0
+          pos = npos if pos < npos
+        end
+      end
+    end
+
+    # Check nodes for being ready
+    answer = false
+    answer = !queue_me if should_apply
+    delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, answer)
+    [ pos, delay.flatten ]
   end
 
   #
@@ -168,56 +207,48 @@ class ProposalQueue < ActiveRecord::Base
   # Processes the proposal_config and validates is dependencies and node readiness.
   # If the node is not ready, it is queued until nodes or proposal become ready.
   #
+  # Returns:
+  #   [ true/false, String ] 
+  #   true = proposal was queued for string reason
+  #   false = proposal was NOT queued.
   #
   def queue_proposal(prop_config)
     inst = prop_config.proposal.name
     bc = prop_config.proposal.barclamp.name
+    delay = []
+
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     begin
       f = CrowbarUtils.acquire_lock "queue"
 
-      proposal_queue_items.each do |item|
-        if prop_config.id == item.proposal_config_id
-          @logger.debug("queue proposal: exit #{prop_config.name} #{prop_config.barclamp.name}: already queued")
-          return [true, item.queue_reason]
-        end
+      item = ProposalQueueItem.find_by_proposal_config_id_and_proposal_queue_id(prop_config.id, self.id)
+      if item
+        @logger.debug("queue proposal: exit #{inst} #{bc}: already queued")
+        return [true, item.queue_reason]
       end
 
-      # Make sure the deps if we aren't being queued.
-      delay = []
-      queue_me = false
-      deps = prop_config.proposal.barclamp.operations(@logger).proposal_dependencies(prop_config)
-      deps.each do |dep|
-        prop = Proposal.find_by_name_and_barclamp_id(dep["inst"], Barclamp.find_by_name(dep["barclamp"].id))
-
-        # Make sure we an applied active proposal
-        unless prop and prop.active? and prop.active_config.applied?
-          queue_me = true
-          delay << "Proposal #{prop.barclamp.name}.#{prop.name}"
-        end
-      end
-
-      # Check nodes for being ready
-      delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, !queue_me)
-      delay = delay.flatten
+      pos, delay = can_proposal_config_run(prop_config, true)
 
       # Nothing stopping use and nodes are marked applying.
       return [ false, "" ] if delay.empty?
 
-      pqi = ProposalQueueItem.create(:proposal_config_id => prop_config.id)
+      pqi = ProposalQueueItem.new
+      pqi.proposal_config_id = prop_config.id
       pqi.queue_reason = delay.join(",")
-      pqi.position = 12 # GREG: Fix this.
-      proposal_queue_items << pqi
-      save!
+      pqi.position = pos
+      pqi.proposal_queue_id = self.id
+      pqi.save!
+
+      ProposalQueue.update_proposal_status(prop_config, ProposalConfig::STATUS_QUEUED, "")
     rescue Exception => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
+      delay << "Error: #{bc}:#{inst}: #{e.message}"
     ensure
       CrowbarUtils.release_lock f
     end
 
-    self.update_proposal_status(prop_config, ProposalConfig::STATUS_QUEUED, "")
     @logger.debug("queue proposal: exit #{inst} #{bc}")
-    delay
+    [ true, delay.join(",") ]
   end
 
   #
@@ -226,8 +257,10 @@ class ProposalQueue < ActiveRecord::Base
   def dequeue_proposal_no_lock(item)
     @logger.debug("dequeue_proposal_no_lock: enter #{item}")
     begin
-      self.update_proposal_status(item.proposal_config, ProposalConfig::STATUS_NONE, "")
-      item.destroy
+      if item
+        ProposalQueue.update_proposal_status(item.proposal_config, ProposalConfig::STATUS_NONE, "")
+        item.destroy
+      end
     rescue Exception => e
       @logger.error("Error dequeuing proposal for #{item}: #{e.message} #{e.backtrace}")
       @logger.debug("dequeue proposal_no_lock: exit #{item}: error")
@@ -246,7 +279,7 @@ class ProposalQueue < ActiveRecord::Base
   # Assumes to dequeue the active_config on the proposal.
   #
   def dequeue_proposal(inst, bc)
-    @logger.debug("dequeue proposal: enter #{item}")
+    @logger.debug("dequeue proposal: enter #{bc}:#{inst}")
     ret = false
     begin
       f = CrowbarUtils.acquire_lock "queue"
@@ -275,58 +308,47 @@ class ProposalQueue < ActiveRecord::Base
   # process_queue - public routine to check the queue if other proposal_configs are able to
   # be run.  If they are ready, they are dequeued and proposal_commit is called on them.
   #
+  # returns: [ true/false, count, message ]
+  #   true for success and false for failure
+  #   count is number of items processed
+  #   message is an error message.
+  #
   def process_queue
     @logger.debug("process queue: enter")
     loop_again = true
+    master_count = 0
     while loop_again
       loop_again = false
       list = []
       begin
         f = CrowbarUtils.acquire_lock "queue"
 
-        if proposal_queue_items.nil? or proposal_queue_items.empty?
+        items = proposal_queue_items
+        if items.nil? or items.empty?
           @logger.debug("process queue: exit: empty queue")
-          return
+          return [ true, master_count, "" ]
         end
 
-        @logger.debug("process queue: queue: #{proposal_queue_items.inspect}")
+        @logger.debug("process queue: queue: #{items.inspect}")
 
         # Test for ready
         remove_list = []
-        proposal_queue_items.each do |item|
-          queue_me = false
+        items.each do |item|
           prop_config = item.proposal_config
-
-          # Make sure the deps if we aren't being queued.
-          delay = []
-          deps = prop_config.proposal.barclamp.operations(@logger).proposal_dependencies(prop_config)
-          deps.each do |dep|
-            prop = Proposal.find_by_name_and_barclamp_id(dep["inst"], Barclamp.find_by_name(dep["barclamp"].id))
-
-            # Make sure we an applied active proposal
-            unless prop and prop.active? and prop.active_config.applied?
-              queue_me = true
-              delay << "Proposal #{prop.barclamp.name}.#{prop.name}"
-            end
-          end
-
-          # Check nodes for being ready
-          delay << ProposalQueue.make_applying_or_delay(prop_config.nodes, false)
-          delay = delay.flatten
-
-          # We are free
+          pos, delay = can_proposal_config_run(prop_config, false)
           next unless delay.empty?
           list << item 
         end
 
         list.each do |iii| 
+          master_count += 1
           dequeue_proposal_no_lock(iii)
         end
       
       rescue Exception => e
         @logger.error("Error processing queue: #{e.message}")
         @logger.debug("process queue: exit: error")
-        return
+        return [ false, master_count, "Error: #{e.message}" ]
       ensure
         CrowbarUtils.release_lock f
       end
@@ -336,12 +358,15 @@ class ProposalQueue < ActiveRecord::Base
       # For each ready item, apply it.
       list.each do |item|
         @logger.debug("process queue: item to do: #{item.inspect}")
-        answer = item.prop_config.proposal.barclamp.operations(@logger).proposal_commit(prop_config.proposal.name, true)
+        p = item.proposal_config.proposal
+        answer = p.barclamp.operations(@logger).proposal_commit(p.name, true)
         @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
         loop_again = true if answer[0] != 202
       end
-      @logger.debug("process queue: exit")
+      reload if loop_again # Make sure we get latest objects
     end
+    @logger.debug("process queue: exit")
+    [ true, master_count, "" ]
   end
 
 end

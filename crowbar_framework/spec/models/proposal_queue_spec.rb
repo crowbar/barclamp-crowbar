@@ -17,14 +17,9 @@ require 'spec_helper'
 
 describe ProposalQueue do
 
-  # Always make sure that acquire_lock and release_lock are called
+  # Always make sure that with_lock is called.
   def validate_locking(count = 1)
-    CrowbarUtils.stub!(:acquire_lock)
-    CrowbarUtils.should_receive(:acquire_lock).exactly(count).times.and_return(:lock)
-    CrowbarUtils.stub!(:require_lock)
-    CrowbarUtils.should_receive(:release_lock).exactly(count).times do |arg|
-      arg.should be :lock
-    end
+    CrowbarUtils.should_receive(:with_lock).exactly(count).times
   end
 
   describe "item ordering" do

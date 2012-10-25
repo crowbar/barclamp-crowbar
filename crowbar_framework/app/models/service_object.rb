@@ -364,6 +364,7 @@ class ServiceObject
     nnodes = new_config ? new_config.nodes : []
     all_nodes = (nnodes+onodes).uniq
     apply_role_pre_chef_call(old_config, new_config, all_nodes)
+    all_nodes.each{|n|n.save}
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false

@@ -200,6 +200,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
       throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> 
 		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
+      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       io:format("\tAttempted \"apply(~p, step, [[Config], [Input], ~p]).\"~n",[Feature, Step]),
 		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;

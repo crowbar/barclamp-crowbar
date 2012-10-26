@@ -17,7 +17,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([setup_create/5, teardown_destroy/3]).
+-export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2]).
 
 assert(Bools) ->
@@ -115,10 +115,19 @@ tokenize(Step) ->
 
 % helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->
+  setup_create(Config, Path, Atom, Name, JSON, post).
+
+
+setup_create(Config, Path, Atom, Name, JSON, Action) ->
   % just in case - cleanup to prevent collision
-  eurl:delete(Config, Path, Name),
+  try eurl:delete(Config, Path, Name)
+  catch
+    throw: {errorWhileDeleting, 404, _} ->
+      io:format("\tDeletion of ~p failed because it does not exist~n", [Name])
+  end,
   % create node(s) for tests
-  Result = eurl:post(Config, Path, JSON),
+  Result = eurl:put_post(Config, Path, JSON, Action),
+
   % get the ID of the created object
   {"id", Key} = lists:keyfind("id",1,Result),
   % friendly message

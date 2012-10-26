@@ -17,35 +17,67 @@
 #
 # Helper functions
 # 
-
 class CrowbarUtils
+
+  @@lock_scoreboard=Hash.new
 
   #
   # Locking Routines
   #
-  def self.acquire_lock(name)
-    Rails.logger.debug("Acquire #{name} lock enter")
+  private
+
+  def self.try_lock(name)
     f = File.new("tmp/#{name}.lock", File::RDWR|File::CREAT, 0644)
     raise IOError.new("File not available: tmp/#{name}.lock") unless f
-    Rails.logger.debug("Acquiring #{name} lock")
-    rc = false
-    count = 0
-    while rc == false do
-      count = count + 1
-      Rails.logger.debug("Attempt #{name} Lock: #{count}")
-      rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-      sleep 1 if rc == false
+    if f.flock(File::LOCK_EX|File::LOCK_NB)
+      return f
     end
-    Rails.logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-    f
-  end
-
-  def self.release_lock(f)
-    raise IOError.new("Invalid file") unless f
-    Rails.logger.debug("Release lock enter: #{f.inspect}")
-    f.flock(File::LOCK_UN)
     f.close
-    Rails.logger.debug("Release lock exit")
+    return false
   end
 
+  public
+
+  def self.lock_held?(name)
+    if f = try_lock(name)
+      f.flock(File::LOCK_UN)
+      f.close
+      return false
+    end
+    true
+  end
+
+  def self.with_lock(name,*args)
+    f = nil
+    spin = 30
+    raise "CrowbarUtils.with_lock must be passed a block!" unless block_given?
+    Rails.logger.debug("CrowbarUtils.with_lock: Acquiring lock #{name}")
+    while ! (f = try_lock(name)) && (spin >= 0)
+      Rails.logger.debug("#{spin} tries left to grab #{name} lock")
+      spin = spin - 1
+      sleep 1
+    end
+    unless f
+      e = RuntimeError.new
+      mesg = []
+      if @@lock_scoreboard[name]
+        mesg << "Call trace of last code to grab the lock:"
+        mesg = mesg + @@lock_scoreboard[name]
+        mesg << "Call trace of last holder finished."
+      end
+      mesg << "Call trace of current process:"
+      e.set_backtrace(mesg + caller())
+      raise(e,"Unable to grab #{name} lock -- Probable deadlock.")
+    end
+    Rails.logger.debug("CrowbarUtils.with_lock: Acquired lock #{name}")
+    @@lock_scoreboard[name]=caller()
+    begin
+      yield(*args)
+    ensure
+      @@lock_scoreboard.delete(name)
+      f.flock(File::LOCK_UN)
+      f.close
+      Rails.logger.debug("CrowbarUtils.with_lock: Released lock #{name}")
+    end
+  end
 end

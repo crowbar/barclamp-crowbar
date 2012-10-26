@@ -17,7 +17,6 @@
 #
 # Helper functions
 # 
-
 class CrowbarUtils
 
   @@lock_scoreboard=Hash.new
@@ -59,12 +58,16 @@ class CrowbarUtils
       sleep 1
     end
     unless f
+      e = RuntimeError.new
       mesg = []
-      mesg << "Unable to grab #{name} lock -- Probable deadlock."
-      mesg << "Call trace of last code to grab the lock:"
-      mesg << @@lock_scoreboard[name].inspect if @@lock_scoreboard[name]
-      mesg << "Call trace of last holder finished."
-      raise mesg.join("\n")
+      if @@lock_scoreboard[name]
+        mesg << "Call trace of last code to grab the lock:"
+        mesg = mesg + @@lock_scoreboard[name]
+        mesg << "Call trace of last holder finished."
+      end
+      mesg << "Call trace of current process:"
+      e.set_backtrace(mesg + caller())
+      raise(e,"Unable to grab #{name} lock -- Probable deadlock.")
     end
     Rails.logger.debug("CrowbarUtils.with_lock: Acquired lock #{name}")
     @@lock_scoreboard[name]=caller()

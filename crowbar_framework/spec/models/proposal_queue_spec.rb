@@ -17,11 +17,6 @@ require 'spec_helper'
 
 describe ProposalQueue do
 
-  # Always make sure that with_lock is called.
-  def validate_locking(count = 1)
-    CrowbarUtils.should_receive(:with_lock).exactly(count).times
-  end
-
   describe "item ordering" do
     it "should return empty with new queue" do
       q = ProposalQueue.get_queue("greg", :log)
@@ -510,7 +505,6 @@ describe ProposalQueue do
 
   describe "queue_proposal" do  
     it "should return true for a proposal that is already queued" do
-      validate_locking(1)
       pc = make_proposal_config
       q = ProposalQueue.get_queue("greg", Rails.logger)
 
@@ -527,7 +521,6 @@ describe ProposalQueue do
       message.should eq("fred")
     end
     it "should return false for a proposal that can run" do
-      validate_locking(1)
       pc = make_proposal_config
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:can_proposal_config_run).exactly(1).times.and_return([0, []])
@@ -538,7 +531,6 @@ describe ProposalQueue do
       message.should eq("")
     end
     it "should return true for a proposal that can not run" do
-      validate_locking(1)
       pc = make_proposal_config
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:can_proposal_config_run).exactly(1).times.and_return([3, ["a", "b"]])
@@ -558,7 +550,6 @@ describe ProposalQueue do
       item.queue_reason.should eq("a,b")
     end
     it "should return true for an exception" do
-      validate_locking(1)
       pc = make_proposal_config
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:can_proposal_config_run).exactly(1).times.and_raise(Exception.new("test"))
@@ -599,21 +590,18 @@ describe ProposalQueue do
 
   describe "dequeue_proposal" do
     it "should return false on an exception" do
-      validate_locking(1)
       Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_raise(Exception.new("test"))
       q = ProposalQueue.get_queue("greg", Rails.logger)
       answer = q.dequeue_proposal("cow", "crowbar")
       answer.should be false
     end
     it "should return true if no proposal is found" do
-      validate_locking(1)
       Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(nil)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       answer = q.dequeue_proposal("cow", "crowbar")
       answer.should be true
     end
     it "should return true if proposal is found but not active" do
-      validate_locking(1)
       p = mock(Proposal)
       p.should_receive(:active?).exactly(1).times.and_return(false)
       Proposal.should_receive(:find_by_name_and_barclamp_id).exactly(1).times.and_return(p)
@@ -622,7 +610,6 @@ describe ProposalQueue do
       answer.should be true
     end
     it "should return true if proposal is found and active and not queued" do
-      validate_locking(1)
       pc = mock(ProposalConfig)
       pc.should_receive(:id).exactly(1).times.and_return(3)
       p = mock(Proposal)
@@ -636,7 +623,6 @@ describe ProposalQueue do
       answer.should be true
     end
     it "should return true if proposal is found and active and queued" do
-      validate_locking(1)
       pc = mock(ProposalConfig)
       pc.should_receive(:id).exactly(1).times.and_return(3)
       p = mock(Proposal)
@@ -653,7 +639,6 @@ describe ProposalQueue do
 
   describe "process_queue" do
     it "should return success with a nil queue" do
-      validate_locking(1)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:proposal_queue_items).exactly(1).times.and_return(nil)
       ret, count, message = q.process_queue
@@ -662,7 +647,6 @@ describe ProposalQueue do
       message.should eq("")
     end
     it "should return success with an empty queue" do
-      validate_locking(1)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:proposal_queue_items).exactly(1).times.and_return([])
       ret, count, message = q.process_queue
@@ -671,7 +655,6 @@ describe ProposalQueue do
       message.should eq("")
     end
     it "should return success and 0 with a queue of items not ready" do
-      validate_locking(1)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       item1 = mock(ProposalQueueItem)
       item1.should_receive(:proposal_config).exactly(1).times.and_return(:cow)
@@ -686,7 +669,6 @@ describe ProposalQueue do
       message.should eq("")
     end
     it "should return success and 1 with a queue of 1 ready and 1 not ready item" do
-      validate_locking(2)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       item1 = mock(ProposalQueueItem)
       item1.should_receive(:proposal_config).exactly(2).times.and_return(:cow)
@@ -715,7 +697,6 @@ describe ProposalQueue do
     end
 
     it "should return success and 1 with a queue of 1 ready and 1 not ready item and loop around" do
-      validate_locking(1)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       item1 = mock(ProposalQueueItem)
       item1.should_receive(:proposal_config).exactly(1).times.and_return(:cow)
@@ -744,7 +725,6 @@ describe ProposalQueue do
     end
 
     it "should return false when receiving and exception while dequeuing items" do
-      validate_locking(1)
       q = ProposalQueue.get_queue("greg", Rails.logger)
       q.should_receive(:proposal_queue_items).exactly(1).times.and_raise(Exception.new("test"))
       ret, count, message = q.process_queue

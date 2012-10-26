@@ -17,38 +17,52 @@ require 'spec_helper'
 
 describe CrowbarUtils do
   describe "Locking functions" do
-    it "should acquire should throw an exception if file create fails" do
+    it "should throw an exception if file create fails" do
       File.stub(:new) {nil}
-      lambda {CrowbarUtils.with_lock("fred")do false end}.should raise_error(IOError, "File not available: tmp/fred.lock")
+      expect {
+        CrowbarUtils.lock_held?("fred")
+      }.to raise_error(IOError, "File not available: tmp/fred.lock")
     end
-
     # All this is broken, and I don't know enough rspec to fix it.
 
-    #it "lock_held? should return true iff the lock is held" do
-    #  f1 = double(nil)
-    #  f1.should_receive(:flock).exactly(1).and_return(false)
-    #  File.stub(:new) {f1}
-    #  File.stub(:close) {f1}
-    #  CrowbarUtils.lock_held?("fred").should be_true
-    #end
-    #it "lock_held? should return false iff the lock is not held" do
-    #  f1 = double(nil)
-    #  f1.should_receive(:flock).exactly(2).and_return(true,true)
-    #  File.stub(:new) {f1}
-    #  File.stub(:close) {f1}
-    #  CrowbarUtils.lock_held?("fred").should be_false
-    #end
+    it "lock_held? should return true iff the lock is held" do
+      f1 = double('fred')
+      f1.should_receive(:flock).and_return(false)
+      File.stub(:new) {f1}
+      f1.stub(:close)
+      CrowbarUtils.lock_held?("fred").should be_true
+    end
+    it "lock_held? should return false iff the lock is not held" do
+      f1 = double('fred')
+      f1.should_receive(:flock).exactly(2).and_return(true,true)
+      File.stub(:new) {f1}
+      f1.stub(:close)
+      CrowbarUtils.lock_held?("fred").should be_false
+    end
 
     # Need tests of with_lock here.
 
-    #it "with_lock should yield when lock grabbed" do
-    #  f1 = double(nil)
-    #  f1.should_receive(:flock).exactly(2).and_return(true,true)
-    #  File.stub(:new) {f1}
-    #  File.stub(:close) {f1}
-    #  expect { CrowbarUtils.with_lock("fred") do true end }.to yield_control
-    #end
-  end
+    it "with_lock should yield when lock grabbed" do
+      f1 = double('fred')
+      f1.should_receive(:flock).exactly(2).and_return(true,true)
+      File.stub(:new) {f1}
+      f1.stub(:close)
+      CrowbarUtils.with_lock("fred") do
+        "fred"
+      end.should == "fred"
+    end
 
+    it "with_lock should die if it cannot grab lock" do
+      f1 = double('fred')
+      f1.should_receive(:flock).exactly(32).and_return(false)
+      File.stub(:new) {f1}
+      f1.stub(:close)
+      expect {
+        CrowbarUtils.with_lock("fred") do
+          "fred"
+        end
+      }.to raise_error(RuntimeError, "Unable to grab fred lock -- Probable deadlock.")
+    end
+  end
 end
 

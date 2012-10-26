@@ -23,7 +23,6 @@ describe CrowbarUtils do
         CrowbarUtils.lock_held?("fred")
       }.to raise_error(IOError, "File not available: tmp/fred.lock")
     end
-    # All this is broken, and I don't know enough rspec to fix it.
 
     it "lock_held? should return true iff the lock is held" do
       f1 = double('fred')
@@ -40,8 +39,6 @@ describe CrowbarUtils do
       CrowbarUtils.lock_held?("fred").should be_false
     end
 
-    # Need tests of with_lock here.
-
     it "with_lock should yield when lock grabbed" do
       f1 = double('fred')
       f1.should_receive(:flock).exactly(2).and_return(true,true)
@@ -56,6 +53,7 @@ describe CrowbarUtils do
       f1 = double('fred')
       f1.should_receive(:flock).exactly(32).and_return(false)
       File.stub(:new) {f1}
+      Kernel.stub(:sleep)
       f1.stub(:close)
       expect {
         CrowbarUtils.with_lock("fred") do

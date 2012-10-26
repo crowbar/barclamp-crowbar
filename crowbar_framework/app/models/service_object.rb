@@ -303,7 +303,7 @@ class ServiceObject
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
   def apply_role(new_config, in_queue)
-    # 
+    #
     # Handled in ProposalQueue.queue_proposal
     #   Get dependents
     #     - if dependents aren't ready
@@ -364,104 +364,52 @@ class ServiceObject
     nnodes = new_config ? new_config.nodes : []
     all_nodes = (nnodes+onodes).uniq
     apply_role_pre_chef_call(old_config, new_config, all_nodes)
+    all_nodes.each{|n|n.save}
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
     @barclamp.get_roles_by_order.each do |role_list|
       nodes = role_list.collect { |role| (new_role_nodes[role.name]||[]) }.flatten.uniq
       next if nodes.empty?
-      snodes = []
-      admin_list = []
-      nodes.each do |node|
-        # Run admin nodes a different way.
-        if node.is_admin?
+      # Run chef-client on admin nodes last.
+      nodes.partition{|n| !n.is_admin?}.each do |node_list|
+        next if node_list.empty?
+        pids = {}
+        if node_list[0].is_admin?
           ran_admin = true
-          admin_list << node
-        else 
-          snodes << node
+          chef_client = "/opt/dell/bin/single_chef_client.sh"
+        else
+          chef_client = "chef-client"
         end
-      end
- 
-      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
-      @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
-
-      # Only take the actions if we are online
-      #
-      # XXX: We used to do this twice - do we really need twice???
-      # Yes! We do!  The system has some transient issues that are hidden
-      # but the double run for failing nodes.  For now, we will do this.
-      # Make this better one day.
-      #
-      pids = {}
-      unless snodes.empty?
-        snodes.each do |node|
+        node_list.each do |node|
           filename = "log/#{node.name}.chef_client.log"
-          pid = run_remote_chef_client(node.name, "chef-client", filename)
+          pid = run_remote_chef_client(node.name, chef_client, filename)
           pids[pid] = node.name
         end
         status = Process.waitall
         badones = status.select { |x| x[1].exitstatus != 0 }
-
-        unless badones.empty?
-          badones.each do |baddie|
-            node = pids[baddie[0]]
-            @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-            filename = "log/#{node}.chef_client.log"
-            pid = run_remote_chef_client(node, "chef-client", filename)
-            pids[pid] = node
-          end
-          status = Process.waitall
-          badones = status.select { |x| x[1].exitstatus != 0 }
-
-          unless badones.empty?
-            message = "Failed to apply the proposal to: "
-            badones.each do |baddie|
-              message = message + "#{pids[baddie[0]]} "
-            end
-            ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
-            ProposalQueue.restore_to_ready(all_nodes)
-            q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.process_queue unless in_queue
-            return [405, message]
-          end
-        end
-      end
-
-      unless admin_list.empty?
-        admin_list.each do |node|
-          filename = "log/#{node.name}.chef_client.log"
-          pid = run_remote_chef_client(node.name, "/opt/dell/bin/single_chef_client.sh", filename)
-          pids[pid] = node.name
+        next if badones.empty?
+        badones.each do |baddie|
+          node = pids[baddie[0]]
+          @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name}")
+          filename = "log/#{node}.chef_client.log"
+          pid = run_remote_chef_client(node, chef_client, filename)
+          pids[pid] = node
         end
         status = Process.waitall
         badones = status.select { |x| x[1].exitstatus != 0 }
-
-        unless badones.empty?
-          badones.each do |baddie|
-            node = pids[baddie[0]]
-            @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-            filename = "log/#{node}.chef_client.log"
-            pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
-            pids[pid] = node
-          end
-          status = Process.waitall
-          badones = status.select { |x| x[1].exitstatus != 0 }
-
-          unless badones.empty?
-            message = "Failed to apply the proposal to: "
-            badones.each do |baddie|
-              message = message + "#{pids[baddie[0]]} "
-            end
-            ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
-            ProposalQueue.restore_to_ready(all_nodes)
-            q = ProposalQueue.get_queue('prop_queue', @logger)
-            q.process_queue unless in_queue
-            return [405, message]
-          end
+        next if badones.empty?
+        message = "Failed to apply the proposal to: "
+        badones.each do |baddie|
+          message = message + "#{pids[baddie[0]]} "
         end
+        ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_FAILED, message)
+        ProposalQueue.restore_to_ready(all_nodes)
+        q = ProposalQueue.get_queue('prop_queue', @logger)
+        q.process_queue unless in_queue
+        return [405, message]
       end
     end
-
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo -i /opt/dell/bin/single_chef_client.sh") if !ran_admin
 

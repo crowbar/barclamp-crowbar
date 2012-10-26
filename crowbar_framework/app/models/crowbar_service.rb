@@ -52,10 +52,8 @@ class CrowbarService < ServiceObject
   #
   def transition(inst, name, state, old_state = nil)
     @logger.info("Crowbar transition enter: #{name} to #{state}")
-
-    f = CrowbarUtils.acquire_lock "BA-LOCK-#{name}"
     node = nil
-    begin
+    CrowbarUtils.with_lock("BA-LOCK-#{name}") do
       node = Node.find_by_name name
       if node.nil? && ['discovering','testing'].member?(state)
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
@@ -76,8 +74,6 @@ class CrowbarService < ServiceObject
       end
       node.state = state
       node.save
-    ensure
-      CrowbarUtils.release_lock f
     end
 
     #
@@ -122,8 +118,11 @@ class CrowbarService < ServiceObject
       [200, "#{name} deleted" ]
     end
 
-    # We have a node that has become ready, test to see if there are queued proposals to commit
-    ProposalQueue.get_queue('prop_queue', @logger).process_queue if state == "ready"
+    # Process any queued proposals if the queue lock is not held,
+    # and the node transitioned to ready.
+    if !CrowbarUtils.lock_held?("queue") && (state == "ready")
+      ProposalQueue.get_queue('prop_queue', @logger).process_queue
+    end
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
     [200, node.cmdb_hash]
   end

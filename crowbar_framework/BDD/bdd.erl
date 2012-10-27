@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
+-export([test/0, test/1, feature/1, feature/2, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4]).
@@ -256,3 +256,24 @@ step_type(Step) ->
 	{ unknown, Step }.
 
 
+%utilities to create step information from code
+steps_output(RE, Step) ->
+	{Type, S} = case re:run(Step, RE) of
+	  {match, [_A, {T1, T2}, _B, {S1, S2} | _]} -> {string:substr(Step,T1+1, T2), string:substr(Step,S1+1, S2)};
+	  nomatch -> {"other", Step}
+	end,
+	io:format("  * ~s ~s~n",[Type, S]).
+
+steps() ->
+  Files = filelib:wildcard("*.erl"),
+  [steps(File) || File <- Files].
+  
+steps(File) ->
+  io:format("* ~s~n",[File]),
+  {ok, RawCode} = file:read_file(File),
+	RawLines = string:tokens(binary_to_list(RawCode),"\n"),
+	{ok, RE} = re:compile("\\{step_([a-z]*),(.*)\\[(.*)\\]\\}"),	
+	StepLines = [S || S <- RawLines, string:substr(S,1,5) =:= [$s, $t, $e, $p, $( ]],
+	[steps_output(RE, S) || S <- StepLines],
+  io:format("~n").
+  

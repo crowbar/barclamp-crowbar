@@ -22,7 +22,29 @@ g(Item) ->
     atom -> dashboard1;
     _ -> nodes:g(Item)
   end.
-	
+
+% ==== GIVEN   
+step(_Config, Given, {step_when, _N, ["I examine the dashboard fingerprint"]}) -> 
+  RegEx = "if\\(data\\['sum'\\] != ([0-9\\-]*)\\)",
+	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
+	[Input | _] = Given,  
+	Result = re:run(Input, RE),
+	Hash = case Result of
+		{match, [_A, {Start, Length} | _Tail ]} -> string:substr(Input, Start+1, Length);
+		_ -> no_fingerprint_found
+	end,
+	{fingerprint,Hash};
+  
+% ==== THEN
+step(Config, Result, {step_then, _N, ["the dashboard fingerprint should match the REST fingerprint"]}) ->
+  {fingerprint, Hash} = lists:keyfind(fingerprint, 1, Result),
+  %When AJAX requests the "2.0/status/node" page
+  JSON = eurl:get(Config, "2.0/status/node"),
+  R = json:parse(JSON),
+  %Then key "fingerprint" should be a number
+  {"sum", Test} = lists:keyfind("sum", 1, R),
+  string:to_integer(Hash) =:= string:to_integer(Test);
+
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = nodes:json(g(name), g(description), 100),

@@ -15,3 +15,11 @@ Our testing patterns include:
 * Business Driven Tests (BDD) - these are system integration tests that exercise the web UI without any integration to the code
    * these tests are written in a "Cucumber-like" domain specific langugage (DSL)
    * the testing framework (BDD) is written in Erlang
+
+### Tips & Tricks
+
+#### Dashboard No Polling
+
+When you are troubleshooting the UI or REST APIs, the Node Dashboard (`dashboard`) polling can be a pain because it generates log traffic.  You can disable polling for debug by using the `nopoll` parameter.
+
+For example, `http://192.168.124.10:3000/dashboard/89?nopoll`

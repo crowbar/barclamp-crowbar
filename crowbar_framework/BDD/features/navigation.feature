@@ -14,7 +14,7 @@ Feature: Navigation, Check Core Navigation
       And I should see a menu for "Utilities"
       And I should see a menu for "Help"
       And I should see "CloudEdge Solutions Team"
-      And I should not see "Error"
+      And I should not see "something went wrong"
       And there should be no translation errors
 
   Scenario: Nodes Nav

@@ -246,8 +246,9 @@ class NodesController < ApplicationController
   end
   
   def edit
-    @options = CrowbarService.read_options
-    get_node_and_network(params[:id] || params[:name])
+    @node = Node.find_key params[:id]
+    @groups = {}
+    Group.find(:all, :conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
   end
 
   # RESTfule PUT of the node resource

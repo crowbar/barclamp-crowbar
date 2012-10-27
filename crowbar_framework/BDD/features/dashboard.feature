@@ -10,3 +10,8 @@ Feature: Dashboard
       And I should see "nodes available in the system"
       And I should see "dashboard1"
       And I should see "You may regroup nodes by dragging"
+
+  Scenario: Dashboard Fingerprint
+    Given I am on the "dashboard" page
+    When I examine the dashboard fingerprint
+    Then the dashboard fingerprint should match the REST fingerprint

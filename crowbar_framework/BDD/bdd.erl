@@ -92,7 +92,7 @@ start(Config) ->
       application:start(crypto),
       application:start(inets),
       AzConfig = bdd_utils:is_site_up(Config),
-      file:write_file("..\\tmp\inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
+      file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       [{started, true} | SetupConfig ];
     _ -> Config
@@ -247,7 +247,7 @@ inspect(Config, Result, [Feature | Features]) ->
 	end.
 	
 is_clean(Config) -> 
-  {ok, [Inspect]} = file:consult("..\\tmp\inspection.list"),
+  {ok, [Inspect]} = file:consult("../tmp/inspection.list"),
   is_clean(Config, Inspect).
 is_clean(Config, StartState) ->
   EndState = inspect(Config),

@@ -3,6 +3,13 @@ Feature: Groups
   The system operator, Oscar
   wants to be able to put things into groups
 
+  Scenario: Node List
+    Given there is a "ui" group "nodelisttest"
+    When REST gets the group list
+    Then there should be a value "nodelisttest"
+      And there should be a value "bddthings"
+    Finally throw away group "nodelisttest"
+    
   Scenario: Group Basic
     When AJAX gets the group "bddthings"
     Then the object is properly formatted

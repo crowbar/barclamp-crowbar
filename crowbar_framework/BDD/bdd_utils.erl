@@ -12,12 +12,12 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([setup_create/5, teardown_destroy/3]).
+-export([setup_create/5, teardown_destroy/3]).  % DEPRICATED by 12/12/12
+-export([features/1, features/2, feature_name/2]).
 -export([is_site_up/1, is_a/2]).
 
 assert(Bools) ->
@@ -43,6 +43,23 @@ debug(Show, Format, Data) ->
     true -> io:format("DEBUG: " ++ Format, Data);
     _ -> noop
   end.
+
+% return the list of feature to test
+features(Config) ->
+  filelib:wildcard(features(Config, "*")).
+
+% return the path to a feature to test
+features(Config, Feature) ->
+  config(Config,feature_path,"features/") ++ Feature ++ "." ++ config(Config,extension,"feature").
+  
+% helper that finds the feature from the FileName
+feature_name(Config, FileName) ->
+  RegEx = bdd_utils:config(Config,feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(Config,extension,"feature"),
+	{ok, RE} = re:compile(RegEx, [caseless]),
+	case re:run(FileName, RE) of 
+	  {match,[{0,_},{Start,Length}]} -> string:sub_string(FileName, Start+1, Start+Length);
+	  _ -> FileName
+	end.
 
 % Return the file name for the test.  
 trace_setup(Config, Name, nil) ->
@@ -113,23 +130,12 @@ tokenize(Step) ->
 	[string:strip(X) || X<- Tokens].
 	
 
-% helper common to all setups using REST
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->
-  % just in case - cleanup to prevent collision
-  eurl:delete(Config, Path, Name),
-  % create node(s) for tests
-  Result = eurl:post(Config, Path, JSON),
-  % get the ID of the created object
-  {"id", Key} = lists:keyfind("id",1,Result),
-  % friendly message
-  io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
-  % add the new ID to the config list
-  [{Atom, Key} | Config].
+  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
+  crowbar_rest:create(Config, Path, Atom, Name, JSON).
   
-% helper common to all setups using REST
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 teardown_destroy(Config, Path, Atom) ->
-  Item = lists:keyfind(Atom, 1, Config),
-  {Atom, Key} = Item,
-  eurl:delete(Config, Path, Key),
-  io:format("\tRemoved key ~s & id ~s in teardown step.~n", [Atom, Key]),
-  lists:delete(Item, Config).
+  io:format("** PLEASE MOVE ** setup_destroy moved from bdd_utils to destroy:crowbar_rest.  Called with ~p, ~p.",[Path, Atom]),
+  crowbar_rest:destroy(Config, Path, Atom).

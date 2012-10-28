@@ -23,7 +23,15 @@ Feature: Nodes
       And there should be a key "count"
       And key "count" should be "0"
       And key "[groups][0]" should contain "7" items
-
+      
+  Scenario: Node List
+    Given there is a node "bdd-node-list.example.com"
+    When REST gets the node list
+    Then there should be a value "bdd-node-list.example.com"
+      And there should be a value "bdd1.example.com"
+      And there should be a value "global-node.testing.com"
+    Finally REST removes the node "bdd-node-list.example.com"
+    
   Scenario: Node Detail
     When I go to the "node/bdd1.example.com" page
     Then I should see "Full Name"
@@ -37,8 +45,8 @@ Feature: Nodes
       And I should see "Disk Drives"
       And I should see a link to "Edit"
 
-  Scenario: Node Detail AJAX
-    When AJAX gets the node "bdd1.example.com"
+  Scenario: Node Detail REST
+    When REST gets the node "bdd1.example.com"
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And there should be a key "name"
@@ -50,10 +58,10 @@ Feature: Nodes
       And there should be a key "order"
       And key "order" should be a number
       And there should be a key "updated_at"
-      And the object is properly formatted
+      And the node is properly formatted
 
   Scenario: Node Detail using BDD setup
-    When AJAX requests the "2.0/node/bdd1.example.com" page
+    When REST gets the node "bdd1.example.com"
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And key "name" should be "bdd1.example.com"

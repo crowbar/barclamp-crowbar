@@ -17,6 +17,7 @@
 -module(crowbar).
 -export([step/3, validate/1, g/1]).
 -import(bdd_utils).
+-import(crowbar_rest).
 -import(json).
 
 g(Item) ->
@@ -27,36 +28,19 @@ g(Item) ->
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
 
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
 validate(JSON) ->
-  try JSON of
-    J ->
-        {"created_at", _CreatedAt} = lists:keyfind("created_at", 1, J),
-        {"description",_Description} = lists:keyfind("description", 1, J),
-        {"id",Id} = lists:keyfind("id", 1, J),
-        {"name",Name} = lists:keyfind("name", 1, J), 
-        {"order",Order}  = lists:keyfind("order", 1, J), 
-        {"updated_at",_UpdatedAt} = lists:keyfind("updated_at", 1, J), 
-        R = [bdd_utils:is_a(number, Order), 
-            bdd_utils:is_a(name, Name), 
-            bdd_utils:is_a(number, Id)],
-        case bdd_utils:assert(R)of
-          true -> true;
-          false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
-        end
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
-
+  io:format("** PLEASE MOVE ** validate moved from crowbar to crowbar_rest:json."),
+  crowbar_rest:validate(JSON).
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
   Node = nodes:json(g(node_name), Test ++ g(description), 100),
-  bdd_utils:setup_create(Config, nodes:g(path), g(node_atom), g(node_name), Node);
+  crowbar_rest:create(Config, nodes:g(path), g(node_atom), g(node_name), Node);
 
 % find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_utils:teardown_destroy(Config, nodes:g(path), g(node_atom));
+  crowbar_rest:destroy(Config, nodes:g(path), g(node_atom));
 
 
 % ============================  THEN STEPS =========================================

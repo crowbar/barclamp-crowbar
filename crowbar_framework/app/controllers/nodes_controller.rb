@@ -16,7 +16,7 @@
 class NodesController < ApplicationController
 
   # GET /nodes
-  # GET /nodes.xml
+  # GET /2.0/node
   def index
     # EventQueue.publish(Events::WebEvent.new("nodes index page"))
     # k = Delayed::Job.enqueue(Jobs::TestJob.new)
@@ -27,7 +27,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     session[:node] = params[:id]
     if params.has_key?(:role)
-      result = Node.all #this is not efficient, please update w/ a search!
+      result = Node.all 
       @nodes = result.find_all { |node| node.role? params[:role] }
       if params.has_key?(:names_only)
          names = @nodes.map { |node| node.name }
@@ -35,9 +35,7 @@ class NodesController < ApplicationController
       end
     else
       @nodes = {}
-      raw_nodes = Node.all
-      get_node_and_network(params[:selected]) if params[:selected]
-      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}".html_safe if @groups.nil?
+      Node.all.each { |n| @nodes[n.id]=n.name }
     end
     respond_to do |format|
       format.html # index.html.haml
@@ -45,6 +43,7 @@ class NodesController < ApplicationController
     end
   end
 
+  # Bulk Edit
   def list
     if request.post?
       nodes = {}
@@ -208,10 +207,8 @@ class NodesController < ApplicationController
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
   end
 
-  # GET /node/1
-  # GET /node/2.0/1
-  # GET /node/2.0/foo.example.com
-  # GET /nodes/2.0/1.json
+  # GET /2.0/node/1
+  # GET /2.0/node/foo.example.com
   def show
     # for temporary backwards compatibility, we'll combine the chef object and db object
     @node = Node.find_key params[:id]
@@ -221,12 +218,12 @@ class NodesController < ApplicationController
         rescue
           {}
         end
-    api_hash = Node.to_api_hash(chef_node.merge(@node.attributes))
+    #api_hash = Node.to_api_hash(chef_node.merge(@node.attributes))
 
     respond_to do |format|
       format.html # show.html.erb
       format.json {
-        render :json => api_hash
+        render :json => @node
       }
     end
   end

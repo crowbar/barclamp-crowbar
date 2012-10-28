@@ -15,7 +15,8 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar_rest).
--export([step/3, g/1]).
+-export([step/3, g/1, validate/1, inspector/2, get_id/2, get_id/3]).
+-export([create/5, destroy/3]).
 -import(bdd_utils).
 -import(json).
 
@@ -23,6 +24,78 @@ g(Item) ->
   case Item of
     _ -> crowbar:g(Item)
   end.
+
+% validates JSON in a generic way common to all objects
+validate(JSON) ->
+  try JSON of
+    J ->
+        {"created_at", _CreatedAt} = lists:keyfind("created_at", 1, J),
+        {"description",_Description} = lists:keyfind("description", 1, J),
+        {"id",Id} = lists:keyfind("id", 1, J),
+        {"name",Name} = lists:keyfind("name", 1, J), 
+        {"order",Order}  = lists:keyfind("order", 1, J), 
+        {"updated_at",_UpdatedAt} = lists:keyfind("updated_at", 1, J), 
+        R = [bdd_utils:is_a(number, Order), 
+            bdd_utils:is_a(name, Name), 
+            bdd_utils:is_a(number, Id)],
+        case bdd_utils:assert(R)of
+          true -> true;
+          false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
+        end
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
+
+% Common Routine - returns a list of items from the system, used for house keeping
+inspector(Config, Feature) ->
+  Raw = eurl:get(Config, apply(Feature, g, [path])),
+  JSON = json:parse(Raw),
+  [{Feature, ID, Name} || {ID, Name} <- JSON].
+  
+% given a path + key, returns the ID of the object
+get_id(Config, Path, Key) ->
+   Lookup = eurl:path(Path,Key),
+   get_id(Config, Lookup).
+   
+% given a path, returns the ID of the object
+get_id(Config, Path) ->
+  % TODO - match this watch for 500 & 404 errors
+  {"id", ID} = case eurl:get(Config, Path) of
+    "null"  -> {"id", "-1"};
+    "undef" -> {"id", "-1"};
+    Result  -> lists:keyfind("id", 1, json:parse(Result))
+  end,  
+  ID.
+
+% helper common to all setups using REST
+create(Config, Path, Atom, Name, JSON) ->
+  % just in case - cleanup to prevent collision
+  destroy(Config, Path, Name),
+  % create node(s) for tests
+  Result = eurl:post(Config, Path, JSON),
+  % get the ID of the created object
+  {"id", Key} = lists:keyfind("id",1,Result),
+  % friendly message
+  io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
+  % add the new ID to the config list
+  [{Atom, Key} | Config].
+  
+% helper common to all setups using REST
+destroy(Config, Path, Atom) when is_atom(Atom) ->
+  Item = lists:keyfind(Atom, 1, Config),
+  {Atom, Key} = Item,
+  destroy(Config, Path, Key),
+  lists:delete(Item, Config);
+
+% helper common to all setups using REST
+destroy(Config, Path, Key) ->
+  case get_id(Config, Path, Key) of
+    "-1" -> bdd_utils:debug("\tRemoval of key ~s skipped: not found.~n", [Key]);
+    ID   -> eurl:delete(Config, Path, ID),
+            bdd_utils:debug("\tRemoved key ~s & id ~s.~n", [Key, ID])
+  end,
+  Config.
 
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
@@ -48,12 +121,12 @@ step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) ->
 % validate object based on basic rules for Crowbar
 step(_Config, Result, {step_then, _N, ["the object is properly formatted"]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
-  crowbar:validate(JSON);
+  validate(JSON);
   
 % validate object based on it the validate method in it's ERL file (if any)
-step(_Config, Result, {step_then, _N, ["the", Type, "object is properly formatted"]}) -> 
+% expects an ATOM for the file
+step(_Config, Result, {step_then, _N, ["the", Feature, "object is properly formatted"]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
-  Feature = list_to_atom(Type),
   apply(Feature, validate, [JSON]);
 
 

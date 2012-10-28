@@ -14,8 +14,9 @@
 % 
 % 
 -module(dashboard).
--export([step/3, g/1]).
+-export([step/3, g/1, inspector/1]).
 
+% Common Routine
 g(Item) ->
   case Item of
     name -> "dashboard1.example.com";
@@ -23,6 +24,10 @@ g(Item) ->
     _ -> nodes:g(Item)
   end.
 
+% Common Routine
+% Returns list of nodes in the system to check for bad housekeeping
+inspector(_Config) -> [].  % add items to check
+  
 % ==== GIVEN   
 step(_Config, Given, {step_when, _N, ["I examine the dashboard fingerprint"]}) -> 
   RegEx = "if\\(data\\['sum'\\] != ([0-9\\-]*)\\)",
@@ -48,9 +53,9 @@ step(Config, Result, {step_then, _N, ["the dashboard fingerprint should match th
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = nodes:json(g(name), g(description), 100),
-  bdd_utils:setup_create(Config, g(path), g(atom), g(name), Node);
+  crowbar_rest:setup(Config, g(path), g(atom), g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  bdd_utils:teardown_destroy(Config, g(path), g(atom)).
+  crowbar_rest:destroy(Config, g(path), g(atom)).
 

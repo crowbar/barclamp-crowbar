@@ -14,9 +14,10 @@
 % 
 % 
 -module(groups).
--export([step/3, json/3, json/4, g/1, validate/1]).
+-export([step/3, json/3, json/4, g/1, validate/1, inspector/1]).
 	
 validate(JSON) ->
+  %crowbar_rest:validate(JSON),
   try JSON of
     [{"category",_Category}, {"created_at",_CreatedAt}, 
      {"description",_Description}, {"id",Id}, {"name",Name}, 
@@ -42,6 +43,11 @@ g(Item) ->
     _ -> crowbar:g(Item)
   end.
 
+% Common Routine
+% Returns list of nodes in the system to check for bad housekeeping
+inspector(Config) -> 
+  crowbar_rest:inspector(Config, groups).  % shared inspector works here, but may not always
+  
 % Returns the JSON List Nodes in the Group
 get_group_nodes(Config, Group) ->
   GroupPath = eurl:path(g(path),Group),
@@ -67,6 +73,10 @@ json(Name, Description, Order, Category) ->
   json:output([{"name",Name},{"description", Description}, {"category", Category}, {"order", Order}]).
 	
 % STEPS!
+
+step(Config, _Given, {step_when, _N, ["REST gets the group list"]}) -> 
+  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
+
 step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) -> 
   bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
       
@@ -85,7 +95,8 @@ step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFro
   Nodes = get_group_nodes(Config, GroupFrom),
   1 = length([ N || {_ID, N} <- Nodes, N =:= Node]),
   Result = eurl:put(Config, group_node_path(GroupTo, Node), []),
-  {nodes, group_nodes(Result, GroupTo)};                                                                                                                                                                     
+  {nodes, group_nodes(Result, GroupTo)}; 
+  
 step(Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
   {C, _} = string:to_integer(Count),
   Nodes = get_group_nodes(Config, Group),
@@ -109,22 +120,23 @@ step(Config, _Result, {step_then, _N, ["the node",Node,"should not be in group",
 
 step(Config, _Given, {step_finally, _N, ["REST removes the node",Node,"from",Group]}) -> 
   step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]});
-                                              
+                   
+
 step(Config, _Global, {step_setup, _N, _}) -> 
 
   % create node(s) for tests
   JSON0 = nodes:json(g(name_node1), g(description), 100),
-  Config0 = bdd_utils:setup_create(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
+  Config0 = crowbar_rest:setup(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
   % create groups(s) for tests
   JSON1 = json(g(name1), g(description), 100),
-  Config1 = bdd_utils:setup_create(Config0, g(path), g(atom1), g(name1), JSON1),
+  Config1 = crowbar_rest:setup(Config0, g(path), g(atom1), g(name1), JSON1),
   JSON2 = json(g(name2), g(description), 200),
-  Config2 = bdd_utils:setup_create(Config1, g(path), g(atom2), g(name2), JSON2),
+  Config2 = crowbar_rest:setup(Config1, g(path), g(atom2), g(name2), JSON2),
   Config2;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  Config2 = bdd_utils:teardown_destroy(Config, g(path), g(atom2)),
-  Config1 = bdd_utils:teardown_destroy(Config2, g(path), g(atom1)),
-  Config0 = bdd_utils:teardown_destroy(Config1, nodes:g(path), g(atom_node1)),
+  Config2 = crowbar_rest:destroy(Config, g(path), g(atom2)),
+  Config1 = crowbar_rest:destroy(Config2, g(path), g(atom1)),
+  Config0 = crowbar_rest:destroy(Config1, nodes:g(path), g(atom_node1)),
   Config0.

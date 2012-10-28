@@ -45,9 +45,18 @@ class GroupsController < ApplicationController
     end
   end
 
+  # GET 2.0/crowbar/2.0/group
+  def index
+    @groups = {}
+    Group.all.each { |g| @groups[g.id]=g.name }
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json { render :json => @groups }
+    end    
+  end
   
-  # GET /group/2.0/1
-  # GET /group/2.0/group
+  # GET 2.0/crowbar/2.0/group/1
+  # GET 2.0/crowbar/2.0/group/name
   def show
     @group = Group.find_key params[:id]
     respond_to do |format|

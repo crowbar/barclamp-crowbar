@@ -112,13 +112,23 @@ Crowbar::Application.routes.draw do
         # group + node CRUD operations
         match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
 
-        get    "crowbar/2.0/network/networks", :controller => 'network', :action=>'networks'
-        get    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_show'
-        post   "crowbar/2.0/network/networks", :controller => 'network', :action=>'network_create'
-        put    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_update'
-        delete "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_delete'
+        scope 'crowbar' do
+          scope '2.0' do
+            get    "network/networks", :controller => 'network', :action=>'networks'
+            get    "network/networks/:id", :controller => 'network', :action=>'network_show'
+            post   "network/networks", :controller => 'network', :action=>'network_create'
+            put    "network/networks/:id", :controller => 'network', :action=>'network_update'
+            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'
+            # basic list operations
+            get "node", :controller=>'nodes', :action=>'index'
+            get "group", :controller=>'groups', :action=>'index'
+            # basic CRUD operations
+            resources :node, :controller=>'nodes'
+            resources :group, :controller=>'groups'
+          end
+        end
 
-        # basic CRUD operations
+        # DEPRICATE! basic CRUD operations
         resources :node, :controller=>'nodes'
         resources :group, :controller=>'groups'
       end
@@ -139,8 +149,6 @@ Crowbar::Application.routes.draw do
   end
   
   scope 'crowbar' do
-    version = "2.0"
-
     version = "1.0"
 
     get    ":controller/#{version}/help", :action => 'help', :as => :help_barclamp

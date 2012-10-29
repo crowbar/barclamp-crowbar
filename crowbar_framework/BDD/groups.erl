@@ -16,24 +16,11 @@
 -module(groups).
 -export([step/3, json/3, json/4, g/1, validate/1, inspector/1]).
 	
-validate(JSON) ->
-  %crowbar_rest:validate(JSON),
-  try JSON of
-    [{"category",_Category}, {"created_at",_CreatedAt}, 
-     {"description",_Description}, {"id",Id}, {"name",Name}, 
-     {"order",Order}, {"updated_at",_UpdatedAt}]
-    -> R = [bdd_utils:is_a(number, Order), 
-            bdd_utils:is_a(name, Name), 
-            bdd_utils:is_a(number, Id)],
-      bdd_utils:assert(R)
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
 	
 g(Item) ->
   case Item of
-    path -> "2.0/group";
+    categories -> ["ui","rack","tag"];
+    path -> "2.0/crowbar/2.0/group";
     name1 -> "bddthings";
     atom1 -> group1;
     name2 -> "bdddelete";
@@ -42,6 +29,18 @@ g(Item) ->
     atom_node1 -> gnode1;
     _ -> crowbar:g(Item)
   end.
+
+validate(JSON) ->
+  try JSON of
+    J -> 
+        {"category", Category} = lists:keyfind("category", 1, J),
+        R = [lists:member(Category,g(categories)), 
+            crowbar_rest:validate(JSON)],
+        bdd_utils:assert(R)
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
@@ -90,6 +89,9 @@ step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) ->
 step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]}) -> 
   eurl:delete(Config, group_node_path(Group, Node), []);
 
+step(Config, _Given, {step_when, _N, ["REST removes the group",Group]}) ->   
+  eurl:delete(Config, g(path), Group);
+
 step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFrom,"to",GroupTo]}) -> 
   %first check old group
   Nodes = get_group_nodes(Config, GroupFrom),
@@ -97,6 +99,16 @@ step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFro
   Result = eurl:put(Config, group_node_path(GroupTo, Node), []),
   {nodes, group_nodes(Result, GroupTo)}; 
   
+step(_Config, Result, {step_then, _N, ["the group is properly formatted"]}) -> 
+  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", groups, "object is properly formatted"]});
+
+step(Config, _Result, {step_then, _N, ["there is not a",_Category,"group",Group]}) -> 
+  % WARNING - this IGNORES THE CATEGORY, it is not really a true test for the step.
+  case crowbar_rest:get_id(Config, g(path), Group) of
+    "-1" -> true;
+    ID -> true =/= is_number(ID)
+  end;
+
 step(Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
   {C, _} = string:to_integer(Count),
   Nodes = get_group_nodes(Config, Group),
@@ -120,18 +132,16 @@ step(Config, _Result, {step_then, _N, ["the node",Node,"should not be in group",
 
 step(Config, _Given, {step_finally, _N, ["REST removes the node",Node,"from",Group]}) -> 
   step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]});
-                   
-
+                
 step(Config, _Global, {step_setup, _N, _}) -> 
-
   % create node(s) for tests
   JSON0 = nodes:json(g(name_node1), g(description), 100),
-  Config0 = crowbar_rest:setup(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
+  Config0 = crowbar_rest:create(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
   % create groups(s) for tests
   JSON1 = json(g(name1), g(description), 100),
-  Config1 = crowbar_rest:setup(Config0, g(path), g(atom1), g(name1), JSON1),
+  Config1 = crowbar_rest:create(Config0, g(path), g(atom1), g(name1), JSON1),
   JSON2 = json(g(name2), g(description), 200),
-  Config2 = crowbar_rest:setup(Config1, g(path), g(atom2), g(name2), JSON2),
+  Config2 = crowbar_rest:create(Config1, g(path), g(atom2), g(name2), JSON2),
   Config2;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 

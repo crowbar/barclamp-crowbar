@@ -85,8 +85,12 @@ untrace(Config, Name, N) ->
 % test for types
 is_a(Type, Value) ->
   case Type of 
-    number -> nomatch =/= re:run(Value, "^[\-0-9]*$");
+    number -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");
+    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");
+    whole -> nomatch =/= re:run(Value, "^[0-9]*$");
     name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    boolean -> lists:member(Value,[true,false,"true","false"]);
+    string -> is_list(Value);
     empty -> "" =:= Value;
     _ -> false
   end.

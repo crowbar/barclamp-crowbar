@@ -20,7 +20,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/node";
+    path -> "2.0/crowbar/2.0/node";
     name -> "bdd1.example.com";
     atom -> node1;
     _ -> crowbar:g(Item)
@@ -29,11 +29,19 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  % add fingerprint is number
-  % add allocated is boolean
-  % add state is string
-  % add admin is boolean
-  crowbar_rest:validate(JSON).
+  try JSON of
+    J -> 
+        R =[bdd_utils:is_a(integer, json:keyfind(fingerprint)), 
+            bdd_utils:is_a(boolean, json:keyfind(allocated)), 
+            bdd_utils:is_a(string, json:keyfind(state)), 
+            bdd_utils:is_a(boolean, json:keyfind(admin)), 
+            bdd_utils:is_a(whole, json:keyfind(os_id)), 
+            crowbar_rest:validate(JSON)],
+        bdd_utils:assert(R)
+  catch
+    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
+		false
+	end. 
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping

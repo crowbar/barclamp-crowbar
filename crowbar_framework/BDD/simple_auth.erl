@@ -140,7 +140,7 @@ header(Config, URL) ->
     {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} ->
       case {Status, Code} of
         {ok, 302} -> 
-	  io:format("~nAUTHENTICATED as ~p:~p~n",[User,Password]),
+	  io:format("~n\tAuthenticated as user: ~s.~n",[User]),
 	  Cookie = proplists:get_value("set-cookie", Fields),
           case Cookie of
             undefined -> % no session id returned!

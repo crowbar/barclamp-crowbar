@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(eurl).
--export([post/3, put/3, delete/3, post_params/1, post/5, uri/2, path/2]).
+-export([post/3, put/3, delete/3, post_params/1, post/5, put_post/4, uri/2, path/2]).
 -export([get/2, get/3, get/4, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
@@ -153,12 +153,13 @@ get(Config, Page, not_found) ->
 	get(uri(Config,Page), 404, "Not Found");
 get(Config, Page, ok) ->
 	get(Config, uri(Config,Page), 200, "OK(.*)").
-get(Config, URL, ReturnCode, StateRegEx) ->
-	{ok, {{"HTTP/1.1",ReturnCode,State}, _Head, Body}} = simple_auth:request(Config, URL),
+get(Config, URL, _ReturnCode, StateRegEx) ->
+	%io:format("getting ~p~n", [URL]),
+	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = simple_auth:request(Config, URL),
 	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK"
+    _ -> throw({errorWhileGetting, _ReturnCode, "ERROR: get attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
 	end.
 
 post_params(ParamsIn) -> post_params(ParamsIn, []).
@@ -171,13 +172,13 @@ post_params([{K, V} | P], ParamsOrig) ->
   post_params(P, ParamsOrig++ParamsAdd).
 
 % Post using Parameters to convey the values
-post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
+post(Config, URL, Parameters, _ReturnCode, StateRegEx) ->
   Post = URL ++ post_params(Parameters),
-  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = simple_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
+  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = simple_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK"
+    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
 	end. 
 
 % Post using JSON to convey the values
@@ -189,22 +190,22 @@ put(Config, Path, JSON) ->
   
 % Put using JSON to convey the values
 put_post(Config, Path, JSON, Action) ->
+  %io:format("~ping to ~p~n", [atom_to_list(Action), URL]),
   URL = uri(Config, Path),
   R = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
-	{ok, StateMP} = re:compile("OK"),
-	case re:run(State, StateMP) of
-		{match, _} -> json:parse(Body);
-		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK. " ++ Body
+  case _ReturnCode of
+    200 -> json:parse(Body);
+    _ -> throw({errorWhilePuttingOrPosting, _ReturnCode, "ERROR: " ++ atom_to_list(Action) ++ " attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
 	end. 
 	
 delete(Config, Path, Id) ->
+  %io:format("Deleting ~p~n", [URL]),
   URL = uri(Config, Path) ++ "/" ++ Id,
   R = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
-	{ok, StateMP} = re:compile("OK"),
-	case re:run(State, StateMP) of
-		{match, _} -> true;
-		_ -> "ERROR, return of " ++ URL ++ " result was not 200 OK. " ++ Body
+  case _ReturnCode of
+    200 -> true;
+    _ -> throw({errorWhileDeleting, _ReturnCode, "ERROR: deletion attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
 	end. 
 	

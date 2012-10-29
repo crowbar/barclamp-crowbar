@@ -158,7 +158,16 @@ print_fail([Result | Results]) ->
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
   % organize steps in the scenarios
-	{N, GivenSteps, WhenSteps, ThenSteps, FinalSteps} = scenario_steps(RawSteps),
+	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(RawSteps),
+
+  % The steps lists are built in reverse order that they appear in the feature file in
+  % accordance with erlang list building optimization.  Reverse the order here so that
+  % the steps are executed in the same order as they are listed in the feature file
+  GivenSteps = lists:reverse(BackwardsGivenSteps),
+  WhenSteps = lists:reverse(BackwardsWhenSteps),
+  ThenSteps = lists:reverse(BackwardsThenSteps),
+  FinalSteps = lists:reverse(BackwardsFinalSteps),
+
 	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
@@ -200,6 +209,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
       throw("BDD ERROR: Could not connect to web server.");
 		X: Y -> 
 		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
+      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       io:format("\tAttempted \"apply(~p, step, [[Config], [Input], ~p]).\"~n",[Feature, Step]),
 		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;

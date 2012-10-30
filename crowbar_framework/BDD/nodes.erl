@@ -31,12 +31,12 @@ g(Item) ->
 validate(JSON) ->
   try JSON of
     J -> 
-        R =[bdd_utils:is_a(integer, json:keyfind(fingerprint)), 
-            bdd_utils:is_a(boolean, json:keyfind(allocated)), 
-            bdd_utils:is_a(string, json:keyfind(state)), 
-            bdd_utils:is_a(boolean, json:keyfind(admin)), 
-            bdd_utils:is_a(whole, json:keyfind(os_id)), 
-            crowbar_rest:validate(JSON)],
+        R =[bdd_utils:is_a(integer, json:keyfind(J, fingerprint)), 
+            bdd_utils:is_a(boolean, json:keyfind(J, allocated)), 
+            bdd_utils:is_a(string, json:keyfind(J, state)), 
+            bdd_utils:is_a(boolean, json:keyfind(J,admin)), 
+            bdd_utils:is_a(dbid, json:keyfind(J,os_id)), 
+            crowbar_rest:validate(J)],
         bdd_utils:assert(R)
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),

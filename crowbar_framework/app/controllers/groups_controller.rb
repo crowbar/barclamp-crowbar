@@ -68,10 +68,18 @@ class GroupsController < ApplicationController
   # RESTful delete of the node
   def destroy
     if request.delete?
-      Group.delete Group.find_key(params[:id]).id
-      render :text => "Group #{params[:id]} deleted!"
+      target = Group.find_key(params[:id])
+      if target.nil?
+        render :text=>"Could not find group '#{params[:id]}'", :status => 404
+      else
+        if Group.delete(target.id) > 0
+          render :text => "Group #{params[:id]} deleted!"
+        else
+          render :text=>"Could not delete group '#{params[:id]}'", :status => 500
+        end
+      end
     else
-      throw "HTTP DELETE required to compelte this action"
+      throw "HTTP DELETE required to complete this action"
     end
   end
   

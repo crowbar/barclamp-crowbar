@@ -16,8 +16,8 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([setup_create/5, teardown_destroy/3]).  % DEPRICATED by 12/12/12
 -export([features/1, features/2, feature_name/2]).
+-export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2]).
 
 assert(Bools) ->
@@ -88,6 +88,7 @@ is_a(Type, Value) ->
     number -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");
     integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");
     whole -> nomatch =/= re:run(Value, "^[0-9]*$");
+    dbid -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
     name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
     string -> is_list(Value);
@@ -138,6 +139,11 @@ tokenize(Step) ->
 setup_create(Config, Path, Atom, Name, JSON) ->
   io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
   crowbar_rest:create(Config, Path, Atom, Name, JSON).
+
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
+setup_create(Config, Path, Atom, Name, JSON, Action) ->
+  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p, ~p.",[Path, Atom, Name, Action]),
+  crowbar_rest:create(Config, Path, Atom, Name, JSON, Action).
   
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 teardown_destroy(Config, Path, Atom) ->

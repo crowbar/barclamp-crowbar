@@ -12,11 +12,9 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
-% 
 -module(crowbar_rest).
 -export([step/3, g/1, validate/1, inspector/2, get_id/2, get_id/3]).
--export([create/5, destroy/3]).
+-export([create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
 
@@ -29,15 +27,15 @@ g(Item) ->
 validate(JSON) ->
   try JSON of
     J ->
-        {"created_at", _CreatedAt} = lists:keyfind("created_at", 1, J),
-        {"description",_Description} = lists:keyfind("description", 1, J),
-        {"id",Id} = lists:keyfind("id", 1, J),
-        {"name",Name} = lists:keyfind("name", 1, J), 
-        {"order",Order}  = lists:keyfind("order", 1, J), 
-        {"updated_at",_UpdatedAt} = lists:keyfind("updated_at", 1, J), 
+        _CreatedAt    = json:keyfind(J, create_at),   % ADD CHECK!
+        _Description  = json:keyfind(J, description), % ADD CHECK!
+        Id            = json:keyfind(J, id),
+        Name          = json:keyfind(J, name), 
+        Order         = json:keyfind(J, order),
+        _UpdatedAt    = json:keyfind(J, updated_at),  % ADD CHECK!
         R = [bdd_utils:is_a(number, Order), 
-            bdd_utils:is_a(name, Name), 
-            bdd_utils:is_a(number, Id)],
+             bdd_utils:is_a(name, Name), 
+             bdd_utils:is_a(dbid, Id)],
         case bdd_utils:assert(R)of
           true -> true;
           false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
@@ -69,18 +67,29 @@ get_id(Config, Path) ->
   ID.
 
 % helper common to all setups using REST
-create(Config, Path, Atom, Name, JSON) ->
+create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
+create(Config, Path, JSON, Action) ->
   % just in case - cleanup to prevent collision
-  destroy(Config, Path, Name),
+  try destroy(Config, Path, json:keyfind(json:parse(JSON), name))
+  catch
+    throw: {errorWhileDeleting, 404, _} ->
+      io:format("\tWARN: Deletion of ~p failed because it does not exist~n", [json:keyfind(name)])
+  end,
   % create node(s) for tests
-  Result = eurl:post(Config, Path, JSON),
+  eurl:put_post(Config, Path, JSON, Action).
+  
+create(Config, Path, Atom, Name, JSON) ->
+  create(Config, Path, Atom, Name, JSON, post).
+
+create(Config, Path, Atom, Name, JSON, Action) ->
+  Result = create(Config, Path, JSON, Action),
   % get the ID of the created object
-  {"id", Key} = lists:keyfind("id",1,Result),
+  Key = json:keyfind(Result, id),
   % friendly message
   io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
   % add the new ID to the config list
   [{Atom, Key} | Config].
-  
+
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
   Item = lists:keyfind(Atom, 1, Config),
@@ -100,7 +109,7 @@ destroy(Config, Path, Key) ->
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
   JSON = nodes:json(Node, nodes:g(description), 200),
-  eurl:post(Config, nodes:g(path), JSON);
+  create(Config, nodes:g(path), JSON);
 
 % remove the node
 step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) -> 
@@ -109,11 +118,11 @@ step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) ->
 % GROUPS
 step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = groups:json(Group, groups:g(description), 200, Category),
-  eurl:post(Config, groups:g(path), JSON);
+  create(Config, groups:g(path), JSON, post);
 
 % remove the group
 step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 
-  eurl:delete(Config, groups:g(path), Group);
+  destroy(Config, groups:g(path), Group);
 
 
 % ============================  THEN STEPS =========================================

@@ -230,8 +230,16 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    Node.delete Node.find_key(params[:id]).id
-    render :text => "Node #{params[:id]} deleted!"
+    target = Node.find_key(params[:id])
+    if target.nil?
+      render :text=>"Could not find node '#{params[:id]}'", :status => 404
+    else
+      if Node.delete(target.id) > 0
+        render :text => "Node #{params[:id]} deleted!"
+      else
+        render :text=>"Could not delete node '#{params[:id]}'", :status => 500
+      end
+    end
   end
   
   # RESTfule POST of the node resource

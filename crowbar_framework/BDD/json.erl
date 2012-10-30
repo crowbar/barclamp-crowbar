@@ -22,8 +22,11 @@
 
 keyfind(JSON, Key) when is_atom(Key) -> keyfind(JSON, atom_to_list(Key));
 keyfind(JSON, Key)                   ->
-  {Key, R} = lists:keyfind(Key, 1, JSON),
-  R.
+  case lists:keyfind(Key, 1, JSON) of
+    {Key, R} -> R;
+    false -> not_found;
+    _ -> error
+  end.
 
 value_list(JSON, [Key | []]) ->  
   value_item(JSON, Key);

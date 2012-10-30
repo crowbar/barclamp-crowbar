@@ -33,9 +33,9 @@ g(Item) ->
 validate(JSON) ->
   try JSON of
     J -> 
-        {"category", Category} = lists:keyfind("category", 1, J),
+        Category = json:keyfind(J, category),
         R = [lists:member(Category,g(categories)), 
-            crowbar_rest:validate(JSON)],
+            crowbar_rest:validate(J)],
         bdd_utils:assert(R)
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),

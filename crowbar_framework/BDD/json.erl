@@ -12,14 +12,21 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(json).
--export([parse/1, value/2, output/1]).
+-export([parse/1, value/2, output/1, keyfind/2]).
 -import(bdd_utils).
 
 -record(json, {list=[], raw=[]}).
 -record(jsonkv, {value=[], raw=[]}).
+
+keyfind(JSON, Key) when is_atom(Key) -> keyfind(JSON, atom_to_list(Key));
+keyfind(JSON, Key)                   ->
+  case lists:keyfind(Key, 1, JSON) of
+    {Key, R} -> R;
+    false -> not_found;
+    _ -> error
+  end.
 
 value_list(JSON, [Key | []]) ->  
   value_item(JSON, Key);

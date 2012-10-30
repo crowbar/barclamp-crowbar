@@ -22,6 +22,7 @@ class Group < ActiveRecord::Base
 
   validates_uniqueness_of :name, :scope => :category, :case_sensitive => false, :message => I18n.t("db.notuniqueincategory", :default=>"Name item must be unique within category")
   validates_inclusion_of :category, :in => %w(ui rack tag), :message => "Group Model Validation Error: type is not an allowed category"
+  # REMINDER: if you add a new group category, update the g(categories) list in BDD/groups.erl!
 
   has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
 

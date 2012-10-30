@@ -16,11 +16,10 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, getconfig/1]).  
+-export([test/0, test/1, feature/1, feature/2, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
--export([step_run/3, step_run/4]).
--export([start/1, stop/1]).   % internal access to the testing process
+-export([step_run/3, step_run/4, inspect/1, is_clean/1]).
 
 test()                   -> test("default").
 test(ConfigName)         -> 
@@ -28,7 +27,7 @@ test(ConfigName)         ->
   % start the test config & run the global tests
   StartedConfig = start(BaseConfig),
   % get the list of features to test
-  Features = filelib:wildcard(bdd_utils:config(BaseConfig,feature_path,"features/") ++ "*." ++ bdd_utils:config(BaseConfig,extension,"feature")),
+  Features = bdd_utils:features(StartedConfig),
   %run the tests
   Results = run(StartedConfig, [], Features),
   % cleanup application services
@@ -39,27 +38,19 @@ test(ConfigName)         ->
   end.
 	  
 % similar to test, this can be used to invoke a single feature for testing
-feature(Feature)             -> feature("default", Feature).
-feature(ConfigName, Feature) ->
+feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
+feature(Feature)                        -> feature("default", Feature).
+feature(ConfigName, Feature)            ->
   Config = getconfig(ConfigName),
-  FileName = bdd_utils:config(Config,feature_path,"features/") ++ Feature ++ "." ++ bdd_utils:config(Config,extension,"feature"),
+  FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName),
   [{feature, _F, R} | _ ] = stop(FeatureConfig),
   R.
 
-% helper that finds the feature from the FileName
-feature_name(Config, FileName) ->
-  RegEx = bdd_utils:config(Config,feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(Config,extension,"feature"),
-	{ok, RE} = re:compile(RegEx, [caseless]),
-	case re:run(FileName, RE) of 
-	  {match,[{0,_},{Start,Length}]} -> string:sub_string(FileName, Start+1, Start+Length);
-	  _ -> FileName
-	end.
-
 % recursive runner with error catching
 run(_Config, [], [])                  -> [];
 run(Config, [], [FileName | Features]) ->
-  Feature = feature_name(Config, FileName),
+  Feature = bdd_utils:feature_name(Config, FileName),
 	R = try run(Config, Feature, FileName) of
 		Run -> 
 	    {feature, _Name, Result} = lists:keyfind(feature,1,Run),
@@ -76,7 +67,7 @@ run(Config, Feature, FileName)     ->
   % figure out the file name
   Fatom = list_to_atom(Feature),
   % start inet client if not running
-  StartConfig = start(Config),                                              
+  StartConfig = start(Config),                       
   % stuff the feature & file name into the config set
   FeatureConfig = [{feature, Feature}, {file, FileName} | StartConfig],		     
   % import the feature information
@@ -101,6 +92,7 @@ start(Config) ->
       application:start(crypto),
       application:start(inets),
       AzConfig = bdd_utils:is_site_up(Config),
+      file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       [{started, true} | SetupConfig ];
     _ -> Config
@@ -112,6 +104,7 @@ stop(Config) ->
   case Started of
     true -> 
       TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),
+      is_clean(TearDownConfig),
       application:stop(crypto),
       application:stop(inets),
       lists:delete({started, true}, TearDownConfig);
@@ -215,8 +208,8 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	
-step_run(Config, _Input, {step_setup, _, Feature}, []) -> io:format("\tFeature ~p has no Setup defined.~n", [Feature]), Config;
-step_run(Config, _Input, {step_teardown, _, Feature}, []) -> io:format("\tFeature ~p has no Teardown defined.~n", [Feature]), Config;
+step_run(Config, _Input, {step_setup, _, Feature}, []) -> io:format("\tFeature ~p has no Setup defined (or it throws an error).~n", [Feature]), Config;
+step_run(Config, _Input, {step_teardown, _, Feature}, []) -> io:format("\tFeature ~p has no Teardown defined (or it throws an error).~n", [Feature]), Config;
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->
@@ -249,6 +242,32 @@ scenario_steps([], N, Given, When, Then, Finally, _) ->
 	% returns number of steps and breaks list into types, may be expanded for more times in the future!
 	{N, Given, When, Then, Finally}.
 	
+% inspect system to ensure that we have not altered it
+% this relies on the features implmenting the inspect meth
+inspect(Config) ->
+  Features = bdd_utils:features(Config),
+  inspect(Config, [], [list_to_atom(bdd_utils:feature_name(Config,F)) || F <- Features]).
+
+inspect(_Config, Result, []) -> Result;
+inspect(Config, Result, [Feature | Features]) ->
+  try apply(Feature, inspector, [Config]) of
+		R -> R ++ inspect(Config, Result, Features)
+	catch
+		_X: _Y -> inspect(Config, Result, Features) % do nothing, we just ignore lack of inspectors
+	end.
+	
+is_clean(Config) -> 
+  {ok, [Inspect]} = file:consult("../tmp/inspection.list"),
+  is_clean(Config, Inspect).
+is_clean(Config, StartState) ->
+  EndState = inspect(Config),
+  Diff = lists:subtract(StartState, EndState),
+  case Diff of
+    []      -> true;
+    Orphans -> io:format("~nWARNING, Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
+               false
+  end.
+
 % figure out what type of step we are doing (GIVEN, WHEN, THEN, etc), return value
 step_type([$G, $i, $v, $e, $n, 32 | Given]) ->
 	{ step_given, Given };
@@ -266,3 +285,24 @@ step_type(Step) ->
 	{ unknown, Step }.
 
 
+%utilities to create step information from code
+steps_output(RE, Step) ->
+	{Type, S} = case re:run(Step, RE) of
+	  {match, [_A, {T1, T2}, _B, {S1, S2} | _]} -> {string:substr(Step,T1+1, T2), string:substr(Step,S1+1, S2)};
+	  nomatch -> {"other", Step}
+	end,
+	io:format("  * ~s ~s~n",[Type, S]).
+
+steps() ->
+  Files = filelib:wildcard("*.erl"),
+  [steps(File) || File <- Files].
+  
+steps(File) ->
+  io:format("* ~s~n",[File]),
+  {ok, RawCode} = file:read_file(File),
+	RawLines = string:tokens(binary_to_list(RawCode),"\n"),
+	{ok, RE} = re:compile("\\{step_([a-z]*),(.*)\\[(.*)\\]\\}"),	
+	StepLines = [S || S <- RawLines, string:substr(S,1,5) =:= [$s, $t, $e, $p, $( ]],
+	[steps_output(RE, S) || S <- StepLines],
+  io:format("~n").
+  

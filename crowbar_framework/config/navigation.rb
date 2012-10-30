@@ -18,7 +18,13 @@ SimpleNavigation::Configuration.run do |navigation|
     menu.children.each do |item|
       if item.item != 'root' and item.path =~ /(.*)_path/
         begin
-          primary.item item.item.to_sym, t(item.name), eval(item.path), {:title=>t(item.description, :default=>t(item.name))} do |secondary|
+          name = t(item.name)
+          title = t(item.description, :default=>t(item.name))
+          if item.development
+            name = "[#{name}]"
+            title = "Dev Mode: "+title
+          end
+          primary.item item.item.to_sym, name, eval(item.path), {:title=>title} do |secondary|
             # make the top level help appear on the menu (for help only)
             if item.item.eql? 'help'
               Doc.find_by_name('root').children.each do |doc|
@@ -30,7 +36,11 @@ SimpleNavigation::Configuration.run do |navigation|
               if nav.path.starts_with? 'http'
                 secondary.item nav.item.to_sym, t(nav.name), nav.path.to_s, {:title=>t(nav.description, :default=>t(nav.name)), :link => { :target => "_blank" } } 
               elsif nav.path =~ /(.*)_path/ 
-                secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
+                if nav.development
+                  secondary.item nav.item.to_sym, "[#{t(nav.name)}]", eval(nav.path), {:title=>"Dev Mode: #{t(nav.description, :default=>t(nav.name))}"} 
+                else
+                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
+                end
               end 
             end
           end

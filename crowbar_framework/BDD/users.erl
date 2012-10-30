@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 % 
--module(nodes).
+-module(users).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
 
 % Commont Routine
@@ -53,12 +53,15 @@ inspector(Config) ->
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
-step(Config, _Given, {step_when, _N, ["REST gets the node list"]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
-
-step(Config, _Given, {step_when, _N, ["REST gets the node",Name]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
+% GIVEN STEP
      
+step(_Config, _Global, {step_given, _N, ["there is a user",Oscar]}) -> false;
+
+% WHEN STEP =======================================================
+
+step(_Config, _Given, {step_when, _N, ["REST gets the user list"]}) -> false;
+
+
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     

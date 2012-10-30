@@ -3,20 +3,39 @@ Feature: Groups
   The system operator, Oscar
   wants to be able to put things into groups
 
+  Scenario: Node List
+    Given there is a "ui" group "nodelisttest"
+    When REST gets the group list
+    Then there should be a value "nodelisttest"
+      And there should be a value "bddthings"
+    Finally throw away group "nodelisttest"
+    
   Scenario: Group Basic
     When AJAX gets the group "bddthings"
     Then the object is properly formatted
       And there should be a key "category"
-      And the "groups" object is properly formatted
+      And the group is properly formatted
 
-  Scenario: %Group Add
-    Given REST adds the group "simpleadd"
-    When AJAX gets the group "simpleadd"
-    Then the object is properly formatted
-    Finally REST removes the group "simpleadd"
+  Scenario: Group Add UI category
+    Given there is a "ui" group "simpleadd1"
+    When AJAX gets the group "simpleadd1"
+    Then the group is properly formatted
+    Finally throw away group "simpleadd1"
 
-  Scenario: %Group Delete
-    Given REST adds the group "simpledelete"
+  Scenario: Group Add Rack category
+    Given there is a "rack" group "simpleadd2"
+    When AJAX gets the group "simpleadd2"
+    Then the group is properly formatted
+    Finally throw away group "simpleadd2"
+
+  Scenario: Group Add Tag category
+    Given there is a "tag" group "simpleadd3"
+    When AJAX gets the group "simpleadd3"
+    Then the group is properly formatted
+    Finally throw away group "simpleadd3"
+
+  Scenario: Group Delete
+    Given there is a "ui" group "simpledelete"
     When REST removes the group "simpledelete"
     Then there is not a "ui" group "simpledelete"
 

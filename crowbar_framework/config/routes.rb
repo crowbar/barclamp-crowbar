@@ -67,12 +67,28 @@ Crowbar::Application.routes.draw do
     get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
   end
 
+  # Barclamp UI routes (overlays that can be used generically by barclamps to create custom views)
+  # The pattern is /barclamp/[your barclamp]/[method]
+  scope 'barclamp' do
+    constraints(:id => /([a-zA-Z0-9\-\.\_]*)/ ) do
+      get ":controller/network(/:id)", :action=>"network", :as=>"barclamp_network"
+      get ":controller/node(/:id)", :action=>"node", :as=>"barclamp_node"
+      get ":controller/util(/:id)", :action=>"util", :as=>"barclamp_util"
+    end
+  end
+
   # UI only routes
   scope :defaults => {:format=> 'html'} do
     get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
-    constraints(:id=> /.*/) do
+    constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
-      get "node/:id" => 'nodes#show', :as => 'node'
+      scope 'node' do
+        get 'list' => "nodes#list", :as => :nodes_list
+        get 'families' => "nodes#families", :as => :nodes_families
+        get ':id/edit' => "nodes#edit", :as => :edit_node
+        put ':id/update' => 'nodes#update', :as => :update_node
+        get ":id" => 'nodes#show', :as => 'node'
+      end
     end
   end
 
@@ -89,33 +105,32 @@ Crowbar::Application.routes.draw do
         scope 'status' do
           get "node(/:id)" => 'nodes#status', :as=>'node_status'
         end
+
+        # actions
+        post   "node/:id/hit/:req" => "nodes#hit", :as => :hit_node
                 
-        # group + node CRUD operations
-        match "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
+        scope 'crowbar' do
+          scope '2.0' do
+            # group + node CRUD operations
+            match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
+            get    "network/networks", :controller => 'network', :action=>'networks'
+            get    "network/networks/:id", :controller => 'network', :action=>'network_show'
+            post   "network/networks", :controller => 'network', :action=>'network_create'
+            put    "network/networks/:id", :controller => 'network', :action=>'network_update'
+            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'
+            # basic list operations
+            get "node", :controller=>'nodes', :action=>'index'
+            get "group", :controller=>'groups', :action=>'index'
+            # basic CRUD operations
+            resources :node, :controller=>'nodes'
+            resources :group, :controller=>'groups'
+          end
+        end
 
-        get    "crowbar/2.0/network/networks", :controller => 'network', :action=>'networks'
-        get    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_show'
-        post   "crowbar/2.0/network/networks", :controller => 'network', :action=>'network_create'
-        put    "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_update'
-        delete "crowbar/2.0/network/networks/:id", :controller => 'network', :action=>'network_delete'
-
-        # basic CRUD operations
+        # DEPRICATE! basic CRUD operations
         resources :node, :controller=>'nodes'
         resources :group, :controller=>'groups'
       end
-    end
-  end
-
-  scope 'nodes' do
-    version = "1.0"
-    get 'list', :controller => 'nodes', :action => 'list', :as => :nodes_list
-    get 'families', :controller=>'nodes', :action=>'families', :as => :nodes_families
-    post "groups/#{version}/:id/:group", :controller => 'nodes', :action=>'group_change', :constraints => { :id => /.*/ }, :as => :group_change
-    get ":controller/#{version}", :action => 'nodes', :as => :nodes_barclamp
-    constraints(:name => /.*/ ) do
-      match ':name/hit/:req' => "nodes#hit", :as => :hit_node
-      match ':name/edit' => "nodes#edit", :as => :edit_node
-      match ':name/update' => 'nodes#update', :as => :update_node
     end
   end
  
@@ -133,8 +148,6 @@ Crowbar::Application.routes.draw do
   end
   
   scope 'crowbar' do
-    version = "2.0"
-
     version = "1.0"
 
     get    ":controller/#{version}/help", :action => 'help', :as => :help_barclamp

@@ -73,15 +73,15 @@ json(Name, Description, Order, Category) ->
 	
 % STEPS!
 
+step(Config, _Given, {step_given, _N, ["REST adds the node",Node,"to",Group]}) -> 
+  step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]});
+  
 step(Config, _Given, {step_when, _N, ["REST gets the group list"]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
 step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) -> 
   bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
       
-step(Config, _Given, {step_given, _N, ["REST adds the node",Node,"to",Group]}) -> 
-  step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]});
-  
 step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) -> 
   Result = eurl:post(Config, group_node_path(Group, Node), []),
   {nodes, group_nodes(Result, Group)};

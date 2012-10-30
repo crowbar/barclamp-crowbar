@@ -109,11 +109,10 @@ Crowbar::Application.routes.draw do
         # actions
         post   "node/:id/hit/:req" => "nodes#hit", :as => :hit_node
                 
-        # group + node CRUD operations
-        match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-
         scope 'crowbar' do
           scope '2.0' do
+            # group + node CRUD operations
+            match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
             get    "network/networks", :controller => 'network', :action=>'networks'
             get    "network/networks/:id", :controller => 'network', :action=>'network_show'
             post   "network/networks", :controller => 'network', :action=>'network_create'

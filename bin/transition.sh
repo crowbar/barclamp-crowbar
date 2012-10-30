@@ -44,6 +44,14 @@ then
   exit -1
 fi
 
-post_state $1 $2
+knife node list | while read line
+do
+  if [ $1 == $line ]
+  then
+    echo "Transitioning node $1 to state $2"
+    post_state $1 $2
+    break
+  fi
+done
 
 exit 0

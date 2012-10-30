@@ -2,9 +2,7 @@
 
 Node APIs are used to manage nodes (servers) within the Crowbar system
 
-#### Node Show
-
-By default, returns HTML for node information
+#### Node Show (all)
 
 **Input:**
 
@@ -12,7 +10,30 @@ By default, returns HTML for node information
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> GET  </td><td> 2.0/node/[id]?format=json </td><td> id is the node ID or name. </td><td> json extension required to return json  </td></tr>
+<tr><td> GET  </td><td> /2.0/crowbar/2.0/node</td><td> no options </td><td> Specialized return </td></tr>
+</table>
+
+
+**Output:**
+
+    { 
+      4:"greg.example.com",
+      5:"rob.example.com"
+    }
+
+Details:
+
+* json format is id: Node name
+
+#### Node Show (single)
+
+**Input:**
+
+
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> GET  </td><td> /2.0/crowbar/2.0/node/[id]</td><td> id is the node ID or name. </td><td>   </td></tr>
 </table>
 
 
@@ -32,7 +53,6 @@ By default, returns HTML for node information
 
 Details:
 
-* Format - html (can request json)
 * id - Node id
 * name - Node name
 * all Node properties serialized
@@ -45,7 +65,7 @@ Creates a new node
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> POST  </td><td> /2.0/node </td><td> json definition (see Node Show) </td><td> must be a legal object </td></tr>
+<tr><td> POST  </td><td> /2.0/crowbar/2.0/node </td><td> json definition (see Node Show) </td><td> must be a legal object </td></tr>
 </table>
 
 **Input:**
@@ -70,7 +90,7 @@ Deletes a node
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> DELETE  </td><td> /2.0/node/[id] </td><td> Database ID or name </td><td> must be an existing object ID </td></tr>
+<tr><td> DELETE  </td><td> /2.0/crowbar/2.0/node/[id] </td><td> Database ID or name </td><td> must be an existing object ID </td></tr>
 </table>
 
 No body.

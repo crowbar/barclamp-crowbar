@@ -88,6 +88,8 @@ Crowbar::Application.routes.draw do
         get ':id/edit' => "nodes#edit", :as => :edit_node
         put ':id/update' => 'nodes#update', :as => :update_node
         get ":id" => 'nodes#show', :as => 'node'
+        # barclamp UI extension
+        match ':controller(/:id)', :action=>'nodes', :as=> :nodes_barclamp 
       end
     end
   end

@@ -19,10 +19,11 @@
 -import(digest_auth).
 
 % create a base system
-pop()           -> pop("default").
-pop(ConfigName) ->
-  ConfigPre = bdd:getconfig(ConfigName),
-  Config = bdd:start(ConfigPre),
+pop()           -> pop(default).
+pop(ConfigName) when is_atom(ConfigName) ->
+  pop(bdd:getconfig(atom_to_list(ConfigName)));
+pop(ConfigRaw) ->
+  Config = bdd:start(ConfigRaw),
   %nodes
   C1 = add_node(Config, node1, "node1.crowbar.com", "Populated Information!", 250),
   C2 = add_node(C1, node2, "node2.crowbar.com", "Some Populated Information!", 260),
@@ -34,23 +35,23 @@ pop(ConfigName) ->
 
 % tear it down
 unpop(Config) ->
-  remove(Config, nodes, node1),
-  remove(Config, nodes, node2),
-  remove(Config, nodes, node3),
-  remove(Config, nodes, node4),
-  remove(Config, groups, group1),
-  bdd:stop(Config).
+  C1 = remove(Config, nodes, node1),
+  C2 = remove(C1, nodes, node2),
+  C3 = remove(C2, nodes, node3),
+  C4 = remove(C3, nodes, node4),
+  C5 = remove(C4, groups, group1),
+  C5.
 
 remove(Config, Type, Atom) ->
-  bdd_utils:teardown_destroy(Config, apply(Type, g, [path]), Atom).
+  crowbar_rest:destroy(Config, apply(Type, g, [path]), Atom).
 
 add_group(Config, Atom, Name, Descripton, Order) ->
   JSON = groups:json(Name, Descripton, Order, 'ui'),
-  bdd_utils:setup_create(Config, groups:g(path), Atom, Name, JSON).
+  crowbar_rest:create(Config, groups:g(path), Atom, Name, JSON).
 
   
 add_node(Config, Atom, Name, Description, Order) ->
   Node = nodes:json(Name, Description, Order),
-  bdd_utils:setup_create(Config, nodes:g(path), Atom, Name, Node).
+  crowbar_rest:create(Config, nodes:g(path), Atom, Name, Node).
 
   

@@ -14,7 +14,7 @@
 % 
 % 
 -module(json).
--export([parse/1, value/2, output/1, keyfind/2]).
+-export([parse/1, value/2, output/1, pretty/1, keyfind/2]).
 -export([json_array/3, json_value/2]).
 -import(bdd_utils).
 
@@ -56,7 +56,7 @@ json_value(Value, RawJSON) ->
     ${ -> J = json(#json{raw=RawJSON}, []),                   % recurse to get list
             #jsonkv{value=J#json.list, raw=J#json.raw};  
     $[ -> J = json_array(0, [], T),                    % recurse to get array using 0++ as the Key
-            #jsonkv{value=J, raw=J#json.raw};  
+            #jsonkv{value=J#json.list, raw=J#json.raw};  
     $, -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
     $} -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
     $] -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
@@ -71,13 +71,14 @@ json_array(Index, Value, RawJSON) ->
     {_, $:} -> throw('unexpected token : in array');
     {_, $}} -> throw('unexpected token } in array');
     {_, $[} -> throw('unexpected token [ in array');
-    {_, ${} -> J = json(#json{raw=RawJSON}, []),                   % recurse to get list
-               lists:merge([{Index, J#json.list}], json_array(Index+1, [], J#json.raw)); 
-    {[], $,} -> json_array(Index, [], T);      % no value, but recurse to get next element
-    {V, $,} -> lists:merge([{Index, string:strip(V)}], json_array(Index+1, [], T));      % recurse to get next element
-    {V, $]} -> [{Index, string:strip(V)}];                     % terminator, return
-    {V, $"} -> json_value_quoted(V, T);                        % run to next quote,exit
-    {V, _} -> json_array(Index, V ++ [Next], T)                % recurse
+    {_, ${}  -> J = json(#json{raw=RawJSON}, []),               % recurse to get sublist
+                json_array(Index, J#json.list, J#json.raw);     % continue w/ value from sublist
+    {[], $,} -> json_array(Index, [], T);                       % no value, but recurse to get next element
+    {V, $,} ->  List = json_array(Index+1, [], T),              % more items, go get them
+               #json{list=lists:merge([{Index, string:strip(V)}], List#json.list), raw=List#json.raw};      % recurse to get next element
+    {V, $]} -> #json{list=[{Index, string:strip(V)}], raw=T};   % terminator, return
+    {V, $"} -> json_value_quoted(V, T);                         % run to next quote,exit
+    {V, _} ->  json_array(Index, V ++ [Next], T)                % recurse
   end.
   
 % parses the Key Value pairs (KVPs) based on , & } delimiters
@@ -99,6 +100,21 @@ json(JSON, Key) ->
 % entry point
 parse(RawJSON) ->
   json(#json{raw=RawJSON}, []).
+
+% Pretty Output of List
+pretty(List) -> 
+  pretty(List, "  "),
+  io:format("~n").
+pretty([], _Level) -> noop;
+pretty([Head | List], Level) ->
+  pout(Head, Level),
+  pretty(List, Level).
+pout({K,V}, Level) -> 
+  case V of
+    [{_K, _V} | _L] -> io:format("~n~s~p:",[Level, K]),
+                       pretty(V, Level++"  ");
+    _               -> io:format("~n~s~p: ~p",[Level, K, V])
+  end.
 
 % CREATE JSON STRING FROM List: [{K, V}, {K, V}, {K, [{K, V}, ...]}, ...]
 % create json from list

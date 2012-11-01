@@ -25,13 +25,13 @@ pop(ConfigName) when is_atom(ConfigName) ->
 pop(ConfigRaw) ->
   Config = bdd:start(ConfigRaw),
   %nodes
-  C1 = add_node(Config, node1, "node1.crowbar.com", "Populated Information!", 250),
-  C2 = add_node(C1, node2, "node2.crowbar.com", "Some Populated Information!", 260),
-  C3 = add_node(C2, node3, "node3.crowbar.com", "More Populated Information!", 270),
-  C4 = add_node(C3, node4, "node4.crowbar.com", "Extra Populated Information!", 280),
-  C5 = add_group(C4, group1, "Rack1", "North Pole", 1000),
+  C0 = add_group(Config, group1, "Rack1", "North Pole", 1000),
+  C1 = add_node(C0, node1, "node1.crowbar.com", "Populated Information!", 250, "Rack1"),
+  C2 = add_node(C1, node2, "node2.crowbar.com", "Some Populated Information!", 260, "Rack1"),
+  C3 = add_node(C2, node3, "node3.crowbar.com", "More Populated Information!", 270, "Rack1"),
+  C4 = add_node(C3, node4, "node4.crowbar.com", "Extra Populated Information!", 280, "Rack1"),
   io:format("Done.~n"),
-  C5.
+  C4.
 
 % tear it down
 unpop(Config) ->
@@ -49,6 +49,11 @@ add_group(Config, Atom, Name, Descripton, Order) ->
   JSON = groups:json(Name, Descripton, Order, 'ui'),
   crowbar_rest:create(Config, groups:g(path), Atom, Name, JSON).
 
+
+add_node(Config, Atom, Name, Description, Order, Group) ->
+  C = add_node(Config, Atom, Name, Description, Order),
+  groups:step(Config, [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),
+  C.
   
 add_node(Config, Atom, Name, Description, Order) ->
   Node = nodes:json(Name, Description, Order),

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 class CreateCmdbMaps < ActiveRecord::Migration
-  def change
+  def up
     create_table :cmdb_maps do |t|
       t.string :name
       t.string :description
@@ -26,5 +26,19 @@ class CreateCmdbMaps < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    # add sample data for development
+    if Rails.env == 'development' 
+      CmdbMap.find_or_create_by_name!( 
+        :name=>'testmap', 
+        :barclamp=>'test',
+        :map=>%/{ "name" : { "chef": "[:name]" }, "mac": { "chef": "[:macaddress]" }, "memory": { "chef": "[:memory][:total]" }, "cpu_type": { "chef": "[:cpu]['0'][:model_name]" }, "cpu_count": { "chef": "[:cpu][:total]"}, "hardware": { "chef": "[:dmi][:system][:product_name]" }, "uptime": { "chef": "[:uptime]" } }/
+      )
+    end
+  end
+
+
+  def down
+    drop_table :cmdb_maps
   end
 end

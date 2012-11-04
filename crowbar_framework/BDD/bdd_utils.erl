@@ -16,6 +16,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
+-export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2]).
@@ -29,21 +30,28 @@ assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
 
 % for quick debug that you want to remove later (like ruby puts)
-puts(Format) -> debug(true, Format).  
-puts(Format, Data) -> debug(true, Format, Data).
+puts(Format)        -> log(puts, Format).  
+puts(Format, Data)  -> log(puts, Format, Data).
 
-% for debug statements that you want to leave in
-debug(Format) -> debug(Format, []).
-debug(puts, Format) -> debug(true, Format++"~n", []);
-debug(true, Format) -> debug(true, Format, []);
-debug(false, Format) -> debug(false, Format, []);
-debug(Format, Data) -> debug(false, Format, Data).
-debug(Show, Format, Data) ->
-  case Show of
-    true -> io:format("DEBUG: " ++ Format, Data);
+% DEPRICATED! for debug statements that you want to leave in
+debug(Format)             -> log(debug, Format, []).
+debug(Format, Data)       -> log(debug, Format, Data).
+debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
+
+% FOR PERFORMANCE, always call with Config if available!
+log(Format)                       -> log(info, Format, []).
+log(Format, Data)                 -> log(info, Format, Data).
+log(Level, Format, Data)          -> 
+  {ok, Config} = file:consult("default.config"),
+  log(Config, Level, Format, Data).
+log(Config, Level, Format, Data)  ->
+  Levels = config(Config, log, [true, puts, warn]),
+  Prefix = string:to_upper(atom_to_list(Level)),
+  case lists:member(Level, Levels) of
+    true -> io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
     _ -> noop
   end.
-
+  
 % return the list of feature to test
 features(Config) ->
   filelib:wildcard(features(Config, "*")).

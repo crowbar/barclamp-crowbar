@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
+-export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4, inspect/1, is_clean/1]).
@@ -40,12 +40,18 @@ test(ConfigName)         ->
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
 feature(Feature)                        -> feature("default", Feature).
-feature(ConfigName, Feature)            ->
+feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) -> feature(atom_to_list(ConfigName), atom_to_list(Feature));
+feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
+
+% run one or `all` of the scenarios in a feature
+scenario(Feature, ID)               -> scenario("default", atom_to_list(Feature), ID).
+scenario(ConfigName, Feature, ID)   ->
   Config = getconfig(ConfigName),
   FileName = bdd_utils:features(Config, Feature),
-  FeatureConfig = run(Config, Feature, FileName),
+  FeatureConfig = run(Config, Feature, FileName, ID),
   [{feature, _F, R} | _ ] = stop(FeatureConfig),
   R.
+  
 
 % recursive runner with error catching
 run(_Config, [], [])                  -> [];
@@ -57,13 +63,14 @@ run(Config, [], [FileName | Features]) ->
 	    io:format("\tRESULTS: ~p.~n", [Result]),
       Result
 	catch
-		X: Y -> io:format("ERROR: feature error ~p:~p~n", [X, Y]),
+		X: Y -> io:format("ERROR: Feature error ~p:~p~n", [X, Y]),
 		[error]
 	end,
   [R | run(Config, [], Features)];
 
 % the main runner requires you to have the feature & filename defined
-run(Config, Feature, FileName)     ->
+run(Config, Feature, FileName)     -> run(Config, Feature, FileName, all).
+run(Config, Feature, FileName, ID) ->
   % figure out the file name
   Fatom = list_to_atom(Feature),
   % start inet client if not running
@@ -78,12 +85,18 @@ run(Config, Feature, FileName)     ->
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
-  Result = {feature, ScenarioName, [setup_scenario(SetupConfig, Scenario, []) || Scenario <- Scenarios]},
+  Result = {feature, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
   % tear down
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
   [Result | StartConfig].
 	
+% manual start helper for debugging
+start(Config) when is_atom(Config) -> 
+  C = getconfig(atom_to_list(Config)),
+  start(C);
+  
+% critical start method used by tests
 start(Config) ->
   Started = bdd_utils:config(Config, started, false),
   Global = bdd_utils:config(Config, global_setup, default),
@@ -112,7 +125,8 @@ stop(Config) ->
   end.
 
 % load the configuration file
-getconfig(ConfigName) ->
+getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));
+getconfig(ConfigName)                  ->
   {ok, ConfigBase} = file:consult(ConfigName++".config"),
   [{config, ConfigName} | ConfigBase].
   
@@ -125,15 +139,15 @@ feature_import(FileName) ->
   {feature, Name, Scenarios}.
 	
 % run the scenarios, test list allows you to pick which tests
-setup_scenario(Config, Scenario, Tests) ->
+setup_scenario(Config, Scenario, ID) ->
   [RawName | RawSteps] = string:tokens(Scenario, "\n"),
   Name = bdd_utils:clean_line(RawName),
   [First | _ ] = Name,
-  Member = lists:member(Name,Tests),
+  TestID = erlang:phash2(Name),
   if 
     First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
-    Member; length(Tests) =:= 0 -> test_scenario(Config, RawSteps, Name);
-    true -> io:format("\tSKIPPED ~p~n", [Name])
+    ID =:= all; TestID =:= ID -> test_scenario(Config, RawSteps, Name);
+    true -> io:format("\t........: skipping ~p (~p)~n", [TestID, Name])
   end.
 
 % output results information
@@ -161,7 +175,7 @@ test_scenario(Config, RawSteps, Name) ->
   ThenSteps = lists:reverse(BackwardsThenSteps),
   FinalSteps = lists:reverse(BackwardsFinalSteps),
 
-	io:format("\tSCENARIO: ~p (~p steps) ", [Name, N]),
+	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, erlang:phash2(Name), N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
 	Given = [step_run(Config, [], GS) || GS <- GivenSteps],

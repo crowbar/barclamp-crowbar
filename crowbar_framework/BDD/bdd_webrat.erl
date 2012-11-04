@@ -52,22 +52,22 @@ step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) ->
   URL = eurl:find_link(Menu, Block),
   click_link(Config, URL, Menu);
 
-step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) -> 
-	%bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [_Result, Text]),
-	eurl:search(Text,_Result, false);
+step(Config, Result, {step_then, _N, ["I should not see", Text]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	eurl:search(Text,Result, false);
 
-step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
-	%bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
 	
-step(_Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
-	%bdd_utils:debug(true,"step_then result ~p should have ~p on the page~n", [_Result, Text]),
+step(Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
+	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [_Result, Text]),
 	eurl:search(Text,_Result);
 
-step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
-	%bdd_utils:debug("step_then result ~p should have ~p on the page~n", [Result, Text]),
+step(Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should have ~p on the page~n", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section);

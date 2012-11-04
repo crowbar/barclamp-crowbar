@@ -4,6 +4,14 @@ Crowbar includes a Business Driven Development (BDD) framework written in Erlang
 
 The intent of these tests are to focus on the responses and requests to the web-interface and RESTful API.
 
+Core BDD Commands:
+1. test - runs the complete suite
+2. feature - runs a single feature test file
+3. scenario - runs a single test from a feature file
+4. steps - shows available steps already created when creating new scenarios
+
+> The site you are trying to test MUST BE RUNNING!
+
 ### Using the BDD tool
 
 1. `cd /opt/dell/crowbar_framework/BDD`
@@ -11,6 +19,7 @@ The intent of these tests are to focus on the responses and requests to the web-
 1. `erl` to start a command shell for erlang
   1. `bdd:test().` will run all the tests and report the results
   1. `bdd:feature(name).` will run just the named feature set.  You can pass the feature name as an atom or string.
+  1. `bdd:scenario(name, id).` will run just the scenario selected from the feature file.  ID's are assigned by BDD based on a hash of the scenario name.
   1. `bdd:steps().` will show you all the available step definitions
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
@@ -52,9 +61,7 @@ Reviewing the trace output on failed tests is the fastest way to determine if th
 #### Running BDD from Erlang
 Erlang is a functional language, that means that you can run nearly any step if you can duplicate the input.  Nearly every BDD method requires the Config list.  The config list contains critical information about the environment and session data based on a system login.
 
-To create a Config list, do the following
-1. get a basic config list, `Cbase = bdd:getconfig("default").`
-1. get the login session, `Config = bdd:start(Cbase).`
+To create a Config list, use the start command with a configuration: `bdd:start(default).`  This command will load the selected config, start the http & auth services and finally get a session for access to the web site.
 
 > The session will expire if it is not used!  If the session expires, forget the values (`f(Cbase)` and `f(Config).`).
 

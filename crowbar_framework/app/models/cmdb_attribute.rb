@@ -13,11 +13,12 @@
 # limitations under the License.
 #
 class CmdbAttribute < ActiveRecord::Base
-  attr_accessible :name, :description, :order, :value, :revision
+  attr_accessible :name, :description, :order, :value, :revision, :node_name
   
-  belongs_to :cmdb_run # each run is a CMDB read and write
+  belongs_to :cmdb_run # each run is multiple CMDB reads and writes
   belongs_to :cmdb_map
   belongs_to :node_attribute
+  belongs_to :node_id
 
-  # renamed
+
 end

@@ -20,4 +20,32 @@ class CmdbMap < ActiveRecord::Base
   has_many :cmdb_runs
   has_many :cmdb_attributes
 
+  attr_writer :cmdb_backend
+
+  def backend
+    @backend || 'chef'
+  end
+
+  def mapping_hash
+    {} unless map
+    JSON::parse(map)
+  end
+  
+  # unnecessary?  probably.
+  def mapping_hash=(mhash)
+    map = mhash.to_json
+    save!
+  end
+  
+  # rather than just returning an array, I'd like this to be # an enumerable sorta thing 
+  # but I'm not there yet with my ruby
+  def mapping
+    new_mapping = {}
+    mapping_hash.each do | attribute, sub_pair |
+      next unless cmdb_attr = sub_pair.fetch(backend)
+      new_mapping[attribute] = cmdb_attr
+    end
+    return new_mapping
+  end
+
 end

@@ -20,6 +20,7 @@ class CreateCmdbRuns < ActiveRecord::Migration
 
       t.references :cmdb
       t.references :cmdb_map
+      t.references :proposal_config
 
       t.timestamps
     end

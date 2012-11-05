@@ -6,8 +6,8 @@
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> GET   </td><td> /proposal/status/2.0  </td><td> none  </td><td> All proposals  </td><td> Used by Barclamp List  </td></tr> 
-<tr><td> GET </td><td> /proposal/status/2.0/[id]  </td><td> id is the proposal ID.  </td><td> Used by Proposal Views  </td></tr>
+<tr><td> GET   </td><td> /2.0/crowbar/2.0/proposal/status  </td><td> none  </td><td> All proposals  </td><td> Used by Barclamp List  </td></tr> 
+<tr><td> GET </td><td> 2.0/crowbar/2.0/proposal/status/2.0/[id]  </td><td> id is the proposal ID.  </td><td> Used by Proposal Views  </td></tr>
 </table>
 
 **Output:**

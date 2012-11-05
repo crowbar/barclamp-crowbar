@@ -118,18 +118,18 @@ pout({K,V}, Level) ->
 
 % CREATE JSON STRING FROM List: [{K, V}, {K, V}, {K, [{K, V}, ...]}, ...]
 % create json from list
-output({json, List}) -> 
-  lists:concat(["{", output_inner(List), "}"]);
-output(List) -> 
-  lists:concat(["{", output_inner(List), "}"]).
+output({json, List}) -> output(List);
+output(List)         -> lists:concat(["{", output_inner(List), "}"]).
 
-atomize({K, V}) ->
-  Value = case V of
-    [{_, _} | _] -> output(V);
-    _ -> V
-  end,
-  lists:concat(["\"", K, "\":\"", Value, "\""]).
+% break List into smaller parts
+atomize({K, [{K1, V1} | T]})       -> lists:concat([quote_key(K),":", output([{K1, V1} | T])]);
+atomize({K, V})                    -> lists:concat([quote_key(K),":\"", V, "\""]).
 
+% quote strings, no not quote number keys
+quote_key(K) when is_integer(K) -> K;
+quote_key(K)                    -> lists:concat(["\"",K,"\""]).
+
+% recurse the list
 output_inner([Head | []]) ->
   atomize(Head);
 output_inner([Head | Tail]) ->

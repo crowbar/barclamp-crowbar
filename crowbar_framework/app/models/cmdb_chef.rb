@@ -14,13 +14,13 @@
 #
 #
 # TODO - this belongs in it's own barclamp!!!
-module CmdbChef < Cmdb
+class CmdbChef < Cmdb
 
-  def initialize
+  def init
     Chef::Config.node_name CHEF_NODE_NAME
     Chef::Config.client_key CHEF_CLIENT_KEY
     Chef::Config.chef_server_url CHEF_SERVER_URL
-    super.initialize   
+    super.init  
   end
 
   # I'm totally not understanding the proposal configs/proposals

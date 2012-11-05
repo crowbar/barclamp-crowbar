@@ -15,23 +15,26 @@
 #
 # This model is a stub for the CMDB override system
 # It is NOT installed by default, but can be used for testing or as a model
-module CmdbTest < Cmdb
+class CmdbTest < Cmdb
 
-  def initialize  
-    super.initialize  
+  def init
+    super.init
   end
 
-  def run(proposal_config_id)
-    super.run proposal_config_id
+  def run(config_id)
+    super.run config_id
+    config_id
   end
 
   def node(name)
     # override
     super.node name
+    name
   end
 
   def data(key)
     super.data key
+    key
   end
 
 end

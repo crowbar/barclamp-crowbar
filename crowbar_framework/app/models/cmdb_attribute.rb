@@ -18,7 +18,7 @@ class CmdbAttribute < ActiveRecord::Base
   belongs_to :cmdb_run # each run is multiple CMDB reads and writes
   belongs_to :cmdb_map
   belongs_to :node_attribute
-  belongs_to :node_id
+  belongs_to :node
 
 
 end

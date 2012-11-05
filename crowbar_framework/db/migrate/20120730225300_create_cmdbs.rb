@@ -19,7 +19,6 @@ class CreateCmdbs < ActiveRecord::Migration
       t.string :description, :null=>true
       t.string :type, :null=>false
       t.integer :order, :default=>10000
-      t.string :backend , :null => false, :default => 'chef'
       t.timestamps
     end
     #natural key

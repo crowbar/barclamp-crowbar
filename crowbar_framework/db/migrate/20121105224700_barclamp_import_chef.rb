@@ -14,9 +14,9 @@
 #
 
 # TODO - this belongs in it's own barclamp!!!
-class BarclampImportDns < ActiveRecord::Migration
+class BarclampImportChef < ActiveRecord::Migration
   def up
-    Cmdb.find_or_create_by_name!(:name=>'Chef', :descripton=>'Opscode Chef', :backend=>'chef')
+    Cmdb.find_or_create_by_name!(:name=>'chef', :descripton=>'Opscode Chef', :type=>'CmdbChef', :order=>1000)
   end
 
   def down

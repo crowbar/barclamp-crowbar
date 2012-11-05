@@ -13,8 +13,59 @@
 # limitations under the License.
 #
 #
-module CmdbChef 
+# TODO - this belongs in it's own barclamp!!!
+module CmdbChef < Cmdb
 
+  def initialize
+    Chef::Config.node_name CHEF_NODE_NAME
+    Chef::Config.client_key CHEF_CLIENT_KEY
+    Chef::Config.chef_server_url CHEF_SERVER_URL
+    super.initialize   
+  end
+
+  # I'm totally not understanding the proposal configs/proposals
+  # right now, so I'm going to wing it.
+  def run(config_id)
+    super.run config_id
+  end
+  
+  def node(name)
+    begin 
+      chef_init
+      super.node name
+      return Chef::Node.load(name)
+    rescue Exception => e
+      Rails.logger.warn("Could not recover Node on load #{name}: #{e.inspect}")
+      return nil
+    end
+  end
+
+  def data(bag_item)
+    begin 
+      chef_init
+      super.data bag_item
+      return Chef::DataBag.load "crowbar/#{bag_item}"
+    rescue Exception => e
+      Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")
+      return nil
+    end
+  end
+  
+  private
+    
+  def chef_escape(str)
+    str.gsub("-:") { |c| '\\' + c }
+  end
+  
+  def query_chef
+    begin
+      chef_init
+      return Chef::Search::Query.new
+    rescue
+      return Chef::Node.new
+    end
+  end
+  
 end
 
 

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,22 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbs < ActiveRecord::Migration
-  def up
-    create_table :cmdbs do |t|
-      t.string :name
-      t.string :description, :null=>true
-      t.string :type, :null=>false
-      t.integer :order, :default=>10000
-      t.string :backend , :null => false, :default => 'chef'
-      t.timestamps
-    end
-    #natural key
-    add_index(:cmdbs, :name, :unique => true)   
+#
+# This model is a stub for the CMDB override system
+# It is NOT installed by default, but can be used for testing or as a model
+module CmdbTest < Cmdb
 
+  def initialize  
+    super.initialize  
   end
 
-  def down
-    drop_table :cmdbs
+  def run(proposal_config_id)
+    super.run proposal_config_id
   end
+
+  def node(name)
+    # override
+    super.node name
+  end
+
+  def data(key)
+    super.data key
+  end
+
 end
+
+

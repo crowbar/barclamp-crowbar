@@ -12,22 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbs < ActiveRecord::Migration
-  def up
-    create_table :cmdbs do |t|
-      t.string :name
-      t.string :description, :null=>true
-      t.string :type, :null=>false
-      t.integer :order, :default=>10000
-      t.string :backend , :null => false, :default => 'chef'
-      t.timestamps
-    end
-    #natural key
-    add_index(:cmdbs, :name, :unique => true)   
 
+# TODO - this belongs in it's own barclamp!!!
+class BarclampImportDns < ActiveRecord::Migration
+  def up
+    Cmdb.find_or_create_by_name!(:name=>'Chef', :descripton=>'Opscode Chef', :backend=>'chef')
   end
 
   def down
-    drop_table :cmdbs
+    Cmdb.delete(Cmdb.find_by_name 'chef')
   end
+  
 end

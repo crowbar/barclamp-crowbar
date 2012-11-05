@@ -27,23 +27,25 @@
 
 class Cmdb < ActiveRecord::Base
   attr_accessible :name, :description, :order, :backend
-  
-  #validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  #validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  # 
+  # Validate the name should unique 
+  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
+  #
+  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=>/[a-zA-Z][_a-zA-Z0-9]/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   has_many :cmdb_runs, :inverse_of => Cmdb
 
-  def init( backend )
-    if ( backend == 'chef' ) 
-      chef_init
-    else
-      return nil
-    end
+  def initialize
+    puts "RAH REMOVE: super class initialize"
   end
 
   # I'm totally not understanding the proposal configs/proposals
   # right now, so I'm going to wing it.
-  def run(proposal_config_id)
+  def run(config_id)
+    puts "RAH REMOVE: super run class #{config_id}"
+
     # just fake a bunch of stuff here
     self.save!
     r = CmdbRun.new
@@ -51,54 +53,13 @@ class Cmdb < ActiveRecord::Base
     r
   end
 
-
-  @@CrowbarDomain = nil
-  
-  def query_chef
-    begin
-      chef_init
-      return Chef::Search::Query.new
-    rescue
-      return Chef::Node.new
-    end
-  end
-
-  def chef_init
-    Chef::Config.node_name CHEF_NODE_NAME
-    Chef::Config.client_key CHEF_CLIENT_KEY
-    Chef::Config.chef_server_url CHEF_SERVER_URL
-  end
-  
-  def chef_escape(str)
-    str.gsub("-:") { |c| '\\' + c }
-  end
-
   def node(name)
-    if ( self.backend == 'chef' )
-      node_chef(name)
-    else
-      nil
-    end
+    puts "RAH REMOVE: super class node #{name}"
+  end
+  
+  def data(key)
+    puts "RAH REMOVE: super class data #{key}"
   end
 
-  def node_chef(name)
-    begin 
-      chef_init
-      return Chef::Node.load(name)
-    rescue Exception => e
-      Rails.logger.warn("Could not recover Node on load #{name}: #{e.inspect}")
-      return nil
-    end
-  end
-
-  def data_chef(bag_item)
-    begin 
-      chef_init
-      return Chef::DataBag.load "crowbar/#{bag_item}"
-    rescue Exception => e
-      Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")
-      return nil
-    end
-  end
 
 end

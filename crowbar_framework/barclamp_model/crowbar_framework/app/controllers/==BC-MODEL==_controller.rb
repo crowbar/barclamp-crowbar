@@ -14,5 +14,17 @@
 # 
 
 class ==^BC-MODEL==Controller < BarclampController
+  
+  def index
+    render :json => { 
+      :name=>'==BC-MODEL==', 
+      :version=>'2.0', 
+      :accepts=>['2.0'], 
+      :actions=>[],       # add methods that this barclampm implements (e.g.: node, group, network, export, etc)
+      :license=>'apache2', 
+      :copyright=>'Copyright 2011, Dell'
+    }
+  end
+  
 end
 

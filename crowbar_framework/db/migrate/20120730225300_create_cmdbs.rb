@@ -13,25 +13,14 @@
 # limitations under the License.
 #
 class CreateCmdbs < ActiveRecord::Migration
-  def up
+  def change
     create_table :cmdbs do |t|
       t.string :name
       t.string :description, :null=>true
-      t.string :type, :null=>true
       t.integer :order, :default=>10000
-      t.string :backend , :null => false, :default => 'chef'
       t.timestamps
     end
     #natural key
     add_index(:cmdbs, :name, :unique => true)   
-
-    if Rails.env == 'development'
-      c = Cmdb.find_or_create_by_name!(:name=>'TestChef', :type=>'chef')
-      c.save!
-    end
-  end
-
-  def down
-    drop_table :cmdbs
   end
 end

@@ -13,18 +13,11 @@
 # limitations under the License.
 #
 class CmdbRun < ActiveRecord::Base
-  attr_accessible :name, :description, :order, :title, :body
+  attr_accessible :title, :body
 
   belongs_to :cmdb
   belongs_to :cmdb_map
-  belongs_to :proposal_config
 
   has_many :cmdb_events
-
-
-  # given a config_instance, execute cmdb_event on proper nodes  
-  def node_update
-    #return cmdb_event
-  end
 
 end

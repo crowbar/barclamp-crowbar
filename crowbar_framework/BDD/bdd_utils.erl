@@ -101,7 +101,7 @@ is_a(Type, Value) ->
     boolean -> lists:member(Value,[true,false,"true","false"]);
     string -> is_list(Value);
     empty -> "" =:= Value;
-    _ -> false
+    RE -> nomatch =/= re:run(Value, RE)
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test

@@ -58,10 +58,12 @@ get_id(Config, Path, Key) ->
    
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
-  % TODO - match this watch for 500 & 404 errors
-  {"id", ID} = case eurl:get(Config, Path) of
+  R = eurl:get(Config, Path, not_found),
+  bdd_utils:log(Config, debug, "get_id R: ~p~n", [R]),
+  {"id", ID} = case R of
     "null"  -> {"id", "-1"};
     "undef" -> {"id", "-1"};
+    not_found -> {"id", "-1"};
     Result  -> lists:keyfind("id", 1, json:parse(Result))
   end,  
   ID.

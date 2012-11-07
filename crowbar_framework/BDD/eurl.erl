@@ -16,7 +16,7 @@
 % 
 -module(eurl).
 -export([post/3, put/3, delete/3, post_params/1, post/5, put_post/4, uri/2, path/2]).
--export([get/2, get/3, get/4, peek/2, search/2, search/3]).
+-export([get/2, get/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
 search(Match, Results, Test) ->
@@ -148,19 +148,23 @@ path(Base, Path) ->
   
 % get a page from a server
 get(Config, Page) ->
-	get(Config, Page, ok).
-get(Config, Page, not_found) ->
-	get(uri(Config,Page), 404, "Not Found");
+  get(Config, Page, ok).
 get(Config, Page, ok) ->
-	get(Config, uri(Config,Page), 200, "OK(.*)").
-get(Config, URL, _ReturnCode, StateRegEx) ->
-	%io:format("getting ~p~n", [URL]),
-	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = simple_auth:request(Config, URL),
-	{ok, StateMP} = re:compile(StateRegEx),
-	case re:run(State, StateMP) of
-		{match, _} -> Body;
-    _ -> throw({errorWhileGetting, _ReturnCode, "ERROR: get attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
-	end.
+  get(Config, uri(Config,Page), []);
+get(Config, Page, not_found) ->
+  get(Config, uri(Config,Page), [{404, not_found}]);
+get(Config, URL, _OkReturnCodes) ->
+  bdd_utils:log(Config, info, "Getting ~p~n", [URL]),
+	Result = simple_auth:request(Config, URL),
+  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = Result,
+  case _ReturnCode of
+    200 -> Body;
+    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
+           false -> throw({errorWhileGetting, _ReturnCode, "ERROR: get attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body});
+           {_, _ReturnAtom} -> _ReturnAtom
+         end
+  end.
 
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;
@@ -178,7 +182,7 @@ post(Config, URL, Parameters, _ReturnCode, StateRegEx) ->
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
+    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body})
 	end. 
 
 % Post using JSON to convey the values
@@ -190,22 +194,33 @@ put(Config, Path, JSON) ->
   
 % Put using JSON to convey the values
 put_post(Config, Path, JSON, Action) ->
-  %io:format("~ping to ~p~n", [atom_to_list(Action), URL]),
+  put_post(Config, Path, JSON, Action, []).
+put_post(Config, Path, JSON, Action, _OkReturnCodes) ->
   URL = uri(Config, Path),
-  R = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
-  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
+  bdd_utils:log(Config, info, "~ping to ~p~n", [atom_to_list(Action), URL]),
+  Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
+  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> json:parse(Body);
-    _ -> throw({errorWhilePuttingOrPosting, _ReturnCode, "ERROR: " ++ atom_to_list(Action) ++ " attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
-	end. 
-	
+    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
+           false -> throw({errorWhilePuttingOrPosting, _ReturnCode, "ERROR: " ++ atom_to_list(Action) ++ " attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body});
+           {_, _ReturnAtom} -> _ReturnAtom
+         end
+  end.
+
 delete(Config, Path, Id) ->
-  %io:format("Deleting ~p~n", [URL]),
+  delete(Config, Path, Id, []).
+delete(Config, Path, Id, _OkReturnCodes) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
-  R = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
-  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = R,
+  bdd_utils:log(Config, info, "Deleting ~p~n", [URL]),
+  Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
+  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> true;
-    _ -> throw({errorWhileDeleting, _ReturnCode, "ERROR: deletion attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body})
-	end. 
-	
+    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
+           false -> throw({errorWhileDeleting, _ReturnCode, "ERROR: deletion attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body});
+           {_, _ReturnAtom} -> _ReturnAtom
+         end
+  end.

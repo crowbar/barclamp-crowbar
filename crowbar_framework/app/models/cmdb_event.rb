@@ -13,13 +13,10 @@
 # limitations under the License.
 #
 
-# this keep track of all the events kicked off by a run
-# read cmdb, write cmdb, cmdb_status
-#
-
 class CmdbEvent < ActiveRecord::Base
   attr_accessible :attributes, :direction, :name, :result, :status, :cmdb_run, :type
 
+  # RESTORE THESE (after building tests)
   #belongs_to :cmdb_run
   #belongs_to :node, :through => :cmdb_run
   #belongs_to :cmdb, :through => :cmdb_run

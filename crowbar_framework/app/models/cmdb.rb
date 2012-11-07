@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-
-# A Cmdb is the interface to a particular Cmdb backend (puppet or chef).
-# The table has the history of all the runs against all the Cmdb backends.
-# It provides connection management to the backends.
-# Its 'run' method is called with a 'proposal config' to start a run of the Cmdb
-#
-# A CmdbRun is a series of events that makes up a the application of a proposal config.
-# Based upon the proposal config, it determines what can be executed in serial or in 
-# parallel. CmdbRun looks up the Nodes and Roles based upon the Proposal Config
-# and kicks off events to apply those roles to those nodes
-#
-
 class Cmdb < ActiveRecord::Base
 
   attr_accessible :name, :description, :type, :order
@@ -36,7 +23,7 @@ class Cmdb < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  #has_many :cmdb_runs, :inverse_of => Cmdb
+  #TEMPORARY REMOVAL... has_many :cmdb_runs, :inverse_of => Cmdb
 
   def init
     puts "RAH REMOVE: super class initialize"

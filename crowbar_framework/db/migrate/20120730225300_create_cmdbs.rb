@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 class CreateCmdbs < ActiveRecord::Migration
-  def up
+  def change
     create_table :cmdbs do |t|
       t.string :name
       t.string :description, :null=>true

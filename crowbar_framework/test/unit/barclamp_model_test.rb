@@ -65,6 +65,15 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal false, b
   end
 
+  test "Check proections on illegal barclamp names" do
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "barclamp") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "docs") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "machines") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "users") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "support") }
+    assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "application") }
+  end
+  
   test "Roles Relation" do
     b = Barclamp.find_by_name("crowbar")
     r = b.roles

@@ -15,8 +15,8 @@
 #
 class NodesController < ApplicationController
 
-  # GET /nodes
-  # GET /2.0/node
+  # API GET /2.0/crowbar/2.0/nodes
+  # UI GET /dashboard
   def index
     # EventQueue.publish(Events::WebEvent.new("nodes index page"))
     # k = Delayed::Job.enqueue(Jobs::TestJob.new)

@@ -59,3 +59,9 @@ en:
   next: Next
   prev: Previous
   export: Export
+  api:
+    wrong_version: "Requested API version (%{version}) is not supported."
+    not_found: "Could not find %{type} with id %{id}."
+    not_supported: "Requested action %{verb} is not supported on %{object}"
+    deleted: "Successfully deleted %{object} id %{id}."
+    unknown_request: "Unable to process request"

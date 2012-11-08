@@ -101,7 +101,7 @@ Crowbar::Application.routes.draw do
   scope :defaults => {:format=> 'json'} do
     # 2.0 API Pattern
     scope '2.0' do
-      constraints(:id => /([a-zA-Z0-9\-\.\_]*)/ ) do
+      constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
 
         # status operations
         scope 'status' do
@@ -109,29 +109,31 @@ Crowbar::Application.routes.draw do
         end
 
         # actions
-        post   "node/:id/hit/:req" => "nodes#hit", :as => :hit_node
+        post   "node/:id/hit/:req" => "nodes#hit", :as => :hit_node    # MOVE TO GENERIC - IPMI BARCLAMP??
                 
-        scope 'crowbar' do
-          scope '2.0' do
+        scope 'crowbar' do    # MOVE TO GENERIC!
+          scope '2.0' do      # MOVE TO GENERIC!
             # group + node CRUD operations
             match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-            get    "network/networks", :controller => 'network', :action=>'networks'
-            get    "network/networks/:id", :controller => 'network', :action=>'network_show'
-            post   "network/networks", :controller => 'network', :action=>'network_create'
-            put    "network/networks/:id", :controller => 'network', :action=>'network_update'
-            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'
+            get    "network/networks", :controller => 'network', :action=>'networks'     # MOVE TO GENERIC!
+            get    "network/networks/:id", :controller => 'network', :action=>'network_show'     # MOVE TO GENERIC!
+            post   "network/networks", :controller => 'network', :action=>'network_create'     # MOVE TO GENERIC!
+            put    "network/networks/:id", :controller => 'network', :action=>'network_update'     # MOVE TO GENERIC!
+            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'     # MOVE TO GENERIC!
             # basic list operations
-            get "node", :controller=>'nodes', :action=>'index'
-            get "group", :controller=>'groups', :action=>'index'
+            get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
+            get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
+            #get ":action", :controller=>'crowbar'
             # basic CRUD operations
-            resources :node, :controller=>'nodes'
-            resources :group, :controller=>'groups'
+            resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
+            resources :group, :controller=>'groups'     # MOVE TO GENERIC!
           end
         end
-
-        # DEPRICATE! basic CRUD operations
-        resources :node, :controller=>'nodes'
-        resources :group, :controller=>'groups'
+        
+        # generic barclamp matcher
+        match ":controller/:version/:action(/:id)", :as => :barclamp_action
+        match ":controller(/:version)", :action=> 'index'
+                
       end
     end
   end

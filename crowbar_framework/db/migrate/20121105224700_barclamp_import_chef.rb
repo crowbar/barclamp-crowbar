@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CmdbAttribute < ActiveRecord::Base
-  attr_accessible :name, :description, :order, :value, :revision
-  
-  belongs_to :cmdb_run # each run is a CMDB read and write
-  belongs_to :cmdb_map
-  belongs_to :node_attribute
-  belongs_to :node
 
-  # renamed
+# TODO - this belongs in it's own barclamp!!!
+class BarclampImportChef < ActiveRecord::Migration
+  def up
+    Cmdb.find_or_create_by_name!(:name=>'chef', :descripton=>'Opscode Chef', :type=>'CmdbChef', :order=>1000)
+  end
+
+  def down
+    Cmdb.delete(Cmdb.find_by_name 'chef')
+  end
+  
 end

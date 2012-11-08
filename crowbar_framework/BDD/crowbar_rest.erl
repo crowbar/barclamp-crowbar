@@ -25,21 +25,17 @@ g(Item) ->
 
 % validates JSON in a generic way common to all objects
 validate(JSON) ->
-  try JSON of
-    J ->
-        _CreatedAt    = json:keyfind(J, create_at),   % ADD CHECK!
-        _Description  = json:keyfind(J, description), % ADD CHECK!
-        Id            = json:keyfind(J, id),
-        Name          = json:keyfind(J, name), 
-        Order         = json:keyfind(J, order),
-        _UpdatedAt    = json:keyfind(J, updated_at),  % ADD CHECK!
-        R = [bdd_utils:is_a(number, Order), 
-             bdd_utils:is_a(name, Name), 
-             bdd_utils:is_a(dbid, Id)],
-        case bdd_utils:assert(R)of
-          true -> true;
-          false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
-        end
+  try
+    _CreatedAt    = json:keyfind(JSON, created_at),   % ADD CHECK!
+    Id            = json:keyfind(JSON, id),
+    Name          = json:keyfind(JSON, name), 
+    _UpdatedAt    = json:keyfind(JSON, updated_at),  % ADD CHECK!
+    R = [bdd_utils:is_a(name, Name), 
+         bdd_utils:is_a(dbid, Id)],
+    case bdd_utils:assert(R)of
+      true -> true;
+      false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
+    end
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
 		false
@@ -140,6 +136,10 @@ step(_Config, Result, {step_then, _N, ["the", Feature, "object is properly forma
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
   apply(Feature, validate, [JSON]);
 
+% validates a list of object IDs
+step(_Config, Result, {step_then, _N, ["the object id list is properly formatted"]}) ->
+  NumberTester = fun(Value) -> bdd_utils:is_a(integer, Value) end,
+  lists:all(NumberTester, Result);
 
 % ============================  LAST RESORT =========================================
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;

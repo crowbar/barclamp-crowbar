@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,13 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CmdbAttribute < ActiveRecord::Base
-  attr_accessible :name, :description, :order, :value, :revision
-  
-  belongs_to :cmdb_run # each run is a CMDB read and write
-  belongs_to :cmdb_map
-  belongs_to :node_attribute
-  belongs_to :node
+#
+# This model is a stub for the CMDB override system
+# It is NOT installed by default, but can be used for testing or as a model
+class CmdbTest < Cmdb
 
-  # renamed
+  def init
+    super.init
+  end
+
+  def run(config_id)
+    super.run config_id
+    config_id
+  end
+
+  def node(name)
+    # override
+    super.node name
+    name
+  end
+
+  def data(key)
+    super.data key
+    key
+  end
+
 end
+
+

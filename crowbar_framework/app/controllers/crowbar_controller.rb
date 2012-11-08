@@ -40,11 +40,11 @@ class CrowbarController < BarclampController
       render :json => @cmdb
     # PUT (not supported)
     elsif request.put?
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :object=>'cmdb'), :status => 504
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'cmdb'), :status => 504
     # DELETE
     elsif request.delete? and @cmdb
       Cmdb.delete @cmdb.id
-      render :text=>I18n.t('api.deleted', :id=>@cmdb.id, :object=>'cmdb')
+      render :text=>I18n.t('api.deleted', :id=>@cmdb.id, :obj=>'cmdb')
     # fall through REST actions (all require ID)
     elsif request.get? and @cmdb
       render :json => @cmdb

@@ -53,7 +53,10 @@ inspector(Config) ->
 step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) -> 
   JSON = json(CMDB, g(description), Type, 200),
   crowbar_rest:create(Config, g(path), JSON);
-  
+
+step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB]}) -> 
+  step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", "CmdbTest"]});
+
 step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 

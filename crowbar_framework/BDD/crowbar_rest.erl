@@ -102,9 +102,9 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
   case get_id(Config, Path, Key) of
-    "-1" -> bdd_utils:debug("\tRemoval of key ~s skipped: not found.~n", [Key]);
+    "-1" -> bdd_utils:log(Config, debug, "\tRemoval of key ~s skipped: not found.~n", [Key]);
     ID   -> eurl:delete(Config, Path, ID),
-            bdd_utils:debug("\tRemoved key ~s & id ~s.~n", [Key, ID])
+            bdd_utils:log(Config, info, "\tRemoved key ~s & id ~s.~n", [Key, ID])
   end,
   Config.
 

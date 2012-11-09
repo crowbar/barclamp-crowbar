@@ -18,7 +18,15 @@ The logging system offers several levels:
 1. debug - general information used for debugging problems
 1. info - useful data about normal operations
 1. warn - actions that are not normal and may require investigation
+1. custom - you can define your own levels (e.g.: using your name, mascot or martian crater) as long as you remember to include it in the configuration list.
 
 Users set the logging level by including the desired level in the configuration.  Levels must be added explicitly!  There is no assumption of inclusion: if you want `trace` and `warn` then you need to add both to the logging list.
 
 > The legacy `debug` methods are depricated and should be avoided!
+
+You can use the log information in two ways
+
+1. modify the configuration file when running tests (applies to all tests)
+1. use `bdd:debug(config, feature, scenario_id#, [log, level, list]).` to call a single scenario with custom logging.  If you omit the list then it will default to `[puts, debug, info, warn]`
+
+> Log messages can be very verbose!  Generally, running just 1 scenario is enough information for debugging.

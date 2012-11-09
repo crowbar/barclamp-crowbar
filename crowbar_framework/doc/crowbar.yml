@@ -2,7 +2,7 @@
 license: Apache 2
 copyright: 2012 by Dell, Inc
 author: Dell CloudEdge Team
-date: Sept 16, 2012
+date: November 9, 2012
 
 crowbar/gettingstarted:
   order: 100
@@ -44,38 +44,14 @@ crowbar/deployguide:
     order: 100
     
 crowbar/devguide:
-  date: August 30, 2012
+  date: November 9, 2012
   order: 6000
-  crowbar/devguide/documentation:
-    order: 3000
-  crowbar/devguide/makingbarclamps:
-    order: 5000
-    crowbar/devguide/create-stub:
-      order: 1000
-    crowbar/devguide/barclamp-metadata:
-      order: 1000
-      crowbar/devguide/adding-navigation:
-      crowbar/devguide/locatization:
   crowbar/devguide/api:
-    order: 6000
-    crowbar/devguide/api/status:
-      order: 1000
-    crowbar/devguide/api/node:
-      order: 2000
-    crowbar/devguide/api/group:
-      order: 2200
-    crowbar/devguide/api/barclamp:
-      order: 5000
-    crowbar/devguide/api/proposal:
-      order: 9000
+    order: 1000
+  crowbar/devguide/ui:
+    order: 2000
   crowbar/devguide/testing:
     order: 8000
-    crowbar/devguide/testing/devtool:
-      order: 100
-    crowbar/devguide/testing/units:
-      order: 1000
-    crowbar/devguide/testing/bdd:
-      order: 2000
   crowbar/devguide/building:
     order: 9000
 

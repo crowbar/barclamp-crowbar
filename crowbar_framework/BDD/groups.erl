@@ -31,15 +31,17 @@ g(Item) ->
   end.
 
 validate(JSON) ->
-  try JSON of
-    J -> 
-        Category = json:keyfind(J, category),
-        R = [lists:member(Category,g(categories)), 
-            crowbar_rest:validate(J)],
-        bdd_utils:assert(R)
+  try
+    _Description = json:keyfind(JSON, description), % ADD CHECK!
+    Order = json:keyfind(JSON, order),
+    Category = json:keyfind(JSON, category),
+    R = [bdd_utils:is_a(number, Order), 
+         lists:member(Category,g(categories)), 
+         crowbar_rest:validate(JSON)],
+    bdd_utils:assert(R)
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
+	  false
 	end. 
 
 % Common Routine

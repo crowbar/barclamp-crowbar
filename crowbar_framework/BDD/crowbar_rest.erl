@@ -138,8 +138,9 @@ step(_Config, Result, {step_then, _N, ["the", Feature, "object is properly forma
 
 % validates a list of object IDs
 step(_Config, Result, {step_then, _N, ["the object id list is properly formatted"]}) ->
+  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
   NumberTester = fun(Value) -> bdd_utils:is_a(integer, Value) end,
-  lists:all(NumberTester, Result);
+  lists:all(NumberTester, JSON);
 
 % ============================  LAST RESORT =========================================
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;

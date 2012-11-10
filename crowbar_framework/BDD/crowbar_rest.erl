@@ -55,7 +55,7 @@ get_id(Config, Path, Key) ->
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
   R = eurl:get(Config, Path, not_found),
-  bdd_utils:log(Config, debug, "get_id R: ~p~n", [R]),
+  bdd_utils:log(Config, debug, "crowbar_rest:get_id R: ~p~n", [R]),
   {"id", ID} = case R of
     "null"  -> {"id", "-1"};
     "undef" -> {"id", "-1"};

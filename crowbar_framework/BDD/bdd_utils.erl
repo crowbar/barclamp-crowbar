@@ -93,17 +93,19 @@ untrace(Config, Name, N) ->
 % test for types
 is_a(Type, Value) ->
   case Type of 
-    number -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");
-    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");
-    whole -> nomatch =/= re:run(Value, "^[0-9]*$");
-    dbid -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
-    name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
+    num     -> is_number(Value);
+    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
+    int     -> is_integer(Value);
+    whole   -> nomatch =/= re:run(Value, "^[0-9]*$");
+    dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
+    name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
-    string -> is_list(Value);
-    cidr -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
-    ip -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
-    empty -> "" =:= Value;
-    RE -> nomatch =/= re:run(Value, RE)
+    string  -> is_list(Value);
+    cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
+    ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
+    empty   -> "" =:= Value;
+    RE      -> nomatch =/= re:run(Value, RE)    % fall through lets you pass in a regex (pretty cool!)
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test

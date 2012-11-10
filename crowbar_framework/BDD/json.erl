@@ -75,8 +75,8 @@ json_array(Index, Value, RawJSON) ->
                 json_array(Index, J#json.list, J#json.raw);     % continue w/ value from sublist
     {[], $,} -> json_array(Index, [], T);                       % no value, but recurse to get next element
     {V, $,} ->  List = json_array(Index+1, [], T),              % more items, go get them
-               #json{list=lists:merge([{Index, string:strip(V)}], List#json.list), raw=List#json.raw};      % recurse to get next element
-    {V, $]} -> #json{list=[{Index, string:strip(V)}], raw=T};   % terminator, return
+               #json{list=lists:merge([string:strip(V)], List#json.list), raw=List#json.raw};      % recurse to get next element
+    {V, $]} -> #json{list=[string:strip(V)], raw=T};            % terminator, return
     {V, $"} -> json_value_quoted(V, T);                         % run to next quote,exit
     {V, _} ->  json_array(Index, V ++ [Next], T)                % recurse
   end.
@@ -88,6 +88,7 @@ json(JSON, Key) ->
     {$", _}  -> json(JSON#json{raw=T}, Key);        % ignore
     {$\n, _} -> json(JSON#json{raw=T}, Key);        % ignore
     {${, _}  -> json(#json{raw=T}, []);             % start new hash
+    {$[, _}  -> JSON2 = json_array(0, [], T), JSON2#json.list;
     {$,, _}  -> json(JSON#json{raw=T}, []);         % add new value
     {$:, _}  -> KV = json_value([], T),  % get value for key
              List = lists:merge(JSON#json.list, [{string:strip(Key), KV#jsonkv.value}]),

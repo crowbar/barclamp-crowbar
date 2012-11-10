@@ -29,15 +29,16 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try JSON of
-    J -> 
-        R =[bdd_utils:is_a(integer, json:keyfind(J, fingerprint)), 
-            bdd_utils:is_a(boolean, json:keyfind(J, allocated)), 
-            bdd_utils:is_a(string, json:keyfind(J, state)), 
-            bdd_utils:is_a(boolean, json:keyfind(J,admin)), 
-            bdd_utils:is_a(dbid, json:keyfind(J,os_id)), 
-            crowbar_rest:validate(J)],
-        bdd_utils:assert(R)
+  try
+    _Description = json:keyfind(JSON, description), % ADD CHECK!,
+    R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
+        bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
+        bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
+        bdd_utils:is_a(string, json:keyfind(JSON, state)), 
+        bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
+        bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
+        crowbar_rest:validate(JSON)],
+    bdd_utils:assert(R)
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
 		false

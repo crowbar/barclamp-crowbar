@@ -12,9 +12,8 @@ Feature: Groups
     
   Scenario: Group Basic
     When AJAX gets the group "bddthings"
-    Then the object is properly formatted
+    Then the group is properly formatted
       And there should be a key "category"
-      And the group is properly formatted
 
   Scenario: Group Add UI category
     Given there is a "ui" group "simpleadd1"

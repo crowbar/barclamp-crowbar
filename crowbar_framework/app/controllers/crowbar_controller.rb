@@ -33,7 +33,7 @@ class CrowbarController < BarclampController
   def cmdb
     render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
     @cmdb = Cmdb.find_key(params[:id]) if params[:id]
-
+    
     # POST
     if request.post?
       @cmdb = Cmdb.create params

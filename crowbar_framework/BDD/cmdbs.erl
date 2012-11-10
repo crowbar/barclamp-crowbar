@@ -55,7 +55,7 @@ step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}
   crowbar_rest:create(Config, g(path), JSON);
 
 step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB]}) -> 
-  step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", "CmdbTest"]});
+  step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", g(type)]});
 
 step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
@@ -67,8 +67,9 @@ step(Config, _Given, {step_when, _N, ["REST gets the cmdb",Name]}) ->
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
-step(_Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
-  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
+step(Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
+  bdd_utils:log(Config, trace, "CMDB properly formatted? ~p",[Result]),
+  crowbar_rest:step(Config, Result, {step_then, _N, ["the", cmdbs, "object is properly formatted"]});
 
 % Common Routine
 % Cleans up nodes that are created during tests                         

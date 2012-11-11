@@ -49,4 +49,16 @@ class Cmdb < ActiveRecord::Base
     puts "RAH REMOVE: super class data #{key}"
   end
   
+  def as_json options={}
+   {
+     :name=> name,
+     :order=> order,
+     :id=> id,
+     :description=> description,
+     :type=> type,
+     :created_at=> created_at,
+     :updated_at=> updated_at
+   }
+  end
+  
 end

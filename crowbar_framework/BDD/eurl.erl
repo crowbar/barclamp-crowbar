@@ -31,9 +31,9 @@ search(Match, Results) ->
 
 html_peek(Input, RegEx) ->
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:debug("html:peek compile: ~p on ~p~n", [RegEx, Input]),
+	bdd_utils:log(trace,"html:peek compile: ~p on ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
-	bdd_utils:debug("html:peek match: ~p~n", [Result]),
+	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
 	%{ match, [ {_St, _Ln} | _ ] } = Result,
 	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
 	case Result of
@@ -52,9 +52,9 @@ html_head(Input) ->
 peek(Match, Input) ->
   RegEx = Match,
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:debug("html:peek compile: ~p on ~p~n", [RegEx, Input]),
+	bdd_utils:log(trace, "html:peek compile: ~p on ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
-	bdd_utils:debug("html:peek match: ~p~n", [Result]),
+	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
 	%{ match, [ {_St, _Ln} | _ ] } = Result,
 	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
 	case Result of
@@ -90,9 +90,9 @@ find_link(Match, Input) ->
 	  nomatch -> io:format("ERROR: Could not find ~s in request (you may need to escape characters)", [Match]);
 	  {_, _} -> io:format("ERROR: Could not find href= information in substring '~p'~n", [AnchorTag]), throw("could not html_find_link")
 	end,
-	bdd_utils:debug("find_link anchor ~p~n", [AnchorTag]),
+	bdd_utils:log(trace, "bdd_utils: find_link anchor ~p~n", [AnchorTag]),
 	%bdd_utils:debug(, "html_find_link href regex~p~n", [re:run(AnchorTag, HrefREX)]),
-	bdd_utils:debug("find_link found path ~p~n", [Href]),
+	bdd_utils:log(trace, "bdd_utils: find_link found path ~p~n", [Href]),
 	Href.
 
 find_div([], _)       -> not_found;
@@ -156,7 +156,8 @@ get(Config, Page, not_found) ->
 get(Config, URL, _OkReturnCodes) ->
   bdd_utils:log(Config, info, "Getting ~p~n", [URL]),
 	Result = simple_auth:request(Config, URL),
-  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:get Result ~p: ~p~n", [Code, Body]),
 	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> Body;
@@ -199,7 +200,8 @@ put_post(Config, Path, JSON, Action, _OkReturnCodes) ->
   URL = uri(Config, Path),
   bdd_utils:log(Config, info, "~ping to ~p~n", [atom_to_list(Action), URL]),
   Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
-  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p~n", [Code, Body]),
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> json:parse(Body);
@@ -215,7 +217,8 @@ delete(Config, Path, Id, _OkReturnCodes) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
   bdd_utils:log(Config, info, "Deleting ~p~n", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
-  bdd_utils:log(Config, debug, "Result ~p~n", [Result]),
+	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p~n", [Code, Body]),
   {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> true;

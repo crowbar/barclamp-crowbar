@@ -20,6 +20,7 @@ Core BDD Commands:
   1. `bdd:test().` will run all the tests and report the results
   1. `bdd:feature(name).` will run just the named feature set.  You can pass the feature name as an atom or string.
   1. `bdd:scenario(name, id).` will run just the scenario selected from the feature file.  ID's are assigned by BDD based on a hash of the scenario name.
+  1. `bdd:debug(config, name, id).` will run just the scenario selected from the feature file with debug logging flags.  ID's are assigned by BDD based on a hash of the scenario name.  You may also pass a list of the specific log levels requested.
   1. `bdd:steps().` will show you all the available step definitions
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.

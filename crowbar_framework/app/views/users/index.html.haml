@@ -1,35 +1,54 @@
 %h1= t('user.title')
-%table.data.box
- %thead
-  %tr
-   %th= t('user.username')
-   %th= t('user.sign_in_count')
-   %th= t('user.failed_attempts')
-   %th= t('user.last_sign_in_at')
-   %th= t('user.last_sign_in_ip')
-   %th= t('user.is_admin')
-   -if current_user.is_admin?
-    %th= t('user.select')
-  %tbody
-   - if @users.count > 0
-    - @users.each do |user|
-     %tr.node{ :class => cycle(:odd, :even) }
-      %td= user.username
-      %td= user.sign_in_count
-      %td= user.failed_attempts
-      %td= user.last_sign_in_at
-      %td= user.last_sign_in_ip
-      %td= check_box_tag "user:#{user.username}:is_admin",  user.is_admin, checked=user.is_admin?, :disabled=>!current_user.is_admin?||user.username == "crowbar"
-      -if current_user.is_admin?
-       %td= check_box_tag "user:#{user.username}:selected", 'checked'
-   - else
-    %tr
-     %td{ :colspan=>5 }
-      = t 'no_items'
--if current_user.is_admin?
- %div{:style=>'float:right;padding:10px;height:10px;'}
-  = button_to t("user.add"), new_registration_path(resource_name), :class=>'button', :method=>'get'
-  = button_to t("user.delete"), new_registration_path(resource_name), :class=>'button'
-  = button_to t("user.reset_password"), new_registration_path(resource_name), :class=>'button'
-  = button_to t("user.unlock"), new_registration_path(resource_name), :class=>'button'
-
+= form_for :user, :url => delete_users_path, :html => { :'data-type' => 'html', :id => 'delete_users_form'} do |f|
+ - if current_user.is_admin?
+  %p{:style=>'float:right;'}
+   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('user.delete_users')}
+ .clear
+ %table.data.box
+  %thead
+   %tr
+    %th= t('user.username')
+    %th= t('user.sign_in_count')
+    %th= t('user.failed_attempts')
+    %th= t('user.last_sign_in_at')
+    %th= t('user.last_sign_in_ip')
+    %th= t('user.is_admin')
+    -if current_user.is_admin?
+     %th= t('user.select')
+     %th= t('user.actions')
+   %tbody
+    - if @users.count > 0
+     - @users.each do |user|
+      %tr.node{ :class => cycle(:odd, :even) }
+       -if current_user.is_admin?
+        %td= link_to user.username, edit_user_path(user)
+       -else
+        %td= user.username
+       %td= user.sign_in_count
+       %td= user.failed_attempts
+       %td= user.last_sign_in_at
+       %td= user.last_sign_in_ip
+       %td= check_box_tag "user:#{user.username}:is_admin",  user.is_admin, checked=user.is_admin?, :disabled=>true
+       -if current_user.is_admin?
+        %td= check_box_tag "users_to_delete[]", user.id 
+        %td
+         = link_to t("user.reset_password"), edit_password_path(user), :class=>'link'
+         = " | "
+         - if (user.access_locked?)
+          = link_to t("user.unlock"), unlock_user_path(user.id), :class=>'link'
+         - else
+          = link_to t("user.lock"), lock_user_path(user.id), :class=>'link'
+    - else
+     %tr
+      %td{ :colspan=>5 }
+       = t 'no_items'
+ - if current_user.is_admin?
+  %p{:style=>'float:left;'}
+   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('.destroy_changes')}
+   
+.clear
+ - if current_user.is_admin?
+  - if @user.admin_reset_password == true
+   = render :partial => 'form_reset_password', :locals => {:user => @user}
+  - else 
+   = render :partial => 'form', :locals => {:user => @user}

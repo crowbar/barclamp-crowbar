@@ -23,7 +23,7 @@
         - if devise_mapping.rememberable?
           = f.label :remember_me
           = f.check_box :remember_me
-          = f.submit t('user.sign_in')
+          = f.submit t('user.sign_in'), :class => :button
     %em= t('user.license_accept')
 
 = render :partial => "devise/shared/links"

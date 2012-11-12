@@ -29,7 +29,7 @@
             = render_navigation :expand_all => true, :skip_if_empty => true
         - else
           %nav
-            = link_to t('user.sign_in'),  sign_in_path
+            = link_to t('user.sign_in'),  new_user_session_path
     
     - if flash[:notice]
       .notice#flash

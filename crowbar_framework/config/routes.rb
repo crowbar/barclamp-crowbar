@@ -119,13 +119,28 @@ Crowbar::Application.routes.draw do
     end
   end
  
-  devise_for :users
-  devise_scope :user do
-    match "users/sign_in", :controller => 'users', :action =>'sign_in', :as=> :sign_in
-    match "users/sign_out", :controller => 'users', :action =>'sign_out'
-    match "users/sign_up", :controller => 'users', :action =>'sign_up'
+   
+    put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
+    get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
+    get 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
+    get 'lock_user/:id', :controller => 'users', :action=>'lock_user', :constraints => { :id => /.*/ }, :as => :lock_user
     match "manage_users", :controller => 'users', :action => 'index'
-  end
+    match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
+                                 
+    devise_for :users, :path_prefix => 'my'
+    
+    get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
+    resources :users, :except => :new 
+       
+    devise_scope :user do
+      # match "sign_in", :controller => 'sessions', :action =>'sign_in', :as=> :sign_in NO NEED TO OVERRIDE devise path new_user_session_path.
+      # match "sign_out", :controller => 'sessions',  :action =>'destroy', :as=> :sign_out
+     #  match "sign_up", :controller => 'registrations', :action =>'sign_up', :as=> :sign_up
+
+    end
+    
+
+  
  
   scope 'proposal' do
     version = "2.0"

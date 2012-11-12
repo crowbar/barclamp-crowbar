@@ -464,6 +464,13 @@ en:
   # Users
   user:
     title: Manage User Accounts
+    delete_success: Selected users successfully deleted.
+    none_selected: No users were selected for deletion.
+    create_success: User was created successfully.
+    update_success: User was updated successfully.
+    reset_password_success: User password was set successfully.
+    delete_users: Delete selected users?
+    set_password: Set Password
     options: "Options"
     username: Username
     sign_in: Sign In
@@ -485,6 +492,13 @@ en:
     license: License Details
     license_accept: "By signing in, you are accepting the relevant licenses"
     add: Add User
+    update: Update User
     delete: Delete Selected
     reset_password: Reset Password
     unlock: Unlock
+    lock: Lock
+    actions: Actions
+  devise:
+    signup: Sign up
+    failure:
+      invalid: 'Invalid username or password.'

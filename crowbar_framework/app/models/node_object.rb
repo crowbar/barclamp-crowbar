@@ -185,7 +185,7 @@ class NodeObject < ChefObject
     end
     return value
   end
-  
+
   def description(suggest=false, use_name=false)
     d = if display_set? 'description'
       display['description']
@@ -290,8 +290,12 @@ class NodeObject < ChefObject
     f[:cpu] = cpu
     f[:hw] = hardware
     f[:raid] = raid_set
-    f[:nics] = @node["network"]["interfaces"].length
+    f[:nics] = nics
     f
+  end
+
+  def nics
+    @node["network"]["interfaces"].length rescue 0
   end
   
   def memory
@@ -790,6 +794,10 @@ class NodeObject < ChefObject
     nhash = @node.to_hash
     rhash = @role.default_attributes.to_hash
     nhash.merge rhash
+  end
+
+  def bmc_address
+    @node["crowbar_wall"]["ipmi"]["address"] rescue nil
   end
 
   def get_bmc_user

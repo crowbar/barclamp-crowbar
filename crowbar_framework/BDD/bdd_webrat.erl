@@ -43,10 +43,6 @@ step(_Config, _Given, {step_when, _N, ["I go to the", Page, "page"]}) ->
 step(_Config, _Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	eurl:get(_Config, Page, not_found);
 
-step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  JSON = eurl:get(Config, Page),
-  {ajax, json:parse(JSON), Page};
-
 step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
 	[URL | _] = [eurl:find_link(Link, HTML) || HTML <- (Given), HTML =/= []],
 	click_link(Config, URL, Link);
@@ -56,22 +52,22 @@ step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) ->
   URL = eurl:find_link(Menu, Block),
   click_link(Config, URL, Menu);
 
-step(_Config, _Result, {step_then, _N, ["I should not see", Text]}) -> 
-	%bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [_Result, Text]),
-	eurl:search(Text,_Result, false);
+step(Config, Result, {step_then, _N, ["I should not see", Text]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	eurl:search(Text,Result, false);
 
-step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
-	%bdd_utils:debug("step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
 	
-step(_Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
-	%bdd_utils:debug(true,"step_then result ~p should have ~p on the page~n", [_Result, Text]),
+step(Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
+	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [_Result, Text]),
 	eurl:search(Text,_Result);
 
-step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
-	%bdd_utils:debug("step_then result ~p should have ~p on the page~n", [Result, Text]),
+step(Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
+	bdd_utils:log(Config, trace, "step_then result ~p should have ~p on the page~n", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section);
@@ -116,39 +112,12 @@ step(_Config, Result, {step_then, _N, ["I should download text with", Text]}) ->
 	  _ -> false
 	end;
 
-step(_Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  bdd_utils:debug(false, "JSON list ~p should have ~p~n", [JSON, Key]),
-  length([K || {K, _} <- JSON, K == Key])==1;
-                                                                
-step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  Value =:= json:value(JSON, Key);
-
-step(_Config, Results, {step_then, _N, ["key",Key, "should contain",Count,"items"]}) -> 
-  {C, _} = string:to_integer(Count),
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  List = json:value(JSON, Key),
-  Items = length(List),
-  Items =:= C;
-                                                                
-step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Count,"items"]}) ->
-  {C, _} = string:to_integer(Count),
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  List = json:value(JSON, Key),
-  Items = length(List),
-  Items >= C;
-
-step(_Config, Results, {step_then, _N, ["key",Key,"should be a number"]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  bdd_utils:is_a(number, json:value(JSON, Key));
-                                                       
-step(_Config, Results, {step_then, _N, ["key",Key, "should be an empty string"]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  bdd_utils:is_a(empty, json:value(JSON, Key));
-
 step(_Config, _Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
   bdd_utils:assert([eurl:find_block("<li", "</li>", R, Menu) =/= [] || R <- _Result]);
                                                                 
+step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
+  % depricated
+  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]});
+
 step(_Config, _Result, {_Type, _N, ["END OF WEBRAT"]}) ->
   false.

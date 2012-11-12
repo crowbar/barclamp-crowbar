@@ -19,13 +19,13 @@ class GroupsController < ApplicationController
   def node_action
     @group = Group.find_key params[:id]
     unless @group
-      render :json => {:error=>"Could not find Group '#{params[:id]}'."}, :status => 404
+      render :json => {:error=>I18n('not_found', :type=>'Group', :id=>params[:id])}, :status => 404
       return
     else
       unless request.get?
         @node = Node.find_key params[:node]
         unless @node
-          render :json => {:error=>"Could not find Node '#{params[:node]}'."}, :status => 404
+          render :json => {:error=>I18n('not_found', :type=>'Node', :id=>params[:node])}, :status => 404
           return
         else
           if request.post?
@@ -45,9 +45,18 @@ class GroupsController < ApplicationController
     end
   end
 
+  # GET 2.0/crowbar/2.0/group
+  def index
+    @groups = {}
+    Group.all.each { |g| @groups[g.id]=g.name }
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json { render :json => @groups }
+    end    
+  end
   
-  # GET /group/2.0/1
-  # GET /group/2.0/group
+  # GET 2.0/crowbar/2.0/group/1
+  # GET 2.0/crowbar/2.0/group/name
   def show
     @group = Group.find_key params[:id]
     respond_to do |format|

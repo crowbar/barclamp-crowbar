@@ -212,7 +212,9 @@ en:
       status_pie: "Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending"
       default_new: New_Group
       add: Add Group
-      add_group_error: "Group name should start with a letter and only contain letters, digits, -, _, ., or :."
+      remove_group: Remove Group
+      add_group_error: "Group name must start with a letter and only contain letters, digits and _"
+      add_group_exists: "Group name already exists"
       hide: Hide Group
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
       new_drag: To move nodes, drag into title
@@ -256,7 +258,7 @@ en:
       active: Allocated
       inactive: Not Allocated
       raid: RAID
-    form:
+    edit:
       allocate: Allocate
       save: Save
       raid: RAID
@@ -460,7 +462,8 @@ en:
     notuniqueincategory: "Item must be unique in category"
     lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
     fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
-
+    group_category: "Group Model Validation Error: type is not an allowed category"
+    barclamp_excludes: "Barclamp name is reserved for Crowbar internal operations"
   # Users
   user:
     title: Manage User Accounts

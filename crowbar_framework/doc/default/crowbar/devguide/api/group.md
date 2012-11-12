@@ -6,19 +6,46 @@ Group APIs are used to manage groups.  Groups are used to organized things
 
 Create, Read, Update, Delete actions for Groups
 
-##### Read
+##### List
 
-By default, returns HTML for node information
+Returns list of group id:names in the system
+
+> Note: Category is not included in this list
 
 **Input:**
-
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> 2.0/group/[id] </td>
+  <td> /2.0/crowbar/2.0/group </td>
+  <td> - </td>
+  <td> - </td></tr>
+</table>
+
+
+**Output:**
+
+    {
+      1:"not_set",
+      2:"rock_n_role",
+      4:"group_of_wrath"
+    }
+
+Details:
+
+* id - Node id
+* name - Node name
+
+##### Read
+
+**Input:**
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> GET  </td>
+  <td> /2.0/crowbar/2.0/group/[id] </td>
   <td> id is the group ID or name. </td>
-  <td> json extension required to return json  </td></tr>
+  <td> -  </td></tr>
 </table>
 
 
@@ -37,7 +64,7 @@ By default, returns HTML for node information
 
 Details:
 
-* Format - html (can request json)
+* Format - json
 * id - Node id
 * name - Node name
 * category - one of the allowed categories in lowercase: ui, rack 
@@ -52,7 +79,7 @@ Creates a new group
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> POST  </td>
-  <td> 2.0/node/ </td>
+  <td> /2.0/crowbar/2.0/node/ </td>
   <td> json definition (see Node Show) </td>
   <td> must be a legal object </td></tr>
 </table>
@@ -85,7 +112,7 @@ Deletes a group
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> DELETE  </td>
-  <td> 2.0/group/[id] </td>
+  <td> /2.0/crowbar/2.0/group/[id] </td>
   <td> Database ID or name </td>
   <td> must be an existing object ID </td></tr>
 </table>
@@ -113,22 +140,22 @@ On success, They all return the same result as the Show method
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> 2.0/group/[group-id]/node </td>
+  <td> /2.0/crowbar/2.0/group/[group-id]/node </td>
   <td> none </td>
   <td> json list of nodes (see below) </td>
   <td> Shows nodes that below to group </td></tr>
 <tr><td> POST </td>
-  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> /2.0/crowbar/2.0/group/[group-id]/node/[node-id] </td>
   <td> none </td>
   <td> json definition (see Node Show) </td>
   <td> Add node to group </td></tr>
 <tr><td> PUT  </td>
-  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> /2.0/crowbar/2.0/group/[group-id]/node/[node-id] </td>
   <td> none </td>
   <td> json definition (see Group Node Show) </td>
   <td> Move Node from Group 1 to Group 2 </td></tr>
 <tr><td> DELETE </td>
-  <td> 2.0/group/[group-id]/node/[node-id] </td>
+  <td> /2.0/crowbar/2.0/group/[group-id]/node/[node-id] </td>
   <td> none </td>
   <td> json definition (see Node Show) </td>
   <td> Removes a node from an existing group </td></tr>

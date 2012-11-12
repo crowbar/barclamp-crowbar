@@ -12,11 +12,12 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
+-export([log/4, log/3, log/2, log/1]).
+-export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2]).
 
@@ -29,20 +30,44 @@ assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
 
 % for quick debug that you want to remove later (like ruby puts)
-puts(Format) -> debug(true, Format).  
-puts(Format, Data) -> debug(true, Format, Data).
+puts(Format)        -> log(puts, Format).  
+puts(Format, Data)  -> log(puts, Format, Data).
 
-% for debug statements that you want to leave in
-debug(Format) -> debug(Format, []).
-debug(puts, Format) -> debug(true, Format++"~n", []);
-debug(true, Format) -> debug(true, Format, []);
-debug(false, Format) -> debug(false, Format, []);
-debug(Format, Data) -> debug(false, Format, Data).
-debug(Show, Format, Data) ->
-  case Show of
-    true -> io:format("DEBUG: " ++ Format, Data);
+% DEPRICATED! for debug statements that you want to leave in
+debug(Format)             -> log(debug, Format, []).
+debug(Format, Data)       -> log(debug, Format, Data).
+debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
+
+% FOR PERFORMANCE, always call with Config if available!
+log(Format)                       -> log(info, Format, []).
+log(Format, Data)                 -> log(info, Format, Data).
+log(Level, Format, Data)          -> 
+  {ok, Config} = file:consult("default.config"),
+  log(Config, Level, Format, Data).
+log(Config, Level, Format, Data)  ->
+  Levels = config(Config, log, [true, puts, warn]),
+  Prefix = string:to_upper(atom_to_list(Level)),
+  case lists:member(Level, Levels) of
+    true -> io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
     _ -> noop
   end.
+  
+% return the list of feature to test
+features(Config) ->
+  filelib:wildcard(features(Config, "*")).
+
+% return the path to a feature to test
+features(Config, Feature) ->
+  config(Config,feature_path,"features/") ++ Feature ++ "." ++ config(Config,extension,"feature").
+  
+% helper that finds the feature from the FileName
+feature_name(Config, FileName) ->
+  RegEx = bdd_utils:config(Config,feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(Config,extension,"feature"),
+	{ok, RE} = re:compile(RegEx, [caseless]),
+	case re:run(FileName, RE) of 
+	  {match,[{0,_},{Start,Length}]} -> string:sub_string(FileName, Start+1, Start+Length);
+	  _ -> FileName
+	end.
 
 % Return the file name for the test.  
 trace_setup(Config, Name, nil) ->
@@ -68,10 +93,17 @@ untrace(Config, Name, N) ->
 % test for types
 is_a(Type, Value) ->
   case Type of 
-    number -> nomatch =/= re:run(Value, "^[\-0-9]*$");
+    number -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");
+    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");
+    whole -> nomatch =/= re:run(Value, "^[0-9]*$");
+    dbid -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
     name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    boolean -> lists:member(Value,[true,false,"true","false"]);
+    string -> is_list(Value);
+    cidr -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
+    ip -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
     empty -> "" =:= Value;
-    _ -> false
+    RE -> nomatch =/= re:run(Value, RE)
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test
@@ -113,32 +145,17 @@ tokenize(Step) ->
 	[string:strip(X) || X<- Tokens].
 	
 
-% helper common to all setups using REST
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->
-  setup_create(Config, Path, Atom, Name, JSON, post).
+  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
+  crowbar_rest:create(Config, Path, Atom, Name, JSON).
 
-
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON, Action) ->
-  % just in case - cleanup to prevent collision
-  try eurl:delete(Config, Path, Name)
-  catch
-    throw: {errorWhileDeleting, 404, _} ->
-      io:format("\tDeletion of ~p failed because it does not exist~n", [Name])
-  end,
-  % create node(s) for tests
-  Result = eurl:put_post(Config, Path, JSON, Action),
-
-  % get the ID of the created object
-  {"id", Key} = lists:keyfind("id",1,Result),
-  % friendly message
-  io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
-  % add the new ID to the config list
-  [{Atom, Key} | Config].
+  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p, ~p.",[Path, Atom, Name, Action]),
+  crowbar_rest:create(Config, Path, Atom, Name, JSON, Action).
   
-% helper common to all setups using REST
+% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 teardown_destroy(Config, Path, Atom) ->
-  Item = lists:keyfind(Atom, 1, Config),
-  {Atom, Key} = Item,
-  eurl:delete(Config, Path, Key),
-  io:format("\tRemoved key ~s & id ~s in teardown step.~n", [Atom, Key]),
-  lists:delete(Item, Config).
+  io:format("** PLEASE MOVE ** setup_destroy moved from bdd_utils to destroy:crowbar_rest.  Called with ~p, ~p.",[Path, Atom]),
+  crowbar_rest:destroy(Config, Path, Atom).

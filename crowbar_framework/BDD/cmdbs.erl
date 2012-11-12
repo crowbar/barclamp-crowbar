@@ -13,68 +13,69 @@
 % limitations under the License. 
 % 
 % 
--module(nodes).
--export([step/3, json/3, validate/1, inspector/1, g/1]).
+-module(cmdbs).
+-export([step/3, json/4, validate/1, inspector/1, g/1]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/node";
-    name -> "bdd1.example.com";
-    atom -> node1;
+    path -> "2.0/crowbar/2.0/cmdb";
+    name -> "bddcmdb";
+    atom -> cmdb1;
+    type -> "CmdbTest";
     _ -> crowbar:g(Item)
   end.
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try
-    _Description = json:keyfind(JSON, description), % ADD CHECK!,
-    R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
-        bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
-        bdd_utils:is_a(string, json:keyfind(JSON, state)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
-        bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
-        crowbar_rest:validate(JSON)],
-    bdd_utils:assert(R)
+  try JSON of
+    J -> 
+        R =[bdd_utils:is_a("^Cmdb[A-Z][a-z0-9]*$", json:keyfind(J, type)), 
+            crowbar_rest:validate(J)],
+        bdd_utils:assert(R)
   catch
     X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
 		false
 	end. 
 
 % Common Routine
+% Creates JSON used for POST/PUT requests
+json(Name, Description, Type, Order) ->
+  json:output([{"name",Name},{"description", Description}, {"type", Type}, {"order", Order}]).
+
+% Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, nodes).  % shared inspector works here, but may not always
-  
-% Common Routine
-% Creates JSON used for POST/PUT requests
-json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+  crowbar_rest:inspector(Config, cmdbs).  % shared inspector works here, but may not always
 
-step(Config, _Given, {step_when, _N, ["REST gets the node list"]}) -> 
+step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) -> 
+  JSON = json(CMDB, g(description), Type, 200),
+  crowbar_rest:create(Config, g(path), JSON);
+  
+step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the node",Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST gets the cmdb",Name]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
+
      
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
-step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) -> 
-  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", nodes, "object is properly formatted"]});
+step(_Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
+  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
 
 % Common Routine
 % Cleans up nodes that are created during tests                         
-step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
-  crowbar_rest:destroy(Config, g(path), Node);
+step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) -> 
+  crowbar_rest:destroy(Config, g(path), CMDB);
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  Node = json(g(name), g(description), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), Node);
+  CMDB = json(g(name), g(description), g(type), 100),
+  crowbar_rest:create(Config, g(path), g(atom), g(name), CMDB);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it

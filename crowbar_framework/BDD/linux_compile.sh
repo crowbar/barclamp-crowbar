@@ -5,7 +5,7 @@ rm -f trace_*.txt
 
 # Compile
 for f in *.erl; do
-  erlc $f
+  erlc $f +debug_info
 done
 
 # Run Tests

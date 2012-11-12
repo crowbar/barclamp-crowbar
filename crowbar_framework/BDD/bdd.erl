@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
+-export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4, debug/3, debug/4, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4, inspect/1, is_clean/1]).
@@ -44,14 +44,18 @@ feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) -> featu
 feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
-scenario(Feature, ID)               -> scenario("default", atom_to_list(Feature), ID).
-scenario(ConfigName, Feature, ID)   ->
-  Config = getconfig(ConfigName),
+scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
+scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, []).
+scenario(ConfigName, Feature, ID, Log) ->
+  Config = [{log, Log} | getconfig(ConfigName)],
   FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName, ID),
   [{feature, _F, R} | _ ] = stop(FeatureConfig),
   R.
   
+% version of scenario with extra loggin turned on
+debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
+debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
 % recursive runner with error catching
 run(_Config, [], [])                  -> [];
@@ -278,6 +282,7 @@ is_clean(Config, StartState) ->
   Diff = lists:subtract(StartState, EndState),
   case Diff of
     []      -> true;
+    % TODO - cleanup should tell you if the artifacts are from BEFORE or AFTER.  Right now, it is not clear!
     Orphans -> io:format("~nWARNING, Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
                false
   end.

@@ -33,18 +33,18 @@ class CrowbarController < BarclampController
   def cmdb
     render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
     @cmdb = Cmdb.find_key(params[:id]) if params[:id]
-
+    
     # POST
     if request.post?
       @cmdb = Cmdb.create params
       render :json => @cmdb
     # PUT (not supported)
     elsif request.put?
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :object=>'cmdb'), :status => 504
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'cmdb'), :status => 504
     # DELETE
     elsif request.delete? and @cmdb
       Cmdb.delete @cmdb.id
-      render :text=>I18n.t('api.deleted', :id=>@cmdb.id, :object=>'cmdb')
+      render :text=>I18n.t('api.deleted', :id=>@cmdb.id, :obj=>'cmdb')
     # fall through REST actions (all require ID)
     elsif request.get? and @cmdb
       render :json => @cmdb

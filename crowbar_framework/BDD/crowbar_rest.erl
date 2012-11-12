@@ -55,7 +55,7 @@ get_id(Config, Path, Key) ->
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
   R = eurl:get(Config, Path, not_found),
-  bdd_utils:log(Config, debug, "get_id R: ~p~n", [R]),
+  bdd_utils:log(Config, debug, "crowbar_rest:get_id R: ~p~n", [R]),
   {"id", ID} = case R of
     "null"  -> {"id", "-1"};
     "undef" -> {"id", "-1"};
@@ -98,9 +98,9 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
   case get_id(Config, Path, Key) of
-    "-1" -> bdd_utils:debug("\tRemoval of key ~s skipped: not found.~n", [Key]);
+    "-1" -> bdd_utils:log(Config, debug, "\tRemoval of key ~s skipped: not found.~n", [Key]);
     ID   -> eurl:delete(Config, Path, ID),
-            bdd_utils:debug("\tRemoved key ~s & id ~s.~n", [Key, ID])
+            bdd_utils:log(Config, info, "\tRemoved key ~s & id ~s.~n", [Key, ID])
   end,
   Config.
 

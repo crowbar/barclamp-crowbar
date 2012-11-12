@@ -80,6 +80,19 @@ API callers may bypass the login screen and use digest authentication for all re
       * name or DB id of the instance requested for the barclamp configuration
       * convenience value returns the active instance for the barclamp
 
+#### JSON Objects
+
+To keep the documentation more readable, common JSON keys will may be omitted from the JSON listing in individual API specification.
+
+Items that should be expected in most objects include:
+
+* id (the database ID)
+* name (the name of the object, generally a natural key with limited syntax)
+* description (optional, but widely used)
+* order (must be an integer, optional)
+* created_at (date object was created)
+* updated_at (date object was laste updated)
+
 #### Documentation
 
 The following table should be populated for all API calls:

@@ -68,11 +68,7 @@ get_id(Config, Path) ->
 create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
 create(Config, Path, JSON, Action) ->
   % just in case - cleanup to prevent collision
-  try destroy(Config, Path, json:keyfind(json:parse(JSON), name))
-  catch
-    throw: {errorWhileDeleting, 404, _} ->
-      io:format("\tWARN: Deletion of ~p failed because it does not exist~n", [json:keyfind(name)])
-  end,
+  destroy(Config, Path, json:keyfind(json:parse(JSON), name)),
   % create node(s) for tests
   eurl:put_post(Config, Path, JSON, Action).
   
@@ -80,6 +76,7 @@ create(Config, Path, Atom, Name, JSON) ->
   create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
+  bdd_utils:log(Config, debug, "Entering crowbar_rest:create Path: ~p, Name: ~p, JSON: ~p~n", [Path, Name, JSON]),
   Result = create(Config, Path, JSON, Action),
   % get the ID of the created object
   Key = json:keyfind(Result, id),
@@ -98,9 +95,9 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
   case get_id(Config, Path, Key) of
-    "-1" -> bdd_utils:debug("\tRemoval of key ~s skipped: not found.~n", [Key]);
+    "-1" -> bdd_utils:log(Config, debug, "\tRemoval of key ~s skipped: not found.~n", [Key]);
     ID   -> eurl:delete(Config, Path, ID),
-            bdd_utils:debug("\tRemoved key ~s & id ~s.~n", [Key, ID])
+            bdd_utils:log(Config, debug, "\tRemoved key ~s & id ~s.~n", [Key, ID])
   end,
   Config.
 

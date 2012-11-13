@@ -67,6 +67,11 @@ Crowbar::Application.routes.draw do
     get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
   end
 
+  scope 'support' do
+    get 'logs', :controller => 'support', :action => 'logs'
+    get 'get_cli', :controller => 'support', :action => 'get_cli'
+  end
+
   # Barclamp UI routes (overlays that can be used generically by barclamps to create custom views)
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
@@ -82,14 +87,19 @@ Crowbar::Application.routes.draw do
     get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
     constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
-      scope 'node' do
-        get 'list' => "nodes#list", :as => :nodes_list
-        get 'families' => "nodes#families", :as => :nodes_families
-        get ':id/edit' => "nodes#edit", :as => :edit_node
-        put ':id/update' => 'nodes#update', :as => :update_node
-        get ":id" => 'nodes#show', :as => 'node'
+      scope  'node' do
+        get  'list' => "nodes#list", :as => :nodes_list
+        get  'families' => "nodes#families", :as => :nodes_families
+        get  ':id/edit' => "nodes#edit", :as => :edit_node
+        post ':id/edit' => "nodes#update", :as => :update_node
+        put  ':id/update' => 'nodes#update', :as => :update_node
+        get  ':id' => 'nodes#show', :as => 'node'
         # barclamp UI extension
-        match ':controller(/:id)', :action=>'nodes', :as=> :nodes_barclamp 
+        match ':controller(/:id)', :action=>'nodes', :as=> :nodes_barclamp
+      end
+      scope 'nodes' do
+        post 'list' => "nodes#list", :as => :nodes_list
+        get  'list' => "nodes#list", :as => :nodes_list
       end
     end
   end
@@ -109,7 +119,7 @@ Crowbar::Application.routes.draw do
         end
 
         # actions
-        post   "node/:id/hit/:req" => "nodes#hit", :as => :hit_node    # MOVE TO GENERIC - IPMI BARCLAMP??
+        get "node/:id/hit/:req" => "nodes#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
                 
         scope 'crowbar' do    # MOVE TO GENERIC!
           scope '2.0' do      # MOVE TO GENERIC!

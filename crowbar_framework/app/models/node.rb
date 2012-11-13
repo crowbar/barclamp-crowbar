@@ -14,9 +14,9 @@
 #
 
 class Node < ActiveRecord::Base
-  before_save :default_population
+  before_validation :default_population
   
-  attr_accessible :name, :description, :order, :state, :fingerprint, :admin, :allocated
+  attr_accessible :name, :description, :alias, :order, :state, :fingerprint, :admin, :allocated
   
   # 
   # Validate the name should unique (no matter the case)
@@ -25,6 +25,12 @@ class Node < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   validates_length_of :name, :maximum => 255
+
+  # TODO: 'alias' will move to DNS BARCLAMP someday, but will prob hang around here a while
+  validates_uniqueness_of :alias, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :alias, :with=>/^([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
+  validates_length_of :alias, :maximum => 100
+
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
@@ -129,6 +135,7 @@ class Node < ActiveRecord::Base
   def address(net = "admin")
     cmdb_hash.address(net)
   end
+
   def public_ip
     cmdb_hash.public_ip
   end
@@ -282,9 +289,6 @@ class Node < ActiveRecord::Base
   
   
   # Friendly name for the UI
-  def alias
-    (cmdb_get("alias") || name).split(".")[0]
-  end
 
   def ready?
     state.eql? 'ready'
@@ -325,11 +329,13 @@ class Node < ActiveRecord::Base
   end  
 
   def cmdb_get(attribute)
-    puts "CMDB looking up #{attribute}"
-    begin 
-      case attribute 
+    # TODO: substitute real cmdb calls to get all this data. Refer to nodes/_show.html.haml for complete list
+    nil
+=begin
+    begin
+      case attribute
       when "alias"
-        name.split(".")[0]
+        cmdb_hash.alias
       when "switch_name"
         cmdb_hash.switch_name 
       when "switch_unit"
@@ -349,11 +355,12 @@ class Node < ActiveRecord::Base
       when "disks"
         cmdb_hash["crowbar"]["disks"]
       else 
-        "!! CMDB GET MISSING FOR #{attribute} !!"
+        "CMDB #{attribute}"
       end
     rescue
-      "!! CMDB ERROR for #{attribute} !!"
+      "CMDB #{attribute}"
     end
+=end
   end
   
   def method_missing(m,*args,&block)
@@ -361,7 +368,6 @@ class Node < ActiveRecord::Base
     if method.starts_with? "cmdb_"
       return cmdb_get method[5..100]
     else
-      puts "Node #{name} #{method.inspect} #{args.inspect} #{block.inspect}"
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
       throw "ERROR #{method} not defined for node #{name}"
     end
@@ -382,6 +388,23 @@ class Node < ActiveRecord::Base
     attribute_hash.reject{|k,v| !API_ATTRIBUTES.include?(k) }
   end
 
+  def ip
+    #TODO reference cmdb_hash.ip somehow?
+    "unknown"
+  end
+
+  def group
+    groups[0]
+  end
+
+  def group= group
+    db_group = group.is_a?(Group) ? group : Group.find_or_create_by_name({'name' => group, 'description' => group, 'category' => 'ui'})
+    if db_group
+      category = db_group.category
+      groups.each { |g| g.nodes.delete(self) if g.category.eql?(category) }
+      groups << db_group unless db_group.nodes.include? self
+    end
+  end
 
   private
   
@@ -389,10 +412,11 @@ class Node < ActiveRecord::Base
   def default_population
     self.fingerprint = self.name.hash
     self.name = self.name.downcase
+    self.alias = self.name.split(".")[0]
     self.state ||= 'unknown' 
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')
-      self.groups << g rescue nil 
+      self.groups << g rescue nil
     end
   end
 

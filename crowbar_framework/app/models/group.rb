@@ -31,5 +31,9 @@ class Group < ActiveRecord::Base
     [self.order, self.name] <=> [other.order, other.name]
   end
 
+  def to_s
+    name
+  end
+
 end
 

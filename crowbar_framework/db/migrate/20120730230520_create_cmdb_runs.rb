@@ -14,9 +14,9 @@
 class CreateCmdbRuns < ActiveRecord::Migration
   def change
     create_table :cmdb_runs do |t|
-      t.string :name
-      t.string :description
-      t.string :order
+      t.string :name,         :null=>false
+      t.string :description,  :null=>true, :default=>true
+      t.string :order,        :default=>10000
 
       t.references :cmdb
       t.references :cmdb_map

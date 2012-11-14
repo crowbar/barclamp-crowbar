@@ -310,6 +310,18 @@ class NodeObject < ChefObject
     @node["uptime"]
   end
 
+  def drive_info
+    volumes = []
+    controllers = @node["crowbar_wall"]["raid"]["controllers"] rescue []
+    controllers = [] unless controllers
+    controllers.each do |c,k|
+      k["volumes"].each do |v|
+        volumes << "#{v["raid_level"]} #{v["size"]/1024/1024/1024}GB"
+      end
+    end
+    volumes
+  end
+
   def asset_tag
     if virtual?
       "vm-#{mac.gsub(':',"-")}"

@@ -26,4 +26,4 @@ Feature: CMDBs
   Scenario: REST Delete CMDB
     Given there is a cmdb "cmdb_delete_test"
     When REST deletes the cmdb "cmdb_delete_test"
-    Then there is a not cmdb "cmdb_delete_test"
+    Then there is not a cmdb "cmdb_delete_test"

@@ -78,7 +78,7 @@ step(Config, _Result, {step_then, _N, ["there is a cmdb",CMDB]}) ->
   bdd_utils:log(Config, debug, "cmdbs:step IS a cmdb get id returned ~p for ~p.",[ID, CMDB]),
   bdd_utils:is_a(dbid, ID);
 
-step(Config, _Result, {step_then, _N, ["there is a not cmdb",CMDB]}) -> 
+step(Config, _Result, {step_then, _N, ["there is not a cmdb",CMDB]}) -> 
   false =:= step(Config, _Result, {step_then, _N, ["there is a cmdb",CMDB]});
        
 % Common Routine

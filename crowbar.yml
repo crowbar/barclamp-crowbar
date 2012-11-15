@@ -169,8 +169,8 @@ debs:
     - dpkg-dev
     - screen
     - alien
-    - cabextract
-    - expect
+#    - cabextract
+#    - expect
 
 rpms:
   redhat-5.6:
@@ -295,8 +295,8 @@ rpms:
     # sudo stuff
     - sudo
     - screen
-    - expect
-    - cabextract
+#    - expect
+#    - cabextract
 
 gems:
   pkgs:

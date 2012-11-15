@@ -281,6 +281,7 @@ class NodesController < ApplicationController
         @network[data["usage"]] = {} if @network[data["usage"]].nil?
         if data["usage"] == "bmc"
           ifname = "bmc"
+          address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
         else
           ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
           if ifname.nil? or ifs.nil?
@@ -288,8 +289,9 @@ class NodesController < ApplicationController
           else
             ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
           end
+          address = data["address"]
         end
-        @network[data["usage"]][ifname] = data["address"] || 'n/a'
+        @network[data["usage"]][ifname] = address || 'n/a'
       end
       @network['[not managed]'] = @node.unmanaged_interfaces
     end

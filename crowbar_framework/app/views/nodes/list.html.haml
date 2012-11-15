@@ -15,6 +15,7 @@
       %tr
         %th= t('.name')
         %th= t('.alias')
+        %th= t('.hw_description')
         %th= t('.description')
         %th= t('.group')
         %th= t('.bios')
@@ -29,6 +30,7 @@
             %td= link_to node.name.split('.')[0], node_path(node.handle), :title=> node.ip
             -unless node.admin?
               %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :size => 15
+              %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :size => 15
               %td
@@ -48,6 +50,7 @@
                   = t 'complete'
             -else
               %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true) || t('.admin')}", :size => 15
+              %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description(true) || ""), :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :size => 15
               %td= t 'na'
@@ -60,7 +63,7 @@
     - if @nodes.count > 0
       %tfoot
         %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-          %td.hint{:colspan => 6}
+          %td.hint{:colspan => 7}
             = t('note')+": "+t('.hint')
           %td.action{:colspan => 1}
             %input.button{:type => "submit", :name => "submit", :value => 'Save'}

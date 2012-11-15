@@ -16,7 +16,10 @@
 class CrowbarController < BarclampController
   
   def index
-    render :json => { 
+    @title = I18n.t('title', :scope=>'barclamp.crowbar.index')
+    super
+=begin
+    render :json => {
       :name=>'crowbar', 
       :version=>'2.0', 
       :accepts=>['2.0'], 
@@ -24,6 +27,7 @@ class CrowbarController < BarclampController
       :license=>'apache2', 
       :copyright=>'Dell, Inc 2012'
     }
+=end
   end
   
   def node

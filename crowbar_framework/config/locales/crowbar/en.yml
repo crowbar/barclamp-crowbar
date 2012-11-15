@@ -330,6 +330,13 @@ en:
         attributes: Attributes
       edit_deployment:
         deployment: Deployment
+      index:
+        title: Crowbar Members
+        barclamp: Project
+        state: Status
+        proposal: Proposal
+        description: Description
+
     modules:
       title: All Barclamps
     index:

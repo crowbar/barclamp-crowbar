@@ -27,7 +27,7 @@ class Node < ActiveRecord::Base
   validates_length_of :name, :maximum => 255
 
   # TODO: 'alias' will move to DNS BARCLAMP someday, but will prob hang around here a while
-  validates_uniqueness_of :alias, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  # validates_uniqueness_of :alias, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :alias, :with=>/^([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   validates_length_of :alias, :maximum => 100
 

@@ -38,7 +38,7 @@
   %dt
     = t('.links')
   %dd
-    = link_to t('.bmc'), "https://#{@node.get_network_by_type("bmc")["address"] rescue 'none'}", :target => '_blank'
+    = link_to t('.bmc'), "https://#{@node["crowbar_wall"]["ipmi"]["address"] rescue 'none'}", :target => '_blank'
     - unless @node["crowbar"]["links"].nil?
       - @node["crowbar"]["links"].each do |name,link|
         , 

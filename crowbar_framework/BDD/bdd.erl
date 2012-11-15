@@ -32,10 +32,7 @@ test(ConfigName)         ->
   Results = run(StartedConfig, [], Features),
   % cleanup application services
   stop(StartedConfig),
-  case [R || {_, R} <- Results, R =/= pass] of
-    [] -> pass;
-    _ -> Results
-  end.
+  [print_report(R) || R <-Results].
 	  
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
@@ -50,8 +47,8 @@ scenario(ConfigName, Feature, ID, Log) ->
   Config = [{log, Log} | getconfig(ConfigName)],
   FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName, ID),
-  [{feature, _F, R} | _ ] = stop(FeatureConfig),
-  R.
+  C = stop(FeatureConfig),
+  lists:keyfind(feature, 1, C).
   
 % version of scenario with extra loggin turned on
 debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
@@ -64,7 +61,11 @@ run(Config, [], [FileName | Features]) ->
 	R = try run(Config, Feature, FileName) of
 		Run -> 
 	    {feature, _Name, Result} = lists:keyfind(feature,1,Run),
-	    io:format("\tRESULTS: ~p.~n", [Result]),
+	    Out = print_result(Result),
+	    {total, Total} = lists:keyfind(total, 1, Out),
+	    {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
+	    {fail, _N, Fail} = lists:keyfind(fail, 1, Out),
+	    io:format("\tRESULTS: Passed ~p of ~p.  Failed ~p.~n", [Pass, Total, Fail]),
       Result
 	catch
 		X: Y -> io:format("ERROR: Feature error ~p:~p~n", [X, Y]),
@@ -154,6 +155,27 @@ setup_scenario(Config, Scenario, ID) ->
     true -> io:format("\t........: skipping ~p (~p)~n", [TestID, Name])
   end.
 
+print_report(Result)  ->
+  Out = print_result(Result),
+  {total, Total} = lists:keyfind(total, 1, Out),
+  {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
+  {fail, Fail, IDs} = lists:keyfind(fail, 1, Out),
+  {skip, Skip} = lists:keyfind(skip, 1, Out),
+  {Total, Pass, Fail, Skip, IDs}.
+print_result(Result)                  ->  print_result(Result, [], [], []).
+print_result([], Pass, Fail, Skip)    ->  
+  [{total, length(Pass)+length(Fail)+length(Skip)}, 
+    {pass, length(Pass), Pass}, 
+    {fail, length(Fail), Fail},
+    {skip, length(Skip)}];
+print_result([Result | T], Pass, Fail, Skip)->
+  case Result of
+    {ID, pass} -> F=Fail, P=[ID | Pass], S=Skip;
+    ok         -> P=Pass, F=Fail, S=[skip | Skip];
+    {ID, _}    -> P=Pass, F=[ID | Fail], S=Skip
+  end,
+  print_result(T, P, F, S).
+  
 % output results information
 print_fail([]) -> true;
 print_fail({Pass, {_Type, N, Description}}) ->
@@ -179,7 +201,8 @@ test_scenario(Config, RawSteps, Name) ->
   ThenSteps = lists:reverse(BackwardsThenSteps),
   FinalSteps = lists:reverse(BackwardsFinalSteps),
 
-	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, erlang:phash2(Name), N]),
+  Hash = erlang:phash2(Name),
+	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, Hash, N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
 	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
@@ -195,10 +218,11 @@ test_scenario(Config, RawSteps, Name) ->
 	% safe to cleanup with the finally steps (we don't care about the result of those)
 	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
 	% now, check the results of the then steps
-	case bdd_utils:assert_atoms(Result) of
+	R = case bdd_utils:assert_atoms(Result) of
 		true -> bdd_utils:untrace(Config, Name, N), io:format("PASSED!~n",[]), pass;
 		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
-	end.
+	end,
+	{Hash, R}.
   
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->

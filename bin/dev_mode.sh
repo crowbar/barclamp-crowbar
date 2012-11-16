@@ -27,6 +27,7 @@ chmod 777 -R .
 chown crowbar -R .
 rake db:create
 rake db:migrate
+rake db:schema:dump
 rails s Puma
 
 

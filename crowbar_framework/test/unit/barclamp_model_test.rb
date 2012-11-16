@@ -18,15 +18,15 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   def validate_deep_compare_prop_conf(conf, conf2)
     return if conf == nil and conf2 == nil
-    assert conf != nil
-    assert conf2 != nil
+    assert_not_nil conf
+    assert_not_nil conf2
     assert_equal conf.status, conf2.status
   end
 
   def validate_deep_compare_prop(prop, prop2)
     return if prop == nil and prop2 == nil
-    assert prop != nil
-    assert prop2 != nil
+    assert_not_nil prop
+    assert_not_nil prop2
 
     assert_not_equal prop.id, prop2.id
     assert_not_equal prop.name, prop2.name
@@ -58,11 +58,9 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Unique Name" do
-    e = assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "crowbar") }
-
-    b = Barclamp.create(:name => "crowbar")
-    b = b.save
-    assert_equal false, b
+    b = Barclamp.create! :name=>"nodup"
+    assert_not_nil b
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Barclamp.create!(:name => "nodup") }
   end
 
   test "Check proections on illegal barclamp names" do
@@ -75,7 +73,9 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
   
   test "Roles Relation" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
+
     r = b.roles
 
     r1 = Role.find_by_name_and_barclamp_id("crowbar", b.id)
@@ -85,7 +85,8 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Template Relation" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
     t = b.template
 
     p = Proposal.find_by_name_and_barclamp_id("template", b.id)
@@ -93,33 +94,41 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Proposals empty" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
     t = b.proposals
 
     assert_equal [], t
   end
 
   test "Active Proposals empty" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
     t = b.active_proposals
 
     assert_equal [], t
   end
 
   test "Operations function" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_instance_of(CrowbarService, b.operations)
   end
 
   test "Versions" do
-    b = Barclamp.find_by_name("crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
     assert_equal [ "1.0" ], b.versions
   end
 
   test "Proposal Create" do
-    b = Barclamp.find_by_name("crowbar")
-
-    prop = b.create_proposal
+    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    assert_not_nil b
+    begin 
+      prop = b.create_proposal 
+    rescue
+      flunk("Exception on create proposal")
+      return false
+    end
     assert prop.name.starts_with?("create")
     validate_deep_compare_prop(prop, b.template)
 
@@ -140,8 +149,16 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
   
   test "Proposal Get" do
-    b = Barclamp.find_by_name("crowbar")
-    prop = b.create_proposal("fred")
+    b = Barclamp.find_or_create_by_name("crowbar")
+    assert_not_nil b
+
+    begin
+      prop = b.create_proposal("fred")
+    rescue
+      flunk("Exception on create proposal")
+      return false
+    end
+
     assert_equal 1, b.proposals.size
 
     assert_equal nil, b.get_proposal("John")
@@ -151,8 +168,14 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Proposal Delete" do
-    b = Barclamp.find_by_name("crowbar")
-    prop = b.create_proposal("fred")
+    b = Barclamp.find_or_create_by_name("crowbar")
+    assert_not_nil b
+    begin
+      prop = b.create_proposal("fred")
+    rescue
+      flunk("Exception on create proposal")
+      return false
+    end
     b.reload
 
     assert b.delete_proposal(b.get_proposal("fred"))
@@ -165,12 +188,18 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Get Roles by Order" do
-    b = Barclamp.find_by_name("crowbar")
-
+    b = Barclamp.find_or_create_by_name("crowbar")
+    assert_not_nil b
     ro = b.get_roles_by_order
-    assert 1, ro.length
-    assert 1, ro[0].length
-    assert ro[0][0].name, "crowbar"
+    assert_not_nil ro
+    begin
+      assert 1, ro.length
+      assert 1, ro[0].length
+      assert ro[0][0].name, "crowbar"
+    rescue
+      flunk("Exception inside get roles due to missing roles by order")
+      return false
+    end
   end
 
 end

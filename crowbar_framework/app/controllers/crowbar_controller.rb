@@ -23,7 +23,7 @@ class CrowbarController < BarclampController
       :name=>'crowbar', 
       :version=>'2.0', 
       :accepts=>['2.0'], 
-      :actions=>['node','group','cmdb'],
+      :actions=>['node','group','cmdb', 'attribute'],
       :license=>'apache2', 
       :copyright=>'Dell, Inc 2012'
     }
@@ -59,6 +59,37 @@ class CrowbarController < BarclampController
       cmdbs = {}
       Cmdb.all.each { |c| cmdbs[c.id] = c.name }
       render :json => cmdbs
+    # Catch
+    else
+      render :text=>I18n.t('api.unknown_request'), :status => 400
+    end
+  end
+
+  def attribute
+    render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
+    @attribute = Attribute.find_key(params[:id]) if params[:id]
+    
+    # POST
+    if request.post?
+      @attribute = Attribute.create params
+      render :json => @attribute
+    # PUT (not supported)
+    elsif request.put?
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'attribute'), :status => 504
+    # DELETE
+    elsif request.delete? and @attribute
+      Attribute.delete @attribute.id
+      render :text=>I18n.t('api.deleted', :id=>@attribute.id, :obj=>'attribute')
+    # fall through REST actions (all require ID)
+    elsif request.get? and @attribute
+      render :json => @attribute
+    elsif params[:id]
+      render :text=>I18n.t('api.not_found', :type=>'attribute', :id=>params[:id]), :status => 404
+    # list (no ID)
+    elsif request.get?  
+      attributes = {}
+      Attribute.all.each { |a| attributes[a.id] = a.name }
+      render :json => attributes
     # Catch
     else
       render :text=>I18n.t('api.unknown_request'), :status => 400

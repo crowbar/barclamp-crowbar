@@ -59,9 +59,20 @@ en:
   next: Next
   prev: Previous
   export: Export
+  
   api:
     wrong_version: "Requested API version (%{version}) is not supported."
     not_found: "Could not find %{type} with id %{id}."
     not_supported: "Requested action %{verb} is not supported on %{obj}"
     deleted: "Successfully deleted %{obj} id %{id}."
     unknown_request: "Unable to process request"
+
+    
+  db:
+    notunique: "Item must be unique"
+    notuniqueincategory: "Item must be unique in category"
+    lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
+    fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
+    group_category: "Group Model Validation Error: type is not an allowed category"
+    barclamp_excludes: "Barclamp name is reserved for Crowbar internal operations"
+    not_in_set: "Object %{obj} property %{prop} can only take one of [%{set}]."

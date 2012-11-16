@@ -20,3 +20,22 @@ Feature: Authentication Works
   Scenario: digest login with good password
     When I login with "developer" and "Cr0wbar!"
     Then I should see "User Authenticated using Digest Authentication"
+    
+  Scenario: Docs Available without Login
+    When I visit "dashboard" page without login
+    Then I should not see "Node Dashboard"
+      And I should not see "You are signed in"
+      And I should see "Username"
+      And I should see "Password"
+      
+  Scenario: License from Signin
+    Given I am on the "users/sign_in" page
+    When I click on the "License Details" link
+    Then I should see "System Licenses"
+      And I should see "Crowbar Framework Licenses"
+ 
+  Scenario: Docs Available without Login
+    When I visit "docs/topic/crowbar/licenses" page without login
+    Then I should see "System Licenses"
+      And I should not see "You are signed in"
+      

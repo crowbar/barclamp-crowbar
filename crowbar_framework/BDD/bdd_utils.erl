@@ -45,10 +45,15 @@ log(Level, Format, Data)          ->
   {ok, Config} = file:consult("default.config"),
   log(Config, Level, Format, Data).
 log(Config, Level, Format, Data)  ->
-  Levels = config(Config, log, [true, puts, warn]),
-  Prefix = string:to_upper(atom_to_list(Level)),
-  case lists:member(Level, Levels) of
-    true -> io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
+  Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
+  case {lists:member(Level, Levels), Level} of
+    % Log methods for test results
+    {true, pass}  -> io:format("~n\tPassed: " ++ Format, Data);
+    {true, fail}  -> io:format("~n\tFAILED: " ++ Format, Data);
+    {true, skip}  -> io:format("~n\t......: " ++ Format, Data);
+    % General Logging Ouptut
+    {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
+                     io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
     _ -> noop
   end.
   

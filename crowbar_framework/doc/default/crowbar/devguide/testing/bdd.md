@@ -17,15 +17,18 @@ Core BDD Commands:
 1. `cd /opt/dell/crowbar_framework/BDD`
 1. `linux.sh` or `Win7.bat` to compile the erlang code depending on your platform (may give an error, that's ok)
 1. `erl` to start a command shell for erlang
-  1. `bdd:test().` will run all the tests and report the results
+  1. `bdd:test().` will run all the tests and report the results.  Test results are copied to a `../tmp/bbd_results.out` with a date/time stamp so you can review test status (see failed() below).
   1. `bdd:feature(name).` will run just the named feature set.  You can pass the feature name as an atom or string.
   1. `bdd:scenario(name, id).` will run just the scenario selected from the feature file.  ID's are assigned by BDD based on a hash of the scenario name.
   1. `bdd:debug(config, name, id).` will run just the scenario selected from the feature file with debug logging flags.  ID's are assigned by BDD based on a hash of the scenario name.  You may also pass a list of the specific log levels requested.
+  1. `bdd:failed(config).` will rerun just the failed tests using the test results output file (`../tmp/bbd_results.out`).
   1. `bdd:steps().` will show you all the available step definitions
 
 > You can run `bdd:test("profile").` or `bdd:feature("profile","feature").` if you want to use an alternate profile than `default`.  Alternate profiles use the matching configuration name and had a different global setup/teardown location.
 
 > Note: The default tests run as the "developer" user so you must be in development mode to use them!
+
+The BDD test results are reported using a condensed format with the feature name, total tests, passed tests, failed tests, skipped tests, and IDs of the failed tests.
 
 #### Test Files
 
@@ -33,23 +36,24 @@ Each barclamp is expected to add it's own tests to the suite
 
 The Crowbar barclamp tests include:
 
-* dashboard.feature
-   * Tests the nodes UI view
-* documentation.feature
-   * Tests the documentation/help system
+* dashboard.feature - Tests the nodes UI view
+* documentation.feature - Tests the documentation/help system
 * navigation.feature
    * Tests the basic menu system
    * Checks for localization omissions
-* proposals.feature
-   * Tests the Proposal Status API
+* proposals.feature - Tests the Proposal Status API
 * nodes.feature
    * Tests the node status API
    * Tests the node detail page & API
 * groups.feature
    * Tests the group API
    * Tests the groups + nodes API
-* scaffolds.feature
-   * Tests all the feature objects
+* scaffolds.feature - Tests all the feature objects
+* authenticate.feature - Tests login
+* users.feature - Tests user management screen
+* attributes - Tests CMDB attributes API
+* cmdbs - Tests the CMDB engine API
+    
 
 ### Test Debugging
 

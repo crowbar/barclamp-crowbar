@@ -44,6 +44,8 @@ feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
+scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
+                                       -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
 scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, []).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = [{log, Log} | getconfig(ConfigName)],
@@ -56,12 +58,14 @@ scenario(ConfigName, Feature, ID, Log) ->
 debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
 debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
-failed()        -> failed("default").
+% used after a test() run to rerun just the failed tests
+failed()        -> failed(default).
 failed(Config)  ->
   {ok, [{test, _Date, _Time, Results} | _]} = file:consult("../tmp/bdd_results.out"),
   Fails = [{Feature, lists:keyfind(fail, 1, print_result(Fails))} || {feature, Feature, _, Fails} <- Results],
+  % please optimize to use just 1 global setup!
   [ failed(Config, Feature, F) || {Feature, {fail, Num, F}} <- Fails, Num > 0].
-failed(_Config, _Feature, [])     -> noop;
+failed(_Config, Feature, [])     -> Feature;
 failed(Config, Feature, [ID | T]) ->
   scenario(Config, Feature, ID),
   failed(Config, Feature, T).
@@ -169,7 +173,6 @@ setup_scenario(Config, Scenario, ID) ->
 
 print_report({feature, _, _, Result}) ->  print_report(Result);
 print_report(Result)  ->
-  bdd_utils:puts("$$ ~p~n",[Result]),
   Out = print_result(Result),
   {total, Total} = lists:keyfind(total, 1, Out),
   {pass, Pass, _P} = lists:keyfind(pass, 1, Out),

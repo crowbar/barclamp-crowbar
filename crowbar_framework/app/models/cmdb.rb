@@ -23,6 +23,7 @@ class Cmdb < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
+  has_many :maps, :class_name => "cmdb_maps", :foreign_key => "cmdb_id"
   #TEMPORARY REMOVAL... has_many :cmdb_runs, :inverse_of => Cmdb
 
   def init

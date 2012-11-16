@@ -1,25 +1,23 @@
-### CMDB APIs
+### Attribute APIs
 
-CMDB APIs are used to manage configuration management databases.  
+Attribute APIs are used to manage attributes tracked by the CMDB system
 
-> WARNING: You cannot simply add a new CMDB type via the API!  CMDB object types must have a matching cmdb class override!  The primary function of this API is to manage the related CMDB subobjects.  You can have multiple CMDBs of the same type.
+#### Attribute CRUD
 
-#### CMDB CRUD
-
-List, Create, Read, Delete actions for CMDBs
+List, Create, Read, Delete actions for Attribute
 
 > There is no update at this time!
 
 ##### List
 
-Returns list of CMDB id:names in the system
+Returns list of Attribute id:names in the system
 
 **Input:**
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> /2.0/crowbar/2.0/cmdb </td>
+  <td> /2.0/crowbar/2.0/attribute </td>
   <td> - </td>
   <td> - </td></tr>
 </table>
@@ -28,15 +26,15 @@ Returns list of CMDB id:names in the system
 **Output:**
 
     {
-      1:"chef",
-      2:"puppet",
-      4:"test"
+      1:"ram",
+      2:"cpu",
+      4:"nics"
     }
 
 Details:
 
-* id - CMDB id
-* name - CMDB name
+* id - Attribute id
+* name - Attribute name
 
 ##### Read
 
@@ -45,8 +43,8 @@ Details:
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> /2.0/crowbar/2.0/cmdb/[id] </td>
-  <td> id is the cmdb ID or name. </td>
+  <td> /2.0/crowbar/2.0/attribute/[id] </td>
+  <td> id is the Attribute ID or name. </td>
   <td> -  </td></tr>
 </table>
 
@@ -55,10 +53,9 @@ Details:
 
     {
       "id":4,
-      "name":"chef",
+      "name":"ram",
       "description":null,
       "order":10000,
-      "type":"CmdbChef",
       "created_at":"2012-08-13T17:20:21Z",
       "updated_at":"2012-08-13T17:20:21Z"
     }
@@ -66,21 +63,20 @@ Details:
 Details:
 
 * Format - json
-* id - CMDB id
-* name - CMDB name
-* all Node properties serialized
+* id - Attribute id
+* name - Attribute name
 
-##### CMDB CRUD: Create
+##### Attribute CRUD: Create
 
-Creates a new CMDB
+Creates a new Attribute
 
 **Input:**
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> POST  </td>
-  <td> /2.0/crowbar/2.0/cmdb/ </td>
-  <td> json definition (see CMDB Show) </td>
+  <td> /2.0/crowbar/2.0/attribute/ </td>
+  <td> json definition (see Attribute Show) </td>
   <td> must be a legal object </td></tr>
 </table>
 
@@ -90,28 +86,24 @@ Creates a new CMDB
       "name":"chef",
       "description":"description",
       "order":10000,
-      "type":"CmdbChef"
     }
 
 Details:
 
-* name (required) - CMDB name (must be letters - numbers and start with a letter)
+* name (required) - Attribute name (must be letters - numbers and start with a letter)
 * description - optional (default null)
-* type (required) - name of the object that manages the CMDB calls
 * order - optional (default 10000) 
 
-> The type must match an existing class in the system
+##### Attribute CRUD: Delete 
 
-##### CMDB CRUD: Delete 
-
-Deletes a CMDB
+Deletes an Attribute
 
 **Input:**
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
 <tr><td> DELETE  </td>
-  <td> /2.0/crowbar/2.0/cmdb/[id] </td>
+  <td> /2.0/crowbar/2.0/attribute/[id] </td>
   <td> Database ID or name </td>
   <td> must be an existing object ID </td></tr>
 </table>
@@ -124,7 +116,7 @@ None.
 
 Details:
 
-* id - CMDB name or database ID
+* id - Attribute name or database ID
 
 
 

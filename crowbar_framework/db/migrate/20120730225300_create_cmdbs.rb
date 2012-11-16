@@ -16,9 +16,9 @@ class CreateCmdbs < ActiveRecord::Migration
   def change
     create_table :cmdbs do |t|
       t.string :name
-      t.string :description, :null=>true
-      t.string :type, :null=>false
-      t.integer :order, :default=>10000
+      t.string :description,  :null=>true
+      t.string :type,         :null=>false
+      t.integer :order,       :default=>10000
       t.timestamps
     end
     #natural key

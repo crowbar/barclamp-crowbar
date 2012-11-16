@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbMaps < ActiveRecord::Migration
+class CreateAttributes < ActiveRecord::Migration
+  
   def change
-    create_table :cmdb_maps do |t|
+    create_table :attributes do |t|
       t.string :name,         :null=>false
       t.string :description,  :null=>true
-      t.string :order,        :default=>10000
-
-      t.references :cmdb
-
+      t.integer :order,       :default=>10000
       t.timestamps
     end
-    
     #natural key
-    add_index(:cmdb_maps, :name, :unique => true)  
-    
+    add_index(:attributes, :name, :unique => true)   
+
   end
+
 end

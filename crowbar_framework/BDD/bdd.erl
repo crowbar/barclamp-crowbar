@@ -16,7 +16,7 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4, debug/3, debug/4, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
+-export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4, inspect/1, is_clean/1]).
@@ -29,14 +29,13 @@ test(ConfigName)         ->
   % get the list of features to test
   Features = bdd_utils:features(StartedConfig),
   %run the tests
-  Results = run(StartedConfig, [], Features),
+  Complete = run(StartedConfig, [], Features),
   % cleanup application services
-  stop(StartedConfig),
-  case [R || {_, R} <- Results, R =/= pass] of
-    [] -> pass;
-    _ -> Results
-  end.
-	  
+  EndConfig = stop(Complete),
+  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
+  file:write_file("../tmp/bdd_results.out",io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
+  [{Fatom, print_report(R)} || {feature, Fatom, _Feature, R} <-Results].
+  
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
 feature(Feature)                        -> feature("default", Feature).
@@ -45,27 +44,45 @@ feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
+scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
+                                       -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
 scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, []).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = [{log, Log} | getconfig(ConfigName)],
   FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName, ID),
-  [{feature, _F, R} | _ ] = stop(FeatureConfig),
-  R.
+  C = stop(FeatureConfig),
+  lists:keyfind(feature, 1, C).
   
 % version of scenario with extra loggin turned on
 debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
 debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
+% used after a test() run to rerun just the failed tests
+failed()        -> failed(default).
+failed(Config)  ->
+  {ok, [{test, _Date, _Time, Results} | _]} = file:consult("../tmp/bdd_results.out"),
+  Fails = [{Feature, lists:keyfind(fail, 1, print_result(Fails))} || {feature, Feature, _, Fails} <- Results],
+  % please optimize to use just 1 global setup!
+  [ failed(Config, Feature, F) || {Feature, {fail, Num, F}} <- Fails, Num > 0].
+failed(_Config, Feature, [])     -> Feature;
+failed(Config, Feature, [ID | T]) ->
+  scenario(Config, Feature, ID),
+  failed(Config, Feature, T).
+
 % recursive runner with error catching
-run(_Config, [], [])                  -> [];
+run(Config, [], [])                    -> Config;   % stop recursing, return config
 run(Config, [], [FileName | Features]) ->
   Feature = bdd_utils:feature_name(Config, FileName),
 	R = try run(Config, Feature, FileName) of
 		Run -> 
-	    {feature, _Name, Result} = lists:keyfind(feature,1,Run),
-	    io:format("\tRESULTS: ~p.~n", [Result]),
-      Result
+	    {feature, _FAtom, _Name, Result} = lists:keyfind(feature,1,Run),
+	    Out = print_result(Result),
+	    {total, Total} = lists:keyfind(total, 1, Out),
+	    {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
+	    {fail, _N, Fail} = lists:keyfind(fail, 1, Out),
+	    io:format("\tRESULTS: Passed ~p of ~p.  Failed ~p.~n", [Pass, Total, Fail]),
+      lists:keyfind(feature,1,Run)
 	catch
 		X: Y -> io:format("ERROR: Feature error ~p:~p~n", [X, Y]),
 		[error]
@@ -89,7 +106,7 @@ run(Config, Feature, FileName, ID) ->
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
-  Result = {feature, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
+  Result = {feature, Fatom, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
   % tear down
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
@@ -154,6 +171,28 @@ setup_scenario(Config, Scenario, ID) ->
     true -> io:format("\t........: skipping ~p (~p)~n", [TestID, Name])
   end.
 
+print_report({feature, _, _, Result}) ->  print_report(Result);
+print_report(Result)  ->
+  Out = print_result(Result),
+  {total, Total} = lists:keyfind(total, 1, Out),
+  {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
+  {fail, Fail, IDs} = lists:keyfind(fail, 1, Out),
+  {skip, Skip} = lists:keyfind(skip, 1, Out),
+  {Total, Pass, Fail, Skip, IDs}.
+print_result(Result)                  ->  print_result(Result, [], [], []).
+print_result([], Pass, Fail, Skip)    ->  
+  [{total, length(Pass)+length(Fail)+length(Skip)}, 
+    {pass, length(Pass), Pass}, 
+    {fail, length(Fail), Fail},
+    {skip, length(Skip)}];
+print_result([Result | T], Pass, Fail, Skip)->
+  case Result of
+    {ID, pass} -> F=Fail, P=[ID | Pass], S=Skip;
+    ok         -> P=Pass, F=Fail, S=[skip | Skip];
+    {ID, _}    -> P=Pass, F=[ID | Fail], S=Skip
+  end,
+  print_result(T, P, F, S).
+  
 % output results information
 print_fail([]) -> true;
 print_fail({Pass, {_Type, N, Description}}) ->
@@ -179,7 +218,8 @@ test_scenario(Config, RawSteps, Name) ->
   ThenSteps = lists:reverse(BackwardsThenSteps),
   FinalSteps = lists:reverse(BackwardsFinalSteps),
 
-	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, erlang:phash2(Name), N]),
+  Hash = erlang:phash2(Name),
+	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, Hash, N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
 	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
@@ -195,10 +235,11 @@ test_scenario(Config, RawSteps, Name) ->
 	% safe to cleanup with the finally steps (we don't care about the result of those)
 	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
 	% now, check the results of the then steps
-	case bdd_utils:assert_atoms(Result) of
+	R = case bdd_utils:assert_atoms(Result) of
 		true -> bdd_utils:untrace(Config, Name, N), io:format("PASSED!~n",[]), pass;
 		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
-	end.
+	end,
+	{Hash, R}.
   
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->

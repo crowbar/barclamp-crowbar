@@ -24,7 +24,13 @@ class GroupModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"no spaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"nospacesatall ") }
   end
-  
+
+  test "Unique Name no dup name+category" do
+    g = Group.create! :name=>"foo", :category=>'rack'
+    assert_not_nil g, "Node Created"
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Group.create!(:name=>"foo", :category=>'rack') }
+  end
+
   test "default category" do
     g = Group.create!(:name=>"foo")
     assert_not_nil g, "Node Created"
@@ -40,12 +46,6 @@ class GroupModelTest < ActiveSupport::TestCase
   
   test "only allowed categories" do
     assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"foo", :category=>'foo') }
-  end
-
-  test "no dup name+category" do
-    g = Group.create! :name=>"foo", :category=>'rack'
-    assert_not_nil g, "Node Created"
-    assert_raise(ActiveRecord::RecordInvalid) { Group.create!(:name=>"foo", :category=>'rack') }
   end
 
 

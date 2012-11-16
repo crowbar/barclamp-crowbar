@@ -17,8 +17,9 @@ require 'json'
 
 class CmdbModelTest < ActiveSupport::TestCase
 
+
   test "Unique Name" do
-    Cmdb.create! :name=>"nodups", :backend=>"CmdbTest", :type=>"mock"
+    Cmdb.create! :name=>"nodups", :type=>"CmdbTest", :description=>"unit tests"
     e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Cmdb.create!(:name => "nodups") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
     assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "nodups" }

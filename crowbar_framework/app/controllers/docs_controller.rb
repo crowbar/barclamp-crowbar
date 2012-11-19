@@ -17,7 +17,7 @@
 class DocsController < ApplicationController
   
   # no login required for docs!
-  skip_before_filter :authenticate_user!
+  skip_before_filter :crowbar_auth
       
   def index
     @id = params[:id].gsub("%2B",'+') rescue nil

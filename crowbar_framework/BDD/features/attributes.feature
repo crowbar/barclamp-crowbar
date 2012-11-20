@@ -18,7 +18,7 @@ Feature: Attributes
   Scenario: REST Add 
     Given there is not an attribute "attribute_add_test"
     When REST adds the attribute "attribute_add_test"
-    Then there is an attribute "cmdb_attribute_test"
+    Then there is an attribute "attribute_add_test"
     Finally REST removes the attribute "attribute_add_test"
 
   Scenario: REST Delete 

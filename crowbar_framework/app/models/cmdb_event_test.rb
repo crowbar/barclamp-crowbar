@@ -13,41 +13,31 @@
 # limitations under the License.
 #
 
-class CmdbEvent < ActiveRecord::Base
-  attr_accessible :attributes, :direction, :name, :result, :status, :cmdb_run, :type
-
-  # RESTORE THESE (after building tests)
-  #belongs_to :cmdb_run
-  #belongs_to :node, :through => :cmdb_run
-  #belongs_to :cmdb, :through => :cmdb_run
+#
+# This model is a stub for the CMDB override system
+# It is NOT installed by default, but can be used for testing or as a model
+class CmdbEventTest < CmdbEvent
 
   def init
     super.init
   end
 
+  def run_cmdb_on_node(node)
+    super.run_cmdb_on_node node
+  end
+
   # map node from Chef into an array of CmdbAttributes
   def attrs_from_cmdb(cmdb, node)
+    super.attrs_from_cmdb
   end
   
+  def attrs_to_cmdb(cmdb, node)
+    super.attrs_to_cmdb(cmdb, node)
+  end
+
   # make sure I can get the map I need to put attrs in the DB
   def map(map_id)
-    begin
-      CmdbMap.find(map_id)
-    rescue Exception => e
-      Rails.logger.warn("Could not find CmdbMap.id #{map_id}: #{e.inspect}")
-      return nil
-    end
+    super.map
   end
-
-
-  def attrs_to_cmdb(cmdb, node)
-    # get the node_attributes for this node
-    #
-  end
-
-  def run_cmdb_on_node(cmdb, node)
-    
-  end
-
 
 end

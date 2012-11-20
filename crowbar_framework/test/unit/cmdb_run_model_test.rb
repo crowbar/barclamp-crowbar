@@ -67,7 +67,7 @@ class CmdbRunModelTest < ActiveSupport::TestCase
     assert_equal j['order'], 100
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
-    assert_equal j.length, 6
+    assert_equal j.length, 7
   end
   
 end

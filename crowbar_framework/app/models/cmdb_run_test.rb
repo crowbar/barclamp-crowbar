@@ -22,7 +22,7 @@ class CmdbRunTest < CmdbRun
   end
 
   def event(config_id)
-    super.run config_id
+    super.event config_id
     config_id
   end
 

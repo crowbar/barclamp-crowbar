@@ -124,6 +124,8 @@ Crowbar::Application.routes.draw do
                 
         scope 'crowbar' do    # MOVE TO GENERIC!
           scope '2.0' do      # MOVE TO GENERIC!
+            # TODO: TEMPORARY UNTIL WE FIX THE ROUTE MODEL
+            match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
             # group + node CRUD operations
             match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
             get    "network/networks", :controller => 'network', :action=>'networks'     # MOVE TO GENERIC!

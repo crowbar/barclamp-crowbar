@@ -133,7 +133,7 @@ class Doc < ActiveRecord::Base
         file = page_path path, name
         doc_to_db name, file, props, parent
       else  #reference only from a different barclamp
-        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp))
+        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp)) unless name.start_with? '#'
       end
     end
     # recurse children

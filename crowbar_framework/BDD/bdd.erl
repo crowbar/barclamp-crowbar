@@ -200,7 +200,7 @@ print_fail({Pass, {_Type, N, Description}}) ->
     true -> ". Pass";
     _ -> "X FAIL"
   end,
-  io:format("\t\t~s #~p: ~s~n", [PF, N, lists:flatten([D ++ " " || D <- Description])]);
+  io:format("\t\t~s #~p: ~s~n", [PF, N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
 print_fail([Result | Results]) ->
   print_fail(Result),
   print_fail(Results).
@@ -208,7 +208,7 @@ print_fail([Result | Results]) ->
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
   % organize steps in the scenarios
-	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(RawSteps),
+	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(Config, RawSteps),
 
   % The steps lists are built in reverse order that they appear in the feature file in
   % accordance with erlang list building optimization.  Reverse the order here so that
@@ -278,26 +278,26 @@ step_run(_Config, _Input, Step, []) ->
 	
 % Split our steps into discrete types for sequential processing
 % Each step is given a line number to help w/ debug
-scenario_steps(Steps) ->
+scenario_steps(Config, Steps) ->
 	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
-	scenario_steps(Steps, 1, [], [], [], [], unknown).
-scenario_steps([H | T], N, Given, When, Then, Finally, LastStep) ->
+	scenario_steps(Config, Steps, 1, [], [], [], [], unknown).
+scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep) ->
 	CleanStep = bdd_utils:clean_line(H),
 	{Type, StepRaw} = step_type(CleanStep),
-	StepPrep = {Type, bdd_utils:tokenize(StepRaw)},
+	StepPrep = {Type, bdd_utils:tokenize(Config, StepRaw)},
 	Step = case StepPrep of
 	  {step_and, SS} -> {LastStep, SS};
 	  {Type, SS} -> {Type, SS}
 	end,
 	case Step of
-		{step_given, S} -> scenario_steps(T, N+1, [{step_given, N, S} | Given], When, Then, Finally, step_given);
-		{step_when, S} -> scenario_steps(T, N+1, Given, [{step_when, N, S} | When], Then, Finally, step_when);
-		{step_then, S} -> scenario_steps(T, N+1, Given, When, [{step_then, N, S} | Then], Finally, step_then);
-		{step_finally, S} -> scenario_steps(T, N+1, Given, When, Then, [{step_finally, N, S} | Finally], step_finally);
-		{empty, _} -> scenario_steps(T, N, Given, When, Then, Finally, empty);
-		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(T, N+1, Given, When, Then, Finally, unknown)		
+		{step_given, S} -> scenario_steps(Config, T, N+1, [{step_given, N, S} | Given], When, Then, Finally, step_given);
+		{step_when, S} -> scenario_steps(Config, T, N+1, Given, [{step_when, N, S} | When], Then, Finally, step_when);
+		{step_then, S} -> scenario_steps(Config, T, N+1, Given, When, [{step_then, N, S} | Then], Finally, step_then);
+		{step_finally, S} -> scenario_steps(Config, T, N+1, Given, When, Then, [{step_finally, N, S} | Finally], step_finally);
+		{empty, _} -> scenario_steps(Config, T, N, Given, When, Then, Finally, empty);
+		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(Config, T, N+1, Given, When, Then, Finally, unknown)		
 	end;
-scenario_steps([], N, Given, When, Then, Finally, _) ->
+scenario_steps(_Config, [], N, Given, When, Then, Finally, _) ->
 	% returns number of steps and breaks list into types, may be expanded for more times in the future!
 	{N, Given, When, Then, Finally}.
 	

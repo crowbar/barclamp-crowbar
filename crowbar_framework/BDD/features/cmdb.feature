@@ -1,4 +1,4 @@
-Feature: CMDBs
+Feature: CMDBs API
   In order to provision applications
   The system operator, Oscar
   wants to be able to use a configuration management database (like Chef or Puppet)

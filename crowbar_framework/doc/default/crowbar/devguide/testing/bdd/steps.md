@@ -31,6 +31,7 @@ Let's look at an example step:
 
 This step will match the DSL `Given I went to the "dashboard" page` in the scenario.  It simply does an HTTP get using the BDD utilities.  The `http_get` routine takes the base URL from the config file and adds the page information from the sentence.  BDD will take the result of this step function and add it to the `Given` list that is passed into all following 'when' steps.
 
+  > You can also use `{` and `}` for delimiters.  Generally, these delimiters are used for special items like class types.
   > Reminder: Erlang variables that start with "\_" are considered optional and don't throw a warning if they are not used.  If you plan to use those variables, you can keep the "\_", however, I recommend removing it for clarity.
 
 There is a simple output expectation from all steps:
@@ -41,6 +42,19 @@ There is a simple output expectation from all steps:
 * results steps return true if the test passes or something else if it fails
 
 One of the most important step files is known as "webrat" as a hold over from Cucumber.  The `bdd_webrat.erl` file contains most of the HTML & AJAX routines you will ever need for routine testing.  It is also a great place to look for examples of step programming.
+
+You can extend/substitute step definitions by using the one of the predefinex prefixs.  This will invoke an Erlang method when the step is tokenized so that you can create custom lookups for your steps.
+
+For example, using `{bdd:bdd_utils.puts.foo.bar}` will call the `Bdd_utils` method `puts/2` with the input data of `["foo","bar"]`.  This approach can be used to extend steps so that they can substitue information when the step is parsed.  This is NOT a test run substitution - the replacement is made before test execution.
+
+BDD step prefixes are:
+
+* bdd: does an apply() using the BDD Config pattern and `.` delimited information where `bdd:f.m.p1.p2.pN` becomes `apply(f, m, [Config, p1, p2, pN])`
+* apply: does a raw apply() using `.` delimited information where `apply:f.m.p1.p2.pN` becomes `apply(f, m, [p1, p2, pN])`
+* atom: turns the text into an Erlang atom
+* object: same as atom but more user intuitive for REST steps
+
+> A handy example of this for Crowbar is using the `crowbar:i18n(Config, Key)` lookup to resolve localizations using the Utils localization string retriever.  You can retrieve localizations in steps using `{bdd:crowbar.i18n.my.local.key}` where `my.local.key` maps to a key in the i18n files.
 
 #### Adding Pre & Post Conditions
 

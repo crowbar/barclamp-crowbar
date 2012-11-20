@@ -1,28 +1,44 @@
 ### Barclamp APIs
 
-#### SAMPLE - REFERENCE ONLY
+Barclamps are the core modulization for Crowbar.  For that reason, the API for barclamps is more limited because changes to barclamps can cause breaking changes to the framework.
+
+#### Barclamp List
 
 **Input:**
 
 <table border=1>
 <tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-<tr><td> GET </td><td> /barclamp/status/2.0  </td><td> none  </td><td> All proposals  </td><td> Used by Barclamp List  </td></tr> 
-<tr><td> GET   </td><td> /barclamp/status/2.0/[id]  </td><td> id is the proposal ID.  </td><td> Used by Proposal Views  </td></tr>
+  <tr><td> GET </td><td> /2.0/crowbar/2.0/barclamp  </td><td> none  </td><td> All barclamps </td><td> - </td></tr> 
 </table>
 
 **Output:**
 
 
     {
-      "i18n":{"unknown":"Unknown, requesting status...","ready":"Active"},
-      "proposals":{"5":"ready","11":"ready" },
-      "count":14,
-      "error":""
+      1:"crowbar",
+      2:"deployer",
+      3:"impi"
     }
 
-Details:
+#### Barclamp Get
 
-* Format - json
-* i18n - ?
+**Input:**
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+  <tr><td> GET </td><td> /2.0/crowbar/2.0/barclamp/[:id]  </td><td> none  </td><td> Barclamp </td><td> - </td></tr> 
+</table>
+
+**Output:**
 
 
+    {
+      "id":1,
+      "name":"crowbar",
+      "description":"this is about the barclamp"
+    }
+
+
+#### Not Supported
+
+Barclamp API does not support create, update and delete operations.

@@ -46,11 +46,17 @@ There is a documentation tree index (`[barclamp].yml`) for each barclamp.  The i
 
 The index has an entry for each topic page that follows the following pattern: `barclamp/topic`.  The `/` is required!
 
+> You can comment out a page from being automatically index by prefixing it's name w/ `#`
+
 It is acceptable for a barclamp to reference topics in another barclamp so that the correct parent topics are used to build an integrated set.
 
 The index file should be nested so that topics have correct parents.
 
 > It is strongly encouraged (but not required) to keep the index path the same as the file path.
+
+##### Manual Index
+
+With the addition of automatic indexing, the number of pages manually indexed has dropped dramatically.  Manual indexing is still required if you want to control the order of page rendering or add additional meta data.
 
 Each level of the index can have meta data overrides, the meta data values are:
 

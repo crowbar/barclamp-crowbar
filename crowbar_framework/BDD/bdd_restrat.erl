@@ -24,6 +24,34 @@ step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   {ajax, json:parse(JSON), Page};
 
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = apply(Object, g, [path]),
+  bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
+  case eurl:get_page(Config, URI, [{404, not_found}, {500, error}]) of
+    not_found -> bdd_utils:log(Config, info, "bdd_restrat list not found at ~p.", [URI]), {ajax, not_found, URI};
+    error -> bdd_utils:log(Config, info, "bdd_restrat list 500 return at ~p.", [URI]), {ajax, error, URI};
+    JSON -> {ajax, json:parse(JSON), URI}
+  end;
+  
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = eurl:path(apply(Object, g, [path]), Key),
+  case eurl:get_page(Config, URI, [{404, not_found}, {500, error}]) of
+    not_found -> bdd_utils:log(Config, info, "bdd_restrat object not found at ~p.", [URI]), {ajax, not_found, URI};
+    error -> bdd_utils:log(Config, info, "bdd_restrat object 500 return at ~p.", [URI]), {ajax, error, URI};
+    JSON -> {ajax, json:parse(JSON), URI}
+  end;
+
+step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) ->
+  {ajax, JSON, URI} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  case JSON of 
+    not_found -> bdd_utils:log(Config, warn, "RestRAT: Object ~p not found at ~p", [Object, URI]), false;
+    error -> bdd_utils:log(Config, error, "RestRAT: Object ~p threw error at ~p", [Object, URI]), false;
+    J -> apply(Object, validate, [J])
+  end;
+    
 step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
   {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
   bdd_utils:log(Config, trace, "JSON list ~p should have ~p~n", [JSON, Key]),

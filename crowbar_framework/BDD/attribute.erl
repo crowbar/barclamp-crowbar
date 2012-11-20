@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 % 
--module(attributes).
+-module(attribute).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
 
 % Commont Routine
@@ -42,7 +42,7 @@ json(Name, Description, Order) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, attributes).  % shared inspector works here, but may not always
+  crowbar_rest:inspector(Config, attribute).  % shared inspector works here, but may not always
 
 step(Config, _Global, {step_given, _N, ["there is an attribute",Attribute]}) -> 
   JSON = json(Attribute, g(description), 200),
@@ -65,7 +65,7 @@ step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}) 
 
 step(Config, _Result, {step_then, _N, ["there is an attribute",Attribute]}) -> 
   ID = crowbar_rest:get_id(Config, g(path), Attribute),
-  bdd_utils:log(Config, debug, "attributes:step IS a attribute get id returned ~p for ~p.",[ID, Attribute]),
+  bdd_utils:log(Config, debug, "attribute:step IS a attribute get id returned ~p for ~p.",[ID, Attribute]),
   bdd_utils:is_a(dbid, ID);
 
 step(Config, _Result, {step_then, _N, ["there is not an attribute",Attribute]}) -> 
@@ -76,7 +76,7 @@ step(Config, _Result, {step_then, _N, ["there is not an attribute",Attribute]}) 
 % Uses Feature validate, but through central routine     
 step(Config, Result, {step_then, _N, ["the attribute is properly formatted"]}) -> 
   bdd_utils:log(Config, trace, "attribute properly formatted? ~p",[Result]),
-  crowbar_rest:step(Config, Result, {step_then, _N, ["the", attributes, "object is properly formatted"]});
+  crowbar_rest:step(Config, Result, {step_then, _N, ["the", attribute, "object is properly formatted"]});
 
 % Common Routine
 % Cleans up nodes that are created during tests                         

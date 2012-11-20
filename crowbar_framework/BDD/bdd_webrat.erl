@@ -114,6 +114,11 @@ step(_Config, Result, {step_then, _N, ["I should download text with", Text]}) ->
 
 step(_Config, _Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
   bdd_utils:assert([eurl:find_block("<li", "</li>", R, Menu) =/= [] || R <- _Result]);
+
+step(Config, Result, {step_then, _N, ["we should get a 404 return"]}) -> 
+  bdd_utils:log(Config, puts, "404 return had ~p", Result),
+  Result =:= [not_found];
+
                                                                 
 step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
   % depricated

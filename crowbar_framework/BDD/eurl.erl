@@ -16,7 +16,7 @@
 % 
 -module(eurl).
 -export([post/3, put/3, delete/3, post_params/1, post/5, put_post/4, uri/2, path/2]).
--export([get/2, get/3, peek/2, search/2, search/3]).
+-export([get/2, get/3, get_page/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
 search(Match, Results, Test) ->
@@ -147,13 +147,11 @@ path(Base, Path) ->
   end.
   
 % get a page from a server
-get(Config, Page) ->
-  get(Config, Page, ok).
-get(Config, Page, ok) ->
-  get(Config, uri(Config,Page), []);
-get(Config, Page, not_found) ->
-  get(Config, uri(Config,Page), [{404, not_found}]);
-get(Config, URL, _OkReturnCodes) ->
+get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
+get(Config, Page)             -> get_page(Config, Page, []).
+get(Config, Page, ok)         -> get_page(Config, Page, []);
+get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
+get(Config, URL, OkReturnCodes) ->
   bdd_utils:log(Config, info, "Getting ~p~n", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
@@ -161,12 +159,12 @@ get(Config, URL, _OkReturnCodes) ->
 	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = Result,
   case _ReturnCode of
     200 -> Body;
-    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
+    _ -> case lists:keyfind(_ReturnCode, 1, OkReturnCodes) of
            false -> throw({errorWhileGetting, _ReturnCode, "ERROR: get attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body});
            {_, _ReturnAtom} -> _ReturnAtom
          end
   end.
-
+  
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;
 post_params([{K, V} | P], ParamsOrig) -> 

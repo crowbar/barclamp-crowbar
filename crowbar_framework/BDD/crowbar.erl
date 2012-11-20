@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, validate/1, g/1]).
+-export([step/3, validate/1, g/1, i18n/2]).
 -import(bdd_utils).
 -import(crowbar_rest).
 -import(json).
@@ -27,6 +27,11 @@ g(Item) ->
     description -> "BDD Testing Only - should be automatically removed";
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
+
+i18n(Config, T) -> 
+  Key = string:join(T,"."),
+  URI = eurl:path("utils/i18n",Key),
+  eurl:get(Config, URI, not_found).
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
 validate(JSON) ->
@@ -42,6 +47,13 @@ step(Config, _Global, {step_setup, _N, Test}) ->
 step(Config, _Global, {step_teardown, _N, _}) -> 
   crowbar_rest:destroy(Config, nodes:g(path), g(node_atom));
 
+% ============================  GIVEN STEPS =========================================
+
+step(Config, _Given, {step_when, _N, ["I18N checks",Key]}) ->
+  URI = eurl:path("utils/i18n",Key),
+  R = eurl:get(Config, URI, not_found),
+  bdd_utils:log(Config, trace, "crowbar:i18n get ~p gave ~p", [URI, R]),
+  R;
 
 % ============================  THEN STEPS =========================================
 

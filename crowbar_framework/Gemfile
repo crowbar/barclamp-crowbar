@@ -54,7 +54,7 @@ group :development do
 end
 
 gem "rspec", :group => [:development, :test]
-gem "chefspec", :group => [:development, :test]
+#gem "chefspec", :group => [:development, :test]
 gem "rcov", :group => [:development, :test]
 gem "rspec-rails", ">= 2.10.1", :group => [:development, :test]
 # These to require Ruby 1.9.3

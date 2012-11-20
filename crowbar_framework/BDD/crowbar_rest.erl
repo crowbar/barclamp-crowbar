@@ -25,21 +25,11 @@ g(Item) ->
 
 % validates JSON in a generic way common to all objects
 validate(JSON) ->
-  try
-    _CreatedAt    = json:keyfind(JSON, created_at),   % ADD CHECK!
-    Id            = json:keyfind(JSON, id),
-    Name          = json:keyfind(JSON, name), 
-    _UpdatedAt    = json:keyfind(JSON, updated_at),  % ADD CHECK!
-    R = [bdd_utils:is_a(name, Name), 
-         bdd_utils:is_a(dbid, Id)],
-    case bdd_utils:assert(R)of
-      true -> true;
-      false -> io:format("FAIL: JSON did not comply with object format ~p~n", [JSON]), false
-    end
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
+  R = [true, % placeholder for createdat
+       true, % placeholder for updatedat
+       bdd_utils:is_a(JSON, name, name), 
+       bdd_utils:is_a(JSON, dbid, id)],
+  bdd_utils:assert(R, debug). 
 
 % Common Routine - returns a list of items from the system, used for house keeping
 inspector(Config, Feature) ->

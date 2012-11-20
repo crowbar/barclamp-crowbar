@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 % 
--module(cmdbs).
+-module(cmdb).
 -export([step/3, json/4, validate/1, inspector/1, g/1]).
 
 % Commont Routine
@@ -49,7 +49,7 @@ json(Name, Description, Type, Order) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, cmdbs).  % shared inspector works here, but may not always
+  crowbar_rest:inspector(Config, cmdb).  % shared inspector works here, but may not always
 
 step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) -> 
   JSON = json(CMDB, g(description), Type, 200),
@@ -75,7 +75,7 @@ step(Config, _Given, {step_when, _N, ["REST deletes the cmdb",CMDB]}) ->
 
 step(Config, _Result, {step_then, _N, ["there is a cmdb",CMDB]}) -> 
   ID = crowbar_rest:get_id(Config, g(path), CMDB),
-  bdd_utils:log(Config, debug, "cmdbs:step IS a cmdb get id returned ~p for ~p.",[ID, CMDB]),
+  bdd_utils:log(Config, debug, "cmdb:step IS a cmdb get id returned ~p for ~p.",[ID, CMDB]),
   bdd_utils:is_a(dbid, ID);
 
 step(Config, _Result, {step_then, _N, ["there is not a cmdb",CMDB]}) -> 
@@ -86,7 +86,7 @@ step(Config, _Result, {step_then, _N, ["there is not a cmdb",CMDB]}) ->
 % Uses Feature validate, but through central routine     
 step(Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
   bdd_utils:log(Config, trace, "CMDB properly formatted? ~p",[Result]),
-  crowbar_rest:step(Config, Result, {step_then, _N, ["the", cmdbs, "object is properly formatted"]});
+  crowbar_rest:step(Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
 
 % Common Routine
 % Cleans up nodes that are created during tests                         

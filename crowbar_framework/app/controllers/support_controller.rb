@@ -17,6 +17,15 @@
 
 class SupportController < ApplicationController
     
+  # used to lookup localization values
+  def i18n
+    begin
+      render :text=>I18n.translate(params[:id], :raise => I18n::MissingTranslationData)
+    rescue I18n::MissingTranslationData
+      render :text=>"No translation for #{params[:id]}", :status => 404
+    end
+  end
+  
   # Legacy Support (UI version moved to loggin barclamp)
   def logs
     @file = "crowbar-logs-#{ctime}.tar.bz2"

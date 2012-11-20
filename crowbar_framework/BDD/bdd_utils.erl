@@ -14,15 +14,20 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/2, clean_line/1]).
 -export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
--export([is_site_up/1, is_a/2]).
+-export([is_site_up/1, is_a/2, is_a/3]).
 
 assert(Bools) ->
 	assert(Bools, true).
+assert(Bools, debug) ->
+  case assert(Bools, true) of
+    true -> true;
+    X -> puts("Testing result ~p", [Bools]), X
+  end;
 assert(Bools, Test) ->
 	F = fun(X) -> case X of Test -> true; _ -> false end end,
 	lists:all(F, Bools).
@@ -96,6 +101,15 @@ untrace(Config, Name, N) ->
   file:delete(File).
   
 % test for types
+is_a(JSON, Type, Key) ->
+  Value = json:keyfind(JSON, Key), 
+  case is_a(Type, Value) of
+    true  -> true;
+    X     -> 
+      log(warn, "Key ~p with Value ~p did not pass is_a(~p) test.  Result was ~p.", [Key, Value, Type, X]),
+      false
+  end.
+  
 is_a(Type, Value) ->
   case Type of 
     number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
@@ -106,7 +120,7 @@ is_a(Type, Value) ->
     dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
     name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
-    string  -> is_list(Value);
+    string  -> is_list(Value);                              % cannot be empty
     cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
     ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
     empty   -> "" =:= Value;
@@ -140,6 +154,7 @@ config(Config, Key, Default) ->
 	  _ -> Default
 	end.
 	
+% removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
 	CleanLine1 = string:strip(CleanLine0, left, $\t),
@@ -147,10 +162,27 @@ clean_line(Raw) ->
 	CleanLine2 = string:strip(CleanLine11),
 	string:strip(CleanLine2, right, $.).
 
-tokenize(Step) ->
-	Tokens = string:tokens(Step,"\""),
-	[string:strip(X) || X<- Tokens].
-	
+% converts quoted text into a list
+tokenize(Config, Step) ->
+	Tokens = string:tokens(Step,"\"{}"),
+	CleanTokens = [string:strip(X) || X<- Tokens],
+	[ token_substitute(Config, X) || X <- CleanTokens, length(X)>0].
+
+% This routine is used for special subtitutions in steps that run functions or turn strings into atoms
+token_substitute(Config, Token) ->
+  case Token of
+    [$a, $p, $p, $l, $y, $: | Apply] ->
+              [File, Method | Params] = string:tokens(Apply, "."),
+              apply(list_to_atom(File), list_to_atom(Method), Params);
+    [$b, $d, $d, $: | Apply]->
+              [File, Method | Params] = string:tokens(Apply, "."),
+              apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
+    [$a, $t, $o, $m, $: | Apply] -> 
+              list_to_atom(Apply);
+    [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
+              list_to_atom(Apply);
+    _ -> Token
+  end.
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->

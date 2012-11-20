@@ -60,6 +60,9 @@ en:
   prev: Previous
   export: Export
   
+  test:
+    verify: "Affirmative"
+  
   api:
     wrong_version: "Requested API version (%{version}) is not supported."
     not_found: "Could not find %{type} with id %{id}."

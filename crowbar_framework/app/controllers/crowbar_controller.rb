@@ -61,6 +61,36 @@ class CrowbarController < BarclampController
     end
   end
 
+
+  def barclamp
+    render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
+    @barclamp = Barclamp.find_key(params[:id]) if params[:id]
+    
+    # POST
+    if request.post?
+      render :text=>I18n.t('api.not_supported', :action=>'POST', :obj=>'barclamp'), :status => 405
+    # PUT (not supported)
+    elsif request.put?
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'barclamp'), :status => 405
+    # DELETE
+    elsif request.delete?
+      render :text=>I18n.t('api.not_supported', :action=>'DELETE', :obj=>'barclamp'), :status => 405
+    # fall through REST actions (all require ID)
+    elsif request.get? and @barclamp
+      render :json => @barclamp
+    elsif params[:id]
+      render :text=>I18n.t('api.not_found', :type=>'barclamp', :id=>params[:id]), :status => 404
+    # list (no ID)
+    elsif request.get?  
+      barclamps = {}
+      Barclamp.all.each { |b| barclamps[b.id] = b.name }
+      render :json => barclamps
+    # Catch
+    else
+      render :text=>I18n.t('api.unknown_request'), :status => 400
+    end
+  end
+  
   def attribute
     render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
     @attribute = Attribute.find_key(params[:id]) if params[:id]

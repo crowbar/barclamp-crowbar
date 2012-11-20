@@ -32,6 +32,13 @@ class User < ActiveRecord::Base
 
   validates :username, :uniqueness => {:case_sensitive => false}, :presence => true
   DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
+  
+  
+  def self.find_by_id_or_username(id_or_username)
+   ret = find :first, :conditions => ['id = ? or username = ?', id_or_username, id_or_username]
+   raise ActiveRecord::RecordNotFound.new(I18n.t('api.by_id_or_username_record_not_found', :id_username=>id_or_username)) unless !ret.nil?
+   ret
+  end
 
   def digest_password(new_pass)
     self.encrypted_password = digester(new_pass)

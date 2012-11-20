@@ -34,7 +34,7 @@ class ProposalConfig < ActiveRecord::Base
   has_many        :nodes, :through => :node_roles
   has_many        :roles, :through => :node_roles
 
-  has_one         :barclamp, :through =>proposal
+  has_one         :barclamp, :through =>:proposal
 
   def failed?
     status == STATUS_FAILED

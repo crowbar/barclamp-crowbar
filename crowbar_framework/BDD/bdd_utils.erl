@@ -181,6 +181,9 @@ token_substitute(Config, Token) ->
               list_to_atom(Apply);
     [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
               list_to_atom(Apply);
+    [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 
+              {Num, []} = string:to_integer(Apply),
+              Num;
     _ -> Token
   end.
 

@@ -13,8 +13,8 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate/1, inspector/2, get_id/2, get_id/3]).
--export([create/3, create/4, create/5, create/6, destroy/3]).
+-export([step/3, g/1, validate/1, inspector/2]).
+-export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
 
@@ -38,58 +38,41 @@ inspector(Config, Feature) ->
   [{Feature, ID, Name} || {ID, Name} <- JSON].
   
 % given a path + key, returns the ID of the object
-get_id(Config, Path, Key) ->
-   Lookup = eurl:path(Path,Key),
-   get_id(Config, Lookup).
+get_id(Config, Path, Key) -> 
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:get_id1 -> moved to bdd_restrat"),
+  bdd_restrat:get_id(Config, Path, Key).
+
    
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
-  R = eurl:get(Config, Path, not_found),
-  bdd_utils:log(Config, debug, "crowbar_rest:get_id R: ~p~n", [R]),
-  {"id", ID} = case R of
-    "null"  -> {"id", "-1"};
-    "undef" -> {"id", "-1"};
-    not_found -> {"id", "-1"};
-    Result  -> lists:keyfind("id", 1, json:parse(Result))
-  end,  
-  ID.
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:get_id2 -> moved to bdd_restrat"),
+  bdd_restrat:get_id(Config, Path).
 
 % helper common to all setups using REST
-create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
-create(Config, Path, JSON, Action) ->
-  % just in case - cleanup to prevent collision
-  destroy(Config, Path, json:keyfind(json:parse(JSON), name)),
-  % create node(s) for tests
-  eurl:put_post(Config, Path, JSON, Action).
+create(Config, Path, JSON)         -> 
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create1 -> moved to bdd_restrat"),
+  bdd_restrat:create(Config, Path, JSON, post).
+create(Config, Path, JSON, Action) -> 
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create2 -> moved to bdd_restrat"),
+  bdd_restrat:create(Config, Path, JSON, Action).
   
 create(Config, Path, Atom, Name, JSON) ->
-  create(Config, Path, Atom, Name, JSON, post).
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create3 -> moved to bdd_restrat"),
+  bdd_restrat:create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, debug, "Entering crowbar_rest:create Path: ~p, Name: ~p, JSON: ~p~n", [Path, Name, JSON]),
-  Result = create(Config, Path, JSON, Action),
-  % get the ID of the created object
-  Key = json:keyfind(Result, id),
-  % friendly message
-  io:format("\tCreated ~s (key=~s & id=~s) for testing.~n", [Name, Atom, Key]),
-  % add the new ID to the config list
-  [{Atom, Key} | Config].
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create4 -> moved to bdd_restrat"),
+  bdd_restrat:create(Config, Path, Atom, Name, JSON, Action).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
-  Item = lists:keyfind(Atom, 1, Config),
-  {Atom, Key} = Item,
-  destroy(Config, Path, Key),
-  lists:delete(Item, Config);
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:destroy1 -> moved to bdd_restrat"),
+  bdd_restrat:destroy(Config, Path, Atom);
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
-  case get_id(Config, Path, Key) of
-    "-1" -> bdd_utils:log(Config, debug, "\tRemoval of key ~s skipped: not found.~n", [Key]);
-    ID   -> eurl:delete(Config, Path, ID),
-            bdd_utils:log(Config, info, "\tRemoved key ~s & id ~s.~n", [Key, ID])
-  end,
-  Config.
+  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:destroy2 -> moved to bdd_restrat"),
+  bdd_restrat:destroy(Config, Path, Key).
 
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 

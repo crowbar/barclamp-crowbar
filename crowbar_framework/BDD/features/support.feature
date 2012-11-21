@@ -13,4 +13,4 @@ Feature: Support UI
 
   Scenario: Localization AJAX Miss
     When I18N checks "test.miss"
-    Then we should get a 404 return
+    Then I get a {integer:404} error

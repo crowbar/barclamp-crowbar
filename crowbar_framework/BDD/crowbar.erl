@@ -24,6 +24,8 @@ g(Item) ->
   case Item of
     node_name -> "global-node.testing.com";
     node_atom -> global_node;
+    name -> "bddtest";
+    order -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.

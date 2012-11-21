@@ -12,3 +12,15 @@ Feature: Barclamps API
   Scenario: REST JSON check
     When REST gets the {object:barclamp} "crowbar"
     Then the {object:barclamp} is properly formatted
+    
+  Scenario: REST Cannot Delete
+    When REST deletes the {object:barclamp} "crowbar"
+    Then I get a {integer:405} error
+  
+  Scenario: REST Cannot Update
+    When REST updates the {object:barclamp} "crowbar"
+    Then I get a {integer:405} error
+
+  Scenario: REST Cannot Create
+    When REST creates the {object:barclamp} "foo"
+    Then I get a {integer:405} error

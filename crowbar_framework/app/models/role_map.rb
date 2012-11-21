@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,18 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
-  def change
-    create_table :cmdb_runs do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true, :default=>true
-      t.string :type,         :null=>false
-      t.string :order,        :default=>10000
 
-      t.references :cmdb
-      t.references :cmdb_map
+class RoleMap < ActiveRecord::Base
 
-      t.timestamps
-    end
+  attr_accessible :name, :value, :revision
+  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :value, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  belongs_to :role
+  belongs_to :barclamp
+
+
+  def to_s
+    "RoleMap: #{name}\nValue: #{value}"
   end
+
 end
+

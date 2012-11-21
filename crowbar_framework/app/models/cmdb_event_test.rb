@@ -13,17 +13,31 @@
 # limitations under the License.
 #
 
-class Role < ActiveRecord::Base
+#
+# This model is a stub for the CMDB override system
+# It is NOT installed by default, but can be used for testing or as a model
+class CmdbEventTest < CmdbEvent
 
-  attr_accessible :name, :states
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  def init
+    super.init
+  end
 
-  belongs_to :barclamp
-  has_many :role_element_orders
+  def run_cmdb_on_node(node)
+    super.run_cmdb_on_node node
+  end
 
-  def to_s
-    "Role: #{name}"
+  # map node from Chef into an array of CmdbAttributes
+  def attrs_from_cmdb(cmdb, node)
+    super.attrs_from_cmdb
+  end
+  
+  def attrs_to_cmdb(cmdb, node)
+    super.attrs_to_cmdb(cmdb, node)
+  end
+
+  # make sure I can get the map I need to put attrs in the DB
+  def map(map_id)
+    super.map
   end
 
 end
-

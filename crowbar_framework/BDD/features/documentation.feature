@@ -44,6 +44,6 @@ Feature: Documentation
       And I should see a link to "&lt; Go Back"
       And there should be no translation errors
       
-  Scenario: Do NOT show Commented Out
+  Scenario: %Do NOT show Commented Out
     When I go to the "docs/topic/crowbar/devguide/api/#template" page
     Then I should not see "template" in the body

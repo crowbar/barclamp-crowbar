@@ -72,6 +72,7 @@ class NodesController < ApplicationController
         nodes.each do |node_name, values|
           begin
             dirty = false
+            # TODO: can one DE-allocate a node in bluk-edit?  If so, we need to add that here...
             node = Node.find_by_name node_name
             if !node.allocated and values['allocate'] === 'checked'
               node.allocated = true
@@ -82,13 +83,10 @@ class NodesController < ApplicationController
               dirty = true
             end
             if !(node.alias == values['alias'])
-                node.alias = values['alias']
-                dirty = true
+              node.alias = values['alias']
+              dirty = true
             end
-            if !(node.group == values['group'])
-              if values['group'] and values['group'] != "" and !(values['group'] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-                raise node.name + ": " + t('nodes.list.group_error')
-              end
+            if !(node.group.name == values['group'])
               node.group = values['group']
               dirty = true
             end
@@ -102,7 +100,7 @@ class NodesController < ApplicationController
             end
             if dirty
               begin
-                node.save
+                node.save!
                 succeeded << node_name
               rescue Exception=>e
                 failed << node_name
@@ -138,6 +136,7 @@ class NodesController < ApplicationController
   end
   
   def group_change
+    # TODO: not used?
     node = Node.find_by_name params[:id]
     if node.nil?
       raise "Node #{params[:id]} not found.  Cannot change group" 
@@ -201,7 +200,7 @@ class NodesController < ApplicationController
       when 'allocate'
         machine.allocate
       else
-        render :text=>"Invalid hit requeset '#{action}'", :status => 500
+        render :text=>"Invalid hit request '#{action}'", :status => 500
       end
     end
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
@@ -253,41 +252,39 @@ class NodesController < ApplicationController
   def edit
     @node = Node.find_key params[:id]
     @groups = {}
-    Group.find(:all, :conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
+    Group.all(:conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
+  end
+
+
+  def allocate
+    # allocate node
   end
 
   # RESTfule PUT of the node resource
   def update
-    if request.post?
-      get_node_and_network(params[:id] || params[:name])
-      if params[:submit] == t('nodes.form.allocate')
-        @node.allocated = true
-        flash[:notice] = t('nodes.form.allocate_node_success') if save_node
-      elsif params[:submit] == t('nodes.form.save')
-        flash[:notice] = t('nodes.form.save_node_success') if save_node
-      else
-        Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
-        flash[:notice] = "Unknown action: #{params[:submit]}"
-      end
+    get_node_and_network(params[:id] || params[:name])
+    if params[:submit] == t('nodes.edit.allocate')
+      @node.allocated = true
+      flash[:notice] = t('nodes.edit.allocate_node_success') if save_node
+    elsif params[:submit] == t('nodes.edit.save')
+      flash[:notice] = t('nodes.edit.save_node_success') if save_node
     else
-      Rails.logger.warn "PUT is required to update proposal #{params[:id]}"
-      flash[:notice] = "PUT required"
+      Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
+      flash[:notice] = "Unknown action: #{params[:submit]}"
     end
+
     redirect_to nodes_path(:selected => @node.name)
   end
 
   private
 
   def save_node
-    if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-      flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
-      return false
-    end
     begin
-      @node.bios_set = params[:bios]
-      @node.raid_set = params[:raid]
+      # TODO: add raid and bios save at some point
+      # @node.bios_set = params[:bios]
+      # @node.raid_set = params[:raid]
       @node.alias = params[:alias]
-      @node.group = params[:group]
+      @node.group = Group.find(params[:group])
       @node.description = params[:description]
       @node.save
       true
@@ -298,9 +295,11 @@ class NodesController < ApplicationController
   end
 
   def get_node_and_network(node_name)
+    # TODO - figure out how to get the network stuff below...
     @network = {}
     @node = Node.find_by_name(node_name) if @node.nil?
     @node = Node.find_by_id(node_name) if @node.nil?
+=begin
     if @node
       chef_node = @node.cmdb_hash
       intf_if_map = chef_node.build_node_map # HACK: XXX: This should be something else
@@ -322,5 +321,7 @@ class NodesController < ApplicationController
       @network['[not managed]'] = chef_node.unmanaged_interfaces
     end
     @network.sort
+=end
   end
+
 end

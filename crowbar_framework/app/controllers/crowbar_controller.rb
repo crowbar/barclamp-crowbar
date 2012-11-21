@@ -16,7 +16,12 @@
 class CrowbarController < BarclampController
   
   def index
-    render :json => { 
+    @title = I18n.t('title', :scope=>'barclamp.crowbar.index')
+    super
+  end
+
+  def catalog
+    render :json => {
       :name=>'crowbar', 
       :version=>'2.0', 
       :accepts=>['2.0'], 
@@ -62,7 +67,8 @@ class CrowbarController < BarclampController
   end
 
 
-  def barclamp
+  def barclamp_temp
+    # TODO: temp method name until we figure out routing. see routes.rb
     render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
     @barclamp = Barclamp.find_key(params[:id]) if params[:id]
     

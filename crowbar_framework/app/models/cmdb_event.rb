@@ -43,7 +43,6 @@ class CmdbEvent < ActiveRecord::Base
     puts "JWM placeholder"
   end
     
-
   # make sure I can get the map I need to put attrs in the DB
   def map(map_id)
     begin
@@ -53,7 +52,6 @@ class CmdbEvent < ActiveRecord::Base
       return nil
     end
   end
-
 
   def as_json options={}
     {

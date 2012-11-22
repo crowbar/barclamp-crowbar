@@ -43,9 +43,7 @@ class CmdbEventChef < CmdbEvent
   end
     
   def attrs_to_cmdb(cmdb, node)
-    # get the node_attributes for this node
-    #
-    super attrs_to_cmdb(cmdb, node)
+    super.attrs_to_cmdb(cmdb, node)
   end
 
   # make sure I can get the map I need to put attrs in the DB

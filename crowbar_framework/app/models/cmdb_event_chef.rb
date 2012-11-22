@@ -13,15 +13,16 @@
 # limitations under the License.
 #
 
-class CmdbEvent < ActiveRecord::Base
-  attr_accessible :attributes, :direction, :name, :result, :status, :cmdb_run, :type
+class CmdbEventChef < CmdbEvent
 
-  # RESTORE THESE (after building tests)
-  #belongs_to :cmdb_run
-  #belongs_to :node, :through => :cmdb_run
-  #belongs_to :cmdb, :through => :cmdb_run
+  def init
+    super.init
+  end
 
-  # map node from Chef into an array of CmdbAttributes
+  def run_cmdb_on_node(cmdb, node)
+    super.run_cmdb_on_node(cmdb, node)
+  end
+  
   def attrs_from_cmdb(cmdb, node)
     #c = Cmdb.new('chef')
     puts "node => #{cmdb.class}"
@@ -40,26 +41,16 @@ class CmdbEvent < ActiveRecord::Base
       a.save!
     end     
   end
-  
-  # make sure I can get the map I need to put attrs in the DB
-  def map(map_id)
-    begin
-      CmdbMap.find(map_id)
-    rescue Exception => e
-      Rails.logger.warn("Could not find CmdbMap.id #{map_id}: #{e.inspect}")
-      return nil
-    end
-  end
-
-
+    
   def attrs_to_cmdb(cmdb, node)
     # get the node_attributes for this node
     #
+    super attrs_to_cmdb(cmdb, node)
   end
 
-  def run_cmdb_on_node(cmdb, node)
-    
+  # make sure I can get the map I need to put attrs in the DB
+  def map(map_id)
+    super.map map_id
   end
-
-
 end
+

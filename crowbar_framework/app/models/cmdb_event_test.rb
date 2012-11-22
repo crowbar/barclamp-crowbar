@@ -16,6 +16,7 @@
 #
 # This model is a stub for the CMDB override system
 # It is NOT installed by default, but can be used for testing or as a model
+
 class CmdbEventTest < CmdbEvent
 
   def init

@@ -15,7 +15,7 @@
 % 
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/2, clean_line/1]).
--export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
+-export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
@@ -35,6 +35,7 @@ assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
 
 % for quick debug that you want to remove later (like ruby puts)
+puts()              -> log(puts, "*** HERE! ***").  
 puts(Format)        -> log(puts, Format).  
 puts(Format, Data)  -> log(puts, Format, Data).
 
@@ -46,6 +47,7 @@ debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
 % FOR PERFORMANCE, always call with Config if available!
 log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
+log(Config, puts, Format)         -> log(Config, puts, Format, []);
 log(Level, Format, Data)          -> 
   {ok, Config} = file:consult("default.config"),
   log(Config, Level, Format, Data).

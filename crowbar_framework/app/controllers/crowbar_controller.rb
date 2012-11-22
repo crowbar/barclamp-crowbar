@@ -36,7 +36,10 @@ class CrowbarController < BarclampController
   end
   
   def cmdb
-    render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
+    unless params[:version].eql?('2.0')
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
+      return
+    end
     @cmdb = Cmdb.find_key(params[:id]) if params[:id]
     
     # POST
@@ -69,18 +72,21 @@ class CrowbarController < BarclampController
 
   def barclamp_temp
     # TODO: temp method name until we figure out routing. see routes.rb
-    render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
+    unless params[:version].eql?('2.0')
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
+      return
+    end
     @barclamp = Barclamp.find_key(params[:id]) if params[:id]
     
     # POST
     if request.post?
-      render :text=>I18n.t('api.not_supported', :action=>'POST', :obj=>'barclamp'), :status => 405
+      render :text=>I18n.t('api.not_supported', :verb=>'POST', :obj=>'barclamp'), :status => 405
     # PUT (not supported)
     elsif request.put?
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'barclamp'), :status => 405
+      render :text=>I18n.t('api.not_supported', :verb=>'PUT', :obj=>'barclamp'), :status => 405
     # DELETE
     elsif request.delete?
-      render :text=>I18n.t('api.not_supported', :action=>'DELETE', :obj=>'barclamp'), :status => 405
+      render :text=>I18n.t('api.not_supported', :verb=>'DELETE', :obj=>'barclamp'), :status => 405
     # fall through REST actions (all require ID)
     elsif request.get? and @barclamp
       render :json => @barclamp
@@ -98,7 +104,10 @@ class CrowbarController < BarclampController
   end
   
   def attribute
-    render :text=>I18n.t('api.wrong_version', :version=>params[:version]) unless params[:version].eql?('2.0')
+    unless params[:version].eql?('2.0')
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
+      return
+    end
     @attribute = Attribute.find_key(params[:id]) if params[:id]
     
     # POST

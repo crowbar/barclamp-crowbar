@@ -16,7 +16,8 @@
 % 
 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
+-export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4]).
+-export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4, inspect/1, is_clean/1]).
@@ -46,7 +47,7 @@ feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
 scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
-scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, []).
+scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = [{log, Log} | getconfig(ConfigName)],
   FileName = bdd_utils:features(Config, Feature),
@@ -55,7 +56,8 @@ scenario(ConfigName, Feature, ID, Log) ->
   lists:keyfind(feature, 1, C).
   
 % version of scenario with extra loggin turned on
-debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
+debug(Feature, ID)              -> debug(default, Feature, ID).
+debug(Config, Feature, ID)      -> debug(Config, Feature, ID, [all]).
 debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
 % used after a test() run to rerun just the failed tests
@@ -259,6 +261,11 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  io:format("exit Did not find step: ~p~n", [Feature]),
       io:format("~nERROR: web server not responding.  Details: ~p~n",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
+    error: (badmatch, {error, no_scheme}} ->
+		  io:format("~nERROR: badmatch in code due to no_scheme.~n"), 
+      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
+      io:format("\tAttempted \"feature ~p, step ~p.\"~n",[Feature, Step]),
+		  throw("BDD ERROR: unexpected match.");
 		X: Y -> 
 		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
       io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),

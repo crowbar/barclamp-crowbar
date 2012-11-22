@@ -21,6 +21,10 @@ Feature: Barclamps API
     When REST updates the {object:barclamp} "crowbar"
     Then I get a {integer:405} error
 
+  Scenario: REST Get 404
+    When REST gets the {object:barclamp} "thisdoesnotexist"
+    Then I get a {integer:404} error
+    
   Scenario: REST Cannot Create
     When REST creates the {object:barclamp} "foo"
     Then I get a {integer:405} error

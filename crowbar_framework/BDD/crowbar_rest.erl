@@ -39,39 +39,39 @@ inspector(Config, Feature) ->
   
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> 
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:get_id1 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:get_id1 -> moved to bdd_restrat"),
   bdd_restrat:get_id(Config, Path, Key).
 
    
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:get_id2 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:get_id2 -> moved to bdd_restrat"),
   bdd_restrat:get_id(Config, Path).
 
 % helper common to all setups using REST
 create(Config, Path, JSON)         -> 
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create1 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create1 -> moved to bdd_restrat"),
   bdd_restrat:create(Config, Path, JSON, post).
 create(Config, Path, JSON, Action) -> 
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create2 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create2 -> moved to bdd_restrat"),
   bdd_restrat:create(Config, Path, JSON, Action).
   
 create(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create3 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create3 -> moved to bdd_restrat"),
   bdd_restrat:create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:create4 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create4 -> moved to bdd_restrat"),
   bdd_restrat:create(Config, Path, Atom, Name, JSON, Action).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:destroy1 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:destroy1 -> moved to bdd_restrat"),
   bdd_restrat:destroy(Config, Path, Atom);
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
-  bdd_utils:log(Config, warn, "DEPRICATED crowbar_rest:destroy2 -> moved to bdd_restrat"),
+  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:destroy2 -> moved to bdd_restrat"),
   bdd_restrat:destroy(Config, Path, Key).
 
 % NODES 

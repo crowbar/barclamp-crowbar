@@ -14,7 +14,7 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
@@ -49,7 +49,10 @@ log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
 log(Config, puts, Format)         -> log(Config, puts, Format, []);
 log(Level, Format, Data)          -> 
-  {ok, Config} = file:consult("default.config"),
+  Config = case get(log) of 
+    undefined -> {ok, C} = file:consult("default.config"), C;
+    C -> C
+  end,
   log(Config, Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
@@ -60,8 +63,12 @@ log(Config, Level, Format, Data)  ->
     {true, skip}  -> io:format("~n\t......: " ++ Format, Data);
     % General Logging Ouptut
     {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
-                     io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
-    _ -> noop
+                     Suffix = " <~p:~p/~p>",
+                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST catch _ -> [{module, unknown, 0}] end,
+                     Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
+                     DataCalled = Data ++ [Module, Method, Arity],
+                     io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
+    _ -> no_log
   end.
   
 % return the list of feature to test
@@ -143,19 +150,33 @@ is_site_up(Config) ->
 
 % returns value for key from Config (error if not found)
 config(Config, Key) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  false -> throw("Could not find requested key in config file");
-	  _ -> throw("Unexpected return from keyfind")
-	end.
+  case get(Key) of 
+    undefined -> case lists:keyfind(Key,1,Config) of
+  	    {Key, Value} -> Value;
+  	    false -> throw("bdd_utils:config Could not find requested key in config file");
+  	    _ -> throw("Unexpected return from bdd_utils:config keyfind")
+	    end;
+  	V -> V
+  end.
 
 % returns value for key from Config (returns default if missing)
 config(Config, Key, Default) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  _ -> Default
-	end.
-	
+  case get(Key) of 
+  	undefined -> case lists:keyfind(Key,1,Config) of
+  	    {Key, Value} -> Value;
+  	    _ -> put(Key, Default), Default
+  	  end;
+  	V -> V
+  end.
+
+config_set(Config, Key, Value) ->
+  put(Key, Value),
+  C = case lists:keyfind(Key,1,Config) of
+    undefined -> Config;
+    Item -> lists:delete(Item, Config)
+  end,
+  C ++ [{Key, Value}].
+  
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),

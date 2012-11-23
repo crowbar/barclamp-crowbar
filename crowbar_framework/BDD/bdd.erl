@@ -12,9 +12,6 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
-% 
-
 -module(bdd).
 -export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4]).
 -export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
@@ -49,7 +46,7 @@ scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
 scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]).
 scenario(ConfigName, Feature, ID, Log) ->
-  Config = [{log, Log} | getconfig(ConfigName)],
+  Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName, ID),
   C = stop(FeatureConfig),
@@ -261,7 +258,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  io:format("exit Did not find step: ~p~n", [Feature]),
       io:format("~nERROR: web server not responding.  Details: ~p~n",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
-    error: (badmatch, {error, no_scheme}} ->
+    error: {badmatch, {error, no_scheme}} ->
 		  io:format("~nERROR: badmatch in code due to no_scheme.~n"), 
       io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       io:format("\tAttempted \"feature ~p, step ~p.\"~n",[Feature, Step]),

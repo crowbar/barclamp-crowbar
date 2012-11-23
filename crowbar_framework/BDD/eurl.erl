@@ -12,8 +12,6 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
-% 
 -module(eurl).
 -export([post/3, put/3, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
 -export([get/2, get/3, get_page/3, peek/2, search/2, search/3]).
@@ -152,10 +150,10 @@ get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
 get(Config, URL, all) ->
-  bdd_utils:log(Config, debug, "eurl:get Getting ~p~n", [URL]),
+  bdd_utils:log(Config, debug, "eurl:get Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, trace, "eurl:get Result ~p: ~p~n", [Code, Body]),
+  bdd_utils:log(Config, trace, "eurl:get Result ~p: ~p", [Code, Body]),
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
 get(Config, URL, OkReturnCodes) ->
@@ -177,7 +175,7 @@ post(Config, URL, Parameters, _ReturnCode, StateRegEx) ->
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body})
+    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")~nBody: " ++ Body})
 	end. 
 
 % Post using JSON to convey the values
@@ -191,7 +189,7 @@ put_post(Config, Path, JSON, Action, all) ->
   bdd_utils:log(Config, debug, "~ping to ~p~n", [atom_to_list(Action), URL]),
   Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p~n", [ReturnCode, Body]),
+  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
 put_post(Config, Path, JSON, Action, OkReturnCodes) ->
   translateReturnCodes(put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
@@ -202,7 +200,7 @@ delete(Config, Path, Id, all) ->
   bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p~n", [ReturnCode, Body]),
+  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
 delete(Config, Path, Id, OkReturnCodes) -> 
   translateReturnCodes(delete(Config, Path, Id, all), OkReturnCodes, Path, delete).

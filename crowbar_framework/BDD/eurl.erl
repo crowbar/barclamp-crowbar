@@ -46,11 +46,12 @@ html_body(Input) ->
 html_head(Input) ->
   RegEx = "<(html|HTML)(.*)<(head|HEAD)>(.*)</(head|HEAD)>(.*)</(html|HTML)>",
   html_peek(Input, RegEx).
-  
+
+peek(Match, {ajax, 200, Input}) -> peek(Match, Input);  
 peek(Match, Input) ->
   RegEx = Match,
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:log(trace, "html:peek compile: ~p on ~p~n", [RegEx, Input]),
+	bdd_utils:log(trace, "html:peek compile looking for: ~p in ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
 	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
 	%{ match, [ {_St, _Ln} | _ ] } = Result,

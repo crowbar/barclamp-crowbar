@@ -48,12 +48,7 @@ debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
 log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
 log(Config, puts, Format)         -> log(Config, puts, Format, []);
-log(Level, Format, Data)          -> 
-  Config = case get(log) of 
-    undefined -> {ok, C} = file:consult("default.config"), C;
-    C -> C
-  end,
-  log(Config, Level, Format, Data).
+log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
   case {lists:member(Level, Levels), Level} of
@@ -64,7 +59,7 @@ log(Config, Level, Format, Data)  ->
     % General Logging Ouptut
     {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
                      Suffix = " <~p:~p/~p>",
-                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST catch _ -> [{module, unknown, 0}] end,
+                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST; [] -> {unknown, 0, 0} catch _ -> [{module, unknown, 0}] end,
                      Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
                      DataCalled = Data ++ [Module, Method, Arity],
                      io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
@@ -150,24 +145,29 @@ is_site_up(Config) ->
 
 % returns value for key from Config (error if not found)
 config(Config, Key) ->
-  case get(Key) of 
-    undefined -> case lists:keyfind(Key,1,Config) of
-  	    {Key, Value} -> Value;
-  	    false -> throw("bdd_utils:config Could not find requested key in config file");
-  	    _ -> throw("Unexpected return from bdd_utils:config keyfind")
-	    end;
-  	V -> V
+  case config(Config, Key, undefined) of
+    undefined -> throw("bdd_utils:config Could not find requested key in config file");
+    V -> V
   end.
 
 % returns value for key from Config (returns default if missing)
 config(Config, Key, Default) ->
-  case get(Key) of 
-  	undefined -> case lists:keyfind(Key,1,Config) of
-  	    {Key, Value} -> Value;
-  	    _ -> put(Key, Default), Default
-  	  end;
-  	V -> V
-  end.
+  % TODO - this should use the get first, but we're transistioning so NOT YET
+  case lists:keyfind(Key,1,Config) of
+    {Key, Value} -> 
+          % this if helps find items that are not using config_set
+          case get(Key) of
+            undefined -> 
+                  put(Key, Default), 
+                  bdd_utils:log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
+            _ -> all_good
+          end,
+          Value;
+    _ ->  case get(Key) of   	     
+  	        undefined -> put(Key, Default), Default;
+  	        V -> V
+  	      end
+	end.
 
 config_set(Config, Key, Value) ->
   put(Key, Value),

@@ -53,9 +53,12 @@ scenario(ConfigName, Feature, ID, Log) ->
   lists:keyfind(feature, 1, C).
   
 % version of scenario with extra loggin turned on
-debug(Feature, ID)              -> debug(default, Feature, ID).
-debug(Config, Feature, ID)      -> debug(Config, Feature, ID, [all]).
-debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
+debug(Feature, ID)                -> debug(default, Feature, ID, debug).
+debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
+debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
+debug(Config, Feature, ID, debug) -> debug(Config, Feature, ID, [puts, debug, info, warn, error]);
+debug(Config, Feature, ID, info)  -> debug(Config, Feature, ID, [puts, info, warn, error]);
+debug(Config, Feature, ID, Log)   -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
@@ -152,10 +155,14 @@ getconfig(ConfigName)                  ->
   
 % read in the feature file
 feature_import(FileName) ->
-  {ok, Features} = file:read_file(FileName),
+  Features = case file:read_file(FileName) of
+    {ok, F} -> F;
+    _ ->  bdd_utils:log(error, "bdd:feature_import could not find file ~p",[FileName]), throw(bddInvalidFile)
+  end,
   [Header | Body] = re:split(Features,"Scenario:"),
   Name = bdd_utils:clean_line(string:tokens(binary_to_list(Header),"\n")),
   Scenarios = [binary_to_list(S) || S <- Body],
+  bdd_utils:log(trace, "bdd:feature_import reading feature ~p with ~p scenarios",[FileName, length(Scenarios)]),
   {feature, Name, Scenarios}.
 	
 % run the scenarios, test list allows you to pick which tests

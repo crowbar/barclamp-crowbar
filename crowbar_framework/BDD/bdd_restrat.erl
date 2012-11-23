@@ -182,6 +182,8 @@ step(Config, Results, {step_then, _N, ["I get a",Number,"error"]}) ->
   bdd_utils:log(Config, trace, "bdd_restrat step then ~p error result ~p",[Number, Result]),
   case Result of 
     {ajax, Number, _}  -> true;
+    {html, Number, _}  -> true;
+    Number             -> true;
     _                  -> false
   end;
 

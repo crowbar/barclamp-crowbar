@@ -48,6 +48,7 @@ debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
 log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
 log(Config, puts, Format)         -> log(Config, puts, Format, []);
+log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, []);
 log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),

@@ -151,7 +151,8 @@ stop(Config) ->
 getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));
 getconfig(ConfigName)                  ->
   {ok, ConfigBase} = file:consult(ConfigName++".config"),
-  [{config, ConfigName} | ConfigBase].
+  [put(K, V) || {K, V} <- ConfigBase ],
+  bdd_utils:config_set(get(), config, ConfigName).
   
 % read in the feature file
 feature_import(FileName) ->

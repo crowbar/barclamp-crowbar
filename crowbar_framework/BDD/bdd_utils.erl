@@ -14,8 +14,8 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/2, clean_line/1]).
--export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
+-export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
@@ -35,6 +35,7 @@ assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
 
 % for quick debug that you want to remove later (like ruby puts)
+puts()              -> log(puts, "*** HERE! ***").  
 puts(Format)        -> log(puts, Format).  
 puts(Format, Data)  -> log(puts, Format, Data).
 
@@ -46,9 +47,9 @@ debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
 % FOR PERFORMANCE, always call with Config if available!
 log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
-log(Level, Format, Data)          -> 
-  {ok, Config} = file:consult("default.config"),
-  log(Config, Level, Format, Data).
+log(Config, puts, Format)         -> log(Config, puts, Format, []);
+log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, []);
+log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
   case {lists:member(Level, Levels), Level} of
@@ -58,8 +59,12 @@ log(Config, Level, Format, Data)  ->
     {true, skip}  -> io:format("~n\t......: " ++ Format, Data);
     % General Logging Ouptut
     {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
-                     io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
-    _ -> noop
+                     Suffix = " <~p:~p/~p>",
+                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST; [] -> {unknown, 0, 0} catch _ -> [{module, unknown, 0}] end,
+                     Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
+                     DataCalled = Data ++ [Module, Method, Arity],
+                     io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
+    _ -> no_log
   end.
   
 % return the list of feature to test
@@ -141,19 +146,38 @@ is_site_up(Config) ->
 
 % returns value for key from Config (error if not found)
 config(Config, Key) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  false -> throw("Could not find requested key in config file");
-	  _ -> throw("Unexpected return from keyfind")
-	end.
+  case config(Config, Key, undefined) of
+    undefined -> throw("bdd_utils:config Could not find requested key in config file");
+    V -> V
+  end.
 
 % returns value for key from Config (returns default if missing)
 config(Config, Key, Default) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  _ -> Default
+  % TODO - this should use the get first, but we're transistioning so NOT YET
+  case lists:keyfind(Key,1,Config) of
+    {Key, Value} -> 
+          % this if helps find items that are not using config_set
+          case get(Key) of
+            undefined -> 
+                  put(Key, Default), 
+                  bdd_utils:log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
+            _ -> all_good
+          end,
+          Value;
+    _ ->  case get(Key) of   	     
+  	        undefined -> put(Key, Default), Default;
+  	        V -> V
+  	      end
 	end.
-	
+
+config_set(Config, Key, Value) ->
+  put(Key, Value),
+  C = case lists:keyfind(Key,1,Config) of
+    undefined -> Config;
+    Item -> lists:delete(Item, Config)
+  end,
+  C ++ [{Key, Value}].
+  
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
@@ -181,6 +205,9 @@ token_substitute(Config, Token) ->
               list_to_atom(Apply);
     [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
               list_to_atom(Apply);
+    [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 
+              {Num, []} = string:to_integer(Apply),
+              Num;
     _ -> Token
   end.
 

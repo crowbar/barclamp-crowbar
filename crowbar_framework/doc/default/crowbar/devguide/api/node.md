@@ -102,3 +102,43 @@ None.
 Details:
 
 * id - Node name or database ID (must be FQDN)
+
+### Node Attributes
+
+Node Attributes API is used to retrieve data about attributes that have been associated with a Node.
+
+Typically, attribute data is populated by the CMDB system(s) based on the associations established using this API.
+
+#### Associations
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> GET </td>
+  <td> /2.0/crowbar/2.0/node/[id]/attribute </td>
+  <td> none </td>
+  <td> List of attribute IDs and names assigned to node</td>
+  <td></td></tr>
+<tr><td> GET </td>
+  <td> /2.0/crowbar/2.0/node/[id]/attribute/[id] </td>
+  <td> none </td>
+  <td> Last 100 readings (Event ID + Value) </td>
+  <td></td></tr>
+<tr><td> POST </td>
+  <td> /2.0/crowbar/2.0/node/[id]/attribute/[id] </td>
+  <td> none </td>
+  <td> Link Attribute to Node </td>
+  <td></td></tr>
+<tr><td> PUT </td>
+  <td> /2.0/crowbar/2.0/node/[id]/attribute/[id] </td>
+  <td> none </td>
+  <td> 405 error - Not enabled </td>
+  <td></td></tr>
+<tr><td> DELETE </td>
+  <td> /2.0/crowbar/2.0/node/[id]/attribute/[id] </td>
+  <td> none </td>
+  <td> Break association and remove data </td>
+  <td></td></tr>
+</table>
+
+
+

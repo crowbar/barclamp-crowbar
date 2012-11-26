@@ -20,7 +20,9 @@ Core BDD Commands:
   1. `bdd:test().` will run all the tests and report the results.  Test results are copied to a `../tmp/bbd_results.out` with a date/time stamp so you can review test status (see failed() below).
   1. `bdd:feature(name).` will run just the named feature set.  You can pass the feature name as an atom or string.
   1. `bdd:scenario(name, id).` will run just the scenario selected from the feature file.  ID's are assigned by BDD based on a hash of the scenario name.
-  1. `bdd:debug(config, name, id).` will run just the scenario selected from the feature file with debug logging flags.  ID's are assigned by BDD based on a hash of the scenario name.  You may also pass a list of the specific log levels requested.
+  1. `bdd:debug(config, name, id).` will run just the scenario selected from the feature file with debug logging flags.  ID's are assigned by BDD based on a hash of the scenario name.  
+     1. You may also pass a list of the specific log levels requested.  (if omitted, `debug` is assumed)
+     1. You can pass a single atom instead of a whole list of log levels: `trace`, `debug`, and `info` are supported.
   1. `bdd:failed(config).` will rerun just the failed tests using the test results output file (`../tmp/bbd_results.out`).
   1. `bdd:steps().` will show you all the available step definitions
 

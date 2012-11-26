@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Scaffolds::NodesController < ApplicationController
-  active_scaffold :node do |conf|
-    list.columns.exclude :attribs
+class CreateNodeAttributes < ActiveRecord::Migration
+  def change
+    create_table :node_attributes do |t|
+      t.belongs_to  :node
+      t.belongs_to  :attribute
+    end
+    add_index(:node_attributes, [:node_id, :attribute_id], :unique => true)   
   end
-end 
+end

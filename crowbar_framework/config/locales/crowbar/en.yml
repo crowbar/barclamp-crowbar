@@ -70,6 +70,7 @@ en:
     scaffold:
       top: Scaffolds
       top_description: Developer Tools
+      attributes: Attributes
       barclamps: Barclamps
       cmdb: DevOps CMDB
       cmdb_attributes: CMDB Attribs

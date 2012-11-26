@@ -85,7 +85,9 @@ step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) ->
   bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
       
 step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) -> 
-  Result = eurl:post(Config, group_node_path(Group, Node), []),
+  R = eurl:post(Config, group_node_path(Group, Node), []),
+  Result = json:parse(R),
+  bdd_utils:log(Config, trace, "group:step REST add the node ~p to ~p. Result was ~p",[Node, Group, Result]),
   {nodes, group_nodes(Result, Group)};
 
 step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]}) -> 
@@ -98,7 +100,9 @@ step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFro
   %first check old group
   Nodes = get_group_nodes(Config, GroupFrom),
   1 = length([ N || {_ID, N} <- Nodes, N =:= Node]),
-  Result = eurl:put(Config, group_node_path(GroupTo, Node), []),
+  R = eurl:put(Config, group_node_path(GroupTo, Node), []),
+  Result = json:parse(R),
+  bdd_utils:log(Config, trace, "group:step REST move the node ~p to ~p. Result was ~p",[Node, GroupTo, Result]),
   {nodes, group_nodes(Result, GroupTo)}; 
   
 step(_Config, Result, {step_then, _N, ["the group is properly formatted"]}) -> 

@@ -32,6 +32,7 @@ class Node < ActiveRecord::Base
   validates_length_of :alias, :maximum => 100
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :attribs, :join_table => "node_attributes", :foreign_key => "node_id", :class_name=>'Attribute'
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 

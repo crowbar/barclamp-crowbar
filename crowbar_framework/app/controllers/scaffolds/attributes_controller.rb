@@ -13,8 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::NodesController < ApplicationController
-  active_scaffold :node do |conf|
-    list.columns.exclude :attribs
+class Scaffolds::AttributesController < ApplicationController
+  active_scaffold :attribute do |conf|
   end
 end 

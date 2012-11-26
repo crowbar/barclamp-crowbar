@@ -24,15 +24,15 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar.test.com"
     assert_not_nil node
-    nbefore = node.attributes.length
+    nbefore = node.attribs.length
     abefore = attrib.nodes.length
-    node.attributes << attrib
+    node.attribs << attrib
     # retrieve from cache
     n = Node.find_by_name "bar.test.com"
     a = Attribute.find_by_name "foo"
     # node has attributes
-    assert_equal nbefore+1, n.attributes.length
-    assert n.attributes.include? a
+    assert_equal nbefore+1, n.attribs.length
+    assert n.attribs.include? a
     # attribute has nodes
     assert_equal abefore+1, a.nodes.length
     assert a.nodes.include? n
@@ -43,15 +43,15 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar2.test.com"
     assert_not_nil node
-    nbefore = node.attributes.length
+    nbefore = node.attribs.length
     abefore = attrib.nodes.length
     attrib.nodes << node
     # retrieve from cache
     n = Node.find_by_name "bar2.test.com"
     a = Attribute.find_by_name "foo2"
     # node has attributes
-    assert_equal nbefore+1, n.attributes.length
-    assert n.attributes.include? a
+    assert_equal nbefore+1, n.attribs.length
+    assert n.attribs.include? a
     # attribute has nodes
     assert_equal abefore+1, a.nodes.length
     assert a.nodes.include? n
@@ -70,7 +70,7 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     n_after = Node.find_by_name "bar3.test.com"
     a_after = Attribute.find_by_name "foo3"
     assert !a_after.nodes.include?(n_after)
-    assert !n_after.attributes.include?(a_after)
+    assert !n_after.attribs.include?(a_after)
   end
   
   test "Node remove attribute" do
@@ -82,11 +82,11 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     n = Node.find_by_name "bar4.test.com"
     a = Attribute.find_by_name "foo4"
     assert a.nodes.include? n
-    n.attributes.delete a
+    n.attribs.delete a
     n_after = Node.find_by_name "bar4.test.com"
     a_after = Attribute.find_by_name "foo4"
     assert !a_after.nodes.include?(n_after)
-    assert !n_after.attributes.include?(a_after)
+    assert !n_after.attribs.include?(a_after)
   end
 end
 

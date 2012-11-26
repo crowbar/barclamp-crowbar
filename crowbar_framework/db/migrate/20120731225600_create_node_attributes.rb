@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class Attribute < ActiveRecord::Base
-  
-  attr_accessible :name, :description, :order
-
-  validates_format_of     :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-
-  has_and_belongs_to_many :nodes, :join_table => "node_attributes", :foreign_key => "attribute_id"
-  
+class CreateNodeAttributes < ActiveRecord::Migration
+  def change
+    create_table :node_attributes do |t|
+      t.belongs_to  :node
+      t.belongs_to  :attribute
+    end
+    add_index(:node_attributes, [:node_id, :attribute_id], :unique => true)   
+  end
 end
-

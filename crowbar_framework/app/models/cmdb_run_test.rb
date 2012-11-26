@@ -1,9 +1,10 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -11,18 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
-  def change
-    create_table :cmdb_runs do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true, :default=>true
-      t.string :type,         :null=>false
-      t.string :order,        :default=>10000
+#
+# This model is a stub for the CMDB override system
+# It is NOT installed by default, but can be used for testing or as a model
+class CmdbRunTest < CmdbRun
 
-      t.references :cmdb
-      t.references :cmdb_map
-
-      t.timestamps
-    end
+  def init
+    super.init
   end
+
+  def event(config_id)
+    super.event config_id
+    config_id
+  end
+
+  def data(key)
+    super.data key
+    key
+  end
+
 end
+
+

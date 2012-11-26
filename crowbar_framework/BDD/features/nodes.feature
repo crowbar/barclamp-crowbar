@@ -60,7 +60,7 @@ Feature: Nodes
       And there should be a key "updated_at"
       And the node is properly formatted
 
-  Scenario: Node Detail using BDD setup
+  Scenario: %Node Detail using BDD setup
     When REST gets the node "bdd1.example.com"
     Then key "fingerprint" should be a number
       And there should be a key "state"
@@ -69,3 +69,41 @@ Feature: Nodes
       And key "id" should match "node1" from setup
       And key "id" should be a number
       And key "order" should be "100"
+
+  Scenario: %Node Attribute List Works
+    Given there is a {object:node} "node.attribute.com"
+      And there is a {object:attribute} "bddtest"
+    When REST gets the node-attribute list for "node.attribute.com"
+    Then there is a value "bddtest"
+    Finally REST removes {object:node} "node.attribute.com"
+      And REST removes {object:attribute} "bddtest"
+
+  Scenario: %Node Attribute Get Events
+    Given {object:node} "node1.attribute.com" with {object:attribute} "bdd1test" has value "foo"
+    When REST gets the {object:node} "node1.attribute.com" with {object:attribute} "bdd1test"
+    Then there is a value "foo"
+    Finally REST removes {object:node} "node1.attribute.com"
+      And REST removes {object:attribute} "bdd1test"  
+      
+  Scenario: %Node Assign Attribute
+    Given there is a {object:node} "node2.attribute.com"
+      And there is a {object:attribute} "bdd2test"
+    When REST assigns {object:attribute} "bdd2test" to {object:node} "node2.attribute.com"
+    Then the result is valid json
+      And {object:node} "node2.attribute.com" has {object:attribute} "bdd2test"
+    Finally REST removes {object:node} "node2.attribute.com"
+      And REST removes {object:attribute} "bdd2test"  
+  
+  Scenario: %Node Remove Attribute
+    Given there is a {object:node} "node3.attribute.com" with {object:attribute} "bdd3test"
+    When REST unassigns {object:attribute} "bdd3test" from {object:node} "node3.attribute.com"
+    Then the page returns "200" result
+    Finally REST removes {object:node} "node3.attribute.com"
+      And REST removes {object:attribute} "bdd3test"  
+
+  Scenario: %Node cannot Update Attribute
+    Given there is a {object:node} "node4.attribute.com" with {object:attribute} "bdd4test"
+    When REST updates {object:attribute} "bdd4test" on {object:node} "node4.attribute.com"
+    Then the page returns "405" result
+    Finally REST removes {object:node} "node4.attribute.com"
+      And REST removes {object:attribute} "bdd4test"  

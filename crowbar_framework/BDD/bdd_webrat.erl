@@ -62,9 +62,9 @@ step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
 	
-step(Config, _Result, {step_then, _N, ["I should see", Text]}) -> 
-	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [_Result, Text]),
-	eurl:search(Text,_Result);
+step(Config, Result, {step_then, _N, ["I should see", Text]}) -> 
+	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [Result, Text]),
+	eurl:search(Text,Result);
 
 step(Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
 	bdd_utils:log(Config, trace, "step_then result ~p should have ~p on the page~n", [Result, Text]),

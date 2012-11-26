@@ -7,7 +7,6 @@ Feature: CMDBs API
     Given there is a cmdb "my_special_cmdb"
     When REST gets the cmdb list
     Then there should be a value "my_special_cmdb"
-      And there should be a value "chef"
       And there should be a value "bddcmdb"
     Finally REST removes the cmdb "my_special_cmdb"
 

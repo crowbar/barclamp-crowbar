@@ -12,10 +12,8 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
-% 
 -module(eurl).
--export([post/3, put/3, delete/3, post_params/1, post/5, put_post/4, uri/2, path/2]).
+-export([post/3, put/3, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
 -export([get/2, get/3, get_page/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
 
@@ -48,11 +46,12 @@ html_body(Input) ->
 html_head(Input) ->
   RegEx = "<(html|HTML)(.*)<(head|HEAD)>(.*)</(head|HEAD)>(.*)</(html|HTML)>",
   html_peek(Input, RegEx).
-  
+
+peek(Match, {ajax, 200, Input}) -> peek(Match, Input);  
 peek(Match, Input) ->
   RegEx = Match,
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:log(trace, "html:peek compile: ~p on ~p~n", [RegEx, Input]),
+	bdd_utils:log(trace, "html:peek compile looking for: ~p in ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
 	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
 	%{ match, [ {_St, _Ln} | _ ] } = Result,
@@ -151,19 +150,15 @@ get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
 get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
-get(Config, URL, OkReturnCodes) ->
-  bdd_utils:log(Config, info, "Getting ~p~n", [URL]),
+get(Config, URL, all) ->
+  bdd_utils:log(Config, debug, "eurl:get Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:get Result ~p: ~p~n", [Code, Body]),
-	{ok, {{"HTTP/1.1",_ReturnCode,State}, _Head, Body}} = Result,
-  case _ReturnCode of
-    200 -> Body;
-    _ -> case lists:keyfind(_ReturnCode, 1, OkReturnCodes) of
-           false -> throw({errorWhileGetting, _ReturnCode, "ERROR: get attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nResult: " ++ Body});
-           {_, _ReturnAtom} -> _ReturnAtom
-         end
-  end.
+  bdd_utils:log(Config, trace, "eurl:get Result ~p: ~p", [Code, Body]),
+	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
+	{ReturnCode, Body};
+get(Config, URL, OkReturnCodes) ->
+  translateReturnCodes(get(Config, URL, all), OkReturnCodes, URL, get).
   
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;
@@ -181,47 +176,46 @@ post(Config, URL, Parameters, _ReturnCode, StateRegEx) ->
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body})
+    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")~nBody: " ++ Body})
 	end. 
 
 % Post using JSON to convey the values
-post(Config, Path, JSON) ->
-  put_post(Config, Path, JSON, post).
-
-put(Config, Path, JSON) ->
-  put_post(Config, Path, JSON, put).
+post(Config, Path, JSON)    -> put_post(Config, Path, JSON, post).
+put(Config, Path, JSON)     -> put_post(Config, Path, JSON, put).
   
 % Put using JSON to convey the values
-put_post(Config, Path, JSON, Action) ->
-  put_post(Config, Path, JSON, Action, []).
-put_post(Config, Path, JSON, Action, _OkReturnCodes) ->
+put_post(Config, Path, JSON, Action)      -> put_post(Config, Path, JSON, Action, []).
+put_post(Config, Path, JSON, Action, all) ->
   URL = uri(Config, Path),
-  bdd_utils:log(Config, info, "~ping to ~p~n", [atom_to_list(Action), URL]),
+  bdd_utils:log(Config, debug, "~ping to ~p~n", [atom_to_list(Action), URL]),
   Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
-	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p~n", [Code, Body]),
-  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
-  case _ReturnCode of
-    200 -> json:parse(Body);
-    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
-           false -> throw({errorWhilePuttingOrPosting, _ReturnCode, "ERROR: " ++ atom_to_list(Action) ++ " attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body});
-           {_, _ReturnAtom} -> _ReturnAtom
-         end
-  end.
+  {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
+  {ReturnCode, Body};
+put_post(Config, Path, JSON, Action, OkReturnCodes) ->
+  translateReturnCodes(put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
 
-delete(Config, Path, Id) ->
-  delete(Config, Path, Id, []).
-delete(Config, Path, Id, _OkReturnCodes) ->
+delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
+delete(Config, Path, Id, all) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
-  bdd_utils:log(Config, info, "Deleting ~p~n", [URL]),
+  bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
-	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p~n", [Code, Body]),
-  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = Result,
-  case _ReturnCode of
-    200 -> true;
-    _ -> case lists:keyfind(_ReturnCode, 1, _OkReturnCodes) of
-           false -> throw({errorWhileDeleting, _ReturnCode, "ERROR: deletion attempt at " ++ URL ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")\nBody: " ++ Body});
-           {_, _ReturnAtom} -> _ReturnAtom
-         end
-  end.
+  {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
+  {ReturnCode, Body};
+delete(Config, Path, Id, OkReturnCodes) -> 
+  translateReturnCodes(delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
+  
+% Used by get, post, put, delete to allow users to control response to return codes
+translateReturnCodes({200, _},        _OkReturnCodes, _Path, delete)  -> true;
+translateReturnCodes({200, Body},     _OkReturnCodes, _Path, _Action) -> Body;
+translateReturnCodes({Code, _Body},   all, _Path, _Action)            -> Code; 
+translateReturnCodes({_Code, _Body},  neg_one, _Path, _Action)        -> "-1";
+translateReturnCodes({Code, Body},    OkReturnCodes, Path, Action)    -> 
+  Listed = lists:keyfind(Code, 1, OkReturnCodes),
+  case Listed of
+     false -> 
+        bdd_utils:log(error,"~p attempt at ~p failed.  Return code: ~p~nBody: ~p", [Action, Path, Code, Body]),
+        throw({eURLerror, Code, Path});
+     {Code, ReturnAtom} -> ReturnAtom
+   end.

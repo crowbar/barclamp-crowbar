@@ -24,6 +24,8 @@ g(Item) ->
   case Item of
     node_name -> "global-node.testing.com";
     node_atom -> global_node;
+    name -> "bddtest";
+    order -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
@@ -51,9 +53,10 @@ step(Config, _Global, {step_teardown, _N, _}) ->
 
 step(Config, _Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path("utils/i18n",Key),
-  R = eurl:get(Config, URI, not_found),
+  R = eurl:get_page(Config, URI, all),
   bdd_utils:log(Config, trace, "crowbar:i18n get ~p gave ~p", [URI, R]),
-  R;
+  {Code, Details} = R,
+  {ajax, Code, Details};
 
 % ============================  THEN STEPS =========================================
 

@@ -12,11 +12,9 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
-% 
-
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
+-export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4]).
+-export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
 -export([step_run/3, step_run/4, inspect/1, is_clean/1]).
@@ -46,17 +44,21 @@ feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
 scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
-scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, []).
+scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]).
 scenario(ConfigName, Feature, ID, Log) ->
-  Config = [{log, Log} | getconfig(ConfigName)],
+  Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
   FeatureConfig = run(Config, Feature, FileName, ID),
   C = stop(FeatureConfig),
   lists:keyfind(feature, 1, C).
   
 % version of scenario with extra loggin turned on
-debug(Config, Feature, ID)      -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, [puts, debug, info, warn]).
-debug(Config, Feature, ID, Log) -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
+debug(Feature, ID)                -> debug(default, Feature, ID, debug).
+debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
+debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
+debug(Config, Feature, ID, debug) -> debug(Config, Feature, ID, [puts, debug, info, warn, error]);
+debug(Config, Feature, ID, info)  -> debug(Config, Feature, ID, [puts, info, warn, error]);
+debug(Config, Feature, ID, Log)   -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
 
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
@@ -149,14 +151,19 @@ stop(Config) ->
 getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));
 getconfig(ConfigName)                  ->
   {ok, ConfigBase} = file:consult(ConfigName++".config"),
-  [{config, ConfigName} | ConfigBase].
+  [put(K, V) || {K, V} <- ConfigBase ],
+  bdd_utils:config_set(get(), config, ConfigName).
   
 % read in the feature file
 feature_import(FileName) ->
-  {ok, Features} = file:read_file(FileName),
+  Features = case file:read_file(FileName) of
+    {ok, F} -> F;
+    _ ->  bdd_utils:log(error, "bdd:feature_import could not find file ~p",[FileName]), throw(bddInvalidFile)
+  end,
   [Header | Body] = re:split(Features,"Scenario:"),
   Name = bdd_utils:clean_line(string:tokens(binary_to_list(Header),"\n")),
   Scenarios = [binary_to_list(S) || S <- Body],
+  bdd_utils:log(trace, "bdd:feature_import reading feature ~p with ~p scenarios",[FileName, length(Scenarios)]),
   {feature, Name, Scenarios}.
 	
 % run the scenarios, test list allows you to pick which tests
@@ -259,6 +266,11 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  io:format("exit Did not find step: ~p~n", [Feature]),
       io:format("~nERROR: web server not responding.  Details: ~p~n",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
+    error: {badmatch, {error, no_scheme}} ->
+		  io:format("~nERROR: badmatch in code due to no_scheme.~n"), 
+      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
+      io:format("\tAttempted \"feature ~p, step ~p.\"~n",[Feature, Step]),
+		  throw("BDD ERROR: unexpected match.");
 		X: Y -> 
 		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
       io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),

@@ -123,8 +123,15 @@ output({json, List}) -> output(List);
 output(List)         -> lists:concat(["{", output_inner(List), "}"]).
 
 % break List into smaller parts
-atomize({K, [{K1, V1} | T]})       -> lists:concat([quote_key(K),":", output([{K1, V1} | T])]);
-atomize({K, V})                    -> lists:concat([quote_key(K),":\"", V, "\""]).
+atomize({K, [{K1, V1}]}) when is_integer(K1)     -> lists:concat([quote_key(K),":[", output(V1), "]"]);
+atomize({K, [{K1, V1}]})                         -> lists:concat([quote_key(K),":", output([{K1, V1}])]);
+atomize({K, [{K1, V1} | T]}) when is_integer(K1) -> lists:concat([quote_key(K),":[", output(V1), ", ", array(T), "]"]);
+atomize({K, [{K1, V1} | T]})                     -> lists:concat([quote_key(K),":", output([{K1, V1} | T])]);
+atomize({K, V})                                  -> lists:concat([quote_key(K),":\"", V, "\""]).
+
+% strip out the index for arrays
+array([{K, V}])     when is_integer(K) -> output(V);
+array([{K, V} | T]) when is_integer(K) -> lists:concat([output(V), ", ", array(T)]).
 
 % quote strings, no not quote number keys
 quote_key(K) when is_integer(K) -> K;

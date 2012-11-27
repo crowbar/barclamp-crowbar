@@ -14,18 +14,138 @@
 % 
 -module(bdd_restrat).
 -export([step/3]).
+-export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
+
+
+  
+% HELPERS ============================
 
 % ASSUME, only 1 ajax result per feature
-get_JSON(Results) ->
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),  
-  JSON.   
+get_JSON(Results) ->      {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),  JSON.   
+get_JSON(Results, all) -> lists:keyfind(ajax, 1, Results).
 
+% given a path + key, returns the ID of the object
+get_id(Config, Path, Key) -> get_id(Config, eurl:path(Path,Key)).
+get_id(Config, Path) ->
+  R = eurl:get_page(Config, Path, all),
+  bdd_utils:log(Config, trace, "bdd_restrat:get_id path ~p Result: ~p", [Path, R]),
+  {"id", ID} = try R of
+    {200, []}      -> {"id", "-1"};
+    {200, "null"}  -> {"id", "-1"};
+    {200, Result}  -> lists:keyfind("id", 1, json:parse(Result));
+    _              -> {"id", "-1"}
+  catch 
+    _ -> {"id", "-1"}
+  end,  
+  ID.
+  
+% helper common to all setups using REST
+create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
+create(Config, Path, JSON, Action) ->
+  % just in case - cleanup to prevent collision
+  destroy(Config, Path, json:keyfind(json:parse(JSON), name)),
+  % create node(s) for tests
+  eurl:put_post(Config, Path, JSON, Action).
+  
+create(Config, Path, Atom, Name, JSON) ->
+  create(Config, Path, Atom, Name, JSON, post).
+
+create(Config, Path, Atom, Name, JSON, Action) ->
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:create Path: ~p, Name: ~p, JSON: ~p", [Path, Name, JSON]),
+  Result = json:parse(create(Config, Path, JSON, Action)),
+  % get the ID of the created object
+  Key = json:keyfind(Result, id),
+  % friendly message
+  bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
+  % add the new ID to the config list
+  [{Atom, Key} | Config].
+
+% helper common to all setups using REST
+destroy(Config, Path, Atom) when is_atom(Atom) ->
+  Item = bdd_utils:config(Config, Atom, not_found),
+  bdd_utils:log(Config, debug, "bdd_utils:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
+  case Item of
+    not_found -> 
+        bdd_utils:log(Config, warn, "bdd_utils:destroy(atom) could not find ID for atom ~p",[Atom]);
+    Key       -> 
+        destroy(Config, Path, Key),
+        lists:delete(Item, Config)
+  end;
+
+% helper common to all setups using REST
+destroy(Config, Path, Key) ->
+  case get_id(Config, Path, Key) of
+    "-1" -> bdd_utils:log(Config, trace, "\tRemoval of key ~s skipped: not found.", [Key]);
+    ID   -> eurl:delete(Config, Path, ID),
+            bdd_utils:log(Config, debug, "\tRemoved key ~s & id ~s.", [Key, ID])
+  end,
+  Config.
+  
+% STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
-  {ajax, json:parse(JSON), Page};
+  {ajax, json:parse(JSON), {get, Page}};
 
+step(Config, _Given, {step_when, _N, ["REST creates the",Object,Name]}) -> 
+  JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
+  Path = apply(Object, g, [path]),
+  {Code, Result} = eurl:put_post(Config, Path, JSON, post, all),
+  Key = json:keyfind(Result, id),
+  bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
+  case Code of
+    200 -> {ajax, Result, {post, Path}};
+    _   -> {ajax, Code, {post, Path}}
+  end;
+
+step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) -> 
+  JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
+  Path = eurl:path(apply(Object, g, [path]), Name),
+  {Code, Result} = eurl:put_post(Config, Path, JSON, put, all),
+  bdd_utils:log(Config, debug, "bdd_restrat:update: ~p, Name: ~p", [Path, Name]),
+  case Code of
+    200 -> {ajax, Result, {put, Path}};
+    _   -> {ajax, Code, {put, Path}}
+  end;
+
+
+step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) -> 
+  Path = apply(Object, g, [path]),
+  R = eurl:delete(Config, Path, Name, all),
+  bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p result ~p",[Object,Name, R]),
+  {Code, _} = R,
+  {ajax, Code, {delete, Path}};
+  
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = apply(Object, g, [path]),
+  bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
+  case eurl:get_page(Config, URI, all) of
+    {200, JSON} -> {ajax, json:parse(JSON), {get, URI}};
+    {Code, _}   -> {ajax, Code, {get, URI}}
+  end;
+
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = eurl:path(apply(Object, g, [path]), Key),
+  case eurl:get_page(Config, URI, all) of
+    {200, "null"} -> [];
+    {200, JSON}   -> 
+        bdd_utils:log(Config, trace, "bdd_restrat:get object ~p key ~p uri ~p result ~p...",[Object, Key, URI, string:left(JSON,50)]), 
+        {ajax, json:parse(JSON), {get, URI}};
+    {Num, _}      -> {ajax, Num, {get, URI}}
+  end;
+
+step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) ->
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  case get_JSON(Results, all) of 
+    {ajax, Code, {_, URI}} when is_number(Code) -> 
+        bdd_utils:log(Config, warn, "bdd_restrat: Object ~p code ~p at ~p", [Object, Code, URI]), 
+        false;
+    {ajax, J, _}          -> apply(Object, validate, [J])
+  end;
+    
 step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
+  JSON = get_JSON(Results),
   bdd_utils:log(Config, trace, "JSON list ~p should have ~p~n", [JSON, Key]),
   length([K || {K, _} <- JSON, K == Key])==1;
                                                                 
@@ -53,6 +173,19 @@ step(_Config, Results, {step_then, _N, ["key",Key, "should be an empty string"]}
 step(_Config, Result, {step_then, _N, ["there should be a value",Value]}) -> 
   Test = lists:keyfind(Value,2,get_JSON(Result)),
   Test =/= false;
-          
+
+step(_Config, Result, {step_then, _N, ["I get a",Number,"result"]}) -> 
+  step(_Config, Result, {step_then, _N, ["I get a",Number,"error"]});
+            
+step(Config, Results, {step_then, _N, ["I get a",Number,"error"]}) -> 
+  Result = get_JSON(Results, all),
+  bdd_utils:log(Config, trace, "bdd_restrat step then ~p error result ~p",[Number, Result]),
+  case Result of 
+    {ajax, Number, _}  -> true;
+    {html, Number, _}  -> true;
+    Number             -> true;
+    _                  -> false
+  end;
+
 step(_Config, _Result, {_Type, _N, ["END OF RESTRAT"]}) ->
   false.

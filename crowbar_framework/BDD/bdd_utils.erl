@@ -14,15 +14,20 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, tokenize/1, clean_line/1]).
--export([puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
+-export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
--export([is_site_up/1, is_a/2]).
+-export([is_site_up/1, is_a/2, is_a/3]).
 
 assert(Bools) ->
 	assert(Bools, true).
+assert(Bools, debug) ->
+  case assert(Bools, true) of
+    true -> true;
+    X -> puts("Testing result ~p", [Bools]), X
+  end;
 assert(Bools, Test) ->
 	F = fun(X) -> case X of Test -> true; _ -> false end end,
 	lists:all(F, Bools).
@@ -30,6 +35,7 @@ assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
 
 % for quick debug that you want to remove later (like ruby puts)
+puts()              -> log(puts, "*** HERE! ***").  
 puts(Format)        -> log(puts, Format).  
 puts(Format, Data)  -> log(puts, Format, Data).
 
@@ -41,15 +47,24 @@ debug(Show, Format, Data) -> log(Show, Format, Data, "DEBUG").
 % FOR PERFORMANCE, always call with Config if available!
 log(Format)                       -> log(info, Format, []).
 log(Format, Data)                 -> log(info, Format, Data).
-log(Level, Format, Data)          -> 
-  {ok, Config} = file:consult("default.config"),
-  log(Config, Level, Format, Data).
+log(Config, puts, Format)         -> log(Config, puts, Format, []);
+log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, []);
+log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
-  Levels = config(Config, log, [true, puts, warn]),
-  Prefix = string:to_upper(atom_to_list(Level)),
-  case lists:member(Level, Levels) of
-    true -> io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
-    _ -> noop
+  Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
+  case {lists:member(Level, Levels), Level} of
+    % Log methods for test results
+    {true, pass}  -> io:format("~n\tPassed: " ++ Format, Data);
+    {true, fail}  -> io:format("~n\tFAILED: " ++ Format, Data);
+    {true, skip}  -> io:format("~n\t......: " ++ Format, Data);
+    % General Logging Ouptut
+    {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
+                     Suffix = " <~p:~p/~p>",
+                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST; [] -> {unknown, 0, 0} catch _ -> [{module, unknown, 0}] end,
+                     Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
+                     DataCalled = Data ++ [Module, Method, Arity],
+                     io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
+    _ -> no_log
   end.
   
 % return the list of feature to test
@@ -91,19 +106,30 @@ untrace(Config, Name, N) ->
   file:delete(File).
   
 % test for types
+is_a(JSON, Type, Key) ->
+  Value = json:keyfind(JSON, Key), 
+  case is_a(Type, Value) of
+    true  -> true;
+    X     -> 
+      log(warn, "Key ~p with Value ~p did not pass is_a(~p) test.  Result was ~p.", [Key, Value, Type, X]),
+      false
+  end.
+  
 is_a(Type, Value) ->
   case Type of 
-    number -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");
-    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");
-    whole -> nomatch =/= re:run(Value, "^[0-9]*$");
-    dbid -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
-    name -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
+    num     -> is_number(Value);
+    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
+    int     -> is_integer(Value);
+    whole   -> nomatch =/= re:run(Value, "^[0-9]*$");
+    dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
+    name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
-    string -> is_list(Value);
-    cidr -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
-    ip -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
-    empty -> "" =:= Value;
-    RE -> nomatch =/= re:run(Value, RE)
+    string  -> is_list(Value);                              % cannot be empty
+    cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
+    ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
+    empty   -> "" =:= Value;
+    RE      -> nomatch =/= re:run(Value, RE)    % fall through lets you pass in a regex (pretty cool!)
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test
@@ -120,19 +146,39 @@ is_site_up(Config) ->
 
 % returns value for key from Config (error if not found)
 config(Config, Key) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  false -> throw("Could not find requested key in config file");
-	  _ -> throw("Unexpected return from keyfind")
-	end.
+  case config(Config, Key, undefined) of
+    undefined -> throw("bdd_utils:config Could not find requested key in config file");
+    V -> V
+  end.
 
 % returns value for key from Config (returns default if missing)
 config(Config, Key, Default) ->
-	case lists:keyfind(Key,1,Config) of
-	  {Key, Value} -> Value;
-	  _ -> Default
+  % TODO - this should use the get first, but we're transistioning so NOT YET
+  case lists:keyfind(Key,1,Config) of
+    {Key, Value} -> 
+          % this if helps find items that are not using config_set
+          case get(Key) of
+            undefined -> 
+                  put(Key, Default), 
+                  bdd_utils:log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
+            _ -> all_good
+          end,
+          Value;
+    _ ->  case get(Key) of   	     
+  	        undefined -> put(Key, Default), Default;
+  	        V -> V
+  	      end
 	end.
-	
+
+config_set(Config, Key, Value) ->
+  put(Key, Value),
+  C = case lists:keyfind(Key,1,Config) of
+    undefined -> Config;
+    Item -> lists:delete(Item, Config)
+  end,
+  C ++ [{Key, Value}].
+  
+% removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
 	CleanLine1 = string:strip(CleanLine0, left, $\t),
@@ -140,10 +186,30 @@ clean_line(Raw) ->
 	CleanLine2 = string:strip(CleanLine11),
 	string:strip(CleanLine2, right, $.).
 
-tokenize(Step) ->
-	Tokens = string:tokens(Step,"\""),
-	[string:strip(X) || X<- Tokens].
-	
+% converts quoted text into a list
+tokenize(Config, Step) ->
+	Tokens = string:tokens(Step,"\"{}"),
+	CleanTokens = [string:strip(X) || X<- Tokens],
+	[ token_substitute(Config, X) || X <- CleanTokens, length(X)>0].
+
+% This routine is used for special subtitutions in steps that run functions or turn strings into atoms
+token_substitute(Config, Token) ->
+  case Token of
+    [$a, $p, $p, $l, $y, $: | Apply] ->
+              [File, Method | Params] = string:tokens(Apply, "."),
+              apply(list_to_atom(File), list_to_atom(Method), Params);
+    [$b, $d, $d, $: | Apply]->
+              [File, Method | Params] = string:tokens(Apply, "."),
+              apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
+    [$a, $t, $o, $m, $: | Apply] -> 
+              list_to_atom(Apply);
+    [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
+              list_to_atom(Apply);
+    [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 
+              {Num, []} = string:to_integer(Apply),
+              Num;
+    _ -> Token
+  end.
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->

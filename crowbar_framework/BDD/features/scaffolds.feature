@@ -7,6 +7,15 @@ Feature: Scaffolds
   TODO: proposal_queue 
   TODO: role_element_order 
   
+  Scenario: Attribute
+    When I go to the "scaffolds/attributes" page
+    Then I should see "Attributes"
+      And I should see "Name"
+      And I should see "Description"
+      And I should see "Order"
+      And I should see "Nodes"
+      And there should be no translation errors
+      
   Scenario: Barclamp
     When I go to the "scaffolds/barclamps" page
     Then I should see "Barclamps"

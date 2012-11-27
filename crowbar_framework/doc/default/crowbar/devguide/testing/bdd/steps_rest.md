@@ -3,7 +3,7 @@
 This section descusses the common pattern for BDD testing a RESTful API
 
 
-##### Export
+##### Exports
 
 * step/3
 * json/3 - 
@@ -86,7 +86,7 @@ Teardown
       % find the node from setup and remove it
       crowbar_rest:destroy(Config, g(path), g(atom)).
     
-#### common steps
+#### Common steps
 
 Common steps are easy to create because thy can leverage existing steps with minor changes.  Even if the underlying step is simple, it's more maintainable to build steps based on other steps.
 
@@ -120,4 +120,31 @@ Remove Object
 
     step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) -> 
       crowbar_rest:destroy(Config, g(path), CMDB);
+
+#### Reference Features
+
+    Scenario: CMDB List
+      Given there is a cmdb "my_special_cmdb"
+      When REST gets the cmdb list
+      Then there should be a value "my_special_cmdb"
+        And there should be a value "chef"
+        And there should be a value "bddcmdb"
+      Finally REST removes the cmdb "my_special_cmdb"
+  
+    Scenario: REST JSON check
+      Given there is a cmdb "cmdb_json_test"
+      When REST gets the cmdb "cmdb_json_test"
+      Then the cmdb is properly formatted
+      Finally REST removes the cmdb "cmdb_json_test"
+  
+    Scenario: REST Add 
+      Given there is not a cmdb "cmdb_add_test"
+      When REST adds the cmdb "cmdb_add_test"
+      Then there is a cmdb "cmdb_add_test"
+      Finally REST removes the cmdb "cmdb_add_test"
+  
+    Scenario: REST Delete 
+      Given there is a cmdb "cmdb_delete_test"
+      When REST deletes the cmdb "cmdb_delete_test"
+      Then there is a not cmdb "cmdb_delete_test"
 

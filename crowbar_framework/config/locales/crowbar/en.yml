@@ -70,6 +70,7 @@ en:
     scaffold:
       top: Scaffolds
       top_description: Developer Tools
+      attributes: Attributes
       barclamps: Barclamps
       cmdb: DevOps CMDB
       cmdb_attributes: CMDB Attribs
@@ -330,6 +331,13 @@ en:
         attributes: Attributes
       edit_deployment:
         deployment: Deployment
+      index:
+        title: Crowbar Members
+        barclamp: Project
+        state: Status
+        proposal: Proposal
+        description: Description
+
     modules:
       title: All Barclamps
     index:
@@ -457,13 +465,6 @@ en:
     pending: Pending
     building: Building
     
-  db:
-    notunique: "Item must be unique"
-    notuniqueincategory: "Item must be unique in category"
-    lettersnumbers: "Cannot Save: Item can only contain letters (a..z, A..Z), numbers (0..9) and underscore (_)."
-    fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
-    group_category: "Group Model Validation Error: type is not an allowed category"
-    barclamp_excludes: "Barclamp name is reserved for Crowbar internal operations"
   # Users
   user:
     title: Manage User Accounts

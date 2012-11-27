@@ -15,16 +15,17 @@
 class CreateCmdbMaps < ActiveRecord::Migration
   def change
     create_table :cmdb_maps do |t|
-      t.string :name
-      t.string :description
-      t.string :order
-      t.string :revision
-      t.string :direction
-      t.text :map
+      t.string :name,         :null=>false
+      t.string :description,  :null=>true
+      t.string :order,        :default=>10000
 
-      t.references :barclamp
+      t.references :cmdb
 
       t.timestamps
     end
+    
+    #natural key
+    add_index(:cmdb_maps, :name, :unique => true)  
+    
   end
 end

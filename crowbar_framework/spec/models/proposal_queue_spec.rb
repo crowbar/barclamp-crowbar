@@ -319,7 +319,7 @@ describe ProposalQueue do
   end
 
   def make_proposal_config()
-    barclamp = Barclamp.find_by_name("crowbar")
+    barclamp = Barclamp.find_or_create_by_name("crowbar")
 
     # Not active - dep1
     proposal = barclamp.create_proposal("dep1")

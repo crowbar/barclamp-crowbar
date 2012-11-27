@@ -52,6 +52,12 @@ step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) ->
   {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request(C,URL),
   R;
 
+step(Config, _Given, {step_when, _N, ["I visit",Page,"page without login"]}) -> 
+  URL = eurl:uri(Config, Page),
+  {_Status,{{_Protocol,Code,_Comment}, _Fields, Message}} = http:request(URL),
+  bdd_utils:log(Config, trace, "No Login Request ~p:~p", [Code, Message]),
+  Message;
+                                               
 step(_Config, Result, {step_then, _N, ["I should get a",Code,"error"]}) -> 
   {C, _} = string:to_integer(Code),
   {digest, R} = lists:keyfind(digest, 1, Result),

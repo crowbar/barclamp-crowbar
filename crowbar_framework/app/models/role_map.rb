@@ -13,14 +13,19 @@
 # limitations under the License.
 #
 
-# TODO - this belongs in it's own barclamp!!!
-class BarclampImportChef < ActiveRecord::Migration
-  def up
-    Cmdb.find_or_create_by_name!(:name=>'chef', :descripton=>'Opscode Chef', :type=>'CmdbChef', :order=>1000)
+class RoleMap < ActiveRecord::Base
+
+  attr_accessible :name, :value, :revision
+  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :value, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  belongs_to :role
+  belongs_to :barclamp
+
+
+  def to_s
+    "RoleMap: #{name}\nValue: #{value}"
   end
 
-  def down
-    Cmdb.delete(Cmdb.find_by_name 'chef')
-  end
-  
 end
+

@@ -2,11 +2,13 @@
 
 CMDB APIs are used to manage configuration management databases.  
 
-You cannot simply add a CMDB via the API!  CMDB objects must have a matching cmdb class override!  The primary function of this API is to manage the related CMDB subobjects
+> WARNING: You cannot simply add a new CMDB type via the API!  CMDB object types must have a matching cmdb class override!  The primary function of this API is to manage the related CMDB subobjects.  You can have multiple CMDBs of the same type.
 
 #### CMDB CRUD
 
-List, Create, Read, Update, Delete actions for Groups
+List, Create, Read, Delete actions for CMDBs
+
+> There is no update at this time!
 
 ##### List
 
@@ -56,7 +58,7 @@ Details:
       "name":"chef",
       "description":null,
       "order":10000,
-      "backend":"CmdbChef",
+      "type":"CmdbChef",
       "created_at":"2012-08-13T17:20:21Z",
       "updated_at":"2012-08-13T17:20:21Z"
     }
@@ -85,19 +87,20 @@ Creates a new CMDB
 **Input:**
 
     { 
-      "id":1
       "name":"chef",
       "description":"description",
       "order":10000,
-      "backend":"CmdbChef"
+      "type":"CmdbChef"
     }
 
 Details:
 
-* name - group name (must be letters - numbers and start with a letter)
+* name (required) - CMDB name (must be letters - numbers and start with a letter)
 * description - optional (default null)
-* backend - name of the object that manages the CMDB calls
+* type (required) - name of the object that manages the CMDB calls
 * order - optional (default 10000) 
+
+> The type must match an existing class in the system
 
 ##### CMDB CRUD: Delete 
 

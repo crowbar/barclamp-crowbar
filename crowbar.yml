@@ -258,6 +258,7 @@ gems:
     - rdoc
     - rest-client
     - rspec-rails
+    - rspec-mocks
     - sass
     - sass-rails
     - sendfile

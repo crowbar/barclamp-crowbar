@@ -75,7 +75,6 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
     undefined -> 0;
     _ -> string:str(AuthField,"Digest")
   end,
-
   TrialHeader = case AuthField of 
     undefined -> Header; %++ [{"Accept", "text/html,*/*;q=0.0"}];
     FieldsCache when DigestIndex > 0 -> 
@@ -83,6 +82,7 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
       Header ++ [{"Authorization", HeaderInjection}];
     _ -> Header ++ [{"Cookie", AuthField}]
   end,
+  bdd_utils:log(Config, trace, "simple_auth:request making http request ~p ~p", [Method, URL]),
   % try request
   {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
     get -> http:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);

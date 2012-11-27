@@ -16,6 +16,7 @@ class CreateNodes < ActiveRecord::Migration
   def change
     create_table :nodes do |t|
       t.string      :name, :limit => 255, :null => false
+      t.string      :alias, :limit => 100, :null => false
       t.string      :description, :null=>true
       t.string      :state, :null=>true
       t.integer     :fingerprint, :default=>0

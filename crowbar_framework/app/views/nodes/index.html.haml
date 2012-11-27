@@ -151,6 +151,7 @@
   
   function update() {
     // use nopoll parameter for debugging to prevent activity on web server
+    // TODO: restore this:
     if (#{params.include?(:nopoll) ? 'false' : 'true'}) {
       $.ajaxSetup({ timeout: 3000 })
       $.getJSON('#{node_status_path}', function(data) {

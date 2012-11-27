@@ -13,11 +13,42 @@
 # limitations under the License.
 #
 class CmdbRun < ActiveRecord::Base
-  attr_accessible :title, :body
+  attr_accessible :name, :description, :order, :type
 
+  # 
+  # Validates that Run Names are useful placeholders.  They are 
+  # mainly referenced by their ID. 
+  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
+  #
+  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  
   belongs_to :cmdb
-  belongs_to :cmdb_map
+  #TEMPORARY REMOVAL... belongs_to :cmdb_map 
+  #has_many :cmdb_events
 
-  has_many :cmdb_events
+  def init
+    puts "cmdb run init."
+  end
 
+  def event
+    puts "creating an event"
+
+    self.save!
+    e = CmdbEvent.new
+    r.cmdb_event_id = self.id
+    r
+  end
+
+  def as_json options={}
+    {
+      :name=> name,
+      :description=> description,
+      :order=> order,
+      :type=> type,
+      :id=> id,
+      :created_at=> created_at,
+      :updated_at=> updated_at
+    }
+  end
 end

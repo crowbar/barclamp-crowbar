@@ -7,7 +7,7 @@
     %li= link_to "Reboot", hit_node_path(@node.id, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
     %li= link_to "Shutdown", hit_node_path(@node.id, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
     %li= link_to "Power On", hit_node_path(@node.id, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Identify", hit_node_path(@node.id, 'identify'), :class => 'button', :'data-remote' => true
+    %li= link_to "Identify", hit_node_path(@node.name, 'identify'), :class => 'button', :'data-remote' => true
 
 .column_50.first
   %dl
@@ -39,7 +39,7 @@
   %dt
     = t('.links')
   %dd
-    = link_to t('.bmc'), "https://#{@node.cmdb_bmc_address rescue 'none'}", :target => '_blank'
+    = t('.bmc')  #link_to t('.bmc'), "https://#{@node.cmdb_bmc_address rescue 'none'}", :target => '_blank'
     - unless @node.links.nil?
       - @node.links.each do |link|
         = link_to link.name, link.url, :target => '_blank', :title=>link.description

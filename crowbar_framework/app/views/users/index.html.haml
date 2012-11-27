@@ -44,7 +44,7 @@
        = t 'no_items'
  - if current_user.is_admin?
   %p{:style=>'float:left;'}
-   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('.destroy_changes')}
+   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('user.delete_users')}
    
 .clear
  - if current_user.is_admin?

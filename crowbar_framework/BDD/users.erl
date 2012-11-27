@@ -20,7 +20,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/node";
+    users_path -> "/2.0/crowbar/2.0/users";
     name -> "bdd1.example.com";
     atom -> node1;
     _ -> crowbar:g(Item)
@@ -44,6 +44,7 @@ validate(JSON) ->
 		false
 	end. 
 
+
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
@@ -55,6 +56,12 @@ json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
 % GIVEN STEP
+%dp start
+% List users
+ step(_Config, _Given, {step_when, _N, ["REST requests the list of users"]}) ->
+  bdd_restrat:step(_Config, _Given, {step_when, _N, ["REST requests the", g(users_path),"page"]});
+
+%dp end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      
 step(_Config, _Global, {step_given, _N, ["there is a user",Oscar]}) -> false;
 
@@ -72,13 +79,13 @@ step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) ->
 % Common Routine
 % Cleans up nodes that are created during tests                         
 step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
-  crowbar_rest:destroy(Config, g(path), Node);
+  crowbar_rest:destroy(Config, g(users_path), Node);
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), Node);
+  crowbar_rest:create(Config, g(users_path), g(atom), g(name), Node);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  crowbar_rest:destroy(Config, g(path), g(atom)).
+  crowbar_rest:destroy(Config, g(users_path), g(atom)).

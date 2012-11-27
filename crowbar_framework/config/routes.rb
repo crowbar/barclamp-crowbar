@@ -107,7 +107,12 @@ Crowbar::Application.routes.draw do
   match "manage_users", :controller => 'users', :action => 'index'
   match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
                                
-
+  devise_for :users, :path_prefix => 'my'
+  
+  get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
+  resources :users, :except => :new 
+     
+  devise_scope :user do
   
   # API routes (must be json and must prefix 2.0)
   scope :defaults => {:format=> 'json'} do
@@ -163,12 +168,7 @@ Crowbar::Application.routes.draw do
     end
   end
  
-  devise_for :users, :path_prefix => 'my'
-  
-  get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
-  resources :users, :except => :new 
-     
-  devise_scope :user do
+
     
   end 
 

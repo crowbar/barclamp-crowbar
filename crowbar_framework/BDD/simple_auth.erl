@@ -125,11 +125,12 @@ assemble_url(Host,Port,Path) ->
 
 
 %% Authenticate and save session_id in config for use by all subsequent test steps
+%% URL++"/users/sign_in",
 header(Config, URL) ->
   User = sc:user(Config),
   Password = sc:password(Config),
   Result = http:request(post, {
-			  URL++"/users/sign_in",
+			  URL++"/my/users/sign_in",
 			  [], 
 			  "application/x-www-form-urlencoded",
 			  "user[username]="++User++"&user[password]="++Password

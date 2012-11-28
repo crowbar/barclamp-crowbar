@@ -316,7 +316,7 @@ class NodeObject < ChefObject
     controllers = [] unless controllers
     controllers.each do |c,k|
       k["volumes"].each do |v|
-        volumes << "#{v["raid_level"]} #{v["size"]/1024/1024/1024}GB"
+        volumes << "#{v["raid_level"]} #{v["size"].to_i/1024/1024/1024}GB"
       end
     end
     volumes

@@ -719,7 +719,7 @@ class NodeObject < ChefObject
         break  # if we got this far then we are done
       end
     rescue
-      Rails.logger.warn("Switch {type} Error: #{@node.name}: Switch config not detected during discovery")
+      Rails.logger.warn("Switch #{type} Error: #{@node.name}: Switch config not detected during discovery")
     end
     info
   end

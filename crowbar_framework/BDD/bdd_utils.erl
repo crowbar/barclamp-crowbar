@@ -14,7 +14,7 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, config_unset/2, tokenize/2, clean_line/1]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
@@ -187,6 +187,13 @@ config_set(Config, Key, Value) ->
   end,
   C ++ [{Key, Value}].
   
+config_unset(Config, Key) ->
+  put(Key, undefined),
+  case lists:keyfind(Key,1,Config) of
+    false -> Config;
+    Item  -> lists:delete(Item, Config)
+  end.
+
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),

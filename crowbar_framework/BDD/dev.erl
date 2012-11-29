@@ -14,7 +14,7 @@
 % 
 
 -module(dev).
--export([pop/0, pop/1, unpop/1]).  
+-export([pop/0, pop/1, unpop/0, unpop/1]).  
 -import(bdd_utils).
 -import(digest_auth).
 
@@ -34,6 +34,7 @@ pop(ConfigRaw) ->
   C4.
 
 % tear it down
+unpop()       ->  unpop(get()).
 unpop(Config) ->
   C1 = remove(Config, nodes, node1),
   C2 = remove(C1, nodes, node2),
@@ -57,6 +58,6 @@ add_node(Config, Atom, Name, Description, Order, Group) ->
   
 add_node(Config, Atom, Name, Description, Order) ->
   Node = nodes:json(Name, Description, Order),
-  crowbar_rest:create(Config, nodes:g(path), Atom, Name, Node).
+  bdd_restrat:create(Config, nodes:g(path), Atom, Name, Node).
 
   

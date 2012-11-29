@@ -58,7 +58,7 @@ create(Config, Path, Atom, Name, JSON, Action) ->
   % friendly message
   bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
   % add the new ID to the config list
-  [{Atom, Key} | Config].
+  bdd_utils:config_set(Config, Atom, Key).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->

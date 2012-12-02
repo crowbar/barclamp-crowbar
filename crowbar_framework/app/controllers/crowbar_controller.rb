@@ -32,7 +32,46 @@ class CrowbarController < BarclampController
   end
   
   def node
-    render :text=>"TODO: IMPLEMENT"
+    unless params[:version].eql?('2.0')
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
+      return
+    end
+    @node = Node.find_key(params[:id]) if params[:id]
+    if params[:target]
+      node_attribs
+    end
+  end
+  
+  def node_attribs
+    @attrib = Attribute.find_key(params[:target_id]) if params[:target_id]
+    # POST
+    if request.post?
+      @node.attribs << @attrib
+      render :json => {:node=>@node.id, :attribute=>@attrib.id, :name=>@attrib.name, :description=>@attrib.description}
+    # PUT (not supported)
+    elsif request.put?
+      throw 'not implemented'
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'node_attribute'), :status => 504
+    # DELETE
+    elsif request.delete? and @attrib
+      @node.attribs.delete @attrib
+      render :text=>I18n.t('api.deleted', :id=>@attrib.id, :obj=>'node_attribute')
+    # fall through REST actions (all require ID)
+    elsif request.get? and @attrib
+      a = @node.attribs[@attrib]
+      render :json => {:id=>@attrib.id, :value=>'unknown', :last_updated=>'unknown'}
+    elsif params[:target_id]
+      render :text=>I18n.t('api.not_found', :type=>'node_attrib', :id=>params[:target_id]), :status => 404
+    # list (no ID)
+    elsif request.get?  
+      attribs = {}
+      @node.attribs.each { |a| attribs[a.id] = a.name }
+      render :json => attribs
+    # Catch
+    else
+      render :text=>I18n.t('api.unknown_request'), :status => 400
+    end
+    
   end
   
   def cmdb

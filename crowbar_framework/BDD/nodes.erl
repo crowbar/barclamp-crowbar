@@ -16,66 +16,33 @@
 -module(nodes).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
 
+% DEPRICATED!!! MOVE TO NODE.
+
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
-  case Item of
-    path -> "2.0/crowbar/2.0/node";
-    name -> "bdd1.example.com";
-    atom -> node1;
-    _ -> crowbar:g(Item)
-  end.
+  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[g]),
+  node:g(Item).
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try
-    _Description = json:keyfind(JSON, description), % ADD CHECK!,
-    R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
-        bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
-        bdd_utils:is_a(string, json:keyfind(JSON, state)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
-        bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
-        crowbar_rest:validate(JSON)],
-    bdd_utils:assert(R)
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
+  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[validate]),
+  node:validate(JSON).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, nodes).  % shared inspector works here, but may not always
+  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[inspector]),
+  node:inspector(Config).
   
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[json]),
+  node:json(Name, Description, Order).  
 
-step(Config, _Given, {step_when, _N, ["REST gets the node list"]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
-
-step(Config, _Given, {step_when, _N, ["REST gets the node",Name]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
-     
-% Common Routine
-% Validates the JSON returned by a test as part of general health tests
-% Uses Feature validate, but through central routine     
-step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) -> 
-  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", nodes, "object is properly formatted"]});
-
-% Common Routine
-% Cleans up nodes that are created during tests                         
-step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
-  crowbar_rest:destroy(Config, g(path), Node);
-                   
-step(Config, _Global, {step_setup, _N, _}) -> 
-  % create node(s) for tests
-  Node = json(g(name), g(description), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), Node);
-
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  % find the node from setup and remove it
-  crowbar_rest:destroy(Config, g(path), g(atom)).
+step(Config, Input, Step) ->
+  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p: ~p",[step, Step]),
+  node:step(Config, Input, Step).
+  

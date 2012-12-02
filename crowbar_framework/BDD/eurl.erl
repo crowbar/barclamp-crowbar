@@ -13,8 +13,8 @@
 % limitations under the License. 
 % 
 -module(eurl).
--export([post/3, put/3, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
--export([get/2, get/3, get_page/3, peek/2, search/2, search/3]).
+-export([post/3, put/3, delete/2, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
+-export([get/2, get/3, get_page/3, get_ajax/2, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1]).
 -export([form_submit/2, form_fields_merge/2]).
 -export([encode/1]).
@@ -184,8 +184,7 @@ path(Base, Path) ->
     {_, _}    -> Base ++ "/" ++ Path
   end.
   
-% get a page from a server
-get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
+% get a page from a server - returns {Code, Body}
 get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
@@ -198,7 +197,16 @@ get(Config, URL, all) ->
 	{ReturnCode, Body};
 get(Config, URL, OkReturnCodes) ->
   translateReturnCodes(get(Config, URL, all), OkReturnCodes, URL, get).
-  
+
+% page returns in the {CODE, BODY} format
+get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
+% ajax returns in the {ajax, BODY/CODE, {details}} format
+get_ajax(Config, URI) ->
+  case eurl:get_page(Config, URI, all) of
+    {200, JSON} -> {ajax, json:parse(JSON), {get, URI}};
+    {Code, _}   -> {ajax, Code, {get, URI}}
+  end.
+ 
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;
 post_params([{K, V} | P], ParamsOrig) -> 
@@ -275,14 +283,17 @@ encode([H | T]) ->
     _   -> [H |encode(T)]
   end.
 
+delete(Config, URL)           -> delete(Config, URL, [], all).
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
-delete(Config, Path, Id, all) ->
-  URL = uri(Config, Path) ++ "/" ++ Id,
+delete(Config, URL, [], all)  ->
   bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
+delete(Config, Path, Id, all) ->
+  URL = uri(Config, Path) ++ "/" ++ Id,
+  delete(Config, URL, [], all);
 delete(Config, Path, Id, OkReturnCodes) -> 
   translateReturnCodes(delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
   

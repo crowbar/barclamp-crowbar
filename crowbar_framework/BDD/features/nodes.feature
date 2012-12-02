@@ -70,13 +70,11 @@ Feature: Nodes
       And key "id" should be a number
       And key "order" should be "100"
 
-  Scenario: %Node Attribute List Works
-    Given there is a {object:node} "node.attribute.com"
-      And there is a {object:attribute} "bddtest"
-    When REST gets the node-attribute list for "node.attribute.com"
-    Then there is a value "bddtest"
-    Finally REST removes {object:node} "node.attribute.com"
-      And REST removes {object:attribute} "bddtest"
+  Scenario: Node Attribute List Works
+    Given {object:node} "bdd1.example.com" has {object:attribute} "bddtest1"
+    When REST gets the node-attribute list for "bdd1.example.com"
+    Then there should be a value "bddtest1"
+    Finally REST unassigns {object:attribute} "bddtest1" from {object:node} "bdd1.example.com"
 
   Scenario: %Node Attribute Get Events
     Given {object:node} "node1.attribute.com" with {object:attribute} "bdd1test" has value "foo"

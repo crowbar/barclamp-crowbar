@@ -81,7 +81,12 @@ destroy(Config, Path, Key) ->
   end,
   Config.
   
-% STEPS ======================
+
+% GIVEN STEPS ======================
+step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) -> 
+  step(Config, Global, {step_when, _N, ["REST creates the",Object,Name]});
+
+% WHEN STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   {ajax, json:parse(JSON), {get, Page}};
@@ -115,6 +120,9 @@ step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) ->
   {Code, _} = R,
   {ajax, Code, {delete, Path}};
   
+step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) -> 
+  step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
+
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),

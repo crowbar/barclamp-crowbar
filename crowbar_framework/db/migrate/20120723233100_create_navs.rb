@@ -38,7 +38,7 @@ class CreateNavs < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'network', :parent_item=>'root', :name=>'nav.network', :description=>'nav.network_description', :path=>"network_path", :order=>2000, :development=>true
 
     # barclamps
-    Nav.find_or_create_by_item :item=>'barclamps', :parent_item=>'root', :name=>'nav.barclamps', :description=>'nav.barclamps_description', :path=>"barclamp_modules_path", :order=>3000
+    Nav.find_or_create_by_item :item=>'barclamps', :parent_item=>'root', :name=>'nav.barclamps', :description=>'nav.barclamps_description', :path=>"barclamp_modules_path", :order=>3000, :development=>true
       Nav.find_or_create_by_item :item=>'all_bc', :parent_item=>'barclamps', :name=>'nav.all_bc', :description=>'nav.all_bc_description', :path=>"barclamp_modules_path", :order=>100
       Nav.find_or_create_by_item :item=>'crowbar', :parent_item=>'barclamps', :name=>'nav.crowbar_bc', :description=>'nav.crowbar_bc_description', :path=>"index_barclamp_path(:controller=>'crowbar')", :order=>200
 

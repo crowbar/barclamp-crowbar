@@ -74,11 +74,6 @@ step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) ->
 step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
   crowbar_rest:destroy(Config, g(path), Node);
                    
-step(Config, _Global, {step_setup, _N, _}) -> 
-  % create node(s) for tests
-  Node = json(g(name), g(description), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), Node);
+step(Config, _Global, {step_setup, _N, _}) -> Config;
 
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  % find the node from setup and remove it
-  crowbar_rest:destroy(Config, g(path), g(atom)).
+step(Config, _Global, {step_teardown, _N, _}) -> Config.

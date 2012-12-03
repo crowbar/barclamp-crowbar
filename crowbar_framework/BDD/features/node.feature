@@ -60,16 +60,6 @@ Feature: Nodes
       And there should be a key "updated_at"
       And the node is properly formatted
 
-  Scenario: %Node Detail using BDD setup
-    When REST gets the node "bdd1.example.com"
-    Then key "fingerprint" should be a number
-      And there should be a key "state"
-      And key "name" should be "bdd1.example.com"
-      And key "description" should be "BDD Testing Only - should be automatically removed"
-      And key "id" should match "node1" from setup
-      And key "id" should be a number
-      And key "order" should be "100"
-
   Scenario: Node Attribute List Works
     Given {object:node} "bdd1.example.com" has {object:attribute} "bddtest1"
     When REST gets the node-attribute list for "bdd1.example.com"
@@ -83,13 +73,14 @@ Feature: Nodes
     Finally REST removes {object:node} "node1.attribute.com"
       And REST removes {object:attribute} "bdd1test"  
       
-  Scenario: %Node Assign Attribute
+  Scenario: Node Assign Attribute
     Given there is a {object:node} "node2.attribute.com"
       And there is a {object:attribute} "bdd2test"
     When REST assigns {object:attribute} "bdd2test" to {object:node} "node2.attribute.com"
-    Then the result is valid json
+    Then the result is a valid node-attribute json
       And {object:node} "node2.attribute.com" has {object:attribute} "bdd2test"
-    Finally REST removes {object:node} "node2.attribute.com"
+    Finally REST unassigns {object:attribute} "bddtest1" from {object:node} "bdd1.example.com"
+      And REST removes {object:node} "node2.attribute.com"
       And REST removes {object:attribute} "bdd2test"  
   
   Scenario: %Node Remove Attribute

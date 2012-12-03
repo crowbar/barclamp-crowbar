@@ -29,31 +29,38 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try
-    _Description = json:keyfind(JSON, description), % ADD CHECK!,
-    R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
-        bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
-        bdd_utils:is_a(string, json:keyfind(JSON, state)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
-        bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
-        crowbar_rest:validate(JSON)],
-    bdd_utils:assert(R)
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
+  _Description = json:keyfind(JSON, description), % ADD CHECK!,
+  R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
+      bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
+      bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
+      bdd_utils:is_a(string, json:keyfind(JSON, state)), 
+      bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
+      bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
+      crowbar_rest:validate(JSON)],
+  bdd_utils:assert(R).
 
+validate_node_attribute(JSON) ->
+  R =[bdd_utils:is_a(JSON, dbid, node), 
+      bdd_utils:is_a(JSON, dbid, attribute), 
+      bdd_utils:is_a(JSON, string, name), 
+      bdd_utils:is_a(JSON, str, description), 
+      %bdd_utils:is_a(JSON, value, string), 
+      length(JSON) =:= 4],
+  bdd_utils:assert(R, debug). 
+  
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
   bdd_restrat:inspector(Config, nodes).  % shared inspector works here, but may not always
 
 % helpers
-node_add_attribute(Config, Node, Attribute) ->
+node_attribute_path(Node, Attribute) ->
   NodePath = eurl:path(g(path), Node),
   AttribPath = eurl:path(NodePath,"attrib"),
-  Path = eurl:path(AttribPath,Attribute),
+  eurl:path(AttribPath,Attribute).
+  
+node_add_attribute(Config, Node, Attribute) ->
+  Path = node_attribute_path(Node, Attribute),
   bdd_utils:log(Config, debug, "Node connect node+attributes ~p", [Path]),
   eurl:put_post(Config, Path, [], post).
 
@@ -79,8 +86,29 @@ step(Config, _Given, {step_when, _N, ["REST gets the node-attribute list for",No
   bdd_utils:log(Config, debug, "Nodes get node-attributes path ~p", [Path]),
   eurl:get_ajax(Config, Path);
 
+step(Config, _Given, {step_when, _N, ["REST assigns",attribute,Attribute,"to",node,Node]}) -> 
+  R = node_add_attribute(Config, Node, Attribute),
+  {ajax, json:parse(R), {200, "not attribute assign step"}};
+
 step(Config, _Global, {step_given, _N, [node,Node,"has",attribute, Attribute]}) -> 
-  node_add_attribute(Config, Node, Attribute);
+  R = node_add_attribute(Config, Node, Attribute),
+  bdd_utils:log(Config, debug, "node: given node ~p has attribute ~p.  Result ~p",[Node, Attribute, R]),
+  {ajax, R, {200, "node attribute assign step"}};
+
+step(Config, Result, {step_then, _N, ["the result is a valid node-attribute json"]}) ->
+  bdd_utils:log(Config, x, "node: valid node-attribute? result ~p",[Result]),
+  JSON = bdd_restrat:get_JSON(Result),
+  bdd_utils:log(Config, debug, "node: valid node-attribute? json ~p",[JSON]),
+  validate_node_attribute(JSON);
+
+step(Config, _Result, {step_then, _N, [node,Node,"has",attribute,Attribute]}) -> 
+  Path = node_attribute_path(Node, Attribute),
+  R = eurl:get_page(Config, Path, all),
+  bdd_utils:log(Config, debug, "node node ~p has attribute ~p result ~p",[Node, Attribute, R]),
+  case R of
+    {200, _} -> true;
+    _ -> false
+  end;
 
 % Common Routine
 % Cleans up nodes that are created during tests                         
@@ -108,6 +136,6 @@ step(Config, _Global, {step_setup, _N, _}) ->
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
   bdd_restrat:destroy(Config, g(path), g(atom)),
-  bdd_restrat:destroy(Config, attrib:g(path), nodeattrib0),
-  bdd_restrat:destroy(Config, attrib:g(path), nodeattrib1).
+  bdd_restrat:destroy(Config, attributes:g(path), nodeattrib0),
+  bdd_restrat:destroy(Config, attributes:g(path), nodeattrib1).
   

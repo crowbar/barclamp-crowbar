@@ -25,6 +25,11 @@ pop(ConfigName) when is_atom(ConfigName) ->
 pop(ConfigRaw) ->
   Config = bdd:start(ConfigRaw),
   %nodes
+  Nodes = [{node1, "node1.crowbar.com", "Populated Information!", 250, "Rack1"},
+            {node2, "node2.crowbar.com", "Some Populated Information!", 260, "Rack1"},
+            {node3, "node3.crowbar.com", "More Populated Information!", 270, "Rack1"},
+            {node4, "node4.crowbar.com", "Extra Populated Information!", 280, "Rack1"}],
+  Attributes = [{attrib1, "cpu"}, {attrib2, "service_tag"}],
   C0 = add_group(Config, group1, "Rack1", "North Pole", 1000),
   C1 = add_node(C0, node1, "node1.crowbar.com", "Populated Information!", 250, "Rack1"),
   C2 = add_node(C1, node2, "node2.crowbar.com", "Some Populated Information!", 260, "Rack1"),

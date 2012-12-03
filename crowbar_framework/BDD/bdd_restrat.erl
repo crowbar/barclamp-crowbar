@@ -15,6 +15,7 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
+-export([get_JSON/1]).
 
 
   

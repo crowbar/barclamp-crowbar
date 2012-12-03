@@ -46,7 +46,7 @@ class CrowbarController < BarclampController
     @attrib = Attribute.find_key(params[:target_id]) if params[:target_id]
     # POST
     if request.post?
-      @node.attribs << @attrib
+      @node.attribs << @attrib unless @node.attribs.include? @attrib
       render :json => {:node=>@node.id, :attribute=>@attrib.id, :name=>@attrib.name, :description=>@attrib.description}
     # PUT (not supported)
     elsif request.put?
@@ -58,8 +58,8 @@ class CrowbarController < BarclampController
       render :text=>I18n.t('api.deleted', :id=>@attrib.id, :obj=>'node_attribute')
     # fall through REST actions (all require ID)
     elsif request.get? and @attrib
-      a = @node.attribs[@attrib]
-      render :json => {:id=>@attrib.id, :value=>'unknown', :last_updated=>'unknown'}
+      # MISSING - get actual value!!! 
+      render :json => {:node=>@node.id, :attribute=>@attrib.id, :value=>'unknown', :last_updated=>'unknown'}
     elsif params[:target_id]
       render :text=>I18n.t('api.not_found', :type=>'node_attrib', :id=>params[:target_id]), :status => 404
     # list (no ID)

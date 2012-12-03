@@ -33,6 +33,9 @@ assert(Bools, Test) ->
 	lists:all(F, Bools).
 assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
+check(Bools) ->
+  F = fun(X) -> case X of true -> true; _ -> false end end,
+  lists:any(F, Bools).
 
 % for quick debug that you want to remove later (like ruby puts)
 puts()              -> log(puts, "*** HERE! ***").  
@@ -134,11 +137,17 @@ is_a(Type, Value) ->
     dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
     name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
+    str     -> case Value of V when is_list(V) -> check([is_list(V), length(V)=:=0]); _ -> false end; 
     string  -> is_list(Value);                              % cannot be empty
     cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
     ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
     empty   -> "" =:= Value;
-    RE      -> nomatch =/= re:run(Value, RE)    % fall through lets you pass in a regex (pretty cool!)
+    RE when is_list(RE) -> 
+      log(trace, "bdd_utils:is_a falling back to RE match for ~p ~p", [Type, Value]),
+      nomatch =/= re:run(Value, RE);    % fall through lets you pass in a regex (pretty cool!)
+    _       -> 
+      log(warn, "bdd_utils:is_a no matching type for ~p found.  Value was ~p", [Type, Value]),
+      false
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test

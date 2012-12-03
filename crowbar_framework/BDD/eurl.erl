@@ -284,6 +284,7 @@ encode([H | T]) ->
   end.
 
 delete(Config, URL)           -> delete(Config, URL, [], all).
+delete(Config, Path, [])      -> delete(Config, uri(Config, Path), [], all);
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
 delete(Config, URL, [], all)  ->
   bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),

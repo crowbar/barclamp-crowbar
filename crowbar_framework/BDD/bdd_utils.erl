@@ -16,7 +16,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([log/4, log/3, log/2, log/1]).
+-export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
@@ -52,7 +52,8 @@ log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, [])
 log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
-  case {lists:member(Level, Levels), Level} of
+  Show = lists:member(Level, Levels), 
+  case {Show, Level} of
     % Log methods for test results
     {true, pass}  -> io:format("~n\tPassed: " ++ Format, Data);
     {true, fail}  -> io:format("~n\tFAILED: " ++ Format, Data);
@@ -66,7 +67,15 @@ log(Config, Level, Format, Data)  ->
                      io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
     _ -> no_log
   end.
-  
+
+log_level(dump)       -> put(log, [dump, trace, debug, info, warn, error, puts]);
+log_level(trace)      -> put(log, [trace, debug, info, warn, error, puts]);
+log_level(debug)      -> put(log, [debug, info, warn, error, puts]);
+log_level(info)       -> put(log, [info, warn, error, puts]);
+log_level(depricate)  -> put(log, [depricate, info, warn, error, puts]);
+log_level(warn)       -> put(log, [warn, error, puts]);
+log_level(all)        -> put(log, all).
+
 % return the list of feature to test
 features(Config) ->
   filelib:wildcard(features(Config, "*")).
@@ -203,6 +212,10 @@ token_substitute(Config, Token) ->
               apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
     [$a, $t, $o, $m, $: | Apply] -> 
               list_to_atom(Apply);
+    [$f, $i, $e, $l, $d, $s, $: | Apply]     -> 
+              Pairs = string:tokens(Apply, "&"),
+              Params = [ string:tokens(KV,"=") || KV <- Pairs],
+              [ {K, V} || [K, V | _] <- Params];
     [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
               list_to_atom(Apply);
     [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 

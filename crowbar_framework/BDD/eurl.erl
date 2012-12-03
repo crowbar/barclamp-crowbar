@@ -15,7 +15,9 @@
 -module(eurl).
 -export([post/3, put/3, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
 -export([get/2, get/3, get_page/3, peek/2, search/2, search/3]).
--export([find_button/2, find_link/2, find_block/4, find_block/5, find_div/2, html_body/1, html_head/1]).
+-export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1]).
+-export([form_submit/2, form_fields_merge/2]).
+-export([encode/1]).
 
 search(Match, Results, Test) ->
 	F = fun(X) -> case {X, Test} of 
@@ -89,9 +91,9 @@ find_link(Match, Input) ->
 	  nomatch -> io:format("ERROR: Could not find ~s in request (you may need to escape characters)", [Match]);
 	  {_, _} -> io:format("ERROR: Could not find href= information in substring '~p'~n", [AnchorTag]), throw("could not html_find_link")
 	end,
-	bdd_utils:log(trace, "bdd_utils: find_link anchor ~p~n", [AnchorTag]),
+	bdd_utils:log(trace, "bdd_utils: find_link anchor ~p", [AnchorTag]),
 	%bdd_utils:debug(, "html_find_link href regex~p~n", [re:run(AnchorTag, HrefREX)]),
-	bdd_utils:log(trace, "bdd_utils: find_link found path ~p~n", [Href]),
+	bdd_utils:log(trace, "bdd_utils: find_link found path ~p", [Href]),
 	Href.
 
 find_div([], _)       -> not_found;
@@ -109,6 +111,41 @@ find_div(Input, Id)   ->
            nomatch -> find_div(Next, Id)
          end
   end.
+  
+find_form_inputs(Input) ->
+  I = binary_to_list(Input),
+	{key_value_extract(I, "name", unknown_name),
+	  key_value_extract(I, "value", unknown_value),
+	  key_value_extract(I, "id", unknown_id), 
+	  key_value_extract(I, "type", unknown_type)}.
+  
+key_value_extract(Input, Key, Fail) ->
+	{ok, Rex} = re:compile("\ "++Key++"=(['\\\"])(.+?)(['\\\"])", [multiline, dotall, {newline , anycrlf}]),
+  M = re:run(Input, Rex),
+	bdd_utils:log(x, "eurl:find_form_input_extract regex result ~p with ~p",[Input, M]),
+	Value = try M of
+	  {match, [_, _, {S, L} | _]} when S>0; L>0 -> string:substr(Input, (S+1), L);
+	  _ -> Fail
+	catch
+	  _ -> Fail
+	end,
+	bdd_utils:log(dump, "eurl:find_form_input_extract exiting find of ~p with ~p",[Key, Value]),
+	Value.
+
+find_form(Input, KeyPhrase) ->
+  [Form] = find_block("<form","</form>", Input, KeyPhrase), 
+  [FormHeadRaw | _ ]= re:split(Form, ">"),
+  FormHead = binary_to_list(FormHeadRaw),
+  bdd_utils:log(x, "eurl:find_form - raw form ~p",[Form]),
+	Href = key_value_extract(FormHead, "action", no_target),
+	Method = list_to_atom(string:to_lower(key_value_extract(FormHead, "method", "post"))),
+  InputsRaw1 = re:split(Form, "<input "),
+  InputsRaw = [ I || [I | _] <- [ re:split(X, "/>") || X <- InputsRaw1]],
+	InputsAll = [find_form_inputs(I) || I <- InputsRaw],
+	Inputs = lists:dropwhile(fun(X) -> case X of {unknown_name, _, _, _} -> true; _ -> false end end, InputsAll),
+  bdd_utils:log(debug, "eurl:find_form - form action ~p parse ~p fields ~p",[Method, Href, Inputs]),
+  [{target, Href}, {method, Method}, {fields, Inputs}].
+
 
 % we allow for a of open tags (nesting) but only the inner close is needed
 find_block(OpenTag, CloseTag, Input, Match)         -> find_block(OpenTag, CloseTag, Input, Match, 1000).
@@ -139,9 +176,11 @@ uri(Config, Path) ->
 	
 path(Base, Path) ->
   case {string:right(Base,1),string:left(Path,1)} of
+    {"/", "?"}-> string:substr(length(Base)-1) ++ Path;
     {"/", "/"}-> Base ++ string:substr(Path,2);
     {_, "/"}  -> Base ++ Path;
     {"/", _}  -> Base ++ Path;
+    {_, "?"}  -> Base ++ Path;
     {_, _}    -> Base ++ "/" ++ Path
   end.
   
@@ -187,13 +226,54 @@ put(Config, Path, JSON)     -> put_post(Config, Path, JSON, put).
 put_post(Config, Path, JSON, Action)      -> put_post(Config, Path, JSON, Action, []).
 put_post(Config, Path, JSON, Action, all) ->
   URL = uri(Config, Path),
-  bdd_utils:log(Config, debug, "~ping to ~p~n", [atom_to_list(Action), URL]),
+  bdd_utils:log(Config, debug, "~pting to ~p", [atom_to_list(Action), URL]),
   Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
 put_post(Config, Path, JSON, Action, OkReturnCodes) ->
   translateReturnCodes(put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
+
+form_submit(Config, Form) ->
+  {fields, FormFields} = lists:keyfind(fields, 1, Form),
+  {target, Target} = lists:keyfind(target, 1, Form),
+  {method, Method} = lists:keyfind(method, 1, Form),
+  Fields = "?" ++ string:join([ K ++ "=" ++ encode(V) || {K, V, _, _} <- FormFields],"&"),
+  URL = uri(Config, path(Target, Fields)),
+  bdd_utils:log(Config, debug, "eurl:form_submit ~pting to ~p", [Method, URL]),
+  Result = simple_auth:request(Config, Method, {URL, [], "application/html", []}, [{timeout, 10000}], []),  
+  {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
+  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
+  {ReturnCode, Body}.
+
+form_fields_merge(SetField, FromFields) ->
+  {Name, OldValue, ID, Type} = SetField,
+  NewValue = case lists:keyfind(Name, 1, FromFields) of
+    false           -> OldValue;
+    {Name, Value}   -> Value;
+    _               -> OldValue
+  end,
+  {Name, NewValue, ID, Type}.  
+
+encode(H) when length(H) == 1 -> H;
+encode([H | T]) ->
+  case H of
+    $   ->  "+" ++ encode(T);
+    $&  ->  "%26" ++ encode(T);
+    $;  ->  "%3B" ++ encode(T);
+    $?  ->  "%3F" ++ encode(T);
+    $:  ->  "%3A" ++ encode(T);
+    $#  ->  "%23" ++ encode(T);
+    $=  ->  "%3D" ++ encode(T);
+    $%  ->  "%25" ++ encode(T);
+    $+  ->  "%2B" ++ encode(T);
+    $$  ->  "%24" ++ encode(T);
+    $,  ->  "%2C" ++ encode(T);
+    $<  ->  "%3C" ++ encode(T);
+    $>  ->  "%3E" ++ encode(T);
+    $~  ->  "%7E" ++ encode(T);
+    _   -> [H |encode(T)]
+  end.
 
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
 delete(Config, Path, Id, all) ->

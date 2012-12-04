@@ -195,6 +195,7 @@ class ProposalConfig < ActiveRecord::Base
     new_config
   end
 
+
   #
   # This builds an old-time role hash for usage by the rest of the system for now
   # This will be chef code part of CMDB abstraction

@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, validate/1, g/1, i18n/2]).
+-export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6]).
 -import(bdd_utils).
 -import(crowbar_rest).
 -import(json).
@@ -30,8 +30,13 @@ g(Item) ->
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
 
+i18n(Config, T1, T2, T3, T4, T5) -> i18n(Config, [T1, T2, T3, T4, T5]).
+i18n(Config, T1, T2, T3, T4) -> i18n(Config, [T1, T2, T3, T4]).
+i18n(Config, T1, T2, T3) -> i18n(Config, [T1, T2, T3]).
+i18n(Config, T1, T2) -> i18n(Config, [T1, T2]).
 i18n(Config, T) -> 
-  Key = string:join(T,"."),
+  Path = string:tokens(T, "+:/"),
+  Key = string:join(Path,"."),
   URI = eurl:path("utils/i18n",Key),
   eurl:get(Config, URI, not_found).
 

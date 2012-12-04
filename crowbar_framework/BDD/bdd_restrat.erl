@@ -15,6 +15,7 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
+-export([get_JSON/1]).
 
 
   
@@ -58,7 +59,7 @@ create(Config, Path, Atom, Name, JSON, Action) ->
   % friendly message
   bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
   % add the new ID to the config list
-  [{Atom, Key} | Config].
+  bdd_utils:config_set(Config, Atom, Key).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
@@ -81,7 +82,12 @@ destroy(Config, Path, Key) ->
   end,
   Config.
   
-% STEPS ======================
+
+% GIVEN STEPS ======================
+step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) -> 
+  step(Config, Global, {step_when, _N, ["REST creates the",Object,Name]});
+
+% WHEN STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   {ajax, json:parse(JSON), {get, Page}};
@@ -115,6 +121,9 @@ step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) ->
   {Code, _} = R,
   {ajax, Code, {delete, Path}};
   
+step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) -> 
+  step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
+
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),

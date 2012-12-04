@@ -14,9 +14,9 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, config_unset/2, tokenize/2, clean_line/1]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([log/4, log/3, log/2, log/1]).
+-export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
@@ -33,6 +33,9 @@ assert(Bools, Test) ->
 	lists:all(F, Bools).
 assert_atoms(Atoms) ->
   assert([B || {B, _} <- Atoms] ).
+check(Bools) ->
+  F = fun(X) -> case X of true -> true; _ -> false end end,
+  lists:any(F, Bools).
 
 % for quick debug that you want to remove later (like ruby puts)
 puts()              -> log(puts, "*** HERE! ***").  
@@ -52,7 +55,8 @@ log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, [])
 log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
   Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
-  case {lists:member(Level, Levels), Level} of
+  Show = lists:member(Level, Levels), 
+  case {Show, Level} of
     % Log methods for test results
     {true, pass}  -> io:format("~n\tPassed: " ++ Format, Data);
     {true, fail}  -> io:format("~n\tFAILED: " ++ Format, Data);
@@ -66,7 +70,15 @@ log(Config, Level, Format, Data)  ->
                      io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
     _ -> no_log
   end.
-  
+
+log_level(dump)       -> put(log, [dump, trace, debug, info, warn, error, puts]);
+log_level(trace)      -> put(log, [trace, debug, info, warn, error, puts]);
+log_level(debug)      -> put(log, [debug, info, warn, error, puts]);
+log_level(info)       -> put(log, [info, warn, error, puts]);
+log_level(depricate)  -> put(log, [depricate, info, warn, error, puts]);
+log_level(warn)       -> put(log, [warn, error, puts]);
+log_level(all)        -> put(log, all).
+
 % return the list of feature to test
 features(Config) ->
   filelib:wildcard(features(Config, "*")).
@@ -125,11 +137,17 @@ is_a(Type, Value) ->
     dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
     name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
     boolean -> lists:member(Value,[true,false,"true","false"]);
+    str     -> case Value of V when is_list(V) -> check([is_list(V), length(V)=:=0]); _ -> false end; 
     string  -> is_list(Value);                              % cannot be empty
     cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
     ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
     empty   -> "" =:= Value;
-    RE      -> nomatch =/= re:run(Value, RE)    % fall through lets you pass in a regex (pretty cool!)
+    RE when is_list(RE) -> 
+      log(trace, "bdd_utils:is_a falling back to RE match for ~p ~p", [Type, Value]),
+      nomatch =/= re:run(Value, RE);    % fall through lets you pass in a regex (pretty cool!)
+    _       -> 
+      log(warn, "bdd_utils:is_a no matching type for ~p found.  Value was ~p", [Type, Value]),
+      false
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test
@@ -178,6 +196,13 @@ config_set(Config, Key, Value) ->
   end,
   C ++ [{Key, Value}].
   
+config_unset(Config, Key) ->
+  put(Key, undefined),
+  case lists:keyfind(Key,1,Config) of
+    false -> Config;
+    Item  -> lists:delete(Item, Config)
+  end.
+
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
@@ -203,6 +228,10 @@ token_substitute(Config, Token) ->
               apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
     [$a, $t, $o, $m, $: | Apply] -> 
               list_to_atom(Apply);
+    [$f, $i, $e, $l, $d, $s, $: | Apply]     -> 
+              Pairs = string:tokens(Apply, "&"),
+              Params = [ string:tokens(KV,"=") || KV <- Pairs],
+              [ {K, V} || [K, V | _] <- Params];
     [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
               list_to_atom(Apply);
     [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 

@@ -42,9 +42,14 @@ feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
-scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
+scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature), is_number(ID)
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
-scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]).
+scenario(ConfigName, Feature, ID) when is_number(ID)  
+                                       -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
+scenario(ConfigName, Feature, Name)    -> 
+  ID = erlang:phash2(Name),
+  bdd_utils:log(puts, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
+  scenario(ConfigName, Feature, ID).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
@@ -58,10 +63,12 @@ debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
 debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, debug) -> debug(Config, Feature, ID, [puts, debug, info, warn, error]);
 debug(Config, Feature, ID, info)  -> debug(Config, Feature, ID, [puts, info, warn, error]);
-debug(Config, Feature, ID, Log)   -> 
+debug(Config, Feature, ID, Log) when is_number(ID)  -> 
   bdd_utils:config_set([], inspect, false),
   scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log),
-  bdd_utils:config_set([], inspect, true).
+  bdd_utils:config_set([], inspect, true);
+debug(Config, Feature, ID, Log)   -> 
+  debug(Config, Feature, erlang:phash2(ID), Log).
 
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).

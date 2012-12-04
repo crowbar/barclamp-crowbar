@@ -103,7 +103,7 @@ step(Config, _Given, {step_when, _N, ["REST creates the",Object,Name]}) ->
     _   -> {ajax, Code, {post, Path}}
   end;
 
-step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Object) -> 
   JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
   Path = eurl:path(apply(Object, g, [path]), Name),
   {Code, Result} = eurl:put_post(Config, Path, JSON, put, all),
@@ -114,17 +114,19 @@ step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) ->
   end;
 
 
-step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is_atom(Object)-> 
   Path = apply(Object, g, [path]),
   R = eurl:delete(Config, Path, Name, all),
   bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p result ~p",[Object,Name, R]),
   {Code, _} = R,
   {ajax, Code, {delete, Path}};
   
-step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) -> 
+step(Config, Given, {step_finally, _N, ["REST removes the ",Object, Name]}) when is_atom(Object)-> 
+  step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
+step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_atom(Object)-> 
   step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Object) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),
   bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
@@ -133,7 +135,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) ->
     {Code, _}   -> {ajax, Code, {get, URI}}
   end;
 
-step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = eurl:path(apply(Object, g, [path]), Key),
   case eurl:get_page(Config, URI, all) of
@@ -144,7 +146,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
     {Num, _}      -> {ajax, Num, {get, URI}}
   end;
 
-step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) ->
+step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   case get_JSON(Results, all) of 
     {ajax, Code, {_, URI}} when is_number(Code) -> 

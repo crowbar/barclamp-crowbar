@@ -9,7 +9,7 @@ Feature: Navigation, Check Core Navigation
           
   Scenario: Home Page Nav
     When I go to the home page
-    Then I should see a menu for "Nodes"
+    Then I should see a menu for {bdd:crowbar.i18n.nav.nodes}
       And I should see a menu for "Barclamps"
       And I should see a menu for "Utilities"
       And I should see a menu for "Help"

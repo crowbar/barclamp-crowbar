@@ -151,11 +151,13 @@ Crowbar::Application.routes.draw do
             post   "network/networks", :controller => 'network', :action=>'network_create'     # MOVE TO GENERIC!
             put    "network/networks/:id", :controller => 'network', :action=>'network_update'     # MOVE TO GENERIC!
             delete "network/networks/:id", :controller => 'network', :action=>'network_delete'     # MOVE TO GENERIC!
-            # basic list operations
+            # basic list operations 
             get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
             get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
             #get ":action", :controller=>'crowbar'
             # basic CRUD operations
+            # (replace w/ generic)
+            match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
             resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
             resources :group, :controller=>'groups'     # MOVE TO GENERIC!
             
@@ -174,7 +176,12 @@ Crowbar::Application.routes.draw do
           end
         end
         
+<<<<<<< HEAD
         
+=======
+        # generic barclamp matcher
+        match ":controller/:version/:action/:id/:target/:target_id", :as => :barclamp_action_target
+>>>>>>> c75ce1037e33eb20cb72e5f019001ca40f202116
         match ":controller/:version/:action(/:id)", :as => :barclamp_action
         match ":controller(/:version)", :action=> 'catalog'
                 

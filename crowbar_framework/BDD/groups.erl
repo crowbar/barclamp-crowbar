@@ -141,8 +141,8 @@ step(Config, _Given, {step_finally, _N, ["REST removes the node",Node,"from",Gro
                 
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  JSON0 = nodes:json(g(name_node1), g(description), 100),
-  Config0 = crowbar_rest:create(Config, nodes:g(path), g(atom_node1), g(name_node1), JSON0),
+  JSON0 = node:json(g(name_node1), g(description), 100),
+  Config0 = crowbar_rest:create(Config, node:g(path), g(atom_node1), g(name_node1), JSON0),
   % create groups(s) for tests
   JSON1 = json(g(name1), g(description), 100),
   Config1 = crowbar_rest:create(Config0, g(path), g(atom1), g(name1), JSON1),
@@ -154,5 +154,5 @@ step(Config, _Global, {step_teardown, _N, _}) ->
   % find the node from setup and remove it
   Config2 = crowbar_rest:destroy(Config, g(path), g(atom2)),
   Config1 = crowbar_rest:destroy(Config2, g(path), g(atom1)),
-  Config0 = crowbar_rest:destroy(Config1, nodes:g(path), g(atom_node1)),
+  Config0 = crowbar_rest:destroy(Config1, node:g(path), g(atom_node1)),
   Config0.

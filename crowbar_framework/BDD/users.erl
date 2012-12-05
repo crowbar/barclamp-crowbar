@@ -85,6 +85,7 @@ step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) ->
   crowbar_rest:step(_Config, Result, {step_then, _N, ["the", nodes, "object is properly formatted"]});
 
 % Common Routine
+<<<<<<< HEAD
 % Cleans up users that are created during tests                         
 % step(Config, _Given, {step_finally, _N, ["REST removes the user ",User]}) -> 
 %   io:format("Deleting user:  ~p  finally finally finally finally finally finally finally finally finally", [User]),
@@ -101,3 +102,12 @@ step(Config, _Global, {step_setup, _N, _}) ->
 step(Config, _Global, {step_teardown, _N, _}) -> 
 io:format("Destroy step_teardownstep_teardownstep_teardownstep_teardownstep_teardown"),
    bdd_restrat:destroy(Config, g(path), g(username)).
+=======
+% Cleans up nodes that are created during tests                         
+step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
+  crowbar_rest:destroy(Config, g(path), Node);
+                   
+step(Config, _Global, {step_setup, _N, _}) -> Config;
+
+step(Config, _Global, {step_teardown, _N, _}) -> Config.
+>>>>>>> c75ce1037e33eb20cb72e5f019001ca40f202116

@@ -101,4 +101,13 @@ Feature: Users
     Then there should be a user "invisible"
     Finally REST removes the user "invisible"
     
-  
+  Scenario: %Create User 
+    Given there is not a user "foo"
+    Given I am on the "users/create" page
+    When I fill in {fields:username=foo&password=bar} and submit using the "Add User" button
+    Then I should see {bdd:crowbar.i18n.user.create.success}
+    
+  Scenario: %Sample Form to demo only - remove
+    Given I am on the "node/bdd1.example.com/edit" page
+    When I fill in {fields:alias=foo&description=bar} and submit using the "Save" button
+    Then I should see {bdd:crowbar.i18n.nodes.edit.save_node_success}

@@ -22,9 +22,10 @@
 
 g(Item) ->
   case Item of
+    natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "global-node.testing.com";
     node_atom -> global_node;
-	path -> "/2.0/crowbar/2.0/nodes";
+	path -> "/2.0/crowbar/2.0/nodes"; 
     name -> "bddtest";
     order -> 9999;
     description -> "BDD Testing Only - should be automatically removed";

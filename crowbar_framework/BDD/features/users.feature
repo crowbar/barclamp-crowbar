@@ -84,18 +84,18 @@ Feature: Users
     Finally REST removes the network "bdd_net"
     
     
-  Scenario: %BUP User List
+  Scenario: %User List
     Given there is a user "oscar"
     When REST gets the user list
     Then there should be a value "crowbar"
       And there should be a value "oscar"
     Finally REST removes the user "oscar"
     
-  Scenario: %User List
-    REST requests the list of users
-    Then there should be a value "crowbar"
+  Scenario: User List
+    When REST requests the list of users
+    Then the object id list is properly formatted
      
-  Scenario: %REST Add User
+  Scenario: REST Add User
     Given there is not a user "invisible"
     When REST adds the user "invisible"
     Then there should be a user "invisible"

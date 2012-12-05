@@ -83,6 +83,6 @@ step(Config, Result, {step_then, _N, ["the attribute is properly formatted"]}) -
 step(Config, _Given, {step_finally, _N, ["REST removes the attribute",Attribute]}) -> 
   step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}); 
                    
-step(Config, _Global, {step_setup, _N, _}) -> Config;
+%step(Config, _Global, {step_setup, _N, _}) -> Config;
 
-step(Config, _Global, {step_teardown, _N, _}) -> Config.
+%step(Config, _Global, {step_teardown, _N, _}) -> Config.

@@ -58,7 +58,10 @@ debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
 debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, debug) -> debug(Config, Feature, ID, [puts, debug, info, warn, error]);
 debug(Config, Feature, ID, info)  -> debug(Config, Feature, ID, [puts, info, warn, error]);
-debug(Config, Feature, ID, Log)   -> scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log).
+debug(Config, Feature, ID, Log)   -> 
+  bdd_utils:config_set([], inspect, false),
+  scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log),
+  bdd_utils:config_set([], inspect, true).
 
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
@@ -316,8 +319,12 @@ scenario_steps(_Config, [], N, Given, When, Then, Finally, _) ->
 % inspect system to ensure that we have not altered it
 % this relies on the features implmenting the inspect meth
 inspect(Config) ->
-  Features = bdd_utils:features(Config),
-  inspect(Config, [], [list_to_atom(bdd_utils:feature_name(Config,F)) || F <- Features]).
+  % only inspect if inspect flag is not false
+  case bdd_utils:config(Config, inspect, true) of
+    false -> [noop];
+    _ ->  Features = bdd_utils:features(Config),
+          inspect(Config, [], [list_to_atom(bdd_utils:feature_name(Config,F)) || F <- Features])
+  end.
 
 inspect(_Config, Result, []) -> Result;
 inspect(Config, Result, [Feature | Features]) ->

@@ -22,7 +22,7 @@ gem 'rails', '3.2.6'
 
 gem 'sqlite3'
 
-gem 'therubyracer'
+gem 'therubyracer', '< 0.11.0'
 gem 'haml'
 gem 'sass-rails',   '~> 3.2.3'
 gem 'simple-navigation'
@@ -54,7 +54,7 @@ group :development do
 end
 
 gem "rspec", :group => [:development, :test]
-#gem "chefspec", :group => [:development, :test]
+gem "chefspec", :group => [:development, :test]
 gem "rcov", :group => [:development, :test]
 gem "rspec-rails", ">= 2.10.1", :group => [:development, :test]
 # These to require Ruby 1.9.3

@@ -171,7 +171,7 @@ find_block_helper(Test, RE) ->
 	end.
 
 uri(Config, Path) ->
-	{url, Base} = lists:keyfind(url,1,Config),
+	Base = bdd_utils:config(Config, url),
 	path(Base,Path).
 	
 path(Base, Path) ->

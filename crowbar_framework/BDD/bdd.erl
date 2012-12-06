@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2012, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -37,18 +37,21 @@ test(ConfigName)         ->
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
 feature(Feature)                        -> feature("default", Feature).
-feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) -> feature(atom_to_list(ConfigName), atom_to_list(Feature));
+feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) 
+                                        -> feature(atom_to_list(ConfigName), atom_to_list(Feature));
 feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
 scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature), is_number(ID)
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
+scenario(ConfigName, Feature, ID) when is_atom(ID)  
+                                       -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
 scenario(ConfigName, Feature, ID) when is_number(ID)  
                                        -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
 scenario(ConfigName, Feature, Name)    -> 
   ID = erlang:phash2(Name),
-  bdd_utils:log(puts, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
+  bdd_utils:log(info, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
   scenario(ConfigName, Feature, ID).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
@@ -109,12 +112,13 @@ run(Config, Feature, FileName, ID) ->
   % start inet client if not running
   StartConfig = start(Config),                       
   % stuff the feature & file name into the config set
-  FeatureConfig = [{feature, Feature}, {file, FileName} | StartConfig],		     
+  FeatureConfig1 = bdd_utils:config_set(StartConfig, feature, Feature),
+  FeatureConfig = bdd_utils:config_set(FeatureConfig1, file, FileName),
   % import the feature information
   {feature, Name, Scenarios} = feature_import(FileName),
   [ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
   % setup UI
-  io:format(" FEATURE: ~s.~n", [ScenarioName]),
+  io:format("~nFEATURE: ~s.~n", [ScenarioName]),
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
@@ -135,12 +139,16 @@ start(Config) ->
   Global = bdd_utils:config(Config, global_setup, default),
   case Started of
     false -> 
-      application:start(crypto),
-      application:start(inets),
+      bdd_utils:config_unset(auth_field),    % clear field to get new token
+      case {application:start(crypto), application:start(inets)} of
+        {ok, ok}                 -> bdd_utils:log(Config, trace, "Started Crypto & Inets Services",[]);
+        {{error, A}, {error, B}} -> bdd_utils:log(Config, trace, "Errors Reported: Inets ~p Crypto ",[B, A]);
+        {A, B}                   -> bdd_utils:log(Config, trace, "Start Reporting: Inets ~p Crypto ",[B, A])
+      end,
       AzConfig = bdd_utils:is_site_up(Config),
       file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
-      [{started, true} | SetupConfig ];
+      bdd_utils:config_set(SetupConfig, started, true);
     _ -> Config
   end.
 
@@ -153,7 +161,8 @@ stop(Config) ->
       is_clean(TearDownConfig),
       application:stop(crypto),
       application:stop(inets),
-      lists:delete({started, true}, TearDownConfig);
+      bdd_utils:config_unset(auth_field),
+      bdd_utils:config_set(TearDownConfig, started, false);
     _ -> Config  
   end.
 

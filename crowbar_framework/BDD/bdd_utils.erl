@@ -14,7 +14,8 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, config_unset/2, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, tokenize/2, clean_line/1]).
+-export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
@@ -64,7 +65,11 @@ log(Config, Level, Format, Data)  ->
     % General Logging Ouptut
     {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
                      Suffix = " <~p:~p/~p>",
-                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST; [] -> {unknown, 0, 0} catch _ -> [{module, unknown, 0}] end,
+                     {Module, Method, Params} = try erlang:get_stacktrace() of 
+                        [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, -1}; 
+                        [ST | _] -> ST; 
+                        [] -> {unknown, 0, 0} 
+                      catch _ -> [{module, unknown, 0}] end,
                      Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
                      DataCalled = Data ++ [Module, Method, Arity],
                      io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
@@ -154,7 +159,7 @@ is_a(Type, Value) ->
 is_site_up(Config) ->
   URL = sc:url(Config),
   io:format("~nBDD TESTING SITE: ~p.~n", [URL]),
-  AzConfig = simple_auth:header(Config, URL),
+  AzConfig = simple_auth:authenticate_session(Config, URL),
   case proplists:get_value(auth_error,AzConfig) of
     undefined -> AzConfig; % success
     Reason -> 
@@ -162,10 +167,18 @@ is_site_up(Config) ->
       Config
   end.
 
-% returns value for key from Config (error if not found)
+% config using BIFs
+config(Key) -> config(Key, undefined).
+config(Key, Default) when is_atom(Key) -> 
+  case get(Key) of
+    undefined -> put(Key, Default), Default;
+    V         -> V
+  end;
+  
+% DEPRICATING returns value for key from Config (error if not found)
 config(Config, Key) ->
   case config(Config, Key, undefined) of
-    undefined -> throw("bdd_utils:config Could not find requested key in config file");
+    undefined -> throw("bdd_utils:config Could not find requested key '"++atom_to_list(Key)++"' in config file");
     V -> V
   end.
 
@@ -188,16 +201,21 @@ config(Config, Key, Default) ->
   	      end
 	end.
 
-config_set(Config, Key, Value) ->
+config_set(Key, Value) ->
   put(Key, Value),
+  {Key, Value}.
+config_set([], Key, Value)      -> config_set(Key, Value);
+config_set(Config, Key, Value)  ->
   C = case lists:keyfind(Key,1,Config) of
     undefined -> Config;
     Item -> lists:delete(Item, Config)
   end,
-  C ++ [{Key, Value}].
+  C ++ [config_set([], Key, Value)].
   
+config_unset(Key)     -> put(Key, undefined).
+config_unset([], Key) -> config_unset(Key); 
 config_unset(Config, Key) ->
-  put(Key, undefined),
+  config_unset([], Key),
   case lists:keyfind(Key,1,Config) of
     false -> Config;
     Item  -> lists:delete(Item, Config)

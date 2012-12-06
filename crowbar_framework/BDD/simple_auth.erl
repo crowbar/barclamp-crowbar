@@ -28,7 +28,7 @@
 %%
 %% Exported Functions
 %%
--export([request/5, request/2, header/2, test_calc_response/0]).
+-export([request/5, request/2, authenticate_session/2, header/2, test_calc_response/0]).
 
 %% Does digest authentication. 
 %% Callback function passes an authorization header and a URL,
@@ -61,16 +61,16 @@ request(Config, delete, {URL}, HTTPOptions, Options) ->
 request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   % prepare information that's common
   {http, _, _Host, Port, DigestURI, Params} = http_uri:parse(URL),
-  User = proplists:get_value(user, Config),
+  User = bdd_utils:config(Config,user),
   MethodStr = string:to_upper(atom_to_list(Method)),
-  Password = proplists:get_value(password, Config),
+  Password = bdd_utils:config(Config,password),
 
   % suppress auto-redirect - we have to manage it ourselves because 
   % incorrectly drops port number off of redirect URL
   HTTPOptions2 = HTTPOptions ++ [{autoredirect, false}],
 
   % if we have a header fields, add them to the header so we can avoid the round trip
-  AuthField = proplists:get_value(auth_field, Config),
+  AuthField = bdd_utils:config(Config, auth_field, undefined),
   DigestIndex = case AuthField of
     undefined -> 0;
     _ -> string:str(AuthField,"Digest")
@@ -82,17 +82,19 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
       Header ++ [{"Authorization", HeaderInjection}];
     _ -> Header ++ [{"Cookie", AuthField}]
   end,
-  bdd_utils:log(Config, trace, "simple_auth:request making http request ~p ~p", [Method, URL]),
+  bdd_utils:log(Config, trace, "simple_auth:request making http request Method ~p URL ~p Header ~p Opts ~p", [Method, URL, TrialHeader, HTTPOptions2]),
   % try request
   {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
     get -> http:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
     delete -> http:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
     _ -> http:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions2, Options)
   end,
+  bdd_utils:log(trace, "simple_auth:request User ~p Password ~p URL ~p Code ~p",[User, Password, URL, Code]),
   % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
   %io:format("~n\t\tStatus ~p for ~p.~n", [Code, URL]),
   case Code of
     401 -> 
+      bdd_utils:log(Config, trace, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
       DigestLine = proplists:get_value("www-authenticate", Fields),
     	HeaderDigested = case DigestLine of
 	      [$D, $i, $g, $e, $s, $t, $  | _] -> 
@@ -125,11 +127,14 @@ assemble_url(Host,Port,Path) ->
 
 
 %% Authenticate and save session_id in config for use by all subsequent test steps
-header(Config, URL) ->
-  User = sc:user(Config),
-  Password = sc:password(Config),
+header(Config, URL) -> 
+  bdd_utils:log(Config, depricate, "simple_auth:header should be replaced with authenticate_session",[]),
+  authenticate_session(Config, URL).
+authenticate_session(Config, URL) ->
+  User = bdd_utils:config(Config,user),
+  Password = bdd_utils:config(Config,password),
   Result = http:request(post, {
-			  URL++"/users/sign_in",
+			  URL++bdd_utils:config(Config, sign_in_url, "/users/sign_in"),
 			  [], 
 			  "application/x-www-form-urlencoded",
 			  "user[username]="++User++"&user[password]="++Password
@@ -140,22 +145,22 @@ header(Config, URL) ->
     {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} ->
       case {Status, Code} of
         {ok, 302} -> 
-	  io:format("~n\tAuthenticated as user: ~s.~n",[User]),
+	  bdd_utils:log(info,"\tAuthenticated as user: ~s",[User]),
 	  Cookie = proplists:get_value("set-cookie", Fields),
           case Cookie of
             undefined -> % no session id returned!
-              Config ++ [{auth_error, "Could not authenticate "++User++"/"++Password}];
+              bdd_utils:config_set(Config, auth_error, "Could not authenticate "++User++"/"++Password);
             _ -> % we should really parse the cookies, l8r
               Sessionidlen = string:str(Cookie, "; "),
-              Sessionid = string:substr(Cookie,1,Sessionidlen-1),
-              Config ++ [{auth_field, Sessionid}]
+              Sessionid = string:substr(Cookie,1,Sessionidlen),
+              bdd_utils:config_set(Config, auth_field, Sessionid)
           end;
         _ -> % did not successfully authenticate?
-          Config ++ [{auth_error, "Could not authenticate "++User++"/"++Password}]  
+          bdd_utils:config_set(Config, auth_error, "Could not authenticate "++User++"/"++Password)  
       end;
 
     _ -> % probably could not connect to host
-	 Config ++ [{auth_error, Result}]  
+	 bdd_utils:config_set(Config, auth_error, Result)  
   end.
 
 

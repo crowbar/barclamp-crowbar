@@ -14,13 +14,16 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, tokenize/2, tokenize/6, clean_line/1]).
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
+-define(NORMAL_TOKEN, 1).
+-define(ESCAPED_TOKEN, 2).
+-define(SUBSTITUTE_TOKEN, 3).
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -230,10 +233,55 @@ clean_line(Raw) ->
 	string:strip(CleanLine2, right, $.).
 
 % converts quoted text into a list
-tokenize(Config, Step) ->
-	Tokens = string:tokens(Step,"\"{}"),
-	CleanTokens = [string:strip(X) || X<- Tokens],
-	[ token_substitute(Config, X) || X <- CleanTokens, length(X)>0].
+tokenize(Config, Step) -> tokenize(Config, Step, false, ?NORMAL_TOKEN, [], "").
+
+tokenize(Config, [], IgnoreNext, TokenType, TokenList, Token ) ->
+  FinalTokenList = if
+    Token /= [] ->
+      FinalToken = if
+        TokenType == ?SUBSTITUTE_TOKEN -> token_substitute(Config, string:strip(Token));
+        true -> string:strip(Token)
+      end,
+      [FinalToken|TokenList];
+    true -> TokenList
+  end,
+  lists:reverse(FinalTokenList);
+
+tokenize(Config, Step, IgnoreNext, TokenType, TokenList, Token ) ->
+  Char = string:substr(Step,1,1),
+  if
+    % If this character is escaped, then just add it, even if it is a double quote
+    IgnoreNext -> tokenize(Config, string:substr(Step,2), false, TokenType, TokenList, Token ++ Char);
+    % The next character is escaped, so don't add the escape
+    Char == "\\" -> tokenize(Config, string:substr(Step,2), true, TokenType, TokenList, Token);
+    % Handle the first character being a double quote
+    Char == "\"", Token == "" -> tokenize(Config, string:substr(Step,2), false, ?ESCAPED_TOKEN, TokenList, "");
+    % Start or end of quotes terminates the last token, whatever it was
+    Char == "\"", Token /= "" ->
+      NewTokenType = case TokenType of
+        ?NORMAL_TOKEN -> ?ESCAPED_TOKEN;
+        ?ESCAPED_TOKEN -> ?NORMAL_TOKEN;
+        ?SUBSTITUTE_TOKEN -> ?SUBSTITUTE_TOKEN;
+        _ -> ?NORMAL_TOKEN
+      end,
+      tokenize(Config, string:substr(Step,2), false, NewTokenType, add_token(Token, TokenList), "");
+    Char == "{", TokenType /= ?ESCAPED_TOKEN, Token == "" ->
+      tokenize(Config, string:substr(Step,2), false, ?SUBSTITUTE_TOKEN, TokenList, "");
+    Char == "{", TokenType /= ?ESCAPED_TOKEN, Token /= "" ->
+      tokenize(Config, string:substr(Step,2), false, ?SUBSTITUTE_TOKEN, add_token(Token, TokenList), "");
+    Char == "}", TokenType == ?SUBSTITUTE_TOKEN ->
+      SubToken = token_substitute(Config, string:strip(Token)),
+      tokenize(Config, string:substr(Step,2), false, ?NORMAL_TOKEN, [SubToken|TokenList], "");
+    % Default action is to add to the current token
+    true -> tokenize(Config, string:substr(Step,2), false, TokenType, TokenList, Token ++ Char)
+  end.
+
+add_token(Token, TokenList) ->
+  NewToken = string:strip(Token),
+  case NewToken of
+    "" -> TokenList;
+    _ -> [NewToken|TokenList]
+  end.
 
 % This routine is used for special subtitutions in steps that run functions or turn strings into atoms
 token_substitute(Config, Token) ->

@@ -160,13 +160,13 @@ is_a(Type, Value) ->
 	
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
-  URL = sc:url(Config),
-  io:format("~nBDD TESTING SITE: ~p.~n", [URL]),
+  URL = bdd_utils:config(Config, url),
+  bdd_utils:log(Config, info, "BDD TESTING SITE: ~p", [URL]),
   AzConfig = simple_auth:authenticate_session(Config, URL),
   case proplists:get_value(auth_error,AzConfig) of
     undefined -> AzConfig; % success
     Reason -> 
-      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
+      bdd_utils:log(Config, error, "ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
       Config
   end.
 
@@ -235,7 +235,7 @@ clean_line(Raw) ->
 % converts quoted text into a list
 tokenize(Config, Step) -> tokenize(Config, Step, false, ?NORMAL_TOKEN, [], "").
 
-tokenize(Config, [], IgnoreNext, TokenType, TokenList, Token ) ->
+tokenize(Config, [], _IgnoreNext, TokenType, TokenList, Token ) ->
   FinalTokenList = if
     Token /= [] ->
       FinalToken = if

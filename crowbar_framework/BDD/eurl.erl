@@ -29,13 +29,13 @@ search(Match, Results, Test) ->
 search(Match, Results) ->
 	search(Match, Results, true).
 
+html_peek({Code, Input}, RegEx) ->
+  bdd_utils:log(warn, "eurl:html_peek looking for RegEx ~p with code ~p did not get searchable input from ~p",[RegEx, Code, Input]),
+  false;
 html_peek(Input, RegEx) ->
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:log(trace,"html:peek compile: ~p on ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
-	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
-	%{ match, [ {_St, _Ln} | _ ] } = Result,
-	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
+	bdd_utils:log(trace, "eurl:html_peek compile ~p match: ~p", [RegEx, Result]),
 	case Result of
 		{match, [_A, _B, _C, _D, {Start, Length} | _Tail ]} -> string:substr(Input, Start-5, Length+13);
 		_ -> false
@@ -50,14 +50,15 @@ html_head(Input) ->
   html_peek(Input, RegEx).
 
 peek(Match, {ajax, 200, Input}) -> peek(Match, Input);  
+peek(Match, {Code, Input})      -> 
+  bdd_utils:log(warn, "eurl:peek looking for RegEx ~p with code ~p did not get searchable input from ~p",[Match, Code, Input]),
+  false;
 peek(Match, Input) ->
   RegEx = Match,
 	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:log(trace, "html:peek compile looking for: ~p in ~p~n", [RegEx, Input]),
+	bdd_utils:log(dump, "eurl:peek compile looking for: ~p in ~p~n", [RegEx, Input]),
 	Result = re:run(Input, RE),
-	bdd_utils:log(trace, "html:peek match: ~p~n", [Result]),
-	%{ match, [ {_St, _Ln} | _ ] } = Result,
-	%bdd_utils:debug("html_peek substr: ~p~n", [string:substr(Input, _St, _Ln)]),
+	bdd_utils:log(trace, "eurl:peek match for ~p result: ~p", [Match, Result]),
 	case Result of
 		{match, _} -> true;
 		_ -> Result
@@ -70,31 +71,52 @@ find_button(Match, Input) ->
 	{ok, RegEx} = re:compile("type='submit'"),
 	case re:run(Button, RegEx) of
 	  {match, _} -> Button;
-	  _ -> io:format("ERROR: Could not find button with value  '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not find_button")
+	  _ -> bdd_utils:log(error, "eurl:find_button Could not find button with value  '~p'.  HTML could have other components encoded in a tag.", [Match]), "BUTTON NOT FOUND"
 	end.
 	
 % return the HREF part of an anchor tag given the content of the link
+find_link(Match, {Code, Info}) ->
+  bdd_utils:log(warn, "eurl:find_link Attempting to find match ~p but input was ~p with ~p", [Match, Code, Info]),
+  {error, Code, Info};
 find_link(Match, Input) ->
+	bdd_utils:log(trace, "eurl:find_link starting to look for ~p", [Match]),
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
 	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
-	  Error -> io:format("ERROR: Could not parse regex '~p' given '~p'.~n", [Error, RegEx])
+	  Error   -> bdd_utils:log(error, "eurl:find_link Could not parse regex '~p' given '~p'", [Error, RegEx]), 
+	             throw(eurl_find_link_RegEx_broken)
 	end,
-	AnchorTag = case re:run(Input, RE) of
-	  {match, [{AStart, ALength} | _]} -> string:substr(Input, AStart+1,AStart+ALength);
-	  nomatch -> io:format("ERROR: Could not find ~s in request  (you may need to escape characters).", [Match]);
-	  {_, _} -> io:format("ERROR: Could not find Anchor tags enclosing '~p'.  HTML could have other components encoded in a tag~n", [Match]), throw("could not find_link")
+	bdd_utils:log(dump, "eurl:find_link looking for ~p in ~p", [Match, Input]),
+	AnchorTag = try re:run(Input, RE) of
+	  {match, [{AStart, ALength} | _]} -> 
+	               string:substr(Input, AStart+1,AStart+ALength);
+	  nomatch   -> bdd_utils:log(error, "eurl:find_link AnchorTag Could not find ~p in request  (you may need to escape characters).", [Match]), 
+	               "ERROR: Could not find link";
+	  REX       -> bdd_utils:log(error, "eurl:find_link AnchorTag Could not find Anchor tags enclosing '~p'.  HTML could have other components encoded in a tag with RegEx ~p", [Match, REX]), 
+	               "ERROR: Unexpected RegEx pattern while finding link"
+	catch
+	   E1       -> bdd_utils:log(error, "eurl:find_link AnchorTag error (~p) Could not parse regex ~p for ~p inside of ~p",[E1, RE, RegEx, Input]), 
+	               "ERROR: RegEx throw while looking for link"
 	end,
 	{ok, HrefREX} = re:compile("\\bhref=(['\"])([^\\s]+?)(\\1)", [multiline, dotall, {newline , anycrlf}]),
-	Href = case re:run(AnchorTag, HrefREX) of
-	  {match, [_1, _2, {HStart, HLength} | _]} -> string:substr(AnchorTag, HStart+1,HLength);
-	  nomatch -> io:format("ERROR: Could not find ~s in request (you may need to escape characters)", [Match]);
-	  {_, _} -> io:format("ERROR: Could not find href= information in substring '~p'~n", [AnchorTag]), throw("could not html_find_link")
-	end,
-	bdd_utils:log(trace, "bdd_utils: find_link anchor ~p", [AnchorTag]),
-	%bdd_utils:debug(, "html_find_link href regex~p~n", [re:run(AnchorTag, HrefREX)]),
-	bdd_utils:log(trace, "bdd_utils: find_link found path ~p", [Href]),
-	Href.
+  find_link_part2(AnchorTag, HrefREX, Match).
+
+% split find link into 2 parts to that we can stop processing if the 1st RegEx fails
+find_link_part2({error, Msg}, HrefREX, _Match) -> {error, Msg, HrefREX};
+find_link_part2(AnchorTag, HrefREX, Match)     ->
+	try re:run(AnchorTag, HrefREX) of
+	  {match, [_1, _2, {HStart, HLength} | _]} -> 
+	             Href = string:substr(AnchorTag, HStart+1,HLength),
+	  	         bdd_utils:log(trace, "eurl:find_link found anchor ~p in path ~p", [AnchorTag, Href]),
+	  	         Href;
+	  nomatch -> bdd_utils:log(error, "eurl:find_link Href Could not find ~s in request (you may need to escape characters)", [Match]), 
+	             {error, "ERROR: No Href Found", AnchorTag};
+	  RE      -> bdd_utils:log(error, "eurl:find_link Href Could not find href= information in substring '~p' with result ~p", [AnchorTag, RE]), 
+	             {error, "ERROR: No URL Found", AnchorTag}
+	catch
+	  E2 ->      bdd_utils:log(error, "eurl:find_link Href error (~p) Could not parse regex ~p for ~p inside of ~p",[E2, HrefREX, Match, AnchorTag]), 
+	             {error, "ERROR: No URL Found and throws error", AnchorTag}
+	end.
 
 find_div([], _)       -> not_found;
 find_div(Input, Id)   ->
@@ -192,12 +214,16 @@ get(Config, URL, all) ->
   bdd_utils:log(Config, debug, "eurl:get Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, trace, "eurl:get Result ~p: ~p", [Code, Body]),
+  bdd_utils:log(Config, dump, "eurl:get Result ~p: ~p", [Code, Body]),
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
 get(Config, URL, OkReturnCodes) ->
   translateReturnCodes(get(Config, URL, all), OkReturnCodes, URL, get).
 
+% prevent trying to get invalid pages from previous steps
+get_page(Config, {error, Issue, URL}, _Codes) ->
+  bdd_utils:log(Config, warn, "eurl:get_page aborted request due to ~p from bad URL ~p", [Issue, URL]),
+  {500, Issue};
 % page returns in the {CODE, BODY} format
 get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
 % ajax returns in the {ajax, BODY/CODE, {details}} format
@@ -217,13 +243,13 @@ post_params([{K, V} | P], ParamsOrig) ->
   post_params(P, ParamsOrig++ParamsAdd).
 
 % Post using Parameters to convey the values
-post(Config, URL, Parameters, _ReturnCode, StateRegEx) ->
+post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
   Post = URL ++ post_params(Parameters),
-  {ok, {{"HTTP/1.1",_ReturnCode, State}, _Head, Body}} = simple_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
+  {ok, {{"HTTP/1.1",ReturnCode, State}, _Head, Body}} = simple_auth:request(Config, post, {Post, "application/json", "application/json", "body"}, [{timeout, 10000}], []),  
  	{ok, StateMP} = re:compile(StateRegEx),
 	case re:run(State, StateMP) of
 		{match, _} -> Body;
-    _ -> throw({errorWhilePosting, _ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(_ReturnCode) ++ " (" ++ State ++ ")~nBody: " ++ Body})
+    _ -> throw({errorWhilePosting, ReturnCode, "ERROR: post attempt at " ++ Post ++ " failed.  Return code: " ++ integer_to_list(ReturnCode) ++ " (" ++ State ++ ")~nBody: " ++ Body})
 	end. 
 
 % Post using JSON to convey the values

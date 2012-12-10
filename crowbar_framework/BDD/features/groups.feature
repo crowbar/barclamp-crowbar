@@ -23,9 +23,9 @@ Feature: Groups
 
   Scenario: Group Add Rack category
     Given there is a "rack" group "simpleadd2"
-    When AJAX gets the group "simpleadd2"
-    Then the group is properly formatted
-    Finally throw away group "simpleadd2"
+    When REST gets the {object:groups} "simpleadd2"
+    Then the {object:groups} is properly formatted
+    Finally REST removes {object:groups} "simpleadd2"
 
   Scenario: Group Add Tag category
     Given there is a "tag" group "simpleadd3"

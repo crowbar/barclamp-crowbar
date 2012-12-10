@@ -41,8 +41,6 @@ inspector(Config) ->
 json(Name, Description, Order) ->
   bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[json]),
   node:json(Name, Description, Order).  
-
 step(Config, Input, Step) ->
   bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p: ~p",[step, Step]),
   node:step(Config, Input, Step).
-  

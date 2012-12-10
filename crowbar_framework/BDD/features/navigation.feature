@@ -33,7 +33,7 @@ Feature: Navigation, Check Core Navigation
 
   Scenario: Barclamps Nav
     Given I am on the home page
-    When I click on the "Barclamps" menu item
+    When I click on the "\[Barclamps\]" menu item
     Then I should see "All Barclamps" in the body  
       And I should see "crowbar" in the body
       And I should see "deployer" in the body

@@ -77,29 +77,22 @@ Feature: Users
     When I click on the "Add User" link 
     Then I should see "Node Dashboard"
       
-  Scenario: %Retrieve the list of networks via the network API
-    Given there is a network "bdd_net"
-    When REST requests the list of networks
-    Then the object id list is properly formatted
-    Finally REST removes the network "bdd_net"
     
-    
-  Scenario: %User List
-    Given there is a user "oscar"
-    When REST gets the user list
-    Then there should be a value "crowbar"
-      And there should be a value "oscar"
-    Finally REST removes the user "oscar"
-    
-  Scenario: User List
+  Scenario: %%%%%%REST get user list
     When REST requests the list of users
     Then the object id list is properly formatted
      
-  Scenario: REST Add User
-    Given there is not a user "invisible"
-    When REST adds the user "invisible"
-    Then there should be a user "invisible"
-    Finally REST removes the user "invisible"
+  Scenario: %%%%%%%REST Create, Read, and Delete a user
+    Given there is not a user "test_user_1"
+    When REST adds the user "test_user_1"
+    Then there should be a valid user "test_user_1"
+    Finally REST removes the user "test_user_1"
+    
+  Scenario: REST Update a user
+    Given there is a user "test_user_1"
+    When REST modifies user "test_user_1" setting email to "test_userx@test.com" 
+    Then the user "test_user_1" email should be "test_user1_1@test.com"
+    Finally REST removes the user "test_user_1"
     
   Scenario: %Create User 
     Given there is not a user "foo"

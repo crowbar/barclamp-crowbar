@@ -14,7 +14,7 @@
 % 
 % 
 -module(users).
--export([step/3, json/6, validate/1, inspector/1, g/1]).
+-export([step/3, json_update/4, json/6, validate/1, inspector/1, g/1]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -23,7 +23,7 @@ g(Item) ->
     path -> "/2.0/crowbar/2.0/users";
     natural_key -> username;			% unlike most crowbar objects, this uses username as the natural key
     username -> "oscar";
-	email -> "Oscar@grouch.com";
+	email -> "oscar@grouch.com";
     password -> "password";
     password_confirmation -> "password";
     remember_me -> "false";
@@ -34,20 +34,7 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try
-    _Description = json:keyfind(JSON, description), % ADD CHECK!,
-    R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
-        bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
-        bdd_utils:is_a(string, json:keyfind(JSON, state)), 
-        bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
-        bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
-        crowbar_rest:validate(JSON)],
-    bdd_utils:assert(R) 
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
+  true.
 
 
 % Common Routine
@@ -60,54 +47,75 @@ inspector(Config) ->
 json(Username, Email, Password, Password_Confirmation, Remember_Me, Is_Admin) ->
   json:output([{"username",Username},{"email", Email},{"password", Password}, {"password_confirmation", Password_Confirmation},{"remember_me", Remember_Me},{"is_admin", Is_Admin}]).
 
-% GIVEN STEP
-%dp start
-% List users
+json_update(Username, Email, Remember_Me, Is_Admin) ->
+  json:output([{"username",Username},{"email", Email},{"remember_me", Remember_Me},{"is_admin", Is_Admin}]).
+
+%step(_Config, _Global, {step_given, _N, ["there is user", "test_user_1"]}) -> false;
+
+step(_Config, _Result, {step_then, _N, ["the user",Username, "email should be", Email]}) -> 
+   bdd_utils:log(_Config, puts, "Checking user: ~p email has been set to: ~p", [Username,Email]),
+   true;
+
+% GIVEN STEP =======================================================
+
+ step(_Config, _Global, {step_given, _N, ["there is not a user", Username]}) ->   
+  bdd_utils:log(_Config, puts, "Fetching user: ~p", [Username]),
+  U = bdd_restrat:step(_Config, _Global, {step_when, _N, ["REST cannot find the", eurl:path(g(path),Username),"page"]}),
+  bdd_utils:log(_Config, puts, "Fetching done, user is: ~p", [U]),
+  U;
+     
+step(_Config, _Given, {step_given, _N, ["there is a user",Username]}) -> 
+  bdd_utils:log(_Config, puts, "Creating user: ~p", [Username]),
+  User = json(Username, g(email), g(password), g(password_confirmation), g(remember_me), g(is_admin)),
+  R = bdd_restrat:create(_Config, g(path), username,User),
+  bdd_utils:log(_Config, puts, "Created user: ~p", [R]),
+  R;
+
+
+% WHEN STEP =======================================================
+
+step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting email to", Email]}) -> 
+   bdd_utils:log(_Config, puts, "Updating user: ~p, setting email to: ~p", [Username,Email]),
+   User = json_update(Username, Email, g(remember_me), g(is_admin)),
+   R = bdd_restrat:update(_Config, g(path)++"/"++Username, update ,username, User),
+   bdd_utils:log(_Config, puts, "Updating user returned: ~p", [R]),
+   true;
 
 step(_Config, _Given, {step_when, _N, ["REST requests the list of users"]}) ->
   bdd_restrat:step(_Config, _Given, {step_when, _N, ["REST requests the", g(path),"page"]});
 
-%dp end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-     
-step(_Config, _Given, {step_given, _N, ["there is a user",Username]}) -> 
+step(_Config, _Given, {step_when, _N, ["REST adds the user",  Username]}) -> 
+  User = json(Username,"blah@test.com", g(password), g(password_confirmation), g(remember_me), g(is_admin)),
+  bdd_utils:log(_Config, info, "REST adds the user, adding user: ~p",[User]),
+  bdd_restrat:create(_Config, username, g(path), User),
+  _Config;
+
+% THEN STEP  =======================================================
+% ADD MISSING THEN STEP:
+step(_Config, _Result, {step_then, _N, ["there should be a valid user", Username]}) -> 
   bdd_utils:log(_Config, puts, "Fetching user: ~p", [Username]),
-  bdd_restrat:step(_Config, _Given, {step_when, _N, ["REST requests the", eurl:path(g(path),Username),"page"]});
+  {Atom, List, Path} = bdd_restrat:step(_Config, _Result, {step_when, _N, ["REST requests the", eurl:path(g(path),Username),"page"]}),
+  JSON= json:output(List),
+  bdd_utils:log(_Config, puts, "JSON user: ~p", [JSON]),
+  IsValid = validate(JSON),
+  IsValid;
 
-% WHEN STEP =======================================================
+% FINALLY STEP  =======================================================
+% ADD MISSING FINALLY STEP:
+step(_Config, _Given, {step_finally, _N, ["REST removes the user", Username]}) -> 
+  bdd_utils:log(_Config, puts, "REST removes the user: ~p", [Username]),
+  bdd_restrat:destroy(_Config, g(path), Username);
 
-step(_Config, _Given, {step_when, _N, ["REST gets the user list"]}) -> false;
-
-
-% Common Routine
-% Validates the JSON returned by a test as part of general health tests
-% Uses Feature validate, but through central routine     
-step(_Config, Result, {step_then, _N, ["the node is properly formatted"]}) -> 
-  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", nodes, "object is properly formatted"]});
-
-% Common Routine
-<<<<<<< HEAD
-% Cleans up users that are created during tests                         
-% step(Config, _Given, {step_finally, _N, ["REST removes the user ",User]}) -> 
-%   io:format("Deleting user:  ~p  finally finally finally finally finally finally finally finally finally", [User]),
-%   crowbar_rest:destroy(Config, g(path), g(username));
+% Setup/Teardown
 
 %setup, takes care of create               
 step(Config, _Global, {step_setup, _N, _}) -> 
   User = json(g(username), g(email), g(password), g(password_confirmation), g(remember_me), g(is_admin)),
   bdd_utils:log(Config, info, "Setup users tests, creating user: ~p",[User]),
-  bdd_restrat:create(Config, username, g(path), User),
+  bdd_restrat:create(Config, g(path), setup_user, username, User),
   Config;
 
 %teardown, takes care of delete test.
 step(Config, _Global, {step_teardown, _N, _}) -> 
-io:format("Destroy step_teardownstep_teardownstep_teardownstep_teardownstep_teardown"),
+   bdd_utils:log(Config, info, "step-teardown deleting: ~p",[g(username)] ),
    bdd_restrat:destroy(Config, g(path), g(username)).
-=======
-% Cleans up nodes that are created during tests                         
-step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
-  crowbar_rest:destroy(Config, g(path), Node);
-                   
-step(Config, _Global, {step_setup, _N, _}) -> Config;
-
-step(Config, _Global, {step_teardown, _N, _}) -> Config.
->>>>>>> c75ce1037e33eb20cb72e5f019001ca40f202116

@@ -176,12 +176,8 @@ Crowbar::Application.routes.draw do
           end
         end
         
-<<<<<<< HEAD
-        
-=======
         # generic barclamp matcher
         match ":controller/:version/:action/:id/:target/:target_id", :as => :barclamp_action_target
->>>>>>> c75ce1037e33eb20cb72e5f019001ca40f202116
         match ":controller/:version/:action(/:id)", :as => :barclamp_action
         match ":controller(/:version)", :action=> 'catalog'
                 

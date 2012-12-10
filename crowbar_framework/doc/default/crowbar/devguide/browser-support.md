@@ -58,52 +58,64 @@ cycles.
   <tr>
     <th rowspan='2'>Browser</th>
     <th rowspan='2'>Release cycle</th>
-    <th colspan='2'>Current major release</th>
-    <th colspan='2'>Previous major release</th>
+    <th colspan='3'>Current major release</th>
+    <th colspan='3'>Previous major release</th>
   </tr>
   <tr>
+    <th>Grade</th>
     <th>Version</th>
     <th>Date</th>
+    <th>Grade</th>
     <th>Version</th>
     <th>Date</th>
   </tr>
   <tr>
     <td>Mozilla Firefox</td>
     <td><a href="https://wiki.mozilla.org/Releases#Previous_Releases">~1 month</a></td>
+    <td>A</td>
     <td>17.0</td>
     <td>2012-11-20</td>
+    <td>A</td>
     <td>16.0</td>
     <td>2012-10-09</td>
   </tr>
   <tr>
     <td>Mozilla Firefox ESR</td>
     <td><a href="http://www.mozilla.org/en-US/firefox/organizations/faq/">1 year</a></td>
+    <td>A</td>
     <td>17.0 ESR</td>
     <td>2012-11-20</td>
+    <td>A</td>
     <td>10.0 ESR</td>
     <td>2012-01-31</td>
   </tr>
   <tr>
     <td>Google Chrome</td>
     <td><a href="http://en.wikipedia.org/wiki/Google_Chrome">1-2 months</a></td>
+    <td>A</td>
     <td>23.0.1271</td>
     <td>2012-11-06</td>
+    <td>A</td>
     <td>22.0.1229</td>
     <td>2012-09-25</td>
   </tr>
   <tr>
     <td>Microsoft Internet Explorer</td>
     <td><a href="http://en.wikipedia.org/wiki/Internet_Explorer">Not time based</a></td>
+    <td>A</td>
     <td>10</td>
     <td>2012-10-26</td>
+    <td>A</td>
     <td>9</td>
     <td>2011-03-14</td>
   </tr>
   <tr>
     <td>Apple Safari</td>
     <td><a href="http://en.wikipedia.org/wiki/Safari_(web_browser)">Not time based</a></td>
+    <td>B</td>
     <td>6</td>
     <td>2012-07-25</td>
+    <td>C</td>
     <td>5</td>
     <td>2010-06-07</td>
   </tr>

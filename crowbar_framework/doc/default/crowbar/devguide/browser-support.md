@@ -16,20 +16,20 @@ Browser support grades:
     <th>Browser and version combinations</th>
   </tr>
   <tr>
-    <td style='background-color: greenyellow'>A</td>
+    <td>A</td>
     <td>Yes</td>
     <td>Normal</td>
     <td>Current and previous major releases of Firefox, Firefox ESR (used in
         SLES/D), Chrome and Internet Explorer.</td>
   </tr>
   <tr>
-    <td style='background-color: yellow'>B</td>
+    <td>B</td>
     <td>No</td>
     <td>Low, possibly WONT_FIX</td>
     <td>Current major release of Safari.</td>
   </tr>
   <tr>
-    <td style='background-color: orangered'>C</td>
+    <td>C</td>
     <td>No</td>
     <td>WONT_FIX</td>
     <td>All browser and version combinations that are not in grades A or B.
@@ -70,41 +70,41 @@ cycles.
   <tr>
     <td>Mozilla Firefox</td>
     <td><a href="https://wiki.mozilla.org/Releases#Previous_Releases">~1 month</a></td>
-    <td style='background-color: greenyellow'>17.0</td>
+    <td>17.0</td>
     <td>2012-11-20</td>
-    <td style='background-color: greenyellow'>16.0</td>
+    <td>16.0</td>
     <td>2012-10-09</td>
   </tr>
   <tr>
     <td>Mozilla Firefox ESR</td>
     <td><a href="http://www.mozilla.org/en-US/firefox/organizations/faq/">1 year</a></td>
-    <td style='background-color: greenyellow'>17.0 ESR</td>
+    <td>17.0 ESR</td>
     <td>2012-11-20</td>
-    <td style='background-color: greenyellow'>10.0 ESR</td>
+    <td>10.0 ESR</td>
     <td>2012-01-31</td>
   </tr>
   <tr>
     <td>Google Chrome</td>
     <td><a href="http://en.wikipedia.org/wiki/Google_Chrome">1-2 months</a></td>
-    <td style='background-color: greenyellow'>23.0.1271</td>
+    <td>23.0.1271</td>
     <td>2012-11-06</td>
-    <td style='background-color: greenyellow'>22.0.1229</td>
+    <td>22.0.1229</td>
     <td>2012-09-25</td>
   </tr>
   <tr>
     <td>Microsoft Internet Explorer</td>
     <td><a href="http://en.wikipedia.org/wiki/Internet_Explorer">Not time based</a></td>
-    <td style='background-color: greenyellow'>10</td>
+    <td>10</td>
     <td>2012-10-26</td>
-    <td style='background-color: greenyellow'>9</td>
+    <td>9</td>
     <td>2011-03-14</td>
   </tr>
   <tr>
     <td>Apple Safari</td>
     <td><a href="http://en.wikipedia.org/wiki/Safari_(web_browser)">Not time based</a></td>
-    <td style='background-color: yellow'>6</td>
+    <td>6</td>
     <td>2012-07-25</td>
-    <td style='background-color: orangered'>5</td>
+    <td>5</td>
     <td>2010-06-07</td>
   </tr>
 </table>

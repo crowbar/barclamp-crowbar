@@ -9,7 +9,7 @@ Feature: Navigation, Check Core Navigation
           
   Scenario: Home Page Nav
     When I go to the home page
-    Then I should see a menu for "Nodes"
+    Then I should see a menu for {bdd:crowbar.i18n.nav.nodes}
       And I should see a menu for "Barclamps"
       And I should see a menu for "Utilities"
       And I should see a menu for "Help"
@@ -33,8 +33,8 @@ Feature: Navigation, Check Core Navigation
 
   Scenario: Barclamps Nav
     Given I am on the home page
-    When I click on the "Barclamps" menu item
-    Then I should see "All Barclamps" in the body  
+    When I click on the "\\\[Barclamps\\\]" menu item
+    Then I should see {bdd:crowbar.i18n.barclamp.modules.title} in the body  
       And I should see "crowbar" in the body
       And I should see "deployer" in the body
       And I should see "provisioner" in the body

@@ -92,39 +92,59 @@ step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   {ajax, json:parse(JSON), {get, Page}};
 
+step(Config, _Global, {step_given, _N, ["REST creates the",Object,Name]}) -> 
+  step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
+
 step(Config, _Given, {step_when, _N, ["REST creates the",Object,Name]}) -> 
+  bdd_utils:log(Config, trace, "REST creates the ~p ~p", [Object, Name]),
   JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
   Path = apply(Object, g, [path]),
-  {Code, Result} = eurl:put_post(Config, Path, JSON, post, all),
-  Key = json:keyfind(Result, id),
-  bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
-  case Code of
-    200 -> {ajax, Result, {post, Path}};
+  PutPostResult = eurl:put_post(Config, Path, JSON, post, all),
+  bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: PutPostResult: ~p", [PutPostResult]),
+  {Code, Result} = PutPostResult,
+  bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: Code: ~p, Result: ~p",[Code, Result]),
+  ReturnResult = case Code of
+    200 ->
+      ReturnJSON = json:parse(Result),
+      bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: ReturnJSON: ~p",[ReturnJSON]),
+      Key = json:keyfind(ReturnJSON, id),
+      bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
+      {ajax, ReturnJSON, {post, Path}};
     _   -> {ajax, Code, {post, Path}}
-  end;
+  end,
+  bdd_utils:log(Config, debug, "bdd_restrat:step:ReturnResult: ~p",[ReturnResult]),
+  ReturnResult;
 
-step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Object) -> 
   JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
   Path = eurl:path(apply(Object, g, [path]), Name),
+  step(Config, _Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
+
+step(Config, _Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]}) ->
+  bdd_utils:log(Config, trace, "REST updates an object at ~p with ~p", [Path,JSON]),
   {Code, Result} = eurl:put_post(Config, Path, JSON, put, all),
-  bdd_utils:log(Config, debug, "bdd_restrat:update: ~p, Name: ~p", [Path, Name]),
+  bdd_utils:log(Config, debug, "bdd_restrat:REST updates an object at step: Code: ~p, Result: ~p",[Code, Result]),
   case Code of
-    200 -> {ajax, Result, {put, Path}};
+    200 -> {ajax, json:parse(Result), {put, Path}};
     _   -> {ajax, Code, {put, Path}}
   end;
 
+step(Config, _Then, {step_finally, _N, ["REST deletes the", Object, Name]}) -> 
+  step(Config, _Then, {step_when, _N, ["REST deletes the",Object, Name]});
 
-step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is_atom(Object)-> 
   Path = apply(Object, g, [path]),
   R = eurl:delete(Config, Path, Name, all),
   bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p result ~p",[Object,Name, R]),
   {Code, _} = R,
   {ajax, Code, {delete, Path}};
   
-step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) -> 
+step(Config, Given, {step_finally, _N, ["REST removes the ",Object, Name]}) when is_atom(Object)-> 
+  step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
+step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_atom(Object)-> 
   step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) -> 
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Object) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),
   bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
@@ -133,7 +153,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) ->
     {Code, _}   -> {ajax, Code, {get, URI}}
   end;
 
-step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
+step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = eurl:path(apply(Object, g, [path]), Key),
   case eurl:get_page(Config, URI, all) of
@@ -144,7 +164,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]}) ->
     {Num, _}      -> {ajax, Num, {get, URI}}
   end;
 
-step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) ->
+step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   case get_JSON(Results, all) of 
     {ajax, Code, {_, URI}} when is_number(Code) -> 

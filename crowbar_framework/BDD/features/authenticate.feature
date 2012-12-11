@@ -21,7 +21,7 @@ Feature: Authentication Works
     When I login with "developer" and "Cr0wbar!"
     Then I should see "User Authenticated using Digest Authentication"
     
-  Scenario: Dashboard should redirect
+  Scenario: %Dashboard should redirect
     When I visit "dashboard" page without login
     Then I should not see "Node Dashboard"
       And I should not see "You are signed in"

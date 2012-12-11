@@ -14,12 +14,16 @@
 % 
 % 
 -module(bdd_utils).
--export([assert/1, assert/2, assert_atoms/1, config/2, config/3, config_set/3, config_unset/2, tokenize/2, clean_line/1]).
+-export([assert/1, assert/2, assert_atoms/1, tokenize/2, tokenize/6, clean_line/1]).
+-export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
+-define(NORMAL_TOKEN, 1).
+-define(ESCAPED_TOKEN, 2).
+-define(SUBSTITUTE_TOKEN, 3).
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -64,7 +68,11 @@ log(Config, Level, Format, Data)  ->
     % General Logging Ouptut
     {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
                      Suffix = " <~p:~p/~p>",
-                     {Module, Method, Params} = try erlang:get_stacktrace() of [ST | _] -> ST; [] -> {unknown, 0, 0} catch _ -> [{module, unknown, 0}] end,
+                     {Module, Method, Params} = try erlang:get_stacktrace() of 
+                        [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, -1}; 
+                        [ST | _] -> ST; 
+                        [] -> {unknown, 0, 0} 
+                      catch _ -> [{module, unknown, 0}] end,
                      Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
                      DataCalled = Data ++ [Module, Method, Arity],
                      io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
@@ -152,20 +160,28 @@ is_a(Type, Value) ->
 	
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
-  URL = sc:url(Config),
-  io:format("~nBDD TESTING SITE: ~p.~n", [URL]),
-  AzConfig = simple_auth:header(Config, URL),
+  URL = bdd_utils:config(Config, url),
+  bdd_utils:log(Config, info, "BDD TESTING SITE: ~p", [URL]),
+  AzConfig = simple_auth:authenticate_session(Config, URL),
   case proplists:get_value(auth_error,AzConfig) of
     undefined -> AzConfig; % success
     Reason -> 
-      io:format("ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
+      bdd_utils:log(Config, error, "ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
       Config
   end.
 
-% returns value for key from Config (error if not found)
+% config using BIFs
+config(Key) -> config(Key, undefined).
+config(Key, Default) when is_atom(Key) -> 
+  case get(Key) of
+    undefined -> put(Key, Default), Default;
+    V         -> V
+  end;
+  
+% DEPRICATING returns value for key from Config (error if not found)
 config(Config, Key) ->
   case config(Config, Key, undefined) of
-    undefined -> throw("bdd_utils:config Could not find requested key in config file");
+    undefined -> throw("bdd_utils:config Could not find requested key '"++atom_to_list(Key)++"' in config file");
     V -> V
   end.
 
@@ -188,16 +204,21 @@ config(Config, Key, Default) ->
   	      end
 	end.
 
-config_set(Config, Key, Value) ->
+config_set(Key, Value) ->
   put(Key, Value),
+  {Key, Value}.
+config_set([], Key, Value)      -> config_set(Key, Value);
+config_set(Config, Key, Value)  ->
   C = case lists:keyfind(Key,1,Config) of
     undefined -> Config;
     Item -> lists:delete(Item, Config)
   end,
-  C ++ [{Key, Value}].
+  C ++ [config_set([], Key, Value)].
   
+config_unset(Key)     -> put(Key, undefined).
+config_unset([], Key) -> config_unset(Key); 
 config_unset(Config, Key) ->
-  put(Key, undefined),
+  config_unset([], Key),
   case lists:keyfind(Key,1,Config) of
     false -> Config;
     Item  -> lists:delete(Item, Config)
@@ -212,10 +233,55 @@ clean_line(Raw) ->
 	string:strip(CleanLine2, right, $.).
 
 % converts quoted text into a list
-tokenize(Config, Step) ->
-	Tokens = string:tokens(Step,"\"{}"),
-	CleanTokens = [string:strip(X) || X<- Tokens],
-	[ token_substitute(Config, X) || X <- CleanTokens, length(X)>0].
+tokenize(Config, Step) -> tokenize(Config, Step, false, ?NORMAL_TOKEN, [], "").
+
+tokenize(Config, [], _IgnoreNext, TokenType, TokenList, Token ) ->
+  FinalTokenList = if
+    Token /= [] ->
+      FinalToken = if
+        TokenType == ?SUBSTITUTE_TOKEN -> token_substitute(Config, string:strip(Token));
+        true -> string:strip(Token)
+      end,
+      [FinalToken|TokenList];
+    true -> TokenList
+  end,
+  lists:reverse(FinalTokenList);
+
+tokenize(Config, Step, IgnoreNext, TokenType, TokenList, Token ) ->
+  Char = string:substr(Step,1,1),
+  if
+    % If this character is escaped, then just add it, even if it is a double quote
+    IgnoreNext -> tokenize(Config, string:substr(Step,2), false, TokenType, TokenList, Token ++ Char);
+    % The next character is escaped, so don't add the escape
+    Char == "\\" -> tokenize(Config, string:substr(Step,2), true, TokenType, TokenList, Token);
+    % Handle the first character being a double quote
+    Char == "\"", Token == "" -> tokenize(Config, string:substr(Step,2), false, ?ESCAPED_TOKEN, TokenList, "");
+    % Start or end of quotes terminates the last token, whatever it was
+    Char == "\"", Token /= "" ->
+      NewTokenType = case TokenType of
+        ?NORMAL_TOKEN -> ?ESCAPED_TOKEN;
+        ?ESCAPED_TOKEN -> ?NORMAL_TOKEN;
+        ?SUBSTITUTE_TOKEN -> ?SUBSTITUTE_TOKEN;
+        _ -> ?NORMAL_TOKEN
+      end,
+      tokenize(Config, string:substr(Step,2), false, NewTokenType, add_token(Token, TokenList), "");
+    Char == "{", TokenType /= ?ESCAPED_TOKEN, Token == "" ->
+      tokenize(Config, string:substr(Step,2), false, ?SUBSTITUTE_TOKEN, TokenList, "");
+    Char == "{", TokenType /= ?ESCAPED_TOKEN, Token /= "" ->
+      tokenize(Config, string:substr(Step,2), false, ?SUBSTITUTE_TOKEN, add_token(Token, TokenList), "");
+    Char == "}", TokenType == ?SUBSTITUTE_TOKEN ->
+      SubToken = token_substitute(Config, string:strip(Token)),
+      tokenize(Config, string:substr(Step,2), false, ?NORMAL_TOKEN, [SubToken|TokenList], "");
+    % Default action is to add to the current token
+    true -> tokenize(Config, string:substr(Step,2), false, TokenType, TokenList, Token ++ Char)
+  end.
+
+add_token(Token, TokenList) ->
+  NewToken = string:strip(Token),
+  case NewToken of
+    "" -> TokenList;
+    _ -> [NewToken|TokenList]
+  end.
 
 % This routine is used for special subtitutions in steps that run functions or turn strings into atoms
 token_substitute(Config, Token) ->

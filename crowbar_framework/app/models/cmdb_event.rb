@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CmdbRun < ActiveRecord::Base
+class CmdbEvent < ActiveRecord::Base
   attr_accessible :name, :description, :order, :type
 
   # 
-  # Validates that Run Names are useful placeholders.  They are 
+  # Validates that Event Names are useful placeholders.  They are 
   # mainly referenced by their ID. 
   # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
   #
@@ -28,15 +28,15 @@ class CmdbRun < ActiveRecord::Base
   #has_many :cmdb_events
 
   def init
-    puts "cmdb run init."
+    puts "CmdbEvent init."
   end
 
-  def event
-    puts "creating an event"
+  def run
+    puts "creating a CmdbRun"
 
     self.save!
-    e = CmdbEvent.new
-    r.cmdb_event_id = self.id
+    e = CmdbRun.new
+    r.cmdb_run_id = self.id
     r
   end
 

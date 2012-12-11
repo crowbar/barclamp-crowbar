@@ -15,14 +15,14 @@
 #
 # This model is a stub for the CMDB override system
 # It is NOT installed by default, but can be used for testing or as a model
-class CmdbRunTest < CmdbRun
+class CmdbEventTest < CmdbEvent
 
   def init
     super.init
   end
 
-  def event(config_id)
-    super.event config_id
+  def run(config_id)
+    super.run config_id
     config_id
   end
 

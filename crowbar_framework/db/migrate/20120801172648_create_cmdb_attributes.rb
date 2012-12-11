@@ -22,7 +22,7 @@ class CreateCmdbAttributes < ActiveRecord::Migration
       t.integer :revision
 
       t.references :node_attribute
-      t.references :cmdb_run
+      t.references :cmdb_event
       t.references :cmdb_map
 
       t.timestamps

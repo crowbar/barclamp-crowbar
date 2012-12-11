@@ -15,53 +15,53 @@
 require 'test_helper'
 require 'json'
 
-class CmdbEventModelTest < ActiveSupport::TestCase
+class CmdbRunModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
-    CmdbEvent.create! :name=>"nodups", :type=>"CmdbEventTest", :description=>"unit tests"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { CmdbEvent.create!(:name => "nodups") }
+    CmdbRun.create! :name=>"nodups", :type=>"CmdbRunTest", :description=>"unit tests"
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { CmdbRun.create!(:name => "nodups") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
     assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "nodups" }
   end
 
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>"1123", :type=>"CmdbEventTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>"1foo", :type=>"CmdbEventTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>"Ille!gal", :type=>"CmdbEventTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>" nospaces", :type=>"CmdbEventTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>"no spaces", :type=>"CmdbEventTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbEvent.create!(:name=>"nospacesatall ", :type=>"CmdbEventTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"1123", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"1foo", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"Ille!gal", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>" nospaces", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"no spaces", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"nospacesatall ", :type=>"CmdbRunTest")}
   end
 
   test "Must have override object-missing" do
-     CmdbEvent.create!(:name=>"foo", :type=>"CmdbEventFoo")
-     e = assert_raise(ActiveRecord::SubclassNotFound) { CmdbEvent.find_by_name "foo" }
+     CmdbRun.create!(:name=>"foo", :type=>"CmdbRunFoo")
+     e = assert_raise(ActiveRecord::SubclassNotFound) { CmdbRun.find_by_name "foo" }
      assert_equal "The single-table inheritance mechanism failed...", e.message.truncate(48)
   end
 
   test "Must have override object - present" do
-     c = CmdbEvent.create! :name=>"subclass", :type=>"CmdbEventTest"
+     c = CmdbRun.create! :name=>"subclass", :type=>"CmdbRunTest"
      assert_equal false, c.nil?
      assert_equal c.name, "subclass"
-     assert_equal c.type, "CmdbEventTest"
+     assert_equal c.type, "CmdbRunTest"
   end
   
   test "Returns correct objective type" do
-    c = CmdbEvent.create! :name=>"type_test", :type=>"CmdbEventTest"
-    t = CmdbEvent.find_by_name "type_test"
+    c = CmdbRun.create! :name=>"type_test", :type=>"CmdbRunTest"
+    t = CmdbRun.find_by_name "type_test"
     assert_equal c.type, t.type
-    assert_equal t.type, "CmdbEventTest"
-    assert_kind_of CmdbEvent, c
+    assert_equal t.type, "CmdbRunTest"
+    assert_kind_of CmdbRun, c
   end
   
   test "as_json routines returns correct items" do
     name = "json_test"
-    type = "CmdbEventTest"
+    type = "CmdbRunTest"
     status = "Done"
     result = "255"
-    cmdb_run_id = 4
+    cmdb_event_id = 4
     description = "This is a unit test"
-    c = CmdbEvent.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :cmdb_run_id => cmdb_run_id
+    c = CmdbRun.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :cmdb_event_id => cmdb_event_id
     j = JSON.parse(c.to_json)
     assert_equal j['type'], type
     assert_equal j['name'], name
@@ -69,7 +69,7 @@ class CmdbEventModelTest < ActiveSupport::TestCase
     assert_equal j['order'], 100
     assert_equal j['result'], result
     assert_equal j['status'], status
-    assert_equal j['cmdb_run_id'], cmdb_run_id
+    assert_equal j['cmdb_event_id'], cmdb_event_id
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
     assert_equal j.length, 10

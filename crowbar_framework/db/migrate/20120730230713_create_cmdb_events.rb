@@ -11,19 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbRuns < ActiveRecord::Migration
+class CreateCmdbEvents < ActiveRecord::Migration
   def change
-    create_table :cmdb_runs do |t|
-      t.string :name
-      t.string :description
-      t.string :type
-      t.string :order
-      t.string :result
-      t.string :status
+    create_table :cmdb_events do |t|
+      t.string :name,         :null=>false
+      t.string :description,  :null=>true, :default=>true
+      t.string :type,         :null=>false
+      t.string :order,        :default=>10000
 
-      t.belongs_to :cmdb_event
-      # t.references :node  # add node references cmdb_run through cmdb_event
-      #t.references :cmdb   # add node references cmdb through proposal_config
+      t.references :cmdb
+      t.references :cmdb_map
 
       t.timestamps
     end

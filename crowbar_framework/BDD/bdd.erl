@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2012, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(bdd).
--export([test/0, test/1, feature/1, feature/2, scenario/2, scenario/3, scenario/4]).
+-export([test/0, test/1, features/0, feature/1, feature/2, scenario/2, scenario/3, scenario/4]).
 -export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
@@ -34,17 +34,30 @@ test(ConfigName)         ->
   file:write_file("../tmp/bdd_results.out",io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
   [{Fatom, print_report(R)} || {feature, Fatom, _Feature, R} <-Results].
   
+% list available features
+features() ->
+  F = bdd_utils:features([]),
+  [list_to_atom(bdd_utils:feature_name([], FN)) || FN <- F].
+  
 % similar to test, this can be used to invoke a single feature for testing
 feature(Feature) when is_atom(Feature)  -> feature("default", atom_to_list(Feature));
 feature(Feature)                        -> feature("default", Feature).
-feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) -> feature(atom_to_list(ConfigName), atom_to_list(Feature));
+feature(ConfigName, Feature) when is_atom(ConfigName), is_atom(Feature) 
+                                        -> feature(atom_to_list(ConfigName), atom_to_list(Feature));
 feature(ConfigName, Feature)            -> scenario(ConfigName, Feature, all).
 
 % run one or `all` of the scenarios in a feature
 scenario(Feature, ID)                  -> scenario("default", atom_to_list(Feature), ID).
-scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature)  
+scenario(ConfigName, Feature, ID) when is_atom(ConfigName), is_atom(Feature), is_number(ID)
                                        -> scenario(atom_to_list(ConfigName), atom_to_list(Feature), ID, []);
-scenario(ConfigName, Feature, ID)      -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]).
+scenario(ConfigName, Feature, ID) when is_atom(ID)  
+                                       -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
+scenario(ConfigName, Feature, ID) when is_number(ID)  
+                                       -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
+scenario(ConfigName, Feature, Name)    -> 
+  ID = erlang:phash2(Name),
+  bdd_utils:log(info, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
+  scenario(ConfigName, Feature, ID).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
@@ -55,13 +68,16 @@ scenario(ConfigName, Feature, ID, Log) ->
 % version of scenario with extra loggin turned on
 debug(Feature, ID)                -> debug(default, Feature, ID, debug).
 debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
+debug(Config, Feature, ID, dump)  -> debug(Config, Feature, ID, [puts, dump, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, debug) -> debug(Config, Feature, ID, [puts, debug, info, warn, error]);
 debug(Config, Feature, ID, info)  -> debug(Config, Feature, ID, [puts, info, warn, error]);
-debug(Config, Feature, ID, Log)   -> 
+debug(Config, Feature, ID, Log) when is_number(ID)  -> 
   bdd_utils:config_set([], inspect, false),
   scenario(atom_to_list(Config), atom_to_list(Feature), ID, Log),
-  bdd_utils:config_set([], inspect, true).
+  bdd_utils:config_set([], inspect, true);
+debug(Config, Feature, ID, Log)   -> 
+  debug(Config, Feature, erlang:phash2(ID), Log).
 
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
@@ -89,8 +105,8 @@ run(Config, [], [FileName | Features]) ->
 	    io:format("\tRESULTS: Passed ~p of ~p.  Failed ~p.~n", [Pass, Total, Fail]),
       lists:keyfind(feature,1,Run)
 	catch
-		X: Y -> io:format("ERROR: Feature error ~p:~p~n", [X, Y]),
-		[error]
+		X: Y -> bdd_utils:log(Config, error, "bdd:run Feature ~p error ~p:~p. ~nStracktrace: ~p~n", [Feature, X, Y, erlang:get_stacktrace()]),
+		        [error]
 	end,
   [R | run(Config, [], Features)];
 
@@ -102,12 +118,13 @@ run(Config, Feature, FileName, ID) ->
   % start inet client if not running
   StartConfig = start(Config),                       
   % stuff the feature & file name into the config set
-  FeatureConfig = [{feature, Feature}, {file, FileName} | StartConfig],		     
+  FeatureConfig1 = bdd_utils:config_set(StartConfig, feature, Feature),
+  FeatureConfig = bdd_utils:config_set(FeatureConfig1, file, FileName),
   % import the feature information
   {feature, Name, Scenarios} = feature_import(FileName),
   [ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
   % setup UI
-  io:format(" FEATURE: ~s.~n", [ScenarioName]),
+  io:format("~nFEATURE: ~s.~n", [ScenarioName]),
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
@@ -128,12 +145,16 @@ start(Config) ->
   Global = bdd_utils:config(Config, global_setup, default),
   case Started of
     false -> 
-      application:start(crypto),
-      application:start(inets),
+      bdd_utils:config_unset(auth_field),    % clear field to get new token
+      case {application:start(crypto), application:start(inets)} of
+        {ok, ok}                 -> bdd_utils:log(Config, trace, "Started Crypto & Inets Services",[]);
+        {{error, A}, {error, B}} -> bdd_utils:log(Config, trace, "Errors Reported: Inets ~p Crypto ~p",[B, A]);
+        {A, B}                   -> bdd_utils:log(Config, trace, "Start Reporting: Inets ~p Crypto ~p",[B, A])
+      end,
       AzConfig = bdd_utils:is_site_up(Config),
       file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
-      [{started, true} | SetupConfig ];
+      bdd_utils:config_set(SetupConfig, started, true);
     _ -> Config
   end.
 
@@ -146,7 +167,8 @@ stop(Config) ->
       is_clean(TearDownConfig),
       application:stop(crypto),
       application:stop(inets),
-      lists:delete({started, true}, TearDownConfig);
+      bdd_utils:config_unset(auth_field),
+      bdd_utils:config_set(TearDownConfig, started, false);
     _ -> Config  
   end.
 
@@ -217,8 +239,9 @@ print_fail([Result | Results]) ->
 
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
+  Hash = erlang:phash2(Name),
   % organize steps in the scenarios
-	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(Config, RawSteps),
+	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(Config, RawSteps, Hash),
 
   % The steps lists are built in reverse order that they appear in the feature file in
   % accordance with erlang list building optimization.  Reverse the order here so that
@@ -228,7 +251,6 @@ test_scenario(Config, RawSteps, Name) ->
   ThenSteps = lists:reverse(BackwardsThenSteps),
   FinalSteps = lists:reverse(BackwardsFinalSteps),
 
-  Hash = erlang:phash2(Name),
 	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, Hash, N]),
 	% execute all the given steps & put their result into GIVEN
 	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
@@ -293,10 +315,10 @@ step_run(_Config, _Input, Step, []) ->
 	
 % Split our steps into discrete types for sequential processing
 % Each step is given a line number to help w/ debug
-scenario_steps(Config, Steps) ->
+scenario_steps(Config, Steps, ScenarioID) ->
 	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
-	scenario_steps(Config, Steps, 1, [], [], [], [], unknown).
-scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep) ->
+	scenario_steps(Config, Steps, 1, [], [], [], [], unknown, ScenarioID).
+scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, ScenarioID) ->
 	CleanStep = bdd_utils:clean_line(H),
 	{Type, StepRaw} = step_type(CleanStep),
 	StepPrep = {Type, bdd_utils:tokenize(Config, StepRaw)},
@@ -305,14 +327,15 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep) ->
 	  {Type, SS} -> {Type, SS}
 	end,
 	case Step of
-		{step_given, S} -> scenario_steps(Config, T, N+1, [{step_given, N, S} | Given], When, Then, Finally, step_given);
-		{step_when, S} -> scenario_steps(Config, T, N+1, Given, [{step_when, N, S} | When], Then, Finally, step_when);
-		{step_then, S} -> scenario_steps(Config, T, N+1, Given, When, [{step_then, N, S} | Then], Finally, step_then);
-		{step_finally, S} -> scenario_steps(Config, T, N+1, Given, When, Then, [{step_finally, N, S} | Finally], step_finally);
-		{empty, _} -> scenario_steps(Config, T, N, Given, When, Then, Finally, empty);
-		{unknown, Mystery} -> io:format("\t\tWARNING: No prefix match for ~p~n", [Mystery]), scenario_steps(Config, T, N+1, Given, When, Then, Finally, unknown)		
+		{step_given, S}   -> scenario_steps(Config, T, N+1, [{step_given, {ScenarioID, N}, S} | Given], When, Then, Finally, step_given, ScenarioID);
+		{step_when, S}    -> scenario_steps(Config, T, N+1, Given, [{step_when, {ScenarioID, N}, S} | When], Then, Finally, step_when, ScenarioID);
+		{step_then, S}    -> scenario_steps(Config, T, N+1, Given, When, [{step_then, {ScenarioID, N}, S} | Then], Finally, step_then, ScenarioID);
+		{step_finally, S} -> scenario_steps(Config, T, N+1, Given, When, Then, [{step_finally, {ScenarioID, N}, S} | Finally], step_finally, ScenarioID);
+		{empty, _}        -> scenario_steps(Config, T, N,   Given, When, Then, Finally, empty, ScenarioID);
+		{unknown, Myst}   -> bdd_utils:log(Config, warn, "bdd: No prefix match for ~p in Scenario #~p", [Myst, ScenarioID]), 
+		                     scenario_steps(Config, T, N+1, Given, When, Then, Finally, unknown, ScenarioID)		
 	end;
-scenario_steps(_Config, [], N, Given, When, Then, Finally, _) ->
+scenario_steps(_Config, [], N, Given, When, Then, Finally, _, _ScenarioID ) ->
 	% returns number of steps and breaks list into types, may be expanded for more times in the future!
 	{N, Given, When, Then, Finally}.
 	
@@ -343,7 +366,7 @@ is_clean(Config, StartState) ->
   case Diff of
     []      -> true;
     % TODO - cleanup should tell you if the artifacts are from BEFORE or AFTER.  Right now, it is not clear!
-    Orphans -> io:format("~nWARNING, Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
+    Orphans -> bdd_utils:log(Config, warn, "BDD:is_clean Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
                false
   end.
 

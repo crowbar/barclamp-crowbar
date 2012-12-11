@@ -33,7 +33,7 @@ Feature: Documentation
 
   Scenario: Doc Sub Topic return to Main
     Given I am on the "docs/topic/crowbar/userguide" page
-    When I click on the "System Documentation \\(Master Index\\)" link
+    When I click on the "System Documentation \\\(Master Index\\\)" link
     Then I should see "System Documentation"
       And there should be no translation errors
 

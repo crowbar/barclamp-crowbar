@@ -202,5 +202,21 @@ class BarclampModelTest < ActiveSupport::TestCase
     end
   end
 
+
+  test "roles get priority from deployment section" do
+    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
+    bc = Barclamp.new
+    bc.name = "foo"
+    Barclamp.import_1x_deployment(bc,json)
+    rmap = {}
+    bc.roles.all.each do |r|
+      rmap [r.name] = r.priority
+    end
+    assert rmap["foo_mon_master"], 80
+    assert rmap["foo_mon"], 81
+    assert rmap["foo_store"], 82
+  end
+
+
 end
 

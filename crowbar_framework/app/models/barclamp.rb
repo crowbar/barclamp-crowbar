@@ -132,6 +132,52 @@ class Barclamp < ActiveRecord::Base
     run_order
   end
 
+
+  ### private method.
+  # Parse the deployment section of a barclamps template
+  # The following sections are parsed:
+  #  - element_order - grouping of roles to execute in parallel/serial.
+  #  - element_states - node states in which roles are allowed to execute
+  #  - element_run_list_order - role priorities
+  #  - transitions - should transitions be passed to the bc.
+  #  - transition_list - which state transitions to pass to barclamp
+  def self.import_1x_deployment(barclamp, json)
+    bc_name = barclamp.name
+    jdeploy = json["deployment"][bc_name]
+    barclamp.mode = jdeploy["config"]["mode"] rescue "full"
+    barclamp.description = (json["description"] rescue bc_name.humanize) unless barclamp.description
+    barclamp.transitions = jdeploy["config"]["transitions"] rescue false
+    barclamp.transition_list = jdeploy["config"]["transition_list"].join(",") rescue ""
+
+    element_order = jdeploy["element_order"] rescue []
+    element_order.each_with_index do |role_array, index|
+      role_array.each do |role_name|
+        role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
+        unless role 
+          states = jdeploy["element_states"][role_name].join(",") rescue "all"
+          priority = jdeploy["element_run_list_order"][role_name] rescue -1
+          role = Role.create(:name => role_name, :states => states, :priority => priority)
+          role.barclamp = barclamp
+          barclamp.roles << role
+        end
+        reo = RoleElementOrder.create(:order => index)
+        role.role_element_orders << reo
+      end
+    end
+    
+    # import users 
+    if json["attributes"] and json["attributes"]["crowbar"] and json["attributes"]["crowbar"]["users"]
+      json["attributes"]["crowbar"]["users"].each do |user, password|
+        pass = password['password']
+        u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
+        u.digest_password(pass)
+        u.save!
+      end
+    end
+    return barclamp
+  end
+
+
   #legacy approach - expects name of barclamp for YML import
   def self.import_1x(bc_name)
     bc_file = File.join('barclamps', bc_name+'.yml')
@@ -214,37 +260,8 @@ class Barclamp < ActiveRecord::Base
     template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
-
-      barclamp.mode = json["deployment"][bc_name]["config"]["mode"] rescue "full"
-      barclamp.description = (json["description"] rescue bc_name.humanize) unless bc['barclamp']['description']
-      barclamp.transitions = json["deployment"][bc_name]["config"]["transitions"] rescue false
-      barclamp.transition_list = json["deployment"][bc_name]["config"]["transition_list"].join(",") rescue ""
-
-      element_order = json["deployment"][bc_name]["element_order"] rescue []
-      element_order.each_with_index do |role_array, index|
-        role_array.each do |role_name|
-          role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
-          unless role 
-            states = json["deployment"][bc_name]["element_states"][role_name].join(",") rescue "all"
-            role = Role.create(:name => role_name, :states => states)
-            role.barclamp = barclamp
-            role.save!
-          end
-          reo = RoleElementOrder.create(:order => index)
-          role.role_element_orders << reo
-        end
-      end
-      
-      # import users from databags
-      if json["attributes"] and json["attributes"]["crowbar"] and json["attributes"]["crowbar"]["users"]
-        json["attributes"]["crowbar"]["users"].each do |user, password|
-          pass = password['password']
-          u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
-          u.digest_password(pass)
-          u.save!
-        end
-      end
-
+      self.import_1x_deployment(barclamp, json)
+ 
       prop = Proposal.create(:name => "template", :description => "template")
       prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
       prop_config.proposal = prop

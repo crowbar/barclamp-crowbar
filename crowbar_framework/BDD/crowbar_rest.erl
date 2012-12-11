@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate/1, inspector/2]).
+-export([step/3, g/1, validate_core/1, validate/1, inspector/2]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
@@ -24,13 +24,18 @@ g(Item) ->
   end.
 
 % validates JSON in a generic way common to all objects
-validate(JSON) ->
+validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
        bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
        bdd_utils:is_a(JSON, name, name), 
+       bdd_utils:is_a(JSON, dbid, id)],
+  bdd_utils:assert(R, debug). 
+
+validate(JSON) ->
+  R = [
        bdd_utils:is_a(JSON, str, description),
        bdd_utils:is_a(JSON, int, order),
-       bdd_utils:is_a(JSON, dbid, id)],
+       validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
 % Common Routine - returns a list of items from the system, used for house keeping

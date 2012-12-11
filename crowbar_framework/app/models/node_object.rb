@@ -316,7 +316,7 @@ class NodeObject < ChefObject
     controllers = [] unless controllers
     controllers.each do |c,k|
       k["volumes"].each do |v|
-        volumes << "#{v["raid_level"]} #{v["size"]/1024/1024/1024}GB"
+        volumes << "#{v["raid_level"]} #{v["size"].to_i/1024/1024/1024}GB"
       end
     end
     volumes
@@ -719,7 +719,7 @@ class NodeObject < ChefObject
         break  # if we got this far then we are done
       end
     rescue
-      Rails.logger.warn("Switch {type} Error: #{@node.name}: Switch config not detected during discovery")
+      Rails.logger.warn("Switch #{type} Error: #{@node.name}: Switch config not detected during discovery")
     end
     info
   end

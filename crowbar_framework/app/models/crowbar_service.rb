@@ -58,6 +58,7 @@ class CrowbarService < ServiceObject
         end
 
         node.crowbar["state"] = state
+        node.crowbar["state_change_time"] = Time.new.to_s
         save_it = true
         pop_it = true
       end

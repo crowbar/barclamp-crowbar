@@ -51,15 +51,15 @@ step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) ->
   [Block] = eurl:find_block("<li", "</li>", Given, ">"++Menu++"</a>", 250),
   URL = eurl:find_link(Menu, Block),
   click_link(Config, URL, Menu);
-
+                           
 step(Config, Given, {step_when, _N, ["I fill in", Fields, "and submit using the",ButtonText,"button"]}) ->
   % assume a single form element
   Form = eurl:find_form(Given, ButtonText),
-  bdd_utils:log(Config, trace, "bdd_webrat:step When I fill in is Given ~p using ~p",[Form, Fields]),
+  bdd_utils:log(Config, debug, "bdd_webrat:step When I fill in is Given ~p using ~p",[Form, Fields]),
   {fields, FormFields} = lists:keyfind(fields, 1, Form),
   SubmitFields = {fields, [eurl:form_fields_merge(F, Fields) || F <- FormFields]},
   NewForm = lists:keyreplace(fields, 1, Form, SubmitFields),
-  bdd_utils:log(Config, trace, "bdd_webrat:step When I fill in submitting ~p",[NewForm]),
+  bdd_utils:log(Config, debug, "bdd_webrat:step When I fill in submitting ~p",[NewForm]),
   eurl:form_submit(Config, NewForm);
   
 step(Config, Result, {step_then, _N, ["I should not see", Text]}) -> 

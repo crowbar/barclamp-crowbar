@@ -111,6 +111,7 @@ parse(RawJSON) ->
   % make sure that this needs to be parsed!
   case RawJSON of 
     [${ | _]          -> json(#json{raw=RawJSON}, []);
+    [$[ | _]          -> json(#json{raw=RawJSON}, []);
     J when is_list(J) -> RawJSON;    % this in the expected format, it's ok
     _                 -> bdd_utils:log(warn,"json:parse input did not match expected format.  Input: ~p",[RawJSON])
   end.    

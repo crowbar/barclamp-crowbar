@@ -519,19 +519,46 @@ class ServiceObject
   end
 
 
-  def self.get_object(type, object_id )
+  def self.id?(object_id)
+    object_id = object_id.to_s
+    object_id.match('^[0-9]+') ? true : false
+  end
+
+
+  def self.name?(object_id)
+    !self.id?(object_id)
+  end
+
+
+  def get_object(type, object_id)
     object = nil
     object_id = object_id.to_s
     if object_id.match('^[0-9]+')
       object = type.find(object_id)
     else
       objects = type.where( :name => object_id )
-      raise ActiveRecord::RecordNotFound, "Unable to find #{type} with id=#{object_id}" if objects.size == 0
+      if objects.size == 0
+        error_msg = "Unable to find #{type} with id=#{object_id}"
+        @logger.error(error_msg)
+        raise ActiveRecord::RecordNotFound, error_msg
+      end
       object = objects[0] if objects.size == 1
-      raise "There are #{objects.size} #{type}s with the name #{object_id}" if objects.size > 1
+      if objects.size > 1
+        error_msg = "There are #{objects.size} #{type}s with the name #{object_id}"
+        @logger.error(error_msg)
+        raise error_msg
+      end
     end
 
     object
   end
-end
 
+
+  def get_object_safe(type, object_id)
+    begin
+      return get_object(type, object_id)
+    rescue ActiveRecord::RecordNotFound => ex
+      return nil
+    end
+  end
+end

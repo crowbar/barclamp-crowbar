@@ -14,55 +14,64 @@
 % 
 
 -module(dev).
--export([pop/0, pop/1, unpop/0, unpop/1]).  
+-export([pop/0, pop/1, unpop/0]).  
 -import(bdd_utils).
 -import(digest_auth).
 
 % create a base system
 pop()           -> pop(default).
-pop(ConfigName) when is_atom(ConfigName) ->
-  pop(bdd:getconfig(atom_to_list(ConfigName)));
 pop(ConfigRaw) ->
-  Config = bdd:start(ConfigRaw),
-  %nodes
-  Nodes = [{node1, "node1.crowbar.com", "Populated Information!", 250, "Rack1"},
-            {node2, "node2.crowbar.com", "Some Populated Information!", 260, "Rack1"},
-            {node3, "node3.crowbar.com", "More Populated Information!", 270, "Rack1"},
-            {node4, "node4.crowbar.com", "Extra Populated Information!", 280, "Rack1"}],
-  Attributes = [{attrib1, "cpu"}, {attrib2, "service_tag"}],
-  C0 = add_group(Config, group1, "Rack1", "North Pole", 1000),
-  C1 = add_node(C0, node1, "node1.crowbar.com", "Populated Information!", 250, "Rack1"),
-  C2 = add_node(C1, node2, "node2.crowbar.com", "Some Populated Information!", 260, "Rack1"),
-  C3 = add_node(C2, node3, "node3.crowbar.com", "More Populated Information!", 270, "Rack1"),
-  C4 = add_node(C3, node4, "node4.crowbar.com", "Extra Populated Information!", 280, "Rack1"),
-  io:format("Done.~n"),
-  C4.
+  bdd:start(ConfigRaw),
+  bdd_utils:config_set(global_setup, dev),
+  bdd_utils:config_set(inspect, false),
+  {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
+  [ add_group(G) || G <- buildlist(Build, groups) ],
+  [ add_attribute(A) || A <- buildlist(Build, attributes) ],
+  [ add_node(N) || N <- buildlist(Build, nodes) ],
+  bdd_utils:config_unset(global_setup),
+  bdd_utils:config_set(inspect, true),
+  io:format("Done.~n").
 
 % tear it down
-unpop()       ->  unpop(get()).
-unpop(Config) ->
-  C1 = remove(Config, nodes, node1),
-  C2 = remove(C1, nodes, node2),
-  C3 = remove(C2, nodes, node3),
-  C4 = remove(C3, nodes, node4),
-  C5 = remove(C4, groups, group1),
-  C5.
+unpop()       ->  
+  {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
+  [ remove(nodes, N) || {N, _, _, _, _} <- buildlist(Build, nodes) ], 
+  [ remove(attribute, A) || {A, _, _, _, _} <- buildlist(Build, attributes) ], 
+  [ remove(groups, G) || {G, _, _, _} <- buildlist(Build, groups) ],
+  bdd:stop([]). 
 
-remove(Config, Type, Atom) ->
-  crowbar_rest:destroy(Config, apply(Type, g, [path]), Atom).
+buildlist(Source, Type) ->
+  {Type, R} = lists:keyfind(Type, 1, Source),
+  R.
 
-add_group(Config, Atom, Name, Descripton, Order) ->
+remove(Type, Atom) ->
+  crowbar_rest:destroy([], apply(Type, g, [path]), Atom),
+  bdd_utils:config_unset(Atom),
+  bdd_utils:log(info, "Removed ~p with tag ~p", [Type, Atom]).
+
+add_group({Atom, Name, Descripton, Order}) ->
   JSON = groups:json(Name, Descripton, Order, 'ui'),
-  crowbar_rest:create(Config, groups:g(path), Atom, Name, JSON).
+  Path = apply(groups, g, [path]),
+  Result = json:parse(bdd_restrat:create([], Path, JSON)),
+  Key = json:keyfind(Result, id),
+  bdd_utils:config_set(Atom, Key),
+  bdd_utils:log(info, "Created Group ~p=~p named ~p", [Atom, Key, Name]).
 
+add_attribute({Atom, Name, Description, Order, _Type}) ->
+  JSON = attribute:json(Name, Description, Order),
+  Path = apply(attribute, g, [path]),
+  Result = json:parse(bdd_restrat:create([], Path, JSON)),
+  Key = json:keyfind(Result, id),
+  bdd_utils:config_set(Atom, Key),
+  bdd_utils:log(info, "Created Attribute ~p=~p named ~p", [Atom, Key, Name]).
 
-add_node(Config, Atom, Name, Description, Order, Group) ->
-  C = add_node(Config, Atom, Name, Description, Order),
-  groups:step(Config, [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),
-  C.
-  
-add_node(Config, Atom, Name, Description, Order) ->
-  Node = nodes:json(Name, Description, Order),
-  bdd_restrat:create(Config, nodes:g(path), Atom, Name, Node).
+add_node({Atom, Name, Description, Order, Group}) ->
+  JSON = nodes:json(Name, Description, Order),
+  Path = apply(nodes, g, [path]),
+  Result = json:parse(bdd_restrat:create([], Path, JSON)),
+  Key = json:keyfind(Result, id),
+  groups:step([], [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),
+  bdd_utils:config_set(Atom, Key),
+  bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, Key, Name, Group]).
 
   

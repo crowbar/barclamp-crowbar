@@ -38,9 +38,17 @@ i18n(Config, T1, T2, T3) -> i18n(Config, [T1, T2, T3]).
 i18n(Config, T1, T2) -> i18n(Config, [T1, T2]).
 i18n(Config, T) -> 
   Path = string:tokens(T, "+:/"),
-  Key = string:join(Path,"."),
+  KeyList = case length(Path) of
+    1 -> lists:nth(1, Path);
+    _ -> Path
+  end,
+  Key = string:join(KeyList, "."),
   URI = eurl:path("utils/i18n",Key),
-  eurl:get(Config, URI, not_found).
+  bdd_utils:log(Config, trace, "crowbar:i18n looking up ~p", [URI]),
+  case eurl:get(Config, URI, not_found) of
+    not_found -> bdd_utils:log(Config, warn, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!";
+    R -> R
+  end.
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
 validate(JSON) ->

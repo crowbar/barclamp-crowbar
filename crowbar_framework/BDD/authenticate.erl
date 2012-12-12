@@ -24,15 +24,17 @@ g(Item) ->
                                                               
 step(Config, _Global, {step_setup, _N, _}) -> 
   % "hide" authentication credentials on config list in prep for testing 
-  AuthField = proplists:get_value(auth_field, Config),
-  %io:format("~nDEBUG\t auth - removing auth_field ~p~n",[AuthField]),
-  lists:delete({auth_field, AuthField}, Config) ++ [{hidden_auth_field, AuthField}];
+  AuthField = bdd_utils:config(Config, auth_field),
+  bdd_utils:log(Config, trace, "authenticate:setup auth - removing auth_field ~p",[AuthField]),
+  C = bdd_utils:config_unset(Config, auth_field),
+  bdd_utils:config(C, hidden_auth_field, AuthField);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % restore hidden authentication credentials on config list
-  AuthField = proplists:get_value(hidden_auth_field, Config),
-  %io:format("~nDEBUG\t auth - restoring auth_field ~p~n",[AuthField]),
-  lists:delete({hidden_auth_field, AuthField}, Config)  ++ [{auth_field, AuthField}];
+  AuthField = bdd_utils:config(Config, hidden_auth_field),
+  bdd_utils:log(Config, trace, "authenticate:teardown auth - restoring auth_field ~p",[AuthField]),
+  C = bdd_utils:config_unset(Config, hidden_auth_field),
+  bdd_utils:config(C, auth_field, AuthField);
 
 %----------------------
 
@@ -47,9 +49,14 @@ step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   {digest, Code};
 
 step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
-  C = [{url, bdd_utils:config(Config, url)}, {user, User}, {password, Pass}],
+  U = bdd_utils:config(Config, user),
+  P = bdd_utils:config(Config, password),
+  C1 = bdd_utils:config_set(Config, user, User),
+  C = bdd_utils:config_set(C1, password, Pass),
   URL = eurl:uri(C, "digest"),
   {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request(C,URL),
+  bdd_utils:config_set(user, U),
+  bdd_utils:config_set(password, P),
   R;
 
 step(Config, _Given, {step_when, _N, ["I visit",Page,"page without login"]}) -> 

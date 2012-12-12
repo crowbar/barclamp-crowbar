@@ -33,9 +33,8 @@ g(Item) ->
 validate(JSON) ->
   try
     _Description = json:keyfind(JSON, description), % ADD CHECK!
-    Order = json:keyfind(JSON, order),
     Category = json:keyfind(JSON, category),
-    R = [bdd_utils:is_a(number, Order), 
+    R = [bdd_utils:is_a(JSON, number, order), 
          lists:member(Category,g(categories)), 
          crowbar_rest:validate(JSON)],
     bdd_utils:assert(R)

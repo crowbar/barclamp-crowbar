@@ -6,19 +6,23 @@
  %table.center
   %tr
    %td= ff.label :username
+   %td= ff.label :email
    -if action == :create
     %td= ff.label :password
     %td= ff.label :password_confirmation
    %td= ff.label :is_admin
    %td &nbsp;
   %tr
-   %td= ff.text_field :username
+   %td= ff.text_field :username, :size => 20
+   %td= ff.text_field :email, :size => 20
    -if action == :create
-    %td= ff.password_field :password
-    %td= ff.password_field :password_confirmation
+    %td= ff.password_field :password, :size => 20
+    %td= ff.password_field :password_confirmation, :size => 20
    %td= ff.check_box :is_admin
    -if action == :create
     %td= ff.submit t("user.add"), :class=>'button'
    -else
-    %td= ff.submit t("user.update"), :class=>'button'
+    %td
+     %span= ff.submit t("user.update"), :class=>'button' 
+     = ff.submit t("user.cancel"),:name => 'cancel', :class=>'button'
     

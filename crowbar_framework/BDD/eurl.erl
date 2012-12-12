@@ -196,6 +196,7 @@ get(Config, URL, all) ->
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
 get(Config, URL, OkReturnCodes) ->
+  bdd_utils:log(Config, puts, "eurl:get get(Config, URL, OkReturnCodes)***********************************************"),
   translateReturnCodes(get(Config, URL, all), OkReturnCodes, URL, get).
 
 % page returns in the {CODE, BODY} format
@@ -299,15 +300,30 @@ delete(Config, Path, Id, OkReturnCodes) ->
   translateReturnCodes(delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
   
 % Used by get, post, put, delete to allow users to control response to return codes
-translateReturnCodes({200, _},        _OkReturnCodes, _Path, delete)  -> true;
-translateReturnCodes({200, Body},     _OkReturnCodes, _Path, _Action) -> Body;
-translateReturnCodes({Code, _Body},   all, _Path, _Action)            -> Code; 
-translateReturnCodes({_Code, _Body},  neg_one, _Path, _Action)        -> "-1";
+translateReturnCodes({200, _},        _OkReturnCodes, _Path, delete)  -> 
+  bdd_utils:log(puts, "truetruetruetruetruetruetruetruetruetruetrue",[]),
+  true;
+translateReturnCodes({200, Body},     _OkReturnCodes, _Path, _Action) -> 
+bdd_utils:log(puts, "BodyBodyBodyBodyBodyBodyBodyBodyBodyBodyBodyBody",[]),
+Body;
+  
+translateReturnCodes({Code, _Body},   all, _Path, _Action)            -> 
+bdd_utils:log(puts, "CodeCodeCodeCodeCodeCodeCodeCodeCodeCodeCodeCode",[]),
+Code; 
+translateReturnCodes({_Code, _Body},  neg_one, _Path, _Action)        ->
+bdd_utils:log(puts, "-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1",[]),
+ "-1";
 translateReturnCodes({Code, Body},    OkReturnCodes, Path, Action)    -> 
+  
   Listed = lists:keyfind(Code, 1, OkReturnCodes),
+   bdd_utils:log(puts, "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",[]),
   case Listed of
      false -> 
         bdd_utils:log(error,"~p attempt at ~p failed.  Return code: ~p~nBody: ~p", [Action, Path, Code, Body]),
         throw({eURLerror, Code, Path});
-     {Code, ReturnAtom} -> ReturnAtom
+     
+     {Code, ReturnAtom} -> 
+      bdd_utils:log(puts, "ttttttttttttttttttttttttttttttttttttttttttttd   ~p",[ReturnAtom]),
+      ReturnAtom
+     
    end.

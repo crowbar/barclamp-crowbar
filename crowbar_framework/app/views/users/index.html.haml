@@ -8,6 +8,7 @@
   %thead
    %tr
     %th= t('user.username')
+    %th= t('user.email')
     %th= t('user.sign_in_count')
     %th= t('user.failed_attempts')
     %th= t('user.last_sign_in_at')
@@ -24,6 +25,7 @@
         %td= link_to user.username, edit_user_path(user)
        -else
         %td= user.username
+       %td= user.email
        %td= user.sign_in_count
        %td= user.failed_attempts
        %td= user.last_sign_in_at
@@ -35,9 +37,9 @@
          = link_to t("user.reset_password"), edit_password_path(user), :class=>'link'
          = " | "
          - if (user.access_locked?)
-          = link_to t("user.unlock"), unlock_user_path(user.id), :class=>'link'
+          = link_to t("user.unlock"), unlock_user_path(user.id), :class=>'link', :method => :put
          - else
-          = link_to t("user.lock"), lock_user_path(user.id), :class=>'link'
+          = link_to t("user.lock"), lock_user_path(user.id), :class=>'link', :method => :put
     - else
      %tr
       %td{ :colspan=>5 }

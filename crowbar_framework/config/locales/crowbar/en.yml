@@ -409,8 +409,6 @@ en:
       nodes: Nodes
       none: No Nodes Deployed
 
-
-
   # node.raid_set
   raid:
     JBODOnly: JBOD
@@ -474,9 +472,12 @@ en:
     update_success: User was updated successfully.
     reset_password_success: User password was set successfully.
     delete_users: Delete selected users?
+    locked: User account locked.
+    unlocked: User account unlocked.
     set_password: Set Password
     options: "Options"
     username: Username
+    email: Email
     sign_in: Sign In
     sign_out: Sign Out
     sign_up: "Sign up"
@@ -497,6 +498,7 @@ en:
     license_accept: "By signing in, you are accepting the relevant licenses"
     add: Add User
     update: Update User
+    cancel: Cancel
     delete: Delete Selected
     reset_password: Reset Password
     unlock: Unlock

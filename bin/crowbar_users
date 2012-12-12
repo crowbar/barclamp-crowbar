@@ -165,8 +165,7 @@ def user_lock_unlock(id_or_username, lockUnlock=false)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
   command = (lockUnlock) ? "user_lock" : "user_unlock"
-  struct = get_json2("2.0/crowbar/2.0/#{command}/#{id_or_username}")
- 
+  struct = put_json2("2.0/crowbar/2.0/#{command}/#{id_or_username}")
   if struct[1] == 200
     [ "Locked/Unlocked the user: #{id_or_username}", 0 ]
   elsif struct[1] == 404

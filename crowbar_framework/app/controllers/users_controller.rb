@@ -15,16 +15,20 @@ class UsersController < BarclampController
   def unlock_user
     user = User.find(params[:id])
     user.unlock_access! if (user.access_locked?)
-    redirect_to users_path
+    redirect_to users_path, :notice => t("user.unlocked")
   end
 
   def lock_user
     user = User.find(params[:id])
     user.lock_access! if !(user.access_locked?)
-    redirect_to users_path
+    redirect_to users_path, :notice => t("user.locked")
   end
 
   def reset_password
+    if !params[:cancel].nil?
+      setup_users
+      return render :action => :index
+    end
     check_password
     
     @user = User.find(params[:user][:id])
@@ -54,8 +58,12 @@ class UsersController < BarclampController
   end
 
   def update
-    check_password
-
+    # check_password
+    if !params[:cancel].nil?
+      setup_users
+      return render :action => :index
+    end
+    
     @user = User.find(params[:id])
     if @user.update_attributes(params[:user])
       redirect_to users_path, :notice => t("user.update_success")

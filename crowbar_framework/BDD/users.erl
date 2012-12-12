@@ -14,7 +14,7 @@
 % 
 % 
 -module(users).
--export([step/3, json_update/4, json/6, validate/2, inspector/1, g/1]).
+-export([step/3, json_update/4, json/6, validate/1, inspector/1, g/1]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -182,13 +182,6 @@ step(_Config, _Result, {step_then, _N, ["the user",Username, "is_admin should be
    bdd_utils:log(_Config, puts, "Checking user (_Is_Admin == Is_Admin): ~p ", [(_Is_Admin == Is_Admin)]), 
    (_Is_Admin == Is_Admin);
 
-step(_Config, _Result, {step_then, _N, ["the user",Username, "should be locked"]}) -> 
-   bdd_utils:log(_Config, puts, "Checking user: ~p is locked", [Username]),
-   true;
-
-step(_Config, _Result, {step_then, _N, ["the user",Username, "should be unlocked"]}) -> 
-   bdd_utils:log(_Config, puts, "Checking user: ~p is unlocked", [Username]),
-   true;
 
 % FINALLY STEP  =======================================================
 % ADD MISSING FINALLY STEP:

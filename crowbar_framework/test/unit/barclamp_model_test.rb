@@ -217,6 +217,15 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert rmap["foo_store"], 82
   end
 
+  test "roles are ordered correctly" do
+    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
+    bc = Barclamp.new
+    bc.name = "foo"
+    Barclamp.import_1x_deployment(bc,json)
+    ordered = bc.get_roles_by_order
+    assert ordered.first, ["foo_mon_master"]
+    assert ordered.second, ["foo_mon","foo_store"]
+  end
 
 end
 

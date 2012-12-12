@@ -23,12 +23,26 @@ class CmdbChef < Cmdb
     super.init  
   end
 
-  # I'm totally not understanding the proposal configs/proposals
-  # right now, so I'm going to wing it.
-  def run(config_id)
-    super.run config_id
+
+  def apply_proposal(new_config)    
+    ## for now, just call super
+    super.apply_proposal(new_config)
   end
-  
+
+  def create_event(config)
+    evt = CmdbEvent.create(:proposal_confing =>config, :cmdb => self, 
+      :status => CmdbEvent::EVT_PENDING)
+    evt
+  end
+
+  def create_run_for(evt, nr,order)
+    run = CmdbRunChef.create(:cmdb_event => evt, :node_role => nr, 
+      :order=>order, :status => CmdbRun::RUN_PENDING)
+    run
+  end
+
+
+
   def node(name)
     begin 
       chef_init

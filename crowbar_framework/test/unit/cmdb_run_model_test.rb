@@ -17,7 +17,6 @@ require 'json'
 
 class CmdbRunModelTest < ActiveSupport::TestCase
 
-
   test "Unique Name" do
     CmdbRun.create! :name=>"nodups", :type=>"CmdbRunTest", :description=>"unit tests"
     e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { CmdbRun.create!(:name => "nodups") }
@@ -58,17 +57,22 @@ class CmdbRunModelTest < ActiveSupport::TestCase
   test "as_json routines returns correct items" do
     name = "json_test"
     type = "CmdbRunTest"
+    status = "Done"
+    result = "255"
+    cmdb_event_id = 4
     description = "This is a unit test"
-    c = CmdbRun.create! :name=>name, :type=>type, :description => description, :order => 100
+    c = CmdbRun.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :cmdb_event_id => cmdb_event_id
     j = JSON.parse(c.to_json)
-    assert_equal j['name'], name
     assert_equal j['type'], type
+    assert_equal j['name'], name
     assert_equal j['description'], description
     assert_equal j['order'], 100
+    assert_equal j['result'], result
+    assert_equal j['status'], status
+    assert_equal j['cmdb_event_id'], cmdb_event_id
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
-    assert_equal j.length, 7
+    assert_equal j.length, 10
   end
-  
 end
 

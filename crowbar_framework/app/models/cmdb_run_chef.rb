@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class CmdbEventChef < CmdbEvent
+class CmdbRunChef < CmdbRun
 
   def init
     super.init

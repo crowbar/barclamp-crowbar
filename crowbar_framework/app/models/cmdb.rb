@@ -24,7 +24,7 @@ class Cmdb < ActiveRecord::Base
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
   has_many :maps, :class_name => "cmdb_maps", :foreign_key => "cmdb_id"
-  #TEMPORARY REMOVAL... has_many :cmdb_runs, :inverse_of => Cmdb
+  #TEMPORARY REMOVAL... has_many :cmdb_events, :inverse_of => Cmdb
 
   def init
     puts "RAH REMOVE: super class initialize"
@@ -33,13 +33,13 @@ class Cmdb < ActiveRecord::Base
   # I'm totally not understanding the proposal configs/proposals
   # right now, so I'm going to wing it.
   def run(config_id)
-    puts "RAH REMOVE: super run class #{config_id}"
+    puts "RAH REMOVE: super event class #{config_id}"
 
     # just fake a bunch of stuff here
     self.save!
-    r = CmdbRun.new
-    r.cmdb_id = self.id
-    r
+    e = CmdbEvent.new
+    e.cmdb_id = self.id
+    e
   end
 
   def node(name)

@@ -32,7 +32,7 @@ class Cmdb < ActiveRecord::Base
   
   # I'm totally not understanding the proposal configs/proposals
   # right now, so I'm going to wing it.
-  def (config_id)
+  def run(config_id)
     puts "RAH REMOVE: super event class #{config_id}"
 
     # just fake a bunch of stuff here

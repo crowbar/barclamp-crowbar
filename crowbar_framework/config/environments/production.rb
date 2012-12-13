@@ -58,4 +58,8 @@ config.log_level = :debug
   CHEF_NODE_NAME ="crowbar" 
   CHEF_SERVER_URL = "http://192.168.124.10:4000"
   CROWBAR_VERSION = "v1.2-openstack-dell-5318-g724c195-dev"
+
+  # needs to be defined so it doesn't bomb
+  DISABLE_CHEF=false
+
  end 

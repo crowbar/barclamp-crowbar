@@ -277,5 +277,6 @@ gems:
     - uuidtools
     - xml-simple
     - yajl-ruby
-#    - factory_girl_rails
-#    - foodcritic
+    - factory_girl-2.6.4
+    - factory_girl_rails-1.7.0
+    - foodcritic

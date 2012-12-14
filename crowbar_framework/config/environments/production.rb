@@ -54,8 +54,6 @@ config.log_level = :debug
 # Enable threaded mode
 # config.threadsafe!
 
-  CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-  CHEF_NODE_NAME ="crowbar" 
-  CHEF_SERVER_URL = "http://192.168.124.10:4000"
-  CROWBAR_VERSION = "v1.2-openstack-dell-5318-g724c195-dev"
- end 
+CROWBAR_VERSION = "v1.2-openstack-dell-5318-g724c195-dev"
+
+end

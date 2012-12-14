@@ -38,9 +38,4 @@ config.action_controller.allow_forgery_protection    = false
 # Don't care if the mailer can't send
 config.action_mailer.raise_delivery_errors = false
 
-CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-CHEF_NODE_NAME ="crowbar"
-CHEF_SERVER_URL = "http://192.168.124.10:4000"
-CROWBAR_VERSION = "Development"
-
 end

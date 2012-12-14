@@ -227,7 +227,6 @@ gems:
     - cancan
     - chef
     - chefspec
-    - coffee-rails
     - daemons
     - database_cleaner
     - delayed_job_active_record
@@ -272,10 +271,9 @@ gems:
     - state_machine
     - syslogger
     - systemu
-    - therubyracer
-    - uglifier
     - uuidtools
     - xml-simple
     - yajl-ruby
-#    - factory_girl_rails
-#    - foodcritic
+    - factory_girl-2.6.4
+    - factory_girl_rails-1.7.0
+    - foodcritic

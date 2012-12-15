@@ -62,6 +62,7 @@ debs:
     - dpkg-dev
     - libxml2-dev
     - zlib1g-dev
+    - libxslt1-dev
   pkgs:
     # apache stuff
     - apache2
@@ -130,6 +131,8 @@ debs:
     - alien
     - graphviz
     - vim
+    # for nokogiri
+    - libxslt1.1
 
 rpms:
   redhat-6.2:
@@ -218,7 +221,6 @@ rpms:
 gems:
   pkgs:
     - active_scaffold
-    - activesupport
     - amqp
     - bluepill
     - builder
@@ -254,20 +256,18 @@ gems:
     - ohai
     - puma
     - railroad
-    - rails-3.2.6
+    - rails-3.2.9
     - rails-erd
     - rake
     - rcov
     - rdoc
     - rest-client
-    - rspec-rails
-    - rspec-mocks
+    - rspec-rails-2.11.4
     - sass
     - sass-rails
     - sendfile
     - simple-navigation
     - sqlite3
-    - sqlite3-ruby
     - state_machine
     - syslogger
     - systemu

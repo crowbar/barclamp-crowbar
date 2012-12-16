@@ -126,6 +126,7 @@ class RoleObject < ChefObject
   end
 
   def save
+    return if DISABLE_CHEF
     @role.override_attributes[barclamp] = {} if @role.override_attributes[barclamp].nil?
     if @role.override_attributes[barclamp]["crowbar-revision"].nil?
       @role.override_attributes[barclamp]["crowbar-revision"] = 0
@@ -138,6 +139,7 @@ class RoleObject < ChefObject
   end
 
   def destroy
+    return if DISABLE_CHEF
     Rails.logger.debug("Destroying role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
     @role.destroy
     Rails.logger.debug("Done removing role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")

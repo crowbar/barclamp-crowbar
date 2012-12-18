@@ -10,12 +10,11 @@ Feature: Users
       And I should see "Username"
       And I should see "Sign In Count"
       And there should be no translation errors
-      
-  %%%%% {bdd:crowbar.i18n.user.create_success} is broken
-  Scenario: Create User 
+ 
+  Scenario: %Create User 
     Given I am on the "manage_users" page
     When I fill in {fields:username=test_user_1&password=password&password_confirmation=password} and submit using the "Add User" button
-    Then I should see "User was created successfully."
+    Then I should see {bdd:crowbar.i18n.user.create_success}
     Finally REST deletes the {object:users} "test_user_1"
     
   Scenario: %Sample Form to demo only - remove

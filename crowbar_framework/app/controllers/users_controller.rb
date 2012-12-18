@@ -1,7 +1,9 @@
 class UsersController < BarclampController
   respond_to :html, :xml, :json
   
-  def initialize # HACK HACK HACK HACK, act like a barclamp
+  helper_method :is_edit_mode?
+  
+  def initialize #act like a barclamp
     @bc_name = "user"
     @barclamp_object = Barclamp.new
     @barclamp_object.name = "user"
@@ -93,6 +95,10 @@ class UsersController < BarclampController
       notice = t("user.none_selected")
     end
     redirect_to users_path, :notice => notice
+  end
+  
+  def is_edit_mode?
+    current_user.is_admin? && is_dev?
   end
   
   ############################## API Calls ####################################
@@ -259,8 +265,13 @@ class UsersController < BarclampController
   end
 
   def setup_users
-    @users = User.all
-    @user ||= User.new
+    if (current_user.is_admin)
+      @users = User.all
+      @user ||= User.new
+    else
+      @users = [current_user]
+    end
+    
   end
 
 end

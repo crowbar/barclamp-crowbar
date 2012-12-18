@@ -48,7 +48,6 @@ create(Config, Path, Name, JSON)         -> create(Config, Path, Name, JSON, pos
 create(Config, Path, Name, JSON, Action) when is_atom(Action) ->
   % just in case - cleanup to prevent collision
   Key = json:keyfind(json:parse(JSON), Name),
-  bdd_utils:log(Config, puts, "Create, destroying key: ~p", [Key]),
   destroy(Config, Path, Key),
   % create node(s) for tests
   eurl:put_post(Config, Path, JSON, Action);
@@ -57,28 +56,28 @@ create(Config, Path, Atom, Name, JSON) ->
   create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, puts, "Entering bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, JSON: ~p, Action: ~p", [Path, Atom, Name, JSON, Action]),
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, JSON: ~p, Action: ~p", [Path, Atom, Name, JSON, Action]),
   destroy(Config, Path, Atom),
   Result = json:parse(create(Config, Path, Name, JSON, Action)),
   % get the ID of the created object
   Key = json:keyfind(Result, id),
-  bdd_utils:log(Config, puts, "json:keyfind(Result, id) done, Key: ~p",[Key]),
+  bdd_utils:log(Config, debug, "json:keyfind(Result, id) done, Key: ~p",[Key]),
   % friendly message
-  bdd_utils:log(Config, puts, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
+  bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
 
   % add the new ID to the config list
   bdd_utils:config_set(Config, Atom, Key).
 
 update(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:log(Config, puts, "Entering bdd_restrat:update Path: ~p, Atom: ~p, Name: ~p, JSON: ~p", [Path, Atom, Name, JSON]),
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:update Path: ~p, Atom: ~p, Name: ~p, JSON: ~p", [Path, Atom, Name, JSON]),
   PutResult = eurl:put_post(Config, Path, JSON, put),
-  bdd_utils:log(Config, puts, "Update done, result: ~p !!!",[PutResult]),
+  bdd_utils:log(Config, debug, "Update done, result: ~p !!!",[PutResult]),
   PutResult.
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
   Item = bdd_utils:config(Config, Atom, not_found),
-  bdd_utils:log(Config, puts, "bdd_restrat:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
+  bdd_utils:log(Config, trace, "bdd_restrat:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
   case Item of
     not_found -> 
         bdd_utils:log(Config, warn, "bdd_restrat:destroy(atom) could not find ID for atom ~p",[Atom]);
@@ -89,7 +88,7 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
-  bdd_utils:log(Config, puts, "Entering bdd_restrat:destroy Path: ~p, Key: ~p", [Path, Key]),
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:destroy Path: ~p, Key: ~p", [Path, Key]),
   case get_id(Config, Path, Key) of
     "-1" -> bdd_utils:log(Config, trace, "\tRemoval of key ~s skipped: not found.", [Key]);
     ID   -> eurl:delete(Config, Path, ID),

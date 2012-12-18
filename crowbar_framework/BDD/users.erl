@@ -47,7 +47,7 @@ validate(List) ->
     _Id = element(2,lists:keyfind("id", 1, List)),
     _Username = element(2,lists:keyfind("username", 1, List)),
     _Email = element(2,lists:keyfind("email", 1, List)),
-    bdd_utils:log(puts, "User validation: ID: ~p, Username: ~p, Email: ~p", [_Id, _Username,_Email]),
+    bdd_utils:log(debug, "User validation: ID: ~p, Username: ~p, Email: ~p", [_Id, _Username,_Email]),
     Is_Valid
   catch
     X: Y -> io:format("ERROR: cannot parse user: ~p:~p", [X, Y]),

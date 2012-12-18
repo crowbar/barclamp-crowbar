@@ -45,6 +45,14 @@ table.box
       +rounded_corners(0,0,0,10px)
     td:first-child:last-child
       +rounded_corners(0,0,10px,10px)
+  tr.no-hover
+    &:hover, &:active
+      background: transparent !important
+      
+table.box.no-hover
+  tr
+    &:hover, &:active
+      background: transparent !important
 
 table
   tr

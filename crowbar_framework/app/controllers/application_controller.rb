@@ -19,9 +19,12 @@ require 'digest/md5'
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
-
+  
+  
+  helper_method :is_dev?
+  
   before_filter :crowbar_auth
-
+  
   # Basis for the reflection/help system.
   
   # First, a place to stash the help contents.  
@@ -70,6 +73,10 @@ class ApplicationController < ActionController::Base
   
   def is_ajax?
     request.xhr?
+  end
+  
+  def is_dev?
+    Rails.env == "development"
   end
   
   add_help(:help)

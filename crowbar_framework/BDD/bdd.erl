@@ -17,7 +17,7 @@
 -export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
--export([step_run/3, step_run/4, inspect/1, is_clean/1]).
+-export([step_run/3, step_run/4, inspect/1, is_clean/1, log/3]).
 
 test()                   -> test("default").
 test(ConfigName)         -> 
@@ -102,10 +102,10 @@ run(Config, [], [FileName | Features]) ->
 	    {total, Total} = lists:keyfind(total, 1, Out),
 	    {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
 	    {fail, _N, Fail} = lists:keyfind(fail, 1, Out),
-	    io:format("\tRESULTS: Passed ~p of ~p.  Failed ~p.~n", [Pass, Total, Fail]),
+	    log(result, "Passed ~p of ~p.  Failed ~p.", [Pass, Total, Fail]),
       lists:keyfind(feature,1,Run)
 	catch
-		X: Y -> bdd_utils:log(Config, error, "bdd:run Feature ~p error ~p:~p. ~nStracktrace: ~p~n", [Feature, X, Y, erlang:get_stacktrace()]),
+		X: Y -> log(error, "bdd:run Feature ~p error ~p:~p. ~nStracktrace: ~p~n", [Feature, X, Y, erlang:get_stacktrace()]),
 		        [error]
 	end,
   [R | run(Config, [], Features)];
@@ -124,7 +124,7 @@ run(Config, Feature, FileName, ID) ->
   {feature, Name, Scenarios} = feature_import(FileName),
   [ScenarioName, _ScenarioIn, _ScenarioWho, _ScenarioWhy | _ ] = [string:strip(S) || S <- Name, S =/= []],
   % setup UI
-  io:format("~nFEATURE: ~s.~n", [ScenarioName]),
+  log(feature, "~s (~s)", [Feature, FileName]),
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
   % run the tests
@@ -197,11 +197,17 @@ setup_scenario(Config, Scenario, ID) ->
   Name = bdd_utils:clean_line(RawName),
   [First | _ ] = Name,
   TestID = erlang:phash2(Name),
-  if 
-    First =:= $% -> io:format("\tDISABLED ~p~n", [Name]);
-    ID =:= all; TestID =:= ID -> test_scenario(Config, RawSteps, Name);
-    true -> io:format("\t........: skipping ~p (~p)~n", [TestID, Name])
-  end.
+  Result = if
+    First =:= $%  -> skip;
+    ID =:= all    -> test_scenario(Config, RawSteps, Name);
+    TestID =:= ID -> test_scenario(Config, RawSteps, Name);
+    true          -> skip
+  end,
+  bdd_utils:log(Result, "~s (~p)", [Name, TestID]),
+  {TestID, Result}.
+
+% pass through to bdd_utils
+log(Level, Message, Values) -> bdd_utils:log(Level, Message, Values).
 
 print_report({feature, _, _, Result}) ->  print_report(Result);
 print_report(Result)  ->
@@ -220,6 +226,7 @@ print_result([], Pass, Fail, Skip)    ->
 print_result([Result | T], Pass, Fail, Skip)->
   case Result of
     {ID, pass} -> F=Fail, P=[ID | Pass], S=Skip;
+    {ID, skip} -> F=Fail, P=Pass, S=[ID | Skip];
     ok         -> P=Pass, F=Fail, S=[skip | Skip];
     {ID, _}    -> P=Pass, F=[ID | Fail], S=Skip
   end,
@@ -227,12 +234,10 @@ print_result([Result | T], Pass, Fail, Skip)->
   
 % output results information
 print_fail([]) -> true;
-print_fail({Pass, {_Type, N, Description}}) ->
-  PF = case Pass of
-    true -> ". Pass";
-    _ -> "X FAIL"
-  end,
-  io:format("\t\t~s #~p: ~s~n", [PF, N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
+print_fail({true, {_Type, N, Description}}) ->
+  log(step_pass,"~p: ~s", [N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
+print_fail({_, {_Type, N, Description}}) ->
+  log(step_fail,"~p: ~s", [N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
 print_fail([Result | Results]) ->
   print_fail(Result),
   print_fail(Results).
@@ -241,38 +246,42 @@ print_fail([Result | Results]) ->
 test_scenario(Config, RawSteps, Name) ->
   Hash = erlang:phash2(Name),
   % organize steps in the scenarios
-	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps} = scenario_steps(Config, RawSteps, Hash),
+	case scenario_steps(Config, RawSteps, Hash) of
+	  {unless, _} -> skip;
+  	{N, BackwardsGivenSteps, BackwardsWhenSteps, BackwardsThenSteps, BackwardsFinalSteps}  ->
+      % The steps lists are built in reverse order that they appear in the feature file in
+      % accordance with erlang list building optimization.  Reverse the order here so that
+      % the steps are executed in the same order as they are listed in the feature file
+      GivenSteps = lists:reverse(BackwardsGivenSteps),
+      WhenSteps = lists:reverse(BackwardsWhenSteps),
+      ThenSteps = lists:reverse(BackwardsThenSteps),
+      FinalSteps = lists:reverse(BackwardsFinalSteps),
+    
+    	% execute all the given steps & put their result into GIVEN
+    	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
+    	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
+    	% now, excute the when steps & put the result into RESULT
+    	bdd_utils:trace(Config, Name, N, RawSteps, Given, ["No When: pending next pass..."]),
+    	When = case length(WhenSteps) of
+    	  0 -> Given;
+    	  _ -> [step_run(Config, Given, WS) || WS <- WhenSteps]
+    	end,
+    	bdd_utils:trace(Config, Name, N, RawSteps, Given, When),
+    	% now, check the results
+    	Result = [{step_run(Config, When, TS), TS} || TS <- ThenSteps],
+    	% safe to cleanup with the finally steps (we don't care about the result of those)
+    	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
+    	% now, check the results of the then steps
+    	case bdd_utils:assert_atoms(Result) of
+    		true -> bdd_utils:untrace(Config, Name, N), pass;
+    		_ -> log(info, "*** FAILURE REPORT ***",[]), print_fail(lists:reverse(Result)), fail
+    	end;
+    skip -> skip;
+    X -> 
+      log(error,"bdd:test_scenario: Unknown scenario_steps result ~p", [X]), 
+      fail
+  end.
 
-  % The steps lists are built in reverse order that they appear in the feature file in
-  % accordance with erlang list building optimization.  Reverse the order here so that
-  % the steps are executed in the same order as they are listed in the feature file
-  GivenSteps = lists:reverse(BackwardsGivenSteps),
-  WhenSteps = lists:reverse(BackwardsWhenSteps),
-  ThenSteps = lists:reverse(BackwardsThenSteps),
-  FinalSteps = lists:reverse(BackwardsFinalSteps),
-
-	io:format("\tSCENARIO: ~p (id: ~p, steps:~p) ", [Name, Hash, N]),
-	% execute all the given steps & put their result into GIVEN
-	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
-	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
-	% now, excute the when steps & put the result into RESULT
-	bdd_utils:trace(Config, Name, N, RawSteps, Given, ["No When: pending next pass..."]),
-	When = case length(WhenSteps) of
-	  0 -> Given;
-	  _ -> [step_run(Config, Given, WS) || WS <- WhenSteps]
-	end,
-	bdd_utils:trace(Config, Name, N, RawSteps, Given, When),
-	% now, check the results
-	Result = [{step_run(Config, When, TS), TS} || TS <- ThenSteps],
-	% safe to cleanup with the finally steps (we don't care about the result of those)
-	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
-	% now, check the results of the then steps
-	R = case bdd_utils:assert_atoms(Result) of
-		true -> bdd_utils:untrace(Config, Name, N), io:format("PASSED!~n",[]), pass;
-		_ -> io:format("~n\t\t*** FAILURE REPORT ***~n"), print_fail(lists:reverse(Result))
-	end,
-	{Hash, R}.
-  
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
 	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files, [bdd_webrat, bdd_catchall])],
@@ -288,33 +297,37 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);
 		exit: {noproc, {gen_server, call, Details}} -> 
-		  io:format("exit Did not find step: ~p~n", [Feature]),
-      io:format("~nERROR: web server not responding.  Details: ~p~n",[Details]), 
+		  log(error, "exit Did not find step: ~p", [Feature]),
+      log(error, "web server not responding.  Details: ~p",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
     error: {badmatch, {error, no_scheme}} ->
-		  io:format("~nERROR: badmatch in code due to no_scheme.~n"), 
-      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
-      io:format("\tAttempted \"feature ~p, step ~p.\"~n",[Feature, Step]),
+		  log(error, "badmatch in code due to no_scheme.",[]), 
+      log(error, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
+      log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
 		  throw("BDD ERROR: unexpected match.");
 		X: Y -> 
-		  io:format("~nERROR: step run found ~p:~p~n", [X, Y]), 
-      io:format("Stacktrace: ~p~n", [erlang:get_stacktrace()]),
-      io:format("\tAttempted \"apply(~p, step, [[Config], [Input], ~p]).\"~n",[Feature, Step]),
+		  log(error, "step run found ~p:~p", [X, Y]), 
+      log(error, "Stacktrace: ~p", [erlang:get_stacktrace()]),
+      log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),
 		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	
-step_run(Config, _Input, {step_setup, _, Feature}, []) -> io:format("\tFeature ~p has no Setup defined (or it throws an error).~n", [Feature]), Config;
-step_run(Config, _Input, {step_teardown, _, Feature}, []) -> io:format("\tFeature ~p has no Teardown defined (or it throws an error).~n", [Feature]), Config;
+step_run(Config, _Input, {step_setup, _, Feature}, [])    
+                  -> log(debug, "Feature ~p has no Setup defined (or it throws an error).", [Feature]), Config;
+step_run(Config, _Input, {step_teardown, _, Feature}, []) 
+                  -> log(debug, "Feature ~p has no Teardown defined (or it throws an error).", [Feature]), Config;
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->
-	io:format("ERROR: Unable to resolve step ~p!~n", [Step]),
+	bdd_utils:log(error, "Unable to resolve step ~p!", [Step]),
 	throw("FAIL: no matching expression found for Step"), 
 	error.
 	
 % Split our steps into discrete types for sequential processing
 % Each step is given a line number to help w/ debug
+% most steps return step tuple
+% escape clauses ("unless") returns the escape tuple
 scenario_steps(Config, Steps, ScenarioID) ->
 	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
 	scenario_steps(Config, Steps, 1, [], [], [], [], unknown, ScenarioID).
@@ -327,12 +340,23 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	  {Type, SS} -> {Type, SS}
 	end,
 	case Step of
+	  {step_skip, S}    ->  bdd_utils:log(debug,"Skipping ~p due to ~p", [ScenarioID, S]), 
+                    	    skip;
+		{step_unless, S}  ->  Unless = [list_to_atom(A) || A <-S],
+                          Env = bdd_utils:config(Config, environment, undefined),
+                          % if unless list is included in env list then skip
+                    	    case lists:member(Env, Unless) of 
+                    	      true  -> log(debug,"Skipping ~p [~p in ~p]", [ScenarioID, Env, Unless]), 
+                    	               skip;
+                    	      _     -> log(debug,"bdd:test_scenario: running ~p [~p not in ~p]", [ScenarioID, Env, Unless]),
+                                     scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID)
+                    	    end;
 		{step_given, S}   -> scenario_steps(Config, T, N+1, [{step_given, {ScenarioID, N}, S} | Given], When, Then, Finally, step_given, ScenarioID);
 		{step_when, S}    -> scenario_steps(Config, T, N+1, Given, [{step_when, {ScenarioID, N}, S} | When], Then, Finally, step_when, ScenarioID);
 		{step_then, S}    -> scenario_steps(Config, T, N+1, Given, When, [{step_then, {ScenarioID, N}, S} | Then], Finally, step_then, ScenarioID);
 		{step_finally, S} -> scenario_steps(Config, T, N+1, Given, When, Then, [{step_finally, {ScenarioID, N}, S} | Finally], step_finally, ScenarioID);
 		{empty, _}        -> scenario_steps(Config, T, N,   Given, When, Then, Finally, empty, ScenarioID);
-		{unknown, Myst}   -> bdd_utils:log(Config, warn, "bdd: No prefix match for ~p in Scenario #~p", [Myst, ScenarioID]), 
+		{unknown, Myst}   -> log(warn, "bdd: No prefix match for ~p in Scenario #~p", [Myst, ScenarioID]), 
 		                     scenario_steps(Config, T, N+1, Given, When, Then, Finally, unknown, ScenarioID)		
 	end;
 scenario_steps(_Config, [], N, Given, When, Then, Finally, _, _ScenarioID ) ->
@@ -371,21 +395,15 @@ is_clean(Config, StartState) ->
   end.
 
 % figure out what type of step we are doing (GIVEN, WHEN, THEN, etc), return value
-step_type([$G, $i, $v, $e, $n, 32 | Given]) ->
-	{ step_given, Given };
-step_type([$W, $h, $e, $n, 32 | When] ) ->
-	{ step_when, When };
-step_type([$T, $h, $e, $n, 32 | Then ]) -> 
-	{ step_then, Then };
-step_type([$F, $i, $n, $a, $l, $l, $y, 32 | Finally ]) -> 
-	{ step_finally, Finally };
-step_type([$A, $n, $d, 32 | Next ]) -> 
-	{ step_and, Next };
-step_type([]) ->
-	{ empty, []};
-step_type(Step) ->
-	{ unknown, Step }.
-
+step_type([$S, $k, $i, $p, 32 | Skip])            ->	{ step_skip, Skip};
+step_type([$U, $n, $l, $e, $s, $s, 32 | Unless])  ->	{ step_unless, Unless};
+step_type([$G, $i, $v, $e, $n, 32 | Given])       ->	{ step_given, Given };
+step_type([$W, $h, $e, $n, 32 | When] )           ->	{ step_when, When };
+step_type([$T, $h, $e, $n, 32 | Then ])           -> 	{ step_then, Then };
+step_type([$F, $i, $n, $a, $l, $l, $y, 32 | F ])  ->  { step_finally, F };
+step_type([$A, $n, $d, 32 | Next ])               -> 	{ step_and, Next };
+step_type([])                                     ->	{ empty, []};
+step_type(Step)                                   ->	{ unknown, Step }.
 
 %utilities to create step information from code
 steps_output(RE, Step) ->

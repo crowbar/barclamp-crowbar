@@ -32,8 +32,20 @@ BDD selects the `default.config` file automatically.  You can choose which confi
   <tr>
     <td>log</td>
     <td>no</td>
-    <td>[puts, warn]</td>
+    <td>[true, puts, info, warn, error]</td>
     <td>used by bdd_utils:log printouts.  Create list with none, some or all of the following: [puts, trace, debug, info, warn]</td>
+  </tr>
+  <tr>
+    <td>titles</td>
+    <td>no</td>
+    <td>[pass, fail, skip, header, result, feature, step, step_pass, step_fail]</td>
+    <td>used by bdd_utils:log printouts.</td>
+  </tr>
+  <tr>
+    <td>environment</td>
+    <td>no</td>
+    <td>undefined</td>
+    <td>used by Unless step prefix to skip tests</td>
   </tr>
 </table>
 

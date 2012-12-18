@@ -32,7 +32,9 @@ class Node < ActiveRecord::Base
   validates_length_of :alias, :maximum => 100
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
-  has_and_belongs_to_many :attribs, :join_table => "node_attributes", :foreign_key => "node_id", :class_name=>'Attribute'
+
+  has_many :attibs, :through => :node_attibutes, :source => :attribute_it
+  has_many :values, :class_name => "node_attributes", :foreign_key => "node_id"
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
@@ -329,45 +331,17 @@ class Node < ActiveRecord::Base
     end
   end  
 
+  # retrieves the attribute from nodeattribute
+  # NOTE: for safety, will create the association if it is missing
   def cmdb_get(attribute)
-    # TODO: substitute real cmdb calls to get all this data. Refer to nodes/_show.html.haml for complete list
-    nil
-=begin
-    begin
-      case attribute
-      when "alias"
-        cmdb_hash.alias
-      when "switch_name"
-        cmdb_hash.switch_name 
-      when "switch_unit"
-        cmdb_hash.switch_unit 
-      when "switch_port"
-        cmdb_hash.switch_port
-      when "asset_tag"
-        cmdb_hash.asset_tag
-      when "ip"
-        cmdb_hash.ip
-      when "cpu"
-        cmdb_hash.cpu
-      when "memory"
-        cmdb_hash.memory
-      when "number_of_drives"
-        cmdb_hash.memory
-      when "disks"
-        cmdb_hash["crowbar"]["disks"]
-      else 
-        "CMDB #{attribute}"
-      end
-    rescue
-      "CMDB #{attribute}"
-    end
-=end
+    a = Attribute.find_or_create_by_name(:name=>attribute, :description=>I18n.t('mode.attributes.node.default_create_description'))
+    return NodeAttribute.find_or_create_by_node_id_and_attribute_id(:node_id=>id, :attribute_id=>a.id)
   end
   
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "cmdb_"
-      return cmdb_get method[5..100]
+      return cmdb_get(method[5..100]).value
     else
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
       throw "ERROR #{method} not defined for node #{name}"

@@ -169,6 +169,7 @@ en:
       unknown_delete_fail: Unknown delete failure
     attributes:
       node:
+        default_create_description: System Created Attribute
         name: Full Name
         mac: MAC Address
         allocated: Allocated

@@ -18,6 +18,75 @@ require 'json'
 class NodeAttributeModelTest < ActiveSupport::TestCase
 
   # tests the relationship between nodes and attributes
+  def setup
+    # setup node w/ attribute
+    @node = Node.create! :name=>"foo.example.com"
+    @attrib = Attribute.create! :name=>"bar"
+    @node.attribs << @attrib
+    
+    # to assign attribute, we need a CMDB event
+    @cmdb = Cmdb.create! :name=>"unit", :type=>"CmdbTest"
+    @run = @CmdbRun.create! :name=>"unittest1"
+  end
+  
+  test "Node Attribute must have node" do
+    NodeAttribute.create! :node_id=>nil, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    assert_fail
+  end
+  
+  test "Node Attributes must have attrib" do
+    NodeAttribute.create! :node_id=>@node.id, :attribute_id=>nil, :cmdb_run_id=>nil
+    assert_fail
+  end
+  
+  test "Node Attribute can have no run" do
+    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    assert_not_nil v
+  end
+  
+  test "Node Attribute pending values state correct" do
+    assert_fail
+  end
+  
+  test "Node Attribute stores actual values" do
+    value = "foo"
+    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    assert_not_nil v
+    v.value = value
+    assert_equal value, v.value
+    v.save!
+    n = Node.find @node.id
+    assert_not_nil n
+    a = Node.attribs[1]
+    assert_not_nil a
+    assert_equal value, a.value
+    assert_equal Marshal::dump(value), a.value_serialized
+    assert_equal :ready, a.state
+  end
+  
+
+  test "Node Attribute preserves type of actual Value" do
+    value = "foo"
+    type = type_of(value)
+    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    v.actual = value
+    assert_equal value, v.actual
+    assert_equal type, type_of(v.actual)
+    value = 123
+    type = type_of(value)
+    v.actual = value
+    assert_equal value, v.actual
+    assert_equal type, type_of(v.actual)
+  end
+  
+  test "Node.attribute works" do
+    value = "foo"
+    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    v.actual = value
+    v.save!
+    assert_equal value, @node.bar
+    assert_equal value, @node.cmdb_get('bar')
+  end
   
   test "Node can have attributes" do
     attrib = Attribute.find_or_create_by_name :name=>"foo"

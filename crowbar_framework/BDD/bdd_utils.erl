@@ -26,7 +26,7 @@
 -define(SUBSTITUTE_TOKEN, 3).
 -define(LOG_LEVELS, [true, puts, dump, trace, debug, info, warn, error]).
 -define(LOG_DEFAULT, [true, puts, info, warn, error]).
--define(LOG_TITLES, [pass, fail, skip, header, result, feature, scenario, step, step_pass, step_fail]).
+-define(LOG_TITLES, [pass, fail, skip, header, result, feature, step, step_pass, step_fail]).
 
 assert(Bools) ->
 	assert(Bools, true).

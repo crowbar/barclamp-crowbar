@@ -73,5 +73,36 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"nospacesatall.end.edu ") }
   end
 
+  test "Get Attribute for existing attribute gets value" do
+    name = "foo"
+    value = "bar"
+    description = "unit test"
+    n = Node.create :name=>"oldattribute.example.com"
+    a = Attribute.create :name=>name, :description=>description
+    na = NodeAttribute.create :node_id=>n.id, :attribute_id=>.a.id
+    na.actual = value
+    v = n.cmdb_get(name)
+    assert_equal name, v.attribute.name
+    assert_equal description, v.attribute.description
+    assert_equal value, v.value
+    assert_equal nil, v.pending
+    assert_equal :ready, v.state
+  end
+
+
+  test "Get Attribute for new attribute creates it" do
+    name = "foo"
+    n = Node.create :name=>"attribute.example.com"
+    a = n.cmdb_get(name)
+    assert_equal name, a.name
+    assert_equal I18n.t('mode.attributes.node.default_create_description'), a.description
+    assert_equal value, a.description
+    attrib = Attribute.find_by_name name
+    assert_equal name, attrib.name
+    assert_equal I18n.t('mode.attributes.node.default_create_description'), attrib.description
+    assert_equal nil, a.value
+    assert_equal :pending, a.state
+  end
+
 end
 

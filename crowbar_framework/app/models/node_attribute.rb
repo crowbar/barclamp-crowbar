@@ -13,14 +13,45 @@
 # limitations under the License.
 #
 
-#############
-# Node_role is an association class between a role in a proposal configuration and the
-# node that is assigned that role. This supports a many2many association between
-# roles and nodes, with some extra info.
-
 class NodeAttribute < ActiveRecord::Base
-  attr_accessible :name, :config, :order, :status
+  attr_accessible :actual_serialized, :proposed_serialized
 
-  has_and_belongs_to_many        :cmdb_attributes
-  has_and_belongs_to_many        :nodes
+  belongs_to  :attribute, :class_name=>"CmdbAttribute"
+  belongs_to  :node
+  belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
+
+  # Returns state of value (:ready or :pending)
+  def state
+    if proposed_serialized.nil?
+      return :ready
+    if actual_serialized.nil?
+      return :pending
+    if actual_serialized == proposed_serialized
+      return :ready
+    else
+      return :pending
+    end
+  end   
+  
+  # for now, none of the proposed values are visible
+  def value
+    return self.actual
+  end
+  
+  def actual=(value)
+    self.actual_serialized = Marshal::dump(value)
+  end
+  
+  def actual
+    Marshal::load(self.actual_serialized)
+  end
+  
+  def proposed=(value)
+    self.proposed_serialized = Marshal::dump(value)
+  end
+  
+  def proposed
+    Marshal::load(self.proposed_serialized)
+  end
+ 
 end

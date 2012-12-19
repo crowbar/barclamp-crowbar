@@ -1,0 +1,38 @@
+{
+  "id": "bc-template-foo",
+  "description": " test data for barclamp related unit tests",
+  "attributes": {
+    "foo": {
+      "devices": [],
+      "clustername" : "foo"
+    }
+  },
+  "deployment": {
+    "foo": {
+      "crowbar-revision": 0,
+      "element_states": {
+        "foo_mon_master": [ "readying", "ready", "applying" ],
+        "foo_mon": [ "readying", "ready", "applying" ],
+        "foo_store": [ "readying", "ready", "applying" ]
+      },
+      "elements": {},
+      "element_order": [
+        [ "foo_mon_master" ],
+        [ "foo_mon" , "foo_store" ]
+      ],
+      "element_run_list_order": {
+        "foo_mon_master": 80,
+        "foo_mon": 81,
+        "foo_store": 82
+      },
+      "config": {
+        "environment": "foo_base-config",
+        "mode": "full",
+        "transitions": true,
+        "transition_list": [
+          "discovering", "hardware-installing", "ready"
+        ]
+      }
+    }
+  }
+}

@@ -183,6 +183,7 @@ class ProposalObject < ChefObject
   end
 
   def save
+    return if DISABLE_CHEF
     ChefObject.chef_init
     @item["deployment"] = {} if @item["deployment"].nil?
     @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?

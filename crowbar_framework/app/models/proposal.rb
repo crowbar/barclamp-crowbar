@@ -97,4 +97,18 @@ class Proposal < ActiveRecord::Base
     new_prop
   end
 
+  #####
+  # provide a canonical method of representing a reference to a proposal configuration
+  def as_reference
+    { :barclamp => self.barclamp.name, :insatnce => self.name }
+  end
+
+  ####
+  #  find a prposal configuration from its representation as a reference
+  #
+  def self.from_reference(ref)
+    ProposalConfig.find_by_name_and_barclamp_id(ref[:barclamp], ref[:insatnce])
+  end
+
+
 end

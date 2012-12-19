@@ -21,8 +21,8 @@ class CreateCmdbRuns < ActiveRecord::Migration
       t.string :result
       t.string :status
 
-      t.belongs_to :cmdb_event
-      # t.references :node  # add node references cmdb_run through cmdb_event
+      t.references :node_role  
+      t.references :cmdb_event      
       #t.references :cmdb   # add node references cmdb through proposal_config
 
       t.timestamps

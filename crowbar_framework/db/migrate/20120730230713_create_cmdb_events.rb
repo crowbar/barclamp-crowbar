@@ -18,8 +18,10 @@ class CreateCmdbEvents < ActiveRecord::Migration
       t.string :description,  :null=>true, :default=>true
       t.string :type,         :null=>false
       t.string :order,        :default=>10000
+      t.integer :status
 
       t.references :cmdb
+      t.references :proposal_config
       t.references :cmdb_map
 
       t.timestamps

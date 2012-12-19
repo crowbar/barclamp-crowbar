@@ -17,29 +17,28 @@ require 'digest/md5'
 
 class User < ActiveRecord::Base
   # Include default devise modules. Others available are:
-  # :token_authenticatable, :confirmable,
-  # :lockable, :timeoutable and :omniauthable
-  # JimC:  :recoverable, :rememberable, :trackable, :validatable,  :database_authenticatable, :registerable,
+  # :authenticatable, :confirmable, :database_authenticatable, :lockable, :omniauthable, 
+  # :recoverable, :registerable, :rememberable, :timeoutable, :token_authenticatable, 
+  # :trackable, :validatable
   devise :database_authenticatable, :registerable,
-         :rememberable, :trackable, :validatable
-
-  # Setup accessible (or protected) attributes for your model
-  # attr_accessible :email, :password, :password_confirmation, :remember_me
-  # Include default devise modules. Others available are:
-  # :token_authenticatable, :confirmable,
-  # :lockable, :timeoutable and :omniauthable
-  # JimC: confirmable recoverable
-  devise :database_authenticatable, :registerable,
-         :rememberable, :trackable,
+         :rememberable, :trackable, :validatable, :recoverable,
          :lockable, :timeoutable, :authentication_keys => [:username]
+         
+  attr_accessor :admin_reset_password
 
   # Setup accessible (or protected) attributes for your model
   attr_accessible :username, :is_admin, :email, :password, :password_confirmation, :remember_me, :encrypted_password
-  # attr_accessible :title, :body
 
-  validates :username, :uniqueness => {:case_sensitive => false}
 
+  validates :username, :uniqueness => {:case_sensitive => false}, :presence => true
   DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
+  
+  
+  def self.find_by_id_or_username(id_or_username)
+   ret = find :first, :conditions => ['id = ? or username = ?', id_or_username, id_or_username]
+   raise ActiveRecord::RecordNotFound.new(I18n.t('api.by_id_or_username_record_not_found', :id_username=>id_or_username)) unless !ret.nil?
+   ret
+  end
 
   def digest_password(new_pass)
     self.encrypted_password = digester(new_pass)
@@ -47,6 +46,14 @@ class User < ActiveRecord::Base
   
   def email_required?
     false
+  end
+  
+  def password_required?
+     (!persisted? || !password.nil? || !password_confirmation.nil?) || admin_reset_password?
+  end
+
+  def admin_reset_password?
+    @admin_reset_password == true
   end
  
   def valid_password?(password)

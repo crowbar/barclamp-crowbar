@@ -173,6 +173,11 @@ def put_json(path, data)
   put_json2("crowbar/#{@barclamp}/1.0#{path}", data)
 end
 
+def put_json2(path)
+   data = {}
+   put_json2(path, data)
+end
+
 def put_json2(path, data)
   uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Put,uri,data)

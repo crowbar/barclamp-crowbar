@@ -105,9 +105,26 @@ Crowbar::Application.routes.draw do
       end
     end
   end
+  
+  
 
   # Digest Auth 
-  get 'digest' => 'digest#index'  
+  get 'digest' => 'digest#index' 
+  
+     
+  put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
+  get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
+  put 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
+  put 'lock_user/:id', :controller => 'users', :action=>'lock_user', :constraints => { :id => /.*/ }, :as => :lock_user
+  match "manage_users", :controller => 'users', :action => 'index'
+  match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
+                               
+  devise_for :users, :path_prefix => 'my'
+  
+  get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
+  resources :users, :except => :new 
+     
+  devise_scope :user do
   
   # API routes (must be json and must prefix 2.0)
   scope :defaults => {:format=> 'json'} do
@@ -143,6 +160,19 @@ Crowbar::Application.routes.draw do
             match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
             resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
             resources :group, :controller=>'groups'     # MOVE TO GENERIC!
+            
+           
+            # these all need to be updated.
+            get "users", :controller => "users", :action => "users"
+            get "users/:id", :controller => "users", :action => "user_show"
+            post "users", :controller => "users", :action => "user_create"
+            put "users/:id", :controller => "users", :action => "user_update"
+            delete "users/:id", :controller => "users", :action => "user_delete"
+            put "user_make_admin/:id", :controller => "users", :action => "user_make_admin"
+            put "user_remove_admin/:id", :controller => "users", :action => "user_remove_admin"
+            put "user_lock/:id", :controller => "users", :action => "user_lock"
+            put "user_unlock/:id", :controller => "users", :action => "user_unlock"
+            put "user_reset_password(/:id)", :controller => "users", :action => "user_reset_password"
           end
         end
         
@@ -155,13 +185,10 @@ Crowbar::Application.routes.draw do
     end
   end
  
-  devise_for :users
-  devise_scope :user do
-    match "users/sign_in", :controller => 'users', :action =>'sign_in', :as=> :sign_in
-    match "users/sign_out", :controller => 'users', :action =>'sign_out'
-    match "users/sign_up", :controller => 'users', :action =>'sign_up'
-    match "manage_users", :controller => 'users', :action => 'index'
-  end
+
+    
+  end 
+
  
   scope 'proposal' do
     version = "2.0"

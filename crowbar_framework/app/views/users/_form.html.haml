@@ -5,12 +5,12 @@
    %li=er
  %table.center
   %tr
-   %td= ff.label :username
-   %td= ff.label :email
+   %td= ff.label :username, t("user.username")
+   %td= ff.label :email, t("user.email")
    -if action == :create
-    %td= ff.label :password
-    %td= ff.label :password_confirmation
-   %td= ff.label :is_admin
+    %td= ff.label :password, t("user.password")
+    %td= ff.label :password_confirmation, t("user.password_confirmation")
+   %td.nowrap= ff.label :admin, t("user.is_admin")
    %td &nbsp;
   %tr
    %td= ff.text_field :username, :size => 20

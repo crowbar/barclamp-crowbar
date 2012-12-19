@@ -1,21 +1,21 @@
 %h1= t('user.title')
-%table.data.box.no-hover
- %thead
-  %tr
-   %th{:style => "whitespace: nowrap;" }
-    %a.toggle.on.with_label{:href => "javascript:void(0)", :id => "form_toggle", :rel => "form_div"}
-     - if @user.admin_reset_password == true
-      = t("user.reset_password")
-     - elsif @user.id.nil?
-      = t("user.add_user")
-     - else
-      = t("user.update_user")
-   %th
-  %tbody
-   %tr.no-hover
-    %td
-     #form_div
-      - if is_edit_mode?
+- if is_edit_mode?
+ %table.data.box.no-hover
+  %thead
+   %tr
+    %th{:style => "whitespace: nowrap;" }
+     %a.toggle.on.with_label{:href => "javascript:void(0)", :id => "form_toggle", :rel => "form_div"}
+      - if @user.admin_reset_password == true
+       = t("user.reset_password")
+      - elsif @user.id.nil?
+       = t("user.add_user")
+      - else
+       = t("user.update_user")
+    %th
+   %tbody
+    %tr.no-hover
+     %td
+      #form_div
        - if @user.admin_reset_password == true
         = render :partial => 'form_reset_password', :locals => {:user => @user}
        - else 
@@ -35,8 +35,9 @@
     %th= t('user.failed_attempts')
     %th= t('user.last_sign_in_at')
     %th= t('user.last_sign_in_ip')
-    -if is_edit_mode?
+    -if current_user.is_admin?
      %th= t('user.is_admin')
+    -if is_edit_mode?
      %th= t('user.select')
      %th= t('user.actions')
    %tbody
@@ -52,8 +53,9 @@
        %td= user.failed_attempts
        %td= user.last_sign_in_at
        %td= user.last_sign_in_ip
-       -if is_edit_mode?
+       -if current_user.is_admin?
         %td= check_box_tag "user:#{user.username}:is_admin",  user.is_admin, checked=user.is_admin?, :disabled=>true
+       -if is_edit_mode?
         %td= check_box_tag "users_to_delete[]", user.id 
         %td{:nowrap=>"nowrap"} 
          = link_to t("user.reset_password"), edit_password_path(user), :class=>'link'

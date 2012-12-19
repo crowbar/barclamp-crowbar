@@ -18,7 +18,9 @@ class CreateNodeAttributes < ActiveRecord::Migration
   # then it should be recreated on startup from the history
   
   def change
-    create_table :node_attributes do |t|
+    create_table(:node_attributes, :primary_key=>:name, :id=>false) do |t|
+      t.integer     :generated_id,   :null=>true # manually generated!  not the auto ID propoerty
+      t.string      :name,           :null=>true
       t.belongs_to  :node,           :null=>false
       t.belongs_to  :attribute,      :null=>false
       t.belongs_to  :cmdb_run,       :null=>true
@@ -26,8 +28,11 @@ class CreateNodeAttributes < ActiveRecord::Migration
       t.string      :value_proposed, :default=>"\004\b0"
       t.timestamps      
     end
-    add_index(:node_attributes,    [:node_id, :attribute_id],     :unique => false)   
-    add_index(:node_cmdb_run,      [:node_id, :cmdb_run_id],      :unique => false)   
-    add_index(:attribute_cmdb_run, [:attribute_id, :cmdb_run_id], :unique => false)   
+    # this is a critical table, it needs a lot of indexes!
+    add_index(:node_attributes,    [:generated_id],               :unique => true)   
+    add_index(:node_attributes,    [:name],                       :unique => true)   
+    add_index(:node_attributes,    [:node_id, :attribute_id],     :unique => true)   
+    add_index(:node_attributes,    [:node_id, :cmdb_run_id],      :unique => false)   
+    add_index(:node_attributes,    [:attribute_id, :cmdb_run_id], :unique => false)   
   end
 end

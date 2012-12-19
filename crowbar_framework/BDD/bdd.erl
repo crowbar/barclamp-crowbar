@@ -17,7 +17,7 @@
 -export([debug/2, debug/3, debug/4, failed/0, failed/1, getconfig/1, start/1, stop/1, steps/0, steps/1]).  
 -import(bdd_utils).
 -import(simple_auth).
--export([step_run/3, step_run/4, inspect/1, is_clean/1, log/3]).
+-export([step_run/3, step_run/4, inspect/1, is_clean/1, log/3, log/1]).
 
 test()                   -> test("default").
 test(ConfigName)         -> 
@@ -207,6 +207,7 @@ setup_scenario(Config, Scenario, ID) ->
   {TestID, Result}.
 
 % pass through to bdd_utils
+log(Level) -> bdd_utils:log_level(Level).
 log(Level, Message, Values) -> bdd_utils:log(Level, Message, Values).
 
 print_report({feature, _, _, Result}) ->  print_report(Result);

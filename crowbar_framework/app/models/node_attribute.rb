@@ -14,25 +14,39 @@
 #
 
 class NodeAttribute < ActiveRecord::Base
-  attr_accessible :actual_serialized, :proposed_serialized
 
-  belongs_to  :attribute, :class_name=>"CmdbAttribute"
+  NODE_ID_SPACE = 10000000
+  
+  before_create :create_identity
+
+  attr_accessible :node_id, :attribute_id
+  attr_readonly   :name, :actual_serialized, :proposed_serialized
+
+  belongs_to  :attribute
   belongs_to  :node
-  belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
+  #belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
+
+  def self.find(id)
+    NodeAttribute.find_by_generated_id id
+  end
 
   # Returns state of value (:ready or :pending)
   def state
     if proposed_serialized.nil?
       return :ready
-    if actual_serialized.nil?
+    elsif actual_serialized.nil?
       return :pending
-    if actual_serialized == proposed_serialized
+    elsif actual_serialized == proposed_serialized
       return :ready
     else
       return :pending
     end
   end   
   
+  def id
+    return self.generated_id
+  end
+    
   # for now, none of the proposed values are visible
   def value
     return self.actual
@@ -53,5 +67,15 @@ class NodeAttribute < ActiveRecord::Base
   def proposed
     Marshal::load(self.proposed_serialized)
   end
- 
+
+  private
+  
+  # make sure some safe values are set for the node
+  def create_identity
+    n = Node.find self.node_id
+    a = Crowbar::Attribute.find self.attribute_id
+    self.generated_id = n.id*NODE_ID_SPACE+a.id
+    self.name = "#{a.name}@#{n.name}"
+  end
+  
 end

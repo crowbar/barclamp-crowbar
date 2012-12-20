@@ -409,8 +409,6 @@ en:
       nodes: Nodes
       none: No Nodes Deployed
 
-
-
   # node.raid_set
   raid:
     JBODOnly: JBOD
@@ -468,8 +466,20 @@ en:
   # Users
   user:
     title: Manage User Accounts
+    delete_success: Selected users successfully deleted.
+    none_selected: No users were selected for deletion.
+    add_user: Add new user
+    update_user: Update user
+    create_success: User was created successfully.
+    update_success: User was updated successfully.
+    reset_password_success: User password was set successfully.
+    delete_users: Delete selected users?
+    locked: User account locked.
+    unlocked: User account unlocked.
+    set_password: Set Password
     options: "Options"
     username: Username
+    email: Email
     sign_in: Sign In
     sign_out: Sign Out
     sign_up: "Sign up"
@@ -481,7 +491,7 @@ en:
     failed_attempts: Failed Signins
     last_sign_in_at: Last Signed In
     last_sign_in_ip: IP of Last Sign In
-    is_admin: Is Admin
+    is_admin: Admin?
     select: Select
     digest_success: User Authenticated using Digest Authentication
     signed_in_as: "You are signed in as %{user}"
@@ -489,6 +499,14 @@ en:
     license: License Details
     license_accept: "By signing in, you are accepting the relevant licenses"
     add: Add User
+    update: Update User
+    cancel: Cancel
     delete: Delete Selected
     reset_password: Reset Password
     unlock: Unlock
+    lock: Lock
+    actions: Actions
+  devise:
+    signup: Sign up
+    failure:
+      invalid: 'Invalid username or password.'

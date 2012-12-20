@@ -45,6 +45,14 @@ table.box
       +rounded_corners(0,0,0,10px)
     td:first-child:last-child
       +rounded_corners(0,0,10px,10px)
+  tr.no-hover
+    &:hover, &:active
+      background: transparent !important
+      
+table.box.no-hover
+  tr
+    &:hover, &:active
+      background: transparent !important
 
 table
   tr
@@ -112,3 +120,10 @@ table.top
 #node_tbl_filter
   float: right
   padding-right: 10px
+  
+table.center
+  margin-left: auto
+  margin-right: auto
+  tbody tr td
+    padding-right: 10px
+

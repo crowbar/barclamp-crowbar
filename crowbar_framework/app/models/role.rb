@@ -15,10 +15,14 @@
 
 class Role < ActiveRecord::Base
 
-  attr_accessible :name, :states
+  # priority: the order this role gets applied in, system wide
+  # states: node states that this role will be included in the excution list for the node
+  attr_accessible :name, :states, :priority
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to :barclamp
+  # an element_order determines the execution group(s) of the role, relative to other roles in 
+  # the barcalmp.
   has_many :role_element_orders
 
   def to_s

@@ -14,6 +14,11 @@
 #
 class CmdbEvent < ActiveRecord::Base
   attr_accessible :name, :description, :order, :type
+  attr_accessible :status
+
+  belongs_to :cmdb  # the CMDB instance this event is being handled by
+  belongs_to :proposal_config  # the configuration this event will apply
+  has_many   :cmdb_run         # the runs that this event needs to execute
 
   # 
   # Validates that Event Names are useful placeholders.  They are 
@@ -23,9 +28,15 @@ class CmdbEvent < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  belongs_to :cmdb
   #TEMPORARY REMOVAL... belongs_to :cmdb_map 
   #has_many :cmdb_events
+
+  EVT_PENDING = 1
+  EVT_PROCESSING = 2
+  EVT_PARTIAL_COMPLETE =3
+  EVT_PARTIAL_FAIL = 4
+  EVT_COMPLETE = 5
+
 
   def init
     puts "CmdbEvent init."

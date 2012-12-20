@@ -26,21 +26,55 @@ class Cmdb < ActiveRecord::Base
   has_many :maps, :class_name => "cmdb_maps", :foreign_key => "cmdb_id"
   #TEMPORARY REMOVAL... has_many :cmdb_events, :inverse_of => Cmdb
 
-  def init
-    puts "RAH REMOVE: super class initialize"
+  #####
+  #  Find the right instance to use for applying the given configuration.
+  # At this point, there's one - return it.
+  # Some future possible directions:
+  #   - Choose cmdb type by the barclamp being applied - allows different barclamps
+  #     to be implemented using different technologies
+  #   - Choose a cmdb instance, by node location. Could allow mixing cmdb domains
+  #     where different instances (probably of the same type) manage different 
+  #     domains of nodes
+  def self.find_cmdb_for_config(config)
+    Cmdb.find_by_name('admin_chef')
+  end
+
+  def self.prepare_proposal(new_config)
+    # collect all the depenent configurations
+
+    cmdb = Cmdb.find_cmdb_for_config(new_config)    
+    evt = cmdb.create_event(new_config)
+
+    # create a CmdbEvent for each unique cmdb execution that needs to be performed
+    # on each node. Events are tied in dependency list (to allow subsequent events)
+    # to be fired when their dependencies complete.
+    nrs = {}
+    new_config.node_roles.each { |nr| 
+      name = nr.role.name
+      nrs[name] =[] unless nrs[name]
+      nrs[name] << nr
+    }
+    logger.debug("Node roles, #{nrs.inspect}")
+    #node_roles = new_config.get_nodes_by_roles    # hash of role -> list of nodes     
+    ordered_roles = new_config.barclamp.get_roles_by_order # array of: arry of role.
+    order = 1
+    ordered_roles.each { |r_list|             
+      r_list.each { |r| 
+        logger.debug("handling #{r}, which has #{nrs[r.name].inspect} ")
+        nrs[r.name].each { |nr| 
+          # create events for nodes that are not currently in the right state,
+          # they won't be executed until the node does transition to the right place.
+          # next unless  r.states.include?("all") or n.states.include?(n.state)
+          cmdb.create_run_for(evt,nr,order);
+        } if nrs[r.name]  ### barclamp might have roles that have no nodes...
+      }
+      order +=1
+    }
+
+    evt
   end
   
-  # I'm totally not understanding the proposal configs/proposals
-  # right now, so I'm going to wing it.
-  def run(config_id)
-    puts "RAH REMOVE: super event class #{config_id}"
 
-    # just fake a bunch of stuff here
-    self.save!
-    e = CmdbEvent.new
-    e.cmdb_id = self.id
-    e
-  end
 
   def node(name)
     puts "RAH REMOVE: super class node #{name}"
@@ -62,4 +96,6 @@ class Cmdb < ActiveRecord::Base
    }
   end
   
+
+
 end

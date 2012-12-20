@@ -13,16 +13,25 @@
 # limitations under the License.
 #
 
+
+####
+# A run represents the execution of a CMDB tool on a node, to apply a role (or potentially a set of them)
+
 class CmdbRun < ActiveRecord::Base
   attr_accessible :name, :description, :type, :order, :result, :status, :cmdb_event_id
 
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  
+  belongs_to :cmdb_event  # the event triggering this run
+  belongs_to :node_role   # The node this run (will) execute on.
 
-  # RESTORE THESE (after building tests)
-  #belongs_to :cmdb_event
-  #belongs_to :node, :through => :cmdb_event
-  #belongs_to :cmdb, :through => :cmdb_event
+  # The status values
+  RUN_PENDING = 1
+  RUN_EXECUTING = 2
+  RUN_SUCCESS = 3
+  RUN_FAIL = 4
+
 
   def init
     puts "INIT CmdbRun"

@@ -44,7 +44,9 @@ gem "chefspec", :group => [:development, :test]
 gem "rcov", :group => [:development, :test]
 gem "rspec-rails", "~> 2.11.4", :group => [:development, :test]
 # These to require Ruby 1.9.3
-#gem "factory_girl_rails", ">= 3.3.0", :group => [:development, :test]
+gem "factory_girl", "<3.0" , :group => [:development, :test]
+gem "factory_girl_rails", "< 3.0" , :group => [:development, :test]
+
 #gem "foodcritic", :group => [:development, :test]
 gem "email_spec", ">= 1.2.1", :group => [:development, :test]
 gem "database_cleaner", ">= 0.7.2", :group => [:development, :test]

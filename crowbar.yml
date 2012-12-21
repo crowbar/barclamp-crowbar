@@ -227,9 +227,8 @@ gems:
     - bundler
     - bunny
     - cancan
-    - chef
+    - chef-(~>10.16.2)
     - chefspec
-    - daemons
     - database_cleaner
     - delayed_job_active_record
     - devise
@@ -238,31 +237,24 @@ gems:
     - haml
     - highline
     - i18n
-    - ipaddress
     - jquery-rails
     - json
     - kwalify
     - launchy
     - libxml-ruby
-    - mixlib-authentication
-    - mixlib-cli
-    - mixlib-config
-    - mixlib-log
-    - mixlib-shellout
-    - moneta
     - net-http-digest_auth
     - net-ssh
     - net-ssh-multi
-    - ohai
     - puma
     - railroad
-    - rails-3.2.9
+    - rails-(~>3.2.9)
     - rails-erd
     - rake
     - rcov
     - rdoc
     - rest-client
-    - rspec-rails-2.11.4
+    # Pinned to not interfere with chefspec.
+    - rspec-rails-(=2.11.4)
     - sass
     - sass-rails
     - sendfile
@@ -270,10 +262,6 @@ gems:
     - sqlite3
     - state_machine
     - syslogger
-    - systemu
-    - uuidtools
     - xml-simple
-    - yajl-ruby
-    - factory_girl-2.6.4
-    - factory_girl_rails-1.7.0
+    - factory_girl_rails-(~>1.7.0)
     - foodcritic

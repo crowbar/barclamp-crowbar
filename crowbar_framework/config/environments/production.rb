@@ -41,6 +41,7 @@ require 'syslogger'
 config.logger = Syslogger.new("crowbar_app", Syslog::LOG_PID, Syslog::LOG_LOCAL0)
 config.logger.level = Logger::DEBUG
 config.log_level = :debug
+DISABLE_CHEF=false
 
 # Use a different cache store in production
 # config.cache_store = :mem_cache_store

@@ -12,43 +12,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CmdbRun < ActiveRecord::Base
-  attr_accessible :name, :description, :order, :type
 
-  # 
-  # Validates that Run Names are useful placeholders.  They are 
-  # mainly referenced by their ID. 
-  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
-  #
+
+####
+# A run represents the execution of a CMDB tool on a node, to apply a role (or potentially a set of them)
+
+class CmdbRun < ActiveRecord::Base
+  attr_accessible :name, :description, :type, :order, :result, :status, :cmdb_event_id
+
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  belongs_to :cmdb
-  #TEMPORARY REMOVAL... belongs_to :cmdb_map 
-  #has_many :cmdb_events
+  belongs_to :cmdb_event  # the event triggering this run
+  belongs_to :node_role   # The node this run (will) execute on.
+
+  # The status values
+  RUN_PENDING = 1
+  RUN_EXECUTING = 2
+  RUN_SUCCESS = 3
+  RUN_FAIL = 4
+
 
   def init
-    puts "cmdb run init."
+    puts "INIT CmdbRun"
   end
 
-  def event
-    puts "creating an event"
+  # map attributes from cmdb node into array of CmdbAttributes
+  def attrs_to_cmdb()
+    puts "JWM placeholder"
+  end
 
-    self.save!
-    e = CmdbEvent.new
-    r.cmdb_event_id = self.id
-    r
+  def attrs_from_cmdb()
+    #a = CmdbAttribute.new(:name => cmdb_attr, :value => node_attr_value)
+    #a.save!
+    puts "JWM placeholder"
+  end
+  
+  def run_cmdb_on_node()
+    puts "JWM placeholder"
+  end
+    
+  # make sure I can get the map I need to put attrs in the DB
+  def map(map_id)
+    begin
+      CmdbMap.find(map_id)
+    rescue Exception => e
+      Rails.logger.warn("Could not find CmdbMap.id #{map_id}: #{e.inspect}")
+      return nil
+    end
   end
 
   def as_json options={}
     {
-      :name=> name,
-      :description=> description,
-      :order=> order,
-      :type=> type,
-      :id=> id,
-      :created_at=> created_at,
-      :updated_at=> updated_at
-    }
+     :name=> name,
+     :id=> id,
+     :description=> description,
+     :order=> order,
+     :result=> result,
+     :status=> status,
+     :cmdb_event_id=> cmdb_event_id,
+     :type=> type,
+     :created_at=> created_at,
+     :updated_at=> updated_at
+   }
   end
+
 end

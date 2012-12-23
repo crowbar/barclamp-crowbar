@@ -12,60 +12,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 class CmdbEvent < ActiveRecord::Base
-  attr_accessible :name, :description, :type, :order, :result, :status, :cmdb_run_id
+  attr_accessible :name, :description, :order, :type
+  attr_accessible :status
 
+  belongs_to :cmdb  # the CMDB instance this event is being handled by
+  belongs_to :proposal_config  # the configuration this event will apply
+  has_many   :cmdb_run         # the runs that this event needs to execute
+
+  # 
+  # Validates that Event Names are useful placeholders.  They are 
+  # mainly referenced by their ID. 
+  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
+  #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  
+  #TEMPORARY REMOVAL... belongs_to :cmdb_map 
+  #has_many :cmdb_events
 
-  # RESTORE THESE (after building tests)
-  #belongs_to :cmdb_run
-  #belongs_to :node, :through => :cmdb_run
-  #belongs_to :cmdb, :through => :cmdb_run
+  EVT_PENDING = 1
+  EVT_PROCESSING = 2
+  EVT_PARTIAL_COMPLETE =3
+  EVT_PARTIAL_FAIL = 4
+  EVT_COMPLETE = 5
+
 
   def init
-    puts "INIT CmdbEvent"
+    puts "CmdbEvent init."
   end
 
-  # map attributes from cmdb node into array of CmdbAttributes
-  def attrs_to_cmdb()
-    puts "JWM placeholder"
-  end
+  def run
+    puts "creating a CmdbRun"
 
-  def attrs_from_cmdb()
-    #a = CmdbAttribute.new(:name => cmdb_attr, :value => node_attr_value)
-    #a.save!
-    puts "JWM placeholder"
-  end
-  
-  def run_cmdb_on_node()
-    puts "JWM placeholder"
-  end
-    
-  # make sure I can get the map I need to put attrs in the DB
-  def map(map_id)
-    begin
-      CmdbMap.find(map_id)
-    rescue Exception => e
-      Rails.logger.warn("Could not find CmdbMap.id #{map_id}: #{e.inspect}")
-      return nil
-    end
+    self.save!
+    e = CmdbRun.new
+    r.cmdb_run_id = self.id
+    r
   end
 
   def as_json options={}
     {
-     :name=> name,
-     :id=> id,
-     :description=> description,
-     :order=> order,
-     :result=> result,
-     :status=> status,
-     :cmdb_run_id=> cmdb_run_id,
-     :type=> type,
-     :created_at=> created_at,
-     :updated_at=> updated_at
-   }
+      :name=> name,
+      :description=> description,
+      :order=> order,
+      :type=> type,
+      :id=> id,
+      :created_at=> created_at,
+      :updated_at=> updated_at
+    }
   end
-
 end

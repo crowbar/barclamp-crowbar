@@ -13,10 +13,11 @@
 # limitations under the License.
 #
 class CreateRoles < ActiveRecord::Migration
-  def change
+  def change  
     create_table :roles do |t|
       t.string :name
-      t.string :states
+      t.string :states     
+      t.integer :priority  
       t.belongs_to :barclamp
       t.timestamps
     end

@@ -31,7 +31,7 @@ EventMachine.run do
   EventMachine.add_periodic_timer(3.0) do
     puts "[request] Sending a request..."
     channel.default_exchange.publish("get.time",
-                                     :routing_key => "admin.dell.com.runner",
+                                     :routing_key => "#{%x{hostname}.strip}.runner",
                                      :message_id => Kernel.rand(10101010).to_s,
                                      :reply_to => replies_queue.name,
                                      :immediate => true)

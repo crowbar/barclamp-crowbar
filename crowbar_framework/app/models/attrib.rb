@@ -13,7 +13,14 @@
 # limitations under the License.
 #
 
-class Scaffolds::AttributesController < ApplicationController
-  active_scaffold :attribute do |conf|
-  end
-end 
+class Attrib < ActiveRecord::Base
+  
+  attr_accessible :name, :description, :order
+
+  validates_format_of     :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+
+  has_many :nodes, :through=>:node_attributes
+  
+end
+

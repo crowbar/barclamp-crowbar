@@ -1,4 +1,4 @@
-Feature: Attributes
+Feature: Attribs
   In order to collect data from systems
   The system operator, Oscar
   wants to be able to pick attributes to collect (or enable to write)

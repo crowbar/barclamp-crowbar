@@ -13,14 +13,14 @@
 % limitations under the License. 
 % 
 % 
--module(attribute).
+-module(attrib).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/attribute";
+    path -> "2.0/crowbar/2.0/attrib";
     name -> "bddattribute";
     atom -> attrib1;
     _ -> crowbar:g(Item)
@@ -42,7 +42,7 @@ json(Name, Description, Order) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, attribute).  % shared inspector works here, but may not always
+  crowbar_rest:inspector(Config, attrib).  % shared inspector works here, but may not always
 
 step(Config, _Global, {step_given, _N, ["there is an attribute",Attribute]}) -> 
   JSON = json(Attribute, g(description), 200),

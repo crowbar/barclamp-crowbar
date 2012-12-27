@@ -13,21 +13,21 @@
 # limitations under the License.
 #
 
-class NodeAttribute < ActiveRecord::Base
+class NodeAttrib < ActiveRecord::Base
 
   NODE_ID_SPACE = 10000000
   
   before_create :create_identity
 
-  attr_accessible :node_id, :attribute_id
+  attr_accessible :node_id, :attrib_id
   attr_readonly   :name, :actual_serialized, :proposed_serialized
 
-  belongs_to  :attribute
+  belongs_to  :attrib
   belongs_to  :node
   #belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
 
   def self.find(id)
-    NodeAttribute.find_by_generated_id id
+    NodeAttrib.find_by_generated_id id
   end
 
   # Returns state of value (:ready or :pending)
@@ -72,8 +72,9 @@ class NodeAttribute < ActiveRecord::Base
   
   # make sure some safe values are set for the node
   def create_identity
+    #puts "RAH REMOVE $$$ #{self.node_id} - #{self.attrib_id}"
     n = Node.find self.node_id
-    a = Crowbar::Attribute.find self.attribute_id
+    a = Attrib.find self.attrib_id
     self.generated_id = n.id*NODE_ID_SPACE+a.id
     self.name = "#{a.name}@#{n.name}"
   end

@@ -15,13 +15,13 @@
 require 'test_helper'
 require 'json'
 
-class NodeAttributeModelTest < ActiveSupport::TestCase
+class NodeAttribModelTest < ActiveSupport::TestCase
 
   # tests the relationship between nodes and attributes
   def setup
     # setup node w/ attribute
     @node = Node.create! :name=>"foo.example.com"
-    @attrib = Attribute.create! :name=>"bar"
+    @attrib = Attrib.create! :name=>"bar"
     @node.attribs << @attrib
     
     # to assign attribute, we need a CMDB event
@@ -29,28 +29,28 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     @run = @CmdbRun.create! :name=>"unittest1"
   end
   
-  test "Node Attribute must have node" do
-    NodeAttribute.create! :node_id=>nil, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+  test "Node Attrib must have node" do
+    NodeAttrib.create! :node_id=>nil, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
     assert_fail
   end
   
-  test "Node Attributes must have attrib" do
-    NodeAttribute.create! :node_id=>@node.id, :attribute_id=>nil, :cmdb_run_id=>nil
+  test "Node Attribs must have attrib" do
+    NodeAttrib.create! :node_id=>@node.id, :attribute_id=>nil, :cmdb_run_id=>nil
     assert_fail
   end
   
-  test "Node Attribute can have no run" do
-    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+  test "Node Attrib can have no run" do
+    v = NodeAttrib.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
     assert_not_nil v
   end
   
-  test "Node Attribute pending values state correct" do
+  test "Node Attrib pending values state correct" do
     assert_fail
   end
   
-  test "Node Attribute stores actual values" do
+  test "Node Attrib stores actual values" do
     value = "foo"
-    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    v = NodeAttrib.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
     assert_not_nil v
     v.value = value
     assert_equal value, v.value
@@ -65,10 +65,10 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
   end
   
 
-  test "Node Attribute preserves type of actual Value" do
+  test "Node Attrib preserves type of actual Value" do
     value = "foo"
     type = type_of(value)
-    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    v = NodeAttrib.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
     v.actual = value
     assert_equal value, v.actual
     assert_equal type, type_of(v.actual)
@@ -81,7 +81,7 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
   
   test "Node.attribute works" do
     value = "foo"
-    v = NodeAttribute.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
+    v = NodeAttrib.create! :node_id=>@node.id, :attribute_id=>@attrib.id, :cmdb_run_id=>nil
     v.actual = value
     v.save!
     assert_equal value, @node.bar
@@ -89,7 +89,7 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
   end
   
   test "Node can have attributes" do
-    attrib = Attribute.find_or_create_by_name :name=>"foo"
+    attrib = Attrib.find_or_create_by_name :name=>"foo"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar.test.com"
     assert_not_nil node
@@ -98,7 +98,7 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     node.attribs << attrib
     # retrieve from cache
     n = Node.find_by_name "bar.test.com"
-    a = Attribute.find_by_name "foo"
+    a = Attrib.find_by_name "foo"
     # node has attributes
     assert_equal nbefore+1, n.attribs.length
     assert n.attribs.include? a
@@ -107,8 +107,8 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     assert a.nodes.include? n
   end
   
-  test "Attribute can have nodes" do
-    attrib = Attribute.find_or_create_by_name :name=>"foo2"
+  test "Attrib can have nodes" do
+    attrib = Attrib.find_or_create_by_name :name=>"foo2"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar2.test.com"
     assert_not_nil node
@@ -117,7 +117,7 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     attrib.nodes << node
     # retrieve from cache
     n = Node.find_by_name "bar2.test.com"
-    a = Attribute.find_by_name "foo2"
+    a = Attrib.find_by_name "foo2"
     # node has attributes
     assert_equal nbefore+1, n.attribs.length
     assert n.attribs.include? a
@@ -126,34 +126,34 @@ class NodeAttributeModelTest < ActiveSupport::TestCase
     assert a.nodes.include? n
   end
   
-  test "Attribute remove node" do
-    attrib = Attribute.find_or_create_by_name :name=>"foo3"
+  test "Attrib remove node" do
+    attrib = Attrib.find_or_create_by_name :name=>"foo3"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar3.test.com"
     assert_not_nil node
     attrib.nodes << node
     n = Node.find_by_name "bar3.test.com"
-    a = Attribute.find_by_name "foo3"
+    a = Attrib.find_by_name "foo3"
     assert a.nodes.include? n
     a.nodes.delete n
     n_after = Node.find_by_name "bar3.test.com"
-    a_after = Attribute.find_by_name "foo3"
+    a_after = Attrib.find_by_name "foo3"
     assert !a_after.nodes.include?(n_after)
     assert !n_after.attribs.include?(a_after)
   end
   
   test "Node remove attribute" do
-    attrib = Attribute.find_or_create_by_name :name=>"foo4"
+    attrib = Attrib.find_or_create_by_name :name=>"foo4"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar4.test.com"
     assert_not_nil node
     attrib.nodes << node
     n = Node.find_by_name "bar4.test.com"
-    a = Attribute.find_by_name "foo4"
+    a = Attrib.find_by_name "foo4"
     assert a.nodes.include? n
     n.attribs.delete a
     n_after = Node.find_by_name "bar4.test.com"
-    a_after = Attribute.find_by_name "foo4"
+    a_after = Attrib.find_by_name "foo4"
     assert !a_after.nodes.include?(n_after)
     assert !n_after.attribs.include?(a_after)
   end

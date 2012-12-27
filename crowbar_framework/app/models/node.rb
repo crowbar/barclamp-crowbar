@@ -16,7 +16,8 @@
 class Node < ActiveRecord::Base
   before_validation :default_population
   
-  attr_accessible :name, :description, :alias, :order, :state, :fingerprint, :admin, :allocated
+  attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
+  attr_readonly   :fingerprint
   
   # 
   # Validate the name should unique (no matter the case)
@@ -33,8 +34,10 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :attibs, :through => :node_attibutes, :source => :attribute_it
-  has_many :values, :class_name => "node_attributes", :foreign_key => "node_id"
+  has_many :node_attribs
+  has_many :values, :class_name => 'NodeAttrib', :foreign_key=>'node_id'      #alias for node_attribs
+  has_many :attribs, :through => :node_attribs
+
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
@@ -333,9 +336,9 @@ class Node < ActiveRecord::Base
 
   # retrieves the attribute from nodeattribute
   # NOTE: for safety, will create the association if it is missing
-  def cmdb_get(attribute)
-    a = Attribute.find_or_create_by_name(:name=>attribute, :description=>I18n.t('mode.attributes.node.default_create_description'))
-    return NodeAttribute.find_or_create_by_node_id_and_attribute_id(:node_id=>id, :attribute_id=>a.id)
+  def cmdb_get(attrib)
+    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('mode.attribs.node.default_create_description'))
+    return NodeAttrib.find_or_create_by_node_id_and_attrib_id(:node_id=>id, :attrib_id=>a.id)
   end
   
   def method_missing(m,*args,&block)

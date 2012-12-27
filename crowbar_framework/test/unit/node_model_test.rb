@@ -79,7 +79,8 @@ class NodeModelTest < ActiveSupport::TestCase
     description = "unit test"
     n = Node.create :name=>"oldattribute.example.com"
     a = Attribute.create :name=>name, :description=>description
-    na = NodeAttribute.create :node_id=>n.id, :attribute_id=>.a.id
+    puts a.inspect
+    na = NodeAttribute.create :node_id=>n.id, :attribute_id=>a.id
     na.actual = value
     v = n.cmdb_get(name)
     assert_equal name, v.attribute.name

@@ -73,16 +73,13 @@ class Cmdb < ActiveRecord::Base
 
     evt
   end
-  
 
-
-  def node(name)
-    puts "RAH REMOVE: super class node #{name}"
+  # compute event for execution by computing whatever the cmdb backend needs
+  def prepare_for_execution(evt,config)
+    # here for sub-classes to override.
   end
   
-  def data(key)
-    puts "RAH REMOVE: super class data #{key}"
-  end
+
   
   def as_json options={}
    {

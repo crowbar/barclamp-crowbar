@@ -103,6 +103,10 @@ describe "cmdb proposal manipulation" do
             assert evt.status, CmdbEvent::EVT_PENDING
 
         end
+
+        it "creates proposal configuration as part of event" do
+
+        end
     end
 end
 

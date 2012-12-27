@@ -18,6 +18,8 @@ require "rubygems"
 gem "amqp"
 require "amqp"
 
+hostname=ARGV[0]
+
 EventMachine.run do
   connection = AMQP.connect(:host => "192.168.124.10")
   channel = AMQP::Channel.new(connection)
@@ -30,8 +32,8 @@ EventMachine.run do
   # request time from a peer every 3 seconds
   EventMachine.add_periodic_timer(3.0) do
     puts "[request] Sending a request..."
-    channel.default_exchange.publish("get.time",
-                                     :routing_key => "#{%x{hostname}.strip}.runner",
+    channel.default_exchange.publish("chef-client -S http://192.168.124.10:4000",
+                                     :routing_key => "#{hostname}.runner",
                                      :message_id => Kernel.rand(10101010).to_s,
                                      :reply_to => replies_queue.name,
                                      :immediate => true)

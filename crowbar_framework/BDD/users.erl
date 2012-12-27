@@ -56,7 +56,7 @@ json(Name, Description, Order) ->
 
 % GIVEN STEP
      
-step(_Config, _Global, {step_given, _N, ["there is a user",Oscar]}) -> false;
+step(_Config, _Global, {step_given, _N, ["there is a user",_Oscar]}) -> false;
 
 % WHEN STEP =======================================================
 

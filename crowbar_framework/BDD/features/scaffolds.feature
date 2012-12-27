@@ -132,7 +132,7 @@ Feature: Scaffolds
       And I should see "Revision"
       And I should see "Value"
       And I should see "Cmdb map"
-      And I should not see "Cmdb run"
+      And I should see "Cmdb run"
       And I should see "Node attribute"
       And I should see "Created At"
       And I should see "Updated At"

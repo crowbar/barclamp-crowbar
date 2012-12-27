@@ -194,7 +194,7 @@ class ServiceObject
   #
   def proposal_edit(params)
     proposal = @barclamp.get_proposal(params["id"])
-    return [404, I18n.t('model.service.cannot_find')] if prop.nil?
+    return [404, I18n.t('model.service.cannot_find')] if proposal.nil?
 
     # Make copy of config for history.
     new_prop_config = proposal.current_config.deep_clone

@@ -78,31 +78,34 @@ class NodeModelTest < ActiveSupport::TestCase
     value = "bar"
     description = "unit test"
     n = Node.create :name=>"oldattribute.example.com"
-    a = Attribute.create :name=>name, :description=>description
-    puts a.inspect
-    na = NodeAttribute.create :node_id=>n.id, :attribute_id=>a.id
+    a = Attrib.create :name=>name, :description=>description
+    na = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
     na.actual = value
-    v = n.cmdb_get(name)
-    assert_equal name, v.attribute.name
-    assert_equal description, v.attribute.description
+    na.save
+    v = Node.find(n.id).attrib_get(name)
+    assert_equal name, v.attrib.name
+    assert_equal description, v.attrib.description
     assert_equal value, v.value
-    assert_equal nil, v.pending
+    assert_equal nil, v.proposed
     assert_equal :ready, v.state
   end
 
 
-  test "Get Attribute for new attribute creates it" do
+  test "Get Attrib for new attribute creates it" do
     name = "foo"
-    n = Node.create :name=>"attribute.example.com"
-    a = n.cmdb_get(name)
-    assert_equal name, a.name
-    assert_equal I18n.t('mode.attributes.node.default_create_description'), a.description
-    assert_equal value, a.description
-    attrib = Attribute.find_by_name name
+    node = "attrib.example.com"
+    n = Node.create :name=>node
+    a = n.attrib_get(name)
+    assert_equal "#{name}@#{node}", a.name
+    assert_nil a.description
+    assert_equal I18n.t('model.attribs.node.default_create_description'), a.attrib.description
+    assert_nil a.value
+    assert_nil a.description
+    attrib = Attrib.find_by_name name
     assert_equal name, attrib.name
-    assert_equal I18n.t('mode.attributes.node.default_create_description'), attrib.description
+    assert_equal I18n.t('model.attribs.node.default_create_description'), attrib.description
     assert_equal nil, a.value
-    assert_equal :pending, a.state
+    assert_equal :ready, a.state
   end
 
 end

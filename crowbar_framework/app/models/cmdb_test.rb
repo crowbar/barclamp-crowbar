@@ -21,6 +21,11 @@ class CmdbTest < Cmdb
     super.init
   end
 
+  def create_event(config)
+    puts "$$$ #{Time.now.to_i} #{id}"
+    CmdbEvent.create(:name=>Time.now.to_i.to_s, :cmdb_id => id, :type=>'CmdbEventTest', :status => CmdbEvent::EVT_PENDING)
+  end
+  
   def run(config_id)
     super.run config_id
     config_id

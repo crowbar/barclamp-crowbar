@@ -12,27 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodeAttributes < ActiveRecord::Migration
+class CreateNodeAttribs < ActiveRecord::Migration
   
   # This should become an in memory table once the history table is added
   # then it should be recreated on startup from the history
   
   def change
-    create_table(:node_attributes, :primary_key=>:name, :id=>false) do |t|
+    create_table(:node_attribs, :primary_key=>:generated_id, :id=>false) do |t|
       t.integer     :generated_id,   :null=>true # manually generated!  not the auto ID propoerty
       t.string      :name,           :null=>true
       t.belongs_to  :node,           :null=>false
-      t.belongs_to  :attribute,      :null=>false
+      t.belongs_to  :attrib,         :null=>false
       t.belongs_to  :cmdb_run,       :null=>true
       t.string      :value_actual,   :default=>"\004\b0"
       t.string      :value_proposed, :default=>"\004\b0"
       t.timestamps      
     end
     # this is a critical table, it needs a lot of indexes!
-    add_index(:node_attributes,    [:generated_id],               :unique => true)   
-    add_index(:node_attributes,    [:name],                       :unique => true)   
-    add_index(:node_attributes,    [:node_id, :attribute_id],     :unique => true)   
-    add_index(:node_attributes,    [:node_id, :cmdb_run_id],      :unique => false)   
-    add_index(:node_attributes,    [:attribute_id, :cmdb_run_id], :unique => false)   
+    add_index(:node_attribs,    [:name],                    :unique => true)   
+    add_index(:node_attribs,    [:node_id, :attrib_id],     :unique => true)   
+    add_index(:node_attribs,    [:node_id, :cmdb_run_id],   :unique => false)   
+    add_index(:node_attribs,    [:attrib_id, :cmdb_run_id], :unique => false)   
   end
 end

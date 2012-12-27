@@ -336,15 +336,35 @@ class Node < ActiveRecord::Base
 
   # retrieves the attribute from nodeattribute
   # NOTE: for safety, will create the association if it is missing
+  def attrib_get(attrib)
+    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
+    return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+  end
+  
   def cmdb_get(attrib)
-    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('mode.attribs.node.default_create_description'))
-    return NodeAttrib.find_or_create_by_node_id_and_attrib_id(:node_id=>id, :attrib_id=>a.id)
+    puts "DEPRICATED 12/26/12+90 cmdb_get #{attrib}"
+    attrib_get attrib
+  end
+  
+  def cmdb_set(attrib, value=nil)
+    puts "DEPRICATED 12/26/12+90 cmdb_set #{attrib}=#{value}"
+    attrib_set attrib, value
+  end
+  
+  def attrib_set(attrib, value=nil)
+    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
+    na = NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+    na.actual = value
+    na.save
+    na
   end
   
   def method_missing(m,*args,&block)
     method = m.to_s
-    if method.starts_with? "cmdb_"
-      return cmdb_get(method[5..100]).value
+    if method.starts_with? "attrib_"
+      return attrib_get(method[7..100]).value
+    elsif method.starts_with? "cmdb_"
+      return attrib_get(method[5..100]).value
     else
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
       throw "ERROR #{method} not defined for node #{name}"

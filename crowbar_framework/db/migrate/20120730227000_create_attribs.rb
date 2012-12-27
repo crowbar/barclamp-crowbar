@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateAttributes < ActiveRecord::Migration
+class CreateAttribs < ActiveRecord::Migration
   
   def change
-    create_table :attributes do |t|
+    create_table :attribs do |t|
       t.string :name,         :null=>false
       t.string :description,  :null=>true
       t.integer :order,       :default=>10000
       t.timestamps
     end
     #natural key
-    add_index(:attributes, :name, :unique => true)   
+    add_index(:attribs, :name, :unique => true)   
 
   end
 

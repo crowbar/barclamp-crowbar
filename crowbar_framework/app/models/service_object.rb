@@ -324,9 +324,6 @@ class ServiceObject
     # Put mark on the wall that we are committing
     ProposalQueue.update_proposal_status(new_config, ProposalConfig::STATUS_COMMITTING, "")
 
-    # CHEF ROLE OBJECT COMMAND - Make sure the chef object is up-to-date
-    config_role = RoleObject.proposal_hash_to_role(prop.active_config.to_proposal_object_hash, @bc_name)
-
     #
     # Difference
     #   if node added to proposal
@@ -365,6 +362,9 @@ class ServiceObject
     all_nodes = (nnodes+onodes).uniq
     apply_role_pre_chef_call(old_config, new_config, all_nodes)
     all_nodes.each{|n|n.save}
+
+    # CHEF ROLE OBJECT COMMAND - Make sure the chef object is up-to-date
+    config_role = RoleObject.proposal_hash_to_role(prop.active_config.to_proposal_object_hash, @bc_name)
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false

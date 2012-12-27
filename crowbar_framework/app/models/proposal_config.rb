@@ -28,7 +28,6 @@ class ProposalConfig < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
-  attr_accessible :config, :reversion, :status, :failed_reason
   belongs_to      :proposal, :inverse_of => :proposal_config
   has_many        :node_roles
   has_many        :nodes, :through => :node_roles
@@ -37,19 +36,19 @@ class ProposalConfig < ActiveRecord::Base
   has_one         :barclamp, :through =>:proposal
 
   def failed?
-    status == STATUS_FAILED
+    self.status == STATUS_FAILED
   end
 
   def applied?
-    status == STATUS_APPLIED
+    self.status == STATUS_APPLIED
   end
 
   def queued?
-    status == STATUS_QUEUED
+    self.status == STATUS_QUEUED
   end
 
   def committing?
-    status == STATUS_COMMITTING
+    self.status == STATUS_COMMITTING
   end
 
   def operations
@@ -61,13 +60,13 @@ class ProposalConfig < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
-    {} unless config
-    JSON::parse(config)
+    {} unless self.config
+    JSON::parse(self.config)
   end
 
   def config_hash=(chash)
-    config = chash.to_json
-    save!
+    self.config = chash.to_json
+    self.save
   end
 
   ##
@@ -206,7 +205,7 @@ class ProposalConfig < ActiveRecord::Base
     bc_name = proposal.barclamp.name
     phash["id"] = "bc-#{bc_name}-#{proposal.name}"
     phash["description"] = proposal.description
-    phash["attributes"] = JSON::parse(config)
+    phash["attributes"] = JSON::parse(self.config)
     phash["deployment"] = {}
     phash["deployment"][bc_name] = {}
     phash["deployment"][bc_name]["config"] = {}

@@ -36,19 +36,19 @@ class ProposalConfig < ActiveRecord::Base
   has_one         :barclamp, :through =>:proposal
 
   def failed?
-    self.status == STATUS_FAILED
+    status == STATUS_FAILED
   end
 
   def applied?
-    self.status == STATUS_APPLIED
+    status == STATUS_APPLIED
   end
 
   def queued?
-    self.status == STATUS_QUEUED
+    status == STATUS_QUEUED
   end
 
   def committing?
-    self.status == STATUS_COMMITTING
+    status == STATUS_COMMITTING
   end
 
   def operations
@@ -60,13 +60,14 @@ class ProposalConfig < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
-    {} unless self.config
-    JSON::parse(self.config)
+    return {} unless config
+    return {} if config == ""
+    JSON::parse(config)
   end
 
   def config_hash=(chash)
-    self.config = chash.to_json
-    self.save
+    config = chash.to_json
+    save!
   end
 
   ##
@@ -201,11 +202,10 @@ class ProposalConfig < ActiveRecord::Base
   # 
   def to_proposal_object_hash
     phash = {}
-
     bc_name = proposal.barclamp.name
     phash["id"] = "bc-#{bc_name}-#{proposal.name}"
     phash["description"] = proposal.description
-    phash["attributes"] = JSON::parse(self.config)
+    phash["attributes"] = config_hash
     phash["deployment"] = {}
     phash["deployment"][bc_name] = {}
     phash["deployment"][bc_name]["config"] = {}

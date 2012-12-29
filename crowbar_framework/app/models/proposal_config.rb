@@ -60,13 +60,13 @@ class ProposalConfig < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
-    return {} unless config
-    return {} if config == ""
-    JSON::parse(config)
+    return {} unless self.config
+    return {} if self.config == ""
+    JSON::parse(self.config)
   end
 
   def config_hash=(chash)
-    config = chash.to_json
+    self.config = chash.to_json
     save!
   end
 
@@ -78,16 +78,21 @@ class ProposalConfig < ActiveRecord::Base
   #
   def update_node_roles(elements)
     nodes.delete_all
+    save_it = false
     elements.each do |role_name, node_list|
       role = Role.find_by_name(role_name)
+      next unless role
       node_list.each do |node_name|
         node = Node.find_by_name(node_name)
+        next unless node
         nr = NodeRole.create
         nr.node = node
         nr.role = role
         node_roles << nr
+        save_it = true
       end
     end
+    save! if save_it
     reload
   end
 
@@ -95,6 +100,7 @@ class ProposalConfig < ActiveRecord::Base
   # Helper function to tie a node and role to this propsal_config.
   #
   def add_node_to_role(node, role)
+    return false if node.nil? or role.nil?
     nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
     unless nr
       nr = NodeRole.create
@@ -109,12 +115,14 @@ class ProposalConfig < ActiveRecord::Base
   # Helper function to remove a node/role pair from thie proposal_config.
   #
   def remove_node_from_role(node, role)
+    return false if node.nil? or role.nil?
     nr = NodeRole.find_by_node_id_and_role_id_and_proposal_config_id(node.id, role.id, self.id)
     if nr
       nr.destroy 
       reload
+      return true
     end
-    true
+    false
   end
 
   #
@@ -129,6 +137,7 @@ class ProposalConfig < ActiveRecord::Base
   #
   def get_nodes_by_role(role_name)
     role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
+    return [] unless role
     nrs = NodeRole.find_all_by_role_id_and_proposal_config_id(role.id, self.id)
     answer = []
     nrs.each do |nr|
@@ -144,6 +153,7 @@ class ProposalConfig < ActiveRecord::Base
   def get_nodes_by_roles
     answer = {}
     node_roles.each do |nr|
+      next unless nr.role
       answer[nr.role.name] = [] unless answer[nr.role.name]
       answer[nr.role.name] << nr.node
     end
@@ -156,6 +166,7 @@ class ProposalConfig < ActiveRecord::Base
   # Returns the hash from the node role's json blob
   #
   def get_node_config_hash(node)
+    return nil unless node
     nr = NodeRole.find_by_node_id_and_proposal_config_id_and_role_id(node.id, self.id, nil)
     return {} unless nr
     return {} unless nr.config
@@ -175,9 +186,11 @@ class ProposalConfig < ActiveRecord::Base
       nr.role = nil
       nr.node = node
       nr.save
+      reload
     end
 
     nr.config_hash = hash
+    true
   end
 
   ##
@@ -188,9 +201,13 @@ class ProposalConfig < ActiveRecord::Base
     new_config.save
 
     node_roles.each do |nr|
-      new_nr = NodeRole.create(:node_id => nr.node_id, :role_id => nr.role_id)
-      node_roles << new_nr
+      a = NodeRole.new
+      a.node = nr.node
+      a.role = nr.role
+      a.proposal_config = new_config
+      a.save
     end
+    new_config.reload if node_roles.size > 0
 
     new_config
   end

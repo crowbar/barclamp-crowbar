@@ -37,10 +37,18 @@ puts "GREG: in run_queue"
 puts "GREG: queue depth = #{new_queue.size}"
     return if new_queue.empty?
 
-    action_response = Time.now.to_s
     new_queue.each do |d|
       metadata = d[:metadata]
       payload = d[:payload]
+
+      action_response = Time.now.to_s
+      puts "GREG: Payload = #{payload}"
+      if payload == "get.time"
+        # Nothing
+      elsif payload =~ /^chef-client/
+        result = %x{#{payload}}
+        action_response += ":#{$?}:#{result}"
+      end
 
       puts "[requests] Got a request #{metadata.message_id}. Sending a reply..."
       channel.default_exchange.publish(action_response,
@@ -51,7 +59,7 @@ puts "GREG: queue depth = #{new_queue.size}"
 
     end
 puts "GREG: Sleeping"
-    sleep(10)
+#    sleep(10)
 puts "GREG: Done"
   end
 end

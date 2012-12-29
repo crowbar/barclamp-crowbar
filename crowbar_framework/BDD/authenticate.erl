@@ -45,7 +45,7 @@ step(Config, _Given, {step_when, _N, ["I go to home page"]}) ->
 
 step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   URL = eurl:uri(Config, "2.0/status/node"),
-  {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = http:request(URL),
+  {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = httpc:request(URL),
   {digest, Code};
 
 step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
@@ -61,7 +61,7 @@ step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) ->
 
 step(Config, _Given, {step_when, _N, ["I visit",Page,"page without login"]}) -> 
   URL = eurl:uri(Config, Page),
-  {_Status,{{_Protocol,Code,_Comment}, _Fields, Message}} = http:request(URL),
+  {_Status,{{_Protocol,Code,_Comment}, _Fields, Message}} = httpc:request(URL),
   bdd_utils:log(Config, trace, "No Login Request ~p:~p", [Code, Message]),
   Message;
                                                

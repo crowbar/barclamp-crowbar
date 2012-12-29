@@ -52,15 +52,14 @@ class ProposalQueue < ActiveRecord::Base
 
   #
   # update proposal status information
-  # Stores status and message on the current active_config
+  # Stores status and message on the delivered proposal_config
   #
   def self.update_proposal_status(pc, status, message)
-    prop = pc.proposal
     res = true
-    if prop and prop.active?
-      prop.active_config.status = status
-      prop.active_config.failed_reason = message
-      res = prop.active_config.save
+    if pc
+      pc.status = status
+      pc.failed_reason = message
+      res = pc.save
     end
     res
   end

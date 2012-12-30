@@ -224,6 +224,22 @@ describe ProposalQueue do
       answer = ProposalQueue.make_applying_or_delay(nodes, true)
       answer.should eq([])
     end
+    it "should return an empty list and set_state of nodes if apply and nodes (more than one with duplicates) are ready" do
+      n = mock(Node)
+      nodes = [ mock(Node), n, mock(Node) ]
+      nodes.each do |n|
+        n.should_receive(:state).exactly(1).times.and_return("ready")
+        n.should_receive(:name).exactly(0).times
+        n.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+          arg1.should eq("applying")
+          arg2.should eq("ready")
+        end.and_return([200, ""])
+        n.should_receive(:allocate).exactly(0).times
+      end
+      nodes << n # Add the duplicate
+      answer = ProposalQueue.make_applying_or_delay(nodes, true)
+      answer.should eq([])
+    end
     it "should return a list of failed nodes if apply and some nodes fail to set ready" do
       nodes = [ mock(Node), mock(Node), mock(Node) ]
       count = 0

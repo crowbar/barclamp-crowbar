@@ -21,7 +21,7 @@ if domain.length > 0
   default[:openldap][:server] = "ldap.#{domain}"
 end
 
-openldap[:rootpw] = nil
+set[:openldap][:rootpw] = nil
 
 # File and directory locations for openldap.
 case platform
@@ -39,11 +39,11 @@ else
   set[:openldap][:module_dir] = "/usr/lib/ldap"
 end
 
-openldap[:ssl_dir] = "#{openldap[:dir]}/ssl"
-openldap[:cafile]  = "#{openldap[:ssl_dir]}/ca.crt"
+set[:openldap][:ssl_dir] = "#{openldap[:dir]}/ssl"
+set[:openldap][:cafile]  = "#{openldap[:ssl_dir]}/ca.crt"
 
 # Server settings.
-openldap[:slapd_type] = nil
+set[:openldap][:slapd_type] = nil
 
 if openldap[:slapd_type] == "slave"
   master = search(:nodes, 'openldap_slapd_type:master') 

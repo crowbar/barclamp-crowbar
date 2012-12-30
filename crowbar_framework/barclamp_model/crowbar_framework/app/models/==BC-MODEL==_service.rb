@@ -40,7 +40,7 @@ class ==^BC-MODEL==Service < ServiceObject
       hash = new_config.get_node_config_hash(node)
       hash[:==BC-MODEL==] = {} if hash[:==BC-MODEL==].nil?
       hash[:==BC-MODEL==][:api_bind_host] = admin_address
-      new_config.set_node_config_hash(node) = hash
+      new_config.set_node_config_hash(node, hash)
     end
     @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: leaving")
   end

@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -78,7 +78,9 @@ class NodeModelTest < ActiveSupport::TestCase
     value = "bar"
     description = "unit test"
     n = Node.create :name=>"oldattribute.example.com"
+    n.save
     a = Attrib.create :name=>name, :description=>description
+    a.save
     na = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
     na.actual = value
     na.save
@@ -95,8 +97,9 @@ class NodeModelTest < ActiveSupport::TestCase
     name = "foo"
     node = "attrib.example.com"
     n = Node.create :name=>node
+    assert_not_nil n
     a = n.attrib_get(name)
-    assert_equal "#{name}@#{node}", a.name
+    assert_not_nil a
     assert_nil a.description
     assert_equal I18n.t('model.attribs.node.default_create_description'), a.attrib.description
     assert_nil a.value

@@ -15,6 +15,7 @@
 
 class Node < ActiveRecord::Base
   before_validation :default_population
+  before_destroy    :cmdb_delete
   
   attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
   attr_readonly   :fingerprint
@@ -34,7 +35,7 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :node_attribs
+  has_many :node_attribs, :dependent => :destroy
   has_many :values, :class_name => 'NodeAttrib', :foreign_key=>'node_id'      #alias for node_attribs
   has_many :attribs, :through => :node_attribs
 
@@ -91,6 +92,7 @@ class Node < ActiveRecord::Base
   # Update the CMDB view of the node at this point.
   #
   def update_cmdb
+    # TODO - this should move into the CMDB object!
     cno = NodeObject.find_node_by_name(name)
     if cno
       cno.crowbar["state"] = self.state
@@ -123,13 +125,6 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def delete_cmdb
-    @logger.info("Crowbar: Deleting #{name}")
-    system("knife node delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
-    system("knife client delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
-    system("knife role delete -y crowbar-#{name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
-  end
-  
   def cmdb_hash
     NodeObject.find_node_by_name name 
   end
@@ -164,15 +159,6 @@ class Node < ActiveRecord::Base
     super_save!
   end
   
-  #
-  # XXX: Remove this as we better.
-  #
-  alias :super_destroy :destroy
-  def destroy
-    delete_cmdb
-    super_destroy
-  end
-
   #
   # Helper function to test admin without calling admin. Style-thing.
   #
@@ -405,6 +391,12 @@ class Node < ActiveRecord::Base
   end
 
   private
+
+  # make sure we do housekeeping before we remove the DB object
+  def cmdb_delete
+    Cmdb.all.each { |c| c.delete_node(self) }
+  end
+
   
   # make sure some safe values are set for the node
   def default_population

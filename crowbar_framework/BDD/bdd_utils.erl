@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -16,6 +16,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, tokenize/2, tokenize/6, clean_line/1]).
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
+-export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
@@ -154,6 +155,7 @@ is_a(Type, Value) ->
     number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
     num     -> is_number(Value);
     integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
+    int when is_list(Value) -> is_a(Type, list_to_integer(Value));
     int     -> is_integer(Value);
     whole   -> nomatch =/= re:run(Value, "^[0-9]*$");
     dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
@@ -239,6 +241,33 @@ config_unset(Config, Key) ->
     Item  -> lists:delete(Item, Config)
   end.
 
+% stores values used inside a scenario
+scenario_store(ID, Key, Value) ->
+  Scenario = get({scenario, ID}),
+  Store = case Scenario of
+    undefined -> [{Key, Value}];
+    List      ->  % remove existing if any
+                  L = case lists:keyfind(Key, 1, List) of
+                    false -> List;
+                    _     -> lists:keydelete(Key, 1, List)
+                  end,
+                  L ++ [{Key, Value}]
+  end,
+  put({scenario, ID}, Store),
+  Store.
+
+% retieves values used inside a scenario
+scenario_retrieve(ID, Key, Default) ->
+  Scenario = get({scenario, ID}),
+  Return = case Scenario of 
+    undefined -> Default;
+    List      -> case lists:keyfind(Key, 1, List) of
+                    false     -> Default;
+                    {Key, R}  -> R
+                 end
+  end,
+  Return.
+  
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),

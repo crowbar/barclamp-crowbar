@@ -275,7 +275,7 @@ test_scenario(Config, RawSteps, Name) ->
     	% now, check the results of the then steps
     	case bdd_utils:assert_atoms(Result) of
     		true -> bdd_utils:untrace(Config, Name, N), pass;
-    		_ -> log(info, "*** FAILURE REPORT ***",[]), print_fail(lists:reverse(Result)), fail
+    		_ -> log(info, "*** FAILURE REPORT FOR ~p (~p) ***",[Name, Hash]), print_fail(lists:reverse(Result)), fail
     	end;
     skip -> skip;
     X -> 
@@ -305,12 +305,12 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  log(error, "badmatch in code due to no_scheme.",[]), 
       log(error, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
-		  throw("BDD ERROR: unexpected match.");
+		  error; %throw("BDD ERROR: unexpected match.");
 		X: Y -> 
 		  log(error, "step run found ~p:~p", [X, Y]), 
       log(error, "Stacktrace: ~p", [erlang:get_stacktrace()]),
       log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),
-		  throw("BDD ERROR: Unknown error type in BDD:step_run.")
+		  error %throw("BDD ERROR: Unknown error type in BDD:step_run.")
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	

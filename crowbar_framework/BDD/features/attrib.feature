@@ -12,7 +12,7 @@ Feature: Attribs
   Scenario: REST JSON check
     Given there is an attribute "attribute_json_test"
     When REST gets the attribute "attribute_json_test"
-    Then the attribute is properly formatted
+    Then the {object:attrib} is properly formatted
     Finally REST removes the attribute "attribute_json_test"
 
   Scenario: REST Add 

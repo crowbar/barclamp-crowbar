@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -45,6 +45,20 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_equal :ready, v.state
   end
   
+  test "Node Attrib delete" do
+    n = Node.create :name=>"delete.example.com"
+    a = Attrib.create :name=>"killme"
+    assert_not_nil a
+    assert_not_nil n
+    v = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
+    assert_not_nil v
+    id = v.id
+    assert_equal id, v.id
+    NodeAttrib.delete_by_node_and_attrib n, a
+    check = NodeAttrib.find id
+    assert_nil check
+  end
+  
   test "Node Attrib pending values state correct" do
     n = Node.create :name=>"pending.example.com"
     a = Attrib.create :name=>"unset"
@@ -78,6 +92,55 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual
     assert_equal :ready, na.state
+  end
+  
+  test "Node Attribute removed when node deleted" do
+    name = "chain-delete.example.com"
+    attrib = "killme"
+    n = Node.create :name=>name
+    assert_not_nil n
+    n.save
+    na = n.attrib_get(attrib)
+    assert_not_nil na
+    id = na.id
+    na2 = NodeAttrib.find id 
+    assert_not_nil na2
+    
+    assert n.destroy
+    assert_raise(ActiveRecord::RecordNotFound) { Node.find n.id }
+    na3 = NodeAttrib.find id
+    assert_nil na3
+  end
+  
+  test "Node Attribute removed when attribute deleted" do
+    name = "chain-delete.example.com"
+    attrib = "killme"
+    n = Node.create :name=>name
+    assert_not_nil n
+    n.save
+    na = n.attrib_get(attrib)
+    a = Attrib.find_by_name attrib
+    assert_not_nil na
+    id = na.id
+    assert a.destroy
+    assert_raise(ActiveRecord::RecordNotFound) { Attrib.find a.id }
+    na3 = NodeAttrib.find id
+    assert_nil na3
+  end
+  
+  test "Node Attrib name_generate check" do
+    name = "gen.example.com"
+    attrib = "genme"
+    n = Node.create :name=>name
+    a = Attrib.create :name=>attrib
+    na = n.attrib_get(attrib)
+    assert_not_nil na
+    assert_equal na.name, NodeAttrib.name_generate(n,a)
+    assert_equal na.name, "#{attrib}#{NodeAttrib::NODE_NAME_DELIM}#{name}"
+    parts = na.name.split NodeAttrib::NODE_NAME_DELIM
+    assert_equal attrib, parts[0]
+    assert_equal name, parts[1]
+    assert_equal na.id, NodeAttrib.id_generate(n.id, a.id)
   end
   
   test "Node Attrib find id for id_generate" do

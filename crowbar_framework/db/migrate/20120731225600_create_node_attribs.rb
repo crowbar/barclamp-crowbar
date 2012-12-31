@@ -31,7 +31,5 @@ class CreateNodeAttribs < ActiveRecord::Migration
     # this is a critical table, it needs a lot of indexes!
     add_index(:node_attribs,    [:name],                    :unique => true)   
     add_index(:node_attribs,    [:node_id, :attrib_id],     :unique => true)   
-    add_index(:node_attribs,    [:node_id, :cmdb_run_id],   :unique => false)   
-    add_index(:node_attribs,    [:attrib_id, :cmdb_run_id], :unique => false)   
   end
 end

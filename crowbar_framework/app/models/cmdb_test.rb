@@ -31,6 +31,11 @@ class CmdbTest < Cmdb
     config_id
   end
 
+  def delete_node(node)
+    name = node.name
+    Rails.logger.info("Test CMDB #{self.name} is removing the node #{name} from the system")
+  end
+
   def node(name)
     # override
     super.node name

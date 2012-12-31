@@ -193,15 +193,21 @@ step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Coun
   Items = length(List),
   Items >= C;
 
-step(_Config, Results, {step_then, _N, ["key",Key,"should be a number"]}) -> 
+step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 
   bdd_utils:is_a(number, json:value(get_JSON(Results), Key));
                                                        
-step(_Config, Results, {step_then, _N, ["key",Key, "should be an empty string"]}) -> 
+step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(get_JSON(Results), Key));
                                                       
-step(_Config, Result, {step_then, _N, ["there should be a value",Value]}) -> 
+step(_Config, Result, {step_then, {_Scenario, _N}, ["there should be a value",Value]}) -> 
   Test = lists:keyfind(Value,2,get_JSON(Result)),
   Test =/= false;
+
+step(Config, Result, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) -> 
+  R = get_JSON(Result),
+  I = bdd_utils:scenario_retrieve(Scenario, ID, undefined),
+  bdd_utils:log(puts, "bdd_restrat Then ID ~p (~p) should be found in Result ~p", [ID, I, Result]),
+  false;
 
 step(_Config, Result, {step_then, _N, ["I get a",Number,"result"]}) -> 
   step(_Config, Result, {step_then, _N, ["I get a",Number,"error"]});

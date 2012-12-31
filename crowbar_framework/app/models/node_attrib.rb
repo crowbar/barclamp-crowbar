@@ -16,6 +16,7 @@
 class NodeAttrib < ActiveRecord::Base
 
   NODE_ID_SPACE = 10000000
+  NODE_NAME_DELIM = '@'
   MARSHAL_NIL   = "\004\b0"
   
   before_create :create_identity
@@ -33,16 +34,34 @@ class NodeAttrib < ActiveRecord::Base
     NodeAttrib.find_by_generated_id id
   end
 
-  def self.find_or_create_by_node_and_attrib(node, attrib)
+  def self.delete_by_node_and_attrib(node, attrib)
+    na = NodeAttrib.find NodeAttrib.id_generate(node.id, attrib.id)
+    if na.nil?
+      id = -1
+    else
+      id = na.id
+      id = (na.delete ? id : -1 )
+    end
+    id
+  end
+
+  def self.find_by_node_and_attrib(node, attrib)
     throw "Node provided cannot be nil" unless node
     throw "Attrib provided cannot be nil" unless attrib
-    nid = node.id
-    aid = attrib.id
-    na = NodeAttrib.find NodeAttrib.id_generate(nid, aid)
-    na = NodeAttrib.create(:node_id=>nid, :attrib_id=>aid) unless na
+    NodeAttrib.find NodeAttrib.id_generate(node.id, attrib.id)
+  end
+    
+  def self.find_or_create_by_node_and_attrib(node, attrib)
+    na = find_by_node_and_attrib node, attrib
+    na = NodeAttrib.create(:node_id=>node.id, :attrib_id=>attrib.id) if na.nil?
     na
   end
 
+
+  def self.name_generate node, attribute
+    "#{attribute.name}#{NODE_NAME_DELIM}#{node.name}"
+  end
+  
   def self.id_generate node, attribute
     node*NODE_ID_SPACE+attribute
   end
@@ -68,11 +87,7 @@ class NodeAttrib < ActiveRecord::Base
   def value
     return self.actual
   end
-  
-  def description
-    return self.value
-  end
-  
+    
   def actual=(value)
     self.value_actual = Marshal::dump(value)
   end
@@ -89,6 +104,23 @@ class NodeAttrib < ActiveRecord::Base
     Marshal::load(self.value_proposed)
   end
   
+  def as_json options={}
+   {
+     :id=> id,
+     :node_id=> node_id,
+     :attrib_id=> attrib_id,
+     :name=> name,
+     :value=> value,
+     :state => state,
+     :order => attrib.order,              # allows object to confirm to Crowbar pattern
+     :description=> attrib.description,   # allows object to confirm to Crowbar pattern
+     :created_at=> created_at,
+     :updated_at=> updated_at
+   }
+  end
+  
+
+  
   private
   
   # make sure some safe values are set for the node
@@ -100,7 +132,7 @@ class NodeAttrib < ActiveRecord::Base
     a = Attrib.find self.attrib_id
     throw "NodeAttrib cannot create without a valid Attrib (ID was #{self.attrib_id})" unless a
     self.generated_id = NodeAttrib.id_generate n.id, a.id
-    self.name = "#{a.name}@#{n.name}"
+    self.name = NodeAttrib.name_generate n, a
   end
   
 end

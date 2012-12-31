@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -71,6 +71,44 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>" nospaces.bar.it") }
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"no spaces.dell.com") }
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"nospacesatall.end.edu ") }
+  end
+
+  test "Get Attribute for existing attribute gets value" do
+    name = "foo"
+    value = "bar"
+    description = "unit test"
+    n = Node.create :name=>"oldattribute.example.com"
+    n.save
+    a = Attrib.create :name=>name, :description=>description
+    a.save
+    na = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
+    na.actual = value
+    na.save
+    v = Node.find(n.id).attrib_get(name)
+    assert_equal name, v.attrib.name
+    assert_equal description, v.attrib.description
+    assert_equal value, v.value
+    assert_equal nil, v.proposed
+    assert_equal :ready, v.state
+  end
+
+
+  test "Get Attrib for new attribute creates it" do
+    name = "foo"
+    node = "attrib.example.com"
+    n = Node.create :name=>node
+    assert_not_nil n
+    a = n.attrib_get(name)
+    assert_not_nil a
+    assert_nil a.description
+    assert_equal I18n.t('model.attribs.node.default_create_description'), a.attrib.description
+    assert_nil a.value
+    assert_nil a.description
+    attrib = Attrib.find_by_name name
+    assert_equal name, attrib.name
+    assert_equal I18n.t('model.attribs.node.default_create_description'), attrib.description
+    assert_equal nil, a.value
+    assert_equal :ready, a.state
   end
 
 end

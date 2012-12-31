@@ -1,4 +1,4 @@
-- s = 'model.attributes.node'
+- s = 'model.attribs.node'
 .led{:id => "head_#{@node.id}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state), :style=>'float:left;'}
 %h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.id)})".html_safe
 
@@ -13,22 +13,22 @@
   %dl
     = dl_item(t('name', :scope=>s), @node.name)
     = dl_item(t('state', :scope=>s), t(@node.state, :scope=>'state', :default=>@node.state), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
-    = dl_item(t('uptime', :scope=>s), (@node.ready? ? @node.cmdb_uptime : t('na', :scope=>s)))
-    - if @node.cmdb_switch_unit.nil?
-      = dl_item(t('switch_name_port', :scope=>s), "#{@node.cmdb_switch_name || t('unknown') } / #{@node.cmdb_switch_port || t('unknown')}")
+    = dl_item(t('uptime', :scope=>s), (@node.ready? ? @node.attrib_uptime : t('na', :scope=>s)))
+    - if @node.attrib_switch_unit.nil?
+      = dl_item(t('switch_name_port', :scope=>s), "#{@node.attrib_switch_name || t('unknown') } / #{@node.attrib_switch_port || t('unknown')}")
     - else
-      = dl_item(t('switch_name_unit_port', :scope=>s), link_to("#{@node.cmdb_switch_name || t('unknown') } / #{@node.cmdb_switch_unit || ''} / #{@node.cmdb_switch_port || t('unknown')}", switch_path(:node=>@node.id)))    
-    = dl_item(t('mac', :scope=>s), @node.cmdb_mac || t('unknown'))
+      = dl_item(t('switch_name_unit_port', :scope=>s), link_to("#{@node.attrib_switch_name || t('unknown') } / #{@node.attrib_switch_unit || ''} / #{@node.attrib_switch_port || t('unknown')}", switch_path(:node=>@node.id)))    
+    = dl_item(t('mac', :scope=>s), @node.attrib_mac || t('unknown'))
     = dl_item(t('allocated', :scope=>s), (@node.allocated? ? t('.active') : t('.inactive')))
 
 .column_50.last
   %dl
     = dl_item(t('description', :scope=>s), @node.description || (t :not_set))
-    = dl_item(t('hardware', :scope=>s), @node.cmdb_hardware)
-    = dl_item(t('cpu', :scope=>s), @node.cmdb_cpu)
-    = dl_item(t('memory', :scope=>s), format_memory(@node.cmdb_memory))
-    = dl_item(t('number_of_drives', :scope=>s), "#{@node.cmdb_number_of_drives}, #{t('.raid')}: #{t('raid.'+(@node.cmdb_raid_set || 'not_set'))}")
-    = dl_item(t('asset_tag', :scope=>s), @node.cmdb_asset_tag)
+    = dl_item(t('hardware', :scope=>s), @node.attrib_hardware)
+    = dl_item(t('cpu', :scope=>s), @node.attrib_cpu)
+    = dl_item(t('memory', :scope=>s), format_memory(@node.attrib_memory))
+    = dl_item(t('number_of_drives', :scope=>s), "#{@node.attrib_number_of_drives}, #{t('.raid')}: #{t('raid.'+(@node.attrib_raid_set || 'not_set'))}")
+    = dl_item(t('asset_tag', :scope=>s), @node.attrib_asset_tag)
 
 .clear
 
@@ -39,7 +39,7 @@
   %dt
     = t('.links')
   %dd
-    = t('.bmc')  #link_to t('.bmc'), "https://#{@node.cmdb_bmc_address rescue 'none'}", :target => '_blank'
+    = t('.bmc')  #link_to t('.bmc'), "https://#{@node.attrib_bmc_address rescue 'none'}", :target => '_blank'
     - unless @node.links.nil?
       - @node.links.each do |link|
         = link_to link.name, link.url, :target => '_blank', :title=>link.description

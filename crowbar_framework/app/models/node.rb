@@ -15,8 +15,10 @@
 
 class Node < ActiveRecord::Base
   before_validation :default_population
+  before_destroy    :cmdb_delete
   
-  attr_accessible :name, :description, :alias, :order, :state, :fingerprint, :admin, :allocated
+  attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
+  attr_readonly   :fingerprint
   
   # 
   # Validate the name should unique (no matter the case)
@@ -32,7 +34,11 @@ class Node < ActiveRecord::Base
   validates_length_of :alias, :maximum => 100
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
-  has_and_belongs_to_many :attribs, :join_table => "node_attributes", :foreign_key => "node_id", :class_name=>'Attribute'
+
+  has_many :node_attribs, :dependent => :destroy
+  has_many :values, :class_name => 'NodeAttrib', :foreign_key=>'node_id'      #alias for node_attribs
+  has_many :attribs, :through => :node_attribs
+
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
@@ -86,6 +92,7 @@ class Node < ActiveRecord::Base
   # Update the CMDB view of the node at this point.
   #
   def update_cmdb
+    # TODO - this should move into the CMDB object!
     cno = NodeObject.find_node_by_name(name)
     if cno
       cno.crowbar["state"] = self.state
@@ -118,13 +125,6 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def delete_cmdb
-    @logger.info("Crowbar: Deleting #{name}")
-    system("knife node delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
-    system("knife client delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
-    system("knife role delete -y crowbar-#{name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
-  end
-  
   def cmdb_hash
     NodeObject.find_node_by_name name 
   end
@@ -159,15 +159,6 @@ class Node < ActiveRecord::Base
     super_save!
   end
   
-  #
-  # XXX: Remove this as we better.
-  #
-  alias :super_destroy :destroy
-  def destroy
-    delete_cmdb
-    super_destroy
-  end
-
   #
   # Helper function to test admin without calling admin. Style-thing.
   #
@@ -329,45 +320,37 @@ class Node < ActiveRecord::Base
     end
   end  
 
-  def cmdb_get(attribute)
-    # TODO: substitute real cmdb calls to get all this data. Refer to nodes/_show.html.haml for complete list
-    nil
-=begin
-    begin
-      case attribute
-      when "alias"
-        cmdb_hash.alias
-      when "switch_name"
-        cmdb_hash.switch_name 
-      when "switch_unit"
-        cmdb_hash.switch_unit 
-      when "switch_port"
-        cmdb_hash.switch_port
-      when "asset_tag"
-        cmdb_hash.asset_tag
-      when "ip"
-        cmdb_hash.ip
-      when "cpu"
-        cmdb_hash.cpu
-      when "memory"
-        cmdb_hash.memory
-      when "number_of_drives"
-        cmdb_hash.memory
-      when "disks"
-        cmdb_hash["crowbar"]["disks"]
-      else 
-        "CMDB #{attribute}"
-      end
-    rescue
-      "CMDB #{attribute}"
-    end
-=end
+  # retrieves the attribute from nodeattribute
+  # NOTE: for safety, will create the association if it is missing
+  def attrib_get(attrib)
+    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
+    return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+  end
+  
+  def cmdb_get(attrib)
+    puts "DEPRICATED 12/26/12+90 cmdb_get #{attrib}"
+    attrib_get attrib
+  end
+  
+  def cmdb_set(attrib, value=nil)
+    puts "DEPRICATED 12/26/12+90 cmdb_set #{attrib}=#{value}"
+    attrib_set attrib, value
+  end
+  
+  def attrib_set(attrib, value=nil)
+    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
+    na = NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+    na.actual = value
+    na.save
+    na
   end
   
   def method_missing(m,*args,&block)
     method = m.to_s
-    if method.starts_with? "cmdb_"
-      return cmdb_get method[5..100]
+    if method.starts_with? "attrib_"
+      return attrib_get(method[7..100]).value
+    elsif method.starts_with? "cmdb_"
+      return attrib_get(method[5..100]).value
     else
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
       throw "ERROR #{method} not defined for node #{name}"
@@ -408,6 +391,12 @@ class Node < ActiveRecord::Base
   end
 
   private
+
+  # make sure we do housekeeping before we remove the DB object
+  def cmdb_delete
+    Cmdb.all.each { |c| c.delete_node(self) }
+  end
+
   
   # make sure some safe values are set for the node
   def default_population

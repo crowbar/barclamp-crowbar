@@ -74,8 +74,14 @@ class Cmdb < ActiveRecord::Base
     evt
   end
   
+  def create_event(config)
+    throw "you must override!"
+  end
 
-
+  def delete_node(node)
+    throw "you must override!  This method does housekeeping when you remove a node"
+  end
+  
   def node(name)
     puts "RAH REMOVE: super class node #{name}"
   end

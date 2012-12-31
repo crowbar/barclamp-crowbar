@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+class CreateAttribs < ActiveRecord::Migration
+  
+  def change
+    create_table :attribs do |t|
+      t.string :name,         :null=>false
+      t.string :description,  :null=>true
+      t.integer :order,       :default=>10000
+      t.timestamps
+    end
+    #natural key
+    add_index(:attribs, :name, :unique => true)   
 
-#############
-# Node_role is an association class between a role in a proposal configuration and the
-# node that is assigned that role. This supports a many2many association between
-# roles and nodes, with some extra info.
+  end
 
-class NodeAttribute < ActiveRecord::Base
-  attr_accessible :name, :config, :order, :status
-
-  has_and_belongs_to_many        :cmdb_attributes
-  has_and_belongs_to_many        :nodes
 end

@@ -12,20 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbAttributes < ActiveRecord::Migration
-  def change
-    create_table :cmdb_attributes do |t|
-      t.string :name
-      t.string :description
-      t.string :order
-      t.text :value
-      t.integer :revision
 
-      t.references :node_attribute
-      t.references :cmdb_event
-      t.references :cmdb_map
-
-      t.timestamps
-    end
+class Scaffolds::AttribsController < ApplicationController
+  active_scaffold :attrib do |conf|
   end
-end
+end 

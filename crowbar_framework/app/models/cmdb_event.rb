@@ -14,7 +14,7 @@
 #
 class CmdbEvent < ActiveRecord::Base
   attr_accessible :name, :description, :order, :type
-  attr_accessible :status
+  attr_accessible :status, :cmdb_id
 
   belongs_to :cmdb  # the CMDB instance this event is being handled by
   belongs_to :proposal_config  # the configuration this event will apply

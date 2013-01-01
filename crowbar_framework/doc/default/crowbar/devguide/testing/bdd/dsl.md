@@ -2,10 +2,14 @@
 
 The BDD DSL is designed to be very natural language like.  There are 4 primary clauses in the DSL:
 
-1. **Given** ... some background thing has happened
-1. **When** ... take some action
-1. **Then** ... get some result
-1. **Finally** ... cleanup actions (optional)
+1. General Purpose Steps
+  1. **Given** ... some background thing has happened
+  1. **When** ... take some action
+  1. **Then** ... get some result
+1. Special Purpose Steps;
+  1. **Skip** ... will disable the test (please provide a reason after the skip)
+  1. **Unless** environment ... will only run the test in the environments included after the Unless
+  1. **Finally** ... cleanup actions (optional)
 
 Feature files may also include **setup** and **tear down** steps that are essential for creating input data for tests.  In some cases, tests require information to be in place _before_ the Given step.
 

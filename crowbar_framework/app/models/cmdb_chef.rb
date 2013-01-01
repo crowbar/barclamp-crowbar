@@ -41,7 +41,14 @@ class CmdbChef < Cmdb
     run
   end
 
-
+  def delete_node(node)
+    name = node.name
+    Rails.logger.info("Chef CMDB #{self.name} is removing the node #{name} from the system")
+    system("knife node delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
+    system("knife client delete -y #{name} -u chef-webui -k /etc/chef/webui.pem")
+    # TODO this may not be needed in the new Crowbar 2 design
+    system("knife role delete -y crowbar-#{name.gsub(".","_")} -u chef-webui -k /etc/chef/webui.pem")
+  end
 
   def node(name)
     begin 

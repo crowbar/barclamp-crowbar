@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -229,11 +229,11 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    target = Node.find_key(params[:id])
+    target = Node.find_key params[:id]
     if target.nil?
       render :text=>"Could not find node '#{params[:id]}'", :status => 404
     else
-      if Node.delete(target.id) > 0
+      if target.destroy
         render :text => "Node #{params[:id]} deleted!"
       else
         render :text=>"Could not delete node '#{params[:id]}'", :status => 500

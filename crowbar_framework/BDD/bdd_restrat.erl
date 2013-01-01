@@ -95,7 +95,7 @@ step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
 step(Config, _Global, {step_given, _N, ["REST creates the",Object,Name]}) -> 
   step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
 
-step(Config, _Given, {step_when, _N, ["REST creates the",Object,Name]}) -> 
+step(Config, _Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) -> 
   bdd_utils:log(Config, trace, "REST creates the ~p ~p", [Object, Name]),
   JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
   Path = apply(Object, g, [path]),
@@ -108,6 +108,7 @@ step(Config, _Given, {step_when, _N, ["REST creates the",Object,Name]}) ->
       ReturnJSON = json:parse(Result),
       bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: ReturnJSON: ~p",[ReturnJSON]),
       Key = json:keyfind(ReturnJSON, id),
+      bdd_utils:scenario_store(ScenarioID, Object, Key),
       bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
       {ajax, ReturnJSON, {post, Path}};
     _   -> {ajax, Code, {post, Path}}
@@ -203,11 +204,12 @@ step(_Config, Result, {step_then, {_Scenario, _N}, ["there should be a value",Va
   Test = lists:keyfind(Value,2,get_JSON(Result)),
   Test =/= false;
 
-step(Config, Result, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) -> 
-  R = get_JSON(Result),
+step(_Config, Results, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) -> 
   I = bdd_utils:scenario_retrieve(Scenario, ID, undefined),
-  bdd_utils:log(puts, "bdd_restrat Then ID ~p (~p) should be found in Result ~p", [ID, I, Result]),
-  false;
+  Result = get_JSON(Results),
+  R = json:value(Result, I),
+  bdd_utils:log(debug, "bdd_restrat Then ID ~p (~p) with expected value ~p should be match result ~p", [ID, I, Value, R]),
+  R =:= Value;
 
 step(_Config, Result, {step_then, _N, ["I get a",Number,"result"]}) -> 
   step(_Config, Result, {step_then, _N, ["I get a",Number,"error"]});

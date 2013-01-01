@@ -15,6 +15,7 @@
 % 
 -module(node).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
+-export([node_add_attrib/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -63,6 +64,7 @@ node_attribute_path(Node, Attribute) ->
   AttribPath = eurl:path(NodePath,"attrib"),
   eurl:path(AttribPath,Attribute).
   
+node_add_attrib(Config, Node, Attribute)    -> node_add_attribute(Config, Node, Attribute).
 node_add_attribute(Config, Node, Attribute) ->
   Path = node_attribute_path(Node, Attribute),
   bdd_utils:log(Config, debug, "Node connect node+attributes ~p", [Path]),
@@ -96,10 +98,14 @@ step(Config, _Given, {step_when, _N, ["REST assigns",attrib,Attribute,"to",node,
 
 step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib, Attrib]}) -> 
   R = node_add_attribute(Config, Node, Attrib),
+  {"node_id", NodeID} = lists:keyfind("node_id", 1, json:parse(R)),
+  {"attrib_id", AttribID} = lists:keyfind("attrib_id", 1, json:parse(R)),
   {"id", NodeAttrib} = lists:keyfind("id", 1, json:parse(R)),
   bdd_utils:scenario_store(Scenario, nodeattrib, NodeAttrib),
+  bdd_utils:scenario_store(Scenario, node, NodeID),
+  bdd_utils:scenario_store(Scenario, attrib, AttribID),
   bdd_utils:scenario_store(Scenario, {nodeattrib, Node, Attrib}, NodeAttrib),
-  bdd_utils:log(Config, debug, "node: given node ~p has attrib ~p.  Result ~p",[Node, Attrib, R]),
+  bdd_utils:log(Config, debug, "node: given node ~p (~p) has attrib ~p (~p).  Result ~p",[Node, NodeID, Attrib, AttribID, R]),
   {ajax, R, {200, "node attrib assign step"}};
 
 step(Config, Result, {step_then, _N, ["the result is a valid node-attribute json"]}) ->

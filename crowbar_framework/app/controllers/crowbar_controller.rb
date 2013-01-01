@@ -71,7 +71,7 @@ class CrowbarController < BarclampController
     # list (no ID)
     elsif request.get?  
       attribs = {}
-      @node.values.each { |a| attribs[a.attrib.id] = a.value }
+      @node.values.each { |a| attribs[a.attrib.id] = (a.value.nil? ? 'null' : a.value ) }
       render :json => attribs
     # Catch
     else

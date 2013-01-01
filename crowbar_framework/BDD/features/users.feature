@@ -16,7 +16,7 @@ Feature: Users
     When I click on the "Add User" link 
     Then I should see "Node Dashboard"
       
-  Scenario: User List
+  Scenario: %User List
     Unless undefined
     Given there is a user "oscar"
     When REST gets the user list

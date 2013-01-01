@@ -8,7 +8,7 @@ Feature: Scaffolds
   TODO: role_element_order 
   
   Scenario: Attribute
-    When I go to the "scaffolds/attributes" page
+    When I go to the "scaffolds/attribs" page
     Then I should see "Attributes"
       And I should see "Name"
       And I should see "Description"

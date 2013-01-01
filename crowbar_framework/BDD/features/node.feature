@@ -64,7 +64,7 @@ Feature: Nodes
   Scenario: Node Attribute List Works
     Given {object:node} "bdd1.example.com" has {object:attrib} "bddtest1"
     When REST gets the node-attribute list for "bdd1.example.com"
-    Then id {object:nodeattrib} should have value "nil"
+    Then id {object:attrib} should have value "null"
     Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
 
   Scenario: %Node Attribute Get Value
@@ -85,7 +85,8 @@ Feature: Nodes
       And REST removes {object:node} "node2.attribute.com"
       And REST removes {object:attrib} "bdd2test"  
   
-  Scenario: Node Remove Attribute
+  Scenario: %Node Remove Attribute
+    Unless finished
     Given there is a {object:node} "node3.attribute.com" with {object:attrib} "bdd3test"
     When REST unassigns {object:attrib} "bdd3test" from {object:node} "node3.attribute.com"
     Then the page returns "200" result
@@ -94,6 +95,7 @@ Feature: Nodes
       And REST removes {object:attrib} "bdd3test"  
 
   Scenario: %Node cannot Update Attribute
+    Unless finished
     Given there is a {object:node} "node4.attribute.com" with {object:attrib} "bdd4test"
     When REST updates {object:attrib} "bdd4test" on {object:node} "node4.attribute.com"
     Then the page returns "405" result

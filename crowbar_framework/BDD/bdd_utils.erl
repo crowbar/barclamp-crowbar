@@ -254,6 +254,7 @@ scenario_store(ID, Key, Value) ->
                   L ++ [{Key, Value}]
   end,
   put({scenario, ID}, Store),
+  log(trace, "bdd_utils:scenario_store for ~p storing ~p as ~p", [ID, Key, Value]),
   Store.
 
 % retieves values used inside a scenario
@@ -266,6 +267,7 @@ scenario_retrieve(ID, Key, Default) ->
                     {Key, R}  -> R
                  end
   end,
+  log(trace, "bdd_utils:scenario_retrieve for ~p retrieving ~p as ~p", [ID, Key, Return]),
   Return.
   
 % removes whitespace 

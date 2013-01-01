@@ -74,9 +74,9 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   end,
   % try request
   {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
-    get -> http:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
-    delete -> http:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
-    _ -> http:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions, Options)
+    get -> httpc:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
+    delete -> httpc:request(Method, {URL, TrialHeader}, HTTPOptions, Options);
+    _ -> httpc:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions, Options)
   end,
   % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
   case Code of
@@ -90,16 +90,16 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
 	      S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
 	    end,
       case Method of 
-        get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
-        delete -> http:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
-        _ -> http:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions, Options)
+        get -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
+        delete -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions, Options);
+        _ -> httpc:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions, Options)
       end;
     _ -> {Status,{{Protocol,Code,Comment}, Fields, Message}}
   end.
 
 %% Simplifed version of request that returns the Auth Header to save future round trips  
 header(Config, URL) ->
-  {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} = http:request(URL++"/digest"),
+  {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} = httpc:request(URL++"/digest"),
   % if 401, then get the auth info and retry
   case {Status, Code} of
     {ok, 401} -> Config ++ [{digest_field, proplists:get_value("www-authenticate", Fields)}];

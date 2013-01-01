@@ -32,6 +32,7 @@ class ProposalModelTest < ActiveSupport::TestCase
     assert_equal p.status, p_new.status
  
     assert_equal p.active_config, p_new.active_config
+    assert_equal p.current_config.config, p_new.current_config.config
     assert_equal p.current_config.status, p_new.current_config.status
     assert_equal p.current_config.failed_reason, p_new.current_config.failed_reason
     assert_equal p.proposal_configs.size, p_new.proposal_configs.size

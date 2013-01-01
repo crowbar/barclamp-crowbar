@@ -56,7 +56,7 @@ scenario(ConfigName, Feature, ID) when is_number(ID)
                                        -> scenario(ConfigName, Feature, ID, [puts, info, warn, error]);
 scenario(ConfigName, Feature, Name)    -> 
   ID = erlang:phash2(Name),
-  bdd_utils:log(info, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
+  log(info, "Running Scenario ~p with feature ~p (id: ~p)", [Feature, Name, ID]),
   scenario(ConfigName, Feature, ID).
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
@@ -147,9 +147,9 @@ start(Config) ->
     false -> 
       bdd_utils:config_unset(auth_field),    % clear field to get new token
       case {application:start(crypto), application:start(inets)} of
-        {ok, ok}                 -> bdd_utils:log(Config, trace, "Started Crypto & Inets Services",[]);
-        {{error, A}, {error, B}} -> bdd_utils:log(Config, trace, "Errors Reported: Inets ~p Crypto ~p",[B, A]);
-        {A, B}                   -> bdd_utils:log(Config, trace, "Start Reporting: Inets ~p Crypto ~p",[B, A])
+        {ok, ok}                 -> log(trace, "Started Crypto & Inets Services",[]);
+        {{error, A}, {error, B}} -> log(trace, "Errors Reported: Inets ~p Crypto ~p",[B, A]);
+        {A, B}                   -> log(trace, "Start Reporting: Inets ~p Crypto ~p",[B, A])
       end,
       AzConfig = bdd_utils:is_site_up(Config),
       file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
@@ -183,12 +183,12 @@ getconfig(ConfigName)                  ->
 feature_import(FileName) ->
   Features = case file:read_file(FileName) of
     {ok, F} -> F;
-    _ ->  bdd_utils:log(error, "bdd:feature_import could not find file ~p",[FileName]), throw(bddInvalidFile)
+    _ ->  log(error, "bdd:feature_import could not find file ~p",[FileName]), throw(bddInvalidFile)
   end,
   [Header | Body] = re:split(Features,"Scenario:"),
   Name = bdd_utils:clean_line(string:tokens(binary_to_list(Header),"\n")),
   Scenarios = [binary_to_list(S) || S <- Body],
-  bdd_utils:log(trace, "bdd:feature_import reading feature ~p with ~p scenarios",[FileName, length(Scenarios)]),
+  log(trace, "bdd:feature_import reading feature ~p with ~p scenarios",[FileName, length(Scenarios)]),
   {feature, Name, Scenarios}.
 	
 % run the scenarios, test list allows you to pick which tests
@@ -203,7 +203,7 @@ setup_scenario(Config, Scenario, ID) ->
     TestID =:= ID -> test_scenario(Config, RawSteps, Name);
     true          -> skip
   end,
-  bdd_utils:log(Result, "~s (~p)", [Name, TestID]),
+  log(Result, "~s (~p)", [Name, TestID]),
   {TestID, Result}.
 
 % pass through to bdd_utils
@@ -305,12 +305,12 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  log(error, "badmatch in code due to no_scheme.",[]), 
       log(error, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
-		  error; %throw("BDD ERROR: unexpected match.");
+		  error; 
 		X: Y -> 
 		  log(error, "step run found ~p:~p", [X, Y]), 
       log(error, "Stacktrace: ~p", [erlang:get_stacktrace()]),
       log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),
-		  error %throw("BDD ERROR: Unknown error type in BDD:step_run.")
+		  error 
 	end;
 
 % we don't want to FAIL for missing setup and teardown steps	
@@ -321,7 +321,7 @@ step_run(Config, _Input, {step_teardown, _, Feature}, [])
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->
-	bdd_utils:log(error, "Unable to resolve step ~p!", [Step]),
+	log(error, "Unable to resolve step ~p!", [Step]),
 	throw("FAIL: no matching expression found for Step"), 
 	error.
 	
@@ -341,16 +341,16 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	  {Type, SS} -> {Type, SS}
 	end,
 	case Step of
-	  {step_skip, S}    ->  bdd_utils:log(debug,"Skipping ~p due to ~p", [ScenarioID, S]), 
+	  {step_skip, S}    ->  log(info,"Skipping ~p ~s", [ScenarioID, S]), 
                     	    skip;
 		{step_unless, S}  ->  Unless = [list_to_atom(A) || A <-S],
                           Env = bdd_utils:config(Config, environment, undefined),
                           % if unless list is included in env list then skip
                     	    case lists:member(Env, Unless) of 
-                    	      true  -> log(debug,"Skipping ~p [~p in ~p]", [ScenarioID, Env, Unless]), 
-                    	               skip;
-                    	      _     -> log(debug,"bdd:test_scenario: running ~p [~p not in ~p]", [ScenarioID, Env, Unless]),
-                                     scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID)
+                    	      true     -> log(debug,"bdd:test_scenario: running ~p [~p in ~p]", [ScenarioID, Env, Unless]),
+                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID);
+                    	      _        -> log(debug,"Skipping ~p [~p not in ~p]", [ScenarioID, Env, Unless]), 
+                    	                  skip
                     	    end;
 		{step_given, S}   -> scenario_steps(Config, T, N+1, [{step_given, {ScenarioID, N}, S} | Given], When, Then, Finally, step_given, ScenarioID);
 		{step_when, S}    -> scenario_steps(Config, T, N+1, Given, [{step_when, {ScenarioID, N}, S} | When], Then, Finally, step_when, ScenarioID);
@@ -391,20 +391,20 @@ is_clean(Config, StartState) ->
   case Diff of
     []      -> true;
     % TODO - cleanup should tell you if the artifacts are from BEFORE or AFTER.  Right now, it is not clear!
-    Orphans -> bdd_utils:log(Config, warn, "BDD:is_clean Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
+    Orphans -> log(warn, "BDD:is_clean Inspector Reports tests did NOT CLEANUP all artifacts!~n\tOrphans: ~p.~n",[Orphans]),
                false
   end.
 
 % figure out what type of step we are doing (GIVEN, WHEN, THEN, etc), return value
-step_type([$S, $k, $i, $p, 32 | Skip])            ->	{ step_skip, Skip};
-step_type([$U, $n, $l, $e, $s, $s, 32 | Unless])  ->	{ step_unless, Unless};
+step_type([$S, $k, $i, $p, 32 | Skip])            ->  { step_skip, Skip};
+step_type([$U, $n, $l, $e, $s, $s, 32 | Unless])  ->  { step_unless, Unless};
 step_type([$G, $i, $v, $e, $n, 32 | Given])       ->	{ step_given, Given };
 step_type([$W, $h, $e, $n, 32 | When] )           ->	{ step_when, When };
-step_type([$T, $h, $e, $n, 32 | Then ])           -> 	{ step_then, Then };
+step_type([$T, $h, $e, $n, 32 | Then ])           ->  { step_then, Then };
 step_type([$F, $i, $n, $a, $l, $l, $y, 32 | F ])  ->  { step_finally, F };
-step_type([$A, $n, $d, 32 | Next ])               -> 	{ step_and, Next };
-step_type([])                                     ->	{ empty, []};
-step_type(Step)                                   ->	{ unknown, Step }.
+step_type([$A, $n, $d, 32 | Next ])               ->  { step_and, Next };
+step_type([])                                     ->  { empty, []};
+step_type(Step)                                   ->  { unknown, Step }.
 
 %utilities to create step information from code
 steps_output(RE, Step) ->

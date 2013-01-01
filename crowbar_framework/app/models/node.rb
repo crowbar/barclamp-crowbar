@@ -36,9 +36,7 @@ class Node < ActiveRecord::Base
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
   has_many :node_attribs, :dependent => :destroy
-  has_many :values, :class_name => 'NodeAttrib', :foreign_key=>'node_id'      #alias for node_attribs
   has_many :attribs, :through => :node_attribs
-
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 

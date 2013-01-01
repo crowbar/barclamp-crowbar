@@ -100,10 +100,8 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_not_nil n
     a = n.attrib_get(name)
     assert_not_nil a
-    assert_nil a.description
     assert_equal I18n.t('model.attribs.node.default_create_description'), a.attrib.description
     assert_nil a.value
-    assert_nil a.description
     attrib = Attrib.find_by_name name
     assert_equal name, attrib.name
     assert_equal I18n.t('model.attribs.node.default_create_description'), attrib.description

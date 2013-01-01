@@ -124,22 +124,17 @@ Feature: Scaffolds
       
       
   Scenario: Configuration Attibs
-    When I go to the "scaffolds/cmdb_attributes" page
-    Then I should see "CmdbAttributes"
+    When I go to the "scaffolds/attribs" page
+    Then I should see "Attrib"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Revision"
-      And I should see "Value"
-      And I should see "Cmdb map"
-      And I should see "Cmdb run"
-      And I should see "Node attribute"
+      And I should see "Node attribs"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
-      And there should be no translation errors  
-      
+      And there should be no translation errors        
       
   Scenario: Interfaces
     When I go to the "scaffolds/interfaces" page

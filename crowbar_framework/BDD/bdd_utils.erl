@@ -177,12 +177,12 @@ is_a(Type, Value) ->
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
   URL = bdd_utils:config(Config, url),
-  bdd_utils:log(Config, header, "Site ~p", [URL]),
+  log(Config, header, "Site ~p", [URL]),
   AzConfig = simple_auth:authenticate_session(Config, URL),
-  case proplists:get_value(auth_error,AzConfig) of
+  case config(AzConfig, auth_error, undefined) of
     undefined -> AzConfig; % success
     Reason -> 
-      bdd_utils:log(Config, error, "Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
+      log(Config, error, "bdd_utils: Web site '~p' is not responding! Remediation: Check server.  Message: ~p", [URL, Reason]),
       Config
   end.
 
@@ -211,7 +211,7 @@ config(Config, Key, Default) ->
           case get(Key) of
             undefined -> 
                   put(Key, Default), 
-                  bdd_utils:log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
+                  log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
             _ -> all_good
           end,
           Value;

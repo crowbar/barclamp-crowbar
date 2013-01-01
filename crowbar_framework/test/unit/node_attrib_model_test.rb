@@ -86,8 +86,8 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     n = Node.find @node.id
     assert_not_nil n
     assert n.attribs.count > 0
-    assert n.values.count > 0
-    na = n.values[0]
+    assert n.node_attribs.count > 0
+    na = n.node_attribs[0]
     assert_not_nil na
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual

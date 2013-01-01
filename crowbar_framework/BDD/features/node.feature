@@ -67,7 +67,8 @@ Feature: Nodes
     Then id {object:attrib} should have value "null"
     Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
 
-  Scenario: %Node Attribute Get Value
+  Scenario: Node Attribute Get Value
+    Skip while Rob creates a way to set the value
     Given {object:node} "node1.attribute.com" with {object:attrib} "bdd1test" has value "foo"
     When REST gets the {object:node} "node1.attribute.com" with {object:attrib} "bdd1test"
     Then there is a key "value"
@@ -85,8 +86,8 @@ Feature: Nodes
       And REST removes {object:node} "node2.attribute.com"
       And REST removes {object:attrib} "bdd2test"  
   
-  Scenario: %Node Remove Attribute
-    Unless finished
+  Scenario: Node Remove Attribute
+    Skip while Rob fixes this
     Given there is a {object:node} "node3.attribute.com" with {object:attrib} "bdd3test"
     When REST unassigns {object:attrib} "bdd3test" from {object:node} "node3.attribute.com"
     Then the page returns "200" result
@@ -94,10 +95,12 @@ Feature: Nodes
     Finally REST removes {object:node} "node3.attribute.com"
       And REST removes {object:attrib} "bdd3test"  
 
-  Scenario: %Node cannot Update Attribute
-    Unless finished
+  Scenario: Node can Update Attribute
+    Skip while Rob H works on this
     Given there is a {object:node} "node4.attribute.com" with {object:attrib} "bdd4test"
+      Given I set {object:node_attrib} property "value" to "foo"
     When REST updates {object:attrib} "bdd4test" on {object:node} "node4.attribute.com"
-    Then the page returns "405" result
+    Then the page returns "200" result
+      And ...
     Finally REST removes {object:node} "node4.attribute.com"
       And REST removes {object:attrib} "bdd4test"  

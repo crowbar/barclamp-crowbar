@@ -44,6 +44,7 @@ Feature: Nodes
       And I should see "Memory"
       And I should see "Disk Drives"
       And I should see a link to "Edit"
+      And there should be no translation errors
 
   Scenario: Node Detail REST
     When REST gets the node "bdd1.example.com"
@@ -61,38 +62,45 @@ Feature: Nodes
       And the node is properly formatted
 
   Scenario: Node Attribute List Works
-    Given {object:node} "bdd1.example.com" has {object:attribute} "bddtest1"
+    Given {object:node} "bdd1.example.com" has {object:attrib} "bddtest1"
     When REST gets the node-attribute list for "bdd1.example.com"
-    Then there should be a value "bddtest1"
-    Finally REST unassigns {object:attribute} "bddtest1" from {object:node} "bdd1.example.com"
+    Then id {object:attrib} should have value "null"
+    Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
 
-  Scenario: %Node Attribute Get Events
-    Given {object:node} "node1.attribute.com" with {object:attribute} "bdd1test" has value "foo"
-    When REST gets the {object:node} "node1.attribute.com" with {object:attribute} "bdd1test"
-    Then there is a value "foo"
+  Scenario: Node Attribute Get Value
+    Skip while Rob creates a way to set the value
+    Given {object:node} "node1.attribute.com" with {object:attrib} "bdd1test" has value "foo"
+    When REST gets the {object:node} "node1.attribute.com" with {object:attrib} "bdd1test"
+    Then there is a key "value"
+      And key "value" should be "foo"
     Finally REST removes {object:node} "node1.attribute.com"
-      And REST removes {object:attribute} "bdd1test"  
+      And REST removes {object:attrib} "bdd1test"  
       
   Scenario: Node Assign Attribute
     Given there is a {object:node} "node2.attribute.com"
-      And there is a {object:attribute} "bdd2test"
-    When REST assigns {object:attribute} "bdd2test" to {object:node} "node2.attribute.com"
+      And there is a {object:attrib} "bdd2test"
+    When REST assigns {object:attrib} "bdd2test" to {object:node} "node2.attribute.com"
     Then the result is a valid node-attribute json
-      And {object:node} "node2.attribute.com" has {object:attribute} "bdd2test"
-    Finally REST unassigns {object:attribute} "bddtest1" from {object:node} "bdd1.example.com"
+      And {object:node} "node2.attribute.com" has {object:attrib} "bdd2test"
+    Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
       And REST removes {object:node} "node2.attribute.com"
-      And REST removes {object:attribute} "bdd2test"  
+      And REST removes {object:attrib} "bdd2test"  
   
-  Scenario: %Node Remove Attribute
-    Given there is a {object:node} "node3.attribute.com" with {object:attribute} "bdd3test"
-    When REST unassigns {object:attribute} "bdd3test" from {object:node} "node3.attribute.com"
+  Scenario: Node Remove Attribute
+    Skip while Rob fixes this
+    Given there is a {object:node} "node3.attribute.com" with {object:attrib} "bdd3test"
+    When REST unassigns {object:attrib} "bdd3test" from {object:node} "node3.attribute.com"
     Then the page returns "200" result
+      And {object:node} "node2.attribute.com" has no {object:attrib} "bdd2test"
     Finally REST removes {object:node} "node3.attribute.com"
-      And REST removes {object:attribute} "bdd3test"  
+      And REST removes {object:attrib} "bdd3test"  
 
-  Scenario: %Node cannot Update Attribute
-    Given there is a {object:node} "node4.attribute.com" with {object:attribute} "bdd4test"
-    When REST updates {object:attribute} "bdd4test" on {object:node} "node4.attribute.com"
-    Then the page returns "405" result
+  Scenario: Node can Update Attribute
+    Skip while Rob H works on this
+    Given there is a {object:node} "node4.attribute.com" with {object:attrib} "bdd4test"
+      Given I set {object:node_attrib} property "value" to "foo"
+    When REST updates {object:attrib} "bdd4test" on {object:node} "node4.attribute.com"
+    Then the page returns "200" result
+      And ...
     Finally REST removes {object:node} "node4.attribute.com"
-      And REST removes {object:attribute} "bdd4test"  
+      And REST removes {object:attrib} "bdd4test"  

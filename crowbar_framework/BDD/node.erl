@@ -15,6 +15,7 @@
 % 
 -module(node).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
+-export([node_add_attrib/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -29,9 +30,7 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  _Description = json:keyfind(JSON, description), % ADD CHECK!,
-  R =[bdd_utils:is_a(number, json:keyfind(JSON, order)),
-      bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
+  R =[bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
       bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
       bdd_utils:is_a(string, json:keyfind(JSON, state)), 
       bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
@@ -40,12 +39,18 @@ validate(JSON) ->
   bdd_utils:assert(R).
 
 validate_node_attribute(JSON) ->
-  R =[bdd_utils:is_a(JSON, dbid, node), 
-      bdd_utils:is_a(JSON, dbid, attribute), 
-      bdd_utils:is_a(JSON, string, name), 
-      bdd_utils:is_a(JSON, str, description), 
-      %bdd_utils:is_a(JSON, value, string), 
-      length(JSON) =:= 4],
+  R =[bdd_utils:is_a(JSON, dbid, node_id), 
+      bdd_utils:is_a(JSON, dbid, attrib_id), 
+      bdd_utils:is_a(JSON, str, value), 
+      bdd_utils:is_a(JSON, string, state), 
+      % standard checks (have to do because name is NOT standard)
+      bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
+      bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
+      bdd_utils:is_a(JSON, "^([a-zA-Z0-9\\-]*)@([a-zA-Z0-9\\-\\.]*$)", name), 
+      bdd_utils:is_a(JSON, str, description),
+      bdd_utils:is_a(JSON, integer, order),
+      bdd_utils:is_a(JSON, dbid, id),
+      length(JSON) =:= 10],
   bdd_utils:assert(R, debug). 
   
 % Common Routine
@@ -59,6 +64,7 @@ node_attribute_path(Node, Attribute) ->
   AttribPath = eurl:path(NodePath,"attrib"),
   eurl:path(AttribPath,Attribute).
   
+node_add_attrib(Config, Node, Attribute)    -> node_add_attribute(Config, Node, Attribute).
 node_add_attribute(Config, Node, Attribute) ->
   Path = node_attribute_path(Node, Attribute),
   bdd_utils:log(Config, debug, "Node connect node+attributes ~p", [Path]),
@@ -86,14 +92,21 @@ step(Config, _Given, {step_when, _N, ["REST gets the node-attribute list for",No
   bdd_utils:log(Config, debug, "Nodes get node-attributes path ~p", [Path]),
   eurl:get_ajax(Config, Path);
 
-step(Config, _Given, {step_when, _N, ["REST assigns",attribute,Attribute,"to",node,Node]}) -> 
+step(Config, _Given, {step_when, _N, ["REST assigns",attrib,Attribute,"to",node,Node]}) -> 
   R = node_add_attribute(Config, Node, Attribute),
   {ajax, json:parse(R), {200, "not attribute assign step"}};
 
-step(Config, _Global, {step_given, _N, [node,Node,"has",attribute, Attribute]}) -> 
-  R = node_add_attribute(Config, Node, Attribute),
-  bdd_utils:log(Config, debug, "node: given node ~p has attribute ~p.  Result ~p",[Node, Attribute, R]),
-  {ajax, R, {200, "node attribute assign step"}};
+step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib, Attrib]}) -> 
+  R = node_add_attribute(Config, Node, Attrib),
+  {"node_id", NodeID} = lists:keyfind("node_id", 1, json:parse(R)),
+  {"attrib_id", AttribID} = lists:keyfind("attrib_id", 1, json:parse(R)),
+  {"id", NodeAttrib} = lists:keyfind("id", 1, json:parse(R)),
+  bdd_utils:scenario_store(Scenario, nodeattrib, NodeAttrib),
+  bdd_utils:scenario_store(Scenario, node, NodeID),
+  bdd_utils:scenario_store(Scenario, attrib, AttribID),
+  bdd_utils:scenario_store(Scenario, {nodeattrib, Node, Attrib}, NodeAttrib),
+  bdd_utils:log(Config, debug, "node: given node ~p (~p) has attrib ~p (~p).  Result ~p",[Node, NodeID, Attrib, AttribID, R]),
+  {ajax, R, {200, "node attrib assign step"}};
 
 step(Config, Result, {step_then, _N, ["the result is a valid node-attribute json"]}) ->
   bdd_utils:log(Config, x, "node: valid node-attribute? result ~p",[Result]),
@@ -101,7 +114,7 @@ step(Config, Result, {step_then, _N, ["the result is a valid node-attribute json
   bdd_utils:log(Config, debug, "node: valid node-attribute? json ~p",[JSON]),
   validate_node_attribute(JSON);
 
-step(Config, _Result, {step_then, _N, [node,Node,"has",attribute,Attribute]}) -> 
+step(Config, _Result, {step_then, _N, [node,Node,"has",attrib,Attribute]}) -> 
   Path = node_attribute_path(Node, Attribute),
   R = eurl:get_page(Config, Path, all),
   bdd_utils:log(Config, debug, "node node ~p has attribute ~p result ~p",[Node, Attribute, R]),
@@ -115,27 +128,28 @@ step(Config, _Result, {step_then, _N, [node,Node,"has",attribute,Attribute]}) ->
 step(Config, _Given, {step_finally, _N, ["REST removes the node",Node]}) -> 
   bdd_restrat:destroy(Config, g(path), Node);
 
-step(Config, _Given, {step_finally, _N, ["REST unassigns",attribute,Attribute,"from",node,Node]}) -> 
+step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from",node,Node]}) -> 
   NodePath = eurl:path(g(path), Node),
   Path = eurl:path(NodePath,"attrib"),
 bdd_utils:log(Config, debug, "Node disconnect node+attributes ~p ~p", [Path, Attribute]),
   eurl:delete(Config, Path, Attribute);
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
+  bdd:log(trace, "Entering Node setup step", []),
   % create attribute for tests
-  Attrib0 = attribute:json("bddtestglobal", g(description), 100),
-  C0 = bdd_restrat:create(Config, attribute:g(path), nodeattrib0, "bddtestglobal", Attrib0),
-  Attrib1 = attribute:json("bddtest1", g(description), 101),
-  C1 = bdd_restrat:create(C0, attribute:g(path), nodeattrib1, "bddtest1", Attrib1),
+  Attrib0 = attrib:json("bddtestglobal", g(description), 100),
+  bdd_restrat:create([], attrib:g(path), nodeattrib0, "bddtestglobal", Attrib0),
+  Attrib1 = attrib:json("bddtest1", g(description), 101),
+  bdd_restrat:create([], attrib:g(path), nodeattrib1, "bddtest1", Attrib1),
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
-  C2 = bdd_restrat:create(C1, g(path), g(atom), g(name), Node),
-  node_add_attribute(C2, g(name), "bddtestglobal"),
-  C2;
+  bdd_restrat:create([], g(path), g(atom), g(name), Node),
+  node_add_attribute([], g(name), "bddtestglobal"),
+  Config;
 
-step(Config, _Global, {step_teardown, _N, _}) -> 
+step(_Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  bdd_restrat:destroy(Config, g(path), g(atom)),
-  bdd_restrat:destroy(Config, attributes:g(path), nodeattrib0),
-  bdd_restrat:destroy(Config, attributes:g(path), nodeattrib1).
+  bdd_restrat:destroy([], g(path), g(atom)),
+  bdd_restrat:destroy([], attrib:g(path), nodeattrib0),
+  bdd_restrat:destroy([], attrib:g(path), nodeattrib1).
   

@@ -263,7 +263,8 @@ class Barclamp < ActiveRecord::Base
       self.import_1x_deployment(barclamp, json)
  
       prop = Proposal.create(:name => "template", :description => "template")
-      prop_config = ProposalConfig.create(:config => json["attributes"].to_json)
+      prop_config = ProposalConfig.new
+      prop_config.config = json["attributes"].to_json
       prop_config.proposal = prop
       prop_config.save!
 

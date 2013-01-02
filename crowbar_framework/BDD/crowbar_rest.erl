@@ -25,9 +25,11 @@ g(Item) ->
 
 % validates JSON in a generic way common to all objects
 validate(JSON) ->
-  R = [true, % placeholder for createdat
-       true, % placgit eholder for updatedat
+  R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
+       bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
        bdd_utils:is_a(JSON, name, name), 
+       bdd_utils:is_a(JSON, str, description),
+       bdd_utils:is_a(JSON, int, order),
        bdd_utils:is_a(JSON, dbid, id)],
   bdd_utils:assert(R, debug). 
 

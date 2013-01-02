@@ -101,25 +101,13 @@ describe ProposalQueue do
   end
 
   describe "Self.update_proposal_status" do
-    it "should return true if proposal is not active" do
-      mock_p = mock(Proposal)
-      mock_p.should_receive(:active?).exactly(1).times.and_return(false)
-      mock_p.should_receive(:active_config).exactly(0).times
-      mock_pc = mock(ProposalConfig)
-      mock_pc.should_receive(:proposal).exactly(1).times.and_return(mock_p)
-      mock_pc.should_receive(:status=).exactly(0).times
-      mock_pc.should_receive(:failed_reason=).exactly(0).times
-      mock_pc.should_receive(:save).exactly(0).times
-
-      answer = ProposalQueue.update_proposal_status(mock_pc, "status", "message")
+    it "should return true if proposal is nil" do
+      answer = ProposalQueue.update_proposal_status(nil, "status", "message")
       answer.should be true
     end
 
     it "should return true if proposal is active and set status and message" do
-      mock_p = mock(Proposal)
-      mock_p.should_receive(:active?).exactly(1).times.and_return(true)
       mock_pc = mock(ProposalConfig)
-      mock_pc.should_receive(:proposal).exactly(1).times.and_return(mock_p)
       mock_pc.should_receive(:status=).exactly(1).times do |arg|
         arg.should eq("status")
       end
@@ -127,17 +115,13 @@ describe ProposalQueue do
         arg.should eq("message")
       end
       mock_pc.should_receive(:save).exactly(1).times.and_return(true)
-      mock_p.should_receive(:active_config).exactly(3).times.and_return(mock_pc)
 
       answer = ProposalQueue.update_proposal_status(mock_pc, "status", "message")
       answer.should be true
     end
 
     it "should return false if proposal is active and set status and message and save fails" do
-      mock_p = mock(Proposal)
-      mock_p.should_receive(:active?).exactly(1).times.and_return(true)
       mock_pc = mock(ProposalConfig)
-      mock_pc.should_receive(:proposal).exactly(1).times.and_return(mock_p)
       mock_pc.should_receive(:status=).exactly(1).times do |arg|
         arg.should eq("status")
       end
@@ -145,7 +129,6 @@ describe ProposalQueue do
         arg.should eq("message")
       end
       mock_pc.should_receive(:save).exactly(1).times.and_return(false)
-      mock_p.should_receive(:active_config).exactly(3).times.and_return(mock_pc)
 
       answer = ProposalQueue.update_proposal_status(mock_pc, "status", "message")
       answer.should be false
@@ -238,6 +221,22 @@ describe ProposalQueue do
         end.and_return([200, ""])
         n.should_receive(:allocate).exactly(0).times
       end
+      answer = ProposalQueue.make_applying_or_delay(nodes, true)
+      answer.should eq([])
+    end
+    it "should return an empty list and set_state of nodes if apply and nodes (more than one with duplicates) are ready" do
+      n = mock(Node)
+      nodes = [ mock(Node), n, mock(Node) ]
+      nodes.each do |n|
+        n.should_receive(:state).exactly(1).times.and_return("ready")
+        n.should_receive(:name).exactly(0).times
+        n.should_receive(:set_state).exactly(1).times do |arg1, arg2|
+          arg1.should eq("applying")
+          arg2.should eq("ready")
+        end.and_return([200, ""])
+        n.should_receive(:allocate).exactly(0).times
+      end
+      nodes << n # Add the duplicate
       answer = ProposalQueue.make_applying_or_delay(nodes, true)
       answer.should eq([])
     end

@@ -73,6 +73,7 @@ class Cmdb < ActiveRecord::Base
 
     evt
   end
+<<<<<<< HEAD
 
   # compute event for execution by computing whatever the cmdb backend needs
   def prepare_for_execution(evt,config)

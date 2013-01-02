@@ -25,7 +25,7 @@ class CrowbarController < BarclampController
       :name=>'crowbar', 
       :version=>'2.0', 
       :accepts=>['2.0'], 
-      :actions=>['node','group','cmdb', 'attribute'],
+      :actions=>['node','group','cmdb', 'attrib'],
       :license=>'apache2', 
       :copyright=>'Dell, Inc 2012'
     }
@@ -43,29 +43,35 @@ class CrowbarController < BarclampController
   end
   
   def node_attribs
-    @attrib = Attribute.find_key(params[:target_id]) if params[:target_id]
+    unless params[:version].eql?('2.0')
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
+      return
+    end
+    @node = Node.find_key(params[:id]) if params[:id]
+    @attrib = Attrib.find_key(params[:target_id]) if params[:target_id]
     # POST
     if request.post?
-      @node.attribs << @attrib unless @node.attribs.include? @attrib
-      render :json => {:node=>@node.id, :attribute=>@attrib.id, :name=>@attrib.name, :description=>@attrib.description}
+      @attrib = Attrib.create(:name=>params[:target_id]) if @attrib.nil? # then create the attrib
+      @na = NodeAttrib.find_or_create_by_node_and_attrib @node, @attrib
+      render :json => @na
     # PUT (not supported)
     elsif request.put?
       throw 'not implemented'
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'node_attribute'), :status => 504
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'node_attrib'), :status => 504
     # DELETE
     elsif request.delete? and @attrib
-      @node.attribs.delete @attrib
-      render :text=>I18n.t('api.deleted', :id=>@attrib.id, :obj=>'node_attribute')
+      id = NodeAttrib.delete_by_node_and_attrib @node, @attrib
+      render :text=>I18n.t('api.deleted', :id=>id, :obj=>'node_attrib')
     # fall through REST actions (all require ID)
     elsif request.get? and @attrib
-      # MISSING - get actual value!!! 
-      render :json => {:node=>@node.id, :attribute=>@attrib.id, :value=>'unknown', :last_updated=>'unknown'}
+      @na = NodeAttrib.find_by_node_and_attrib @node, @attrib
+      render :json => @na
     elsif params[:target_id]
       render :text=>I18n.t('api.not_found', :type=>'node_attrib', :id=>params[:target_id]), :status => 404
     # list (no ID)
     elsif request.get?  
       attribs = {}
-      @node.attribs.each { |a| attribs[a.id] = a.name }
+      @node.node_attribs.each { |a| attribs[a.attrib.id] = (a.value.nil? ? 'null' : a.value ) }
       render :json => attribs
     # Catch
     else
@@ -142,34 +148,34 @@ class CrowbarController < BarclampController
     end
   end
   
-  def attribute
+  def attribs
     unless params[:version].eql?('2.0')
       render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
       return
     end
-    @attribute = Attribute.find_key(params[:id]) if params[:id]
+    @attrib = Attrib.find_key(params[:id]) if params[:id]
     
     # POST
     if request.post?
-      @attribute = Attribute.create params
-      render :json => @attribute
+      @attrib = Attrib.create params
+      render :json => @attrib
     # PUT (not supported)
     elsif request.put?
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'attribute'), :status => 504
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'attrib'), :status => 504
     # DELETE
-    elsif request.delete? and @attribute
-      Attribute.delete @attribute.id
-      render :text=>I18n.t('api.deleted', :id=>@attribute.id, :obj=>'attribute')
+    elsif request.delete? and @attrib
+      Attrib.destroy @attrib.id
+      render :text=>I18n.t('api.deleted', :id=>@attrib.id, :obj=>'attrib')
     # fall through REST actions (all require ID)
-    elsif request.get? and @attribute
-      render :json => @attribute
+    elsif request.get? and @attrib
+      render :json => @attrib
     elsif params[:id]
-      render :text=>I18n.t('api.not_found', :type=>'attribute', :id=>params[:id]), :status => 404
+      render :text=>I18n.t('api.not_found', :type=>'attrib', :id=>params[:id]), :status => 404
     # list (no ID)
     elsif request.get?  
-      attributes = {}
-      Attribute.all.each { |a| attributes[a.id] = a.name }
-      render :json => attributes
+      attribs = {}
+      Attrib.all.each { |a| attribs[a.id] = a.name }
+      render :json => attribs
     # Catch
     else
       render :text=>I18n.t('api.unknown_request'), :status => 400

@@ -26,7 +26,7 @@ A step is a standard Erlang function with 3 parameters:
 
 Let's look at an example step:
 
-    step(Config, _Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
+    step(Config, _Global, {step_given, {_ScenarioID, _N}, ["I went to the", Page, "page"]}) ->
         bdd_utils:http_get(Config, Page);
 
 This step will match the DSL `Given I went to the "dashboard" page` in the scenario.  It simply does an HTTP get using the BDD utilities.  The `http_get` routine takes the base URL from the config file and adds the page information from the sentence.  BDD will take the result of this step function and add it to the `Given` list that is passed into all following 'when' steps.
@@ -62,7 +62,7 @@ To add pre/post-configuration for a Feature file, you must have an Erlang step f
 
 Setup Steps use the `step_setup` atom:
 
-    step(Config, _Global, {step_setup, _N, _}) -> 
+    step(Config, _Global, {step_setup, {_ScenarioID, _N}, _}) -> 
       io:format("\tNo Feature Setup Step.~n"),
       Config;
 
@@ -71,7 +71,7 @@ Setup Steps use the `step_setup` atom:
 
 Teardown Steps use the `step_teardown` atom:
 
-    step(Config, _Global, {step_teardown, _N, _}) -> 
+    step(Config, _Global, {step_teardown, {_ScenarioID, _N}, _}) -> 
       io:format("\tNo Feature Tear Down Step.~n"),
       Config;
 
@@ -79,7 +79,7 @@ To perform actions, replace or augment the code in the steps to perform the need
 
 For example, the Nodes feature setup and tear down look like this:
 
-    step(Config, _Global, {step_setup, _N, _}) -> 
+    step(Config, _Global, {step_setup, {_ScenarioID, _N}, _}) -> 
       Path = "node/2.0",
       Node1 = "BDD1.example.com",
       % just in case, cleanup first
@@ -91,12 +91,34 @@ For example, the Nodes feature setup and tear down look like this:
       io:format("\tCreated Node ~p (id=~p) for testing.~n", [Node1, Key]),
       [{node1, Key} | Config];
     
-    step(Config, Global, {step_teardown, _N, _}) -> 
+    step(Config, Global, {step_teardown, {_ScenarioID, _N}, _}) -> 
       % find the node from setup and remove it
       {"node1", Key} = lists:keyfind("node1", Global),
       http_delete(Config, Path, Key),
       io:format("\tRemoved Node ID ~p for Tear Down Step.~n", [Key]),
       Config;
+
+### Passing information between Steps in a Scenario
+
+There are two ways to pass information between Steps in a Scenario: the the Results list and the Config Bag.
+
+#### The Results List
+
+The Results list is the primary way that information to be tested is added/checked in steps.  The entire design of the BDD system is to have the When steps collect information that is checked by the Then steps.  The "Result" list is the way this information is passed into the Results for checking.  The same mechanism is used for passing information from the Given to When steps.
+
+#### The Config Bag
+
+The Results List is the primary mechanism to use this because the trace and step designs encourage it; however, there are times when it is necessary to collect Given information and use it in Then steps.  In these cases, you can store Scenario specific information for use within the other steps using Scenario store and retrieve routines.
+
+To Store, use `bdd_utils:scenario_store(ScenarioID, Key, Value)` in insert a KVP into the configuration thread space.  These values can be inspected from the Erlang shell using the regular `get({scenario, ID#})` approach.  It is recommended to store IDs of objects that Given steps create so they are avialable during Then checks.
+
+> Storing the same key again will replace the old value with the new value.
+
+To Revieve the value later, use `bdd_utils:scenario_retrieve(ScenarioID, Key, Default).`  This will recover the key value for the Scenario.
+
+This approach is very handy: 
+* if you want to store given values for a form (`Given I set "foo" to "bar"` - see `bdd_catchall`).
+* if you create value (`Given REST creates {object:node} "foo.example.com"`) and need it's ID for a later step
 
 ### Debugging
 

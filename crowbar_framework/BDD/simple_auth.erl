@@ -139,7 +139,7 @@ authenticate_session(Config, _URL, 0) ->
 authenticate_session(Config, URL, Retries) ->
   User = bdd_utils:config(Config,user),
   Password = bdd_utils:config(Config,password),
-  Result = http:request(post, {
+  Result = httpc:request(post, {
 			  URL++bdd_utils:config(Config, sign_in_url, "/users/sign_in"),
 			  [], 
 			  "application/x-www-form-urlencoded",

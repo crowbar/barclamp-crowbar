@@ -131,9 +131,15 @@ header(Config, URL) ->
   bdd_utils:log(Config, depricate, "simple_auth:header should be replaced with authenticate_session",[]),
   authenticate_session(Config, URL).
 authenticate_session(Config, URL) ->
+  % we'll retry for about a minute to give server time to rev-up
+  authenticate_session(Config, URL, 20).
+authenticate_session(Config, _URL, 0) ->
+  % we've retried out hearts out, time to bail...
+  bdd_utils:config_set(Config, auth_error, "could not connect to host");
+authenticate_session(Config, URL, Retries) ->
   User = bdd_utils:config(Config,user),
   Password = bdd_utils:config(Config,password),
-  Result = httpc:request(post, {
+  Result = http:request(post, {
 			  URL++bdd_utils:config(Config, sign_in_url, "/users/sign_in"),
 			  [], 
 			  "application/x-www-form-urlencoded",
@@ -159,8 +165,9 @@ authenticate_session(Config, URL) ->
           bdd_utils:config_set(Config, auth_error, "Could not authenticate "++User++"/"++Password)  
       end;
 
-    _ -> % probably could not connect to host
-	 bdd_utils:config_set(Config, auth_error, Result)  
+    _ -> % probably could not connect to host, try again!
+	 timer:sleep(3000),
+	 authenticate_session(Config, URL, Retries-1)
   end.
 
 

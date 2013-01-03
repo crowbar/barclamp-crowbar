@@ -73,15 +73,12 @@ class Cmdb < ActiveRecord::Base
 
     evt
   end
-<<<<<<< HEAD
 
   # compute event for execution by computing whatever the cmdb backend needs
   def prepare_for_execution(evt,config)
     # here for sub-classes to override.
   end
-  
-
-  
+    
   def as_json options={}
    {
      :name=> name,

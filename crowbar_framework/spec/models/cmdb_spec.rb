@@ -82,6 +82,7 @@ describe "cmdb proposal manipulation" do
 
         it "should find the right cmdb type/instance" do
             cmdb = Cmdb.find_cmdb_for_config(nil)
+            assert cmdb,"have a cmdb instace"
         end
 
         it "can create a test proposal with 2 nodes" do

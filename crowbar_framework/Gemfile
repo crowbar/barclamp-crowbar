@@ -15,7 +15,7 @@
 source "http://127.0.0.1:3001"
 #source 'http://rubygems.org'
 
-gem 'rails', '~> 3.2.9'
+gem 'rails', '~> 3.2.10'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -29,6 +29,7 @@ gem 'kwalify'
 gem 'chef', '~>10.8'
 gem 'puma'
 gem 'amqp'
+gem 'xml-simple'
 gem 'delayed_job_active_record'
 gem 'daemons'
 gem 'active_scaffold'

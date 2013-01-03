@@ -25,7 +25,6 @@ crowbar/releasenotes:
 crowbar/userguide:
   order: 1000
   crowbar/userguide/general:
-    order: 10
     - crowbar/userguide/nodes
   crowbar/userguide/utils:
     order: 100

@@ -15,15 +15,26 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
--export([get_JSON/1]).
+-export([get_JSON/1, ajax_return/4]).
 
 
   
 % HELPERS ============================
 
 % ASSUME, only 1 ajax result per feature
-get_JSON(Results) ->      {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),  JSON.   
-get_JSON(Results, all) -> lists:keyfind(ajax, 1, Results).
+get_JSON(Results)      ->      
+  {ajax, JSON, _} = get_JSON(Results, all),  
+  JSON.   
+get_JSON(Results, all) -> 
+  try lists:keyfind(ajax, 1, Results) of
+    {ajax, J, Ex} -> {ajax, J, Ex};
+    false         -> bdd_utils:log(debug, "bdd_restrat:get_JSON did not find expected to ajax result",[]),
+                     bdd_utils:log(trace, "more.... in ~p",[Results]),
+                     {ajax, 500, "bdd_restrat ajax not found"}
+  catch
+    X -> bdd_utils:log(warn, "bdd_restrat:get_JSON error ~p in result ~p",[X,Results]),
+         {ajax, 500, "bdd_restrat:get_JSON error"}
+  end.
 
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> get_id(Config, eurl:path(Path,Key)).
@@ -40,6 +51,16 @@ get_id(Config, Path) ->
   end,  
   ID.
   
+% standard pattern for returning ajax from a when
+ajax_return(Path, Method, Code, Result) ->
+  case {Method, Code, Result} of
+   {_, 200, "null"} -> [];
+   {delete, 200, _} -> {ajax, 200, {Method, Path}};
+   {_, 200, []}     -> {ajax, 200, {Method, Path}};
+   {_, 200, R}      -> {ajax, json:parse(R), {Method, Path}};
+    _               -> {ajax, Code, {Method, Path}}
+  end.
+  
 % helper common to all setups using REST
 create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
 create(Config, Path, JSON, Action) ->
@@ -47,7 +68,14 @@ create(Config, Path, JSON, Action) ->
   destroy(Config, Path, json:keyfind(json:parse(JSON), name)),
   % create node(s) for tests
   eurl:put_post(Config, Path, JSON, Action).
-  
+
+create(Scenario, Type, Path, Name, JSON) when is_number(Scenario), is_atom(Type) ->
+  destroy([], Path, Name),
+  Result = eurl:put_post([], Path, JSON, post),
+  R = json:parse(Result),
+  Key = json:keyfind(R, id),
+  bdd_utils:scenario_store(Scenario, Type, Key),
+  Key;
 create(Config, Path, Atom, Name, JSON) ->
   create(Config, Path, Atom, Name, JSON, post).
 
@@ -90,30 +118,30 @@ step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) ->
 % WHEN STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
-  {ajax, json:parse(JSON), {get, Page}};
+  ajax_return(Page, get, 200, JSON);
 
 step(Config, _Global, {step_given, _N, ["REST creates the",Object,Name]}) -> 
   step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
 
 step(Config, _Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) -> 
-  bdd_utils:log(Config, trace, "REST creates the ~p ~p", [Object, Name]),
+  bdd_utils:log(Config, debug, "bdd_restrat: step REST creates the ~p ~p", [Object, Name]),
   JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
   Path = apply(Object, g, [path]),
   PutPostResult = eurl:put_post(Config, Path, JSON, post, all),
-  bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: PutPostResult: ~p", [PutPostResult]),
+  bdd_utils:log(Config, trace, "bdd_restrat:REST creates the step: PutPostResult: ~p", [PutPostResult]),
   {Code, Result} = PutPostResult,
-  bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: Code: ~p, Result: ~p",[Code, Result]),
+  bdd_utils:log(Config, trace, "bdd_restrat:REST creates the step: Code: ~p, Result: ~p",[Code, Result]),
   ReturnResult = case Code of
     200 ->
       ReturnJSON = json:parse(Result),
-      bdd_utils:log(Config, debug, "bdd_restrat:REST creates the step: ReturnJSON: ~p",[ReturnJSON]),
+      bdd_utils:log(Config, trace, "bdd_restrat:REST creates the step: ReturnJSON: ~p",[ReturnJSON]),
       Key = json:keyfind(ReturnJSON, id),
       bdd_utils:scenario_store(ScenarioID, Object, Key),
       bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
       {ajax, ReturnJSON, {post, Path}};
-    _   -> {ajax, Code, {post, Path}}
+    C   -> ajax_return(Path, post, C, Result)
   end,
-  bdd_utils:log(Config, debug, "bdd_restrat:step:ReturnResult: ~p",[ReturnResult]),
+  bdd_utils:log(Config, trace, "bdd_restrat:step:ReturnResult: ~p",[ReturnResult]),
   ReturnResult;
 
 step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Object) -> 
@@ -125,10 +153,7 @@ step(Config, _Given, {step_when, _N, ["REST updates an object at",Path,"with",JS
   bdd_utils:log(Config, trace, "REST updates an object at ~p with ~p", [Path,JSON]),
   {Code, Result} = eurl:put_post(Config, Path, JSON, put, all),
   bdd_utils:log(Config, debug, "bdd_restrat:REST updates an object at step: Code: ~p, Result: ~p",[Code, Result]),
-  case Code of
-    200 -> {ajax, json:parse(Result), {put, Path}};
-    _   -> {ajax, Code, {put, Path}}
-  end;
+  ajax_return(Path, put, Code, Result);
 
 step(Config, _Then, {step_finally, _N, ["REST deletes the", Object, Name]}) -> 
   step(Config, _Then, {step_when, _N, ["REST deletes the",Object, Name]});
@@ -136,9 +161,9 @@ step(Config, _Then, {step_finally, _N, ["REST deletes the", Object, Name]}) ->
 step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is_atom(Object)-> 
   Path = apply(Object, g, [path]),
   R = eurl:delete(Config, Path, Name, all),
-  bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p result ~p",[Object,Name, R]),
-  {Code, _} = R,
-  {ajax, Code, {delete, Path}};
+  {Code, Result} = R,
+  bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p = ~p ~p",[Object,Name, Code, Result]),
+  ajax_return(Path, delete, Code, Result);
   
 step(Config, Given, {step_finally, _N, ["REST removes the ",Object, Name]}) when is_atom(Object)-> 
   step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
@@ -149,10 +174,8 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_a
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),
   bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
-  case eurl:get_page(Config, URI, all) of
-    {200, JSON} -> {ajax, json:parse(JSON), {get, URI}};
-    {Code, _}   -> {ajax, Code, {get, URI}}
-  end;
+  {Code, JSON} = eurl:get_page(Config, URI, all),
+  ajax_return(URI, get, Code, JSON);
 
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
@@ -174,13 +197,17 @@ step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]})
     {ajax, J, _}          -> apply(Object, validate, [J])
   end;
     
-step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
+step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> step(Config, Results, {step_then, _N, ["there is a key",Key]});
+step(Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
   JSON = get_JSON(Results),
   bdd_utils:log(Config, trace, "JSON list ~p should have ~p~n", [JSON, Key]),
   length([K || {K, _} <- JSON, K == Key])==1;
                                                                 
-step(_Config, Results, {step_then,_N, ["key",Key,"should be",Value]}) ->
+step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   Value =:= json:value(get_JSON(Results), Key);
+
+step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
+  true =/= step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
 
 step(_Config, Results, {step_then, _N, ["key",Key, "should contain",Count,"items"]}) -> 
   {C, _} = string:to_integer(Count),
@@ -211,14 +238,26 @@ step(_Config, Results, {step_then, {Scenario, _N}, ["id",ID,"should have value",
   bdd_utils:log(debug, "bdd_restrat Then ID ~p (~p) with expected value ~p should be match result ~p", [ID, I, Value, R]),
   R =:= Value;
 
+step(_Config, Result, {step_then, _N, ["the page returns",Number]}) -> 
+  step(_Config, Result, {step_then, _N, ["I get a",Number,"error"]});
 step(_Config, Result, {step_then, _N, ["I get a",Number,"result"]}) -> 
   step(_Config, Result, {step_then, _N, ["I get a",Number,"error"]});
             
+step(Config, Results, {step_then, _N, ["I get a",Number,"error"]}) when is_list(Number) -> 
+  Numb = list_to_integer(Number),
+  step(Config, Results, {step_then, _N, ["I get a",Numb,"error"]});
+  
 step(Config, Results, {step_then, _N, ["I get a",Number,"error"]}) -> 
   Result = get_JSON(Results, all),
-  bdd_utils:log(Config, trace, "bdd_restrat step then ~p error result ~p",[Number, Result]),
+  {ajax, Code, _} = Result,
   case Result of 
-    {ajax, Number, _}  -> true;
+    {ajax, Number, _} when is_integer(Number) -> 
+                          bdd_utils:log(Config, debug, "bdd_restrat step then expected ~p got result code ~p",[Number, Code]),
+                          bdd_utils:log(Config, trace, "(cont)..... results ~p",[Result]),
+                          true;
+    {ajax, N, _} when is_list(N) -> 
+                          bdd_utils:log(Config, debug, "bdd_restrat step then expected ~p assuming 200",[Number]),
+                          true;
     {html, Number, _}  -> true;
     Number             -> true;
     _                  -> false

@@ -47,11 +47,15 @@ You can extend/substitute step definitions by using the one of the predefinex pr
 
 For example, using `{bdd:bdd_utils.puts.foo.bar}` will call the `Bdd_utils` method `puts/2` with the input data of `["foo","bar"]`.  This approach can be used to extend steps so that they can substitue information when the step is parsed.  This is NOT a test run substitution - the replacement is made before test execution.
 
+> Remember, prefixes are static data used during _pre-evaluation_ for steps.  You cannot use prefixs to lookup information that is only available during testing such as the IDs of created steps.  Use the `bdd_utils:scenario_retrieve` methods inside the steps if you need dynamic information.
+
 BDD step prefixes are:
 
 * bdd: does an apply() using the BDD Config pattern and `.` delimited information where `bdd:f.m.p1.p2.pN` becomes `apply(f, m, [Config, p1, p2, pN])`
 * apply: does a raw apply() using `.` delimited information where `apply:f.m.p1.p2.pN` becomes `apply(f, m, [p1, p2, pN])`
+* lookup: calls the g(type) value for the given model.  Use as `lookup:node.name` to call the `node.erl g(name)` method.  This is a very handy way to use the items created in the setup steps.
 * atom: turns the text into an Erlang atom
+* integer: turns the text into an Erlang integer
 * object: same as atom but more user intuitive for REST steps
 
 > A handy example of this for Crowbar is using the `crowbar:i18n(Config, Key)` lookup to resolve localizations using the Utils localization string retriever.  You can retrieve localizations in steps using `{bdd:crowbar.i18n.my.local.key}` where `my.local.key` maps to a key in the i18n files.

@@ -18,7 +18,7 @@
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([log/4, log/3, log/2, log/1, log_level/1]).
+-export([log/4, log/3, log/2, log/1, log_level/1, depricate/4]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
@@ -102,6 +102,11 @@ log_level(depricate)  -> put(log, [depricate, info, warn, error, puts]);
 log_level(warn)       -> put(log, [warn, error, puts]);
 log_level(all)        -> put(log, all).
 
+% helps to move code around
+depricate(From, To, Method, Params) ->
+  bdd_utils:log(depricate,"`~p:~p` moved to `~p` with arity ~p.",[From, Method, To, length(Params)]), 
+  apply(To, Method, Params).
+
 % return the list of feature to test
 features(Config) ->
   filelib:wildcard(features(Config, "*")).
@@ -125,7 +130,7 @@ trace_setup(Config, Name, nil) ->
 
 trace_setup(Config, Name, N) ->
   SafeName = clean_line(Name),
-  string:join(["trace_", config(Config,feature), "-", string:join(string:tokens(SafeName, " "), "_"), "-", integer_to_list(N), ".txt"], "").
+  string:join(["trace_", config(Config,feature,"unknown"), "-", string:join(string:tokens(SafeName, " "), "_"), "-", integer_to_list(N), ".txt"], "").
   
 trace(Config, Name, N, Steps, Given, When) ->
   File = trace_setup(Config, Name, N),
@@ -195,6 +200,7 @@ config(Key, Default) when is_atom(Key) ->
   end;
   
 % DEPRICATING returns value for key from Config (error if not found)
+config([], Key)     -> config(Key, undefined);
 config(Config, Key) ->
   case config(Config, Key, undefined) of
     undefined -> throw("bdd_utils:config Could not find requested key '"++atom_to_list(Key)++"' in config file");
@@ -202,6 +208,7 @@ config(Config, Key) ->
   end.
 
 % returns value for key from Config (returns default if missing)
+config([], Key, Default)     -> config(Key, Default);  
 config(Config, Key, Default) ->
   % TODO - this should use the get first, but we're transistioning so NOT YET
   case lists:keyfind(Key,1,Config) of
@@ -334,6 +341,8 @@ token_substitute(_Config, [$a, $p, $p, $l, $y, $: | Apply]) -> [File, Method | P
                                                               apply(list_to_atom(File), list_to_atom(Method), Params);
 token_substitute(Config,  [$b, $d, $d, $: | Apply])          -> [File, Method | Params] = string:tokens(Apply, "."),
                                                               apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
+token_substitute(_Config,  [$l, $o, $o, $k, $u, $p, $: | Apply]) -> [File | Params] = string:tokens(Apply, "."),
+                                                              apply(list_to_atom(File), g, [list_to_atom(P) || P <- Params]);
 token_substitute(_Config, [$a, $t, $o, $m, $: | Apply])     -> list_to_atom(Apply);
 token_substitute(_Config, [$f, $i, $e, $l, $d, $s, $: | Apply]) 
                                                             -> Pairs = string:tokens(Apply, "&"),

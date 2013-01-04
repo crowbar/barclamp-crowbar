@@ -14,7 +14,7 @@
 % 
 % 
 -module(attrib).
--export([step/3, json/3, validate/1, inspector/1, g/1]).
+-export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -39,6 +39,13 @@ validate(J) ->
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+create(ID, Name, Extras) ->
+  % for now, we are ignoring the extras
+  JSON = json(Name, 
+              proplists:get_value(description, Extras, g(description)), 
+              proplists:get_value(order, Extras, g(order))),
+  bdd_restrat:create(ID, attrib, g(path), Name, JSON).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping

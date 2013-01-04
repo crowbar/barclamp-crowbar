@@ -321,7 +321,7 @@ delete(Config, URL)           -> delete(Config, URL, [], all).
 delete(Config, Path, [])      -> delete(Config, uri(Config, Path), [], all);
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
 delete(Config, URL, [], all)  ->
-  bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
+  bdd_utils:log(Config, debug, "eurl:Deleting ~p", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),

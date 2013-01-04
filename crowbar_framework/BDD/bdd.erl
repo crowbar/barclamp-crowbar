@@ -127,9 +127,11 @@ run(Config, Feature, FileName, ID) ->
   log(feature, "~s (~s)", [Feature, FileName]),
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
+  log(debug, ">>>>>>> Setup Complete, Running Tests for ~p >>>>>>>",[Feature]),
   % run the tests
   Result = {feature, Fatom, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
   % tear down
+  log(debug, "<<<<<<< Tests Complete, Running Tear Down for ~p <<<<<<<",[Feature]),
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
   [Result | StartConfig].

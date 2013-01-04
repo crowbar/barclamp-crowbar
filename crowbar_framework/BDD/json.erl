@@ -35,8 +35,14 @@ value_list(JSON, [Key | Tail]) ->
   value_list(value_item(JSON, Key), Tail).
 value_item(JSON, Key) ->           
   K = string:strip(Key, left, $[),
-  {K, V} = lists:keyfind(K, 1, JSON),
-  V.
+  try lists:keyfind(K, 1, JSON) of
+    {K, V} -> V;
+    false  -> bdd_utils:log(debug, "json:value_item did not find key ~p in ~p",[Key, JSON]);
+    X      -> bdd_utils:log(warn, "json:value_item got unexpected result ~p when looking for key ~p in ~p",[X, Key, JSON])
+  catch
+    E      -> bdd_utils:log(error, "json:value_item threw an error ~p when looking for key ~p in ~p",[E, Key, JSON])
+  end.
+  
 value(JSON, Key) ->    
   List = string:tokens(Key, "]"),
   value_list(JSON, List).

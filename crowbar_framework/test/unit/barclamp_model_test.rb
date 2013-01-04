@@ -193,15 +193,14 @@ class BarclampModelTest < ActiveSupport::TestCase
     ro = b.get_roles_by_order
     assert_not_nil ro
     begin
-      assert 1, ro.length
-      assert 1, ro[0].length
-      assert ro[0][0].name, "crowbar"
+      assert_equal 1, ro.length
+      assert_equal 1, ro[0].length
+      assert_equal 'crowbar', ro[0][0].name
     rescue
       flunk("Exception inside get roles due to missing roles by order")
       return false
     end
   end
-
 
   test "roles get priority from deployment section" do
     json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
@@ -212,9 +211,9 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc.roles.all.each do |r|
       rmap [r.name] = r.priority
     end
-    assert rmap["foo_mon_master"], 80
-    assert rmap["foo_mon"], 81
-    assert rmap["foo_store"], 82
+    assert_equal 80, rmap['foo_mon_master']
+    assert_equal 81, rmap['foo_mon']
+    assert_equal 82, rmap['foo_store']
   end
 
   test "roles are ordered correctly" do
@@ -223,8 +222,8 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc.name = "foo"
     Barclamp.import_1x_deployment(bc,json)
     ordered = bc.get_roles_by_order
-    assert ordered.first, ["foo_mon_master"]
-    assert ordered.second, ["foo_mon","foo_store"]
+    assert_equal ['foo_mon_master'],       ordered.first
+    assert_equal ['foo_mon', 'foo_store'], ordered.second
   end
 
 end

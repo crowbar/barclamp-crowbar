@@ -18,21 +18,23 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
 @barclamp = "user"
 
-
-@commands["user_list"] = [ "user_list()", "user_list - Show a list of current users" ]
-@commands["user_show"] = [ "user_show(ARGV.shift)", "user_show <id_or_username> - Show a specific user" ]
-@commands["user_create"] = [ "user_create(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "user_create <username> <email> <password> <password_confirmation> <remember_me> <is_admin> - Create a user" ]
-@commands["user_update"] = [ "user_update(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "user_update <id_or_username> <username> <email> <remember_me> <is_admin> - Update a user" ]
-@commands["user_delete"] = [ "user_delete(ARGV.shift)", "user_delete <id_or_username> - Delete a user" ]
-@commands["user_make_admin"] = [ "user_make_admin(ARGV.shift)", "user_make_admin <id_or_username> - Make user admin" ]
-@commands["user_remove_admin"] = [ "user_remove_admin(ARGV.shift)", "user_remove_admin <id_or_username> - Remove user admin privilege" ]
-@commands["user_lock"] = [ "user_lock(ARGV.shift)", "user_lock <id_or_username> - Lock user account" ]
-@commands["user_unlock"] = [ "user_unlock(ARGV.shift)", "user_unlock <id_or_username> - Unlock user account" ]
-@commands["user_reset_password"] = [ "user_reset_password(ARGV.shift,ARGV.shift,ARGV.shift)", "user_reset_password <id_or_username> <password> <password_confirmation> - Change user password" ]
+USERS_PATH = "2.0/crowbar/2.0/users"
 
 
-def user_list()
-  struct = get_json2("2.0/crowbar/2.0/users")
+@commands["list"] = [ "list()", "list - Show a list of current users" ]
+@commands["show"] = [ "show(ARGV.shift)", "show <id_or_username> - Show a specific user" ]
+@commands["create"] = [ "create(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "create <username> <email> <password> <password_confirmation> <remember_me> <is_admin> - Create a user" ]
+@commands["update"] = [ "update(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "update <id_or_username> <username> <email> <remember_me> <is_admin> - Update a user" ]
+@commands["delete"] = [ "delete(ARGV.shift)", "delete <id_or_username> - Delete a user" ]
+@commands["make_admin"] = [ "make_admin(ARGV.shift)", "make_admin <id_or_username> - Make user admin" ]
+@commands["remove_admin"] = [ "remove_admin(ARGV.shift)", "remove_admin <id_or_username> - Remove user admin privilege" ]
+@commands["lock"] = [ "lock(ARGV.shift)", "lock <id_or_username> - Lock user account" ]
+@commands["unlock"] = [ "unlock(ARGV.shift)", "unlock <id_or_username> - Unlock user account" ]
+@commands["reset_password"] = [ "reset_password(ARGV.shift,ARGV.shift,ARGV.shift)", "reset_password <id_or_username> <password> <password_confirmation> - Change user password" ]
+
+
+def list()
+  struct = get_json2(USERS_PATH)
   if struct[1] != 200
     [ "Failed to talk to service user list: #{struct[1]}: #{struct[0]}", 1 ]
   elsif struct[0].nil? or struct[0].empty?
@@ -42,10 +44,10 @@ def user_list()
   end
 end
 
-def user_show(id_or_username)
+def show(id_or_username)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  struct = get_json2("2.0/crowbar/2.0/users/#{id_or_username}")
+  struct = get_json2("#{USERS_PATH}/#{id_or_username}")
 
   if struct[1] == 200
     [ "#{JSON.pretty_generate(struct[0])}", 0 ]
@@ -56,7 +58,7 @@ def user_show(id_or_username)
   end
 end
 
-def user_create(username,email,password,password_confirmation,remember_me,is_admin)
+def create(username,email,password,password_confirmation,remember_me,is_admin)
   usage -1 if username.nil? or username == ""
   usage -1 if email.nil? or email == ""
   usage -1 if password.nil? or password == ""
@@ -75,7 +77,7 @@ def user_create(username,email,password,password_confirmation,remember_me,is_adm
       "remember_me" => remember_me,
       "is_admin" => is_admin
     }.to_json
-  struct = post_json2("2.0/crowbar/2.0/users", @data)
+  struct = post_json2(USERS_PATH, @data)
 
   if struct[1] == 200
     [ "Created user #{username}", 0 ]
@@ -86,7 +88,7 @@ def user_create(username,email,password,password_confirmation,remember_me,is_adm
   end
 end
 
-def user_update(id_or_username, username, email, remember_me, is_admin)
+def update(id_or_username, username, email, remember_me, is_admin)
   usage -1 if id_or_username.nil? or id_or_username == ""
   usage -1 if username.nil? or username == ""
   usage -1 if email.nil? or email == ""
@@ -100,7 +102,7 @@ def user_update(id_or_username, username, email, remember_me, is_admin)
       "is_admin" => is_admin
     }.to_json
 
-  struct = put_json2("2.0/crowbar/2.0/users/#{id_or_username}", @data)
+  struct = put_json2("#{USERS_PATH}/#{id_or_username}", @data)
   
   if struct[1] == 200
     [ "Updated user: #{id_or_username}", 0 ]
@@ -113,10 +115,10 @@ def user_update(id_or_username, username, email, remember_me, is_admin)
   end
 end
 
-def user_delete(id_or_username)
+def delete(id_or_username)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  struct = delete_json2("2.0/crowbar/2.0/users/#{id_or_username}")
+  struct = delete_json2("#{USERS_PATH}/#{id_or_username}")
 
   if struct[1] == 200
     [ "Deleted user #{id_or_username}", 0 ]
@@ -127,19 +129,18 @@ def user_delete(id_or_username)
   end
 end
 
-def user_make_admin(id_or_username)
-  user_update_admin(id_or_username, true)
+def make_admin(id_or_username)
+  update_admin(id_or_username, true)
 end
 
-def user_remove_admin(id_or_username)
-  user_update_admin(id_or_username, false)
+def remove_admin(id_or_username)
+  update_admin(id_or_username, false)
 end
 
-def user_update_admin(id_or_username, onOff=false)
+def update_admin(id_or_username, onOff=false)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  command = (onOff) ? "user_make_admin" : "user_remove_admin"
-  struct = get_json2("2.0/crowbar/2.0/#{command}/#{id_or_username}")
+  struct = (onOff) ? post_json2("#{USERS_PATH}/admin/#{id_or_username}") : delete_json2("#{USERS_PATH}/admin/#{id_or_username}")
  
   if struct[1] == 200
     [ "Set is_admin attribute for user #{id_or_username}", 0 ]
@@ -153,19 +154,19 @@ def user_update_admin(id_or_username, onOff=false)
 end
 
 
-def user_lock(id_or_username)
-  user_lock_unlock(id_or_username, true)
+def lock(id_or_username)
+  lock_unlock(id_or_username, true)
 end
 
-def user_unlock(id_or_username)
-  user_lock_unlock(id_or_username, false)
+def unlock(id_or_username)
+  lock_unlock(id_or_username, false)
 end
 
-def user_lock_unlock(id_or_username, lockUnlock=false)
+def lock_unlock(id_or_username, lockUnlock=false)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  command = (lockUnlock) ? "user_lock" : "user_unlock"
-  struct = put_json2("2.0/crowbar/2.0/#{command}/#{id_or_username}")
+  struct = (lockUnlock) ? post_json2("#{USERS_PATH}/lock/#{id_or_username}") : delete_json2("#{USERS_PATH}/lock/#{id_or_username}")
+  
   if struct[1] == 200
     [ "Locked/Unlocked the user: #{id_or_username}", 0 ]
   elsif struct[1] == 404
@@ -177,7 +178,7 @@ def user_lock_unlock(id_or_username, lockUnlock=false)
   end
 end
 
-def user_reset_password(id_or_username, password, password_confirmation)
+def reset_password(id_or_username, password, password_confirmation)
   usage -1 if id_or_username.nil? or id_or_username == ""
   usage -1 if password.nil? or password == ""
   usage -1 if password_confirmation.nil? or password_confirmation == ""
@@ -187,7 +188,7 @@ def user_reset_password(id_or_username, password, password_confirmation)
       "password_confirmation" => password_confirmation,
       }.to_json
 
-  struct = put_json2("2.0/crowbar/2.0/user_reset_password/#{id_or_username}", @data)
+  struct = put_json2("#{USERS_PATH}/reset_password/#{id_or_username}", @data)
   
   if struct[1] == 200
     [ "Reset password for user: #{id_or_username}", 0 ]

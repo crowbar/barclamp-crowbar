@@ -163,16 +163,18 @@ Crowbar::Application.routes.draw do
             
            
             # these all need to be updated.
-            get "users", :controller => "users", :action => "users"
-            get "users/:id", :controller => "users", :action => "user_show"
-            post "users", :controller => "users", :action => "user_create"
-            put "users/:id", :controller => "users", :action => "user_update"
-            delete "users/:id", :controller => "users", :action => "user_delete"
-            put "user_make_admin/:id", :controller => "users", :action => "user_make_admin"
-            put "user_remove_admin/:id", :controller => "users", :action => "user_remove_admin"
-            put "user_lock/:id", :controller => "users", :action => "user_lock"
-            put "user_unlock/:id", :controller => "users", :action => "user_unlock"
-            put "user_reset_password(/:id)", :controller => "users", :action => "user_reset_password"
+            scope 'users' do
+              get :controller => "users", :action => "users"
+              get ":id", :controller => "users", :action => "user_show"
+              post :controller => "users", :action => "user_create"
+              put ":id", :controller => "users", :action => "user_update"
+              delete ":id", :controller => "users", :action => "user_delete"
+              post "admin/:id", :controller => "users", :action => "user_make_admin"
+              delete "admin/:id", :controller => "users", :action => "user_remove_admin"
+              post "lock/:id", :controller => "users", :action => "user_lock"
+              delete "lock/:id", :controller => "users", :action => "user_unlock"
+              put "reset_password(/:id)", :controller => "users", :action => "user_reset_password"
+            end
           end
         end
         

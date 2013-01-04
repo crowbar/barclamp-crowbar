@@ -1,4 +1,4 @@
-%h1= t('user.title')
+%h1= t('.title')
 - if is_edit_mode?
  %table.data.box.no-hover
   %thead
@@ -6,11 +6,11 @@
     %th{:style => "whitespace: nowrap;" }
      %a.toggle.on.with_label{:href => "javascript:void(0)", :id => "form_toggle", :rel => "form_div"}
       - if @user.admin_reset_password == true
-       = t("user.reset_password")
+       = t(".reset_password")
       - elsif @user.id.nil?
-       = t("user.add_user")
+       = t(".add_user")
       - else
-       = t("user.update_user")
+       = t(".update")
     %th
    %tbody
     %tr.no-hover
@@ -24,22 +24,22 @@
 = form_for :user, :url => delete_users_path, :html => { :'data-type' => 'html', :id => 'delete_users_form'} do |f|
  - if is_edit_mode?
   %p{:style=>'float:right;'}
-   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('user.delete_users')}
+   %input.button{:type => "submit", :name => "submit", :value => t('.delete'), :'data-confirm' => t('.delete_users')}
  .clear
  %table.data.box
   %thead
    %tr
-    %th= t('user.username')
-    %th= t('user.email')
-    %th= t('user.sign_in_count')
-    %th= t('user.failed_attempts')
-    %th= t('user.last_sign_in_at')
-    %th= t('user.last_sign_in_ip')
+    %th= t('.username')
+    %th= t('.email')
+    %th= t('.sign_in_count')
+    %th= t('.failed_attempts')
+    %th= t('.last_sign_in_at')
+    %th= t('.last_sign_in_ip')
     -if current_user.is_admin?
-     %th= t('user.is_admin')
+     %th= t('.is_admin')
     -if is_edit_mode?
-     %th= t('user.select')
-     %th= t('user.actions')
+     %th= t('.select')
+     %th= t('actions')
    %tbody
     - if @users.count > 0
      - @users.each do |user|
@@ -58,18 +58,18 @@
        -if is_edit_mode?
         %td= check_box_tag "users_to_delete[]", user.id 
         %td{:nowrap=>"nowrap"} 
-         = link_to t("user.reset_password"), edit_password_path(user), :class=>'link'
+         = link_to t(".reset_password"), edit_password_path(user), :class=>'link'
          = " | "
          - if (user.access_locked?)
-          = link_to t("user.unlock"), unlock_user_path(user.id), :class=>'link', :method => :put
+          = link_to t(".unlock"), unlock_user_path(user.id), :class=>'link', :method => :put
          - else
-          = link_to t("user.lock"), lock_user_path(user.id), :class=>'link', :method => :put
+          = link_to t(".lock"), lock_user_path(user.id), :class=>'link', :method => :put
     - else
      %tr
       %td{ :colspan=>5 }
        = t 'no_items'
  - if is_edit_mode?
   %p{:style=>'float:left;'}
-   %input.button{:type => "submit", :name => "submit", :value => t('user.delete'), :'data-confirm' => t('user.delete_users')}
+   %input.button{:type => "submit", :name => "submit", :value => t('.delete'), :'data-confirm' => t('.delete_users')}
    
 

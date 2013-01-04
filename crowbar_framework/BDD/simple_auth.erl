@@ -145,7 +145,7 @@ authenticate_session(Config, URL) ->
     {Status,{{_Protocol,Code,_Comment}, Fields, _Message}} ->
       case {Status, Code} of
         {ok, 302} -> 
-	  bdd_utils:log(info,"\tAuthenticated as user: ~s",[User]),
+	  bdd_utils:log(info,"Authenticated as user: ~s",[User]),
 	  Cookie = proplists:get_value("set-cookie", Fields),
           case Cookie of
             undefined -> % no session id returned!

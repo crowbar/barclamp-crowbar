@@ -11,7 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
-# 
+
+# SimpleCov supports only Ruby 1.9. It must be required and started before the
+# application code loads, so keep this block at the top.
+if RUBY_VERSION != '1.8.7'
+  require 'simplecov'
+  SimpleCov.start
+end
 
 ENV["RAILS_ENV"] = "test"
 require File.expand_path("../../config/environment", __FILE__)

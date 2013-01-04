@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -16,6 +16,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, tokenize/2, tokenize/6, clean_line/1]).
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
+-export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/4, log/3, log/2, log/1, log_level/1]).
 -export([features/1, features/2, feature_name/2]).
@@ -24,6 +25,9 @@
 -define(NORMAL_TOKEN, 1).
 -define(ESCAPED_TOKEN, 2).
 -define(SUBSTITUTE_TOKEN, 3).
+-define(LOG_LEVELS, [true, puts, dump, trace, debug, info, warn, error]).
+-define(LOG_DEFAULT, [true, puts, info, warn, error]).
+-define(LOG_TITLES, [pass, fail, skip, header, result, feature, step, step_pass, step_fail]).
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -58,24 +62,35 @@ log(Config, puts, Format)         -> log(Config, puts, Format, []);
 log(Config, Level, Format) when is_atom(Level) -> log(Config, Level, Format, []);
 log(Level, Format, Data)          -> log([], Level, Format, Data).
 log(Config, Level, Format, Data)  ->
-  Levels = config(Config, log, [true, puts, warn, pass, fail, skip]),
+  Logs = config(Config, log, ?LOG_DEFAULT),
+  Titles = config(Config, titles, ?LOG_TITLES),
+  Levels = Logs ++ Titles,
   Show = lists:member(Level, Levels), 
   case {Show, Level} of
     % Log methods for test results
-    {true, pass}  -> io:format("~n\tPassed: " ++ Format, Data);
-    {true, fail}  -> io:format("~n\tFAILED: " ++ Format, Data);
-    {true, skip}  -> io:format("~n\t......: " ++ Format, Data);
+    {true, header}    -> io:format("~nBDD TEST: " ++ Format, Data);
+    {true, feature}   -> io:format("~n~nFEATURE: " ++ Format, Data);
+    {true, result}    -> io:format("~n  RESULT: " ++ Format, Data);
+    {true, pass}      -> io:format("~n  Passed: " ++ Format, Data);
+    {true, fail}      -> io:format("~n  FAILED: " ++ Format, Data);
+    {true, skip}      -> io:format("~n  ..skip: " ++ Format, Data);
+    {true, step}      -> io:format("~n    Step: " ++ Format, Data);
+    {true, step_pass} -> io:format("~n    Step Pass: " ++ Format, Data);
+    {true, step_fail} -> io:format("~n    Step FAIL: " ++ Format, Data);
     % General Logging Ouptut
-    {true, _}     -> Prefix = string:to_upper(atom_to_list(Level)),
-                     Suffix = " <~p:~p/~p>",
+    {true, _}     -> Prefix = "   " ++ string:to_upper(atom_to_list(Level)),
                      {Module, Method, Params} = try erlang:get_stacktrace() of 
-                        [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, -1}; 
+                        [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, 0}; 
                         [ST | _] -> ST; 
                         [] -> {unknown, 0, 0} 
                       catch _ -> [{module, unknown, 0}] end,
-                     Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
-                     DataCalled = Data ++ [Module, Method, Arity],
-                     io:format("~n" ++ Prefix ++ ": " ++ Format ++ Suffix, DataCalled);
+                      Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
+                      case Arity of
+                        0 ->  io:format("~n" ++ Prefix ++ ": " ++ Format, Data);
+                        A when is_number(A) -> 
+                              io:format("~n" ++ Prefix ++ ": " ++ Format ++ " <~p:~p/~p>", Data ++ [Module, Method, Arity]);
+                        A ->  io:format("~n" ++ Prefix ++ ": " ++ Format ++ " <unexpected ~p>", Data++[A])
+                      end;
     _ -> no_log
   end.
 
@@ -140,6 +155,7 @@ is_a(Type, Value) ->
     number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
     num     -> is_number(Value);
     integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
+    int when is_list(Value) -> is_a(Type, list_to_integer(Value));
     int     -> is_integer(Value);
     whole   -> nomatch =/= re:run(Value, "^[0-9]*$");
     dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
@@ -161,12 +177,12 @@ is_a(Type, Value) ->
 % Web Site Cake Not Found - GLaDOS cannot test
 is_site_up(Config) ->
   URL = bdd_utils:config(Config, url),
-  bdd_utils:log(Config, info, "BDD TESTING SITE: ~p", [URL]),
+  log(Config, header, "Site ~p", [URL]),
   AzConfig = simple_auth:authenticate_session(Config, URL),
-  case proplists:get_value(auth_error,AzConfig) of
+  case config(AzConfig, auth_error, undefined) of
     undefined -> AzConfig; % success
     Reason -> 
-      bdd_utils:log(Config, error, "ERROR! Web site '~p' is not responding! Remediation: Check server.  Message: ~p~n", [URL, Reason]),
+      log(Config, error, "bdd_utils: Web site '~p' is not responding! Remediation: Check server.  Message: ~p", [URL, Reason]),
       Config
   end.
 
@@ -189,12 +205,13 @@ config(Config, Key) ->
 config(Config, Key, Default) ->
   % TODO - this should use the get first, but we're transistioning so NOT YET
   case lists:keyfind(Key,1,Config) of
+    {Key, undefined} -> config(Key, Default);
     {Key, Value} -> 
           % this if helps find items that are not using config_set
           case get(Key) of
             undefined -> 
                   put(Key, Default), 
-                  bdd_utils:log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
+                  log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
             _ -> all_good
           end,
           Value;
@@ -224,6 +241,35 @@ config_unset(Config, Key) ->
     Item  -> lists:delete(Item, Config)
   end.
 
+% stores values used inside a scenario
+scenario_store(ID, Key, Value) ->
+  Scenario = get({scenario, ID}),
+  Store = case Scenario of
+    undefined -> [{Key, Value}];
+    List      ->  % remove existing if any
+                  L = case lists:keyfind(Key, 1, List) of
+                    false -> List;
+                    _     -> lists:keydelete(Key, 1, List)
+                  end,
+                  L ++ [{Key, Value}]
+  end,
+  put({scenario, ID}, Store),
+  log(trace, "bdd_utils:scenario_store for ~p storing ~p as ~p", [ID, Key, Value]),
+  Store.
+
+% retieves values used inside a scenario
+scenario_retrieve(ID, Key, Default) ->
+  Scenario = get({scenario, ID}),
+  Return = case Scenario of 
+    undefined -> Default;
+    List      -> case lists:keyfind(Key, 1, List) of
+                    false     -> Default;
+                    {Key, R}  -> R
+                 end
+  end,
+  log(trace, "bdd_utils:scenario_retrieve for ~p retrieving ~p as ~p", [ID, Key, Return]),
+  Return.
+  
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
@@ -284,39 +330,34 @@ add_token(Token, TokenList) ->
   end.
 
 % This routine is used for special subtitutions in steps that run functions or turn strings into atoms
-token_substitute(Config, Token) ->
-  case Token of
-    [$a, $p, $p, $l, $y, $: | Apply] ->
-              [File, Method | Params] = string:tokens(Apply, "."),
-              apply(list_to_atom(File), list_to_atom(Method), Params);
-    [$b, $d, $d, $: | Apply]->
-              [File, Method | Params] = string:tokens(Apply, "."),
-              apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
-    [$a, $t, $o, $m, $: | Apply] -> 
-              list_to_atom(Apply);
-    [$f, $i, $e, $l, $d, $s, $: | Apply]     -> 
-              Pairs = string:tokens(Apply, "&"),
-              Params = [ string:tokens(KV,"=") || KV <- Pairs],
-              [ {K, V} || [K, V | _] <- Params];
-    [$o, $b, $j, $e, $c, $t, $: | Apply]     -> 
-              list_to_atom(Apply);
-    [$i, $n, $t, $e, $g, $e, $r, $: | Apply]     -> 
-              {Num, []} = string:to_integer(Apply),
-              Num;
-    _ -> Token
-  end.
+token_substitute(_Config, [$a, $p, $p, $l, $y, $: | Apply]) -> [File, Method | Params] = string:tokens(Apply, "."),
+                                                              apply(list_to_atom(File), list_to_atom(Method), Params);
+token_substitute(Config,  [$b, $d, $d, $: | Apply])          -> [File, Method | Params] = string:tokens(Apply, "."),
+                                                              apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
+token_substitute(_Config, [$a, $t, $o, $m, $: | Apply])     -> list_to_atom(Apply);
+token_substitute(_Config, [$f, $i, $e, $l, $d, $s, $: | Apply]) 
+                                                            -> Pairs = string:tokens(Apply, "&"),
+                                                               Params = [ string:tokens(KV,"=") || KV <- Pairs],
+                                                               [ {K, V} || [K, V | _] <- Params];
+token_substitute(_Config, [$o, $b, $j, $e, $c, $t, $: | Apply])  
+                                                           -> list_to_atom(Apply);
+token_substitute(_Config, [$i, $n, $t, $e, $g, $e, $r, $: | Apply])
+                                                           -> {Num, []} = string:to_integer(Apply),
+                                                              Num;
+token_substitute(_Config, Token)                           -> Token.
+
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->
-  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
+  log(Config, depricate, "** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
   crowbar_rest:create(Config, Path, Atom, Name, JSON).
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON, Action) ->
-  io:format("** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p, ~p.",[Path, Atom, Name, Action]),
+  log(Config, depricate, "** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p, ~p.",[Path, Atom, Name, Action]),
   crowbar_rest:create(Config, Path, Atom, Name, JSON, Action).
   
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 teardown_destroy(Config, Path, Atom) ->
-  io:format("** PLEASE MOVE ** setup_destroy moved from bdd_utils to destroy:crowbar_rest.  Called with ~p, ~p.",[Path, Atom]),
+  log(Config, depricate, "** PLEASE MOVE ** setup_destroy moved from bdd_utils to destroy:crowbar_rest.  Called with ~p, ~p.",[Path, Atom]),
   crowbar_rest:destroy(Config, Path, Atom).

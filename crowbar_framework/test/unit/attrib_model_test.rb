@@ -15,13 +15,13 @@
 require 'test_helper'
 require 'json'
 
-class AttributeModelTest < ActiveSupport::TestCase
+class AttribModelTest < ActiveSupport::TestCase
 
-  test "Attributes exposed" do
+  test "Attribs exposed" do
     name = "attrs"
-    description = "attribute test"
+    description = "Attrib test"
     order = 666
-    a = Attribute.create :name=>name, :description=>description, :order=>order
+    a = Attrib.create :name=>name, :description=>description, :order=>order
     assert_not_nil a
     assert_equal name, a.name
     assert_equal description, a.description
@@ -29,24 +29,24 @@ class AttributeModelTest < ActiveSupport::TestCase
   end
   
   test "Unique Name" do
-    Attribute.create! :name=>"nodups", :description=>"unit tests"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Attribute.create!(:name => "nodups") }
+    Attrib.create! :name=>"nodups", :description=>"unit tests"
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Attrib.create!(:name => "nodups") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
   end
 
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>"1123" )}
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>"1foo" )}
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>"Ille!gal" )}
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>" nospaces" )}
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>"no spaces" )}
-    assert_raise(ActiveRecord::RecordInvalid) { Attribute.create!(:name=>"nospacesatall " )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>"1123" )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>"1foo" )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>"Ille!gal" )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>" nospaces" )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>"no spaces" )}
+    assert_raise(ActiveRecord::RecordInvalid) { Attrib.create!(:name=>"nospacesatall " )}
   end
   
   test "as_json routines returns correct items" do
     name = "json_test"
     description = "This is a unit test"
-    c = Attribute.create! :name=>name, :description => description, :order => 100
+    c = Attrib.create! :name=>name, :description => description, :order => 100
     j = JSON.parse(c.to_json)
     assert_equal j['name'], name
     assert_equal j['description'], description

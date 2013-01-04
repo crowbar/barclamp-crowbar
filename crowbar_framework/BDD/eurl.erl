@@ -54,15 +54,23 @@ peek(Match, {Code, Input})      ->
   bdd_utils:log(warn, "eurl:peek looking for RegEx ~p with code ~p did not get searchable input from ~p",[Match, Code, Input]),
   false;
 peek(Match, Input) ->
-  RegEx = Match,
-	{ok, RE} = re:compile(RegEx, [caseless, multiline, dotall, {newline , anycrlf}]),
-	bdd_utils:log(dump, "eurl:peek compile looking for: ~p in ~p~n", [RegEx, Input]),
-	Result = re:run(Input, RE),
-	bdd_utils:log(trace, "eurl:peek match for ~p result: ~p", [Match, Result]),
-	case Result of
-		{match, _} -> true;
-		_ -> Result
-	end.
+	bdd_utils:log(trace, "eurl:peek compile looking for: ~p", [Match]),
+	try re:compile(Match, [caseless, multiline, dotall, {newline , anycrlf}]) of
+	  {ok, RE} ->
+    	try re:run(Input, RE) of
+    		{match, R1} -> 	bdd_utils:log(debug, "eurl:peek match for ~p result: ~p", [Match, R1]), true;
+    		nomatch ->      bdd_utils:log(debug, "eurl:peek did NOT find match for ~p", [Match]), false;
+    		R2 ->           bdd_utils:log(debug, "eurl:peek RegEx unexpected run result of ~p shows peek did NOT match ~p", [R2, Match]), false
+    	catch
+    	  E2 -> bdd_utils:log(error, "eurl:peek RegEx error (~p) Could not parse regex ~p for ~p",[E2, Match]), 
+    	        false
+    	end;
+    X -> bdd_utils:log(error, "eurl:peek RegEx compile returned ~p. Could not compile regex ~p",[X, Match]), 
+	       false
+  catch
+    E1 -> bdd_utils:log(error, "eurl:peek RegEx error (~p) Could not parse regex ~p",[E1, Match]), 
+    	    false
+  end.  
 	
 	
 find_button(Match, Input) ->

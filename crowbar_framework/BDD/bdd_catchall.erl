@@ -1,6 +1,21 @@
+% Copyright 2013, Dell 
+% 
+% Licensed under the Apache License, Version 2.0 (the "License"); 
+% you may not use this file except in compliance with the License. 
+% You may obtain a copy of the License at 
+% 
+%  http://www.apache.org/licenses/LICENSE-2.0 
+% 
+% Unless required by applicable law or agreed to in writing, software 
+% distributed under the License is distributed on an "AS IS" BASIS, 
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+% See the License for the specific language governing permissions and 
+% limitations under the License. 
+% 
+% 
 -module(bdd_catchall).
 -export([step/3]).
--import(bdd_util).
+-import(bdd_utils).
 
 step(_Config, _Result, {_, _N, ["pause", Time, "seconds to", Message]}) -> 
   {T, _} = string:to_integer(Time),
@@ -31,6 +46,10 @@ step(_Config, _Result, {step_given, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_when, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Config, _Result, {step_then, _N, ["I always pass"]}) -> true;
 step(_Config, _Result, {step_then, _N, ["I always fail"]}) -> false;
+
+step(_Config, _Result, {step_given, {Scenario, _N}, ["I set",Key,"to",Value]}) ->
+  bdd:log(trace, "bdd_catchall storing scenario info: Given I set ~p to ~p", [Key, Value]),
+  bdd_utils:scenario_store(Scenario, Key, Value);
 
 step(Config, _Result, {step_given, _N, StepAction}) ->
 	bdd_utils:log(Config, warn, "ADD MISSING GIVEN STEP: ~n\tstep(_Config, _Global, {step_given, {_Scenario, _N}, ~p}) -> false;~n", [StepAction]),

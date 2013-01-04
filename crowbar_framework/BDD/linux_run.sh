@@ -1,7 +1,7 @@
 
 # Start rails
 cd ..
-script/rails s Puma >> log/test.out 2>> log/test.err &
+bundle exec script/rails s Puma >> log/test.out 2>> log/test.err &
 sleep 10
 cd BDD
 

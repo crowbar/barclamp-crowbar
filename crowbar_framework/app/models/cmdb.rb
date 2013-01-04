@@ -42,48 +42,45 @@ class Cmdb < ActiveRecord::Base
   def self.prepare_proposal(new_config)
     # collect all the depenent configurations
 
-    cmdb = Cmdb.find_cmdb_for_config(new_config)    
-    evt = cmdb.create_event(new_config)
-
-    # create a CmdbEvent for each unique cmdb execution that needs to be performed
-    # on each node. Events are tied in dependency list (to allow subsequent events)
-    # to be fired when their dependencies complete.
-    nrs = {}
-    new_config.node_roles.each { |nr| 
-      name = nr.role.name
-      nrs[name] =[] unless nrs[name]
-      nrs[name] << nr
-    }
-    logger.debug("Node roles, #{nrs.inspect}")
-    #node_roles = new_config.get_nodes_by_roles    # hash of role -> list of nodes     
-    ordered_roles = new_config.barclamp.get_roles_by_order # array of: arry of role.
-    order = 1
-    ordered_roles.each { |r_list|             
-      r_list.each { |r| 
-        logger.debug("handling #{r}, which has #{nrs[r.name].inspect} ")
-        nrs[r.name].each { |nr| 
-          # create events for nodes that are not currently in the right state,
-          # they won't be executed until the node does transition to the right place.
-          # next unless  r.states.include?("all") or n.states.include?(n.state)
-          cmdb.create_run_for(evt,nr,order);
-        } if nrs[r.name]  ### barclamp might have roles that have no nodes...
+    Cmdb.transaction do 
+      cmdb = Cmdb.find_cmdb_for_config(new_config)    
+      evt = cmdb.create_event(new_config)
+  
+      # create a CmdbEvent for each unique cmdb execution that needs to be performed
+      # on each node. Events are tied in dependency list (to allow subsequent events)
+      # to be fired when their dependencies complete.
+      nrs = {}
+      new_config.node_roles.each { |nr| 
+        name = nr.role.name
+        nrs[name] =[] unless nrs[name]
+        nrs[name] << nr
       }
-      order +=1
-    }
-
-    evt
+      logger.debug("Node roles, #{nrs.inspect}")
+      #node_roles = new_config.get_nodes_by_roles    # hash of role -> list of nodes     
+      ordered_roles = new_config.barclamp.get_roles_by_order # array of: arry of role.
+      order = 1
+      ordered_roles.each { |r_list|             
+        r_list.each { |r| 
+          logger.debug("handling #{r}, which has #{nrs[r.name].inspect} ")
+          nrs[r.name].each { |nr| 
+            # create events for nodes that are not currently in the right state,
+            # they won't be executed until the node does transition to the right place.
+            # next unless  r.states.include?("all") or n.states.include?(n.state)
+            cmdb.create_run_for(evt,nr,order);
+          } if nrs[r.name]  ### barclamp might have roles that have no nodes...
+        }
+        order +=1
+      }
+      evt.save!
+      evt
+    end
   end
-  
 
-
-  def node(name)
-    puts "RAH REMOVE: super class node #{name}"
+  # compute event for execution by computing whatever the cmdb backend needs
+  def prepare_for_execution(evt,config)
+    # here for sub-classes to override.
   end
-  
-  def data(key)
-    puts "RAH REMOVE: super class data #{key}"
-  end
-  
+    
   def as_json options={}
    {
      :name=> name,

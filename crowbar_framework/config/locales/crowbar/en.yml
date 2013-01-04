@@ -60,25 +60,24 @@ en:
 
     books:
       "crowbar/barclamps": Barclamps
-      "crowbar/deployguide": Deploy Guide
-      "crowbar/devguide": Dev Guide
-      "crowbar/gettingstarted": Getting Started
+      "crowbar/deployguide": "Deploy Guide"
+      "crowbar/devguide": "Dev Guide"
+      "crowbar/gettingstarted": "Getting Started"
       "crowbar/licenses": Licenses
-      "crowbar/releasenotes": Release Notes
+      "crowbar/releasenotes": "Release Notes"
       "crowbar/userguide": User Guide
     
     scaffold:
       top: Scaffolds
-      top_description: Developer Tools
-      attributes: Attributes
+      top_description: "Developer Tools"
       barclamps: Barclamps
-      cmdb: DevOps CMDB
-      cmdb_attributes: CMDB Attribs
+      cmdb: "DevOps CMDB"
+      attribs: Attributes
       nodes: Nodes
       groups: Groups
       roles: Roles
       proposals: Proposals
-      configs: Proposal Configs
+      configs: "Proposal Configs"
       menus: Menu Items
       docs: Doc Topics
       os: "Operating Systems"
@@ -167,8 +166,9 @@ en:
       cannot_find: Failed to find proposal
       instance_active: Can not delete active proposals.
       unknown_delete_fail: Unknown delete failure
-    attributes:
+    attribs:
       node:
+        default_create_description: "System Created Attribute"
         name: Full Name
         mac: MAC Address
         allocated: Allocated

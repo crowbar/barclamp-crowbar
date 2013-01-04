@@ -15,7 +15,7 @@
 source "http://127.0.0.1:3001"
 #source 'http://rubygems.org'
 
-gem 'rails', '~> 3.2.9'
+gem 'rails', '~> 3.2.10'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -29,6 +29,7 @@ gem 'kwalify'
 gem 'chef', '~>10.8'
 gem 'puma'
 gem 'amqp'
+gem 'xml-simple'
 gem 'delayed_job_active_record'
 gem 'daemons'
 gem 'active_scaffold'
@@ -40,8 +41,13 @@ group :development do
   gem "rails-erd"
 end
 
+# rcov supports only Ruby 1.8, while simplecov supports only Ruby 1.9. So
+# pick the right one based on the Ruby version. Simplify once 1.8 support is
+# dropped.
+gem 'rcov',      :platforms => :ruby_18, :group => [:development, :test]
+gem 'simplecov', :platforms => :ruby_19, :group => :test, :require => false
+
 gem "chefspec", :group => [:development, :test]
-gem "rcov", :group => [:development, :test]
 gem "rspec-rails", "~> 2.11.4", :group => [:development, :test]
 # These to require Ruby 1.9.3
 gem "factory_girl", "<3.0" , :group => [:development, :test]

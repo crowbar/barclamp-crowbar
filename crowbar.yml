@@ -138,7 +138,7 @@ rpms:
   redhat-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-7.noarch.rpm
+      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly
@@ -148,7 +148,7 @@ rpms:
   centos-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-7.noarch.rpm
+      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly
@@ -225,7 +225,7 @@ gems:
     - bluepill
     - builder
     - bundler
-    - bunny
+    - bunny-(<0.8.0)
     - cancan
     - chef-(~>10.16.2)
     - chefspec
@@ -247,10 +247,11 @@ gems:
     - net-ssh-multi
     - puma
     - railroad
-    - rails-(~>3.2.9)
+    - rails-(~>3.2.10)
     - rails-erd
     - rake
     - rcov
+    - simplecov
     - rdoc
     - rest-client
     # Pinned to not interfere with chefspec.

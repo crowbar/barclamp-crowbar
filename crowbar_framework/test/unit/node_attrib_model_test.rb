@@ -24,11 +24,15 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
     @na = @node.attrib_set(@attrib.name, @value)
+
+    # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
+    # accordingly. Simplify once we remove 1.8 support.
+    @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
   
   test "Node Attribs must have node and attrib" do
-    assert_raise(NameError) { NodeAttrib.create :node_id=>nil, :attrib_id=>@attrib.id }
-    assert_raise(NameError) { NodeAttrib.create :node_id=>@node.id, :attrib_id=>nil }
+    assert_raise(@error_class) { NodeAttrib.create :node_id=>nil,      :attrib_id=>@attrib.id }
+    assert_raise(@error_class) { NodeAttrib.create :node_id=>@node.id, :attrib_id=>nil }
   end
   
   test "Node Attrib can have no run" do
@@ -151,8 +155,8 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   test "Node Attrib find_or_create" do
     a = Attrib.create :name=>"busted"
     assert_not_nil a
-    assert_raise(NameError) { NodeAttrib.find_or_create_by_node_and_attrib(nil, a) }
-    assert_raise(NameError) { NodeAttrib.find_or_create_by_node_and_attrib(@node, nil) }
+    assert_raise(@error_class) { NodeAttrib.find_or_create_by_node_and_attrib(nil, a) }
+    assert_raise(@error_class) { NodeAttrib.find_or_create_by_node_and_attrib(@node, nil) }
     na = NodeAttrib.find_or_create_by_node_and_attrib(@node, a)
     assert_not_nil na
   end

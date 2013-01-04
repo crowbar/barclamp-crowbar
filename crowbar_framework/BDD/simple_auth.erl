@@ -85,9 +85,9 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
   bdd_utils:log(Config, demp, "simple_auth:request making http request Method ~p URL ~p Header ~p Opts ~p", [Method, URL, TrialHeader, HTTPOptions2]),
   % try request
   {Status,{{Protocol,Code,Comment}, Fields, Message}} = case Method of
-    get -> http:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
-    delete -> http:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
-    _ -> http:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions2, Options)
+    get -> httpc:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
+    delete -> httpc:request(Method, {URL, TrialHeader}, HTTPOptions2, Options);
+    _ -> httpc:request(Method, {URL, TrialHeader, Type, Body}, HTTPOptions2, Options)
   end,
   bdd_utils:log(trace, "simple_auth:request User ~p Password ~p URL ~p Code ~p",[User, Password, URL, Code]),
   % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
@@ -104,9 +104,9 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
 	      S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
 	    end,
       case Method of 
-        get -> http:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
-        delete -> http:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
-        _ -> http:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions2, Options)
+        get -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
+        delete -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
+        _ -> httpc:request(Method, {URL, HeaderDigested, Type, Body}, HTTPOptions2, Options)
       end;
     302 ->
       % we have to shoehorn the port number back into the redirect URL - erlang bug?
@@ -114,9 +114,9 @@ request(Config, Method, {URL, Header, Type, Body}, HTTPOptions, Options) ->
       {http, _, NHost, _Port, NURI, _Params} = http_uri:parse(Location),
       CorrectURL = assemble_url(NHost,Port,NURI),
       case Method of 
-        get -> http:request(Method, {CorrectURL, TrialHeader}, HTTPOptions2, Options);
-        delete -> http:request(Method, {CorrectURL, TrialHeader}, HTTPOptions2, Options);
-        _ -> http:request(Method, {CorrectURL, TrialHeader, Type, Body}, HTTPOptions2, Options)
+        get -> httpc:request(Method, {CorrectURL, TrialHeader}, HTTPOptions2, Options);
+        delete -> httpc:request(Method, {CorrectURL, TrialHeader}, HTTPOptions2, Options);
+        _ -> httpc:request(Method, {CorrectURL, TrialHeader, Type, Body}, HTTPOptions2, Options)
       end;
 
     _ -> {Status,{{Protocol,Code,Comment}, Fields, Message}}
@@ -133,8 +133,8 @@ header(Config, URL) ->
 authenticate_session(Config, URL) ->
   User = bdd_utils:config(Config,user),
   Password = bdd_utils:config(Config,password),
-  Result = http:request(post, {
-			  URL++bdd_utils:config(Config, sign_in_url, "/my/users/sign_in"),
+  Result = httpc:request(post, {
+			  URL++bdd_utils:config(Config, sign_in_url, "/users/sign_in"),
 			  [], 
 			  "application/x-www-form-urlencoded",
 			  "user[username]="++User++"&user[password]="++Password
@@ -229,6 +229,3 @@ hex([], Res) ->
 hex([N | Ns], Res) ->
 	hex(Ns, [digit_to_xchar(N rem 16),
 					 digit_to_xchar(N div 16) | Res]).
-
-
-

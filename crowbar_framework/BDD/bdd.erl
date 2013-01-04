@@ -295,7 +295,11 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 	try apply(Feature, step, [Config, Input, Step]) of
 		error -> 
 		  {error, Step};
-		Result -> Result
+		Result -> 
+		  {Type, _N, List} = Step,
+		  log(debug, "^^ Ran ~p:~p(~p)",[Feature,Type,List]),
+		  log(trace, "^^ Result -> ~p",[Result]),
+		  Result
 	catch
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);

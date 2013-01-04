@@ -102,7 +102,7 @@ run(Config, [], [FileName | Features]) ->
 	    {total, Total} = lists:keyfind(total, 1, Out),
 	    {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
 	    {fail, _N, Fail} = lists:keyfind(fail, 1, Out),
-	    log(result, "Passed ~p of ~p.  Failed ~p.", [Pass, Total, Fail]),
+	    log(result, "Feature ~p passed ~p of ~p.  Failed ~p.", [Feature, Pass, Total, Fail]),
       lists:keyfind(feature,1,Run)
 	catch
 		X: Y -> log(error, "bdd:run Feature ~p error ~p:~p. ~nStracktrace: ~p~n", [Feature, X, Y, erlang:get_stacktrace()]),

@@ -77,21 +77,21 @@ describe "cmdb proposal manipulation" do
 
     it "can create a test proposal with 2 nodes" do
       barclamp = setup_test_barclamp_with_2_nodes()
-      assert barclamp.proposals.length,1
+      assert_equal 1, barclamp.proposals.length
       pc = barclamp.proposals[0].current_config
-      assert pc.node_roles.length,2
+      assert_equal 2, pc.node_roles.length
 
       evt = Cmdb.prepare_proposal(pc)
 
       # there should now be: 1 cmdbChef event, 2 runs - 1 for test-multi-head, 1 for test-multi-rest
-      assert CmdbEvent.all.length,1
-      assert CmdbRunChef.all.length, 2
+      assert_equal 1, CmdbEvent.all.length
+      assert_equal 2, CmdbRunChef.all.length
 
       ## Verify that evt <-> run relationship holds,
       CmdbRunChef.all.each { |r| r.cmdb_event == evt }
       # verify run status .
-      evt.cmdb_run.each { |r| assert r.status, CmdbRun::RUN_PENDING }
-      assert evt.status, CmdbEvent::EVT_PENDING
+      evt.cmdb_run.each { |r| assert_equal CmdbRun::RUN_PENDING, r.status }
+      assert_equal CmdbEvent::EVT_PENDING, evt.status
     end
   end
 end

@@ -222,8 +222,8 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc.name = "foo"
     Barclamp.import_1x_deployment(bc,json)
     ordered = bc.get_roles_by_order
-    assert_equal ['foo_mon_master'],       ordered.first
-    assert_equal ['foo_mon', 'foo_store'], ordered.second
+    assert_equal ['foo_mon_master'],       ordered.first.map(&:name)
+    assert_equal ['foo_mon', 'foo_store'], ordered.second.map(&:name)
   end
 
 end

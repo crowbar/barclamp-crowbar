@@ -18,7 +18,7 @@
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([log/4, log/3, log/2, log/1, log_level/1, depricate/4]).
+-export([log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
@@ -103,10 +103,20 @@ log_level(warn)       -> put(log, [warn, error, puts]);
 log_level(all)        -> put(log, all).
 
 % helps to move code around
-depricate(From, To, Method, Params) ->
-  bdd_utils:log(depricate,"`~p:~p` moved to `~p` with arity ~p.",[From, Method, To, length(Params)]), 
-  apply(To, Method, Params).
-
+depricate(From, To, Method, Params) -> depricate({2013, 03, 13}, From, Method, To, Method, Params).
+  
+% FailDate in {YYYY, MM, DD}
+depricate(FailDate, From, FMethod, To, TMethod, Params) ->
+  {TTL, _} = calendar:time_difference({date(), time()}, {FailDate, {0,0,0}}),
+  {Level, Prefix} = if 
+      TTL > 90 -> {debug,"Deprication:"};
+      TTL > 30 -> {info,"FIX THIS >>"};
+      TTL > 0  -> {warn,"GOING AWAY!"};
+      true     -> {error,"DEPRICATED!"}
+    end,
+  log(Level,"~p `~p:~p` moved to `~p:~p` with arity ~p.",[Prefix, From, FMethod, To, TMethod, length(Params)]),
+  apply(To, TMethod, Params).
+  
 % return the list of feature to test
 features(Config) ->
   filelib:wildcard(features(Config, "*")).
@@ -130,7 +140,8 @@ trace_setup(Config, Name, nil) ->
 
 trace_setup(Config, Name, N) ->
   SafeName = clean_line(Name),
-  string:join(["trace_", config(Config,feature,"unknown"), "-", string:join(string:tokens(SafeName, " "), "_"), "-", integer_to_list(N), ".txt"], "").
+  Prefix = config(trace_location,"../tmp/trace_"),
+  string:join([Prefix, config(Config,feature,"unknown"), "-", string:join(string:tokens(SafeName, " "), "_"), "-", integer_to_list(N), ".txt"], "").
   
 trace(Config, Name, N, Steps, Given, When) ->
   File = trace_setup(Config, Name, N),
@@ -356,17 +367,11 @@ token_substitute(_Config, [$i, $n, $t, $e, $g, $e, $r, $: | Apply])
 token_substitute(_Config, Token)                           -> Token.
 
 
-% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON) ->
-  log(Config, depricate, "** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p.",[Path, Atom, Name]),
-  crowbar_rest:create(Config, Path, Atom, Name, JSON).
+  depricate({2013,2,1}, bdd_utils, setup_create, crowbar_rest, setup_create, [Config, Path, Atom, Name, JSON]).
 
-% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 setup_create(Config, Path, Atom, Name, JSON, Action) ->
-  log(Config, depricate, "** PLEASE MOVE ** setup_create moved from bdd_utils to create:crowbar_rest.  Called with ~p, ~p, ~p, ~p.",[Path, Atom, Name, Action]),
-  crowbar_rest:create(Config, Path, Atom, Name, JSON, Action).
+  depricate({2013,2,1}, bdd_utils, setup_create, crowbar_rest, setup_create, [Config, Path, Atom, Name, JSON, Action]).
   
-% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST
 teardown_destroy(Config, Path, Atom) ->
-  log(Config, depricate, "** PLEASE MOVE ** setup_destroy moved from bdd_utils to destroy:crowbar_rest.  Called with ~p, ~p.",[Path, Atom]),
-  crowbar_rest:destroy(Config, Path, Atom).
+  depricate({2013,2,1}, bdd_utils, teardown_destroy, crowbar_rest, destroy, [Config, Path, Atom]).

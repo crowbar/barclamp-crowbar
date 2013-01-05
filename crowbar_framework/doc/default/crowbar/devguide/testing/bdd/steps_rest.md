@@ -44,18 +44,13 @@ Use the shared validator to check common properties like ID, Name, Description a
 
 > The `bdd_utils:is_a` is your friend - extend it if needed.  There are similar BIFs for erlang that you can also leverage.
 
-  validate(JSON) ->
-    try JSON of
-      J -> 
-          R =[bdd_utils:is_a(string, json:keyfind(J, type)), 
-              crowbar_rest:validate(J)],
-          bdd_utils:assert(R)
-    catch
-      X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-  		false
-  	end. 
-  
-
+  validate(J) ->
+    R =[length(J) =:= 6,
+        bdd_utils:is_a(J, str, description), 
+        bdd_utils:is_a(J, integer, order),
+        crowbar_rest:validate(J)],
+    bdd_utils:assert(R). 
+         
 #### inspector
 
 The inspector is part of a housekeeping system for BDD that helps detect orphaned artifacts.  It is optional, but recommended for root objects.

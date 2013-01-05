@@ -28,13 +28,15 @@ g(Item) ->
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(JSON) ->
-  R =[bdd_utils:is_a(integer, json:keyfind(JSON, fingerprint)), 
-      bdd_utils:is_a(boolean, json:keyfind(JSON, allocated)), 
-      bdd_utils:is_a(string, json:keyfind(JSON, state)), 
-      bdd_utils:is_a(boolean, json:keyfind(JSON,admin)), 
-      bdd_utils:is_a(dbid, json:keyfind(JSON,os_id)), 
-      crowbar_rest:validate(JSON)],
+validate(J) ->
+  R =[bdd_utils:is_a(J, integer, fingerprint), 
+      bdd_utils:is_a(J, boolean, allocated), 
+      bdd_utils:is_a(J, string, state), 
+      bdd_utils:is_a(J, boolean, admin), 
+      bdd_utils:is_a(J, dbid, os_id), 
+      bdd_utils:is_a(J, string, alias), 
+      length(J) =:= 12,
+      crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
 create(ID, Name, Extras) ->

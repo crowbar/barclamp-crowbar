@@ -31,8 +31,17 @@ test(ConfigName)         ->
   % cleanup application services
   EndConfig = stop(Complete),
   Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
-  file:write_file("../tmp/bdd_results.out",io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
-  [{Fatom, print_report(R)} || {feature, Fatom, _Feature, R} <-Results].
+  File = bdd_utils:config(results_out,"../tmp/bdd_results.out"),
+  file:write_file(File,io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
+  Final = [{Fatom, print_report(R)} || {feature, Fatom, _Feature, R} <-Results],
+  Total = lists:sum([ T || {_Feature, {T, _P, _F, _, _}} <- Final]),
+  Fail = lists:sum([ F || {_Feature, {_T, _P, F, _, _}} <- Final]),
+  case Fail of
+    0 -> log(result,"PASSED (or skipped) ALL TESTS (~p tests in ~p features).",[Total,length(Final)]);
+    X -> log(info,"Test Results: ~p.  Run `bdd:failed().` to re-run failed tests",[File]),
+         log(result,"FAILED ~p TESTS of ~p tests in ~p features.  Run bdd:failed() or see ~s for details.",[X, Total,length(Final)])
+  end,
+  Final.
   
 % list available features
 features() ->
@@ -82,7 +91,8 @@ debug(Config, Feature, ID, Log)   ->
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
 failed(Config)  ->
-  {ok, [{test, _Date, _Time, Results} | _]} = file:consult("../tmp/bdd_results.out"),
+  File = bdd_utils:config(results_out,"../tmp/bdd_results.out"),
+  {ok, [{test, _Date, _Time, Results} | _]} = file:consult(File),
   Fails = [{Feature, lists:keyfind(fail, 1, print_result(Fails))} || {feature, Feature, _, Fails} <- Results],
   % please optimize to use just 1 global setup!
   [ failed(Config, Feature, F) || {Feature, {fail, Num, F}} <- Fails, Num > 0].

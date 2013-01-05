@@ -47,6 +47,12 @@ BDD selects the `default.config` file automatically.  You can choose which confi
     <td>undefined</td>
     <td>used by Unless step prefix to skip tests</td>
   </tr>
+  <tr>
+    <td>results_out</td>
+    <td>no</td>
+    <td>../tmp/bdd_results.out</td>
+    <td>stores the detailed results of the tests.  Used by bdd:failed().</td>
+  </tr>
 </table>
 
 ##### Example Config

@@ -21,7 +21,7 @@ class NodeAttrib < ActiveRecord::Base
   
   before_create :create_identity
 
-  attr_accessible :node_id, :attrib_id, :value_actual, :value_proposed
+  attr_accessible :node_id, :attrib_id, :value_actual
   attr_readonly   :name
 
   belongs_to  :attrib
@@ -66,16 +66,14 @@ class NodeAttrib < ActiveRecord::Base
     node*NODE_ID_SPACE+attribute
   end
 
-  # Returns state of value (:ready or :pending)
+  # Returns state of value of :empty, :set (by API) or :managed (by CMDB)
   def state
-    if value_proposed.eql? MARSHAL_NIL
-      return :ready
-    elsif value_actual.eql? MARSHAL_NIL
-      return :pending
-    elsif value_actual == value_proposed
-      return :ready
+    if cmdb_run_id.nil? 
+      return :empty
+    elsif cmdb_run_id == 0
+      return :set
     else
-      return :pending
+      return :managed
     end
   end   
   
@@ -88,20 +86,14 @@ class NodeAttrib < ActiveRecord::Base
     return self.actual
   end
     
+  # used by the API when values are set outside of CMDB runs
   def actual=(value)
+    self.cmdb_run_id = 0 
     self.value_actual = Marshal::dump(value)
   end
   
   def actual
     Marshal::load(self.value_actual)
-  end
-  
-  def proposed=(value)
-    self.value_proposed = Marshal::dump(value)
-  end
-  
-  def proposed
-    Marshal::load(self.value_proposed)
   end
   
   def as_json options={}

@@ -38,8 +38,8 @@ test(ConfigName)         ->
   Fail = lists:sum([ F || {_Feature, {_T, _P, F, _, _}} <- Final]),
   case Fail of
     0 -> log(result,"PASSED (or skipped) ALL TESTS (~p tests in ~p features).",[Total,length(Final)]);
-    X -> log(info,"Test Results: ~p.  Run `bdd:failed().` to re-run failed tests",[File]),
-         log(result,"FAILED ~p TESTS of ~p tests in ~p features.  Run bdd:failed() or see ~s for details.",[X, Total,length(Final)])
+    X -> log(info,"Test Results: ~p.  Run `bdd:failed().` to re-run failed tests.",[File]),
+         log(result,"FAILED ~p TESTS of ~p tests in ~p features.",[X, Total,length(Final)])
   end,
   Final.
   

@@ -225,7 +225,7 @@ gems:
     - bluepill
     - builder
     - bundler
-    - bunny
+    - bunny-(<0.8.0)
     - cancan
     - chef-(~>10.16.2)
     - chefspec

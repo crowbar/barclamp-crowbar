@@ -39,7 +39,7 @@ class Barclamp < ActiveRecord::Base
   #   all active proposals (that aren't template and have attempted application)
   #   the template proposal
   # 
-  has_many :proposals, :conditions => 'name != "template"'
+  has_many :proposals, :conditions => 'proposals.name != "template"'
   has_many :active_proposals, 
                 :class_name => "Proposal", 
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]

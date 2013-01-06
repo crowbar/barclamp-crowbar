@@ -73,7 +73,7 @@ json_lock_unlock(Username) ->
   json:output([{"username",Username}]).
 
 fetch_user(Config, Result, N, Username) ->
-  {Atom, List, Path} = bdd_restrat:step(Config, Result, {step_when, N, ["REST requests the", eurl:path(g(path),Username),"page"]}),
+  {_Atom, List, _Path} = bdd_restrat:step(Config, Result, {step_when, N, ["REST requests the", eurl:path(g(path),Username),"page"]}),
   bdd_utils:log(Config, puts, "Fetch User: ~p", [List]),
   List.
 

@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate/1, inspector/2]).
+-export([step/3, g/1, validate_core/1, validate/1, inspector/2]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
@@ -29,13 +29,18 @@ validate_list(List) ->
   bdd_utils:assert([is_list(List)], debug).
 
 % validates JSON in a generic way common to all objects
-validate(JSON) ->
+validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
        bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
        bdd_utils:is_a(JSON, name, name), 
+       bdd_utils:is_a(JSON, dbid, id)],
+  bdd_utils:assert(R, debug). 
+
+validate(JSON) ->
+  R = [
        bdd_utils:is_a(JSON, str, description),
        bdd_utils:is_a(JSON, int, order),
-       bdd_utils:is_a(JSON, dbid, id)],
+       validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
 % Common Routine - returns a list of items from the system, used for house keeping
@@ -58,14 +63,14 @@ get_id(Config, Path) ->
 % helper common to all setups using REST
 create(Config, Path, JSON)         -> 
   bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create1 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, JSON, post).
+  bdd_restrat:create(Config, Path, JSON).
 create(Config, Path, JSON, Action) -> 
   bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create2 -> moved to bdd_restrat"),
   bdd_restrat:create(Config, Path, JSON, Action).
   
 create(Config, Path, Atom, Name, JSON) ->
   bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create3 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, Atom, Name, JSON, post).
+  bdd_restrat:create(Config, Path, Atom, Name, JSON).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
   bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create4 -> moved to bdd_restrat"),
@@ -93,7 +98,7 @@ step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) ->
 % GROUPS
 step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = groups:json(Group, groups:g(description), 200, Category),
-  create(Config, groups:g(path), JSON, post);
+  create(Config, groups:g(path), JSON);
 
 % remove the group
 step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 

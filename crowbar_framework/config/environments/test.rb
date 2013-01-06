@@ -54,4 +54,6 @@ config.log_level = :debug
 
 DISABLE_CHEF=true
 
+Rails.logger = Logger.new("#{Rails.root}/log/test.log")
+
 end

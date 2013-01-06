@@ -312,6 +312,7 @@ encode([H | T]) ->
     $+  ->  "%2B" ++ encode(T);
     $$  ->  "%24" ++ encode(T);
     $,  ->  "%2C" ++ encode(T);
+    $.  ->  "%2E" ++ encode(T);
     $<  ->  "%3C" ++ encode(T);
     $>  ->  "%3E" ++ encode(T);
     $~  ->  "%7E" ++ encode(T);
@@ -323,7 +324,7 @@ delete(Config, Path, [])      -> delete(Config, uri(Config, Path), [], all);
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
 delete(Config, URL, [], all)  ->
   bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
-  Result = simple_auth:request(Config, delete, {URL}, [{timeout, 10000}], []),  
+  Result = simple_auth:request(Config, delete, {URL}, [{timeout, 40000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};

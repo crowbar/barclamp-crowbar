@@ -82,7 +82,7 @@ Feature: Users
     
   Scenario: REST get user list
     When REST requests the list of users
-    Then the object id list is properly formatted
+    Then the list of objects is properly formatted
      
   Scenario: REST Create, Read, and Delete a user
     Given there is not a user "test_user_1"
@@ -122,7 +122,8 @@ Feature: Users
     Given there is a user "test_user_1"
     When REST unlocks user "test_user_1"
     Finally REST removes the user "test_user_1"
-  %%%%  REST DONE
+    
+  %%%%REST DONE
   Scenario: %Create User 
     Given there is not a user "foo"
     Given I am on the "users/create" page

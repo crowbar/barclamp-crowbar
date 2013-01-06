@@ -15,7 +15,7 @@
 Crowbar::Application.routes.draw do
 
   namespace :scaffolds do
-    resources :attribs do as_routes end
+    resources :attributes do as_routes end
     resources :barclamps do as_routes end
     resources :groups do as_routes end
     resources :roles do as_routes end
@@ -29,6 +29,7 @@ Crowbar::Application.routes.draw do
     resources :interfaces do as_routes end
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
+    resources :cmdb_attributes do as_routes end
     resources :os do as_routes end
     resources :os_packages do as_routes end
     resources :proposal_queues do as_routes end
@@ -113,8 +114,8 @@ Crowbar::Application.routes.draw do
      
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
-  put 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
-  put 'lock_user/:id', :controller => 'users', :action=>'lock_user', :constraints => { :id => /.*/ }, :as => :lock_user
+  delete 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
+  post 'lock_user/:id', :controller => 'users', :action=>'lock_user', :constraints => { :id => /.*/ }, :as => :lock_user
   match "manage_users", :controller => 'users', :action => 'index'
   match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
                                

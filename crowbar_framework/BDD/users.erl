@@ -21,11 +21,9 @@
 g(Item) ->
   case Item of
     path -> "/2.0/crowbar/2.0/users";
-    path_reset_pw -> "/2.0/crowbar/2.0/user_reset_password";
-    path_lock   -> "/2.0/crowbar/2.0/user_lock"; 
-    path_unlock -> "/2.0/crowbar/2.0/user_unlock"; 
-    path_make_admin -> "/2.0/crowbar/2.0/user_make_admin"; 
-    path_remove_admin -> "/2.0/crowbar/2.0/user_remove_admin"; 
+    path_reset_pw -> "/2.0/crowbar/2.0/users/reset_password";
+    path_lock   -> "/2.0/crowbar/2.0/users/lock"; 
+    path_admin -> "/2.0/crowbar/2.0/users/admin"; 
     natural_key -> username; % unlike most crowbar objects, this uses username as the natural key
     username -> "oscar";
 	email -> "oscar@grouch.com";
@@ -54,7 +52,6 @@ validate(List) ->
             io:format("Stacktrace: ~p", [erlang:get_stacktrace()]),
     false
   end.
-
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
@@ -117,16 +114,14 @@ step(_Config, _Given, {step_when, _N, ["REST adds the user",  Username]}) ->
 
 step(_Config, _Given, {step_when, _N, ["REST elevates user", Username, "to administrator"]}) -> 
    bdd_utils:log(_Config, puts, "Elevating user: ~p, to administrator", [Username]),
-   User = json_update(Username, g(test_email), g(remember_me), true),
-   R = bdd_restrat:update(_Config, g(path_make_admin)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "Updating user returned: ~p", [R]),
+   R = json:parse(eurl:put_post(_Config, g(path_admin)++"/"++Username, [], post)),
+   bdd_utils:log(_Config, trace, "Make user admin returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST removes admin privilege for user", Username]}) -> 
    bdd_utils:log(_Config, puts, "Removing admin privilege for user: ~p", [Username]),
-   User = json_update(Username, g(test_email), g(remember_me), false),
-   R = bdd_restrat:update(_Config, g(path_remove_admin)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "Updating user returned: ~p", [R]),
+   R = eurl:delete(_Config, g(path_admin), Username),
+   bdd_utils:log(_Config, trace, "Removed user admin returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting email to", Email]}) -> 
@@ -145,16 +140,14 @@ step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting 
 
 step(_Config, _Given, {step_when, _N, ["REST locks user", Username]}) -> 
    bdd_utils:log(_Config, puts, "Locking user: ~p", [Username]),
-   User = json_lock_unlock(Username),
-   R = bdd_restrat:update(_Config, g(path_lock)++"/"++Username, update ,username, User),
+   R = json:parse(eurl:put_post(_Config, g(path_lock)++"/"++Username, [], post)),
    bdd_utils:log(_Config, trace, "Lock user returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST unlocks user", Username]}) -> 
    bdd_utils:log(_Config, puts, "Unlocking user: ~p", [Username]),
-   User = json_lock_unlock(Username),
-   R = bdd_restrat:update(_Config, g(path_unlock)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "Lock user returned: ~p", [R]),
+   R = eurl:delete(_Config, g(path_lock), Username),
+   bdd_utils:log(_Config, trace, "Unlock user returned: ~p", [R]),
    R;
 
 % THEN STEP  =======================================================

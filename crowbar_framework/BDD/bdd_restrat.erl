@@ -56,15 +56,14 @@ create(Config, Path, Atom, Name, JSON) ->
   create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, trace, "Entering bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, JSON: ~p, Action: ~p", [Path, Atom, Name, JSON, Action]),
+  bdd_utils:log(Config, info, "Entering bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, JSON: ~p, Action: ~p", [Path, Atom, Name, JSON, Action]),
   destroy(Config, Path, Atom),
   Result = json:parse(create(Config, Path, Name, JSON, Action)),
   % get the ID of the created object
   Key = json:keyfind(Result, id),
-  bdd_utils:log(Config, debug, "json:keyfind(Result, id) done, Key: ~p",[Key]),
+  bdd_utils:log(Config, info, "json:keyfind(Result, id) done, Key: ~p",[Key]),
   % friendly message
-  bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
-
+  bdd_utils:log(Config, info, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
   % add the new ID to the config list
   bdd_utils:config_set(Config, Atom, Key).
 
@@ -188,7 +187,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_ato
   end;
 
 step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
-  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  % This relies on the pattern objects providing a g(path) value mapping to their root information 
   case get_JSON(Results, all) of 
     {ajax, Code, {_, URI}} when is_number(Code) -> 
         bdd_utils:log(Config, warn, "bdd_restrat: Object ~p code ~p at ~p", [Object, Code, URI]), 

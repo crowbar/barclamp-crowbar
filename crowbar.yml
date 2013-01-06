@@ -251,6 +251,7 @@ gems:
     - rails-erd
     - rake
     - rcov
+    - simplecov
     - rdoc
     - rest-client
     # Pinned to not interfere with chefspec.

@@ -107,7 +107,8 @@ class Barclamp < ActiveRecord::Base
       Rails.logger.debug "ok, Barclamp add_attrib #{check.id}: #{props.inspect}"
     else
       # if we own it, then we can just update it
-      if check.barclamp_id == self.id
+      #   if it's the crowbar barclamp then it's OK too (optimized by lazy OR)
+      if (check.barclamp_id == self.id) or (check.barclamp_id == Barclamp.find_by_name('crowbar').id)
         check.update_attributes props
       else
         # that's not allowed

@@ -19,8 +19,11 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   # tests the relationship between nodes and attributes)
   def setup
     @hint = "look under the cushions on the couch"
-    @bc = Barclamp.find_or_create_by_name :name=>"test_units"
+    # Attrib depends on crowbar barclamp - we need to find/create it first
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
+    assert_not_nil @crowbar, "we need to have a crowbar barclamp"
+    @bc = Barclamp.find_or_create_by_name :name=>"test_units"
+    assert_not_nil @bc, "we need to have a base barclamp"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test", :barclamp_id=>@bc.id, :description=>'unit test target', :hint=>@hint
   end  
 
@@ -99,10 +102,25 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   
   test "Barclamp addAttrib cannot reassign barclamp" do
     name = "dontmoveme"
-    a1 = @crowbar.add_attrib :name=>name
+    bc1 = Barclamp.create :name=>"unittest_foo"
+    assert_not_nil bc1
+    a1 = bc1.add_attrib :name=>name
     assert_not_nil a1
     e = assert_raise(NameError) { @bc.add_attrib(:name=>name) }
     assert_equal "uncaught throw `Cannot Reassign Barclamp'", e.message
+    a1_again = Attrib.find a1.id
+    assert_equal bc1.id, a1.barclamp_id, "confirm it did not change"
+  end
+
+  test "Barclamp addAttrib can reassign from crowbar barclamp" do
+    name = "domoveme"
+    a1 = @crowbar.add_attrib :name=>name
+    assert_not_nil a1
+    a2 = @bc.add_attrib :name=>name
+    assert_not_nil a2
+    assert_not_equal @crowbar.id, a2.barclamp_id, "this is not crowbar barclamp"
+    assert_equal a1.id, a2.id, "this is the same attrib"
+    assert_equal @bc.id, a2.barclamp_id, "this is the new barclamp"
   end
   
   test "Barclamp Register creates attributes" do

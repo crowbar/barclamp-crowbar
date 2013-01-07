@@ -69,7 +69,7 @@ en:
     not_supported: "Requested action %{verb} is not supported on %{obj}"
     deleted: "Successfully deleted %{obj} id %{id}."
     unknown_request: "Unable to process request"
-
+    by_id_or_username_record_not_found: "User not found with id/username %{id_username} not found"    
     
   db:
     notunique: "Item must be unique"

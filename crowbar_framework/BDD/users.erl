@@ -35,6 +35,12 @@ g(Item) ->
     _ -> crowbar:g(Item)
   end.
 
+
+% validates List of objects in a generic way common to all objects.
+validate_list(List) ->
+  % R = [is_list(List)],
+  bdd_utils:assert([is_list(List)], debug).
+
 % Common Routine
 % Only need chck id, username and email are parseable for now
 % Should really have email validator
@@ -151,7 +157,12 @@ step(_Config, _Given, {step_when, _N, ["REST unlocks user", Username]}) ->
    R;
 
 % THEN STEP  =======================================================
-% ADD MISSING THEN STEP:
+
+% validate list based on basic rules for Crowbar
+step(_Config, Result, {step_then, _N, ["the list of objects is properly formatted"]}) -> 
+  {ajax, List, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+  validate_list(List);
+
 step(_Config, _Result, {step_then, _N, ["there should be a valid user", Username]}) -> 
   bdd_utils:log(_Config, puts, "Fetching user: ~p", [Username]),
   User_JSON = fetch_user(_Config, _Result, _N, Username),

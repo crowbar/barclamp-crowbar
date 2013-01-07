@@ -172,11 +172,11 @@ Crowbar::Application.routes.draw do
               post :controller => "users", :action => "user_create"
               put ":id", :controller => "users", :action => "user_update"
               delete ":id", :controller => "users", :action => "user_delete"
-              post "admin/:id", :controller => "users", :action => "user_make_admin"
-              delete "admin/:id", :controller => "users", :action => "user_remove_admin"
-              post "lock/:id", :controller => "users", :action => "user_lock"
-              delete "lock/:id", :controller => "users", :action => "user_unlock"
-              put "reset_password(/:id)", :controller => "users", :action => "user_reset_password"
+              post ":id/admin", :controller => "users", :action => "user_make_admin"
+              delete ":id/admin", :controller => "users", :action => "user_remove_admin"
+              post ":id/lock", :controller => "users", :action => "user_lock"
+              delete ":id/lock", :controller => "users", :action => "user_unlock"
+              put ":id/reset_password", :controller => "users", :action => "user_reset_password"
             end
           end
         end

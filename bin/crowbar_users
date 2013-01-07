@@ -140,7 +140,7 @@ end
 def update_admin(id_or_username, onOff=false)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  struct = (onOff) ? post_json2("#{USERS_PATH}/admin/#{id_or_username}") : delete_json2("#{USERS_PATH}/admin/#{id_or_username}")
+  struct = (onOff) ? post_json2("#{USERS_PATH}/#{id_or_username}/admin") : delete_json2("#{USERS_PATH}/#{id_or_username}/admin")
  
   if struct[1] == 200
     [ "Set is_admin attribute for user #{id_or_username}", 0 ]
@@ -165,7 +165,7 @@ end
 def lock_unlock(id_or_username, lockUnlock=false)
   usage -1 if id_or_username.nil? or id_or_username == ""
 
-  struct = (lockUnlock) ? post_json2("#{USERS_PATH}/lock/#{id_or_username}") : delete_json2("#{USERS_PATH}/lock/#{id_or_username}")
+  struct = (lockUnlock) ? post_json2("#{USERS_PATH}/#{id_or_username}/lock") : delete_json2("#{USERS_PATH}/#{id_or_username}/lock")
   
   if struct[1] == 200
     [ "Locked/Unlocked the user: #{id_or_username}", 0 ]
@@ -188,7 +188,7 @@ def reset_password(id_or_username, password, password_confirmation)
       "password_confirmation" => password_confirmation,
       }.to_json
 
-  struct = put_json2("#{USERS_PATH}/reset_password/#{id_or_username}", @data)
+  struct = put_json2("#{USERS_PATH}/#{id_or_username}/reset_password", @data)
   
   if struct[1] == 200
     [ "Reset password for user: #{id_or_username}", 0 ]

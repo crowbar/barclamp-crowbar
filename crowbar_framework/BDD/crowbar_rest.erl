@@ -23,11 +23,6 @@ g(Item) ->
     _ -> crowbar:g(Item)
   end.
 
-% validates List of objects in a generic way common to all objects.
-validate_list(List) ->
-  % R = [is_list(List)],
-  bdd_utils:assert([is_list(List)], debug).
-
 % validates JSON in a generic way common to all objects
 validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
@@ -106,11 +101,6 @@ step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) ->
 
 
 % ============================  THEN STEPS =========================================
-
-% validate list based on basic rules for Crowbar
-step(_Config, Result, {step_then, _N, ["the list of objects is properly formatted"]}) -> 
-  {ajax, List, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
-  validate_list(List);
 
 % validate object based on basic rules for Crowbar
 step(_Config, Result, {step_then, _N, ["the object is properly formatted"]}) -> 

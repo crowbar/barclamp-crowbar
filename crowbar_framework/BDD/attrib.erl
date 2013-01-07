@@ -29,12 +29,14 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(J) ->
-  R =[length(J) =:= 6,
+  R =[length(J) =:= 8,
       bdd_utils:is_a(J, str, description), 
+      bdd_utils:is_a(J, str, hint), 
+      bdd_utils:is_a(J, dbid, barclamp_id), 
       bdd_utils:is_a(J, integer, order),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R). 
-       
+  
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->

@@ -56,14 +56,59 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_not_equal @hint, a.hint
   end
   
+
+  test "Barclamp addAttrib creates attributes" do
+    name = "add_attrib"
+    desc = "mashed potatoes"
+    hint = "in the cabinet"
+    order = 6
+    props = {:name=>name, :description=>desc, :hint=>hint, :order=>order}
+    assert_not_nil @bc
+    a = @bc.add_attrib props
+    assert_not_nil a
+    assert_equal name, a.name
+    assert_equal desc, a.description
+    assert_equal order, a.order
+    assert_equal hint, a.hint
+    assert_equal @bc.id, a.barclamp_id
+  end
+  
+  test "Barclamp addAttrib updates attributes" do
+    name = @attrib.name
+    desc = "mashed potatoes"
+    hint = "in the cabinet"
+    order = 6
+    props = {:name=>name, :description=>desc, :hint=>hint, :order=>order}
+    assert_not_nil @bc
+    a = @bc.add_attrib props
+    assert_not_nil a
+    assert_equal a.id, @attrib.id 
+    assert_equal name, a.name
+    assert_equal desc, a.description
+    assert_equal order, a.order
+    assert_equal hint, a.hint
+    assert_not_equal @hint, a.hint
+    assert_equal @bc.id, a.barclamp_id
+  end
+  
+  test "Barclamp addAttrib requires name" do
+    props = {:description=>"desc", :hint=>"hint"}
+    e = assert_raise(NameError) { @bc.add_attrib(props) }
+    assert_equal "uncaught throw `Requires Name'", e.message
+  end
+  
+  test "Barclamp addAttrib cannot reassign barclamp" do
+    name = "dontmoveme"
+    a1 = @crowbar.add_attrib :name=>name
+    assert_not_nil a1
+    e = assert_raise(NameError) { @bc.add_attrib(:name=>name) }
+    assert_equal "uncaught throw `Cannot Reassign Barclamp'", e.message
+  end
+  
   test "Barclamp Register creates attributes" do
     assert false, "test not created"
   end
 
-  test "Barclamp RequestAttrib creates attributes" do
-    assert false, "test not created"
-  end
-  
   test "Barclamp run_data create mode data" do
     assert false, "test not created"
   end

@@ -88,6 +88,36 @@ class Barclamp < ActiveRecord::Base
     [ "1.0" ]
   end
 
+  # 
+  # Barclamps are responsible to creating the attributes that they will manage
+  # name is required, all other fields are optional
+  # attributes cannot be reassigned to a different barclamp
+  #
+  def add_attrib props
+    # we need to know the name
+    unless props.key? :name
+      Rails.logger.error ":name is required to use barclamp.add_attibute" 
+      throw "Requires Name"
+    end
+    props[:barclamp_id] = self.id
+    check = Attrib.find_by_name props.name
+    # if the attrib is new, then create it
+    if check.nil?
+      check = Attrib.create props
+      Rails.logger.debug "ok, Barclamp add_attrib #{check.id}: #{props.inspect}"
+    else
+      # if we own it, then we can just update it
+      if check.barclamp_id == self.id
+        check.update_attributes props
+      else
+        # that's not allowed
+        Rails.logger.error "Attrib #{check.name} is already assigned to #{check.barclamp.name} barclamp.  Cannot be reassigned" 
+        throw "Cannot Reassign Barclamp"
+      end
+    end
+    check
+  end
+
   #
   # Override function:
   #

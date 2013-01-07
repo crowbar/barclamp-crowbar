@@ -89,6 +89,6 @@ add_node({Atom, Name, Description, Order, Group}) ->
 
 map_node_attribs([], _Attribs)         -> done;
 map_node_attribs([N | Nodes], Attribs) ->
-  [node:node_add_attrib([], N, A) || A <- Attribs],
+  [node_attrib:node_add_attrib([], N, A) || A <- Attribs],
   map_node_attribs(Nodes, Attribs).
   

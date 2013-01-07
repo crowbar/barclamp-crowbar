@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(eurl).
--export([post/3, put/3, delete/2, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/2]).
+-export([post/3, put/3, delete/2, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/1, path/2]).
 -export([get/2, get/3, get_page/3, get_ajax/2, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1]).
 -export([form_submit/2, form_fields_merge/2]).
@@ -203,7 +203,10 @@ find_block_helper(Test, RE) ->
 uri(Config, Path) ->
 	Base = bdd_utils:config(Config, url),
 	path(Base,Path).
-	
+
+path([Head, Tail])  -> path(Head, Tail);
+path([Head | Tail]) -> path(Head, path(Tail)).
+  
 path(Base, Path) ->
   case {string:right(Base,1),string:left(Path,1)} of
     {"/", "?"}-> string:substr(length(Base)-1) ++ Path;
@@ -227,7 +230,7 @@ get(Config, URL, all) ->
 	{ReturnCode, Body};
 get(Config, URL, OkReturnCodes) ->
   bdd_utils:log(Config, trace, "eurl:get get(Config, URL, OkReturnCodes)"),
-  translateReturnCodes(get(Config, URL, all), OkReturnCodes, URL, get).
+  translateReturnCodes(get, get(Config, URL, all), OkReturnCodes, URL, get).
 
 % prevent trying to get invalid pages from previous steps
 get_page(Config, {error, Issue, URL}, _Codes) ->
@@ -267,6 +270,11 @@ put(Config, Path, JSON)     -> put_post(Config, Path, JSON, put).
   
 % Put using JSON to convey the values
 put_post(Config, Path, JSON, Action)      -> put_post(Config, Path, JSON, Action, []).
+% handle empty JSON case
+put_post(Config, Path, [], Action, OkReturnCodes) -> 
+  JSON = "{}",
+  put_post(Config, Path, JSON, Action, OkReturnCodes);
+% do the work (get all returns)
 put_post(Config, Path, JSON, Action, all) ->
   URL = uri(Config, Path),
   bdd_utils:log(Config, debug, "~pting to ~p", [atom_to_list(Action), URL]),
@@ -274,8 +282,9 @@ put_post(Config, Path, JSON, Action, all) ->
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
+% deal w/ different return code options
 put_post(Config, Path, JSON, Action, OkReturnCodes) ->
-  translateReturnCodes(put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
+  translateReturnCodes(put_post, put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
 
 form_submit(Config, Form) ->
   {fields, FormFields} = lists:keyfind(fields, 1, Form),
@@ -323,7 +332,7 @@ delete(Config, URL)           -> delete(Config, URL, [], all).
 delete(Config, Path, [])      -> delete(Config, uri(Config, Path), [], all);
 delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
 delete(Config, URL, [], all)  ->
-  bdd_utils:log(Config, debug, "eurl:Deleting ~p~n", [URL]),
+  bdd_utils:log(Config, debug, "eurl:Deleting ~p", [URL]),
   Result = simple_auth:request(Config, delete, {URL}, [{timeout, 40000}], []),  
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
@@ -332,20 +341,20 @@ delete(Config, Path, Id, all) ->
   URL = uri(Config, Path) ++ "/" ++ Id,
   delete(Config, URL, [], all);
 delete(Config, Path, Id, OkReturnCodes) -> 
-  translateReturnCodes(delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
+  translateReturnCodes(delete, delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
   
 % Used by get, post, put, delete to allow users to control response to return codes
-translateReturnCodes({200, _},        _OkReturnCodes, _Path, delete)  -> true;
-translateReturnCodes({200, Body},     _OkReturnCodes, _Path, _Action) -> Body;
-  
-translateReturnCodes({Code, _Body},   all, _Path, _Action)            -> Code; 
-translateReturnCodes({_Code, _Body},  neg_one, _Path, _Action)        -> "-1";
-translateReturnCodes({Code, Body},    OkReturnCodes, Path, Action)    -> 
+translateReturnCodes(_From, {200, _},        _OkReturnCodes, _Path, delete)  -> true;
+translateReturnCodes(_From, {200, Body},     _OkReturnCodes, _Path, _Action) -> Body;
+translateReturnCodes(_From, {Code, _Body},   all, _Path, _Action)            -> Code; 
+translateReturnCodes(_From, {_Code, _Body},  neg_one, _Path, _Action)        -> "-1";
+translateReturnCodes(_From, {_Code, _Body},  error, _Path, _Action)          -> "-1";
+translateReturnCodes(From,  {Code, Body},    OkReturnCodes, Path, Action)    -> 
   Listed = lists:keyfind(Code, 1, OkReturnCodes),
-
   case Listed of
      false -> 
-        bdd_utils:log(error,"~p attempt at ~p failed.  Return code: ~p~nBody: ~p", [Action, Path, Code, Body]),
+        bdd_utils:log(error,"eurl:~p ~p attempt at ~p failed.  Return code: ~p in ~p", [From, Action, Path, Code, OkReturnCodes]),
+        bdd_utils:log(debug,"eurl:~p Body: ~p", [From, Body]),
         throw({eURLerror, Code, Path});
      {Code, ReturnAtom} -> ReturnAtom
    end.

@@ -49,15 +49,19 @@ class CrowbarController < BarclampController
     end
     @node = Node.find_key(params[:id]) if params[:id]
     @attrib = Attrib.find_key(params[:target_id]) if params[:target_id]
-    # POST
-    if request.post?
-      @attrib = Attrib.create(:name=>params[:target_id]) if @attrib.nil? # then create the attrib
-      @na = NodeAttrib.find_or_create_by_node_and_attrib @node, @attrib
-      render :json => @na
-    # PUT (not supported)
-    elsif request.put?
-      throw 'not implemented'
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'node_attrib'), :status => 504
+    # POST and PUT (do the same thing since PUT will create the missing info)
+    if request.post? or request.put?
+      if @node.nil?
+         render :text=>I18n.t('api.not_found', :type=>'node', :id=>params[:id]), :status => 404
+      else
+        @attrib = Attrib.create(:name=>params[:target_id]) if @attrib.nil? # then create the attrib
+        @na = NodeAttrib.find_or_create_by_node_and_attrib @node, @attrib
+        if params["value"]
+          @na.actual = params["value"]
+          @na.save
+        end
+        render :json => @na
+      end
     # DELETE
     elsif request.delete? and @attrib
       id = NodeAttrib.delete_by_node_and_attrib @node, @attrib

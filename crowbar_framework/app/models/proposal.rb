@@ -48,10 +48,6 @@ class Proposal < ActiveRecord::Base
   belongs_to :active_config, :class_name => "ProposalConfig", :foreign_key => "active_config_id"
   belongs_to :current_config, :class_name => "ProposalConfig", :foreign_key => "current_config_id"
 
-  has_one :interface_map, :inverse_of => :proposal, :dependent => :destroy
-  has_many :conduits, :dependent => :destroy
-  has_many :networks, :dependent => :destroy
-  
   def active?
     active_config != nil
   end

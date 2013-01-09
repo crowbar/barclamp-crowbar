@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -14,10 +14,8 @@
 % 
 -module(bdd_restrat).
 -export([step/3]).
--export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
+-export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5]).
 -export([get_JSON/1, ajax_return/4]).
-
-
   
 % HELPERS ============================
 
@@ -61,27 +59,36 @@ ajax_return(Path, Method, Code, Result) ->
     _               -> {ajax, Code, {Method, Path}}
   end.
   
-% helper common to all setups using REST
-create(Config, Path, JSON)         -> create(Config, Path, JSON, post).
-create(Config, Path, JSON, Action) ->
+
+% helper common to all setups using REST 
+
+%_Config, g(path),username, User
+create(Config, Path, JSON)               -> create(Config, Path, name, JSON, post).
+create(Config, Path, Name, JSON)         -> create(Config, Path, Name, JSON, post).
+create(Config, Path, Name, JSON, Action) when is_atom(Action) ->
   % just in case - cleanup to prevent collision
-  destroy(Config, Path, json:keyfind(json:parse(JSON), name)),
+  Key = json:keyfind(JSON, Name),
+  bdd_utils:log(debug,"bdd_restrat create object key ~p=~p on Path ~p using ID from ~p",[Name,Key,Path,Action]),
+  destroy(Config, Path, Key),
   % create node(s) for tests
-  eurl:put_post(Config, Path, JSON, Action).
+  eurl:put_post(Config, Path, JSON, Action);
 
 create(Scenario, Type, Path, Name, JSON) when is_number(Scenario), is_atom(Type) ->
+  bdd_utils:log(debug,"bdd_restrat create for Scenario ~p of ~p ~p with path ~p",[Scenario,Type,Name,Path]),
   destroy([], Path, Name),
   Result = eurl:put_post([], Path, JSON, post),
   R = json:parse(Result),
   Key = json:keyfind(R, id),
   bdd_utils:scenario_store(Scenario, Type, Key),
   Key;
+
 create(Config, Path, Atom, Name, JSON) ->
   create(Config, Path, Atom, Name, JSON, post).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, trace, "Entering bdd_restrat:create Path: ~p, Name: ~p, JSON: ~p", [Path, Name, JSON]),
-  Result = json:parse(create(Config, Path, JSON, Action)),
+  bdd_utils:log(Config, trace, "bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, Action: ~p", [Path, Atom, Name, Action]),
+  destroy(Config, Path, Atom),
+  Result = json:parse(create(Config, Path, Name, JSON, Action)),
   % get the ID of the created object
   Key = json:keyfind(Result, id),
   % friendly message
@@ -89,13 +96,19 @@ create(Config, Path, Atom, Name, JSON, Action) ->
   % add the new ID to the config list
   bdd_utils:config_set(Config, Atom, Key).
 
+update(Config, Path, Atom, Name, JSON) ->
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:update Path: ~p, Atom: ~p, Name: ~p, JSON: ~p", [Path, Atom, Name, JSON]),
+  PutResult = eurl:put_post(Config, Path, JSON, put),
+  bdd_utils:log(Config, debug, "Update done, result: ~p !!!",[PutResult]),
+  PutResult.
+
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
   Item = bdd_utils:config(Config, Atom, not_found),
-  bdd_utils:log(Config, debug, "bdd_utils:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
+  bdd_utils:log(Config, trace, "bdd_restrat:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
   case Item of
     not_found -> 
-        bdd_utils:log(Config, warn, "bdd_utils:destroy(atom) could not find ID for atom ~p",[Atom]);
+        bdd_utils:log(Config, warn, "bdd_restrat:destroy(atom) could not find ID for atom ~p",[Atom]);
     Key       -> 
         destroy(Config, Path, Key),
         lists:delete(Item, Config)
@@ -103,6 +116,7 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
+  bdd_utils:log(Config, trace, "Entering bdd_restrat:destroy Path: ~p, Key: ~p", [Path, Key]),
   case get_id(Config, Path, Key) of
     "-1" -> bdd_utils:log(Config, trace, "Removal of key ~s skipped: not found.", [Key]);
     ID   -> eurl:delete(Config, Path, ID),
@@ -116,6 +130,14 @@ step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) ->
   step(Config, Global, {step_when, _N, ["REST creates the",Object,Name]});
 
 % WHEN STEPS ======================
+step(Config, _Given, {step_when, _N, ["REST cannot find the",Page,"page"]}) ->
+  bdd_utils:log(Config, warn, "REST cannot find the... START"),
+  Return = eurl:get(Config, Page,not_found),
+  case Return of 
+    "200" -> false; 
+    _Other -> true
+  end;
+
 step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   ajax_return(Page, get, 200, JSON);
@@ -138,8 +160,10 @@ step(Config, _Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Na
       Key = json:keyfind(ReturnJSON, id),
       bdd_utils:scenario_store(ScenarioID, Object, Key),
       bdd_utils:log(Config, debug, "bdd_restrat:create: ~p, Name: ~p, ID: ~p", [Path, Name, Key]),
-      {ajax, ReturnJSON, {post, Path}};
-    C   -> ajax_return(Path, post, C, Result)
+      ajax_return(Path, post, 200, ReturnJSON);
+    C   -> 
+      bdd_utils:log(Config, debug, "bdd_restrat:create NOT OK on ~p, Name: ~p", [C, Path, Name]),
+      ajax_return(Path, post, C, Result)
   end,
   bdd_utils:log(Config, trace, "bdd_restrat:step:ReturnResult: ~p",[ReturnResult]),
   ReturnResult;

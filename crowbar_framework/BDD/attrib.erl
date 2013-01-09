@@ -57,11 +57,11 @@ inspector(Config) ->
 step(Config, _Global, {step_given, _N, ["there is an attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'there is an attribute' step with generic from bdd_restrat for ~p", [Attribute]),
   JSON = json(Attribute, g(description), 200),
-  crowbar_rest:create(Config, g(path), JSON);
+  bdd_restrat:create(Config, g(path), JSON);
   
 step(Config, _Global, {step_given, _N, ["there is not an attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'there is not an attribute' step with generic from bdd_restrat for ~p", [Attribute]),
-  crowbar_rest:destroy(Config, g(path), Attribute);
+  bdd_restrat:destroy(Config, g(path), Attribute);
 
 step(Config, _Global, {step_when, _N, ["REST adds the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST adds the attribute' step with generic from bdd_restrat for ~p", [Attribute]),
@@ -77,10 +77,10 @@ step(Config, _Given, {step_when, _N, ["REST gets the attribute",Name]}) ->
 
 step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST deletes the attribute list' step with generic from bdd_restrat for ~p", [Attribute]),
-  crowbar_rest:destroy(Config, g(path), Attribute);
+  bdd_restrat:destroy(Config, g(path), Attribute);
 
 step(Config, _Result, {step_then, _N, ["there is an attribute",Attribute]}) -> 
-  ID = crowbar_rest:get_id(Config, g(path), Attribute),
+  ID = bdd_restrat:get_id(Config, g(path), Attribute),
   bdd_utils:log(Config, debug, "attribute:step IS a attribute get id returned ~p for ~p.",[ID, Attribute]),
   bdd_utils:is_a(dbid, ID);
 
@@ -92,8 +92,8 @@ step(Config, _Result, {step_then, _N, ["there is not an attribute",Attribute]}) 
 % Cleans up nodes that are created during tests                         
 step(Config, _Given, {step_finally, _N, ["REST removes the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST removes the attribute' step with generic from bdd_restrat for ~p", [Attribute]),
-  step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}); 
+  step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}).
                    
-step(Config, _Global, {step_setup, _N, _}) -> Config;
+%step(Config, _Global, {step_setup, _N, _}) -> Config;
 
-step(Config, _Global, {step_teardown, _N, _}) -> Config.
+%step(Config, _Global, {step_teardown, _N, _}) -> Config.

@@ -227,7 +227,10 @@ class CrowbarService < ServiceObject
   #
   def self.read_options
     # read in default proposal, to make some vaules avilable
-    proposals = Barclamp.find_by_name("crowbar").get_proposal('default')
+    bc = Barclamp.find_by_name("crowbar")
+
+    proposals = (bc.get_proposal('default').nil?) ? bc.get_proposal('template') : bc.get_proposal('default')
+
     raise "Can't find any crowbar proposal" if proposals.nil?
     # populate options from attributes/crowbar/*-settings
     options = { :raid=>{}, :bios=>{}, :show=>[] }

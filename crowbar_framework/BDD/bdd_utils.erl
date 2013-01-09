@@ -167,27 +167,34 @@ is_a(JSON, Type, Key) ->
   end.
   
 is_a(Type, Value) ->
-  case Type of 
-    number  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
-    num     -> is_number(Value);
-    integer -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
-    int when is_list(Value) -> is_a(Type, list_to_integer(Value));
-    int     -> is_integer(Value);
-    whole   -> nomatch =/= re:run(Value, "^[0-9]*$");
-    dbid    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
-    name    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
-    boolean -> lists:member(Value,[true,false,"true","false"]);
-    str     -> case Value of V when is_list(V) -> check([is_list(V), length(V)=:=0]); _ -> false end; 
-    string  -> is_list(Value);                              % cannot be empty
-    cidr    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
-    ip      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
-    empty   -> "" =:= Value;
-    RE when is_list(RE) -> 
-      log(trace, "bdd_utils:is_a falling back to RE match for ~p ~p", [Type, Value]),
-      nomatch =/= re:run(Value, RE);    % fall through lets you pass in a regex (pretty cool!)
-    _       -> 
-      log(warn, "bdd_utils:is_a no matching type for ~p found.  Value was ~p", [Type, Value]),
-      false
+  case {Value, Type} of 
+    {not_found, _} -> 
+                    log(debug, "bdd_utils:is_a(~p,Value) halted because input value was `not_found`",[Type]),
+                    false;    % this catches the case where there's no value there
+    {_, number}  -> nomatch =/= re:run(Value, "^[\-0-9\.]*$");    % really STRING TEST
+    {_, num}     -> is_number(Value);
+    {_, integer} -> nomatch =/= re:run(Value, "^[\-0-9]*$");     % really STRING TEST
+    {_, int} when is_list(Value) -> is_a(Type, list_to_integer(Value));
+    {_, int}     -> is_integer(Value);
+    {_, whole}   -> nomatch =/= re:run(Value, "^[0-9]*$");
+    {_, dbid}    -> lists:member(true, [nomatch =/= re:run(Value, "^[0-9]*$"), "null" =:= Value]);
+    {_, name}    -> nomatch =/= re:run(Value, "^[A-Za-z][\-_A-Za-z0-9.]*$");
+    {_, boolean} -> lists:member(Value,[true,false,"true","false"]);
+    {_, str}     -> case Value of V when is_list(V) -> check([is_list(V), length(V)=:=0]); _ -> false end; 
+    {_, string}  -> is_list(Value);                              % cannot be empty
+    {_, cidr}    -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\/([0-9]|1[0-9]|2[0-9]|3[0-2]))?$");
+    {_, ip}      -> nomatch =/= re:run(Value, "^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$");
+    {_, empty}   -> "" =:= Value;
+    {_, RE} when is_list(RE) -> 
+      log(trace, "bdd_utils:is_a(~p,~p) falling back to RE match", [Type, Value]),
+      % fall through lets you pass in a regex (pretty cool!)
+      try re:run(Value, RE) of
+        nomatch        -> log(debug, "bdd_utils:is_a(~p,~p) regex not matching", [Type, Value]), false;
+        {match, Match} -> log(debug, "bdd_utils:is_a(~p,~p) regex match. Output: ~p", [Type, Value, Match]), true
+      catch
+        X: Y -> log(error, "bdd_utils:is_a(~p,~p) RegEx Failed with ~p:~p",[Type, Value, X,Y]), false
+      end;
+    _        -> log(warn, "bdd_utils:is_a(~p,~p) could did not match a known type",[Type, Value]), false
   end.
 	
 % Web Site Cake Not Found - GLaDOS cannot test

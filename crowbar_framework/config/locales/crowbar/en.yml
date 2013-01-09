@@ -409,8 +409,6 @@ en:
       nodes: Nodes
       none: No Nodes Deployed
 
-
-
   # node.raid_set
   raid:
     JBODOnly: JBOD
@@ -464,31 +462,59 @@ en:
     poweron: Power On
     pending: Pending
     building: Building
-    
-  # Users
+  # User
   user:
-    title: Manage User Accounts
-    options: "Options"
-    username: Username
     sign_in: Sign In
     sign_out: Sign Out
     sign_up: "Sign up"
+    signed_in_as: "You are signed in as %{user}"
+    digest_success: User Authenticated using Digest Authentication
+    digested_as: "Digest [%{user}] Authenticated"
     forgot: "Forgot your password?"
     no_confirm: "Didn't receive confirmation instructions?"
     no_unlock: "Didn't receive unlock instructions?"
     provider: "Sign in with %{provider}"
-    sign_in_count: Sign In Count
-    failed_attempts: Failed Signins
-    last_sign_in_at: Last Signed In
-    last_sign_in_ip: IP of Last Sign In
-    is_admin: Is Admin
-    select: Select
-    digest_success: User Authenticated using Digest Authentication
-    signed_in_as: "You are signed in as %{user}"
-    digested_as: "Digest [%{user}] Authenticated"
     license: License Details
     license_accept: "By signing in, you are accepting the relevant licenses"
-    add: Add User
-    delete: Delete Selected
-    reset_password: Reset Password
-    unlock: Unlock
+    options: Options
+
+  # Users
+  users:
+    common: &common
+      email: Email
+      is_admin: Admin?
+      password: Password
+      password_confirmation: Password Confirmation
+      reset_password: Reset Password
+      update: Update User
+      username: Username
+    index:
+      add_user: Add new user
+      create_success: User was created successfully.
+      delete: Delete Selected
+      delete_success: Selected users successfully deleted.
+      delete_users: Delete selected users?
+      failed_attempts: Failed Signins
+      last_sign_in_at: Last Signed In
+      last_sign_in_ip: IP of Last Sign In
+      lock: Lock
+      locked: User account locked.
+      none_selected: No users were selected for deletion.
+      reset_password_success: User password was set successfully.
+      select: Select
+      sign_in_count: Sign In Count
+      title: Manage User Accounts
+      unlock: Unlock
+      unlocked: User account unlocked.
+      update_success: User was updated successfully.
+      <<: *common
+    form:
+      add: Add User
+      <<: *common
+    form_reset_password:
+      set_password: Set Password
+      <<: *common
+  devise:
+    signup: Sign up
+    failure:
+      invalid: 'Invalid username or password.'

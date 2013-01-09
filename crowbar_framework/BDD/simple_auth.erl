@@ -229,6 +229,3 @@ hex([], Res) ->
 hex([N | Ns], Res) ->
 	hex(Ns, [digit_to_xchar(N rem 16),
 					 digit_to_xchar(N div 16) | Res]).
-
-
-

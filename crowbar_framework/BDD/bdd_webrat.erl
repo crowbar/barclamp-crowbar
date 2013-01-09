@@ -51,7 +51,6 @@ step(Config, Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) ->
   [Block] = eurl:find_block("<li", "</li>", Given, ">"++Menu++"</a>", 250),
   URL = eurl:find_link(Menu, Block),
   click_link(Config, URL, Menu);
-
 step(Config, Given, {step_when, _N, ["I fill in", Fields, "and submit using the",ButtonText,"button"]}) ->
   % assume a single form element
   Form = eurl:find_form(Given, ButtonText),

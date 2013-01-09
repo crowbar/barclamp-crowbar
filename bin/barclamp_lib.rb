@@ -156,7 +156,7 @@ def post_json(path, data)
   post_json2("crowbar/#{@barclamp}/1.0#{path}", data)
 end
 
-def post_json2(path, data)
+def post_json2(path, data=nil)
   uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Post,uri,data)
 
@@ -173,7 +173,7 @@ def put_json(path, data)
   put_json2("crowbar/#{@barclamp}/1.0#{path}", data)
 end
 
-def put_json2(path, data)
+def put_json2(path, data=nil)
   uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
   res = authenticate(Net::HTTP::Put,uri,data)
 

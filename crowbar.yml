@@ -247,7 +247,7 @@ gems:
     - net-ssh-multi
     - puma
     - railroad
-    - rails-(~>3.2.10)
+    - rails-(~>3.2.11)
     - rails-erd
     - rake
     - rcov

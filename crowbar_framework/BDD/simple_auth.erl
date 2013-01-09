@@ -49,9 +49,9 @@
 %% If your site is NOT digest, then this is basically a pass through with minimal overhead
 %%
 %% Here are the things you can get back from httpc:request. You get #1 or #2 depending on
-%% 'full_result' option. Default is #1, full result.
+%% 'full_result' option in Options array. Default is #1 (full_result => true)
 %%
-%%   ok, {http_version(), status_code(), reason_phrase()}, headers, body
+%%   ok, {{http_version(), status_code(), reason_phrase()}, headers, body}
 %%   ok, {status_code(), body}
 %%   error, {connect_failed, term}
 %%   error, {send_failed, term}
@@ -67,17 +67,17 @@ request(Config, delete, {URL}, HTTPOptions, Options) ->
   request(Config, delete, {URL, [], [], []}, HTTPOptions, Options);
   
 request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options) ->
-  % prepare information that's common
+  %% prepare information that's common
   {http, _, _Host, Port, DigestURI, Params} = http_uri:parse(URL),
   User = bdd_utils:config(Config,user),
   MethodStr = string:to_upper(atom_to_list(Method)),
   Password = bdd_utils:config(Config,password),
 
-  % suppress auto-redirect - we have to manage it ourselves because 
-  % incorrectly drops port number off of redirect URL
+  %% suppress auto-redirect - we have to manage it ourselves because 
+  %% incorrectly drops port number off of redirect URL
   HTTPOptions2 = HTTPOptions ++ [{autoredirect, false}],
 
-  % if we have authentication data, add auth header to the headers 
+  %% if we have authentication data, add auth header to the headers 
   AuthField = bdd_utils:config(Config, auth_field, undefined),
   DigestIndex = case AuthField of
     undefined -> 0;
@@ -92,44 +92,49 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
   end,
   bdd_utils:log(Config, demp, "simple_auth:request making http request Method ~p URL ~p Headers ~p Opts ~p", [Method, URL, TrialHeaders, HTTPOptions2]),
 
-  % try request
-  {Status,{{HTTPVersion,StatusCode,ReasonPhrase}, ResponseHeaders, ResponseBody}} = case Method of
-    get -> httpc:request(Method, {URL, TrialHeaders}, HTTPOptions2, Options);
-    delete -> httpc:request(Method, {URL, TrialHeaders}, HTTPOptions2, Options);
-    _ -> httpc:request(Method, {URL, TrialHeaders, ContentType, Body}, HTTPOptions2, Options)
-  end,
+  %% try request
+  {Status, Result} = 
+      request(Method, URL, TrialHeaders, ContentType, Body, HTTPOptions2, Options),
+  %% detect system error
+  {{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody} = 
+    case Status of
+      ok -> 
+        Result;
+      error ->  % for now, we'll return empty result 999 status
+        {{"HTTP 1.0", 999, Result}, [], ""}
+    end,
+
   bdd_utils:log(trace, "simple_auth:request User ~p Password ~p URL ~p StatusCode ~p",[User, Password, URL, StatusCode]),
-  % if 401, then get the auth info and retry (to save this, use the header/2 method to save the fields)
-  %io:format("~n\t\tStatus ~p for ~p.~n", [StatusCode, URL]),
   case StatusCode of
     401 -> 
       bdd_utils:log(Config, trace, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
       DigestLine = proplists:get_value("www-authenticate", ResponseHeaders),
-    	HeaderDigested = case DigestLine of
-	      [$D, $i, $g, $e, $s, $t, $  | _] -> 
-	              AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
-	              Headers ++ [{"Authorization", AuthHeader}];
-	      [$B, $a, $s, $i, $c, $ | _] -> Headers;
-	      S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
-	    end,
-      case Method of 
-        get -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
-        delete -> httpc:request(Method, {URL, HeaderDigested}, HTTPOptions2, Options);
-        _ -> httpc:request(Method, {URL, HeaderDigested, ContentType, Body}, HTTPOptions2, Options)
-      end;
+      HeaderDigested = case DigestLine of
+        [$D, $i, $g, $e, $s, $t, $  | _] -> 
+          AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
+          Headers ++ [{"Authorization", AuthHeader}];
+        [$B, $a, $s, $i, $c, $ | _] -> Headers;
+	  S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
+      end,
+      request(Method, URL, HeaderDigested, ContentType, Body, HTTPOptions2, Options);
+
     302 ->
       % we have to shoehorn the port number back into the redirect URL - erlang bug?
       Location = proplists:get_value("location", ResponseHeaders),
       {http, _, NHost, _Port, NURI, _Params} = http_uri:parse(Location),
       CorrectURL = assemble_url(NHost,Port,NURI),
-      case Method of 
-        get -> httpc:request(Method, {CorrectURL, TrialHeaders}, HTTPOptions2, Options);
-        delete -> httpc:request(Method, {CorrectURL, TrialHeaders}, HTTPOptions2, Options);
-        _ -> httpc:request(Method, {CorrectURL, TrialHeaders, ContentType, Body}, HTTPOptions2, Options)
-      end;
+      request(Method, CorrectURL, TrialHeaders, ContentType, Body, HTTPOptions2, Options);
 
-    _ -> {Status,{{HTTPVersion,StatusCode,ReasonPhrase}, ResponseHeaders, ResponseBody}}
+    _ -> {Status,{{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody}}
   end.
+
+request(Method, URL, Headers, ContentType, Body, HTTPOptions, Options) ->
+  case Method of 
+    get -> httpc:request(Method, {URL, Headers}, HTTPOptions, Options);
+    delete -> httpc:request(Method, {URL, Headers}, HTTPOptions, Options);
+    _ -> httpc:request(Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options) 
+  end.
+
 
 assemble_url(Host,Port,Path) ->
   "http:"++"//"++Host++":"++integer_to_list(Port)++Path .

@@ -55,7 +55,6 @@ json(Name, Description, Order) ->
 inspector(Config) -> 
   crowbar_rest:inspector(Config, barclamp).  % shared inspector works here, but may not always
 
+step(Config, _Global, {step_setup, _N, _}) -> Config;
 
-%step(Config, _Global, {step_setup, _N, _}) -> Config;
-
-%step(Config, _Global, {step_teardown, _N, _}) -> Config.
+step(Config, _Global, {step_teardown, _N, _}) -> Config.

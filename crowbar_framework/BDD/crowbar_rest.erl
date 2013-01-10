@@ -55,7 +55,7 @@ create(Config, Path, JSON, Action) ->
   bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON, Action]).
   
 create(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, post]).
+  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON]).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
   bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, Action]).
@@ -80,7 +80,7 @@ step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) ->
 % GROUPS
 step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = groups:json(Group, groups:g(description), 200, Category),
-  create(Config, groups:g(path), JSON, post);
+  create(Config, groups:g(path), JSON);
 
 % remove the group
 step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 

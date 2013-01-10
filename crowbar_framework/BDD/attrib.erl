@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -92,8 +92,8 @@ step(Config, _Result, {step_then, _N, ["there is not an attribute",Attribute]}) 
 % Cleans up nodes that are created during tests                         
 step(Config, _Given, {step_finally, _N, ["REST removes the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST removes the attribute' step with generic from bdd_restrat for ~p", [Attribute]),
-  step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}).
+  step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]});
                    
-%step(Config, _Global, {step_setup, _N, _}) -> Config;
+step(Config, _Global, {step_setup, _N, _}) -> Config;
 
-%step(Config, _Global, {step_teardown, _N, _}) -> Config.
+step(Config, _Global, {step_teardown, _N, _}) -> Config.

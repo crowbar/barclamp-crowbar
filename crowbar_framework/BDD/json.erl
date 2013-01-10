@@ -13,9 +13,10 @@
 % limitations under the License. 
 % 
 % 
+
 -module(json).
 -export([parse/1, value/2, output/1, pretty/1, keyfind/2]).
--export([json_array/3, json_value/2]).
+-export([json_array/3, json_value/2, json_safe/1]).
 -import(bdd_utils).
 
 -record(json, {list=[], raw=[]}).
@@ -23,7 +24,8 @@
 
 keyfind(JSON, Key) when is_atom(Key) -> keyfind(JSON, atom_to_list(Key));
 keyfind(JSON, Key)                   ->
-  case lists:keyfind(Key, 1, JSON) of
+  J = json_safe(JSON),
+  case lists:keyfind(Key, 1, J) of
     {Key, R} -> R;
     false -> not_found;
     _ -> error
@@ -35,8 +37,14 @@ value_list(JSON, [Key | Tail]) ->
   value_list(value_item(JSON, Key), Tail).
 value_item(JSON, Key) ->           
   K = string:strip(Key, left, $[),
-  {K, V} = lists:keyfind(K, 1, JSON),
-  V.
+  try lists:keyfind(K, 1, JSON) of
+    {K, V} -> V;
+    false  -> bdd_utils:log(debug, "json:value_item did not find key ~p in ~p",[Key, JSON]);
+    X      -> bdd_utils:log(warn, "json:value_item got unexpected result ~p when looking for key ~p in ~p",[X, Key, JSON])
+  catch
+    E      -> bdd_utils:log(error, "json:value_item threw an error ~p when looking for key ~p in ~p",[E, Key, JSON])
+  end.
+  
 value(JSON, Key) ->    
   List = string:tokens(Key, "]"),
   value_list(JSON, List).
@@ -100,8 +108,13 @@ json(JSON, Key) ->
 
 % entry point
 parse(RawJSON) ->
-  json(#json{raw=RawJSON}, []).
-
+  % make sure that this needs to be parsed!
+  case RawJSON of 
+    [${ | _]          -> json(#json{raw=RawJSON}, []);
+    J when is_list(J) -> RawJSON;    % this in the expected format, it's ok
+    _                 -> bdd_utils:log(warn,"json:parse input did not match expected format.  Input: ~p",[RawJSON])
+  end.    
+  
 % Pretty Output of List
 pretty(List) -> 
   pretty(List, "  "),
@@ -143,3 +156,10 @@ output_inner([Head | []]) ->
 output_inner([Head | Tail]) ->
   atomize(Head) ++ ", " ++ output_inner(Tail).
 
+
+% handle case where we are given raw json by mistake
+json_safe(JSON) ->
+  case JSON of
+    [${ | _] -> parse(JSON);
+    _       -> JSON
+  end.

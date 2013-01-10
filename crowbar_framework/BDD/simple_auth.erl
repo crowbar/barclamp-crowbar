@@ -125,6 +125,9 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
       CorrectURL = assemble_url(NHost,Port,NURI),
       request(Method, CorrectURL, TrialHeaders, ContentType, Body, HTTPOptions2, Options);
 
+    999 ->  % we have a system error such as cannot connect or timeout
+      {Status,Result};
+
     _ -> {Status,{{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody}}
   end.
 

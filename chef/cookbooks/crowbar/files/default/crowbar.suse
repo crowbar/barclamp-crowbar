@@ -120,8 +120,8 @@ test -x $PUMA_BIN || { echo "$PUMA_BIN not installed";
 	else exit 5; fi; }
 
 # Check for existence of needed config file and read it
-PUMA_BIN=/opt/dell/crowbar_framework/puma.cfg
-test -r $PUMA_BIN || { echo "$PUMA_BIN does not exist";
+PUMA_CONFIG=/opt/dell/crowbar_framework/puma.cfg
+test -r $PUMA_CONFIG || { echo "$PUMA_CONFIG does not exist";
 	if [ "$1" = "stop" ]; then exit 0;
 	else exit 6; fi; }
 

@@ -10,7 +10,7 @@ Feature: Documentation
       And I should see "Crowbar User Guide"
       And I should see "Barclamp Catalog"
       And I should see "Crowbar Deployment Guide"
-      And I should see "System Licenses"
+      And I should not see "System Licenses"
       And there should be no translation errors
 
   Scenario: Doc Topic

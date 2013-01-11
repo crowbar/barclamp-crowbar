@@ -129,7 +129,7 @@ class MachinesController < ApplicationController
       yield machine # execute the operation block passed in the method invocation
       respond_to do |format|
         format.html { redirect_to :action => :index }
-        format.json { render :json => machine.cmdb_hash }
+        format.json { render :json => machine.jig_hash }
       end
     end
   end

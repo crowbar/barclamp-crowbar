@@ -13,17 +13,17 @@
 % limitations under the License. 
 % 
 % 
--module(cmdb).
+-module(jig).
 -export([step/3, json/4, validate/1, inspector/1, g/1]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/cmdb";
-    name -> "bddcmdb";
-    atom -> cmdb1;
-    type -> "CmdbTest";
+    path -> "2.0/crowbar/2.0/jig";
+    name -> "bddjig";
+    atom -> jig1;
+    type -> "JigTest";
     _ -> crowbar:g(Item)
   end.
   
@@ -32,7 +32,7 @@ g(Item) ->
 validate(JSON) ->
   try JSON of
     J -> 
-        R =[bdd_utils:is_a("^Cmdb[A-Z][a-z0-9]*$", json:keyfind(J, type)), 
+        R =[bdd_utils:is_a("^Jig[A-Z][a-z0-9]*$", json:keyfind(J, type)), 
             length(J) =:= 7,
             crowbar_rest:validate(J)],
         bdd_utils:assert(R)
@@ -49,54 +49,54 @@ json(Name, Description, Type, Order) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, cmdb).  % shared inspector works here, but may not always
+  crowbar_rest:inspector(Config, jig).  % shared inspector works here, but may not always
 
-step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) -> 
-  JSON = json(CMDB, g(description), Type, 200),
+step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", Type]}) -> 
+  JSON = json(Jig, g(description), Type, 200),
   crowbar_rest:create(Config, g(path), JSON);
 
-step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB]}) -> 
-  step(Config, _Global, {step_when, _N, ["REST adds the cmdb",CMDB]});
+step(Config, _Global, {step_given, _N, ["there is a jig",Jig]}) -> 
+  step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]});
   
-step(Config, _Global, {step_given, _N, ["there is not a cmdb",CMDB]}) -> 
-  false =:= step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB]});
+step(Config, _Global, {step_given, _N, ["there is not a jig",Jig]}) -> 
+  false =:= step(Config, _Global, {step_given, _N, ["there is a jig",Jig]});
 
-step(Config, _Global, {step_when, _N, ["REST adds the cmdb",CMDB]}) -> 
-  step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", g(type)]});
+step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]}) -> 
+  step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", g(type)]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) -> 
+step(Config, _Given, {step_when, _N, ["REST gets the jig list"]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the cmdb",Name]}) -> 
+step(Config, _Given, {step_when, _N, ["REST gets the jig",Name]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
 
-step(Config, _Given, {step_when, _N, ["REST deletes the cmdb",CMDB]}) -> 
-  crowbar_rest:destroy(Config, g(path), CMDB);
+step(Config, _Given, {step_when, _N, ["REST deletes the jig",Jig]}) -> 
+  crowbar_rest:destroy(Config, g(path), Jig);
 
-step(Config, _Result, {step_then, _N, ["there is a cmdb",CMDB]}) -> 
-  ID = crowbar_rest:get_id(Config, g(path), CMDB),
-  bdd_utils:log(Config, debug, "cmdb:step IS a cmdb get id returned ~p for ~p.",[ID, CMDB]),
+step(Config, _Result, {step_then, _N, ["there is a jig",Jig]}) -> 
+  ID = crowbar_rest:get_id(Config, g(path), Jig),
+  bdd_utils:log(Config, debug, "jig:step IS a jig get id returned ~p for ~p.",[ID, Jig]),
   bdd_utils:is_a(dbid, ID);
 
-step(Config, _Result, {step_then, _N, ["there is not a cmdb",CMDB]}) -> 
-  false =:= step(Config, _Result, {step_then, _N, ["there is a cmdb",CMDB]});
+step(Config, _Result, {step_then, _N, ["there is not a jig",Jig]}) -> 
+  false =:= step(Config, _Result, {step_then, _N, ["there is a jig",Jig]});
        
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
-step(Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
-  bdd_utils:log(Config, trace, "CMDB properly formatted? ~p",[Result]),
-  crowbar_rest:step(Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
+step(Config, Result, {step_then, _N, ["the jig is properly formatted"]}) -> 
+  bdd_utils:log(Config, trace, "Jig properly formatted? ~p",[Result]),
+  crowbar_rest:step(Config, Result, {step_then, _N, ["the", jig, "object is properly formatted"]});
 
 % Common Routine
 % Cleans up nodes that are created during tests                         
-step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) -> 
-  step(Config, _Given, {step_when, _N, ["REST deletes the cmdb",CMDB]}); 
+step(Config, _Given, {step_finally, _N, ["REST removes the jig",Jig]}) -> 
+  step(Config, _Given, {step_when, _N, ["REST deletes the jig",Jig]}); 
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  CMDB = json(g(name), g(description), g(type), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), CMDB);
+  Jig = json(g(name), g(description), g(type), 100),
+  crowbar_rest:create(Config, g(path), g(atom), g(name), Jig);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it

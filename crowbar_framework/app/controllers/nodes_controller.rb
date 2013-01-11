@@ -213,7 +213,7 @@ class NodesController < ApplicationController
     @node = Node.find_key params[:id]
     chef_node =
         begin
-          @node.cmdb_hash || {}
+          @node.jig_hash || {}
         rescue
           {}
         end
@@ -301,7 +301,7 @@ class NodesController < ApplicationController
     @node = Node.find_by_id(node_name) if @node.nil?
 =begin
     if @node
-      chef_node = @node.cmdb_hash
+      chef_node = @node.jig_hash
       intf_if_map = chef_node.build_node_map # HACK: XXX: This should be something else
       # build network information (this may need to move into the object)
       chef_node.networks.each do |intf, data|

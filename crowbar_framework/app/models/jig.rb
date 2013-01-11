@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class Cmdb < ActiveRecord::Base
+class Jig < ActiveRecord::Base
 
   attr_accessible :name, :description, :type, :order
 
@@ -23,30 +23,30 @@ class Cmdb < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  has_many :maps, :class_name => "cmdb_maps", :foreign_key => "cmdb_id"
-  #TEMPORARY REMOVAL... has_many :cmdb_events, :inverse_of => Cmdb
+  has_many :maps, :class_name => "jig_maps", :foreign_key => "jig_id"
+  #TEMPORARY REMOVAL... has_many :jig_events, :inverse_of => Jig
 
   #####
   #  Find the right instance to use for applying the given configuration.
   # At this point, there's one - return it.
   # Some future possible directions:
-  #   - Choose cmdb type by the barclamp being applied - allows different barclamps
+  #   - Choose jig type by the barclamp being applied - allows different barclamps
   #     to be implemented using different technologies
-  #   - Choose a cmdb instance, by node location. Could allow mixing cmdb domains
+  #   - Choose a jig instance, by node location. Could allow mixing jig domains
   #     where different instances (probably of the same type) manage different 
   #     domains of nodes
-  def self.find_cmdb_for_config(config)
-    Cmdb.find_by_name('admin_chef')
+  def self.find_jig_for_config(config)
+    Jig.find_by_name('admin_chef')
   end
 
   def self.prepare_proposal(new_config)
     # collect all the depenent configurations
 
-    Cmdb.transaction do 
-      cmdb = Cmdb.find_cmdb_for_config(new_config)    
-      evt = cmdb.create_event(new_config)
+    Jig.transaction do 
+      jig = Jig.find_jig_for_config(new_config)    
+      evt = jig.create_event(new_config)
   
-      # create a CmdbEvent for each unique cmdb execution that needs to be performed
+      # create a JigEvent for each unique jig execution that needs to be performed
       # on each node. Events are tied in dependency list (to allow subsequent events)
       # to be fired when their dependencies complete.
       nrs = {}
@@ -66,7 +66,7 @@ class Cmdb < ActiveRecord::Base
             # create events for nodes that are not currently in the right state,
             # they won't be executed until the node does transition to the right place.
             # next unless  r.states.include?("all") or n.states.include?(n.state)
-            cmdb.create_run_for(evt,nr,order);
+            jig.create_run_for(evt,nr,order);
           } if nrs[r.name]  ### barclamp might have roles that have no nodes...
         }
         order +=1
@@ -76,7 +76,7 @@ class Cmdb < ActiveRecord::Base
     end
   end
 
-  # compute event for execution by computing whatever the cmdb backend needs
+  # compute event for execution by computing whatever the jig backend needs
   def prepare_for_execution(evt,config)
     # here for sub-classes to override.
   end

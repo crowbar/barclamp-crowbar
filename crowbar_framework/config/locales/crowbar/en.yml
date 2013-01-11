@@ -71,7 +71,7 @@ en:
       top: Scaffolds
       top_description: "Developer Tools"
       barclamps: Barclamps
-      cmdb: "DevOps CMDB"
+      jig: "DevOps Jig"
       attribs: Attributes
       nodes: Nodes
       groups: Groups

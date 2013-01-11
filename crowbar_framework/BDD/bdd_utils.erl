@@ -107,7 +107,9 @@ depricate(From, To, Method, Params) -> depricate({2013, 03, 13}, From, Method, T
   
 % FailDate in {YYYY, MM, DD}
 depricate(FailDate, From, FMethod, To, TMethod, Params) ->
-  {TTL, _} = calendar:time_difference({date(), time()}, {FailDate, {0,0,0}}),
+  {Year, Month, Day} = FailDate,
+  FailDateSafe = if Year < 2000 -> {(Year+2000), Month, Day}; true -> FailDate end,
+  {TTL, _} = calendar:time_difference({date(), time()}, {FailDateSafe, {0,0,0}}),
   {Level, Prefix} = if 
       TTL > 90 -> {debug,"Deprication:"};
       TTL > 30 -> {info,"FIX THIS >>"};

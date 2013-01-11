@@ -108,7 +108,7 @@ destroy(Config, Path, Atom) when is_atom(Atom) ->
   bdd_utils:log(Config, trace, "bdd_restrat:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
   case Item of
     not_found -> 
-        bdd_utils:log(Config, warn, "bdd_restrat:destroy(atom) could not find ID for atom ~p",[Atom]);
+        bdd_utils:log(Config, debug, "bdd_restrat:destroy(atom) could not find ID for atom ~p (likely OK)",[Atom]);
     Key       -> 
         destroy(Config, Path, Key),
         lists:delete(Item, Config)

@@ -41,32 +41,32 @@ inspector(Config, Feature) ->
   
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> 
-  bdd_utils:depricate({13,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path, Key]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path, Key]).
    
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path]).
 
 % helper common to all setups using REST
 create(Config, Path, JSON)         -> 
-  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON]).
   
 create(Config, Path, JSON, Action) -> 
-  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON, Action]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON, Action]).
   
 create(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON]).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, Action]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, Action]).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Atom]);
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Atom]);
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
-  bdd_utils:depricate({13,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Key]).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Key]).
 
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 

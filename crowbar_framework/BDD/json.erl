@@ -111,7 +111,8 @@ parse(RawJSON) ->
   % make sure that this needs to be parsed!
   case RawJSON of 
     [${ | _]          -> json(#json{raw=RawJSON}, []);
-    J when is_list(J) -> RawJSON;    % this in the expected format, it's ok
+    J when is_list(J) -> bdd_utils:log(debug, "calling json:parse with information that is already parsed.  Taking no action, but thought you should know.",[]),
+                         RawJSON;    % this in the expected format, it's ok
     _                 -> bdd_utils:log(warn,"json:parse input did not match expected format.  Input: ~p",[RawJSON])
   end.    
   
@@ -161,5 +162,6 @@ output_inner([Head | Tail]) ->
 json_safe(JSON) ->
   case JSON of
     [${ | _] -> parse(JSON);
-    _       -> JSON
+    _       -> bdd_utils:log(debug, "calling json:keyfind with information that is already parsed.  Taking no action, but thought you should know.",[]),
+               JSON
   end.

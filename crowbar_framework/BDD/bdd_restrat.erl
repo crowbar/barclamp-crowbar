@@ -187,6 +187,10 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_ato
     {Num, _}      -> {ajax, Num, {get, URI}}
   end;
 
+step(_Config, Results, {step_then, _N, ["REST call returned success"]}) ->
+  [{Code,_}|_] = Results,
+  Code == 200;
+
 step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   case get_JSON(Results, all) of 

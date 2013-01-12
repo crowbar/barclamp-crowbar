@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -165,6 +165,9 @@ json_safe(JSON) ->
   case JSON of
     [${ | _] -> parse(JSON);
     [$[ | _] -> parse(JSON);
-    _       -> bdd_utils:log(debug, "calling json:keyfind with information that is already parsed.  Taking no action, but thought you should know.",[]),
-               JSON
+    [{_, _} | _] when is_list(JSON) 
+             -> bdd_utils:log(debug, "json:keyfind with information that is already parsed.  Taking no action, but thought you should know.",[]),
+                JSON; % this in the expected format, it's ok
+    _       ->  bdd_utils:log(warn, "json:keyfind with information that is not correctly formatted: ~p.",[JSON]), 
+                JSON
   end.

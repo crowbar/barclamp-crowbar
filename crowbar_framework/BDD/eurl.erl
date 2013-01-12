@@ -312,6 +312,7 @@ encode([H | T]) ->
     $+  ->  "%2B" ++ encode(T);
     $$  ->  "%24" ++ encode(T);
     $,  ->  "%2C" ++ encode(T);
+    $.  ->  "%2E" ++ encode(T);
     $<  ->  "%3C" ++ encode(T);
     $>  ->  "%3E" ++ encode(T);
     $~  ->  "%7E" ++ encode(T);

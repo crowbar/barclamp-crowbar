@@ -270,6 +270,11 @@ put(Config, Path, JSON)     -> put_post(Config, Path, JSON, put).
   
 % Put using JSON to convey the values
 put_post(Config, Path, JSON, Action)      -> put_post(Config, Path, JSON, Action, []).
+% handle empty JSON case
+put_post(Config, Path, [], Action, OkReturnCodes) -> 
+  JSON = "{}",
+  put_post(Config, Path, JSON, Action, OkReturnCodes);
+% do the work (get all returns)
 put_post(Config, Path, JSON, Action, all) ->
   URL = uri(Config, Path),
   bdd_utils:log(Config, debug, "~pting to ~p", [atom_to_list(Action), URL]),
@@ -277,6 +282,7 @@ put_post(Config, Path, JSON, Action, all) ->
   {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
   bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
   {ReturnCode, Body};
+% deal w/ different return code options
 put_post(Config, Path, JSON, Action, OkReturnCodes) ->
   translateReturnCodes(put_post, put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
 

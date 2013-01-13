@@ -31,8 +31,18 @@ test(ConfigName)         ->
   % cleanup application services
   EndConfig = stop(Complete),
   Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
-  file:write_file("../tmp/bdd_results.out",io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
-  [{Fatom, print_report(R)} || {feature, Fatom, _Feature, R} <-Results].
+  File = bdd_print:file(),
+  file:write_file(File,io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
+  Final = [{Fatom, bdd_print:report(R)} || {feature, Fatom, _Feature, R} <-Results],
+  Total = lists:sum([ T || {_Feature, {T, _P, _F, _, _}} <- Final]),
+  Fail = lists:sum([ F || {_Feature, {_T, _P, F, _, _}} <- Final]),
+  case Fail of
+    0 -> log(result,"PASSED (or skipped) ALL TESTS (~p tests in ~p features).~n",[Total,length(Final)]);
+    X -> log(info,"Test Results: ~p.  Run `bdd:failed().` to re-run failed tests.",[File]),
+         log(result,"FAILED ~p TESTS of ~p tests in ~p features.~n",[X, Total,length(Final)])
+  end,
+  bdd_print:html(),
+  Final.
   
 % list available features
 features() ->
@@ -67,6 +77,8 @@ scenario(ConfigName, Feature, ID, Log) ->
   
 % version of scenario with extra loggin turned on
 debug(Feature, ID)                -> debug(default, Feature, ID, debug).
+debug(Config, Feature, ID) when is_number(Feature) % this handles the case where you want to set the log level with default config
+                                  -> debug(default, Config, Feature, ID);
 debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
 debug(Config, Feature, ID, dump)  -> debug(Config, Feature, ID, [puts, dump, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);
@@ -82,8 +94,8 @@ debug(Config, Feature, ID, Log)   ->
 % used after a test() run to rerun just the failed tests
 failed()        -> failed(default).
 failed(Config)  ->
-  {ok, [{test, _Date, _Time, Results} | _]} = file:consult("../tmp/bdd_results.out"),
-  Fails = [{Feature, lists:keyfind(fail, 1, print_result(Fails))} || {feature, Feature, _, Fails} <- Results],
+  {ok, [{test, _Date, _Time, Results} | _]} = file:consult(bdd_print:file()),
+  Fails = [{Feature, lists:keyfind(fail, 1, bdd_print:result(Fails))} || {feature, Feature, _, Fails} <- Results],
   % please optimize to use just 1 global setup!
   [ failed(Config, Feature, F) || {Feature, {fail, Num, F}} <- Fails, Num > 0].
 failed(_Config, Feature, [])     -> Feature;
@@ -98,11 +110,11 @@ run(Config, [], [FileName | Features]) ->
 	R = try run(Config, Feature, FileName) of
 		Run -> 
 	    {feature, _FAtom, _Name, Result} = lists:keyfind(feature,1,Run),
-	    Out = print_result(Result),
+	    Out = bdd_print:result(Result),
 	    {total, Total} = lists:keyfind(total, 1, Out),
 	    {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
 	    {fail, _N, Fail} = lists:keyfind(fail, 1, Out),
-	    log(result, "Passed ~p of ~p.  Failed ~p.", [Pass, Total, Fail]),
+	    log(result, "Feature ~p passed ~p of ~p.  Failed ~p.", [Feature, Pass, Total, Fail]),
       lists:keyfind(feature,1,Run)
 	catch
 		X: Y -> log(error, "bdd:run Feature ~p error ~p:~p. ~nStracktrace: ~p~n", [Feature, X, Y, erlang:get_stacktrace()]),
@@ -127,9 +139,11 @@ run(Config, Feature, FileName, ID) ->
   log(feature, "~s (~s)", [Feature, FileName]),
   % setup the tests
   SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
+  log(debug, ">>>>>>> Setup Complete, Running Tests for ~p >>>>>>>",[Feature]),
   % run the tests
   Result = {feature, Fatom, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
   % tear down
+  log(debug, "<<<<<<< Tests Complete, Running Tear Down for ~p <<<<<<<",[Feature]),
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
   [Result | StartConfig].
@@ -210,39 +224,6 @@ setup_scenario(Config, Scenario, ID) ->
 log(Level) -> bdd_utils:log_level(Level).
 log(Level, Message, Values) -> bdd_utils:log(Level, Message, Values).
 
-print_report({feature, _, _, Result}) ->  print_report(Result);
-print_report(Result)  ->
-  Out = print_result(Result),
-  {total, Total} = lists:keyfind(total, 1, Out),
-  {pass, Pass, _P} = lists:keyfind(pass, 1, Out),
-  {fail, Fail, IDs} = lists:keyfind(fail, 1, Out),
-  {skip, Skip} = lists:keyfind(skip, 1, Out),
-  {Total, Pass, Fail, Skip, IDs}.
-print_result(Result)                  ->  print_result(Result, [], [], []).
-print_result([], Pass, Fail, Skip)    ->  
-  [{total, length(Pass)+length(Fail)+length(Skip)}, 
-    {pass, length(Pass), Pass}, 
-    {fail, length(Fail), Fail},
-    {skip, length(Skip)}];
-print_result([Result | T], Pass, Fail, Skip)->
-  case Result of
-    {ID, pass} -> F=Fail, P=[ID | Pass], S=Skip;
-    {ID, skip} -> F=Fail, P=Pass, S=[ID | Skip];
-    ok         -> P=Pass, F=Fail, S=[skip | Skip];
-    {ID, _}    -> P=Pass, F=[ID | Fail], S=Skip
-  end,
-  print_result(T, P, F, S).
-  
-% output results information
-print_fail([]) -> true;
-print_fail({true, {_Type, N, Description}}) ->
-  log(step_pass,"~p: ~s", [N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
-print_fail({_, {_Type, N, Description}}) ->
-  log(step_fail,"~p: ~s", [N, lists:flatten([D ++ " " || D <- Description, is_list(D)])]);
-print_fail([Result | Results]) ->
-  print_fail(Result),
-  print_fail(Results).
-
 % decompose each scearion into the phrases, must be executed in the right order (Given -> When -> Then)
 test_scenario(Config, RawSteps, Name) ->
   Hash = erlang:phash2(Name),
@@ -275,7 +256,7 @@ test_scenario(Config, RawSteps, Name) ->
     	% now, check the results of the then steps
     	case bdd_utils:assert_atoms(Result) of
     		true -> bdd_utils:untrace(Config, Name, N), pass;
-    		_ -> log(info, "*** FAILURE REPORT FOR ~p (~p) ***",[Name, Hash]), print_fail(lists:reverse(Result)), fail
+    		_ -> log(info, "*** FAILURE REPORT FOR ~p (~p) ***",[Name, Hash]), bdd_print:fail(lists:reverse(Result)), fail
     	end;
     skip -> skip;
     X -> 
@@ -293,7 +274,11 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 	try apply(Feature, step, [Config, Input, Step]) of
 		error -> 
 		  {error, Step};
-		Result -> Result
+		Result -> 
+		  {Type, _N, List} = Step,
+		  log(debug, "^^ Ran ~p:~p(~p)",[Feature,Type,List]),
+		  log(trace, "^^ Result -> ~p",[Result]),
+		  Result
 	catch
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);

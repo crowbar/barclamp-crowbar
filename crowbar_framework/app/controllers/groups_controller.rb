@@ -19,13 +19,13 @@ class GroupsController < ApplicationController
   def node_action
     @group = Group.find_key params[:id]
     unless @group
-      render :json => {:error=>I18n('not_found', :type=>'Group', :id=>params[:id])}, :status => 404
+      render :json => {:error=>I18n.t('api.not_found', :type=>'Group', :id=>params[:id])}, :status => 404
       return
     else
       unless request.get?
         @node = Node.find_key params[:node]
         unless @node
-          render :json => {:error=>I18n('not_found', :type=>'Node', :id=>params[:node])}, :status => 404
+          render :json => {:error=>I18n.t('api.not_found', :type=>'Node', :id=>params[:node])}, :status => 404
           return
         else
           if request.post?

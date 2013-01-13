@@ -25,7 +25,6 @@ class CreateNodeAttribs < ActiveRecord::Migration
       t.belongs_to  :attrib,         :null=>false
       t.belongs_to  :cmdb_run,       :null=>true
       t.string      :value_actual,   :default=>"\004\b0"
-      t.string      :value_proposed, :default=>"\004\b0"
       t.timestamps      
     end
     # this is a critical table, it needs a lot of indexes!

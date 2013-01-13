@@ -25,8 +25,8 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
       
   Scenario: Node List
-    Given there is a node "bdd-node-list.example.com"
-    When REST gets the node list
+    Given there is a {object:node} "bdd-node-list.example.com"
+    When REST gets the {object:node} list
     Then there should be a value "bdd-node-list.example.com"
       And there should be a value "bdd1.example.com"
       And there should be a value "global-node.testing.com"
@@ -47,7 +47,7 @@ Feature: Nodes
       And there should be no translation errors
 
   Scenario: Node Detail REST
-    When REST gets the node "bdd1.example.com"
+    When REST gets the {object:node} "bdd1.example.com"
     Then key "fingerprint" should be a number
       And there should be a key "state"
       And there should be a key "name"
@@ -59,16 +59,15 @@ Feature: Nodes
       And there should be a key "order"
       And key "order" should be a number
       And there should be a key "updated_at"
-      And the node is properly formatted
+      And the {object:node} is properly formatted
 
   Scenario: Node Attribute List Works
     Given {object:node} "bdd1.example.com" has {object:attrib} "bddtest1"
     When REST gets the node-attribute list for "bdd1.example.com"
-    Then id {object:attrib} should have value "null"
+    Then id {object:attrib} should have value {lookup:node_attrib.value}
     Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
 
   Scenario: Node Attribute Get Value
-    Skip while Rob creates a way to set the value
     Given {object:node} "node1.attribute.com" with {object:attrib} "bdd1test" has value "foo"
     When REST gets the {object:node} "node1.attribute.com" with {object:attrib} "bdd1test"
     Then there is a key "value"
@@ -87,20 +86,16 @@ Feature: Nodes
       And REST removes {object:attrib} "bdd2test"  
   
   Scenario: Node Remove Attribute
-    Skip while Rob fixes this
-    Given there is a {object:node} "node3.attribute.com" with {object:attrib} "bdd3test"
-    When REST unassigns {object:attrib} "bdd3test" from {object:node} "node3.attribute.com"
-    Then the page returns "200" result
-      And {object:node} "node2.attribute.com" has no {object:attrib} "bdd2test"
-    Finally REST removes {object:node} "node3.attribute.com"
-      And REST removes {object:attrib} "bdd3test"  
+    Given {object:node} {lookup:node.name} has {object:attrib} "bdd3test"
+    When REST unassigns {object:attrib} "bdd3test" from {object:node} {lookup:node.name}
+    Then the page returns "200"
+      And {object:node} {lookup:node.name} has no {object:attrib} "bdd3test"
+    Finally REST removes {object:attrib} "bdd3test"  
 
   Scenario: Node can Update Attribute
-    Skip while Rob H works on this
-    Given there is a {object:node} "node4.attribute.com" with {object:attrib} "bdd4test"
-      Given I set {object:node_attrib} property "value" to "foo"
-    When REST updates {object:attrib} "bdd4test" on {object:node} "node4.attribute.com"
-    Then the page returns "200" result
-      And ...
-    Finally REST removes {object:node} "node4.attribute.com"
-      And REST removes {object:attrib} "bdd4test"  
+    Given {object:node} {lookup:node.name} adds {object:attrib} "bdd4test" with value "foofoofoo"
+    When {object:node} {lookup:node.name} with {object:attrib} "bdd4test" is set to value "barbarbar"
+    Then the page returns "200"
+      And key "value" should be "barbarbar"
+      And key "value" should not be "foofoofoo"
+    Finally REST removes {object:attrib} "bdd4test"

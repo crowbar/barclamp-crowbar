@@ -55,8 +55,8 @@ validate(JSON) ->
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
-  Node = nodes:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, nodes:g(path), g(node_atom), g(node_name), Node),
+  Node = node:json(g(node_name), Test ++ g(description), 100),
+  bdd_restrat:create(Config, nodes:g(path), g(node_atom), name, Node),
   Config;
 
 % find the node from setup and remove it

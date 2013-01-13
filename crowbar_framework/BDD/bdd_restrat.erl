@@ -14,7 +14,7 @@
 % 
 -module(bdd_restrat).
 -export([step/3]).
--export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5]).
+-export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5, validate/1]).
 -export([get_JSON/1, ajax_return/4]).
   
 % HELPERS ============================
@@ -33,6 +33,9 @@ get_JSON(Results, all) ->
     X -> bdd_utils:log(warn, "bdd_restrat:get_JSON error ~p in result ~p",[X,Results]),
          {ajax, 500, "bdd_restrat:get_JSON error"}
   end.
+
+% this should NOT be called here, only in the objects
+validate(_) -> bdd_utils:log(warn, "bdd_restrat:validate should not be called. Use your platform specific validator").
 
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> get_id(Config, eurl:path(Path,Key)).
@@ -62,13 +65,14 @@ ajax_return(Path, Method, Code, Result) ->
 
 % helper common to all setups using REST 
 
+
 %_Config, g(path),username, User
 create(Config, Path, JSON)               -> create(Config, Path, name, JSON, post).
-create(Config, Path, Name, JSON)         -> create(Config, Path, Name, JSON, post).
-create(Config, Path, Name, JSON, Action) when is_atom(Action) ->
+create(Config, Path, KeyName, JSON)         -> create(Config, Path, KeyName, JSON, post).
+create(Config, Path, KeyName, JSON, Action) when is_atom(Action) ->
   % just in case - cleanup to prevent collision
-  Key = json:keyfind(JSON, Name),
-  bdd_utils:log(debug,"bdd_restrat create object key ~p=~p on Path ~p using ID from ~p",[Name,Key,Path,Action]),
+  Key = json:keyfind(JSON, KeyName),
+  bdd_utils:log(debug,"bdd_restrat create object key ~p=~p on Path ~p using ID from ~p",[KeyName,Key,Path,Action]),
   destroy(Config, Path, Key),
   % create node(s) for tests
   eurl:put_post(Config, Path, JSON, Action);
@@ -82,22 +86,21 @@ create(Scenario, Type, Path, Name, JSON) when is_number(Scenario), is_atom(Type)
   bdd_utils:scenario_store(Scenario, Type, Key),
   Key;
 
-create(Config, Path, Atom, Name, JSON) ->
-  create(Config, Path, Atom, Name, JSON, post).
+create(Config, Path, Atom, KeyName, JSON) ->
+  create(Config, Path, Atom, KeyName, JSON, post).
 
-create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, trace, "bdd_restrat:create Path: ~p, Atom: ~p, Name: ~p, Action: ~p", [Path, Atom, Name, Action]),
-  destroy(Config, Path, Atom),
-  Result = json:parse(create(Config, Path, Name, JSON, Action)),
+create(Config, Path, Atom, KeyName, JSON, Action) ->
+  bdd_utils:log(Config, trace, "bdd_restrat:create Path: ~p, Atom: ~p, KeyName: ~p, Action: ~p", [Path, Atom, KeyName, Action]),
+  Result = json:parse(create(Config, Path, KeyName, JSON, Action)),
   % get the ID of the created object
   Key = json:keyfind(Result, id),
   % friendly message
-  bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [Name, Atom, Key]),
+  bdd_utils:log(Config, debug, "Created ~s (key=~s & id=~s) for testing.", [KeyName, Atom, Key]),
   % add the new ID to the config list
   bdd_utils:config_set(Config, Atom, Key).
 
-update(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:log(Config, trace, "Entering bdd_restrat:update Path: ~p, Atom: ~p, Name: ~p, JSON: ~p", [Path, Atom, Name, JSON]),
+update(Config, Path, Atom, KeyName, JSON) ->
+  bdd_utils:log(Config, trace, "bdd_restrat:update Path: ~p, Atom: ~p, KeyName: ~p, JSON: ~p", [Path, Atom, KeyName, JSON]),
   PutResult = eurl:put_post(Config, Path, JSON, put),
   bdd_utils:log(Config, debug, "Update done, result: ~p !!!",[PutResult]),
   PutResult.
@@ -142,6 +145,10 @@ step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   JSON = eurl:get(Config, Page),
   ajax_return(Page, get, 200, JSON);
 
+step(Config, _Global, {step_when, _N, ["REST creates a",Object,Name]}) -> 
+  step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
+step(Config, _Global, {step_given, _N, ["REST creates a",Object,Name]}) -> 
+  step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
 step(Config, _Global, {step_given, _N, ["REST creates the",Object,Name]}) -> 
   step(Config, _Global, {step_when, _N, ["REST creates the",Object,Name]});
 

@@ -149,12 +149,12 @@ step(Config, _Global, {step_setup, _N, _}) ->
   bdd:log(trace, "Entering Node setup step", []),
   % create attribute for tests
   Attrib0 = attrib:json("bddtestglobal", g(description), 100),
-  bdd_restrat:create([], attrib:g(path), nodeattrib0, "bddtestglobal", Attrib0),
+  bdd_restrat:create([], attrib:g(path), nodeattrib0, name, Attrib0),
   Attrib1 = attrib:json("bddtest1", g(description), 101),
-  bdd_restrat:create([], attrib:g(path), nodeattrib1, "bddtest1", Attrib1),
+  bdd_restrat:create([], attrib:g(path), nodeattrib1, name, Attrib1),
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
-  bdd_restrat:create([], g(path), g(atom), g(name), Node),
+  bdd_restrat:create([], g(path), g(atom), name, Node),
   node_attrib:node_add_attribute([], g(name), "bddtestglobal"),
   Config;
 

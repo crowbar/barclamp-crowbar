@@ -90,20 +90,23 @@ class Node < ActiveRecord::Base
   # Update the CMDB view of the node at this point.
   #
   def update_cmdb
+    chef_online = !(Cmdb.find_by_name('chef').nil?)
     # TODO - this should move into the CMDB object!
-    cno = NodeObject.find_node_by_name(name)
-    if cno
-      cno.crowbar["state"] = self.state
-      cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
-      cno.crowbar["crowbar"]["allocated"] = self.allocated
-
-      # Get the active ones and merge into config
-      nrs = NodeRole.find_all_by_node_id(self.id)
-      nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-      nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
-
-      cno.rebuild_run_list
-      cno.save
+    if chef_online
+      cno = NodeObject.find_node_by_name(name)
+      if cno 
+        cno.crowbar["state"] = self.state
+        cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
+        cno.crowbar["crowbar"]["allocated"] = self.allocated
+  
+        # Get the active ones and merge into config
+        nrs = NodeRole.find_all_by_node_id(self.id)
+        nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+        nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
+  
+        cno.rebuild_run_list
+        cno.save
+      end
     end
   end
 

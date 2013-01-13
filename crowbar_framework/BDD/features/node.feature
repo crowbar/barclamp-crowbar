@@ -25,7 +25,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
       
   Scenario: Node List
-    Given there is a node "bdd-node-list.example.com"
+    Given there is a {object:node} "bdd-node-list.example.com"
     When REST gets the {object:node} list
     Then there should be a value "bdd-node-list.example.com"
       And there should be a value "bdd1.example.com"

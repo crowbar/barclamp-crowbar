@@ -21,6 +21,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   def setup
     # setup node w/ attribute
     @value = "unit test"
+    @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
     @na = @node.attrib_set(@attrib.name, @value)

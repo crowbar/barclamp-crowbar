@@ -77,6 +77,8 @@ scenario(ConfigName, Feature, ID, Log) ->
   
 % version of scenario with extra loggin turned on
 debug(Feature, ID)                -> debug(default, Feature, ID, debug).
+debug(Config, Feature, ID) when is_number(Feature) % this handles the case where you want to set the log level with default config
+                                  -> debug(default, Config, Feature, ID);
 debug(Config, Feature, ID)        -> debug(Config, Feature, ID, debug).
 debug(Config, Feature, ID, dump)  -> debug(Config, Feature, ID, [puts, dump, trace, debug, info, warn, error]);
 debug(Config, Feature, ID, trace) -> debug(Config, Feature, ID, [puts, trace, debug, info, warn, error]);

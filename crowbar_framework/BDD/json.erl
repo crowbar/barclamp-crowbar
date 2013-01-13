@@ -16,7 +16,7 @@
 
 -module(json).
 -export([parse/1, value/2, output/1, pretty/1, keyfind/2]).
--export([json_array/3, json_value/2, json_safe/1]).
+-export([json_array/3, json_value/2, json_safe/3]).
 -import(bdd_utils).
 
 -record(json, {list=[], raw=[]}).
@@ -24,7 +24,7 @@
 
 keyfind(JSON, Key) when is_atom(Key) -> keyfind(JSON, atom_to_list(Key));
 keyfind(JSON, Key)                   ->
-  J = json_safe(JSON),
+  J = json_safe(JSON, keyfind, no_warn),
   case lists:keyfind(Key, 1, J) of
     {Key, R} -> R;
     false -> not_found;
@@ -161,13 +161,15 @@ output_inner([Head | Tail]) ->
 
 
 % handle case where we are given raw json by mistake
-json_safe(JSON) ->
+% From is the calling routine for logging
+% Warn=true will turn on verbose warnings
+json_safe(JSON, From, Warn) ->
   case JSON of
     [${ | _] -> parse(JSON);
     [$[ | _] -> parse(JSON);
     [{_, _} | _] when is_list(JSON) 
-             -> bdd_utils:log(debug, "json:keyfind with information that is already parsed.  Taking no action, but thought you should know.",[]),
+             -> if Warn == true -> bdd_utils:log(debug, "json:~p with information that is already parsed.  Taking no action, but thought you should know.",[From]); true -> noop end,
                 JSON; % this in the expected format, it's ok
-    _       ->  bdd_utils:log(warn, "json:keyfind with information that is not correctly formatted: ~p.",[JSON]), 
+    _       ->  bdd_utils:log(warn, "json:~p with information that is not correctly formatted: ~p.",[From, JSON]), 
                 JSON
   end.

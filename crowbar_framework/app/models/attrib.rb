@@ -30,7 +30,11 @@ class Attrib < ActiveRecord::Base
   
   # make sure attribute has a barclamp
   def must_have_barclamp
-    self.barclamp_id = Barclamp.find_by_name('crowbar').id if self.barclamp_id.nil?
+    if self.barclamp_id.nil?
+      cb = Barclamp.find_by_name('crowbar')
+      throw "Attrib create failed because we do not have a Crowbar barclamp" if cb.nil?
+      self.barclamp_id = cb.id
+    end
   end
   
 end

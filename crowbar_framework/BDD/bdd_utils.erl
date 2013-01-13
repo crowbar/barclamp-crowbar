@@ -18,7 +18,7 @@
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
 -export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
--export([log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
+-export([log/5, log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
 -export([features/1, features/2, feature_name/2]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3]).
@@ -93,7 +93,11 @@ log(Config, Level, Format, Data)  ->
                       end;
     _ -> no_log
   end.
-
+% helper to prefix module:method
+log(Level, Module, Method, Format, Data) -> 
+  PrefixFormat = atom_to_list(Module) ++ ":" ++ atom_to_list(Method) ++ " " ++ Format,
+  log(Level, PrefixFormat, Data).
+  
 log_level(dump)       -> put(log, [dump, trace, debug, info, warn, error, puts]);
 log_level(trace)      -> put(log, [trace, debug, info, warn, error, puts]);
 log_level(debug)      -> put(log, [debug, info, warn, error, puts]);

@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -31,27 +31,21 @@ g(Item) ->
   end.
 
 validate(JSON) ->
-  try
-    _Description = json:keyfind(JSON, description), % ADD CHECK!
-    Category = json:keyfind(JSON, category),
-    R = [bdd_utils:is_a(JSON, number, order), 
-         lists:member(Category,g(categories)), 
-         crowbar_rest:validate(JSON)],
-    bdd_utils:assert(R)
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-	  false
-	end. 
+  bdd_utils:log(trace,"groups:validate json ~p",[JSON]),
+  Category = json:keyfind(JSON, category),
+  R = [bdd_utils:is_a(JSON, number, order), 
+       lists:member(Category,g(categories)), 
+       crowbar_rest:validate(JSON)],
+  bdd_utils:assert(R).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, groups).  % shared inspector works here, but may not always
+  bdd_restrat:inspector(Config, groups).  % shared inspector works here, but may not always
   
 % Returns the JSON List Nodes in the Group
 get_group_nodes(Config, Group) ->
-  GroupPath = eurl:path(g(path),Group),
-  Path = eurl:path(GroupPath, "node"),
+  Path = eurl:path([g(path),Group, "node"]),
   Result = eurl:get(Config, Path),
   group_nodes(json:parse(Result), Group).
   
@@ -62,10 +56,7 @@ group_nodes(Result, Group) ->
   Nodes.
   
 % DRY the path creation
-group_node_path(Group, Node) ->
-  GroupPath = eurl:path(g(path),Group),
-  NodePath = eurl:path("node",Node),
-  eurl:path(GroupPath, NodePath).
+group_node_path(Group, Node) ->  eurl:path([g(path), Group, "node", Node]).
 
 % Build Group JSON  
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
@@ -105,11 +96,11 @@ step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFro
   {nodes, group_nodes(Result, GroupTo)}; 
   
 step(_Config, Result, {step_then, _N, ["the group is properly formatted"]}) -> 
-  crowbar_rest:step(_Config, Result, {step_then, _N, ["the", groups, "object is properly formatted"]});
+  bdd_restrat:step(_Config, Result, {step_then, _N, ["the", groups, "object is properly formatted"]});
 
 step(Config, _Result, {step_then, _N, ["there is not a",_Category,"group",Group]}) -> 
   % WARNING - this IGNORES THE CATEGORY, it is not really a true test for the step.
-  case crowbar_rest:get_id(Config, g(path), Group) of
+  case bdd_restrat:get_id(Config, g(path), Group) of
     "-1" -> true;
     ID -> true =/= is_number(ID)
   end;
@@ -141,17 +132,17 @@ step(Config, _Given, {step_finally, _N, ["REST removes the node",Node,"from",Gro
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   JSON0 = node:json(g(name_node1), g(description), 100),
-  Config0 = crowbar_rest:create(Config, node:g(path), g(atom_node1), g(name_node1), JSON0),
+  Config0 = bdd_restrat:create(Config, node:g(path), g(atom_node1), name, JSON0),
   % create groups(s) for tests
   JSON1 = json(g(name1), g(description), 100),
-  Config1 = crowbar_rest:create(Config0, g(path), g(atom1), g(name1), JSON1),
+  Config1 = bdd_restrat:create(Config0, g(path), g(atom1), name, JSON1),
   JSON2 = json(g(name2), g(description), 200),
-  Config2 = crowbar_rest:create(Config1, g(path), g(atom2), g(name2), JSON2),
+  Config2 = bdd_restrat:create(Config1, g(path), g(atom2), name, JSON2),
   Config2;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  Config2 = crowbar_rest:destroy(Config, g(path), g(atom2)),
-  Config1 = crowbar_rest:destroy(Config2, g(path), g(atom1)),
-  Config0 = crowbar_rest:destroy(Config1, node:g(path), g(atom_node1)),
+  Config2 = bdd_restrat:destroy(Config, g(path), g(atom2)),
+  Config1 = bdd_restrat:destroy(Config2, g(path), g(atom1)),
+  Config0 = bdd_restrat:destroy(Config1, node:g(path), g(atom_node1)),
   Config0.

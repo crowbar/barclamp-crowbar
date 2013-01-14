@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -46,45 +46,37 @@ inspector(Config, Feature) ->
   
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> 
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:get_id1 -> moved to bdd_restrat"),
-  bdd_restrat:get_id(Config, Path, Key).
-
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path, Key]).
    
 % given a path, returns the ID of the object
 get_id(Config, Path) ->
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:get_id2 -> moved to bdd_restrat"),
-  bdd_restrat:get_id(Config, Path).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path]).
 
 % helper common to all setups using REST
 create(Config, Path, JSON)         -> 
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create1 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, JSON).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON]).
+  
 create(Config, Path, JSON, Action) -> 
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create2 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, JSON, Action).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON, Action]).
   
 create(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create3 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, Atom, Name, JSON).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON]).
 
 create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:create4 -> moved to bdd_restrat"),
-  bdd_restrat:create(Config, Path, Atom, Name, JSON, Action).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, Action]).
 
 % helper common to all setups using REST
 destroy(Config, Path, Atom) when is_atom(Atom) ->
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:destroy1 -> moved to bdd_restrat"),
-  bdd_restrat:destroy(Config, Path, Atom);
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Atom]);
 
 % helper common to all setups using REST
 destroy(Config, Path, Key) ->
-  bdd_utils:log(Config, depricate, "DEPRICATED crowbar_rest:destroy2 -> moved to bdd_restrat"),
-  bdd_restrat:destroy(Config, Path, Key).
+  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Key]).
 
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
   JSON = nodes:json(Node, nodes:g(description), 200),
-  create(Config, nodes:g(path), JSON);
+  bdd_restrat:create(Config, nodes:g(path), JSON);
 
 % remove the node
 step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) -> 
@@ -93,11 +85,11 @@ step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) ->
 % GROUPS
 step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = groups:json(Group, groups:g(description), 200, Category),
-  create(Config, groups:g(path), JSON);
+  bdd_restrat:create(Config, groups:g(path), JSON);
 
 % remove the group
 step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 
-  destroy(Config, groups:g(path), Group);
+  bdd_restrat:destroy(Config, groups:g(path), Group);
 
 
 % ============================  THEN STEPS =========================================
@@ -120,6 +112,6 @@ step(_Config, Result, {step_then, _N, ["the object id list is properly formatted
   lists:all(NumberTester, JSON);
 
 % ============================  LAST RESORT =========================================
-step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
+step(_Config, _Given, {step_when, _N, ["I have a test that is not in Crowbar_Rest"]}) -> true;
                                     
 step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.

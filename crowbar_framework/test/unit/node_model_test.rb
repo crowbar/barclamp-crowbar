@@ -82,14 +82,17 @@ class NodeModelTest < ActiveSupport::TestCase
     a = Attrib.create :name=>name, :description=>description
     a.save
     na = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
+    assert_equal nil, na.value
+    assert_equal :empty, na.state
     na.actual = value
+    assert_equal value, na.value
+    assert_equal :set, na.state
     na.save
     v = Node.find(n.id).attrib_get(name)
     assert_equal name, v.attrib.name
     assert_equal description, v.attrib.description
     assert_equal value, v.value
-    assert_equal nil, v.proposed
-    assert_equal :ready, v.state
+    assert_equal :set, v.state
   end
 
 
@@ -106,7 +109,7 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal name, attrib.name
     assert_equal I18n.t('model.attribs.node.default_create_description'), attrib.description
     assert_equal nil, a.value
-    assert_equal :ready, a.state
+    assert_equal :empty, a.state
   end
 
 end

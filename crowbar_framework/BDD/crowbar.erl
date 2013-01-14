@@ -17,7 +17,6 @@
 -module(crowbar).
 -export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6]).
 -import(bdd_utils).
--import(crowbar_rest).
 -import(json).
 
 g(Item) ->
@@ -52,18 +51,17 @@ i18n(Config, T) ->
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
 validate(JSON) ->
-  io:format("** PLEASE MOVE ** validate moved from crowbar to crowbar_rest:json."),
-  crowbar_rest:validate(JSON).
+  bdd_utils:depricate({2013,4,1},crowbar,validate,crowbar_rest,validate,[JSON]).
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
-  Node = nodes:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, nodes:g(path), g(node_atom), g(node_name), Node),
+  Node = node:json(g(node_name), Test ++ g(description), 100),
+  bdd_restrat:create(Config, nodes:g(path), g(node_atom), name, Node),
   Config;
 
 % find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  crowbar_rest:destroy(Config, nodes:g(path), g(node_atom)),
+  bdd_restrat:destroy(Config, nodes:g(path), g(node_atom)),
   Config;
 
 % ============================  GIVEN STEPS =========================================

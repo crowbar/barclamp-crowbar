@@ -21,6 +21,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   def setup
     # setup node w/ attribute
     @value = "unit test"
+    @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
     @na = @node.attrib_set(@attrib.name, @value)
@@ -44,9 +45,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   test "Node Attrib actual values state correct" do
     v = @na
     assert_equal @value, v.actual
-    assert_nil v.proposed
-    assert_equal NodeAttrib::MARSHAL_NIL, v.value_proposed
-    assert_equal :ready, v.state
+    assert_equal :set, v.state
   end
   
   test "Node Attrib delete" do
@@ -63,20 +62,20 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_nil check
   end
   
-  test "Node Attrib pending values state correct" do
+  test "Node Attrib stores values state correct" do
     n = Node.create :name=>"pending.example.com"
     a = Attrib.create :name=>"unset"
     assert_not_nil a
     assert_not_nil n
     v = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
     assert_not_nil v
-    value = "2b"
-    v.proposed = value
-    assert_not_nil v.proposed
+    assert_equal :empty, v.state
     assert_nil v.actual
     assert_equal NodeAttrib::MARSHAL_NIL, v.value_actual
-    assert_equal value, v.proposed
-    assert_equal :pending, v.state
+    value = "2b"
+    v.actual = value
+    assert_equal value, v.value
+    assert_equal :set, v.state
   end
     
   test "Node Attrib stores actual values" do
@@ -95,7 +94,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_not_nil na
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual
-    assert_equal :ready, na.state
+    assert_equal :set, na.state
   end
   
   test "Node Attribute removed when node deleted" do

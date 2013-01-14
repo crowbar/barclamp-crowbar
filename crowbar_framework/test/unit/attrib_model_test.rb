@@ -17,6 +17,11 @@ require 'json'
 
 class AttribModelTest < ActiveSupport::TestCase
 
+ # tests the relationship between nodes and attributes)
+  def setup
+    @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
+  end  
+  
   test "Attribs exposed" do
     name = "attrs"
     description = "Attrib test"
@@ -53,7 +58,8 @@ class AttribModelTest < ActiveSupport::TestCase
     assert_equal 100, j['order']
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
-    assert_equal 6, j.length
+    #TODO change this when we move HINT and barclamp back into an relations
+    assert_equal 8, j.length
   end
   
 end

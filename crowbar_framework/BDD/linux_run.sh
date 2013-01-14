@@ -6,7 +6,7 @@ sleep 10
 cd BDD
 
 # Run Tests
-erl -s bdd test crowbar -s init stop -noshell
+erl -s bdd test devtool -s init stop -noshell
 
-# STop rails
+# Stop rails
 kill `ps -ef | grep Puma | grep ruby | awk '{ print $2 }'`

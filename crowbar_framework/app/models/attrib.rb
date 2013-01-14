@@ -15,13 +15,27 @@
 
 class Attrib < ActiveRecord::Base
   
-  attr_accessible :name, :description, :order
+  before_create :must_have_barclamp
+  
+  attr_accessible :name, :description, :order, :barclamp_id, :hint
 
   validates_format_of     :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
-  has_many :node_attribs, :dependent => :destroy
-  has_many :nodes, :through=>:node_attribs
+  has_many   :node_attribs, :dependent => :destroy
+  has_many   :nodes, :through=>:node_attribs
+  belongs_to :barclamp
+  
+  private
+  
+  # make sure attribute has a barclamp
+  def must_have_barclamp
+    if self.barclamp_id.nil?
+      cb = Barclamp.find_by_name('crowbar')
+      throw "Attrib create failed because we do not have a Crowbar barclamp" if cb.nil?
+      self.barclamp_id = cb.id
+    end
+  end
   
 end
 

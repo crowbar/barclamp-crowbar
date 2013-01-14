@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -14,7 +14,7 @@
 % 
 % 
 -module(attrib).
--export([step/3, json/3, validate/1, inspector/1, g/1]).
+-export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -29,16 +29,25 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(J) ->
-  R =[length(J) =:= 6,
+  R =[length(J) =:= 8,
       bdd_utils:is_a(J, str, description), 
+      bdd_utils:is_a(J, str, hint), 
+      bdd_utils:is_a(J, dbid, barclamp_id), 
       bdd_utils:is_a(J, integer, order),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R). 
-       
+  
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+create(ID, Name, Extras) ->
+  % for now, we are ignoring the extras
+  JSON = json(Name, 
+              proplists:get_value(description, Extras, g(description)), 
+              proplists:get_value(order, Extras, g(order))),
+  bdd_restrat:create(ID, attrib, g(path), Name, JSON).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
@@ -48,11 +57,11 @@ inspector(Config) ->
 step(Config, _Global, {step_given, _N, ["there is an attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'there is an attribute' step with generic from bdd_restrat for ~p", [Attribute]),
   JSON = json(Attribute, g(description), 200),
-  crowbar_rest:create(Config, g(path), JSON);
+  bdd_restrat:create(Config, g(path), JSON);
   
 step(Config, _Global, {step_given, _N, ["there is not an attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'there is not an attribute' step with generic from bdd_restrat for ~p", [Attribute]),
-  crowbar_rest:destroy(Config, g(path), Attribute);
+  bdd_restrat:destroy(Config, g(path), Attribute);
 
 step(Config, _Global, {step_when, _N, ["REST adds the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST adds the attribute' step with generic from bdd_restrat for ~p", [Attribute]),
@@ -68,10 +77,10 @@ step(Config, _Given, {step_when, _N, ["REST gets the attribute",Name]}) ->
 
 step(Config, _Given, {step_when, _N, ["REST deletes the attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'REST deletes the attribute list' step with generic from bdd_restrat for ~p", [Attribute]),
-  crowbar_rest:destroy(Config, g(path), Attribute);
+  bdd_restrat:destroy(Config, g(path), Attribute);
 
 step(Config, _Result, {step_then, _N, ["there is an attribute",Attribute]}) -> 
-  ID = crowbar_rest:get_id(Config, g(path), Attribute),
+  ID = bdd_restrat:get_id(Config, g(path), Attribute),
   bdd_utils:log(Config, debug, "attribute:step IS a attribute get id returned ~p for ~p.",[ID, Attribute]),
   bdd_utils:is_a(dbid, ID);
 

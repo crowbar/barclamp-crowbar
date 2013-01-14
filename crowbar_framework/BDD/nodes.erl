@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -18,29 +18,8 @@
 
 % DEPRICATED!!! MOVE TO NODE.
 
-% Commont Routine
-% Provide Feature scoped strings to DRY the code
-g(Item) ->
-  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[g]),
-  node:g(Item).
-  
-% Common Routine
-% Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(JSON) ->
-  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[validate]),
-  node:validate(JSON).
-
-% Common Routine
-% Returns list of nodes in the system to check for bad housekeeping
-inspector(Config) -> 
-  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[inspector]),
-  node:inspector(Config).
-  
-% Common Routine
-% Creates JSON used for POST/PUT requests
-json(Name, Description, Order) ->
-  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p",[json]),
-  node:json(Name, Description, Order).  
-step(Config, Input, Step) ->
-  bdd_utils:log(depricate, "DEPRICATED: Please use node instead of nodeS for this call ~p: ~p",[step, Step]),
-  node:step(Config, Input, Step).
+g(Item)                        -> bdd_utils:depricate({2013, 5,1}, nodes, item, node, item,[Item]).
+validate(JSON)                 -> bdd_utils:depricate({2013, 5,1}, nodes, validate, node, validate,[JSON]).
+inspector(Config)              -> bdd_utils:depricate({2013, 5,1}, nodes, inspector, node, inspector,[Config]).
+json(Name, Description, Order) -> bdd_utils:depricate({2013, 5,1}, nodes, json, node, json,[Name, Description, Order]).
+step(Config, Input, Step)      -> bdd_utils:depricate({2013, 5,1}, nodes, step, node, step,[Config, Input, Step]).

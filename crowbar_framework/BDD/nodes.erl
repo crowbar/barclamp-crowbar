@@ -18,7 +18,7 @@
 
 % DEPRICATED!!! MOVE TO NODE.
 
-g(Item)                        -> bdd_utils:depricate({2013, 5,1}, nodes, item, node, item,[Item]).
+g(Item)                        -> bdd_utils:depricate({2013, 5,1}, nodes, g, node, g,[Item]).
 validate(JSON)                 -> bdd_utils:depricate({2013, 5,1}, nodes, validate, node, validate,[JSON]).
 inspector(Config)              -> bdd_utils:depricate({2013, 5,1}, nodes, inspector, node, inspector,[Config]).
 json(Name, Description, Order) -> bdd_utils:depricate({2013, 5,1}, nodes, json, node, json,[Name, Description, Order]).

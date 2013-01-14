@@ -95,17 +95,12 @@ step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) ->
   step(Config, _Given, {step_when, _N, ["REST deletes the cmdb",CMDB]}); 
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
-  bdd_utils:log(debug, "crowbar:step Global Setup running"),
-  % create node(s) for tests
-  Node = node:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, node:g(path), g(node_atom), g(node_name), name, Node),
+  bdd_utils:log(debug, "cmdb:step Setup running",[]),
   % create CMDB entry
   CMDB = json(g(name), g(description), g(type), 100),
   bdd_restrat:create(Config, g(path), g(atom), name, CMDB);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_util:log(debug, "crowbar:step Global Teardown running"),
-  % find the node from setup and remove it
-  bdd_restrat:destroy(Config, node:g(path), g(node_atom)),
+  bdd_util:log(debug, "cmdb:step Teardown running",[]),
   % remove cmdb entry
   bdd_restrat:destroy(Config, g(path), g(atom)).

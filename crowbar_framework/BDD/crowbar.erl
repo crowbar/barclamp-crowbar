@@ -55,12 +55,14 @@ validate(JSON) ->
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
+  bdd_util:log(debug, "crowbar:step Global Setup running",[]),
   Node = node:json(g(node_name), Test ++ g(description), 100),
   bdd_restrat:create(Config, nodes:g(path), g(node_atom), name, Node),
   Config;
 
 % find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
+  bdd_util:log(debug, "crowbar:step Global Teardown running",[]),
   bdd_restrat:destroy(Config, nodes:g(path), g(node_atom)),
   Config;
 

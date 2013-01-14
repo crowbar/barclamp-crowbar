@@ -215,7 +215,7 @@ class ProposalConfig < ActiveRecord::Base
 
   #
   # This builds an old-time role hash for usage by the rest of the system for now
-  # This will be chef code part of CMDB abstraction
+  # This will be chef code part of Jig abstraction
   # 
   def to_proposal_object_hash
     phash = {}

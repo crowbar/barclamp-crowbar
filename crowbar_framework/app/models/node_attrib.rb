@@ -26,7 +26,7 @@ class NodeAttrib < ActiveRecord::Base
 
   belongs_to  :attrib
   belongs_to  :node
-  #belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
+  #belongs_to  :run, :class_name => "JigRun", :foreign_key => "jig_run_id"
 
   self.primary_key = 'generated_id'
 

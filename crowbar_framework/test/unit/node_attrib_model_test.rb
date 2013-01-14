@@ -37,7 +37,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   
   test "Node Attrib can have no run" do
     a = Attrib.create :name=>"no_run"
-    v = NodeAttrib.create :node_id=>@node.id, :attrib_id=>a.id, :cmdb_run_id=>nil
+    v = NodeAttrib.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
     assert_not_nil v
   end
   

@@ -15,7 +15,7 @@
 
 class Node < ActiveRecord::Base
   before_validation :default_population
-  before_destroy    :cmdb_delete
+  before_destroy    :jig_delete
   
   attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
   attr_readonly   :fingerprint
@@ -58,9 +58,9 @@ class Node < ActiveRecord::Base
   end
 
   #
-  # Create function that integrates with CMDB functions.
+  # Create function that integrates with Jig functions.
   #
-  def self.create_with_cmdb(name)
+  def self.create_with_jig(name)
     chef_node = NodeObject.find_node_by_name(name)
     node = Node.create(:name => name)
     node.admin = true if chef_node and chef_node.admin?
@@ -87,10 +87,10 @@ class Node < ActiveRecord::Base
   end
 
   #
-  # Update the CMDB view of the node at this point.
+  # Update the Jig view of the node at this point.
   #
-  def update_cmdb
-    # TODO - this should move into the CMDB object!
+  def update_jig
+    # TODO - this should move into the Jig object!
     cno = NodeObject.find_node_by_name(name)
     if cno
       cno.crowbar["state"] = self.state
@@ -107,7 +107,7 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def reset_cmdb_access
+  def reset_jig_access
     if ["discovered","hardware-installed","hardware-updated","reset", "delete",
         "hardware-installing","hardware-updating","reinstall",
         "update","installing","installed"].member?(state) and !is_admin?
@@ -123,7 +123,7 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def cmdb_hash
+  def jig_hash
     NodeObject.find_node_by_name name 
   end
 
@@ -132,11 +132,11 @@ class Node < ActiveRecord::Base
   # XXX: Once networking is better defined, we should use those routines
   #
   def address(net = "admin")
-    cmdb_hash.address(net)
+    jig_hash.address(net)
   end
 
   def public_ip
-    cmdb_hash.public_ip
+    jig_hash.public_ip
   end
 
   #
@@ -144,7 +144,7 @@ class Node < ActiveRecord::Base
   #
   alias :super_save :save
   def save
-    update_cmdb
+    update_jig
     super_save
   end
 
@@ -153,7 +153,7 @@ class Node < ActiveRecord::Base
   #
   alias :super_save! :save!
   def save!
-    update_cmdb
+    update_jig
     super_save!
   end
   
@@ -189,9 +189,9 @@ class Node < ActiveRecord::Base
   end
 
   def ipmi_cmd(cmd)
-    bmc          = cmdb_hash.address("bmc").addr rescue nil
-    bmc_user     = cmdb_hash.get_bmc_user
-    bmc_password = cmdb_hash.get_bmc_password
+    bmc          = jig_hash.address("bmc").addr rescue nil
+    bmc_user     = jig_hash.get_bmc_user
+    bmc_password = jig_hash.get_bmc_password
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} #{cmd}") unless bmc.nil?
   end
 
@@ -225,10 +225,10 @@ class Node < ActiveRecord::Base
   # A custom query should be able to build the list straight up.
   #
   # update_run_list:
-  #   Rebuilds the run_list for the CMDB system for this node based upon its active proposal
+  #   Rebuilds the run_list for the Jig system for this node based upon its active proposal
   #   membership and its state.
   #
-  #   This includes updating the CMDB node role with node specific data.
+  #   This includes updating the Jig node role with node specific data.
   #
   def update_run_list
     nrs = NodeRole.find_all_by_node_id(self.id)
@@ -236,14 +236,14 @@ class Node < ActiveRecord::Base
     nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
 
     # For each of the roles
-    cno = cmdb_hash
+    cno = jig_hash
     cno.clear_run_list_map
     nrs.each do |nr|
       if nr.role
         # This is node role that defines run_list entry
-        cno.add_to_run_list(nr.role.name, nr.role.barclamp.cmdb_order, nr.role.states.split(","))
+        cno.add_to_run_list(nr.role.name, nr.role.barclamp.jig_order, nr.role.states.split(","))
         config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
-        cno.add_to_run_list(config_name, nr.role.barclamp.cmdb_order, ["all"])
+        cno.add_to_run_list(config_name, nr.role.barclamp.jig_order, ["all"])
       end
       # Has custom data.
       if nr.config
@@ -254,7 +254,7 @@ class Node < ActiveRecord::Base
     cno.save
   end
 
-  # Rob's list of CMDB attributes needed by the UI
+  # Rob's list of Jig attributes needed by the UI
     #alias
     #name
     #ip (list)
@@ -285,7 +285,7 @@ class Node < ActiveRecord::Base
   end
   
   def virtual?
-    cmdb_hash.virtual?
+    jig_hash.virtual?
   end
   
   def bmc_set?
@@ -325,13 +325,13 @@ class Node < ActiveRecord::Base
     return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
   end
   
-  def cmdb_get(attrib)
-    puts "DEPRICATED 12/26/12+90 cmdb_get #{attrib}"
+  def jig_get(attrib)
+    puts "DEPRICATED 12/26/12+90 jig_get #{attrib}"
     attrib_get attrib
   end
   
-  def cmdb_set(attrib, value=nil)
-    puts "DEPRICATED 12/26/12+90 cmdb_set #{attrib}=#{value}"
+  def jig_set(attrib, value=nil)
+    puts "DEPRICATED 12/26/12+90 jig_set #{attrib}=#{value}"
     attrib_set attrib, value
   end
   
@@ -347,7 +347,7 @@ class Node < ActiveRecord::Base
     method = m.to_s
     if method.starts_with? "attrib_"
       return attrib_get(method[7..100]).value
-    elsif method.starts_with? "cmdb_"
+    elsif method.starts_with? "jig_"
       return attrib_get(method[5..100]).value
     else
       Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
@@ -371,7 +371,7 @@ class Node < ActiveRecord::Base
   end
 
   def ip
-    #TODO reference cmdb_hash.ip somehow?
+    #TODO reference jig_hash.ip somehow?
     "unknown"
   end
 
@@ -391,8 +391,8 @@ class Node < ActiveRecord::Base
   private
 
   # make sure we do housekeeping before we remove the DB object
-  def cmdb_delete
-    Cmdb.all.each { |c| c.delete_node(self) }
+  def jig_delete
+    Jig.all.each { |c| c.delete_node(self) }
   end
 
   

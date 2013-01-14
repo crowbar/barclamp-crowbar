@@ -16,7 +16,7 @@
 class Barclamp < ActiveRecord::Base
 
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
-  attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
+  attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals
   
@@ -118,7 +118,7 @@ class Barclamp < ActiveRecord::Base
 
   #
   # Get the roles group by the role orders.
-  # This is used to order cmdb runs by role sets
+  # This is used to order jig runs by role sets
   # This used to be the element_order structure in the json
   #
   def get_roles_by_order
@@ -204,7 +204,7 @@ class Barclamp < ActiveRecord::Base
         :layout      => bc['crowbar']['layout'] || 2,
         :order       => bc['crowbar']['order'] || 0,
         :run_order   => bc['crowbar']['run_order'] || 0,
-        :cmdb_order  => bc['crowbar']['chef_order'] || 0,
+        :jig_order  => bc['crowbar']['chef_order'] || 0,
 
         :mode        => "full",
         :transitions => false,

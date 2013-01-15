@@ -76,7 +76,6 @@ create(Config, Path, KeyName, JSON, Action) when is_atom(Action) ->
   destroy(Config, Path, Key),
   % create node(s) for tests
   eurl:put_post(Config, Path, JSON, Action);
-
 create(Scenario, Type, Path, Name, JSON) when is_number(Scenario), is_atom(Type) ->
   bdd_utils:log(debug,"bdd_restrat create for Scenario ~p of ~p ~p with path ~p",[Scenario,Type,Name,Path]),
   destroy([], Path, Name),
@@ -134,7 +133,7 @@ step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) ->
 
 % WHEN STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST cannot find the",Page,"page"]}) ->
-  bdd_utils:log(Config, warn, "REST cannot find the... START"),
+  bdd_utils:log(Config, debug, "REST cannot find the... START"),
   Return = eurl:get(Config, Page,not_found),
   case Return of 
     "200" -> false; 
@@ -224,7 +223,7 @@ step(_Config, Results, {step_then, _N, ["REST call returned success"]}) ->
   Code == 200;
 
 step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
-  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  % This relies on the pattern objects providing a g(path) value mapping to their root information 
   case get_JSON(Results, all) of 
     {ajax, Code, {_, URI}} when is_number(Code) -> 
         bdd_utils:log(Config, warn, "bdd_restrat: Object ~p code ~p at ~p", [Object, Code, URI]), 

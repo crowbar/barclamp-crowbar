@@ -31,7 +31,7 @@ Feature: Authentication Works
       
   Scenario: License from Signin
     Skip Rob broken when he moved docs.  Fix after the docs migration
-    Given I am on the "users/sign_in" page
+    Given I am on the "my/users/sign_in" page
     When I click on the "License Details" link
     Then I should see "System Licenses"
       And I should see "Crowbar Framework Licenses"

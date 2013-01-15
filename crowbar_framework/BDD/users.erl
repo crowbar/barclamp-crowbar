@@ -21,11 +21,6 @@
 g(Item) ->
   case Item of
     path -> "/2.0/crowbar/2.0/users";
-    path_reset_pw -> "/2.0/crowbar/2.0/user_reset_password";
-    path_lock   -> "/2.0/crowbar/2.0/user_lock"; 
-    path_unlock -> "/2.0/crowbar/2.0/user_unlock"; 
-    path_make_admin -> "/2.0/crowbar/2.0/user_make_admin"; 
-    path_remove_admin -> "/2.0/crowbar/2.0/user_remove_admin"; 
     natural_key -> username; % unlike most crowbar objects, this uses username as the natural key
     username -> "oscar";
 	email -> "oscar@grouch.com";
@@ -36,6 +31,11 @@ g(Item) ->
     is_admin -> "false";
     _ -> crowbar:g(Item)
   end.
+
+
+% validates List of objects in a generic way common to all objects.
+validate_list(List) ->
+  bdd_utils:assert([is_list(List)], debug).
 
 % Common Routine
 % Only need chck id, username and email are parseable for now
@@ -55,7 +55,6 @@ validate(List) ->
     false
   end.
 
-
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
@@ -71,9 +70,6 @@ json_update(Username, Email, Remember_Me, Is_Admin) ->
 
 json_reset_password(Username, Password) ->
   json:output([{"username",Username},{"password", Password},{"password_confirmation", Password}]).
-
-json_lock_unlock(Username) ->
-  json:output([{"username",Username}]).
 
 fetch_user(Config, Result, N, Username) ->
   {_Atom, List, _Path} = bdd_restrat:step(Config, Result, {step_when, N, ["REST requests the", eurl:path(g(path),Username),"page"]}),
@@ -116,49 +112,50 @@ step(_Config, _Given, {step_when, _N, ["REST adds the user",  Username]}) ->
   _Config;
 
 step(_Config, _Given, {step_when, _N, ["REST elevates user", Username, "to administrator"]}) -> 
-   bdd_utils:log(_Config, trace, "users:step Elevating user: ~p, to administrator", [Username]),
-   User = json_update(Username, g(test_email), g(remember_me), true),
-   R = bdd_restrat:update(_Config, g(path_make_admin)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, debug, "users:step Updating user returned: ~p", [R]),
+   bdd_utils:log(_Config, puts, "Elevating user: ~p, to administrator", [Username]),
+   R = json:parse(eurl:put_post(_Config,g(path)++"/"++Username++"/admin", [], post)),
+   bdd_utils:log(_Config, trace, "Make user admin returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST removes admin privilege for user", Username]}) -> 
-   bdd_utils:log(_Config, trace, "users:step Removing admin privilege for user: ~p", [Username]),
-   User = json_update(Username, g(test_email), g(remember_me), false),
-   R = bdd_restrat:update(_Config, g(path_remove_admin)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, debug, "users:step Updating user returned: ~p", [R]),
+   bdd_utils:log(_Config, puts, "Removing admin privilege for user: ~p", [Username]),
+   R = eurl:delete(_Config, g(path)++"/"++Username++"/admin",[]),
+   bdd_utils:log(_Config, trace, "Removed user admin returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting email to", Email]}) -> 
    bdd_utils:log(_Config, trace, "users:step Updating user: ~p, setting email to: ~p", [Username,Email]),
    User = json_update(Username, Email, g(remember_me), g(is_admin)),
    R = bdd_restrat:update(_Config, g(path)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "users:step Updating user returned: ~p", [R]),
+   bdd_utils:log(_Config, debug, "users:step Updating user returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting password and password_confirmation to", Password]}) -> 
    bdd_utils:log(_Config, trace, "users:step Updating user: ~p, resetting password to: ~p", [Username,Password]),
    User = json_reset_password(Username, Password),
-   R = bdd_restrat:update(_Config, g(path_reset_pw)++"/"++Username, update ,username, User),
+   R = bdd_restrat:update(_Config, g(path)++"/"++Username++"/reset_password", update ,username, User),
    bdd_utils:log(_Config, debug, "users:step Updating user returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST locks user", Username]}) -> 
-   bdd_utils:log(_Config, trace, "users:step Locking user: ~p", [Username]),
-   User = json_lock_unlock(Username),
-   R = bdd_restrat:update(_Config, g(path_lock)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "users:step Lock user returned: ~p", [R]),
+   bdd_utils:log(_Config, puts, "Locking user: ~p", [Username]),
+   R = json:parse(eurl:put_post(_Config, g(path)++"/"++Username++"/lock", [], post)),
+   bdd_utils:log(_Config, trace, "Lock user returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST unlocks user", Username]}) -> 
-   bdd_utils:log(_Config, trace, "users:step Unlocking user: ~p", [Username]),
-   User = json_lock_unlock(Username),
-   R = bdd_restrat:update(_Config, g(path_unlock)++"/"++Username, update ,username, User),
-   bdd_utils:log(_Config, trace, "users:step Lock user returned: ~p", [R]),
+   bdd_utils:log(_Config, trace, "Unlocking user: ~p", [Username]),
+   R = eurl:delete(_Config, g(path)++"/"++Username++"/lock",[]),
+   bdd_utils:log(_Config, debug, "Unlock user returned: ~p", [R]),
    R;
 
 % THEN STEP  =======================================================
-% ADD MISSING THEN STEP:
+
+% validate list based on basic rules for Crowbar
+step(_Config, Result, {step_then, _N, ["the list of objects is properly formatted"]}) -> 
+  {ajax, List, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+  validate_list(List);
+
 step(_Config, _Result, {step_then, _N, ["there should be a valid user", Username]}) -> 
   bdd_utils:log(_Config, trace, "users:step Fetching user: ~p", [Username]),
   User_JSON = fetch_user(_Config, _Result, _N, Username),

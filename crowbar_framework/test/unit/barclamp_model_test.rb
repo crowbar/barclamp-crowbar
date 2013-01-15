@@ -16,6 +16,13 @@ require 'test_helper'
  
 class BarclampModelTest < ActiveSupport::TestCase
 
+  def setup
+    # we need to make sure that we have crowbar role
+    b = Barclamp.find_or_create_by_name :name=>"crowbar"
+    r = Role.find_or_create_by_name :name=>'crowbar'
+    b.roles << r unless b.roles.include? r
+  end
+  
   def validate_deep_compare_prop_conf(conf, conf2)
     return if conf == nil and conf2 == nil
     assert_not_nil conf

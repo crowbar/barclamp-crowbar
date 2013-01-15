@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ class Barclamp < ActiveRecord::Base
   has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
 
   has_many :roles
-  has_many :attribs
+  has_many :barclamp_attribs, :dependent => :destroy 
+  has_many :attribs, :through => :barclamp_attribs
 
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
@@ -92,31 +93,23 @@ class Barclamp < ActiveRecord::Base
   # Barclamps are responsible to creating the attributes that they will manage
   # name is required, all other fields are optional
   # attributes cannot be reassigned to a different barclamp
+  # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
   #
-  def add_attrib props
-    # we need to know the name
-    unless props.key? :name
-      Rails.logger.error ":name is required to use barclamp.add_attibute" 
-      throw "Requires Name"
-    end
-    props[:barclamp_id] = self.id
-    check = Attrib.find_by_name props.name
-    # if the attrib is new, then create it
-    if check.nil?
-      check = Attrib.create props
-      Rails.logger.debug "ok, Barclamp add_attrib #{check.id}: #{props.inspect}"
+  def add_attrib attrib, map = nil
+    if attrib.nil?       
+      throw "barclamp.add_attrib requires Attrib object or hash with :name"
+    elsif attrib.is_a? Attrib
+      a = attrib
     else
-      # if we own it, then we can just update it
-      #   if it's the crowbar barclamp then it's OK too (optimized by lazy OR)
-      if (check.barclamp_id == self.id) or (check.barclamp_id == Barclamp.find_by_name('crowbar').id)
-        check.update_attributes props
-      else
-        # that's not allowed
-        Rails.logger.error "Attrib #{check.name} is already assigned to #{check.barclamp.name} barclamp.  Cannot be reassigned" 
-        throw "Cannot Reassign Barclamp"
-      end
+      throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name
+      a = Attrib.find_or_create_by_name attrib
     end
-    check
+    ba = BarclampAttrib.find_or_create_by_barclamp_and_attrib self, a
+    unless map.nil?
+      ba.update_attributes map 
+      ba.save
+    end
+    ba
   end
 
   #

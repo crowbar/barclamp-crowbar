@@ -338,8 +338,10 @@ class Node < ActiveRecord::Base
     attrib_set attrib, value
   end
   
+  # if you set the attribute from the new, then we require that you have a crowbar barclamp association
   def attrib_set(attrib, value=nil)
-    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
+    bca = Barclamp.find_by_name('crowbar').add_attrib :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+    a = bca.attrib
     na = NodeAttrib.find_or_create_by_node_and_attrib(self, a)
     na.actual = value
     na.save

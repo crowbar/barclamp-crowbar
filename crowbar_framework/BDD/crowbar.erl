@@ -24,7 +24,6 @@ g(Item) ->
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "global-node.testing.com";
     node_atom -> global_node;
-	path -> "/2.0/crowbar/2.0/nodes"; 
     name -> "bddtest";
     order -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
@@ -55,13 +54,15 @@ validate(JSON) ->
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
+  bdd_utils:log(debug, "crowbar:step Global Setup running (creating node ~p)",[g(node_name)]),
   Node = node:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, nodes:g(path), g(node_atom), name, Node),
+  bdd_restrat:create(Config, node:g(path), g(node_atom), name, Node),
   Config;
 
 % find the node from setup and remove it
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_restrat:destroy(Config, nodes:g(path), g(node_atom)),
+  bdd_utils:log(debug, "crowbar:step Global Teardown running",[]),
+  bdd_restrat:destroy(Config, node:g(path), g(node_atom)),
   Config;
 
 % ============================  GIVEN STEPS =========================================

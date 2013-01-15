@@ -29,11 +29,7 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(J) ->
-  R =[length(J) =:= 8,
-      bdd_utils:is_a(J, str, description), 
-      bdd_utils:is_a(J, str, hint), 
-      bdd_utils:is_a(J, dbid, barclamp_id), 
-      bdd_utils:is_a(J, integer, order),
+  R =[bdd_utils:is_a(J, length, 6),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R). 
   

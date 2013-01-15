@@ -18,10 +18,11 @@ class NodeAttrib < ActiveRecord::Base
   NODE_ID_SPACE = 10000000
   NODE_NAME_DELIM = '@'
   MARSHAL_NIL   = "\004\b0"
+  MARSHAL_EMPTY = "empty"
   
   before_create :create_identity
 
-  attr_accessible :node_id, :attrib_id, :value_actual
+  attr_accessible :node_id, :attrib_id, :value_actual, :value_request, :cmdb_run_id
   attr_readonly   :name
 
   belongs_to  :attrib
@@ -68,8 +69,10 @@ class NodeAttrib < ActiveRecord::Base
 
   # Returns state of value of :empty, :set (by API) or :managed (by CMDB)
   def state
-    if cmdb_run_id.nil? 
+    if value_actual.eql? MARSHAL_EMPTY and value_request.eql? MARSHAL_EMPTY
       return :empty
+    elsif !value_actual.eql? value_request and !value_request.eql? MARSHAL_EMPTY
+      return :active
     elsif cmdb_run_id == 0
       return :set
     else
@@ -86,14 +89,33 @@ class NodeAttrib < ActiveRecord::Base
     return self.actual
   end
     
+  def request=(value)
+    self.cmdb_run_id = 0 if self.cmdb_run_id.nil?
+    self.value_request = Marshal::dump(value)
+  end
+  
+  def request
+    v = value_request
+    if v.eql? MARSHAL_EMPTY
+      nil
+    else
+      Marshal::load(v)
+    end
+  end
+  
   # used by the API when values are set outside of CMDB runs
   def actual=(value)
-    self.cmdb_run_id = 0 
+    self.cmdb_run_id = 0 if self.cmdb_run_id.nil?
     self.value_actual = Marshal::dump(value)
   end
   
   def actual
-    Marshal::load(self.value_actual)
+    v = value_actual
+    if v.eql? MARSHAL_EMPTY
+      nil
+    else
+      Marshal::load(v)
+    end
   end
   
   def as_json options={}

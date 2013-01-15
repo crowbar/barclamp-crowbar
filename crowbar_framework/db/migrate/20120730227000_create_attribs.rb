@@ -19,8 +19,6 @@ class CreateAttribs < ActiveRecord::Migration
       t.string :name,         :null=>false
       t.string :description,  :null=>true
       t.integer :order,       :default=>10000
-      t.belongs_to :barclamp, :null=>false
-      t.string :hint,         :null=>true
       t.timestamps
     end
     #natural key

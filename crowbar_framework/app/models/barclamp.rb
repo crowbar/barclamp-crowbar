@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -96,12 +96,14 @@ class Barclamp < ActiveRecord::Base
   # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
   #
   def add_attrib attrib, map = nil
-    # we need to know the name
-    unless attrib.key? :name
-      Rails.logger.error ":name of Attrib is required to use barclamp.add_attibute" 
-      throw "Barclamp.add_attrib requires :name"
+    if attrib.nil?       
+      throw "barclamp.add_attrib requires Attrib object or hash with :name"
+    elsif attrib.is_a? Attrib
+      a = attrib
+    else
+      throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name
+      a = Attrib.find_or_create_by_name attrib
     end
-    a = Attrib.find_or_create_by_name attrib
     ba = BarclampAttrib.find_or_create_by_barclamp_and_attrib self, a
     unless map.nil?
       ba.update_attributes map 

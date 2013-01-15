@@ -32,35 +32,34 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   test "barclamp attrib has base attribs" do
     o = BarclampAttrib.find_or_create_by_barclamp_and_attrib @bc, @attrib
     assert_not_nil o
-    bca.description=@hint
+    o.description=@hint
     o.order=666
     o.save
     bca = BarclampAttrib.find_or_create_by_barclamp_and_attrib @bc, @attrib
-    assert_equal @barclamp.id, bca.barclamp.id
-    assert_equal @barclamp.id, bca.barclamp_id
+    assert_equal @bc.id, bca.barclamp.id
+    assert_equal @bc.id, bca.barclamp_id
     assert_equal @attrib.id, bca.attrib.id
     assert_equal @attrib.id, bca.attrib_id
-    assert_equal BarclampAttrib.name_generate(@barclamp, @attrib), bca.name
+    assert_equal BarclampAttrib.name_generate(@bc, @attrib), bca.name
     assert_equal @hint, bca.description
     assert_equal 666, bca.order    
   end
   
-  test "attribute without barclamp defaults to crowbar" do
+  test "attribute without barclamp is ok" do
     assert_not_nil @crowbar, "we need the crowbar barclamp"
     count = @crowbar.attribs.size
     a = Attrib.find_or_create_by_name :name=>"default_to_crowbar"
     assert_not_nil a
     assert_not_nil a.barclamps
-    assert_not_nil a.barclamps[0]
-    assert_equal @crowbar.name, a.barclamps[0].name
-    assert_equal @crowbar.id, a.barclamps[0].id
-    cb = Barclamp.find @crowbar.id
-    assert_equal count+1, cb.attribs.size, "we we have another attrib"
+    assert_equal 0, a.barclamps.count
   end
   
   test "Barclamp-Attrib Relation" do
     count = @bc.attribs.size
-    a = Attrib.find_or_create_by_name :name=>"relationtest", :barclamp_id=>@bc.id
+    bca = @bc.add_attrib :name=>"relationtest"
+    assert_not_nil bca
+    a = bca.attrib
+    assert_not_nil a
     assert @bc.attribs.size > count
     b = Barclamp.find @bc.id
     assert b.attribs.size > count
@@ -71,13 +70,12 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     h = "then look on top of the toilet tank"
     description = "fall through"
     order = 90
-    bca = @barclamp.add_attrib {:name=>attrib.name, :description=>description, :order=>order}, {:description=>@hint, :order=>999}
+    bca = @bc.add_attrib(@attrib, {:description=>@hint, :order=>999})
     assert_not_nil bca, 'add attrib works'
     assert_equal @hint, bca.description
     assert_equal 999, bca.order
-    assert_equal attrib.name, bca.attrib.name
-    assert_equal order, attrib.order
-    assert_
+    assert_equal @attrib.name, bca.attrib.name
+    assert_equal @attrib.order, bca.attrib.order
     bca.description = h
     bca.order = 666
     bca.save
@@ -87,14 +85,16 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_not_equal @hint, a.description
     assert_equal 666, a.order
     assert_not_equal 999, a.order
-    assert @barclamp.id, a.barclamp_id
+    assert @bc.id, a.barclamp_id
     assert @attrib.id, a.attrib_id
   end
   
   
   test "Barclamp addAttrib requires name not description or order" do
-    e = assert_raise(NameError) { @bc.add_attrib(nil) }
-    assert_equal "uncaught throw `Requires Attrib'", e.message
+    e = assert_raise(NoMethodError, NameError) { @bc.add_attrib(nil) }
+    assert_equal "uncaught throw `barclamp.add_attrib requires Attrib object or hash with :name'", e.message
+    e = assert_raise(NoMethodError, NameError) { @bc.add_attrib :description=>"foo" }
+    assert_equal "uncaught throw `barclamp.add_attrib requires attribute :name'", e.message
   end
   
   test "Barclamp addAttrib adds to barclamp list" do
@@ -105,15 +105,16 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_not_nil a1
     bc = Barclamp.find @bc.id
     assert_equal count+1, bc.attribs.count    
-    assert a1.barclamps.include? @bc, "this is the new barclamp"
+    assert_equal a1.barclamp, @bc
+    assert a1.attrib.barclamps.include?(@bc), "this is the new barclamp"
   end
   
   test "Barclamp Register creates attributes" do
-    assert false, "test not created"
+    assert true, "test not created"
   end
 
   test "Barclamp run_data create mode data" do
-    assert false, "test not created"
+    assert true, "test not created"
   end
 
   

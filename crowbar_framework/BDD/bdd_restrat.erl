@@ -128,6 +128,9 @@ destroy(Config, Path, Key) ->
   
 
 % GIVEN STEPS ======================
+step(Config, Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
+  step(Config, Global, {step_finally, _N, ["REST deletes the",Object, Name]});
+
 step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) -> 
   step(Config, Global, {step_when, _N, ["REST creates the",Object,Name]});
 
@@ -195,7 +198,7 @@ step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is
   bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p = ~p ~p",[Object,Name, Code, Result]),
   ajax_return(Path, delete, Code, Result);
   
-step(Config, Given, {step_finally, _N, ["REST removes the ",Object, Name]}) when is_atom(Object)-> 
+step(Config, Given, {step_finally, _N, ["REST removes the",Object, Name]}) when is_atom(Object)-> 
   step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
 step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_atom(Object)-> 
   step(Config, Given, {step_when, _N, ["REST deletes the",Object, Name]});
@@ -219,8 +222,16 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_ato
   end;
 
 step(_Config, Results, {step_then, _N, ["REST call returned success"]}) ->
-  [{Code,_}|_] = Results,
-  Code == 200;
+  [Head|_] = Results,
+  {ajax, Code,_} = Head,
+  case Code of
+    200 -> true;        % catches new format
+    C when is_list(C) ->     % catches old format (DEPRICATE!)
+           bdd_utils:log(debug,bdd_restrat,step, "note, step before REST call return success called with old ajax results format.",[]), 
+           true;
+    _   -> bdd_utils:log(debug,bdd_restrat, step, "REST call DID NOT return success! with ~p",[Head]), 
+           false
+  end;
 
 step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information 

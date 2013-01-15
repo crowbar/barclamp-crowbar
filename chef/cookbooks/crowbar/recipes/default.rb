@@ -53,31 +53,31 @@ if node[:platform] != "suse"
     code "cd /opt/dell/crowbar_framework ; bundle"
     not_if "test -e /opt/dell/crowbar_framework/Gemfile.lock"
   end
+end
 
-  bash "Compile the Asssets" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
-    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
-  end
+bash "Compile the Asssets" do
+  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake assets:precompile"
+  not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+end
 
-  bash "Run the database migrations" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
-    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
-  end
+bash "Run the database migrations" do
+  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+  not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+end
 
-  bash "Add the delayed_job components" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production script/rails generate delayed_job:active_record"
-    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
-  end
+bash "Add the delayed_job components" do
+  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production script/rails generate delayed_job:active_record"
+  not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+end
 
-  bash "Run the database migrations after delay" do
-    code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
-    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
-  end
+bash "Run the database migrations after delay" do
+  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+  not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
+end
 
-  bash "touch chef_install.done" do
-    code "touch /opt/dell/crowbar_framework/chef_install.done"
-    not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
-  end
+bash "touch chef_install.done" do
+  code "touch /opt/dell/crowbar_framework/chef_install.done"
+  not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
 end
 
 group "crowbar"

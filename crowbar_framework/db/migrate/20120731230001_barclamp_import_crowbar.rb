@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
 class BarclampImportCrowbar < ActiveRecord::Migration
   def up
     Barclamp.import_1x 'crowbar'
+    # this is needed for testing
+    if Rails.env.development? or Rails.env.test? 
+      Role.create :name=>'crowbar', :barclamp_id=>Barclamp.find_by_name('crowbar'), :description=>'DEVELOPER - added for dev and test.  May cause issues'
+    end
   end
 
   def down

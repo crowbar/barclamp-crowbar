@@ -43,9 +43,12 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   end
   
   test "Node Attrib actual values state correct" do
-    v = @na
+    v = @node.attrib_get('state_test')
+    assert_nil v.cmdb_run_id
+    v.actual = @value
     assert_equal @value, v.actual
     assert_equal :set, v.state
+    assert_not_nil v.cmdb_run_id
   end
   
   test "Node Attrib delete" do
@@ -71,7 +74,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_not_nil v
     assert_equal :empty, v.state
     assert_nil v.actual
-    assert_equal NodeAttrib::MARSHAL_NIL, v.value_actual
+    assert_equal NodeAttrib::MARSHAL_EMPTY, v.value_actual
     value = "2b"
     v.actual = value
     assert_equal value, v.value
@@ -174,6 +177,20 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_equal type, v.actual.class
   end
   
+  test "Node Attrib preserves type of request Value" do
+    value = "bar"
+    type = value.class
+    v = @na
+    v.request = value
+    assert_equal value, v.request
+    assert_equal type, v.request.class
+    value = 123
+    type = value.class
+    v.request = value
+    assert_equal value, v.request
+    assert_equal type, v.request.class
+  end
+  
   test "Node.attribute works" do
     value = "foo"
     v = @na
@@ -251,5 +268,50 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert !a_after.nodes.include?(n_after)
     assert !n_after.attribs.include?(a_after)
   end
+  
+  test "Node stores proposed attrib and sets state" do
+    value = "proposed value"
+    name = "unit_proposed"
+    na = @node.attrib_get(name)
+    assert_not_nil na
+    assert_equal name, na.attrib.name
+    assert_nil na.value
+    assert_equal :empty, na.state
+    assert_nil na.request
+    assert_nil na.cmdb_run_id
+    na.request = value
+    na.save
+    assert_equal :active, na.state
+    assert_equal value, na.request
+    assert_not_nil na.cmdb_run_id
+        
+    na2 = NodeAttrib.find NodeAttrib.id_generate(@node.id, na.attrib.id)
+    assert_not_nil na2
+    assert_equal nil, na2.value
+    assert_equal :active, na2.state
+    assert_equal value, na2.request
+    assert_not_nil na2.cmdb_run_id
+  end
+  
+  test "Node state reflects proposed state" do
+    value = "state value"
+    name = "unit_state"
+    na = @node.attrib_get(name)
+    assert_not_nil na
+    assert_equal name, na.attrib.name
+    assert_equal nil, na.value
+    assert_equal :empty, na.state
+    assert_equal nil, na.request
+    na.request = value
+    assert_equal :active, na.state
+    assert_equal value, na.request
+    assert_equal nil, na.value
+    na.actual = value
+    assert_equal :set, na.state
+    assert_equal value, na.value
+    assert_equal value, na.actual
+    assert_equal value, na.request
+  end
+  
 end
 

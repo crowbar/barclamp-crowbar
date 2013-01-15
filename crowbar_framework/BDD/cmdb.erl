@@ -24,6 +24,7 @@ g(Item) ->
     name -> "bddcmdb";
     atom -> cmdb1;
     type -> "CmdbTest";
+    node_atom -> "global-node.testing.com";
     _ -> crowbar:g(Item)
   end.
   
@@ -84,7 +85,7 @@ step(Config, _Result, {step_then, _N, ["there is not a cmdb",CMDB]}) ->
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
-step(Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
+step(Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) ->  	
   bdd_utils:log(Config, trace, "CMDB properly formatted? ~p",[Result]),
   crowbar_rest:step(Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
 
@@ -94,10 +95,12 @@ step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) ->
   step(Config, _Given, {step_when, _N, ["REST deletes the cmdb",CMDB]}); 
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
-  % create node(s) for tests
+  bdd_utils:log(debug, "cmdb:step Setup running",[]),
+  % create CMDB entry
   CMDB = json(g(name), g(description), g(type), 100),
-  crowbar_rest:create(Config, g(path), g(atom), g(name), CMDB);
+  bdd_restrat:create(Config, g(path), g(atom), name, CMDB);
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  % find the node from setup and remove it
-  crowbar_rest:destroy(Config, g(path), g(atom)).
+  bdd_util:log(debug, "cmdb:step Teardown running",[]),
+  % remove cmdb entry
+  bdd_restrat:destroy(Config, g(path), g(atom)).

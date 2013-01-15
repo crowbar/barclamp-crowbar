@@ -167,6 +167,7 @@ start(Config) ->
       end,
       AzConfig = bdd_utils:is_site_up(Config),
       file:write_file("../tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
+      bdd_utils:log(debug, bdd, start, "running global setup using `~p:step(...step_setup...)`",[Global]),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       bdd_utils:config_set(SetupConfig, started, true);
     _ -> Config

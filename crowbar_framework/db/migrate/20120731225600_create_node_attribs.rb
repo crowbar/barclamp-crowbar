@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ class CreateNodeAttribs < ActiveRecord::Migration
       t.belongs_to  :node,           :null=>false
       t.belongs_to  :attrib,         :null=>false
       t.belongs_to  :cmdb_run,       :null=>true
-      t.string      :value_actual,   :default=>"\004\b0"
+      t.string      :value_actual,   :default=>"empty"
+      t.string      :value_request,  :default=>"empty"
       t.timestamps      
     end
     # this is a critical table, it needs a lot of indexes!

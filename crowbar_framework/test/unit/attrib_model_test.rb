@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -58,8 +58,7 @@ class AttribModelTest < ActiveSupport::TestCase
     assert_equal 100, j['order']
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
-    #TODO change this when we move HINT and barclamp back into an relations
-    assert_equal 8, j.length
+    assert_equal 6, j.length
   end
   
 end

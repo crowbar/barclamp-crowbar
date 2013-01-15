@@ -163,6 +163,11 @@ untrace(Config, Name, N) ->
   file:delete(File).
   
 % test for types
+is_a(JSON, length, Count) ->
+    if Count =/= length(JSON) -> log(debug, "bdd_utils:is_a(JSON,length,~p) length was ~p not ~p.",[Count, length(JSON),Count]), 
+                                 log(trace, "bdd_utils:is_a JSON ~p.",[JSON]), 
+                                 false;
+       true                   -> true end;
 is_a(JSON, Type, Key) ->
   Value = json:keyfind(JSON, Key), 
   case is_a(Type, Value) of

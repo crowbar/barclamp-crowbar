@@ -16,6 +16,11 @@ require 'test_helper'
  
 class NodeModelTest < ActiveSupport::TestCase
 
+  def setup
+    @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
+  end
+
+
   test "Unique Name" do
     Node.create! :name=>"foo.example.com"
     e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Node.create!(:name => "foo.example.com") }

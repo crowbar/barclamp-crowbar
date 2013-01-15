@@ -234,7 +234,7 @@ class UsersController < BarclampController
     render :json => ret[1]
   end
 
-  add_help(:user_make_admin,[:id],[:get])
+  add_help(:user_make_admin,[:id],[:post])
   def user_make_admin
     id = params[:id]
 
@@ -249,7 +249,7 @@ class UsersController < BarclampController
     end
   end
 
-  add_help(:user_remove_admin,[:id],[:get])
+  add_help(:user_remove_admin,[:id],[:delete])
   def user_remove_admin
     id = params[:id]
 
@@ -264,7 +264,7 @@ class UsersController < BarclampController
     end
   end
 
-  add_help(:user_lock,[:id],[:get])
+  add_help(:user_lock,[:id],[:post])
   def user_lock
     id = params[:id]
 
@@ -291,7 +291,7 @@ class UsersController < BarclampController
     end
   end
 
-  add_help(:user_unlock,[:id],[:get])
+  add_help(:user_unlock,[:id],[:delete])
   def user_unlock
     id = params[:id]
 

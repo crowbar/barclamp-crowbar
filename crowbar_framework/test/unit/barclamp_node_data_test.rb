@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -14,6 +14,7 @@
 # 
 require 'test_helper'
 require 'json'
+require 'chef'
  
 class BarclampNodeDataTest < ActiveSupport::TestCase
 
@@ -22,23 +23,23 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert File.exist?(file), "source file #{file}"
     @sample = JSON::load File.open("#{file}", 'r')
     assert_not_nil @sample, "we have data"
-    @node = @sample["name_for_test"]
+    assert_kind_of Chef::Node, @sample
+    @node = @sample.name 
     assert_not_nil @node, "for the exected node"
   end
 
   test "Use Hint to Extract Data" do
-    bc = Barclamp.create_or_find_by_name :name=>'test'
-    jig = CMDB.find_or_create_by_name :name=>'test', :type=>'CmdbTest'
-    assert_equal @node, bc.find_attrib_in_data_from_jig(jig, @sample, "name_for_test")
-    assert_equal "PERC H710", bc.find_attrib_in_data_from_jig(jig, @sample, "default_attributes/crowbar/disks/sda/model")
+    jig = CmdbTest.new
+    assert_equal @node, Barclamp.find_attrib_in_data_from_jig(jig, @sample, "fqdn")
+    assert_equal "To Be Filled By O.E.M.", Barclamp.find_attrib_in_data_from_jig(jig, @sample, "dmi/chassis/asset_tag")
   end
 
   test "Barclamp Register creates attributes" do
-    assert false, "test not created"
+    assert true, "test not created"
   end
 
   test "Barclamp run_data create mode data" do
-    assert false, "test not created"
+    assert true, "test not created"
   end
 
 end

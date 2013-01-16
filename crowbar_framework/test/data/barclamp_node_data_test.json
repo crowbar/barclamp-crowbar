@@ -1,0 +1,192 @@
+{ "name_for_test" : "da0-36-9f-06-fd-24.cr0wbar.com",
+  "_rev" : "40-cb5b19c528dada9fa575b093b3766ba1",
+  "chef_type" : "role",
+  "default_attributes" : { "crowbar" : { 
+          "allocated" : true,
+          "disks" : { "sda" : { 
+                  "model" : "PERC H710",
+                  "removable" : "0",
+                  "rev" : "3.13",
+                  "size" : "4294965120",
+                  "state" : "running",
+                  "timeout" : "90",
+                  "usage" : "OS",
+                  "vendor" : "DELL"
+                } },
+          "display" : { "alias" : "Controller",
+              "description" : "",
+              "group" : "sw-da0-36-9f"
+            },
+          "hardware" : { "bios_set" : "Virtualization",
+              "os" : "os_install",
+              "raid_set" : "SingleRaid10"
+            },
+          "links" : { "Chef" : "http://192.168.124.10:4040/nodes/da0-36-9f-06-fd-24.cr0wbar.com",
+              "Ganglia" : "http://192.168.124.10/ganglia/?c=Crowbar PoC&h=da0-36-9f-06-fd-24.cr0wbar.com&m=load_one&r=hour&s=descending&hc=4&mc=2",
+              "Nagios" : "http://192.168.124.10/nagios3/cgi-bin/extinfo.cgi?type=1&host=da0-36-9f-06-fd-24"
+            },
+          "network" : { "admin" : { "add_bridge" : false,
+                  "address" : "192.168.124.83",
+                  "broadcast" : "192.168.124.255",
+                  "conduit" : "intf0",
+                  "netmask" : "255.255.255.0",
+                  "node" : "da0-36-9f-06-fd-24.cr0wbar.com",
+                  "router" : "192.168.124.1",
+                  "router_pref" : 10,
+                  "subnet" : "192.168.124.0",
+                  "usage" : "admin",
+                  "use_vlan" : false,
+                  "vlan" : 100
+                },
+              "bmc" : { "add_bridge" : false,
+                  "address" : "192.168.124.202",
+                  "broadcast" : "192.168.124.255",
+                  "conduit" : "bmc",
+                  "netmask" : "255.255.255.0",
+                  "node" : "da0-36-9f-06-fd-24.cr0wbar.com",
+                  "router" : null,
+                  "subnet" : "192.168.124.0",
+                  "usage" : "bmc",
+                  "use_vlan" : false,
+                  "vlan" : 100
+                }
+            },
+          "state_debug" : { "discovered" : 1,
+              "discovering" : 1,
+              "hardware-installed" : 1,
+              "hardware-installing" : 1,
+              "installed" : 1,
+              "installing" : 1,
+              "readying" : 1
+            },
+          "usage" : [ "nova" ],
+          "usedhcp" : true
+        },
+      "crowbar-revision" : 44,
+      "run_list_map" : { "bios" : { "priority" : 17,
+              "states" : [ "update",
+                  "hardware-installing",
+                  "hardware-updating"
+                ]
+            },
+          "bios-config-default" : { "priority" : 17,
+              "states" : [ "all" ]
+            },
+          "bmc-nat-client" : { "priority" : 10,
+              "states" : [ "all" ]
+            },
+          "deployer-client" : { "priority" : 10,
+              "states" : [ "all" ]
+            },
+          "deployer-config-default" : { "priority" : 10,
+              "states" : [ "all" ]
+            },
+          "discover-raid" : { "priority" : 18,
+              "states" : [ "all" ]
+            },
+          "dns-client" : { "priority" : 30,
+              "states" : [ "all" ]
+            },
+          "dns-config-default" : { "priority" : 30,
+              "states" : [ "all" ]
+            },
+          "ganglia-client" : { "priority" : 1040,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "ganglia-config-default" : { "priority" : 1040,
+              "states" : [ "all" ]
+            },
+          "ipmi-config-default" : { "priority" : 16,
+              "states" : [ "all" ]
+            },
+          "ipmi-configure" : { "priority" : 16,
+              "states" : [ "hardware-installing" ]
+            },
+          "ipmi-discover" : { "priority" : 16,
+              "states" : [ "discovering" ]
+            },
+          "logging-client" : { "priority" : 40,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "logging-config-default" : { "priority" : 40,
+              "states" : [ "all" ]
+            },
+          "nagios-client" : { "priority" : 1050,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "nagios-config-default" : { "priority" : 1050,
+              "states" : [ "all" ]
+            },
+          "network" : { "priority" : 20,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "network-config-default" : { "priority" : 20,
+              "states" : [ "all" ]
+            },
+          "ntp-client" : { "priority" : 50,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "ntp-config-default" : { "priority" : 50,
+              "states" : [ "all" ]
+            },
+          "provisioner-base" : { "priority" : 1060,
+              "states" : [ "readying",
+                  "ready",
+                  "applying"
+                ]
+            },
+          "provisioner-config-default" : { "priority" : 1060,
+              "states" : [ "all" ]
+            },
+          "raid-config-default" : { "priority" : 18,
+              "states" : [ "all" ]
+            },
+          "raid-configure" : { "priority" : 18,
+              "states" : [ "hardware-installing" ]
+            }
+        },
+      "state" : "readying"
+    },
+  "description" : "Controller: ",
+  "env_run_lists" : {  },
+  "json_class" : "Chef::Role",
+  "name" : "crowbar-da0-36-9f-06-fd-24_cr0wbar_com",
+  "override_attributes" : { "crowbar" : { "crowbar-revision" : 47 } },
+  "run_list" : [ "role[bmc-nat-client]",
+      "role[deployer-client]",
+      "role[deployer-config-default]",
+      "role[ipmi-config-default]",
+      "role[bios-config-default]",
+      "role[raid-config-default]",
+      "role[discover-raid]",
+      "role[network-config-default]",
+      "role[network]",
+      "role[dns-client]",
+      "role[dns-config-default]",
+      "role[logging-config-default]",
+      "role[logging-client]",
+      "role[ntp-client]",
+      "role[ntp-config-default]",
+      "role[ganglia-config-default]",
+      "role[ganglia-client]",
+      "role[nagios-config-default]",
+      "role[nagios-client]",
+      "role[provisioner-base]",
+      "role[provisioner-config-default]"
+    ]
+}

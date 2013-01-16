@@ -157,6 +157,14 @@ class Barclamp < ActiveRecord::Base
     run_order
   end
 
+  def find_attrib_in_data_from_jig(jig, data, path)
+    throw "barclamp.find_attrib not compatable with #{jig.name} type" unless jig.is_a? CmdbChef or jig.is_a? CmdbTest
+    nav = path.split '/'
+    nav.each do |key|
+      data = data[key]
+    end
+    data
+  end
 
   ### private method.
   # Parse the deployment section of a barclamps template

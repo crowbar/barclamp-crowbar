@@ -109,14 +109,6 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert a1.attrib.barclamps.include?(@bc), "this is the new barclamp"
   end
   
-  test "Barclamp Register creates attributes" do
-    assert true, "test not created"
-  end
-
-  test "Barclamp run_data create mode data" do
-    assert true, "test not created"
-  end
-
   
 end
 

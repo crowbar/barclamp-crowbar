@@ -23,7 +23,7 @@ class CreateNodeAttribs < ActiveRecord::Migration
       t.string      :name,           :null=>true
       t.belongs_to  :node,           :null=>false
       t.belongs_to  :attrib,         :null=>false
-      t.belongs_to  :cmdb_run,       :null=>true
+      t.belongs_to  :jig_run,       :null=>true
       t.string      :value_actual,   :default=>"empty"
       t.string      :value_request,  :default=>"empty"
       t.timestamps      

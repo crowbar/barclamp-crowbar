@@ -17,7 +17,7 @@
 # This initializer (re)builds the documentation set on startup 
 begin
   Doc.delete_all
-  Doc.gen_doc_index 'doc'
+  Doc.gen_doc_index File.join '..', 'doc'
 rescue
   # don't sweat it, we'll do it later
   true

@@ -25,7 +25,7 @@ class CrowbarController < BarclampController
       :name=>'crowbar', 
       :version=>'2.0', 
       :accepts=>['2.0'], 
-      :actions=>['node','group','cmdb', 'attrib'],
+      :actions=>['node','group','jig', 'attrib'],
       :license=>'apache2', 
       :copyright=>'Dell, Inc 2012'
     }
@@ -84,34 +84,34 @@ class CrowbarController < BarclampController
     
   end
   
-  def cmdb
+  def jig
     unless params[:version].eql?('2.0')
       render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
       return
     end
-    @cmdb = Cmdb.find_key(params[:id]) if params[:id]
+    @jig = Jig.find_key(params[:id]) if params[:id]
     
     # POST
     if request.post?
-      @cmdb = Cmdb.create params
-      render :json => @cmdb
+      @jig = Jig.create params
+      render :json => @jig
     # PUT (not supported)
     elsif request.put?
-      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'cmdb'), :status => 504
+      render :text=>I18n.t('api.not_supported', :action=>'PUT', :obj=>'jig'), :status => 504
     # DELETE
-    elsif request.delete? and @cmdb
-      Cmdb.delete @cmdb.id
-      render :text=>I18n.t('api.deleted', :id=>@cmdb.id, :obj=>'cmdb')
+    elsif request.delete? and @jig
+      Jig.delete @jig.id
+      render :text=>I18n.t('api.deleted', :id=>@jig.id, :obj=>'jig')
     # fall through REST actions (all require ID)
-    elsif request.get? and @cmdb
-      render :json => @cmdb
+    elsif request.get? and @jig
+      render :json => @jig
     elsif params[:id]
-      render :text=>I18n.t('api.not_found', :type=>'cmdb', :id=>params[:id]), :status => 404
+      render :text=>I18n.t('api.not_found', :type=>'jig', :id=>params[:id]), :status => 404
     # list (no ID)
     elsif request.get?  
-      cmdbs = {}
-      Cmdb.all.each { |c| cmdbs[c.id] = c.name }
-      render :json => cmdbs
+      jigs = {}
+      Jig.all.each { |c| jigs[c.id] = c.name }
+      render :json => jigs
     # Catch
     else
       render :text=>I18n.t('api.unknown_request'), :status => 400

@@ -16,7 +16,7 @@
 class Barclamp < ActiveRecord::Base
 
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
-  attr_accessible :proposal_schema_version, :layout, :order, :run_order, :cmdb_order
+  attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals
   
@@ -143,7 +143,7 @@ class Barclamp < ActiveRecord::Base
 
   #
   # Get the roles group by the role orders.
-  # This is used to order cmdb runs by role sets
+  # This is used to order jig runs by role sets
   # This used to be the element_order structure in the json
   #
   def get_roles_by_order
@@ -156,7 +156,29 @@ class Barclamp < ActiveRecord::Base
     end
     run_order
   end
-
+  
+  # find a single attribute in a data set
+  def self.find_attrib_in_data_from_jig(jig, data, path)
+    throw "barclamp.find_attrib not compatable with #{jig.name} type" unless jig.is_a? JigChef or jig.is_a? JigTest
+    nav = path.split '/'
+    # add some optimization to avoid looping down through the structure
+    case nav.length 
+      when 1 
+        data[nav[0]]
+      when 2
+        data[nav[0]][nav[1]]
+      when 3
+        data[nav[0]][nav[1]][nav[2]]
+      when 4
+        data[nav[0]][nav[1]][nav[2]][nav[3]]
+      when 5
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
+      when 6
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
+      else 
+        nav.each { |key| data = data[key] }
+    end
+  end
 
   ### private method.
   # Parse the deployment section of a barclamps template
@@ -229,7 +251,7 @@ class Barclamp < ActiveRecord::Base
         :layout      => bc['crowbar']['layout'] || 2,
         :order       => bc['crowbar']['order'] || 0,
         :run_order   => bc['crowbar']['run_order'] || 0,
-        :cmdb_order  => bc['crowbar']['chef_order'] || 0,
+        :jig_order  => bc['crowbar']['chef_order'] || 0,
 
         :mode        => "full",
         :transitions => false,

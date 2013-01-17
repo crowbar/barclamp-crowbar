@@ -45,7 +45,7 @@ class CrowbarService < ServiceObject
   #     find all the barclamp proposals that care that have registered to be called for this state
   #     Order the proposals by their barclamp run_order
   #     Call each proposal's transition function
-  #     Rebuild the CMDB structures for the node
+  #     Rebuild the Jig structures for the node
   #     If the node goes ready, check to see if we can apply any queued proposals.
   #
   # Return success
@@ -57,7 +57,7 @@ class CrowbarService < ServiceObject
       node = Node.find_by_name name
       if node.nil? && ['discovering','testing'].member?(state)
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
-        node = Node.create_with_cmdb(name)
+        node = Node.create_with_jig(name)
       end
       if node.nil?
         @logger.error("Crowbar transition leaving: chef node not found nor created - #{name} to #{state}")
@@ -70,7 +70,7 @@ class CrowbarService < ServiceObject
       unless (node.state != state) ||
           ['hardware-installing','hardware-updating','update'].member?(state)
         @logger.info("Crowbar transition: no state transition needed for #{name}")
-        return [200,node.cmdb_hash]
+        return [200,node.jig_hash]
       end
       node.state = state
       node.save
@@ -111,7 +111,7 @@ class CrowbarService < ServiceObject
     #
     # The temp booting images need to have clients cleared.
     #
-    node.reset_cmdb_access
+    node.reset_jig_access
     if state == "delete"
       @logger.info("Crowbar: Deleting #{name}")
       node.destroy
@@ -124,7 +124,7 @@ class CrowbarService < ServiceObject
       ProposalQueue.get_queue('prop_queue', @logger).process_queue
     end
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
-    [200, node.cmdb_hash]
+    [200, node.jig_hash]
   end
 
   #

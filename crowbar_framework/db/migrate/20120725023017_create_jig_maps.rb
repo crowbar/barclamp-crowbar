@@ -12,21 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbs < ActiveRecord::Migration
+class CreateJigMaps < ActiveRecord::Migration
   def change
-    create_table :cmdbs do |t|
-      t.string :name
+    create_table :jig_maps do |t|
+      t.string :name,         :null=>false
       t.string :description,  :null=>true
-      t.string :type,         :null=>false
-      t.integer :order,       :default=>10000
+      t.string :order,        :default=>10000
+
+      t.references :jig
+
       t.timestamps
     end
+    
     #natural key
-    add_index(:cmdbs, :name, :unique => true)   
-
-  end
-
-  def down
-    drop_table :cmdbs
+    add_index(:jig_maps, :name, :unique => true)  
+    
   end
 end

@@ -13,37 +13,37 @@
 # limitations under the License.
 #
 
-class CmdbRunChef < CmdbRun
+class JigRunChef < JigRun
 
   def init
     super.init
   end
 
-  def run_cmdb_on_node(cmdb, node)
-    super.run_cmdb_on_node(cmdb, node)
+  def run_jig_on_node(jig, node)
+    super.run_jig_on_node(jig, node)
   end
   
-  def attrs_from_cmdb(cmdb, node)
-    #c = Cmdb.new('chef')
-    puts "node => #{cmdb.class}"
-    n = cmdb.node(node) # got the cmdb node
+  def attrs_from_jig(jig, node)
+    #c = Jig.new('chef')
+    puts "node => #{jig.class}"
+    n = jig.node(node) # got the jig node
     puts "node => #{n.class}"
     m = map('1') # lame
 
-    # map the attributes to the cmdb_attribute object
-    m.mapping.each_pair do | cmdb_attr, lookup_value |
+    # map the attributes to the jig_attribute object
+    m.mapping.each_pair do | jig_attr, lookup_value |
       # get the values out of the node object
-      puts "cmdb_attr => #{cmdb_attr}, lookup_value => #{lookup_value}"
+      puts "jig_attr => #{jig_attr}, lookup_value => #{lookup_value}"
       node_attr_value = eval("n#{lookup_value}")
       puts "eval result => #{node_attr_value}" 
-      # and shove them into the database as a CmdbAttribute
-      a = CmdbAttribute.new(:name => cmdb_attr, :value => node_attr_value)
+      # and shove them into the database as a JigAttribute
+      a = JigAttribute.new(:name => jig_attr, :value => node_attr_value)
       a.save!
     end     
   end
     
-  def attrs_to_cmdb(cmdb, node)
-    super.attrs_to_cmdb(cmdb, node)
+  def attrs_to_jig(jig, node)
+    super.attrs_to_jig(jig, node)
   end
 
   # make sure I can get the map I need to put attrs in the DB

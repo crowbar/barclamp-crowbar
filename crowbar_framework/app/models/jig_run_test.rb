@@ -14,26 +14,26 @@
 #
 
 #
-# This model is a stub for the CMDB override system
+# This model is a stub for the Jig override system
 # It is NOT installed by default, but can be used for testing or as a model
 
-class CmdbRunTest < CmdbRun
+class JigRunTest < JigRun
 
   def init
     super.init
   end
 
-  def run_cmdb_on_node(node)
-    super.run_cmdb_on_node node
+  def run_jig_on_node(node)
+    super.run_jig_on_node node
   end
 
-  # map node from Chef into an array of CmdbAttributes
-  def attrs_from_cmdb(cmdb, node)
-    super.attrs_from_cmdb
+  # map node from Chef into an array of JigAttributes
+  def attrs_from_jig(jig, node)
+    super.attrs_from_jig
   end
   
-  def attrs_to_cmdb(cmdb, node)
-    super.attrs_to_cmdb(cmdb, node)
+  def attrs_to_jig(jig, node)
+    super.attrs_to_jig(jig, node)
   end
 
   # make sure I can get the map I need to put attrs in the DB

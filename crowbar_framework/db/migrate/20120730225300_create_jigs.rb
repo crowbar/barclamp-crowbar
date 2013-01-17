@@ -1,3 +1,4 @@
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateCmdbEvents < ActiveRecord::Migration
+class CreateJigs < ActiveRecord::Migration
   def change
-    create_table :cmdb_events do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true, :default=>true
+    create_table :jigs do |t|
+      t.string :name
+      t.string :description,  :null=>true
       t.string :type,         :null=>false
-      t.string :order,        :default=>10000
-      t.integer :status
-
-      t.references :cmdb
-      t.references :proposal_config
-      t.references :cmdb_map
-
+      t.integer :order,       :default=>10000
       t.timestamps
     end
+    #natural key
+    add_index(:jigs, :name, :unique => true)   
+
+  end
+
+  def down
+    drop_table :jigs
   end
 end

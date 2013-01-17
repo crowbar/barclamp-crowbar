@@ -29,7 +29,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
   end
 
   test "Use Hint to Extract Data" do
-    jig = CmdbTest.new
+    jig = JigTest.new
     assert_equal @node, Barclamp.find_attrib_in_data_from_jig(jig, @sample, "fqdn")
     assert_equal "To Be Filled By O.E.M.", Barclamp.find_attrib_in_data_from_jig(jig, @sample, "dmi/chassis/asset_tag")
   end

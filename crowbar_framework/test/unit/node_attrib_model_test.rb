@@ -38,17 +38,17 @@ class NodeAttribModelTest < ActiveSupport::TestCase
   
   test "Node Attrib can have no run" do
     a = Attrib.create :name=>"no_run"
-    v = NodeAttrib.create :node_id=>@node.id, :attrib_id=>a.id, :cmdb_run_id=>nil
+    v = NodeAttrib.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
     assert_not_nil v
   end
   
   test "Node Attrib actual values state correct" do
     v = @node.attrib_get('state_test')
-    assert_nil v.cmdb_run_id
+    assert_nil v.jig_run_id
     v.actual = @value
     assert_equal @value, v.actual
     assert_equal :set, v.state
-    assert_not_nil v.cmdb_run_id
+    assert_not_nil v.jig_run_id
   end
   
   test "Node Attrib delete" do
@@ -278,19 +278,19 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_nil na.value
     assert_equal :empty, na.state
     assert_nil na.request
-    assert_nil na.cmdb_run_id
+    assert_nil na.jig_run_id
     na.request = value
     na.save
     assert_equal :active, na.state
     assert_equal value, na.request
-    assert_not_nil na.cmdb_run_id
+    assert_not_nil na.jig_run_id
         
     na2 = NodeAttrib.find NodeAttrib.id_generate(@node.id, na.attrib.id)
     assert_not_nil na2
     assert_equal nil, na2.value
     assert_equal :active, na2.state
     assert_equal value, na2.request
-    assert_not_nil na2.cmdb_run_id
+    assert_not_nil na2.jig_run_id
   end
   
   test "Node state reflects proposed state" do

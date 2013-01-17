@@ -69,7 +69,7 @@ class BarclampController < ApplicationController
 
     ret = operations.transition(id, name, state)
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => Node.find_by_name(name).cmdb_hash.to_hash
+    render :json => Node.find_by_name(name).jig_hash.to_hash
   end
   
   #

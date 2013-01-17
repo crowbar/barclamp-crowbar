@@ -33,7 +33,7 @@ validate(J) ->
       bdd_utils:is_a(J, number, layout), 
       bdd_utils:is_a(J, boolean, allow_multiple_proposals), 
       bdd_utils:is_a(J, number, proposal_schema_version), 
-      bdd_utils:is_a(J, number, cmdb_order), 
+      bdd_utils:is_a(J, number, jig_order), 
       % invalid test bdd_utils:is_a(J, string, transistions), 
       bdd_utils:is_a(J, string, mode), 
       % invalid test bdd_utils:is_a(J, string, transistion_list), 

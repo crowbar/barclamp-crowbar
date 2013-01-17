@@ -22,12 +22,12 @@ class NodeAttrib < ActiveRecord::Base
   
   before_create :create_identity
 
-  attr_accessible :node_id, :attrib_id, :value_actual, :value_request, :cmdb_run_id
+  attr_accessible :node_id, :attrib_id, :value_actual, :value_request, :jig_run_id
   attr_readonly   :name
 
   belongs_to  :attrib
   belongs_to  :node
-  #belongs_to  :run, :class_name => "CmdbRun", :foreign_key => "cmdb_run_id"
+  #belongs_to  :run, :class_name => "JigRun", :foreign_key => "jig_run_id"
 
   self.primary_key = 'generated_id'
 
@@ -67,13 +67,13 @@ class NodeAttrib < ActiveRecord::Base
     node*NODE_ID_SPACE+attribute
   end
 
-  # Returns state of value of :empty, :set (by API) or :managed (by CMDB)
+  # Returns state of value of :empty, :set (by API) or :managed (by Jig)
   def state
     if value_actual.eql? MARSHAL_EMPTY and value_request.eql? MARSHAL_EMPTY
       return :empty
     elsif !value_actual.eql? value_request and !value_request.eql? MARSHAL_EMPTY
       return :active
-    elsif cmdb_run_id == 0
+    elsif jig_run_id == 0
       return :set
     else
       return :managed
@@ -90,7 +90,7 @@ class NodeAttrib < ActiveRecord::Base
   end
     
   def request=(value)
-    self.cmdb_run_id = 0 if self.cmdb_run_id.nil?
+    self.jig_run_id = 0 if self.jig_run_id.nil?
     self.value_request = Marshal::dump(value)
   end
   
@@ -103,9 +103,9 @@ class NodeAttrib < ActiveRecord::Base
     end
   end
   
-  # used by the API when values are set outside of CMDB runs
+  # used by the API when values are set outside of Jig runs
   def actual=(value)
-    self.cmdb_run_id = 0 if self.cmdb_run_id.nil?
+    self.jig_run_id = 0 if self.jig_run_id.nil?
     self.value_actual = Marshal::dump(value)
   end
   

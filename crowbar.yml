@@ -28,7 +28,7 @@ barclamp:
     - centos-6.2
 
 crowbar:
-  layout: 2
+  layout: 1.9
   order: 0
   run_order: 0
   chef_order: 0

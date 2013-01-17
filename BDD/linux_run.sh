@@ -1,9 +1,9 @@
 
 # Start rails
-cd ..
+cd ../crowbar_framework
 bundle exec script/rails s Puma >> log/test.out 2>> log/test.err &
 sleep 10
-cd BDD
+cd ../BDD
 
 # Run Tests
 erl -s bdd test devtool -s init stop -noshell

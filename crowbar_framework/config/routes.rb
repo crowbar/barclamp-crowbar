@@ -15,7 +15,7 @@
 Crowbar::Application.routes.draw do
 
   namespace :scaffolds do
-    resources :attributes do as_routes end
+    resources :attribs do as_routes end
     resources :barclamps do as_routes end
     resources :groups do as_routes end
     resources :roles do as_routes end

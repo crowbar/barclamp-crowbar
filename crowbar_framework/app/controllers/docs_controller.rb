@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -24,7 +24,7 @@ class DocsController < ApplicationController
     @root = Doc.find_by_name(@id || 'root')
     if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
       Doc.delete_all
-      @root = Doc.gen_doc_index 'doc'
+      @root = Doc.gen_doc_index File.join '..', 'doc'
       @root = Doc.find_by_name(@id) if @id
     end
     respond_to do |format|

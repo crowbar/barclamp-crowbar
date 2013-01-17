@@ -1,4 +1,4 @@
-# Copyright 2011, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ class Doc < ActiveRecord::Base
   end
   
   # helper builds the path for routines later
-  def self.page_path(path, name, language='default')
-    File.join path, language, name.gsub("+", "/")+'.md'
+  def self.page_path(path, name)
+    File.join path, name.gsub("+", "/")+'.md'
   end
 
   # find the parent of a doc using the membership associations
@@ -86,12 +86,12 @@ class Doc < ActiveRecord::Base
   end
   
   # scan the directories and find files that were not in the YML catalogs
-  def self.discover_docs(path, barclamp, defaults, language='default', tree=nil)
-    scan = (tree ? tree : File.join(path, language, barclamp.name))
+  def self.discover_docs(path, barclamp, defaults, tree=nil)
+    scan = (tree ? tree : File.join(path, barclamp.name))
     Dir.entries(scan).each do |doc_file|
       if doc_file =~ /(.*).md$/
         doc = doc_file[/(.*).md$/,1]
-        name = "#{scan}/#{doc}"[/#{path}\/#{language}\/(.*)/,1]
+        name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
         # don't add if we already have it
         unless Doc.find_by_name name
           # you must have a parent to add a doc
@@ -104,7 +104,7 @@ class Doc < ActiveRecord::Base
       else
         # recurse into the child directories
         tree = File.join(scan, doc_file)
-        discover_docs(path, barclamp, defaults, language, tree) if File.directory?(tree)
+        discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
       end
     end
   end

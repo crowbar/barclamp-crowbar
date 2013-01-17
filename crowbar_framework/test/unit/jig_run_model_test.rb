@@ -15,53 +15,53 @@
 require 'test_helper'
 require 'json'
 
-class CmdbRunModelTest < ActiveSupport::TestCase
+class JigRunModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
-    CmdbRun.create! :name=>"nodups", :type=>"CmdbRunTest", :description=>"unit tests"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { CmdbRun.create!(:name => "nodups") }
+    JigRun.create! :name=>"nodups", :type=>"JigRunTest", :description=>"unit tests"
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { JigRun.create!(:name => "nodups") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
     assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "nodups" }
   end
 
   test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"1123", :type=>"CmdbRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"1foo", :type=>"CmdbRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"Ille!gal", :type=>"CmdbRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>" nospaces", :type=>"CmdbRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"no spaces", :type=>"CmdbRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { CmdbRun.create!(:name=>"nospacesatall ", :type=>"CmdbRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"1123", :type=>"JigRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"1foo", :type=>"JigRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"Ille!gal", :type=>"JigRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>" nospaces", :type=>"JigRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"no spaces", :type=>"JigRunTest")}
+    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"nospacesatall ", :type=>"JigRunTest")}
   end
 
   test "Must have override object-missing" do
-     CmdbRun.create!(:name=>"foo", :type=>"CmdbRunFoo")
-     e = assert_raise(ActiveRecord::SubclassNotFound) { CmdbRun.find_by_name "foo" }
+     JigRun.create!(:name=>"foo", :type=>"JigRunFoo")
+     e = assert_raise(ActiveRecord::SubclassNotFound) { JigRun.find_by_name "foo" }
      assert_equal "The single-table inheritance mechanism failed...", e.message.truncate(48)
   end
 
   test "Must have override object - present" do
-     c = CmdbRun.create! :name=>"subclass", :type=>"CmdbRunTest"
+     c = JigRun.create! :name=>"subclass", :type=>"JigRunTest"
      assert_equal false, c.nil?
      assert_equal c.name, "subclass"
-     assert_equal c.type, "CmdbRunTest"
+     assert_equal c.type, "JigRunTest"
   end
   
   test "Returns correct objective type" do
-    c = CmdbRun.create! :name=>"type_test", :type=>"CmdbRunTest"
-    t = CmdbRun.find_by_name "type_test"
+    c = JigRun.create! :name=>"type_test", :type=>"JigRunTest"
+    t = JigRun.find_by_name "type_test"
     assert_equal c.type, t.type
-    assert_equal t.type, "CmdbRunTest"
-    assert_kind_of CmdbRun, c
+    assert_equal t.type, "JigRunTest"
+    assert_kind_of JigRun, c
   end
   
   test "as_json routines returns correct items" do
     name = "json_test"
-    type = "CmdbRunTest"
+    type = "JigRunTest"
     status = "Done"
     result = "255"
-    cmdb_event_id = 4
+    jig_event_id = 4
     description = "This is a unit test"
-    c = CmdbRun.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :cmdb_event_id => cmdb_event_id
+    c = JigRun.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :jig_event_id => jig_event_id
     j = JSON.parse(c.to_json)
     assert_equal j['type'], type
     assert_equal j['name'], name
@@ -69,7 +69,7 @@ class CmdbRunModelTest < ActiveSupport::TestCase
     assert_equal j['order'], 100
     assert_equal j['result'], result
     assert_equal j['status'], status
-    assert_equal j['cmdb_event_id'], cmdb_event_id
+    assert_equal j['jig_event_id'], jig_event_id
     assert_not_nil j['created_at']
     assert_not_nil j['updated_at']
     assert_equal j.length, 10

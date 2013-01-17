@@ -29,7 +29,7 @@ Crowbar::Application.routes.draw do
     resources :interfaces do as_routes end
     resources :networks do as_routes end
     resources :ip_addresses do as_routes end
-    resources :cmdb_attributes do as_routes end
+    resources :jig_attributes do as_routes end
     resources :os do as_routes end
     resources :os_packages do as_routes end
     resources :proposal_queues do as_routes end

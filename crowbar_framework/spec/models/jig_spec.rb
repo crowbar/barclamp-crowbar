@@ -71,7 +71,7 @@ describe "jig proposal manipulation" do
     it "should find the right jig type/instance" do
       jig = Jig.find_jig_for_config(nil)      
       assert jig,"have a jig instace of type #{jig.type}"
-      jig.prepare_chef_api if Rails.env.production?
+      jig.prepare_chef_api 
     end
 
     it "can create a test proposal with 2 nodes" do

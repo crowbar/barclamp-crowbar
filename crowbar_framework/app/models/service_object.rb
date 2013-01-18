@@ -164,8 +164,7 @@ class ServiceObject
   # The @barclamp.commit_proposal routine must be called to create the base objects.
   #
   def commit_proposal(proposal)
-    ops = @barclamp.operations
-    ops.commit_proposal(proposal) if ops.respond_to?(:commit_proposal)
+    ## nothing by default, let subclasses override.
   end
 
 

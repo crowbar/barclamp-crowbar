@@ -533,6 +533,9 @@ class ServiceObject
   def get_object(type, object_id)
     object = nil
     object_id = object_id.to_s
+
+    raise ActiveRecord::RecordNotFound, "object_id was not specified" if object_id.empty?
+
     if object_id.match('^[0-9]+')
       object = type.find(object_id)
     else

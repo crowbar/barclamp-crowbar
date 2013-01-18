@@ -156,9 +156,9 @@ def post_json(path, data)
   post_json2("crowbar/#{@barclamp}/1.0#{path}", data)
 end
 
-def post_json2(path, data=nil)
+def post_json2(path, data=nil, verb =Net::HTTP::Post )
   uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
-  res = authenticate(Net::HTTP::Post,uri,data)
+  res = authenticate(verb,uri,data)
 
   puts "DEBUG: (post) hostname: #{uri.host}:#{uri.port}" if @debug
   puts "DEBUG: (post) request: #{uri.path}" if @debug
@@ -351,7 +351,7 @@ end
 def proposal_dequeue(name)
   usage -1 if name.nil? or name == ""
 
-  struct = post_delete("/proposals/dequeue/#{name}")
+  struct = post_json2("/proposals/dequeue/#{name}",nil,verb =Net::HTTP::Delete)
 
   if struct[1] == 200
     [ "Dequeued #{name}", 0 ]

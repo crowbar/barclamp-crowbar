@@ -87,14 +87,14 @@ find_link(Match, {Code, Info}) ->
   bdd_utils:log(warn, "eurl:find_link Attempting to find match ~p but input was ~p with ~p", [Match, Code, Info]),
   {error, Code, Info};
 find_link(Match, Input) ->
-	bdd_utils:log(trace, "eurl:find_link starting to look for ~p", [Match]),
+	bdd_utils:log(debug, "eurl:find_link starting to look for ~p", [Match]),
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
 	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
 	  Error   -> bdd_utils:log(error, "eurl:find_link Could not parse regex '~p' given '~p'", [Error, RegEx]), 
 	             throw(eurl_find_link_RegEx_broken)
 	end,
-	bdd_utils:log(dump, "eurl:find_link looking for ~p in ~p", [Match, Input]),
+	bdd_utils:log(trace, "eurl:find_link looking for ~p in ~p", [Match, Input]),
 	AnchorTag = try re:run(Input, RE) of
 	  {match, [{AStart, ALength} | _]} -> 
 	               string:substr(Input, AStart+1,AStart+ALength);

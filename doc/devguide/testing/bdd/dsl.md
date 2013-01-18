@@ -4,12 +4,13 @@ The BDD DSL is designed to be very natural language like.  There are 4 primary c
 
 1. General Purpose Steps
   1. **Given** ... some background thing has happened
-  1. **When** ... take some action
-  1. **Then** ... get some result
-1. Special Purpose Steps;
+  1. **When** ... take some action - generally return a data set
+  1. **Then** ... get some result - always return true/false
+1. Special Purpose Steps (optional)
   1. **Skip** ... will disable the test (please provide a reason after the skip)
-  1. **Unless** environment ... will only run the test in the environments included after the Unless
-  1. **Finally** ... cleanup actions (optional)
+  1. **While** ... environment ... will only run the test in the environments included after the While (opposite of Unless)
+  1. **Unless** environment ... will skip the test in the environments included after the Unless (opposite of While)
+  1. **Finally** ... cleanup actions
 
 Feature files may also include **setup** and **tear down** steps that are essential for creating input data for tests.  In some cases, tests require information to be in place _before_ the Given step.
 
@@ -25,6 +26,7 @@ A scenario must include a when statement but the given statement is optional.  G
 
 The following sentences can be used for testing HTML web pages where you can change the information in "quotes".
 
+* While I am interactive
 * Given I am on the home page
 * Given I am on the "dashboard" page
 * Given there is a node "foo.example.com"

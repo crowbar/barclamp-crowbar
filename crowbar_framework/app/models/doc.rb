@@ -79,8 +79,9 @@ class Doc < ActiveRecord::Base
     # look for parent
     p = Doc.find_by_name parts[2..1000].join('/')
     # if not found, try the barclamp parent
-    if p.nil? and !barclamp.name.eql? 'framework'
-      parents = barclamp.parents
+    if p.nil?
+      parents = []
+      parents = barclamp.parents if !barclamp.name.eql? 'framework'
       parents << Barclamp.new(:name=>'framework')   # we need to also search the framework
       parents.each do |parent|
         parts[2] = parent.name
@@ -88,37 +89,42 @@ class Doc < ActiveRecord::Base
         break if p
       end
     end
+    # if we are bootstrapping, then we need to make this swap
+    p = Doc.find_by_name 'root' if p.nil? and barclamp.name.eql? 'framework' and parts.length == 3
     return p
   end
   
   # scan the directories and find files that were not in the YML catalogs
   def self.discover_docs(path, barclamp, defaults, tree=nil)
     scan = (tree ? tree : File.join(path, barclamp.name))
-Rails.logger.debug "$$$@@ scanning discover_docs #{barclamp.name} #{scan} #{tree}"
+    # first we need to collect files and directories
+    files = []
+    dirs = []
     Dir.entries(scan).each do |doc_file|
-Rails.logger.debug "$$$~~ scanning discover_docs #{barclamp.name} #{scan} #{doc_file} '#{barclamp.name}' #{tree}"
-      if doc_file =~ /(.*).md$/
-        doc = doc_file[/(.*).md$/,1]
-        name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
-        # don't add if we already have it
-Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{name}"
-        d = Doc.find_by_name name
-Rails.logger.debug "$$$ discover_docs #{d.inspect}"
-        if d.nil?
-          # you must have a parent to add a doc
-          parent = find_parent barclamp, scan
-Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{name} + #{parent.name}" if parent
-          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
-        else
-          # do nothing because we have an entry
-        end
-      elsif ['.', '..'].include? doc_file
-        # nothing, it's the currrent dir
+      # we need all the markdown files
+      files << doc_file if doc_file =~ /(.*).md$/
+      # and all the subdirectories
+      dirs << doc_file if !['.', '..'].include?(doc_file) and File.directory?(File.join(scan, doc_file))
+    end
+    # process all the files in the directory (needs to be before the subdirectories)
+    files.each do |doc_file|
+      doc = doc_file[/(.*).md$/,1]
+      name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
+      # don't add if we already have it
+      d = Doc.find_by_name name
+      if d.nil?
+        # you must have a parent to add a doc
+        parent = find_parent barclamp, scan
+        doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
       else
-        # recurse into the child directories
-        tree = File.join(scan, doc_file)
-        discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
+        # do nothing because we have an entry
       end
+    end
+    # recurse all the directories
+    dirs.each do |doc_file|
+      # recurse into the child directories
+      tree = File.join(scan, doc_file)
+      discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
     end
   end
   
@@ -146,7 +152,8 @@ Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{
         file = page_path path, name
         doc_to_db name, file, props, parent
       else  #reference only from a different barclamp
-        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp)) unless name.start_with? '#'
+        Rails.logger.warn "Document '#{barclamp}' catalog '#{name}' assumes a reference '#{parent}' that is not there."
+        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp))
       end
     end
     # recurse children
@@ -176,6 +183,7 @@ Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{
     t.copyright = props["copyright"]
     t.date = props["date"]
     t.save!
+    Rails.logger.debug "added doc #{name} to system based on file #{file}"
   end
   
   

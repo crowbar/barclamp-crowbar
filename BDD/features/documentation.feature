@@ -14,7 +14,8 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Topic
-    Given I am on the "docs" page
+    Given parameter "rebuild" is "false"
+    Given I am on the "docs" page with parameter "rebuild"
     When I click on the "Crowbar User Guide" link
     Then I should see "Crowbar User Guide"
       And I should see heading "Navigation"
@@ -22,7 +23,8 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Sub Topic
-    Given I am on the "docs/topic/framework/userguide" page
+    Given parameter "rebuild" is "false"
+    Given I am on the "docs/topic/framework/userguide" page with parameter "rebuild"
     When I click on the "Utilities Menu" link
     Then I should see "Utilities Menu"
       And I should see heading "Navigation"
@@ -31,13 +33,15 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Sub Topic return to Main
-    Given I am on the "docs/topic/framework/userguide" page
+    Given parameter "rebuild" is "false"
+    Given I am on the "docs/topic/framework/userguide" page with parameter "rebuild"
     When I click on the "System Documentation \\\(Master Index\\\)" link
     Then I should see "System Documentation"
       And there should be no translation errors
 
   Scenario: Doc Export 
-    Given I am on the "docs/topic/framework/userguide" page
+    Given parameter "rebuild" is "false"
+    Given I am on the "docs/topic/framework/userguide" page with parameter "rebuild"
     When I click on the "Export" link
     Then I should see "Crowbar User Guide"
       And I should see a link to "&lt; Go Back"

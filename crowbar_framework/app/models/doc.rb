@@ -9,7 +9,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
+# See the License for the specific language governnig permissions and
 # limitations under the License.
 #
 # Author: RobHirschfeld
@@ -28,9 +28,13 @@ class Doc < ActiveRecord::Base
   def self.gen_doc_index(path)    
     root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('root', :scope=>'docs', :default=>"System Documentation (Master Index)"), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
     root = Doc.find_or_create_by_name root_default
-    Barclamp.all.sort.each do |barclamp|
+    barclamps = []
+    barclamps << Barclamp.new(:name=>'framework')
+    barclamps += Barclamp.all.sort
+    barclamps.each do |barclamp|
+      default = root_default
       bc = barclamp.name
-      bc_index = File.join path, "#{bc}.yml"
+      bc_index = File.join path, bc, "#{bc}.yml"
       # collect all the index files
       if File.exist? bc_index
         begin 
@@ -39,12 +43,12 @@ class Doc < ActiveRecord::Base
           default = root_default.merge default 
           # explore the YML file for meta data
           topic.each { |t, p| create_doc(path, bc, 'root', t, p, default) }
-          # pickup files just based on directoy search
-          discover_docs(path, barclamp, default)
         rescue 
-          flash[:notice] = I18n.t('docs.parseerror', :path=>bc_index)
+          Rails.logger.warn I18n.t('docs.parseerror', :path=>bc_index)
         end
       end
+      # pickup files just based on directoy search
+      discover_docs(path, barclamp, default)
     end
     root
   end 
@@ -54,7 +58,7 @@ class Doc < ActiveRecord::Base
     topic = Doc.find_by_name name
     if topic.children.size > 0
       topic.children.each do |t|
-        file = page_path 'doc', t.name
+        file = page_path File.join('..','doc'), t.name
         if File.exist? file
           text += (html ? %x[markdown #{file}] : IO.read(file))
           text += topic_expand(t.name, html)
@@ -75,8 +79,10 @@ class Doc < ActiveRecord::Base
     # look for parent
     p = Doc.find_by_name parts[2..1000].join('/')
     # if not found, try the barclamp parent
-    if p.nil?
-      barclamp.parents.each do |parent|
+    if p.nil? and !barclamp.name.eql? 'framework'
+      parents = barclamp.parents
+      parents << Barclamp.new(:name=>'framework')   # we need to also search the framework
+      parents.each do |parent|
         parts[2] = parent.name
         p = Doc.find_by_name parts[2..1000].join('/')
         break if p
@@ -88,16 +94,23 @@ class Doc < ActiveRecord::Base
   # scan the directories and find files that were not in the YML catalogs
   def self.discover_docs(path, barclamp, defaults, tree=nil)
     scan = (tree ? tree : File.join(path, barclamp.name))
+Rails.logger.debug "$$$@@ scanning discover_docs #{barclamp.name} #{scan} #{tree}"
     Dir.entries(scan).each do |doc_file|
+Rails.logger.debug "$$$~~ scanning discover_docs #{barclamp.name} #{scan} #{doc_file} '#{barclamp.name}' #{tree}"
       if doc_file =~ /(.*).md$/
         doc = doc_file[/(.*).md$/,1]
         name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
         # don't add if we already have it
-        unless Doc.find_by_name name
+Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{name}"
+        d = Doc.find_by_name name
+Rails.logger.debug "$$$ discover_docs #{d.inspect}"
+        if d.nil?
           # you must have a parent to add a doc
           parent = find_parent barclamp, scan
-          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent 
+Rails.logger.debug "$$$ discover_docs #{barclamp.name} #{scan} #{doc_file} -> #{name} + #{parent.name}" if parent
+          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
         else
+          # do nothing because we have an entry
         end
       elsif ['.', '..'].include? doc_file
         # nothing, it's the currrent dir

@@ -62,17 +62,22 @@ step(Config, Given, {step_when, _N, ["I fill in", Fields, "and submit using the"
   eurl:form_submit(Config, NewForm);
   
 step(Config, Result, {step_then, _N, ["I should not see", Text]}) -> 
-	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page", [Result, Text]),
 	eurl:search(Text,Result, false);
 
 step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
-	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
-	
+
+step(_Config, Result, {step_then, _N, ["I should see heading", Text]}) -> 
+	bdd_utils:log(debug, bdd_webrat, step, "see heading ~p", [Text]),
+	Out = [eurl:find_heading(R,Text) || R <- Result],
+	bdd_utils:assert(Out);
+
 step(Config, Result, {step_then, _N, ["I should see", Text]}) -> 
-	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page", [Result, Text]),
 	eurl:search(Text,Result);
 
 step(Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 

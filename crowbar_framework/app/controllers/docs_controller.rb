@@ -22,7 +22,7 @@ class DocsController < ApplicationController
   def index
     @id = params[:id].gsub("%2B",'+') rescue nil
     @root = Doc.find_by_name(@id || 'root')
-    if @root.nil? or Rails.env == 'development' or params.has_key? :rebuild
+    if @root.nil? or Rails.env.development? or params.has_key? :rebuild
       Doc.delete_all
       @root = Doc.gen_doc_index File.join '..', 'doc'
       @root = Doc.find_by_name(@id) if @id
@@ -38,7 +38,7 @@ class DocsController < ApplicationController
     begin 
       @topic = Doc.find_by_name params[:id]
       @topic = Doc.find_by_name params[:id].gsub("/","+") unless @topic
-      @file = Doc.page_path 'doc', @topic.name
+      @file = Doc.page_path File.join('..','doc'), @topic.name
       html = !params.has_key?(:source)
       # navigation items
       if File.exist? @file

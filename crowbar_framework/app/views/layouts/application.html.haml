@@ -26,7 +26,8 @@
             = link_to t('user.sign_out'), destroy_user_session_path, :method=>'delete'
             )
           %nav
-            = render_navigation :expand_all => true, :skip_if_empty => true
+            - unless Rails.env.development? and params[:nav].eql? 'false'
+              = render_navigation :expand_all => true, :skip_if_empty => true
         - else
           %nav
             = link_to t('user.sign_in'),  new_user_session_path

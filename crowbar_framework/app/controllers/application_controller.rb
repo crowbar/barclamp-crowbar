@@ -76,7 +76,7 @@ class ApplicationController < ActionController::Base
   end
   
   def is_dev?
-    Rails.env == "development"
+    Rails.env.development?
   end
   
   add_help(:help)

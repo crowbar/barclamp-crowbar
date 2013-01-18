@@ -50,11 +50,11 @@ json(Name, Description, Type, Order) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  crowbar_rest:inspector(Config, jig).  % shared inspector works here, but may not always
+  bdd_restrat:inspector(Config, jig).  % shared inspector works here, but may not always
 
 step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", Type]}) -> 
   JSON = json(Jig, g(description), Type, 200),
-  crowbar_rest:create(Config, g(path), JSON);
+  bdd_restrat:create(Config, g(path), JSON);
 
 step(Config, _Global, {step_given, _N, ["there is a jig",Jig]}) -> 
   step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]});
@@ -72,10 +72,10 @@ step(Config, _Given, {step_when, _N, ["REST gets the jig",Name]}) ->
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
 
 step(Config, _Given, {step_when, _N, ["REST deletes the jig",Jig]}) -> 
-  crowbar_rest:destroy(Config, g(path), Jig);
+  bdd_restrat:destroy(Config, g(path), Jig);
 
 step(Config, _Result, {step_then, _N, ["there is a jig",Jig]}) -> 
-  ID = crowbar_rest:get_id(Config, g(path), Jig),
+  ID = bdd_restrat:get_id(Config, g(path), Jig),
   bdd_utils:log(Config, debug, "jig:step IS a jig get id returned ~p for ~p.",[ID, Jig]),
   bdd_utils:is_a(dbid, ID);
 

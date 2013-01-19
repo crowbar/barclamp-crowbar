@@ -1,0 +1,23 @@
+%h1= t '.title'
+
+%ol
+  - @barclamps.sort.each do |bc|
+    %li
+      %h3= "#{bc.name} (#{bc.description})"
+      %ul{:id=>bc.id}
+        %li
+          = t ".roles"
+          %ul{:id=>"#{bc.id}_roles"}
+            - bc.roles.each do |r|
+              %li= r.name
+        %li
+          = t ".proposals"
+          %ul{:id=>"#{bc.id}_props"}
+            - bc.proposals.each do |prop|
+              %li= prop.name
+        %li
+          = t ".attribs"
+          %ul{:id=>"#{bc.id}_attribs"}
+            - bc.attribs.each do |a|
+              %li= a.name
+    

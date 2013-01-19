@@ -146,7 +146,7 @@ trace_setup(Config, Name, nil) ->
 
 trace_setup(Config, Name, N) ->
   SafeName = clean_line(Name),
-  Prefix = config(trace_location,"../tmp/trace_"),
+  Prefix = config(trace_location,"../crowbar_framework/tmp/trace_"),
   string:join([Prefix, config(Config,feature,"unknown"), "-", string:join(string:tokens(SafeName, " "), "_"), "-", integer_to_list(N), ".txt"], "").
   
 trace(Config, Name, N, Steps, Given, When) ->

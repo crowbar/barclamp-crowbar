@@ -15,7 +15,7 @@
 -module(eurl).
 -export([post/3, put/3, delete/2, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/1, path/2]).
 -export([get/2, get/3, get_page/3, get_ajax/2, peek/2, search/2, search/3]).
--export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1]).
+-export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1, find_heading/2]).
 -export([form_submit/2, form_fields_merge/2]).
 -export([encode/1]).
 
@@ -87,14 +87,14 @@ find_link(Match, {Code, Info}) ->
   bdd_utils:log(warn, "eurl:find_link Attempting to find match ~p but input was ~p with ~p", [Match, Code, Info]),
   {error, Code, Info};
 find_link(Match, Input) ->
-	bdd_utils:log(trace, "eurl:find_link starting to look for ~p", [Match]),
+	bdd_utils:log(debug, "eurl:find_link starting to look for ~p", [Match]),
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
 	RE = case re:compile(RegEx, [multiline, dotall, {newline , anycrlf}]) of
 	  {ok, R} -> R;
 	  Error   -> bdd_utils:log(error, "eurl:find_link Could not parse regex '~p' given '~p'", [Error, RegEx]), 
 	             throw(eurl_find_link_RegEx_broken)
 	end,
-	bdd_utils:log(dump, "eurl:find_link looking for ~p in ~p", [Match, Input]),
+	bdd_utils:log(trace, "eurl:find_link looking for ~p in ~p", [Match, Input]),
 	AnchorTag = try re:run(Input, RE) of
 	  {match, [{AStart, ALength} | _]} -> 
 	               string:substr(Input, AStart+1,AStart+ALength);
@@ -125,6 +125,13 @@ find_link_part2(AnchorTag, HrefREX, Match)     ->
 	  E2 ->      bdd_utils:log(error, "eurl:find_link Href error (~p) Could not parse regex ~p for ~p inside of ~p",[E2, HrefREX, Match, AnchorTag]), 
 	             {error, "ERROR: No URL Found and throws error", AnchorTag}
 	end.
+
+find_heading(Input, Text) ->
+  RegEx = "<h[1-9]>"++Text++"</h[1-9]>",
+  case re:run(Input, RegEx) of
+    nomatch    -> bdd_utils:log(debug, eurl, find_heading, "Did not find heading ~p using RegEx ~p", [Text, RegEx]), false;
+    {match, _} -> true
+  end.
 
 find_div([], _)       -> not_found;
 find_div(Input, Id)   ->

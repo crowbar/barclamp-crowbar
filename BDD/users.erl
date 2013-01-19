@@ -107,18 +107,18 @@ step(_Config, _Given, {step_when, _N, ["REST requests the list of users"]}) ->
 
 step(_Config, _Given, {step_when, _N, ["REST adds the user",  Username]}) -> 
   User = json(Username,"blah@test.com", g(password), g(password_confirmation), g(remember_me), g(is_admin)),
-  bdd_utils:log(_Config, info, "REST adds the user, adding user: ~p",[User]),
+  bdd_utils:log(_Config, debug, "REST adds the user, adding user: ~p",[User]),
   bdd_restrat:create(_Config, g(path), username, User),
   _Config;
 
 step(_Config, _Given, {step_when, _N, ["REST elevates user", Username, "to administrator"]}) -> 
-   bdd_utils:log(_Config, puts, "Elevating user: ~p, to administrator", [Username]),
+   bdd_utils:log(_Config, debug, "Elevating user: ~p, to administrator", [Username]),
    R = json:parse(eurl:put_post(_Config,g(path)++"/"++Username++"/admin", [], post)),
    bdd_utils:log(_Config, trace, "Make user admin returned: ~p", [R]),
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST removes admin privilege for user", Username]}) -> 
-   bdd_utils:log(_Config, puts, "Removing admin privilege for user: ~p", [Username]),
+   bdd_utils:log(_Config, debug, "Removing admin privilege for user: ~p", [Username]),
    R = eurl:delete(_Config, g(path)++"/"++Username++"/admin",[]),
    bdd_utils:log(_Config, trace, "Removed user admin returned: ~p", [R]),
    R;
@@ -138,7 +138,7 @@ step(_Config, _Given, {step_when, _N, ["REST modifies user", Username, "setting 
    R;
 
 step(_Config, _Given, {step_when, _N, ["REST locks user", Username]}) -> 
-   bdd_utils:log(_Config, puts, "Locking user: ~p", [Username]),
+   bdd_utils:log(_Config, debug, "Locking user: ~p", [Username]),
    R = json:parse(eurl:put_post(_Config, g(path)++"/"++Username++"/lock", [], post)),
    bdd_utils:log(_Config, trace, "Lock user returned: ~p", [R]),
    R;

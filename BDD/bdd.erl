@@ -284,17 +284,17 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);
 		exit: {noproc, {gen_server, call, Details}} -> 
-		  log(error, "exit Did not find step: ~p", [Feature]),
+		  log(info,  "exit Did not find step: ~p", [Feature]),
       log(error, "web server not responding.  Details: ~p",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
     error: {badmatch, {error, no_scheme}} ->
-		  log(error, "badmatch in code due to no_scheme.",[]), 
-      log(error, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
+		  log(info,  "badmatch in code due to no_scheme.",[]), 
+      log(debug, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
       log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
 		  error; 
 		X: Y -> 
-		  log(error, "step run found ~p:~p", [X, Y]), 
-      log(error, "Stacktrace: ~p", [erlang:get_stacktrace()]),
+		  log(info,  "step run found ~p:~p", [X, Y]), 
+      log(debug, "Stacktrace: ~p", [erlang:get_stacktrace()]),
       log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),
 		  error 
 	end;
@@ -316,7 +316,6 @@ step_run(_Config, _Input, Step, []) ->
 % most steps return step tuple
 % escape clauses ("unless") returns the escape tuple
 scenario_steps(Config, Steps, ScenarioID) ->
-	%io:format("\t\tDEBUG: processing steps ~p~n", [Steps]),
 	scenario_steps(Config, Steps, 1, [], [], [], [], unknown, ScenarioID).
 scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, ScenarioID) ->
 	CleanStep = bdd_utils:clean_line(H),
@@ -329,14 +328,23 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	case Step of
 	  {step_skip, S}    ->  log(info,"Skipping ~p ~s", [ScenarioID, S]), 
                     	    skip;
+	  {step_while, S}    -> While = [list_to_atom(A) || A <-S],
+                          Env = bdd_utils:config(Config, environment, undefined),
+                          % while list is not included in env list then skip  (opposite of while)
+                    	    case lists:member(Env, While) of 
+                    	      true     -> log(debug,"bdd:test_scenario: while running ~p [~p in ~p]", [ScenarioID, Env, While]),
+                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_while, ScenarioID);
+                    	      _        -> log(debug,"While skipping ~p [~p not in ~p]", [ScenarioID, Env, While]), 
+                    	                  skip
+                    	    end;
 		{step_unless, S}  ->  Unless = [list_to_atom(A) || A <-S],
                           Env = bdd_utils:config(Config, environment, undefined),
-                          % if unless list is included in env list then skip
+                          % unless list is included in env list then skip (opposite of unless)
                     	    case lists:member(Env, Unless) of 
-                    	      true     -> log(debug,"bdd:test_scenario: running ~p [~p in ~p]", [ScenarioID, Env, Unless]),
-                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID);
-                    	      _        -> log(debug,"Skipping ~p [~p not in ~p]", [ScenarioID, Env, Unless]), 
-                    	                  skip
+                    	      true        -> log(debug,"Unless skipping ~p [~p not in ~p]", [ScenarioID, Env, Unless]), 
+                    	                  skip;
+                    	      _           -> log(debug,"bdd:test_scenario: running unless ~p [~p in ~p]", [ScenarioID, Env, Unless]),
+                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID)
                     	    end;
 		{step_given, S}   -> scenario_steps(Config, T, N+1, [{step_given, {ScenarioID, N}, S} | Given], When, Then, Finally, step_given, ScenarioID);
 		{step_when, S}    -> scenario_steps(Config, T, N+1, Given, [{step_when, {ScenarioID, N}, S} | When], Then, Finally, step_when, ScenarioID);
@@ -382,7 +390,8 @@ is_clean(Config, StartState) ->
   end.
 
 % figure out what type of step we are doing (GIVEN, WHEN, THEN, etc), return value
-step_type([$S, $k, $i, $p, 32 | Skip])            ->  { step_skip, Skip};
+step_type([$S, $k, $i, $p, 32 | Skip])            ->  { step_while, Skip};    % temporary redirect until I fix the logic
+step_type([$W, $h, $i, $l, $e, 32 | While])       ->  { step_while, While};
 step_type([$U, $n, $l, $e, $s, $s, 32 | Unless])  ->  { step_unless, Unless};
 step_type([$G, $i, $v, $e, $n, 32 | Given])       ->	{ step_given, Given };
 step_type([$W, $h, $e, $n, 32 | When] )           ->	{ step_when, When };

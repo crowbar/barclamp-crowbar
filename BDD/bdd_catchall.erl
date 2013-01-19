@@ -35,11 +35,11 @@ step(_Config, _Result, {_, _N, ["after", Time, "milliseconds"]}) ->
   timer:sleep(string:to_integer(T));
 
 step(Config, _Global, {step_setup, _N, _}) -> 
-  io:format("\tNo Feature Setup Step.~n"),
+  bdd_utils:log(info, bdd_catchall, step, "No Feature Setup Step.", []),
   Config;
 
 step(Config, _Global, {step_teardown, _N, _}) -> 
-  io:format("\tNo Feature Tear Down Step.~n"),
+  bdd_utils:log(info, bdd_catchall, step, "No Feature Tear Down Step.", []),
   Config;
 
 step(_Config, _Result, {step_given, _N, ["I do nothing to", Text]}) ->  Text;

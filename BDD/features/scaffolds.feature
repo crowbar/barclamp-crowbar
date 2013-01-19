@@ -147,17 +147,6 @@ Feature: Scaffolds
       And I should see "Create New"
       And there should be no translation errors  
       
-  Scenario: IPs
-    When I go to the "scaffolds/ip_addresses" page
-    Then I should see "IpAddresses"
-      And I should see "Cidr"
-      And I should see "Interface"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-      
   Scenario: Os
     When I go to the "scaffolds/os" page
     Then I should see "Os"

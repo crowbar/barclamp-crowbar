@@ -44,6 +44,8 @@ en:
     all_bc_description: All Available Barclamps
     crowbar_bc: Crowbar
     crowbar_bc_description: Core Barclamps required for Crowbar
+    barclamp_graph: Graph
+    barclamp_graph_description: Show Barclamps and dependencies
     
     help: Help
     help_description: Help
@@ -337,6 +339,11 @@ en:
         state: Status
         proposal: Proposal
         description: Description
+    graph:
+      title: Barclamp Graph
+      roles: Roles
+      proposals: Proposals
+      attribs: Attributes
 
     modules:
       title: All Barclamps

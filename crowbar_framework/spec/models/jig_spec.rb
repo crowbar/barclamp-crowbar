@@ -69,8 +69,9 @@ describe "jig proposal manipulation" do
   describe "start a run for a proposal" do
 
     it "should find the right jig type/instance" do
-      jig = Jig.find_jig_for_config(nil)
-      assert jig,"have a jig instace"
+      jig = Jig.find_jig_for_config(nil)      
+      assert jig,"have a jig instace of type #{jig.type}"
+      jig.prepare_chef_api 
     end
 
     it "can create a test proposal with 2 nodes" do

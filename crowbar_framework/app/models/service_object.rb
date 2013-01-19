@@ -159,6 +159,16 @@ class ServiceObject
   end
 
   #
+  # This can be overridden to provide a better creation proposal
+  #
+  # The @barclamp.commit_proposal routine must be called to create the base objects.
+  #
+  def commit_proposal(proposal)
+    ## nothing by default, let subclasses override.
+  end
+
+
+  #
   # Function to handle the barclamp controller API request to create a proposal
   # Input:
   #   params - params object from the controller (JSON config blob as a hash)
@@ -242,6 +252,7 @@ class ServiceObject
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
       begin
+        commit_proposal(prop)
         apply_role(prop.current_config, in_queue)
       rescue Net::HTTPServerException => e
         [e.response.code, e.message]

@@ -18,11 +18,19 @@ class RoleModelTest < ActiveSupport::TestCase
   
   test "Naming Conventions" do
     assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"1123") }
-#    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"1foo") }
-#    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"Ille!gal") }
-#    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>" nospaces") }
-#    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"no spaces") }
-#    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"nospacesatall ") }
+    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"1foo") }
+    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"Ille!gal") }
+    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>" nospaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"no spaces") }
+    assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"nospacesatall ") }
+  end
+      
+  test "order is priority" do
+    nr = Role.new
+    nr.order = 666
+    assert_equal nr.order, nr.priority
+    nr.priority = 999
+    assert_equal nr.order, nr.priority
   end
   
 #  test "default category" do

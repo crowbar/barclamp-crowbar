@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,18 +35,21 @@
 
 class BarclampConfiguration < ActiveRecord::Base
   
-  attr_accessible :name, :last_applied_rev, :description
+  attr_accessible :name, :description, :order
+  attr_accessible :barclamp_id, :active_configuration_id, :proposed_configuration_id
 
+  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
-  belongs_to :barclamp
-  has_many  :barclamp_instances, :class_name => "BarclampInstance", :inverse_of => :conifguration
+  belongs_to  :barclamp
+  has_many    :barclamp_instances,  :class_name => "BarclampInstance", :inverse_of => :configuration, :dependent => :destroy
+  has_many    :instances,           :class_name => "BarclampInstance", :inverse_of => :configuration
 
-  belongs_to :active_config, :class_name => "BarclampInstance", :foreign_key => "active_config_id"
-  belongs_to :current_config, :class_name => "BarclampInstance", :foreign_key => "current_config_id"
+  belongs_to :active_config,        :class_name => "BarclampInstance", :foreign_key => "active_config_id"
+  belongs_to :proposed_config,      :class_name => "BarclampInstance", :foreign_key => "proposed_config_id"
 
   def active?
-    active_config != nil
+    active_configuration_id != nil
   end
 
   #

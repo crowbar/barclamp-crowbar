@@ -27,12 +27,19 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
-  attr_accessible :config, :reversion, :status, :failed_reason
-  belongs_to      :configuration, :class_name => "BarclampConfiguration", :inverse_of => :barclamp_instances
-  has_many        :node_roles
-  has_many        :nodes, :through => :node_roles
-  has_many        :roles, :through => :node_roles
+  attr_accessible :name, :description, :order, :status, :failed_reason
+  attr_accessible :barclamp_configuration_id
+  
+  belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
+  belongs_to      :configuration,     :class_name => "BarclampConfiguration"
+  has_many        :node_roles,        :dependent => :destroy 
+  has_many        :nodes,             :through => :node_roles
+  has_many        :roles,             :through => :node_roles
 
+  def active?
+    configuration.active_configuration_id == self.id
+  end
+  
   def failed?
     status == STATUS_FAILED
   end

@@ -328,6 +328,20 @@ en:
 
      
   barclamp:
+    status:
+      "0": "Missing"
+      "1": "None"
+      "2": "Queued"
+      "3": "Committing"
+      "4": "Failed"
+      "5": "Succeeded"
+    status_description:
+      "0": "Expected value not found"
+      "1": "Not applied, just created"
+      "2": "Attempt at commit, but is queued"
+      "3": "Attempt at commit is in progress"
+      "4": "Attempted commit failed"
+      "5": "Attempted commit succeeded"
     crowbar:
       edit_attributes:
         attributes: Attributes
@@ -341,10 +355,13 @@ en:
         description: Description
     graph:
       title: Barclamp Graph
+      parents: Parents
       roles: Roles
       proposals: Proposals
       attribs: Attributes
-
+      members: Members
+      configs: Configurations
+      instance: Instance
     modules:
       title: All Barclamps
     index:

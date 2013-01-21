@@ -51,7 +51,7 @@ class Barclamp < ActiveRecord::Base
   has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
 
   # Crowbar 2.0 models
-  has_many :roles,              :order=> "[order], [name] ASC", :foreign_key => "barclamp_id"
+  has_many :roles,              :order=> "[order], [name] ASC", :foreign_key => "barclamp_id", :dependent => :destroy 
   has_many :barclamp_attribs,   :dependent => :destroy 
   has_many :attribs,            :through => :barclamp_attribs
   has_many :barclamp_configurations, :dependent => :destroy

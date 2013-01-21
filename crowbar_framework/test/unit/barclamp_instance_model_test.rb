@@ -17,7 +17,7 @@ require 'test_helper'
 class BarclampInstanceModelTest < ActiveSupport::TestCase
 
   def setup
-    @bc = Barclamp.create! :name=>'bc_config_test'
+    @bc = Barclamp.create! :name=>'bc_instance_test'
   end
   
 end

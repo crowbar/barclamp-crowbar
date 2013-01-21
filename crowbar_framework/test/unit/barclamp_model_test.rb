@@ -18,7 +18,10 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   def setup
     # we need to make sure that we have crowbar role
-    b = Barclamp.find_or_create_by_name :name=>"crowbar"
+    if Barclamp.find_by_name('crowbar').nil?
+      Barclamp.import_1x 'crowbar'
+    end
+    b = Barclamp.find_by_name "crowbar"
     r = Role.find_or_create_by_name :name=>'crowbar'
     b.roles << r unless b.roles.include? r
   end
@@ -197,15 +200,13 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "Get Roles by Order" do
     b = Barclamp.find_or_create_by_name("crowbar")
     assert_not_nil b
-    ro = b.get_roles_by_order
+    ro = b.roles
     assert_not_nil ro
     begin
       assert_equal 1, ro.length
-      assert_equal 1, ro[0].length
-      assert_equal 'crowbar', ro[0][0].name
+      assert_equal 'crowbar', ro[0].name
     rescue
       flunk("Exception inside get roles due to missing roles by order")
-      return false
     end
   end
 
@@ -225,12 +226,12 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   test "roles are ordered correctly" do
     json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
-    bc = Barclamp.new
-    bc.name = "foo"
+    bc = Barclamp.create :name=>"foo"
     Barclamp.import_1x_deployment(bc,json)
-    ordered = bc.get_roles_by_order
-    assert_equal ['foo_mon_master'],       ordered.first.map(&:name)
-    assert_equal ['foo_mon', 'foo_store'], ordered.second.map(&:name)
+    ordered = bc.roles(true)    # (true) forces a reload of the model
+    assert_equal 'foo_mon_master', ordered.first.name
+    assert_equal 'foo_mon', ordered.second.name
+    assert_equal 'foo_store', ordered.third.name
   end
 
 end

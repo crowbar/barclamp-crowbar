@@ -15,11 +15,11 @@
 class CreateRoles < ActiveRecord::Migration
   def change  
     create_table :roles do |t|
+      t.belongs_to  :barclamp
       t.string      :name,        :null=> false
       t.string      :description, :null=> true
       t.string      :states,      :default => 'all'     
       t.integer     :order,       :default => 9999  
-      t.belongs_to  :barclamp
       t.timestamps
     end
     #natural key

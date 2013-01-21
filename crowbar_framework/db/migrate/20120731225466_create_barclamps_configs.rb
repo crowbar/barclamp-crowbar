@@ -15,12 +15,12 @@
 class CreateBarclampsConfigs < ActiveRecord::Migration
   def change
     create_table :barclamp_configurations do |t|
+      t.belongs_to  :barclamp,                    :null=>false
       t.string      :name,                        :null=>false
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>10000
-      t.belongs_to  :barclamp,                    :null=>false
-      t.references  :active_configuration,        :null=>true
-      t.references  :proposed_configuration,      :null=>true
+      t.references  :active_instance,             :null=>true
+      t.references  :proposed_instance,           :null=>true
       t.timestamps      
     end
     #natural key

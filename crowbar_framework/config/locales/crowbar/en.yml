@@ -117,14 +117,14 @@ en:
       recall: Deactivate
       recall_success: Successfully deactivated proposal
     status:
-      hold: User Review
-      ready: Active
-      unready: In Progress
-      pending: Pending
-      building: Building
-      failed: Failed
-      none: No Proposal
-      unknown: Unknown, requesting status...
+      hold: CB1 User Review
+      ready: CB1 Active
+      unready: CB1 In Progress
+      pending: CB1 Pending
+      building: CB1 Building
+      failed: CB1 Failed
+      none: CB1 No Proposal
+      unknown: CB1 Unknown, requesting status...
     failures:
       show_active_failed: Actived instance not found.
       Failed to apply the proposal to: Failed to apply proposal
@@ -334,7 +334,15 @@ en:
       "2": "Queued"
       "3": "Committing"
       "4": "Failed"
-      "5": "Succeeded"
+      "5": "Ready"
+      hold: User Review
+      ready: Active
+      unready: In Progress
+      pending: Pending
+      building: Building
+      failed: Failed
+      none: No Proposal
+      unknown: Unknown, requesting status...
     status_description:
       "0": "Expected value not found"
       "1": "Not applied, just created"

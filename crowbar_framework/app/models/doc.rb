@@ -9,7 +9,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
+# See the License for the specific language governnig permissions and
 # limitations under the License.
 #
 # Author: RobHirschfeld
@@ -28,9 +28,13 @@ class Doc < ActiveRecord::Base
   def self.gen_doc_index(path)    
     root_default = {:name=>'root', :parent_name=>nil, :description=>I18n.t('root', :scope=>'docs', :default=>"System Documentation (Master Index)"), :author=>I18n.t('unknown'), :license=>I18n.t('unknown'), :order=>'000000', :date=>I18n.t('unknown')}
     root = Doc.find_or_create_by_name root_default
-    Barclamp.all.sort.each do |barclamp|
+    barclamps = []
+    barclamps << Barclamp.new(:name=>'framework')
+    barclamps += Barclamp.all.sort
+    barclamps.each do |barclamp|
+      default = root_default
       bc = barclamp.name
-      bc_index = File.join path, "#{bc}.yml"
+      bc_index = File.join path, bc, "#{bc}.yml"
       # collect all the index files
       if File.exist? bc_index
         begin 
@@ -39,12 +43,12 @@ class Doc < ActiveRecord::Base
           default = root_default.merge default 
           # explore the YML file for meta data
           topic.each { |t, p| create_doc(path, bc, 'root', t, p, default) }
-          # pickup files just based on directoy search
-          discover_docs(path, barclamp, default)
         rescue 
-          flash[:notice] = I18n.t('docs.parseerror', :path=>bc_index)
+          Rails.logger.warn I18n.t('docs.parseerror', :path=>bc_index)
         end
       end
+      # pickup files just based on directoy search
+      discover_docs(path, barclamp, default)
     end
     root
   end 
@@ -54,7 +58,7 @@ class Doc < ActiveRecord::Base
     topic = Doc.find_by_name name
     if topic.children.size > 0
       topic.children.each do |t|
-        file = page_path 'doc', t.name
+        file = page_path File.join('..','doc'), t.name
         if File.exist? file
           text += (html ? %x[markdown #{file}] : IO.read(file))
           text += topic_expand(t.name, html)
@@ -76,36 +80,51 @@ class Doc < ActiveRecord::Base
     p = Doc.find_by_name parts[2..1000].join('/')
     # if not found, try the barclamp parent
     if p.nil?
-      barclamp.parents.each do |parent|
+      parents = []
+      parents = barclamp.parents if !barclamp.name.eql? 'framework'
+      parents << Barclamp.new(:name=>'framework')   # we need to also search the framework
+      parents.each do |parent|
         parts[2] = parent.name
         p = Doc.find_by_name parts[2..1000].join('/')
         break if p
       end
     end
+    # if we are bootstrapping, then we need to make this swap
+    p = Doc.find_by_name 'root' if p.nil? and barclamp.name.eql? 'framework' and parts.length == 3
     return p
   end
   
   # scan the directories and find files that were not in the YML catalogs
   def self.discover_docs(path, barclamp, defaults, tree=nil)
     scan = (tree ? tree : File.join(path, barclamp.name))
+    # first we need to collect files and directories
+    files = []
+    dirs = []
     Dir.entries(scan).each do |doc_file|
-      if doc_file =~ /(.*).md$/
-        doc = doc_file[/(.*).md$/,1]
-        name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
-        # don't add if we already have it
-        unless Doc.find_by_name name
-          # you must have a parent to add a doc
-          parent = find_parent barclamp, scan
-          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent 
-        else
-        end
-      elsif ['.', '..'].include? doc_file
-        # nothing, it's the currrent dir
+      # we need all the markdown files
+      files << doc_file if doc_file =~ /(.*).md$/
+      # and all the subdirectories
+      dirs << doc_file if !['.', '..'].include?(doc_file) and File.directory?(File.join(scan, doc_file))
+    end
+    # process all the files in the directory (needs to be before the subdirectories)
+    files.each do |doc_file|
+      doc = doc_file[/(.*).md$/,1]
+      name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
+      # don't add if we already have it
+      d = Doc.find_by_name name
+      if d.nil?
+        # you must have a parent to add a doc
+        parent = find_parent barclamp, scan
+        doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
       else
-        # recurse into the child directories
-        tree = File.join(scan, doc_file)
-        discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
+        # do nothing because we have an entry
       end
+    end
+    # recurse all the directories
+    dirs.each do |doc_file|
+      # recurse into the child directories
+      tree = File.join(scan, doc_file)
+      discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
     end
   end
   
@@ -133,7 +152,8 @@ class Doc < ActiveRecord::Base
         file = page_path path, name
         doc_to_db name, file, props, parent
       else  #reference only from a different barclamp
-        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp)) unless name.start_with? '#'
+        Rails.logger.warn "Document '#{barclamp}' catalog '#{name}' assumes a reference '#{parent}' that is not there."
+        Doc.find_or_create_by_name(:name=>name, :parent_name=>parent, :order=>'?noref', :description=>I18n.t('.missing_title', :scope=>'docs', :bc=>barclamp))
       end
     end
     # recurse children
@@ -163,6 +183,7 @@ class Doc < ActiveRecord::Base
     t.copyright = props["copyright"]
     t.date = props["date"]
     t.save!
+    Rails.logger.debug "added doc #{name} to system based on file #{file}"
   end
   
   

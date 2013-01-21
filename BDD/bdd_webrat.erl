@@ -25,23 +25,34 @@ click_link(Config, URL, Link) ->
 	end,
 	Result.
 
-step(_Config, _Global, {step_given, _N, ["I am on the home page"]}) -> 
-	eurl:get(_Config, []);
+step(Config, _Global, {step_given, _N, ["I am on the home page"]}) -> 
+	eurl:get(Config, []);
 
-step(_Config, _Global, {step_given, _N, ["I am on the", Page, "page"]}) ->
-  step(_Config, _Global, {step_given, _N, ["I went to the", Page, "page"]});
+step(Config, Global, {step_given, _N, ["I am on the", Page, "page"]}) ->
+  step(Config, Global, {step_given, _N, ["I went to the", Page, "page"]});
+  
+step(Config, _Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
+	eurl:get(Config, Page);
 
-step(_Config, _Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
-	eurl:get(_Config, Page);
+step(Config, _Global, {step_given, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]}) ->
+  Param = bdd_utils:scenario_retrieve(Scenario, Key, ""),
+  URL = Page ++ "?" ++ Key ++ "=" ++ Param,
+  bdd_utils:log(debug, bdd_webrat, step, "Getting ~p for page ~p + ~p=~p",[URL, Page, Key, Param]),
+  eurl:get(Config, URL);
 	
-step(_Config, _Given, {step_when, _N, ["I go to the home page"]}) -> 
-	eurl:get(_Config, []);
+step(_Config, _Global, {step_given, {Scenario, _N}, ["parameter",Key,"is",Value]}) ->
+  bdd_utils:log(debug, bdd_webrat, step, "Store parameter ~p = ~p", [Key, Value]),
+  bdd_utils:scenario_store(Scenario, Key, Value),
+  [];
 
-step(_Config, _Given, {step_when, _N, ["I go to the", Page, "page"]}) -> 
-	eurl:get(_Config, Page);
+step(Config, _Given, {step_when, _N, ["I go to the home page"]}) -> 
+	eurl:get(Config, []);
 
-step(_Config, _Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
-	eurl:get(_Config, Page, not_found);
+step(Config, _Given, {step_when, _N, ["I go to the", Page, "page"]}) -> 
+	eurl:get(Config, Page);
+
+step(Config, _Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
+	eurl:get(Config, Page, not_found);
 
 step(Config, Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
 	[URL | _] = [eurl:find_link(Link, HTML) || HTML <- (Given), HTML =/= []],
@@ -62,17 +73,22 @@ step(Config, Given, {step_when, _N, ["I fill in", Fields, "and submit using the"
   eurl:form_submit(Config, NewForm);
   
 step(Config, Result, {step_then, _N, ["I should not see", Text]}) -> 
-	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page", [Result, Text]),
 	eurl:search(Text,Result, false);
 
 step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
-	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace, "step_then result ~p should NOT have ~p on the page", [Result, Text]),
 	Body = [eurl:html_body(R) || R <- Result],
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
-	
+
+step(_Config, Result, {step_then, _N, ["I should see heading", Text]}) -> 
+	bdd_utils:log(debug, bdd_webrat, step, "see heading ~p", [Text]),
+	Out = [eurl:find_heading(R,Text) || R <- Result],
+	bdd_utils:assert(Out);
+
 step(Config, Result, {step_then, _N, ["I should see", Text]}) -> 
-	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page~n", [Result, Text]),
+	bdd_utils:log(Config, trace,"step_then result ~p should have ~p on the page", [Result, Text]),
 	eurl:search(Text,Result);
 
 step(Config, Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 

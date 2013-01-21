@@ -59,13 +59,13 @@ en:
     sign_out_description: End the current session
 
     books:
-      "crowbar/barclamps": Barclamps
-      "crowbar/deployguide": "Deploy Guide"
-      "crowbar/devguide": "Dev Guide"
-      "crowbar/gettingstarted": "Getting Started"
-      "crowbar/licenses": Licenses
-      "crowbar/releasenotes": "Release Notes"
-      "crowbar/userguide": User Guide
+      "framework/barclamps": "Barclamps"
+      "framework/deployguide": "Deploy Guide"
+      "framework/devguide": "Dev Guide"
+      "framework/gettingstarted": "Getting Started"
+      "framework/licenses": "Licenses"
+      "framework/releasenotes": "Release Notes"
+      "framework/userguide": "User Guide"
     
     scaffold:
       top: Scaffolds

@@ -41,7 +41,7 @@ validate(J) ->
       bdd_utils:is_a(J, string, display), 
       bdd_utils:is_a(J, string, commit), 
       bdd_utils:is_a(J, number, version), 
-      length(J) =:= 20,
+      bdd_utils:is_a(J, length, 20),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R, debug). 
 

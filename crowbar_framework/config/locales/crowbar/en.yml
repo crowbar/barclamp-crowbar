@@ -343,6 +343,7 @@ en:
       failed: Failed
       none: No Proposal
       unknown: Unknown, requesting status...
+      inactive: Inactive
     status_description:
       "0": "Expected value not found"
       "1": "Not applied, just created"

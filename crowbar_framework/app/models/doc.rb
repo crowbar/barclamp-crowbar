@@ -97,34 +97,38 @@ class Doc < ActiveRecord::Base
   # scan the directories and find files that were not in the YML catalogs
   def self.discover_docs(path, barclamp, defaults, tree=nil)
     scan = (tree ? tree : File.join(path, barclamp.name))
-    # first we need to collect files and directories
-    files = []
-    dirs = []
-    Dir.entries(scan).each do |doc_file|
-      # we need all the markdown files
-      files << doc_file if doc_file =~ /(.*).md$/
-      # and all the subdirectories
-      dirs << doc_file if !['.', '..'].include?(doc_file) and File.directory?(File.join(scan, doc_file))
-    end
-    # process all the files in the directory (needs to be before the subdirectories)
-    files.each do |doc_file|
-      doc = doc_file[/(.*).md$/,1]
-      name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
-      # don't add if we already have it
-      d = Doc.find_by_name name
-      if d.nil?
-        # you must have a parent to add a doc
-        parent = find_parent barclamp, scan
-        doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
-      else
-        # do nothing because we have an entry
+    if File.directory? scan
+      # first we need to collect files and directories
+      files = []
+      dirs = []
+      Dir.entries(scan).each do |doc_file|
+        # we need all the markdown files
+        files << doc_file if doc_file =~ /(.*).md$/
+        # and all the subdirectories
+        dirs << doc_file if !['.', '..'].include?(doc_file) and File.directory?(File.join(scan, doc_file))
       end
-    end
-    # recurse all the directories
-    dirs.each do |doc_file|
-      # recurse into the child directories
-      tree = File.join(scan, doc_file)
-      discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
+      # process all the files in the directory (needs to be before the subdirectories)
+      files.each do |doc_file|
+        doc = doc_file[/(.*).md$/,1]
+        name = "#{scan}/#{doc}"[/#{path}\/(.*)/,1]
+        # don't add if we already have it
+        d = Doc.find_by_name name
+        if d.nil?
+          # you must have a parent to add a doc
+          parent = find_parent barclamp, scan
+          doc_to_db(name, File.join(scan,doc_file), defaults, parent.name) if parent   
+        else
+          # do nothing because we have an entry
+        end
+      end
+      # recurse all the directories
+      dirs.each do |doc_file|
+        # recurse into the child directories
+        tree = File.join(scan, doc_file)
+        discover_docs(path, barclamp, defaults, tree) if File.directory?(tree)
+      end
+    else
+      Rails.logger.warn "Barclamp #{barclamp.name} does not have any doc directory"
     end
   end
   

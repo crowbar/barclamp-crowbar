@@ -182,14 +182,17 @@ class BarclampInstance < ActiveRecord::Base
 
   ##
   # Clone this config_instance
-  #
-  def deep_clone
+  # optionally, change parent too
+  def deep_clone(parent_configuration=nil)
     new_config = self.dup
+    new_config.barclamp_configuration_id = parent_configuration.id if parent_configuration
+    new_config.name += "_" + self.id.to_s
+    new_config.status = STATUS_NONE
+    new_config.failed_reason = nil
     new_config.save
 
     node_roles.each do |nr|
-      new_nr = NodeRole.create(:node_id => nr.node_id, :role_id => nr.role_id)
-      node_roles << new_nr
+      new_nr = NodeRole.create :node_id => nr.node_id, :role_id => nr.role_id, :barclamp_instance_id=>new_config.id
     end
 
     new_config

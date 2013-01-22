@@ -44,6 +44,8 @@ en:
     all_bc_description: All Available Barclamps
     crowbar_bc: Crowbar
     crowbar_bc_description: Core Barclamps required for Crowbar
+    barclamp_graph: Graph
+    barclamp_graph_description: Show Barclamps and dependencies
     
     help: Help
     help_description: Help
@@ -115,14 +117,14 @@ en:
       recall: Deactivate
       recall_success: Successfully deactivated proposal
     status:
-      hold: User Review
-      ready: Active
-      unready: In Progress
-      pending: Pending
-      building: Building
-      failed: Failed
-      none: No Proposal
-      unknown: Unknown, requesting status...
+      hold: CB1 User Review
+      ready: CB1 Active
+      unready: CB1 In Progress
+      pending: CB1 Pending
+      building: CB1 Building
+      failed: CB1 Failed
+      none: CB1 No Proposal
+      unknown: CB1 Unknown, requesting status...
     failures:
       show_active_failed: Actived instance not found.
       Failed to apply the proposal to: Failed to apply proposal
@@ -326,6 +328,29 @@ en:
 
      
   barclamp:
+    status:
+      "0": "Missing"
+      "1": "None"
+      "2": "Queued"
+      "3": "Committing"
+      "4": "Failed"
+      "5": "Ready"
+      hold: User Review
+      ready: Active
+      unready: In Progress
+      pending: Pending
+      building: Building
+      failed: Failed
+      none: No Proposal
+      unknown: Unknown, requesting status...
+      inactive: Inactive
+    status_description:
+      "0": "Expected value not found"
+      "1": "Not applied, just created"
+      "2": "Attempt at commit, but is queued"
+      "3": "Attempt at commit is in progress"
+      "4": "Attempted commit failed"
+      "5": "Attempted commit succeeded"
     crowbar:
       edit_attributes:
         attributes: Attributes
@@ -337,7 +362,15 @@ en:
         state: Status
         proposal: Proposal
         description: Description
-
+    graph:
+      title: Barclamp Graph
+      parents: Parents
+      roles: Roles
+      proposals: Proposals
+      attribs: Attributes
+      members: Members
+      configs: Configurations
+      instance: Instance
     modules:
       title: All Barclamps
     index:

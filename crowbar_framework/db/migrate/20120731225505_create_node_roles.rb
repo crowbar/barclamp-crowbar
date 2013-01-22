@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 class CreateNodeRoles < ActiveRecord::Migration
   def change
     create_table :node_roles do |t|
-      t.string       :config
+      t.string       :config               # CB1 TODO remove - replaced by NodeAttributes
       t.belongs_to   :role
       t.belongs_to   :node
-      t.belongs_to   :proposal_config
+      t.belongs_to   :proposal_config      # CB1 TODO > remove CB1 LEGACY
+      t.belongs_to   :barclamp_instance
       t.timestamps
     end
   end

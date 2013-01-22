@@ -85,16 +85,22 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_not_equal @hint, a.description
     assert_equal 666, a.order
     assert_not_equal 999, a.order
-    assert @bc.id, a.barclamp_id
-    assert @attrib.id, a.attrib_id
+    assert_equal @bc.id, a.barclamp_id
+    assert_equal @attrib.id, a.attrib_id
   end
   
-  
   test "Barclamp addAttrib requires name not description or order" do
-    e = assert_raise(NoMethodError, NameError) { @bc.add_attrib(nil) }
-    assert_equal "uncaught throw `barclamp.add_attrib requires Attrib object or hash with :name'", e.message
-    e = assert_raise(NoMethodError, NameError) { @bc.add_attrib :description=>"foo" }
-    assert_equal "uncaught throw `barclamp.add_attrib requires attribute :name'", e.message
+    if RUBY_VERSION == '1.8.7'
+      first_quote  = '`'
+      second_quote = "'"
+    else
+      first_quote  = '"'
+      second_quote = '"'
+    end
+    e = assert_raise(NoMethodError, NameError, ArgumentError) { @bc.add_attrib(nil) }
+    assert_equal "uncaught throw #{first_quote}barclamp.add_attrib requires Attrib object or hash with :name#{second_quote}", e.message
+    e = assert_raise(NoMethodError, NameError, ArgumentError) { @bc.add_attrib :description=>"foo" }
+    assert_equal "uncaught throw #{first_quote}barclamp.add_attrib requires attribute :name#{second_quote}", e.message
   end
   
   test "Barclamp addAttrib adds to barclamp list" do
@@ -108,7 +114,4 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_equal a1.barclamp, @bc
     assert a1.attrib.barclamps.include?(@bc), "this is the new barclamp"
   end
-  
-  
 end
-

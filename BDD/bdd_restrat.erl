@@ -55,8 +55,8 @@ get_id(Config, Path) ->
 % standard pattern for returning ajax from a when
 ajax_return(Path, Method, Code, Result) ->
   case {Method, Code, Result} of
-   {_, 200, "null"} -> [];
    {delete, 200, _} -> {ajax, 200, {Method, Path}};
+   {_, 200, "null"} -> [];
    {_, 200, []}     -> {ajax, 200, {Method, Path}};
    {_, 200, R}      -> {ajax, json:parse(R), {Method, Path}};
     _               -> {ajax, Code, {Method, Path}}

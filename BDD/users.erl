@@ -79,10 +79,14 @@ fetch_user(Config, Result, N, Username) ->
 
 % GIVEN STEP =======================================================
 
- step(_Config, _Global, {step_given, _N, ["there is not a user", Username]}) ->   
-  bdd_utils:log(_Config, trace, "users:step there is not a user: ~p", [Username]),
-  R = bdd_restrat:step(_Config, _Global, {step_when, _N, ["REST cannot find the", eurl:path(g(path),Username),"page"]}),
-  bdd_utils:log(_Config, debug, "users:step there is not a user: ~p, returning: ~p", [Username,R]),
+step(_Config, _Global, {step_given, _N, ["there is not a user", Username]}) -> 
+  step(_Config, _Global, {step_given, _N, ["there is a user", Username, "with email", g(email)]});  
+
+step(_Config, _Global, {step_given, _N, ["there is a user", Username, "with email", Email]}) -> 
+  bdd_utils:log(_Config, trace, "users:step there is a user: ~p", [Username]),
+  User = json(Username, Email, g(password), g(password_confirmation), g(remember_me), g(is_admin)),
+  R = bdd_restrat:create(_Config, g(path),username,User),
+  bdd_utils:log(_Config, debug, "users:step Created user: ~p", [User]),
   R;
 
 step(_Config, _Global, {step_given, _N, ["there is a user", Username]}) -> 

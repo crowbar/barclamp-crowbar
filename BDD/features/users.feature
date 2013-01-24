@@ -27,7 +27,14 @@ Feature: Users
     Then I should see "user_username"
       And I should see "user_password"
       And I should see "user_password_confirmation"
-    
+
+  Scenario: Create User via REST then see on UI
+    Given there is a user "seemore" with email "foo@bar.com"
+    When I go to the "users" page
+    Then I should see "seemore"
+      And I should see "foo@bar.com"
+    Finally REST removes the user "seemore"
+        
   Scenario: %Update User
     While interactive
     Given I am on the "manage_users" page

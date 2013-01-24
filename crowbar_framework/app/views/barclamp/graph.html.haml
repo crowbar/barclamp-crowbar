@@ -1,0 +1,43 @@
+%h1= t '.title'
+
+%ol
+  - @barclamps.sort.each do |bc|
+    %li
+      %h3= "#{bc.name} (#{bc.description})"
+      %ul{:id=>bc.id}
+        %li
+          = t ".parents"
+          %ul{:id=>"#{bc.id}_parents"}
+            - bc.parents.each do |r|
+              %li= r.name
+        %li
+          = t ".members"
+          %ul{:id=>"#{bc.id}_members"}
+            - bc.members.each do |r|
+              %li= r.name
+        %li
+          = t ".roles"
+          %ul{:id=>"#{bc.id}_roles"}
+            - bc.roles.each do |r|
+              %li= r.name
+        %li
+          = t ".configs"
+          %ul{:id=>"#{bc.id}_configs"}
+            - bc.configs.each do |c|
+              %li
+                = "#{c.name}: #{(c.active?) ? t('active') : ''} #{c.description}"
+                - c.instances.each do |i|
+                  %li
+                    = "#{t '.instance'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"
+        %li
+          = t ".proposals"
+          %em= t 'depricated'
+          %ul{:id=>"#{bc.id}_props"}
+            - bc.proposals.each do |prop|
+              %li= prop.name
+        %li
+          = t ".attribs"
+          %ul{:id=>"#{bc.id}_attribs"}
+            - bc.attribs.each do |a|
+              %li= a.name
+    

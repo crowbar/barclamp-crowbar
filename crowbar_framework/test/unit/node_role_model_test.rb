@@ -35,5 +35,6 @@ class NodeRoleModelTest < ActiveSupport::TestCase
     assert_equal nr.config, nil
   end
 
+
 end
 

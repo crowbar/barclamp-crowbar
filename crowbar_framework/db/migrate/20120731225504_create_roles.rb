@@ -15,14 +15,14 @@
 class CreateRoles < ActiveRecord::Migration
   def change  
     create_table :roles do |t|
-      t.string :name
-      t.string :description
-      t.string :states     
-      t.integer :priority  
-      t.belongs_to :barclamp
+      t.belongs_to  :barclamp
+      t.string      :name,        :null=> false
+      t.string      :description, :null=> true
+      t.string      :states,      :default => 'all'     
+      t.integer     :order,       :default => 9999  
       t.timestamps
     end
     #natural key
-    add_index(:roles, :name, :unique => true)   
+    add_index(:roles, [:barclamp_id, :name], :unique => true)   
   end
 end

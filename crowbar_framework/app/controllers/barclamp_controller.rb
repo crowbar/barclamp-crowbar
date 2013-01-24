@@ -159,6 +159,11 @@ class BarclampController < ApplicationController
     end
   end
   
+  # Quick visual for dev to see the Barclamp dependency graph
+  add_help(:graph)
+  def graph
+    @barclamps = Barclamp.all
+  end
   #
   # Provides the restful api call for
   # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances 

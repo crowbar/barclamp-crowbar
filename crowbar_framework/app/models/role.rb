@@ -17,15 +17,24 @@ class Role < ActiveRecord::Base
 
   # priority: the order this role gets applied in, system wide
   # states: node states that this role will be included in the excution list for the node
-  attr_accessible :name, :states, :priority, :description
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  attr_accessible :name, :states, :order, :description, :barclamp_id
+  
+  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_uniqueness_of :name, :scope=>:barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   belongs_to :barclamp
   # an element_order determines the execution group(s) of the role, relative to other roles in 
   # the barcalmp.
-  has_many :role_element_orders
+  has_many :role_element_orders, :dependent => :destroy 
 
+  def priority= (value)
+    self.order = value
+  end
+  
+  def priority
+    self.order
+  end
+  
   def to_s
     "Role: #{name}"
   end

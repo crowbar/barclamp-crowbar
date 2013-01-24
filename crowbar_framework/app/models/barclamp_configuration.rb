@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 # It has a ""history"" of configuration instances that were created and applied.
 #
 # 'instances' is the history relation. It contains all historical configurations.
-# active_config is the currently active proposal config (or queued or committing)
-# current_config is the most recently editted/created instance. (It might not be applied).
+# active_instance is the currently active proposal instance (or queued or committing)
+# proposed_instance is the most recently editted/created instance. (It might not be applied).
 #
 # Configuraiton usage:
 #   When a barclamp is imported, a template configuration is created with a default values.
@@ -35,18 +35,21 @@
 
 class BarclampConfiguration < ActiveRecord::Base
   
-  attr_accessible :name, :last_applied_rev, :description
+  attr_accessible :name, :description, :order
+  attr_accessible :barclamp_id, :active_instance_id, :proposed_instance_id
 
+  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
-  belongs_to :barclamp
-  has_many  :barclamp_instances, :class_name => "BarclampInstance", :inverse_of => :conifguration
+  belongs_to  :barclamp
+  has_many    :barclamp_instances,  :class_name => "BarclampInstance", :inverse_of => :configuration, :dependent => :destroy
+  has_many    :instances,           :class_name => "BarclampInstance", :inverse_of => :configuration
 
-  belongs_to :active_config, :class_name => "BarclampInstance", :foreign_key => "active_config_id"
-  belongs_to :current_config, :class_name => "BarclampInstance", :foreign_key => "current_config_id"
+  belongs_to :active_instance,        :class_name => "BarclampInstance", :foreign_key => "active_instance_id"
+  belongs_to :proposed_instance,      :class_name => "BarclampInstance", :foreign_key => "proposed_instance_id"
 
   def active?
-    active_config != nil
+    active_instance_id != nil
   end
 
   #
@@ -54,13 +57,25 @@ class BarclampConfiguration < ActiveRecord::Base
   # XXX: This should really move to an helper module
   #
   def status
-    if active?
-      return 'unready' if active_config.committing?
-      return 'pending' if active_config.queued?
-      return 'ready' if active_config.applied?
-      return 'failed' if active_config.failed?
+    state = (active_instance.nil? ? 999 : active_instance.status)
+    case state
+    when 0 
+      'missing'
+    when 1 
+      'none'
+    when 2 
+      'pending'
+    when 3 
+      'unready'
+    when 4 
+      'failed'
+    when 5 
+      'ready'
+    when 999
+      'inactive'
+    else 
+      'hold'
     end
-    'hold'
   end
 
   #
@@ -75,14 +90,15 @@ class BarclampConfiguration < ActiveRecord::Base
   #
   def deep_clone
     new_prop = self.dup
+    new_prop.name = new_prop.name + "_" + self.id.to_s
     new_prop.save!
 
     instances.each do |x| 
-      new_x = x.deep_clone
+      # copy instance and tie to new parent
+      new_x = x.deep_clone new_prop
       new_x.save!
-      new_prop.instances << new_x
-      new_prop.active_config = new_x if x == active_config
-      new_prop.current_config = new_x if x == current_config
+      new_prop.active_instance = new_x if x == active_instance
+      new_prop.proposed_instance = new_x if x == proposed_instance
     end
 
     new_prop

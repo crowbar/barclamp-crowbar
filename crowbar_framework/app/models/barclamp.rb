@@ -18,7 +18,7 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
-  attr_accessible :template, :allow_multiple_proposals
+  attr_accessible :template, :allow_multiple_proposals, :template_id
   
   # 
   # Validate the name should unique 
@@ -39,15 +39,23 @@ class Barclamp < ActiveRecord::Base
   #   all active proposals (that aren't template and have attempted application)
   #   the template proposal
   # 
+  
+  # this should go away...old models
   has_many :proposals, :conditions => 'proposals.name != "template"'
+  # this should go away...old models
   has_many :active_proposals, 
                 :class_name => "Proposal", 
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
+  
+  # this should go away...old models
   has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
 
-  has_many :roles
-  has_many :barclamp_attribs, :dependent => :destroy 
-  has_many :attribs, :through => :barclamp_attribs
+  # Crowbar 2.0 models
+  has_many :roles,              :order=> "[order], [name] ASC", :foreign_key => "barclamp_id", :dependent => :destroy 
+  has_many :barclamp_attribs,   :dependent => :destroy 
+  has_many :attribs,            :through => :barclamp_attribs
+  has_many :barclamp_configurations, :dependent => :destroy
+  has_many :configs,            :class_name => "BarclampConfiguration", :foreign_key => "barclamp_id"
 
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
@@ -133,10 +141,12 @@ class Barclamp < ActiveRecord::Base
     prop.destroy
   end
 
+  # GOING AWAY!
   def get_proposal(name)
     Proposal.find_by_name_and_barclamp_id(name, self.id)
   end
 
+  # GOING AWAY!
   def get_role(name)
     Role.find_by_name_and_barclamp_id(name, self.id)
   end
@@ -146,7 +156,9 @@ class Barclamp < ActiveRecord::Base
   # This is used to order jig runs by role sets
   # This used to be the element_order structure in the json
   #
+  # GOING AWAY!
   def get_roles_by_order
+    # THIS SHOULD USE barclamp.roles
     run_order = []
     roles.each do |role|
       role.role_element_orders.each do |roe|
@@ -203,12 +215,10 @@ class Barclamp < ActiveRecord::Base
         unless role 
           states = jdeploy["element_states"][role_name].join(",") rescue "all"
           priority = jdeploy["element_run_list_order"][role_name] rescue -1
-          role = Role.create(:name => role_name, :states => states, :priority => priority)
-          role.barclamp = barclamp
-          barclamp.roles << role
+          role = Role.create(:name => role_name, :states => states, :order => priority, :barclamp_id => barclamp.id, :description=>"Imported from bc-template-#{bc_name}.json")
+          Rails.logger.debug("1x Import: Barclamp #{barclamp.name} added role #{role.id} (#{role.name}) for #{states} states at #{priority} priority")
         end
-        reo = RoleElementOrder.create(:order => index)
-        role.role_element_orders << reo
+        reo = RoleElementOrder.create(:order => index, :role_id=> role.id)
       end
     end
     
@@ -217,7 +227,7 @@ class Barclamp < ActiveRecord::Base
       json["attributes"]["crowbar"]["users"].each do |user, password|
         pass = password['password']
         u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
-        u.digest_password(pass)
+        u.digest_password(pass)   # this is required if we want API access
         u.save!
       end
     end
@@ -309,6 +319,7 @@ class Barclamp < ActiveRecord::Base
       json = JSON::load File.open(template_file, 'r')
       self.import_1x_deployment(barclamp, json)
  
+      # CB1 TODO this is the old way - remove
       prop = Proposal.create(:name => "template", :description => "template")
       prop_config = ProposalConfig.new
       prop_config.config = json["attributes"].to_json
@@ -317,8 +328,20 @@ class Barclamp < ActiveRecord::Base
 
       prop.current_config = prop_config
       prop.save!
-
       barclamp.template = prop
+      
+      # Create the CB2 Configuration, Instances, & Attributes to match
+      # I think this really should be done in the barclamp initializer/register -> discussion to follow
+      unless barclamp.id.nil?
+        config = BarclampConfiguration.create({ :name => "default", :barclamp_id=>barclamp.id, :description=>"Imported from #{template_file}" })
+        template = BarclampInstance.create({:name => "template", 
+                                            :barclamp_configuration_id=>config.id, 
+                                            :description=>"Imported from #{template_file}"})
+        barclamp.template_id = template.id
+      end
+      
+      # CB2 TODO - put in the attribs!
+      
       barclamp.save!
     end
 

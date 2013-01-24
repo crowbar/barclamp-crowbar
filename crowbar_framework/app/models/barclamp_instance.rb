@@ -27,12 +27,19 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
-  attr_accessible :config, :reversion, :status, :failed_reason
-  belongs_to      :configuration, :class_name => "BarclampConfiguration", :inverse_of => :barclamp_instances
-  has_many        :node_roles
-  has_many        :nodes, :through => :node_roles
-  has_many        :roles, :through => :node_roles
+  attr_accessible :name, :description, :order, :status, :failed_reason
+  attr_accessible :barclamp_configuration_id
+  
+  belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
+  belongs_to      :configuration,     :class_name => "BarclampConfiguration"
+  has_many        :node_roles,        :dependent => :destroy 
+  has_many        :nodes,             :through => :node_roles
+  has_many        :roles,             :through => :node_roles
 
+  def active?
+    configuration.active_configuration_id == self.id
+  end
+  
   def failed?
     status == STATUS_FAILED
   end
@@ -175,14 +182,17 @@ class BarclampInstance < ActiveRecord::Base
 
   ##
   # Clone this config_instance
-  #
-  def deep_clone
+  # optionally, change parent too
+  def deep_clone(parent_configuration=nil)
     new_config = self.dup
+    new_config.barclamp_configuration_id = parent_configuration.id if parent_configuration
+    new_config.name += "_" + self.id.to_s
+    new_config.status = STATUS_NONE
+    new_config.failed_reason = nil
     new_config.save
 
     node_roles.each do |nr|
-      new_nr = NodeRole.create(:node_id => nr.node_id, :role_id => nr.role_id)
-      node_roles << new_nr
+      new_nr = NodeRole.create :node_id => nr.node_id, :role_id => nr.role_id, :barclamp_instance_id=>new_config.id
     end
 
     new_config

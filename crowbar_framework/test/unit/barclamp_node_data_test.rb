@@ -35,6 +35,9 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
   end
 
   test "Barclamp Register creates attributes" do
+    bc = Barclamp.create :name=>"gimme_data"
+    bc.add_attrib 
+    
     assert true, "test not created"
   end
 

@@ -25,6 +25,11 @@ header
   nav
     float: right
     margin-top: 50px
+    > ul
+      > li
+        > ul
+          top: 20px !important
+        
     ul /*top*/
       +inline_list
       z-index: 1000
@@ -50,7 +55,7 @@ header
         &:hover > ul
           display: block
           +shadow
-
+          
 .notice
   text-align: center
   color: $notice_fg

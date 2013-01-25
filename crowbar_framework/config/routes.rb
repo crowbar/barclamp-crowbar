@@ -14,7 +14,7 @@
 # 
 Crowbar::Application.routes.draw do
 
-  namespace :scaffolds do
+ namespace :scaffolds do
     resources :attribs do as_routes end
     resources :barclamps do as_routes end
     resources :groups do as_routes end
@@ -25,32 +25,40 @@ Crowbar::Application.routes.draw do
     resources :proposal_configs do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
-    resources :interfaces do as_routes end
-    resources :networks do as_routes end
-    resources :ip_addresses do as_routes end
     resources :jig_attributes do as_routes end
     resources :os do as_routes end
     resources :os_packages do as_routes end
     resources :proposal_queues do as_routes end
     resources :proposal_queue_items do as_routes end
     resources :role_element_orders do as_routes end
-    resources :interface_maps do as_routes end
+    resources :node_attribute_filters do as_routes end
+    # Network scaffolds
+    resources :allocated_ip_addresses do as_routes end
+    resources :bmc_interfaces do as_routes end
+    resources :bonds do as_routes end
     resources :bus_maps do as_routes end
     resources :buses do as_routes end
-    resources :routers do as_routes end
-    resources :ip_ranges do as_routes end
-    resources :conduits do as_routes end
-    resources :conduit_rules do as_routes end
-    resources :conduit_filters do as_routes end
-    resources :node_attribute_filters do as_routes end
-    resources :network_mode_filters do as_routes end
-    resources :interface_selectors do as_routes end
-    resources :select_by_indices do as_routes end
-    resources :select_by_speeds do as_routes end
     resources :conduit_actions do as_routes end
+    resources :conduit_filters do as_routes end
+    resources :conduit_rules do as_routes end
+    resources :conduits do as_routes end
     resources :create_bonds do as_routes end
     resources :create_vlans do as_routes end
- end
+    resources :interface_maps do as_routes end
+    resources :interface_selectors do as_routes end
+    resources :interfaces do as_routes end
+    resources :ip_addresses do as_routes end
+    resources :ip_ranges do as_routes end
+    resources :network_mode_filters do as_routes end
+    resources :networks do as_routes end
+    resources :node_attribute_filters do as_routes end
+    resources :physical_interfaces do as_routes end
+    resources :routers do as_routes end
+    resources :select_by_indices do as_routes end
+    resources :select_by_speeds do as_routes end
+    resources :vlan_interfaces do as_routes end
+    resources :vlans do as_routes end
+  end
 
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection

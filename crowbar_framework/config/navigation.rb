@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SimpleNavigation::Configuration.run do |navigation|    
-  puts "Build Navigationnnnnnnnnnnnnnnnnnn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"   
+SimpleNavigation::Configuration.run do |navigation|       
   menu = Nav.find_by_item 'root'
   navigation.items do |primary|
     menu.children.each do |item| # Top Nav
       if item.item != 'root' and item.path =~ /(.*)_path/
-        begin
-          puts "Build Navigation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!item.path: #{item.path}"   
+        begin   
           name = t(item.name)
           title = t(item.description, :default=>t(item.name))
           if item.development
@@ -27,9 +25,7 @@ SimpleNavigation::Configuration.run do |navigation|
             title = "Dev Mode: "+title
           end
           primary.item item.item.to_sym, name, eval(item.path), {:title=>title} do |secondary|
-            puts "Build Navigation secondary #{secondary.inspect}xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 
-            # make the top level help appear on the menu (for help only)
-            if item.item.eql? 'help'
+             if item.item.eql? 'help'
               Doc.find_by_name('root').children.each do |doc|
                 secondary.item doc.name.to_sym, t(doc.name, :scope=>'nav.books'), docs_path(:id=>doc.name.html_safe), {:title=>doc.description }
               end
@@ -46,17 +42,14 @@ SimpleNavigation::Configuration.run do |navigation|
                 if nav.development
                   secondary.item nav.item.to_sym, "[#{t(nav.name)}]", eval(nav.path), {:title=>"Dev Mode: #{t(nav.description, :default=>t(nav.name))}"} 
                 else
-                  puts "item.children.each nav: #{nav.inspect} wwwwwwwwwwwwwwwwwwwwwwwwww" 
-                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))} 
-                  puts "after secondary.item secondary: #{secondary.inspect} rrrrrrr" 
+       
+                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  
                 end
               end 
             end
             end
           end
-        rescue Exception => e  
-          puts "EXEPTION MESSAGE::::::::::::::::::::::::::::::::::::::::::::::: #{e.message}"   
-          puts "EXEPTION TRACE::::::::::::::::::::::::::::::::::::::::::::::: #{e.backtrace.inspect}" 
+        rescue Exception => e   
           primary.item :menu_error, "#{t 'nav.error'}: #{item.item}", ''
         end
       end

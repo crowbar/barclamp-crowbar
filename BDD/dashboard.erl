@@ -53,9 +53,9 @@ step(Config, Result, {step_then, _N, ["the dashboard fingerprint should match th
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = nodes:json(g(name), g(description), 100),
-  crowbar_rest:create(Config, nodes:g(path), g(atom), name, Node);
+  bdd_restrat:create(Config, nodes:g(path), g(atom), name, Node);
   
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  crowbar_rest:destroy(Config, g(path), g(atom)).
+  bdd_restrat:destroy(Config, g(path), g(atom)).
 

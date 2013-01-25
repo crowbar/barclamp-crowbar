@@ -17,6 +17,7 @@ class CreateBarclamps < ActiveRecord::Migration
     create_table :barclamps do |t|
       t.string     :name
       t.string     :description,               :null=>true
+      t.string     :type,                      :null=>false
       t.string     :display
       t.integer    :version
       t.string     :online_help,               :null=>true

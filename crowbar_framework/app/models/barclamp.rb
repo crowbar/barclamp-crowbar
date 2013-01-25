@@ -15,10 +15,12 @@
 
 class Barclamp < ActiveRecord::Base
 
-  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed
+  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals, :template_id
+
+  before_create :create_type_from_name
   
   # 
   # Validate the name should unique 
@@ -348,5 +350,23 @@ class Barclamp < ActiveRecord::Base
     return barclamp
   end
 
+  private 
+  
+  # This method ensures that we have a type defined for 
+  def create_type_from_name
+    throw "barclamps require a name" if self.name.nil?
+    file = "barclamp_#{self.name}"
+    myclass = "#{self.name.capitalize}::#{file.camelize}"
+    file = File.join 'app','models',self.name, file+".rb"
+    if !self.type.nil?
+      # do nothing - everything is OK
+    elsif File.exist? file
+      self.type = myclass
+    else
+      Rails.logger.warn "Creating barclamp #{self.name} using the generic model because the #{file} was not found."
+      self.type = "BarclampFramework"     # fall back to generic model
+    end
+  end
+     
 end
 

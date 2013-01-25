@@ -2,7 +2,7 @@
 
 Crowbar uses a composite documentation system that allows each barclamp to add documentation specific to its function while still building a single comprehensive documentation set.
 
-> _Tip:_ Use http://www.ctrlshift.net/project/markdowneditor/ to WYSIWYG edit markdown!
+> Please see the Formating subsection for tips on formatting markdown.
 
 This information is available as a video! see http://youtu.be/eWHeEWiOEvo
 
@@ -92,7 +92,7 @@ Markdown is the current format.
 
 Path is `doc/default/barclamp/file.md`
 
-It is allowable (recommended!) to use additional subdirectories!  Simply add another `/` to the same to indicate another level of depth on the file path.
+It is recommended to use additional subdirectories!  Simply add another `/` to the same to indicate another level of depth on the file path.  Ideally, each markdown file is only about 1 page of text.
 
 > The naming of topics will match the file paths!
 

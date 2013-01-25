@@ -38,7 +38,7 @@ describe ServiceObject  do
   it "should allow bc_name to be set and update barclamp" do
     @service_object.bc_name = "crowbar"
     @service_object.bc_name.should eq("crowbar")
-    @service_object.barclamp.should be_an_instance_of Barclamp
+    @service_object.barclamp.should be_an_instance_of Crowbar::BarclampCrowbar
     @service_object.barclamp.name.should eq("crowbar")
   end
   

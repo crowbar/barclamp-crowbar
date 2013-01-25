@@ -22,7 +22,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     # Attrib depends on crowbar barclamp - we need to find/create it first
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     assert_not_nil @crowbar, "we need to have a crowbar barclamp"
-    @bc = Barclamp.find_or_create_by_name :name=>"test_units"
+    @bc = Barclamp.find_or_create_by_name :name=>"test"
     assert_not_nil @bc, "we need to have a base barclamp"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test", :barclamp_id=>@bc.id, :description=>'unit test target'
     assert_not_nil @attrib, "we need a base attrib"
@@ -111,7 +111,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_not_nil a1
     bc = Barclamp.find @bc.id
     assert_equal count+1, bc.attribs.count    
-    assert_equal a1.barclamp, @bc
+    assert_equal a1.barclamp.id, @bc.id
     assert a1.attrib.barclamps.include?(@bc), "this is the new barclamp"
   end
 end

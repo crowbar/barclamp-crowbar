@@ -234,5 +234,30 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal 'foo_store', ordered.third.name
   end
 
+  test "barclamp type from name works" do
+    name = "test"
+    # we need to make sure that the barclamp is not in the DB
+    testclass = name.capitalize+"::"+("barclamp_"+name).camelize
+    if File.exist? File.join('app', 'models', name, "barclamp_#{name}.rb")
+      id = Barclamp.find_by_name name
+      Barclamp.delete id
+      bc = Barclamp.find_or_create_by_name :name=>name
+      assert_not_nil bc
+      assert_equal name, bc.name
+      assert_equal testclass, bc.type
+    else
+      puts "skipping barclamp_model_test:barclamp type from name works because the #{testclass} file was not found"
+      assert true, "skip this test, we don't have the #{testclass} installed"
+    end
+  end
+
+  test "barclamp falls back to framework type if missing" do
+    name = "doesnotexist"
+    bc = Barclamp.create :name=>name
+    assert_not_nil bc
+    assert_equal name, bc.name
+    assert_equal "BarclampFramework", bc.type
+  end
+
 end
 

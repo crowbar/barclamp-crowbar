@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,10 +25,15 @@
 #
 
 class NodeRole < ActiveRecord::Base
-  attr_accessible :config
+  
+  attr_accessible :config  # CB1 TODO remove - replaced by NodeAttributes
+  attr_accessible :node_id, :role_id, :barclamp_instance_id
   belongs_to      :node
   belongs_to      :role
+  # CB1
   belongs_to      :proposal_config
+  # CB2
+  belongs_to      :barclamp_instance, :class_name => "BarclampInstance", :foreign_key => "barclamp_instance_id"
 
   #
   # Helper functions to let the rest of the system operate on hash objects that 

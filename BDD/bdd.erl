@@ -167,6 +167,7 @@ start(Config) ->
       end,
       AzConfig = bdd_utils:is_site_up(Config),
       file:write_file("../crowbar_framework/tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
+      bdd_utils:marker("BDD TEST STARTING"),
       bdd_utils:log(debug, bdd, start, "running global setup using `~p:step(...step_setup...)`",[Global]),
       SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
       bdd_utils:config_set(SetupConfig, started, true);
@@ -277,6 +278,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  {error, Step};
 		Result -> 
 		  {Type, _N, List} = Step,
+		  bdd_utils:marker("STEP RESULT"),
 		  log(debug, "^^ Ran ~p:~p(~p)",[Feature,Type,List]),
 		  log(trace, "^^ Result -> ~p",[Result]),
 		  Result
@@ -293,6 +295,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
       log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
 		  error; 
 		X: Y -> 
+		  bdd_utils:marker("BDD ERROR"),
 		  log(info,  "step run found ~p:~p", [X, Y]), 
       log(debug, "Stacktrace: ~p", [erlang:get_stacktrace()]),
       log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),

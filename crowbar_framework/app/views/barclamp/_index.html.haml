@@ -11,12 +11,12 @@
       %td
         %a.toggle.with_label{:href => "#", :id => "#{name}_details_toggle", :rel => "#{name}_details"}= name.titlecase
       %td
-        - if barclamp.proposals.nil? 
+        - if barclamp.configs.nil? 
           .led{:id => "#{name}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
         - else
-          - barclamp.proposals.each do |proposal|
-            .led{:id => proposal.id, :class =>'unknown', :style => "float:left", :title=>"#{proposal.name} - #{t 'proposal.status.unknown'}"}
-              = proposal.id
+          - barclamp.configs.each do |config|
+            .led{:id => config.id, :class =>'unknown', :style => "float:left", :title=>"#{config.name} - #{t(config.status, :scope=>'barclamp.status')}"}
+              = config.id
       %td= barclamp.description
 
     %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name}_details"}
@@ -24,17 +24,23 @@
         .box
           %table.data
             %tbody
-              - if barclamp.proposals.size > 0
-                - barclamp.proposals.each do |proposal|
-                  = render :partial => 'proposals/proposal', :locals=>{ :proposal=>proposal }
-              - if barclamp.allow_multiple_proposals or barclamp.proposals.count==0
-                = form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => barclamp.name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
-                  %tr{:class => ["proposal", cycle(:odd, :even)]}
-                    %td{:style => "text-align:center"} +
-                    %td
-                      = hidden_field_tag :barclamp, barclamp.name
-                      = text_field_tag :name, t('proposal.items.default'), :size => 15
-                    %td
-                      = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }", :size => 60
-                    %td
-                      %input.button{:type => "submit", :value => t('proposal.actions.create')}
+              - if barclamp.configs.size > 0
+                - barclamp.configs.each do |config|
+                  %strong= config.name
+                  = ":"
+                  %em= config.description
+                  - #= render :partial => 'proposals/proposal', :locals=>{ :proposal=>config }
+              - if barclamp.allow_multiple_proposals or barclamp.configs.count==0
+                - if true
+                  = t 'chuck_norris'
+                - else # TODO CB1 port to CB2
+                  = form_for :barclamp_configuration, :remote => true, :url => create_proposal_barclamp_path(:controller => barclamp.name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
+                    %tr{:class => ["proposal", cycle(:odd, :even)]}
+                      %td{:style => "text-align:center"} +
+                      %td
+                        = hidden_field_tag :barclamp, barclamp.name
+                        = text_field_tag :name, t('proposal.items.default'), :size => 15
+                      %td
+                        = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }", :size => 60
+                      %td
+                        %input.button{:type => "submit", :value => t('proposal.actions.create')}

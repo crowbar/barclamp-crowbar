@@ -27,26 +27,19 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
-  attr_accessible :config, :reversion, :status, :failed_reason
-  belongs_to      :configuration, :class_name => "BarclampConfiguration", :inverse_of => :barclamp_instances
-  has_many        :node_roles
-  has_many        :nodes, :through => :node_roles
-  has_many        :roles, :through => :node_roles
+  attr_accessible :name, :description, :order, :status, :failed_reason
+  attr_accessible :barclamp_configuration_id, :role_instance_id, :barclamp_id
+  
+  belongs_to      :barclamp
+  belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
+  alias_attribute :configuration,           :barclamp_configuration
 
-  def failed?
-    status == STATUS_FAILED
-  end
-
-  def applied?
-    status == STATUS_APPLIED
-  end
-
-  def queued?
-    status == STATUS_QUEUED
-  end
-
-  def committing?
-    status == STATUS_COMMITTING
+  has_many        :roles,             :through => :role_instances
+  has_many        :role_instances,    :dependent => :destroy 
+  alias_attribute :instances,         :role_instances
+  
+  def active?
+    configuration.active_configuration_id == self.id
   end
 
   ##
@@ -61,6 +54,16 @@ class BarclampInstance < ActiveRecord::Base
   def config_hash=(chash)
     config = chash.to_json
     save!
+  end
+
+  # Add a role to a Barclamp instance by creating the needed RoleInstance
+  def add_role(role)
+    role = Role.find_or_create_by_name(:name => role) unless role.is_a? Role
+    begin
+      RoleInstance.find_by_role_id_and_barclamp_id :role_id => role.id, :barclamp_instance_id => self.id 
+    rescue
+      RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id => role.id, :barclamp_instance_id => self.id
+    end 
   end
 
   ##
@@ -175,15 +178,17 @@ class BarclampInstance < ActiveRecord::Base
 
   ##
   # Clone this config_instance
-  #
-  def deep_clone
+  # optionally, change parent too
+  def deep_clone(parent_configuration=nil)
     new_config = self.dup
+    new_config.barclamp_configuration_id = parent_configuration.id if parent_configuration
+    new_config.name += "_" + self.id.to_s
+    new_config.status = STATUS_NONE
+    new_config.failed_reason = nil
     new_config.save
 
-    node_roles.each do |nr|
-      new_nr = NodeRole.create(:node_id => nr.node_id, :role_id => nr.role_id)
-      node_roles << new_nr
-    end
+    # clone the instances
+    role_instances.each { |ri| ri.deep_clone(self.id) }
 
     new_config
   end

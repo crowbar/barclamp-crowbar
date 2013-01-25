@@ -15,7 +15,7 @@
 require 'test_helper'
 require 'json'
 
-class NodeAttribModelTest < ActiveSupport::TestCase
+class AttribInstanceModelTest < ActiveSupport::TestCase
 
   # tests the relationship between nodes and attributes
   def setup
@@ -24,25 +24,25 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
-    @na = @node.attrib_set(@attrib.name, @value)
-
+    @na = @node.set_attrib @attrib, @value
+    assert_not_nil @na
+    assert_equal @value, @na.value
     # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
     # accordingly. Simplify once we remove 1.8 support.
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
   
-  test "Node Attribs must have node and attrib" do
-    assert_raise(@error_class) { NodeAttrib.create :node_id=>nil,      :attrib_id=>@attrib.id }
-    assert_raise(@error_class) { NodeAttrib.create :node_id=>@node.id, :attrib_id=>nil }
+  test "Attrib Instances must attrib" do
+    assert_raise(ActiveRecord::StatementInvalid) { AttribInstance.create :node_id=>@node.id, :attrib_id=>nil }
   end
   
-  test "Node Attrib can have no run" do
+  test "Attrib Instance can have no run" do
     a = Attrib.create :name=>"no_run"
-    v = NodeAttrib.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
+    v = AttribInstance.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
     assert_not_nil v
   end
   
-  test "Node Attrib actual values state correct" do
+  test "Attrib Instance actual values state correct" do
     v = @node.attrib_get('state_test')
     assert_nil v.jig_run_id
     v.actual = @value
@@ -51,37 +51,25 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_not_nil v.jig_run_id
   end
   
-  test "Node Attrib delete" do
-    n = Node.create :name=>"delete.example.com"
-    a = Attrib.create :name=>"killme"
-    assert_not_nil a
-    assert_not_nil n
-    v = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
-    assert_not_nil v
-    id = v.id
-    assert_equal id, v.id
-    NodeAttrib.delete_by_node_and_attrib n, a
-    check = NodeAttrib.find id
-    assert_nil check
-  end
-  
-  test "Node Attrib stores values state correct" do
+  test "Attrib Instance stores values state correct" do
     n = Node.create :name=>"pending.example.com"
     a = Attrib.create :name=>"unset"
     assert_not_nil a
     assert_not_nil n
-    v = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
+    v = AttribInstance.create :node_id=>n.id, :attrib_id=>a.id
     assert_not_nil v
+    v = AttribInstance.find v.id
+    assert_instance_of AttribInstance::DEFAULT_CLASS, v
     assert_equal :empty, v.state
     assert_nil v.actual
-    assert_equal NodeAttrib::MARSHAL_EMPTY, v.value_actual
+    assert_equal v.class::MARSHAL_EMPTY, v.value_actual
     value = "2b"
     v.actual = value
     assert_equal value, v.value
     assert_equal :set, v.state
   end
     
-  test "Node Attrib stores actual values" do
+  test "Attrib Instance stores actual values" do
     value = "foo"
     v = @na
     assert_not_nil v
@@ -92,15 +80,15 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     n = Node.find @node.id
     assert_not_nil n
     assert n.attribs.count > 0
-    assert n.node_attribs.count > 0
-    na = n.node_attribs[0]
+    assert n.attrib_instances.count > 0
+    na = n.attrib_instances[0]
     assert_not_nil na
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual
     assert_equal :set, na.state
   end
   
-  test "Node Attribute removed when node deleted" do
+  test "Attrib Instance removed when node deleted" do
     name = "chain-delete.example.com"
     attrib = "killme"
     n = Node.create :name=>name
@@ -109,16 +97,15 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     na = n.attrib_get(attrib)
     assert_not_nil na
     id = na.id
-    na2 = NodeAttrib.find id 
+    na2 = AttribInstance.find id 
     assert_not_nil na2
     
     assert n.destroy
     assert_raise(ActiveRecord::RecordNotFound) { Node.find n.id }
-    na3 = NodeAttrib.find id
-    assert_nil na3
+    assert_raise(ActiveRecord::RecordNotFound) { AttribInstance.find id }
   end
   
-  test "Node Attribute removed when attribute deleted" do
+  test "Attrib Instance removed when attribute deleted" do
     name = "chain-delete.example.com"
     attrib = "killme"
     n = Node.create :name=>name
@@ -130,40 +117,18 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     id = na.id
     assert a.destroy
     assert_raise(ActiveRecord::RecordNotFound) { Attrib.find a.id }
-    na3 = NodeAttrib.find id
-    assert_nil na3
+    assert_raise(ActiveRecord::RecordNotFound) { AttribInstance.find id }
   end
-  
-  test "Node Attrib name_generate check" do
-    name = "gen.example.com"
-    attrib = "genme"
-    n = Node.create :name=>name
-    a = Attrib.create :name=>attrib
-    na = n.attrib_get(attrib)
-    assert_not_nil na
-    assert_equal na.name, NodeAttrib.name_generate(n,a)
-    assert_equal na.name, "#{attrib}#{NodeAttrib::NODE_NAME_DELIM}#{name}"
-    parts = na.name.split NodeAttrib::NODE_NAME_DELIM
-    assert_equal attrib, parts[0]
-    assert_equal name, parts[1]
-    assert_equal na.id, NodeAttrib.id_generate(n.id, a.id)
-  end
-  
-  test "Node Attrib find id for id_generate" do
-    id = NodeAttrib.id_generate @node.id, @attrib.id
-    assert_equal id, (@node.id*10000000+@attrib.id)
-  end
-  
-  test "Node Attrib find_or_create" do
+    
+  test "Attrib Instance find_or_create" do
     a = Attrib.create :name=>"busted"
     assert_not_nil a
-    assert_raise(@error_class) { NodeAttrib.find_or_create_by_node_and_attrib(nil, a) }
-    assert_raise(@error_class) { NodeAttrib.find_or_create_by_node_and_attrib(@node, nil) }
-    na = NodeAttrib.find_or_create_by_node_and_attrib(@node, a)
+    assert_raise(ActiveRecord::StatementInvalid) { AttribInstance.find_or_create_by_attrib_and_node(nil, @node) }
+    na = AttribInstance.find_or_create_by_attrib_and_node(@node, a)
     assert_not_nil na
   end
 
-  test "Node Attrib preserves type of actual Value" do
+  test "Attrib Instance preserves type of actual Value" do
     value = "foo"
     type = value.class
     v = @na
@@ -177,7 +142,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_equal type, v.actual.class
   end
   
-  test "Node Attrib preserves type of request Value" do
+  test "Attrib Instance preserves type of request Value" do
     value = "bar"
     type = value.class
     v = @na
@@ -285,7 +250,7 @@ class NodeAttribModelTest < ActiveSupport::TestCase
     assert_equal value, na.request
     assert_not_nil na.jig_run_id
         
-    na2 = NodeAttrib.find NodeAttrib.id_generate(@node.id, na.attrib.id)
+    na2 = AttribInstance.find na.id
     assert_not_nil na2
     assert_equal nil, na2.value
     assert_equal :active, na2.state

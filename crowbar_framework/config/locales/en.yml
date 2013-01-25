@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -10,11 +10,8 @@
 # distributed under the License is distributed on an "AS IS" BASIS, 
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
-
+# limitations under the License.  
+#
 # Sample localization file for English. Add more files in this directory for other locales.
 # See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
 
@@ -31,31 +28,35 @@ en:
   cancel: Cancel
   edit: Edit
   actions: Actions
-  are_you_sure: Are you sure?
+  active: Active
+  are_you_sure: "Are you sure?"
   unknown: Unknown
   error: Error
   not_set: Not set
   undetermined: Undetermined
-  na: N/A
-  feature_na: Feature Not Available
+  na: "N/A"
+  feature_na: "Feature Not Available"
   name: Name
+  up: Up 
   down: Down
   raw: Raw
   custom: Custom
   clear_msg: clear
   created_on: Created On
+  updated_on: Updated On
   no_items: No Items
   complete: Complete
   'yes': 'Yes'
   'no': 'No'
   maybe: Maybe
   chuck_norris: Die!!!
+  depricated: "WARNING Depricated!"
   updating: Updating...
   note: Note
   hint: Hint
   help: Help
   virtual: Virtual
-  new: New Item!
+  new: "New Item!"
   next: Next
   prev: Previous
   export: Export

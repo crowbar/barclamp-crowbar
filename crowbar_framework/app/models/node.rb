@@ -35,8 +35,8 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :node_attribs, :dependent => :destroy
-  has_many :attribs, :through => :node_attribs
+  has_many :attrib_instances,  :class_name => "AttribInstance", :foreign_key => :node_id, :dependent => :destroy
+  has_many :attribs,           :through => :attrib_instances
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
@@ -256,30 +256,6 @@ class Node < ActiveRecord::Base
     end
     cno.save
   end
-
-  # Rob's list of Jig attributes needed by the UI
-    #alias
-    #name
-    #ip (list)
-    #public_ip
-    #mac
-    #ipmi_enabled?
-    #physical_drives (list)
-    #memory (total)
-    #cpu (type & count)
-    #hardware (dmi product name)
-    #raid_set
-    #nics (list)
-    #uptime
-    #asset_tag
-    #number_of_drives
-    #physical_drives (list)
-    #switch name, mac, port, unit
-    #bios_set -> ["crowbar"]["hardware"]["bios_set"] 
-    #get_bmc_user -> ["ipmi"]["bmc_user"] 
-    #get_bmc_password-> ["ipmi"]["bmc_password"] 
-    #bmc_address
-  
   
   # Friendly name for the UI
 
@@ -321,42 +297,50 @@ class Node < ActiveRecord::Base
     end
   end  
 
-  # retrieves the attribute from nodeattribute
+  # retrieves the Attrib from AttribInstance
   # NOTE: for safety, will create the association if it is missing
   def attrib_get(attrib)
-    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
-    return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+    #depricate this because it could confuse people w/ the method missing
+    Rails.logger.warn "depricated node.attrib_get in favor of node.get_attrib"
+    get_attrib attrib
   end
-  
-  def jig_get(attrib)
-    puts "DEPRICATED 12/26/12+90 jig_get #{attrib}"
-    attrib_get attrib
+  def get_attrib(attrib)
+    a = Attrib.find_key attrib 
+    if a.nil?
+      # find or create the attrib
+      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+    end
+    AttribInstance.find_or_create_by_attrib_and_node(a, self)
   end
-  
-  def jig_set(attrib, value=nil)
-    puts "DEPRICATED 12/26/12+90 jig_set #{attrib}=#{value}"
-    attrib_set attrib, value
-  end
-  
+    
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
-  def attrib_set(attrib, value=nil)
-    bca = Barclamp.find_by_name('crowbar').add_attrib :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
-    a = bca.attrib
-    na = NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+  def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
+    Rails.logger.warn "depricated node.attrib_set in favor of node.set_attrib"
+    set_attrib attrib, value, jig_run, useclass
+  end
+  def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
+    
+    # determine if we need to lookup or create a new attrib
+    a = Attrib.find_key attrib
+    if a.nil?
+      # find or create the attrib
+      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+    end
+    na = AttribInstance.find_or_create_by_attrib_and_node a, self, useclass
     na.actual = value
+    na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.id : jig_run)
     na.save
     na
   end
-  
+    
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
-      return attrib_get(method[7..100]).value
+      return get_attrib(method[7..100]).value
     elsif method.starts_with? "jig_"
-      return attrib_get(method[5..100]).value
+      return get_attrib(method[5..100]).value
     else
-      Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
-      throw "ERROR #{method} not defined for node #{name}"
+      super.method_missing(m,*args,&block)
     end
   end
   

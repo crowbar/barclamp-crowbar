@@ -13,8 +13,8 @@
     = begin render :partial => "barclamp/#{@barclamp.name}/index" rescue (render :partial => 'barclamp/index') end
 
 :javascript
-  function update() {
-    $.ajaxSetup({ timeout: 3000 }) 
+  function CB1update() {
+    $.ajaxSetup({ timeout: 15000 }) 
     $.getJSON('#{proposal_status_path}', function(data) {
       // If role has changed, re-render the page
       if (data['count'] != #{Proposal.count}) {

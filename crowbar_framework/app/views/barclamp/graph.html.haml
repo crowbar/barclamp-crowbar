@@ -1,0 +1,47 @@
+%h1= t '.title'
+
+%ol
+  - @barclamps.sort.each do |bc|
+    %li
+      %h3= "#{bc.name} (#{bc.description})"
+      %ul{:id=>bc.id}
+        %li
+          = t ".parents"
+          = ":"
+          = bc.parents.map{|b| "#{b.name}"}.join(", ")
+        %li
+          = t ".members"
+          = ":"
+          = bc.members.map{|b| "#{b.name}"}.join(", ")
+        %li{:id=>"#{bc.id}_template"}
+          - t = bc.template
+          = t ".template"
+          = ": #{t.name} (#{t.description})"
+          %ul{:id=>"#{bc.id}_roles"}
+            - t.role_instances.each do |ri|
+              - role = ri.role
+              - unless role.nil?              
+                %li= "#{t ".roles"}: #{role.name} (run_order=#{ri.run_order})" 
+              - else
+                %li= "#{t ".roles"}: no role! RoleInstance = #{ri.inspect}" 
+        %li
+          = t ".configs"
+          %ul{:id=>"#{bc.id}_configs"}
+            - bc.configs.each do |c|
+              %li
+                = "#{c.name}: #{(c.active?) ? t('active') : ''} #{c.description}"
+                - c.instances.each do |i|
+                  %li
+                    = "#{t '.instance'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"
+        %li
+          = t ".proposals"
+          %em= t 'depricated'
+          %ul{:id=>"#{bc.id}_props"}
+            - bc.proposals.each do |prop|
+              %li= prop.name
+        %li
+          = t ".attribs"
+          %ul{:id=>"#{bc.id}_attribs"}
+            - bc.attribs.each do |a|
+              %li= a.name
+    

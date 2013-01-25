@@ -41,12 +41,22 @@ class DocsController < ApplicationController
     begin 
       @topic = Doc.find_by_name params[:id]
       @topic = Doc.find_by_name params[:id].gsub("/","+") unless @topic
-      @file = Doc.page_path File.join('..','doc'), @topic.name
+      if @topic
+        @file = Doc.page_path File.join('..','doc'), @topic.name
+      else
+        @file = File.join '..','doc', params[:id]
+      end
       html = !params.has_key?(:source)
+      image = false
       # navigation items
       if File.exist? @file
-        @text = (html ? %x[markdown #{@file}] : IO.read(@file))
-        @text += Doc.topic_expand(@topic.name, html) if params.has_key? :expand
+        if @file =~ /\.md$/
+          @text = (html ? %x[markdown #{@file}] : IO.read(@file))
+          @text += Doc.topic_expand(@topic.name, html) if params.has_key? :expand
+        elsif @file =~ /\.(jpg|png)$/
+          html = false
+          image = true
+        end
       else
         @text = I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
       end
@@ -54,11 +64,13 @@ class DocsController < ApplicationController
       @text = I18n.t('.topic_error', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
     end
-    if params.has_key? :expand
+    if image
+       render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
+    elsif params.has_key? :expand
       if html
          render :layout => 'doc_export'
       else
-         render :text=>@text, :content_type => :text 
+         render :text=>@text, :content_type => :text
       end
     end
   end

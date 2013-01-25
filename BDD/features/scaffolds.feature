@@ -48,7 +48,6 @@ Feature: Scaffolds
     When I go to the "scaffolds/roles" page
     Then I should see "Roles"
       And I should see "Name"
-      And I should see "States"
       And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"
@@ -129,7 +128,7 @@ Feature: Scaffolds
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Node attribs"
+      And I should see "Attrib instances"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"

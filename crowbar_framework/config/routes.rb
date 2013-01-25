@@ -60,6 +60,8 @@ Crowbar::Application.routes.draw do
     resources :vlans do as_routes end
   end
 
+# DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
+
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end
@@ -93,6 +95,7 @@ Crowbar::Application.routes.draw do
     version = "2.0"
     get '/', :controller=>'support', :action=>'index', :as => :utils
     get 'i18n/:id', :controller=>'support', :action=>'i18n', :constraints => { :id => /.*/ }, :as => :utils_i18n
+    get 'marker/:id', :controller=>'support', :action=>'marker', :constraints => { :id => /.*/ }, :as => :utils_marker
     get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
     get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
     get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
@@ -109,6 +112,7 @@ Crowbar::Application.routes.draw do
   # Barclamp UI routes (overlays that can be used generically by barclamps to create custom views)
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
+    get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
     constraints(:id => /([a-zA-Z0-9\-\.\_]*)/ ) do
       get ":controller/network(/:id)", :action=>"network", :as=>"barclamp_network"
       get ":controller/node(/:id)", :action=>"node", :as=>"barclamp_node"
@@ -178,6 +182,7 @@ Crowbar::Application.routes.draw do
             match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
             # group + node CRUD operations
             match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
+
             get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
             get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
             post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
@@ -185,6 +190,7 @@ Crowbar::Application.routes.draw do
             delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
             post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
             delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
+			post   "network/networks/:id/enable_interface", :controller => 'networks', :action=>'network_enable_interface'
 
             # basic list operations 
             get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!

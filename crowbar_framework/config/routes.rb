@@ -69,8 +69,8 @@ Crowbar::Application.routes.draw do
     # resource :conduit
     # resources :network, :only => [:show, :new, :create, :edit, :update, :destroy]
     resources :networks, :conduits
-    # get 'network', :controller => 'network', :action=>'networks', :constraints => { :id => /.*/ }, :as => :network
-    # get 'conduit', :controller => 'conduit', :action=>'show', :constraints => { :id => /.*/ }, :as => :conduit
+    # get 'network', :controller => 'networks', :action=>'networks', :constraints => { :id => /.*/ }, :as => :network
+    # get 'conduit', :controller => 'conduits', :action=>'show', :constraints => { :id => /.*/ }, :as => :conduit
   end
 
 
@@ -83,9 +83,9 @@ Crowbar::Application.routes.draw do
 
   scope 'network' do
     version = "2.0"
-    get '/', :controller => 'network', :action=>'switch', :as => :network
-    get 'switch(/:id)', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
-    get 'vlan(/:id)', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
+    get '/', :controller => 'networks', :action=>'switch', :as => :network
+    get 'switch(/:id)', :controller => 'networks', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
+    get 'vlan(/:id)', :controller => 'networks', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
     get ":controller/#{version}", :action=>'network', :as => :network_barclamp
   end
 
@@ -178,13 +178,13 @@ Crowbar::Application.routes.draw do
             match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
             # group + node CRUD operations
             match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-            get    "network/networks", :controller => 'network', :action=>'networks'     # MOVE TO GENERIC!
-            get    "network/networks/:id", :controller => 'network', :action=>'network_show'     # MOVE TO GENERIC!
-            post   "network/networks", :controller => 'network', :action=>'network_create'     # MOVE TO GENERIC!
-            put    "network/networks/:id", :controller => 'network', :action=>'network_update'     # MOVE TO GENERIC!
-            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'     # MOVE TO GENERIC!
-            post   "network/networks/:id/allocate_ip", :controller => 'network', :action=>'network_allocate_ip'
-            delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'network', :action=>'network_deallocate_ip'
+            get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
+            get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
+            post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
+            put    "network/networks/:id", :controller => 'networks', :action=>'network_update'     # MOVE TO GENERIC!
+            delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
+            post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
+            delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
 
             # basic list operations 
             get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!

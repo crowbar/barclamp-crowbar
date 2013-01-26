@@ -154,6 +154,7 @@ Crowbar::Application.routes.draw do
             delete "network/networks/:id", :controller => 'network', :action=>'network_delete'     # MOVE TO GENERIC!
             post   "network/networks/:id/allocate_ip", :controller => 'network', :action=>'network_allocate_ip'
             delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'network', :action=>'network_deallocate_ip'
+            post   "network/networks/:id/enable_interface", :controller => 'network', :action=>'network_enable_interface'
 
             # basic list operations 
             get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!

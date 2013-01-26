@@ -23,7 +23,8 @@ class JigRun < ActiveRecord::Base
   belongs_to      :jig_event  # the event triggering this run
   alias_attribute :event,     :jig_event
 
-  belongs_to      :node_role   # The node this run (will) execute on.  
+  has_many        :node_attribs,  :dependent => :destroy 
+  has_many        :nodes,         :through => :node_attribs   # may need unique filter to eliminate dup nodes
 
   # The status values
   RUN_UNKNOWN = 0

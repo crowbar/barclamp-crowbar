@@ -37,8 +37,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
   test "Barclamp Register creates & stores attributes" do
     jig = JigTest.find_or_create_by_name :name=>'test'
-    jig_event = JigEvent.create :name=>'test', :jig_id=>jig.id
-    jig_runt = JigRun.create :name=>'test', :jig_event_id=>jig.id
+    jig_run = jig.run
     bc = Barclamp.create :name=>"gimme_data"
     c = bc.attribs.count
     # add the attributes that we want to test

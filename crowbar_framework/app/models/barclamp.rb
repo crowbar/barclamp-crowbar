@@ -192,9 +192,9 @@ class Barclamp < ActiveRecord::Base
   def process_inbound_data jig_run, node, data
     self.barclamp_attribs.each do |ba|
       # get the value
-      value = Barclamp.find_attrib_in_data_from_jig jig_run.jig, data, ba.map
+      value = jig_run.jig.find_attrib_in_data data, ba.map
       # store the value
-      node.attrib_set(ba.attrib, value)
+      node.attrib_set(ba.attrib, value, jig_run)
     end
     node
   end

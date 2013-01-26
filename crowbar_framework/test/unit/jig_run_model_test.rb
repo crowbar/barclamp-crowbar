@@ -17,22 +17,6 @@ require 'json'
 
 class JigRunModelTest < ActiveSupport::TestCase
 
-  test "Unique Name" do
-    JigRun.create! :name=>"nodups", :type=>"JigRunTest", :description=>"unit tests"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { JigRun.create!(:name => "nodups") }
-    assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "nodups" }
-  end
-
-  test "Naming Conventions" do
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"1123", :type=>"JigRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"1foo", :type=>"JigRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"Ille!gal", :type=>"JigRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>" nospaces", :type=>"JigRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"no spaces", :type=>"JigRunTest")}
-    assert_raise(ActiveRecord::RecordInvalid) { JigRun.create!(:name=>"nospacesatall ", :type=>"JigRunTest")}
-  end
-
   test "Must have override object-missing" do
      JigRun.create!(:name=>"foo", :type=>"JigRunFoo")
      e = assert_raise(ActiveRecord::SubclassNotFound) { JigRun.find_by_name "foo" }
@@ -54,25 +38,5 @@ class JigRunModelTest < ActiveSupport::TestCase
     assert_kind_of JigRun, c
   end
   
-  test "as_json routines returns correct items" do
-    name = "json_test"
-    type = "JigRunTest"
-    status = "Done"
-    result = "255"
-    jig_event_id = 4
-    description = "This is a unit test"
-    c = JigRun.create! :name=>name, :type=>type, :description => description, :order => 100, :result => result, :status => status, :jig_event_id => jig_event_id
-    j = JSON.parse(c.to_json)
-    assert_equal j['type'], type
-    assert_equal j['name'], name
-    assert_equal j['description'], description
-    assert_equal j['order'], 100
-    assert_equal j['result'], result
-    assert_equal j['status'], status
-    assert_equal j['jig_event_id'], jig_event_id
-    assert_not_nil j['created_at']
-    assert_not_nil j['updated_at']
-    assert_equal j.length, 10
-  end
 end
 

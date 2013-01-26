@@ -31,8 +31,8 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
   test "Use Hint to Extract Data" do
     jig = JigTest.new
-    assert_equal @node, Barclamp.find_attrib_in_data_from_jig(jig, @sample, "fqdn")
-    assert_equal "To Be Filled By O.E.M.", Barclamp.find_attrib_in_data_from_jig(jig, @sample, "dmi/chassis/asset_tag")
+    assert_equal @node, jig.find_attrib_in_data(@sample, "fqdn")
+    assert_equal "To Be Filled By O.E.M.", jig.find_attrib_in_data(@sample, "dmi/chassis/asset_tag")
   end
 
   test "Barclamp Register creates & stores attributes" do

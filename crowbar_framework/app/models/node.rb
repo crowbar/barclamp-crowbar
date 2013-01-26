@@ -256,30 +256,6 @@ class Node < ActiveRecord::Base
     end
     cno.save
   end
-
-  # Rob's list of Jig attributes needed by the UI
-    #alias
-    #name
-    #ip (list)
-    #public_ip
-    #mac
-    #ipmi_enabled?
-    #physical_drives (list)
-    #memory (total)
-    #cpu (type & count)
-    #hardware (dmi product name)
-    #raid_set
-    #nics (list)
-    #uptime
-    #asset_tag
-    #number_of_drives
-    #physical_drives (list)
-    #switch name, mac, port, unit
-    #bios_set -> ["crowbar"]["hardware"]["bios_set"] 
-    #get_bmc_user -> ["ipmi"]["bmc_user"] 
-    #get_bmc_password-> ["ipmi"]["bmc_password"] 
-    #bmc_address
-  
   
   # Friendly name for the UI
 

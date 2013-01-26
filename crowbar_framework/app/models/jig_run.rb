@@ -25,6 +25,7 @@ class JigRun < ActiveRecord::Base
   
   belongs_to :jig_event  # the event triggering this run
   belongs_to :node_role   # The node this run (will) execute on.
+  
 
   # The status values
   RUN_PENDING = 1
@@ -32,6 +33,10 @@ class JigRun < ActiveRecord::Base
   RUN_SUCCESS = 3
   RUN_FAIL = 4
 
+  # grand-parent object (perhaps can be a belongs_to :through?)
+  def jig
+    self.jig_event.jig
+  end
 
   def init
     puts "INIT JigRun"

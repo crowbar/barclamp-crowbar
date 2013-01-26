@@ -169,6 +169,8 @@ en:
       instance_active: Can not delete active proposals.
       unknown_delete_fail: Unknown delete failure
     attribs:
+      barclamp:
+        default_create_description: "%{barclamp} Created Attribute"
       node:
         default_create_description: "System Created Attribute"
         name: Full Name

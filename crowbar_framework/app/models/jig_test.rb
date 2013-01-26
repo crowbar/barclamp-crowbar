@@ -17,36 +17,6 @@
 # It is NOT installed by default, but can be used for testing or as a model
 class JigTest < Jig
 
-  def init
-    super.init
-  end
-
-  def create_event(config)
-    puts "$$$ #{Time.now.to_i} #{id}"
-    JigEvent.create(:name=>Time.now.to_i.to_s, :jig_id => id, :type=>'JigEventTest', :status => JigEvent::EVT_PENDING)
-  end
-  
-  def run(config_id)
-    super.run config_id
-    config_id
-  end
-
-  def delete_node(node)
-    name = node.name
-    Rails.logger.info("Test Jig #{self.name} is removing the node #{name} from the system")
-  end
-
-  def node(name)
-    # override
-    super.node name
-    name
-  end
-
-  def data(key)
-    super.data key
-    key
-  end
-
 end
 
 

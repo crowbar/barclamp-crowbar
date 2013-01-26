@@ -198,29 +198,6 @@ class Barclamp < ActiveRecord::Base
     end
     node
   end
-    
-  # find a single attribute in a data set
-  def self.find_attrib_in_data_from_jig(jig, data, path)
-    throw "barclamp.find_attrib_in_data_from_jig not compatable with #{jig.class} class" unless jig.is_a? JigChef or jig.is_a? JigTest
-    nav = path.split '/'
-    # add some optimization to avoid looping down through the structure
-    case nav.length 
-      when 1 
-        data[nav[0]]
-      when 2
-        data[nav[0]][nav[1]]
-      when 3
-        data[nav[0]][nav[1]][nav[2]]
-      when 4
-        data[nav[0]][nav[1]][nav[2]][nav[3]]
-      when 5
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
-      when 6
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
-      else 
-        nav.each { |key| data = data[key] }
-    end
-  end
 
   ### private method.
   # Parse the deployment section of a barclamps template

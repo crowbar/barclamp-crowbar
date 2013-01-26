@@ -28,6 +28,8 @@ class BarclampAttrib < ActiveRecord::Base
 
   self.primary_key = 'generated_id'
 
+  alias_attribute :map, :description
+  
   def self.find(id)
     BarclampAttrib.find_by_generated_id id
   end

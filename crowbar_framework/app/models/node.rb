@@ -256,30 +256,6 @@ class Node < ActiveRecord::Base
     end
     cno.save
   end
-
-  # Rob's list of Jig attributes needed by the UI
-    #alias
-    #name
-    #ip (list)
-    #public_ip
-    #mac
-    #ipmi_enabled?
-    #physical_drives (list)
-    #memory (total)
-    #cpu (type & count)
-    #hardware (dmi product name)
-    #raid_set
-    #nics (list)
-    #uptime
-    #asset_tag
-    #number_of_drives
-    #physical_drives (list)
-    #switch name, mac, port, unit
-    #bios_set -> ["crowbar"]["hardware"]["bios_set"] 
-    #get_bmc_user -> ["ipmi"]["bmc_user"] 
-    #get_bmc_password-> ["ipmi"]["bmc_password"] 
-    #bmc_address
-  
   
   # Friendly name for the UI
 
@@ -327,27 +303,28 @@ class Node < ActiveRecord::Base
     a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
     return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
   end
-  
-  def jig_get(attrib)
-    puts "DEPRICATED 12/26/12+90 jig_get #{attrib}"
-    attrib_get attrib
-  end
-  
-  def jig_set(attrib, value=nil)
-    puts "DEPRICATED 12/26/12+90 jig_set #{attrib}=#{value}"
-    attrib_set attrib, value
-  end
-  
+    
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
-  def attrib_set(attrib, value=nil)
-    bca = Barclamp.find_by_name('crowbar').add_attrib :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
-    a = bca.attrib
-    na = NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+  def attrib_set(attrib, value=nil, jig_run=0)
+    
+    # determine if we need to lookup or create a new attrib
+    unless attrib.is_a? Attrib
+      # find the attrib
+      attrib = Attrib.find_by_name attrib if attrib.is_a? String
+      # if missing then we need to add it
+      if attrib.nil?
+        bc = Barclamp.find_by_name 'crowbar'
+        bca = bc.add_attrib :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+        attrib = bca.attrib
+      end
+    end
+    na = NodeAttrib.find_or_create_by_node_and_attrib self, attrib
     na.actual = value
+    na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.object_id : jig_run)
     na.save
     na
   end
-  
+    
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
@@ -355,8 +332,7 @@ class Node < ActiveRecord::Base
     elsif method.starts_with? "jig_"
       return attrib_get(method[5..100]).value
     else
-      Rails.logger.fatal("Cannot delegate method #{m} to #{self.class}")
-      throw "ERROR #{method} not defined for node #{name}"
+      super.method_missing(m,*args,&block)
     end
   end
   

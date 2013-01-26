@@ -24,22 +24,46 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     @sample = JSON::load File.open("#{file}", 'r')
     assert_not_nil @sample, "we have data"
     assert_kind_of Chef::Node, @sample
-    @node = @sample.name 
+    @node = @sample.name
+    @mynode = Node.find_or_create_by_name :name=>@node
     assert_not_nil @node, "for the exected node"
   end
 
   test "Use Hint to Extract Data" do
     jig = JigTest.new
-    assert_equal @node, Barclamp.find_attrib_in_data_from_jig(jig, @sample, "fqdn")
-    assert_equal "To Be Filled By O.E.M.", Barclamp.find_attrib_in_data_from_jig(jig, @sample, "dmi/chassis/asset_tag")
+    assert_equal @node, jig.find_attrib_in_data(@sample, "fqdn")
+    assert_equal "To Be Filled By O.E.M.", jig.find_attrib_in_data(@sample, "dmi/chassis/asset_tag")
   end
 
-  test "Barclamp Register creates attributes" do
-    assert true, "test not created"
-  end
+  test "Barclamp Register creates & stores attributes" do
+    jig = JigTest.find_or_create_by_name :name=>'test'
+    jig_run = jig.run
+    bc = Barclamp.create :name=>"gimme_data"
+    c = bc.attribs.count
+    # add the attributes that we want to test
+    a1 = bc.add_attrib "eth0", "crowbar_ohai/detected/network/eth0"  #expected "0000:00/0000:00:01.0/0000:01:00.0"
+    assert_equal "eth0", a1.attrib.name
+    assert_nil @mynode.attrib_get(a1.attrib.name).value
+    assert_equal :empty, @mynode.attrib_get(a1.attrib.name).state
+    a2 = bc.add_attrib "eth0_switch_name", "crowbar_ohai/switch_config/eth1/switch_name" # expected "00:25:64:2e:61:f6"
+    assert_equal "eth0_switch_name", a2.attrib.name
+    assert_nil @mynode.attrib_get(a2.attrib.name).value
+    assert_equal :empty, @mynode.attrib_get(a2.attrib.name).state
+    a3 = bc.add_attrib "serial_number", "dmi/base_board/serial_number" # ".HR74KN1.CN7475106U0180.   "
+    assert_equal "serial_number", a3.attrib.name
+    assert c, bc.attribs(true).count
+    assert_nil @mynode.attrib_get(a3.attrib.name).value
+    assert_equal :empty, @mynode.attrib_get(a3.attrib.name).state
 
-  test "Barclamp run_data create mode data" do
-    assert true, "test not created"
+    node = bc.process_inbound_data jig_run, @mynode, @sample
+    # values should be updated
+    assert_equal "0000:00/0000:00:01.0/0000:01:00.0", node.attrib_eth0
+    assert_equal :managed, node.attrib_get("eth0").state
+    assert_equal "00:25:64:2e:61:f6", node.attrib_eth0_switch_name
+    assert_equal :managed, node.attrib_get("eth0_switch_name").state
+    assert_equal ".HR74KN1.CN7475106U0180.   ", node.attrib_serial_number
+    assert_equal :managed, node.attrib_get("serial_number").state
+    
   end
 
 end

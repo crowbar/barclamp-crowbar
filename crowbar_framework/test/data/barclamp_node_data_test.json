@@ -1190,10 +1190,14 @@
           "real" : 2,
           "total" : 16
         },
-      "crowbar_ohai" : { "detected" : { "network" : { "eth0" : "0000:00/0000:00:01.0/0000:01:00.0",
+      "crowbar_ohai" : { 
+          "detected" : { 
+                "network" : { 
+                  "eth0" : "0000:00/0000:00:01.0/0000:01:00.0",
                   "eth1" : "0000:00/0000:00:01.0/0000:01:00.1"
                 } },
-          "switch_config" : { "eth0" : { "interface" : "eth0",
+          "switch_config" : { 
+              "eth0" : { "interface" : "eth0",
                   "mac" : "00:26:6c:f2:ad:70\n",
                   "switch_name" : "00:25:64:2e:61:f6",
                   "switch_port" : "15",
@@ -1208,7 +1212,9 @@
             }
         },
       "current_user" : null,
-      "dmi" : { "base_board" : { "all_records" : [ { "Asset Tag" : "To Be Filled By O.E.M.",
+      "dmi" : { "base_board" : { 
+              "all_records" : [ { 
+                    "Asset Tag" : "To Be Filled By O.E.M.",
                     "Chassis Handle" : "0x0004",
                     "Contained Object Handles" : "0",
                     "Features" : { "Board is a hosting board" : null,

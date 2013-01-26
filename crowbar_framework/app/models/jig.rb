@@ -22,8 +22,11 @@ class Jig < ActiveRecord::Base
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
-  has_many :maps, :class_name => JigMap.name, :foreign_key => "jig_id"
+
+  has_many        :jig_events,   :dependent => :destroy 
+  alias_attribute :events,       :jig_events
+  has_many        :jig_runs,     :through => :jig_events
+  alias_attribute :runs,         :jig_runs
 
   #####
   #  Find the right instance to use for applying the given configuration.
@@ -78,6 +81,44 @@ class Jig < ActiveRecord::Base
   # compute event for execution by computing whatever the jig backend needs
   def prepare_for_execution(evt,config)
     # here for sub-classes to override.
+  end
+
+  # OVERRIDE with actual delete effort
+  def delete_node(node)
+    Rails.logger.debug("jig.delete_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
+  end
+  
+  # setup the Jig event and ` events
+  # RETURNS JigRun object approprate for the Jig  
+  def run
+    event = JigEvent.create :name=>DateTime.now.to_s, :jig_id => self.id, :type=>"JigEvent", :description=>"Running #{self.name}"
+    JigRun.create :jig_event_id => event.id, :type => "JigRun", :name => event.name+"_1", :description=>"Running #{self.name}"
+  end
+  
+  # SUBCLASS THIS METHOD if you want to change how data is found in the input data
+  # Called by the barclamp.process_inbound_data routine
+  # find a single attribute in a json data set
+  # / is used as a delimiter
+  # optimized to 6 levels without looping
+  def find_attrib_in_data(data, path)
+    nav = path.split '/'
+    # add some optimization to avoid looping down through the structure
+    case nav.length 
+      when 1 
+        data[nav[0]]
+      when 2
+        data[nav[0]][nav[1]]
+      when 3
+        data[nav[0]][nav[1]][nav[2]]
+      when 4
+        data[nav[0]][nav[1]][nav[2]][nav[3]]
+      when 5
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
+      when 6
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
+      else 
+        nav.each { |key| data = data[key] }
+    end
   end
     
   def as_json options={}

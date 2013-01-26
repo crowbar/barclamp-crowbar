@@ -69,8 +69,8 @@ class Doc < ActiveRecord::Base
   end
   
   # helper builds the path for routines later
-  def self.page_path(path, name)
-    File.join path, name.gsub("+", "/")+'.md'
+  def self.page_path(path, name, ext='.md')
+    File.join path, name.gsub("+", "/")+ext
   end
 
   # find the parent of a doc using the membership associations

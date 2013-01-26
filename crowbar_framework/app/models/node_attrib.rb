@@ -25,9 +25,11 @@ class NodeAttrib < ActiveRecord::Base
   attr_accessible :node_id, :attrib_id, :value_actual, :value_request, :jig_run_id
   attr_readonly   :name
 
-  belongs_to  :attrib
-  belongs_to  :node
-  #belongs_to  :run, :class_name => "JigRun", :foreign_key => "jig_run_id"
+  belongs_to      :attrib
+  belongs_to      :node
+  belongs_to      :jig_run
+  alias_attribute :run,       :jig_run
+
 
   self.primary_key = 'generated_id'
 

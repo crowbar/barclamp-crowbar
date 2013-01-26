@@ -101,6 +101,10 @@ class Barclamp < ActiveRecord::Base
 
   # 
   # Barclamps are responsible to creating the attributes that they will manage
+  # INPUTS: 
+  #   Attrib name or object to assign to barclamp
+  #   map (optional) provides information to help barclamp resolve inbound data from jigs
+  # RETURNS: Attrib
   # name is required, all other fields are optional
   # attributes cannot be reassigned to a different barclamp
   # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
@@ -110,13 +114,25 @@ class Barclamp < ActiveRecord::Base
       throw "barclamp.add_attrib requires Attrib object or hash with :name"
     elsif attrib.is_a? Attrib
       a = attrib
-    else
+    elsif attrib.is_a? String
+      # we can make them from just a string
+      a = Attrib.find_or_create_by_name :name => attrib, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>self.name)
+    elsif attrib.is_a? Hash
+      # we can make them from a hash if the creator wants to include more info
       throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name
       a = Attrib.find_or_create_by_name attrib
+    else
+      throw "barclamp.add_attrib cannot use #{attrib.class} to create from attribute: #{attrib.inspect}"
     end
     ba = BarclampAttrib.find_or_create_by_barclamp_and_attrib self, a
     unless map.nil?
-      ba.update_attributes map 
+      if map.is_a? String
+        ba.map = map 
+      elsif map.is_a? Hash and map.has_key? :description
+        ba.update_attributes map 
+      else
+        Rails.logger.warn "barclamp.add_attrib could not set map #{map} because it was not a string or hash with key :description"
+      end
       ba.save
     end
     ba
@@ -171,27 +187,16 @@ class Barclamp < ActiveRecord::Base
     run_order
   end
   
-  # find a single attribute in a data set
-  def self.find_attrib_in_data_from_jig(jig, data, path)
-    throw "barclamp.find_attrib not compatable with #{jig.name} type" unless jig.is_a? JigChef or jig.is_a? JigTest
-    nav = path.split '/'
-    # add some optimization to avoid looping down through the structure
-    case nav.length 
-      when 1 
-        data[nav[0]]
-      when 2
-        data[nav[0]][nav[1]]
-      when 3
-        data[nav[0]][nav[1]][nav[2]]
-      when 4
-        data[nav[0]][nav[1]][nav[2]][nav[3]]
-      when 5
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
-      when 6
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
-      else 
-        nav.each { |key| data = data[key] }
+  # take run data from the jig and process it into attributes
+  # returns the node
+  def process_inbound_data jig_run, node, data
+    self.barclamp_attribs.each do |ba|
+      # get the value
+      value = jig_run.jig.find_attrib_in_data data, ba.map
+      # store the value
+      node.attrib_set(ba.attrib, value, jig_run)
     end
+    node
   end
 
   ### private method.

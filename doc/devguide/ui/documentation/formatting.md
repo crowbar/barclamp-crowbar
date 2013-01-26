@@ -1,5 +1,13 @@
 ### Formatting Documentation 
 
+> Cheat Sheet: http://warpedvisions.org/projects/markdown-cheat-sheet/
+
+#### Links
+
+You can create links to pages using with square braces for the link text and parens for the link address.
+
+`[Link Contents](Link URL)`
+
 #### WYSIWG Editing
 
 Markdown is designed to be easy to ready as plan text (think writing an email) but it really helps to be able to see how it will be formatted in the browser.

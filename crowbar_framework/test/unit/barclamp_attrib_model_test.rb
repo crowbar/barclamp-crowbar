@@ -89,6 +89,17 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     assert_equal @attrib.id, a.attrib_id
   end
   
+  test "Attrib-Barclamp add string attrib works" do
+    bca = @bc.add_attrib "foo"
+    assert_not_nil bca
+    assert_equal "foo", bca.attrib.name
+  end
+
+  test "Attrib-Barclamp wrong type add" do
+    e = assert_raise(NameError) {  bca = @bc.add_attrib(666) }
+    assert_equal "uncaught throw `barclamp.add_attrib cannot use Fixnum to create from attribute: 666'", e.message
+  end
+  
   test "Barclamp addAttrib requires name not description or order" do
     if RUBY_VERSION == '1.8.7'
       first_quote  = '`'

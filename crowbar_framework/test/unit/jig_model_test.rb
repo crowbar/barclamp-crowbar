@@ -69,6 +69,18 @@ class JigModelTest < ActiveSupport::TestCase
     assert_not_nil j['updated_at']
     assert_equal j.length, 7
   end
+
+  test "create event for jig with run" do
+    j = JigTest.create :name=>"test"
+    assert_not_nil j
+    r = j.run
+    assert_not_nil r
+    assert_equal j, r.event.jig
+    assert_equal 1, r.event.runs.count
+  end
+  
+  test "Jig event is the right subtype" do
+  end
   
 end
 

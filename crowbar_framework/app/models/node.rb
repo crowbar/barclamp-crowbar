@@ -35,8 +35,8 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :node_attribs, :dependent => :destroy
-  has_many :attribs, :through => :node_attribs
+  has_many :attrib_instances,  :class_name => "AttribInstance", :foreign_key => :node_id, :dependent => :destroy
+  has_many :attribs,           :through => :attrib_instances
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
@@ -297,28 +297,22 @@ class Node < ActiveRecord::Base
     end
   end  
 
-  # retrieves the attribute from nodeattribute
+  # retrieves the Attrib from AttribInstance
   # NOTE: for safety, will create the association if it is missing
   def attrib_get(attrib)
-    a = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description'))
-    return NodeAttrib.find_or_create_by_node_and_attrib(self, a)
+    attrib = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')) if attrib.is_a? String
+    return AttribInstance.find_or_create_by_attrib_and_node(attrib, self)
   end
     
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
-  def attrib_set(attrib, value=nil, jig_run=0)
+  def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
     
     # determine if we need to lookup or create a new attrib
     unless attrib.is_a? Attrib
-      # find the attrib
-      attrib = Attrib.find_by_name attrib if attrib.is_a? String
-      # if missing then we need to add it
-      if attrib.nil?
-        bc = Barclamp.find_by_name 'crowbar'
-        bca = bc.add_attrib :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
-        attrib = bca.attrib
-      end
+      # find or create the attrib
+      attrib = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
     end
-    na = NodeAttrib.find_or_create_by_node_and_attrib self, attrib
+    na = AttribInstance.find_or_create_by_attrib_and_node attrib, self, useclass
     na.actual = value
     na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.object_id : jig_run)
     na.save

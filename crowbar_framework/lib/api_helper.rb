@@ -29,9 +29,9 @@ module ApiHelper
       begin 
         if key.nil?
           all
-        elsif key.is_a? Integer or key =~ /^[0-9]+$/
+        elsif key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
           find_all_by_id key.to_i
-        else
+        else key.is_a? String
           find_all_by_name key
         end
       rescue ActiveRecord::RecordNotFound => e
@@ -42,10 +42,13 @@ module ApiHelper
     # Helper to allow API to use ID or name
     def find_key(key)
       begin
-        if key.is_a? Integer or key =~ /^[0-9]+$/
+        if key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
           find key.to_i
-        else
+        elsif key.is_a? String
           find_by_name key
+        elsif key.is_a? ActiveRecord::Base  
+          # if we get the object itself then use find to valid it exists
+          find key.id
         end          
       rescue ActiveRecord::RecordNotFound => e
         nil

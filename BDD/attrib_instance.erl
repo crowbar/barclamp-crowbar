@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 % 
--module(node_attrib).
+-module(attrib_instance).
 -export([json/1, validate/1, g/1]).
 -export([node_add_attrib/3, path/2]).
 
@@ -32,11 +32,11 @@ validate(JSON) ->
   R =[bdd_utils:is_a(JSON, dbid, node_id), 
       bdd_utils:is_a(JSON, dbid, attrib_id), 
       bdd_utils:is_a(JSON, str, value), 
-      bdd_utils:is_a(JSON, "^(empty|set|managed)$", state), 
+      bdd_utils:is_a(JSON, "^(empty|set|managed|test|active)$", state), 
       % standard checks (have to do because name is NOT standard)
       bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
       bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
-      bdd_utils:is_a(JSON, "^([a-zA-Z0-9\\-]*)@([a-zA-Z0-9\\-\\.]*$)", name), 
+      bdd_utils:is_a(JSON, "^([a-zA-Z0-9\\-\\_]*)@([a-zA-Z0-9\\-\\.]*$)", name), 
       bdd_utils:is_a(JSON, str, description),
       bdd_utils:is_a(JSON, integer, order),
       bdd_utils:is_a(JSON, dbid, id),
@@ -53,7 +53,7 @@ path(Node, Attrib) ->
 
 node_add_attrib(Config, Node, Attribute) -> 
   Path = path(Node, Attribute),
-  bdd_utils:log(debug, "node:attrib: Node connect node+attributes ~p", [Path]),
+  bdd_utils:log(debug, node, attrib, "Node connect node+attributes ~p", [Path]),
   eurl:put_post(Config, Path, json(g(value)), post).
      
   

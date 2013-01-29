@@ -233,7 +233,7 @@ class NodesController < ApplicationController
     if target.nil?
       render :text=>"Could not find node '#{params[:id]}'", :status => 404
     else
-      if target.destroy
+      if target.delete
         render :text => "Node #{params[:id]} deleted!"
       else
         render :text=>"Could not delete node '#{params[:id]}'", :status => 500

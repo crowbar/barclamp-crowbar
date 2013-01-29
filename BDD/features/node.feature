@@ -64,7 +64,7 @@ Feature: Nodes
   Scenario: Node Attribute List Works
     Given {object:node} "bdd1.example.com" has {object:attrib} "bddtest1"
     When REST gets the node-attribute list for "bdd1.example.com"
-    Then id {object:attrib} should have value {lookup:node_attrib.value}
+    Then id {object:attrib} should have value {lookup:attrib_instance.value}
     Finally REST unassigns {object:attrib} "bddtest1" from {object:node} "bdd1.example.com"
 
   Scenario: Node Attribute Get Value

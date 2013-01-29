@@ -28,6 +28,9 @@ class AttribInstance < ActiveRecord::Base
 
   DEFAULT_CLASS = Crowbar::AttribInstanceDefault
   
+  MARSHAL_NIL   = "\004\b0"
+  MARSHAL_EMPTY = "empty"
+  
   def self.find_or_create_by_attrib_and_node(attrib, node=nil, defaultclass=DEFAULT_CLASS)
     node_id = (node.nil? ? 0 : node.id)
     attrib_id = (attrib.nil? ? nil : attrib.id)
@@ -74,6 +77,30 @@ class AttribInstance < ActiveRecord::Base
      :created_at=> created_at,
      :updated_at=> updated_at
    }
+  end
+  
+  def self.calc_state v_actual, v_request, run
+    if v_actual.eql? MARSHAL_EMPTY and v_request.eql? MARSHAL_EMPTY
+      return :empty
+    elsif !v_actual.eql? v_request and !v_request.eql? MARSHAL_EMPTY
+      return :active
+    elsif run == 0
+      return :set
+    else
+      return :managed
+    end
+  end
+  
+  def self.serial_in value
+    Marshal::dump(value)
+  end
+
+  def self.serial_out value
+    if value.eql? MARSHAL_EMPTY
+      nil
+    else
+      Marshal::load(value)
+    end
   end
   
   private

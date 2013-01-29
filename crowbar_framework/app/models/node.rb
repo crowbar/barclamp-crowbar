@@ -300,21 +300,26 @@ class Node < ActiveRecord::Base
   # retrieves the Attrib from AttribInstance
   # NOTE: for safety, will create the association if it is missing
   def attrib_get(attrib)
-    attrib = Attrib.find_or_create_by_name(:name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')) if attrib.is_a? String
-    return AttribInstance.find_or_create_by_attrib_and_node(attrib, self)
+    a = Attrib.find_key attrib 
+    if a.nil?
+      # find or create the attrib
+      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+    end
+    AttribInstance.find_or_create_by_attrib_and_node(a, self)
   end
     
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
   def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
     
     # determine if we need to lookup or create a new attrib
-    unless attrib.is_a? Attrib
+    a = Attrib.find_key attrib
+    if a.nil?
       # find or create the attrib
-      attrib = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
     end
-    na = AttribInstance.find_or_create_by_attrib_and_node attrib, self, useclass
+    na = AttribInstance.find_or_create_by_attrib_and_node a, self, useclass
     na.actual = value
-    na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.object_id : jig_run)
+    na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.id : jig_run)
     na.save
     na
   end

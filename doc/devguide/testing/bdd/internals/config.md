@@ -53,7 +53,14 @@ BDD selects the `default.config` file automatically.  You can choose which confi
     <td>../tmp/bdd_results.out</td>
     <td>stores the detailed results of the tests.  Used by bdd:failed().</td>
   </tr>
+  <tr>
+    <td>marker_url</td>
+    <td>no</td>
+    <td>undefined</td>
+    <td>If undefined, this behavior is turned off.  If defined, BDD does a web request to URL with debug information to make it easier to find matching steps in the log.  For Crowbar, the url is `utils/marker`</td>
+  </tr>
 </table>
+
 
 ##### Example Config
 

@@ -30,7 +30,7 @@ class AttribInstance < ActiveRecord::Base
   
   def self.find_or_create_by_attrib_and_node(attrib, node=nil, defaultclass=DEFAULT_CLASS)
     node_id = (node.nil? ? 0 : node.id)
-    attrib_id = attrib.id
+    attrib_id = (attrib.nil? ? nil : attrib.id)
     defaultclass.find_or_create_by_attrib_id_and_node_id :node_id=>node_id, :attrib_id=>attrib_id
   end
 
@@ -66,7 +66,7 @@ class AttribInstance < ActiveRecord::Base
      :id=> id,
      :node_id=> node_id,
      :attrib_id=> attrib_id,
-     :name=> node.name + "@" + attrib.name,
+     :name=> attrib.name + "@" + node.name,
      :value=> value,
      :state => state,
      :order => attrib.order,              # allows object to confirm to Crowbar pattern

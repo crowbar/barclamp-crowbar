@@ -25,7 +25,8 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
     @na = @node.attrib_set @attrib, @value
-
+    assert_not_nil @na
+    assert_equal @value, @na.value
     # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
     # accordingly. Simplify once we remove 1.8 support.
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
@@ -122,7 +123,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
   test "Attrib Instance find_or_create" do
     a = Attrib.create :name=>"busted"
     assert_not_nil a
-    assert_raise(RuntimeError) { AttribInstance.find_or_create_by_attrib_and_node(nil, @node) }
+    assert_raise(ActiveRecord::StatementInvalid) { AttribInstance.find_or_create_by_attrib_and_node(nil, @node) }
     na = AttribInstance.find_or_create_by_attrib_and_node(@node, a)
     assert_not_nil na
   end

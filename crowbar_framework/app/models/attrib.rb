@@ -21,9 +21,9 @@ class Attrib < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   has_many   :attrib_instances,   :dependent => :destroy
-  has_many   :nodes, :through => :attrib_instances
-  has_many   :barclamp_attribs, :dependent => :destroy 
-  has_many   :barclamps, :through=>:barclamp_attribs
+  has_many   :nodes,              :through => :attrib_instances
+  has_many   :barclamp_attribs,   :dependent => :destroy 
+  has_many   :barclamps,          :through=>:barclamp_attribs
     
 end
 

@@ -15,9 +15,6 @@
 
 class Crowbar::AttribInstanceDefault < AttribInstance
 
-  MARSHAL_NIL   = "\004\b0"
-  MARSHAL_EMPTY = "empty"
-  
   # Returns state of value of :empty, :set (by API) or :managed (by Jig)
   def state 
     AttribInstance.calc_state value_actual , value_request, jig_run_id

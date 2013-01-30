@@ -86,7 +86,7 @@ class NodeModelTest < ActiveSupport::TestCase
     n.save
     a = Attrib.create :name=>name, :description=>description
     a.save
-    na = NodeAttrib.create :node_id=>n.id, :attrib_id=>a.id
+    na = n.attrib_get(a)
     assert_equal nil, na.value
     assert_equal :empty, na.state
     na.actual = value

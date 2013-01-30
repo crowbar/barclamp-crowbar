@@ -16,7 +16,13 @@
 # 
 
 class SupportController < ApplicationController
-    
+  
+  # used to pass a string into the debug logger to help find specificall calls  
+  def marker
+    Rails.logger.info "\nMARK >>>>> #{params[:id]} <<<<< KRAM\n"
+    render :text=>params[:id]
+  end
+  
   # used to lookup localization values
   def i18n
     begin

@@ -54,8 +54,7 @@ class CrowbarController < BarclampController
       if @node.nil?
          render :text=>I18n.t('api.not_found', :type=>'node', :id=>params[:id]), :status => 404
       else
-        @attrib = Attrib.create(:name=>params[:target_id]) if @attrib.nil? # then create the attrib
-        @na = NodeAttrib.find_or_create_by_node_and_attrib @node, @attrib
+        @na = @node.attrib_get(params[:target_id])
         if params["value"]
           @na.actual = params["value"]
           @na.save
@@ -64,18 +63,19 @@ class CrowbarController < BarclampController
       end
     # DELETE
     elsif request.delete? and @attrib
-      id = NodeAttrib.delete_by_node_and_attrib @node, @attrib
-      render :text=>I18n.t('api.deleted', :id=>id, :obj=>'node_attrib')
+      id = @node.attrib_get(@attrib)
+      id.delete
+      render :text=>I18n.t('api.deleted', :id=>id.object_id, :obj=>'attrib_instance')
     # fall through REST actions (all require ID)
     elsif request.get? and @attrib
-      @na = NodeAttrib.find_by_node_and_attrib @node, @attrib
+      @na = AttribInstance.find_by_node_id_and_attrib_id @node.id, @attrib.id
       render :json => @na
     elsif params[:target_id]
-      render :text=>I18n.t('api.not_found', :type=>'node_attrib', :id=>params[:target_id]), :status => 404
+      render :text=>I18n.t('api.not_found', :type=>'attrib_instance', :id=>params[:target_id]), :status => 404
     # list (no ID)
     elsif request.get?  
       attribs = {}
-      @node.node_attribs.each { |a| attribs[a.attrib.id] = (a.value.nil? ? 'null' : a.value ) }
+      @node.attrib_instances.each { |a| attribs[a.attrib.id] = (a.value.nil? ? 'null' : a.value ) }
       render :json => attribs
     # Catch
     else

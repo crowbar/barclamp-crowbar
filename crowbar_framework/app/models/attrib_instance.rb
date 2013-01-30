@@ -26,7 +26,7 @@ class AttribInstance < ActiveRecord::Base
   belongs_to      :jig_run
   alias_attribute :run,       :jig_run
 
-  DEFAULT_CLASS = Crowbar::AttribInstanceDefault
+  DEFAULT_CLASS = Crowbar::AttribInstanceDefault rescue AttribInstance
   
   MARSHAL_NIL   = "\004\b0"
   MARSHAL_EMPTY = "empty"

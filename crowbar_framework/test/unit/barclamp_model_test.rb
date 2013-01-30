@@ -237,8 +237,8 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "barclamp type from name works" do
     name = "test"
     # we need to make sure that the barclamp is not in the DB
-    testclass = name.capitalize+"::"+("barclamp_"+name).camelize
-    if File.exist? File.join('app', 'models', name, "barclamp_#{name}.rb")
+    testclass = name.camelize+"::Barclamp"
+    if File.exist? File.join('app', 'models', name, 'barclamp.rb')
       id = Barclamp.find_by_name name
       Barclamp.delete id
       bc = Barclamp.find_or_create_by_name :name=>name

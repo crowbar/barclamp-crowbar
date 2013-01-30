@@ -21,7 +21,7 @@ g(Item) ->
   case Item of
     name -> "dashboard1.example.com";
     atom -> dashboard1;
-    _ -> nodes:g(Item)
+    _ -> node:g(Item)
   end.
 
 % Common Routine
@@ -53,7 +53,7 @@ step(Config, Result, {step_then, _N, ["the dashboard fingerprint should match th
 step(Config, _Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = nodes:json(g(name), g(description), 100),
-  bdd_restrat:create(Config, nodes:g(path), g(atom), name, Node);
+  bdd_restrat:create(Config, node:g(path), g(atom), name, Node);
   
 step(Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it

@@ -361,8 +361,8 @@ class Barclamp < ActiveRecord::Base
   def create_type_from_name
     throw "barclamps require a name" if self.name.nil?
     file = "#{self.name}"
-    myclass = "#{self.name.camelize}::#{file.camelize}"
-    file = File.join 'app','models',self.name, file+".rb"
+    myclass = "#{self.name.camelize}::Barclamp"
+    file = File.join 'app','models',self.name, "barclamp.rb"
     if !self.type.nil?
       # do nothing - everything is OK
     elsif File.exist? file

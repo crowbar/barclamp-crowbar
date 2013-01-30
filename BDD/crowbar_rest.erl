@@ -75,12 +75,12 @@ destroy(Config, Path, Key) ->
 
 % NODES 
 step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
-  JSON = nodes:json(Node, nodes:g(description), 200),
-  bdd_restrat:create(Config, nodes:g(path), JSON);
+  JSON = node:json(Node, node:g(description), 200),
+  bdd_restrat:create(Config, node:g(path), JSON);
 
 % remove the node
 step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) -> 
-  eurl:delete(Config, nodes:g(path), Node);
+  eurl:delete(Config, node:g(path), Node);
 
 % GROUPS
 step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 

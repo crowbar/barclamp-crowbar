@@ -14,11 +14,12 @@
 #
 
 # This class is the fall back class for barclamps that are missing Barclamp subclasses
-class Crowbar::BarclampCrowbar < Barclamp
+class Crowbar::Barclamp < Barclamp
   
   def init
     super.init
 
+    # THESE SHOULD BE MOVED INTO THE BARCLAMPS THE SUPPLY THEM!!! 
     # register attributes of interest 
     self.add_attrib "alias", "dns/alias"
     self.add_attrib "public_ip"

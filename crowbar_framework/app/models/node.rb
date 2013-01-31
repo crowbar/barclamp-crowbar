@@ -300,6 +300,11 @@ class Node < ActiveRecord::Base
   # retrieves the Attrib from AttribInstance
   # NOTE: for safety, will create the association if it is missing
   def attrib_get(attrib)
+    #depricate this because it could confuse people w/ the method missing
+    Rails.logger.warn "depricated node.attrib_get in favor of node.get_attrib"
+    get_attrib attrib
+  end
+  def get_attrib(attrib)
     a = Attrib.find_key attrib 
     if a.nil?
       # find or create the attrib
@@ -310,6 +315,10 @@ class Node < ActiveRecord::Base
     
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
   def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
+    set_attrib attrib, value, jig_run, useclass
+    Rails.logger.warn "depricated node.attrib_set in favor of node.set_attrib"
+  end
+  def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
     
     # determine if we need to lookup or create a new attrib
     a = Attrib.find_key attrib
@@ -327,9 +336,9 @@ class Node < ActiveRecord::Base
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
-      return attrib_get(method[7..100]).value
+      return get_attrib(method[7..100]).value
     elsif method.starts_with? "jig_"
-      return attrib_get(method[5..100]).value
+      return get_attrib(method[5..100]).value
     else
       super.method_missing(m,*args,&block)
     end

@@ -299,13 +299,13 @@ class Node < ActiveRecord::Base
 
   # retrieves the Attrib from AttribInstance
   # NOTE: for safety, will create the association if it is missing
-  def attrib_get(attrib)
+  def attrib_get(attrib, useclass=AttribInstance::DEFAULT_CLASS)
     a = Attrib.find_key attrib 
     if a.nil?
       # find or create the attrib
       a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
     end
-    AttribInstance.find_or_create_by_attrib_and_node(a, self)
+    AttribInstance.find_or_create_by_attrib_and_node(a, self, useclass)
   end
     
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association

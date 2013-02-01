@@ -50,15 +50,19 @@ class Barclamp < ActiveRecord::Base
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   
   # this should go away...old models
-  has_one :template, :class_name => "Proposal", :conditions => 'name = "template"'
-
-  # Crowbar 2.0 models
-  has_many :roles,              :order=> "[order], [name] ASC", :foreign_key => "barclamp_id", :dependent => :destroy 
   has_many :barclamp_attribs,   :dependent => :destroy 
   has_many :attribs,            :through => :barclamp_attribs
-  has_many :barclamp_configurations, :dependent => :destroy
-  has_many :configs,            :class_name => "BarclampConfiguration", :foreign_key => "barclamp_id"
-
+  
+  # Crowbar 2.0 models
+  has_one  :template,                 :class_name => "BarclampInstance"
+  has_many :roles,                    :class_name => "Role", :through=>:template, :order=>'"role_instances"."order"'
+  
+  has_many :barclamp_instances,       :dependent => :destroy
+  alias_attribute :instances,         :barclamp_instances
+  
+  has_many :barclamp_configurations,  :dependent => :destroy
+  alias_attribute :configs,           :barclamp_configurations
+  
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
   has_and_belongs_to_many :members, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "member_id", :order => "[order], [name] ASC"
@@ -79,7 +83,7 @@ class Barclamp < ActiveRecord::Base
     @service.bc_name = name
     @service
   end
-
+  
   def allow_multiple_proposals?
     return allow_multiple_proposals
   end
@@ -207,28 +211,43 @@ class Barclamp < ActiveRecord::Base
   #  - element_run_list_order - role priorities
   #  - transitions - should transitions be passed to the bc.
   #  - transition_list - which state transitions to pass to barclamp
-  def self.import_1x_deployment(barclamp, json)
+  def self.import_1x_deployment(barclamp, json, template_file)
     bc_name = barclamp.name
+    
     jdeploy = json["deployment"][bc_name]
     barclamp.mode = jdeploy["config"]["mode"] rescue "full"
     barclamp.description = (json["description"] rescue bc_name.humanize) unless barclamp.description
     barclamp.transitions = jdeploy["config"]["transitions"] rescue false
     barclamp.transition_list = jdeploy["config"]["transition_list"].join(",") rescue ""
 
-    element_order = jdeploy["element_order"] rescue []
-    element_order.each_with_index do |role_array, index|
-      role_array.each do |role_name|
-        role = Role.find_by_name_and_barclamp_id(role_name, barclamp.id)
-        unless role 
-          states = jdeploy["element_states"][role_name].join(",") rescue "all"
-          priority = jdeploy["element_run_list_order"][role_name] rescue -1
-          role = Role.create(:name => role_name, :states => states, :order => priority, :barclamp_id => barclamp.id, :description=>"Imported from bc-template-#{bc_name}.json")
-          Rails.logger.debug("1x Import: Barclamp #{barclamp.name} added role #{role.id} (#{role.name}) for #{states} states at #{priority} priority")
+    template = BarclampInstance.create  :name => "template", 
+                                        :barclamp_id=>barclamp.id,
+                                        :description=>"Imported from #{template_file}"
+
+    # add the roles & attributes
+    json["deployment"].keys.each_with_index do |role, index|
+      r = template.add_role role
+      r.states = jdeploy["element_states"][role].join(",") rescue "all"
+      r.order = jdeploy["element_run_list_order"][role] rescue -1
+      r.description = "Imported from bc-template-#{bc_name}.json"
+puts role + " " + r.inspect
+      r.save
+      RoleElementOrder.create(:order => index, :role_id=> r.role.id)
+      # ASSUME that the roles have dedicated attribs
+      if json["attributes"][role]
+        json["attributes"][role].each do |key, value|
+          # this will handle strings or hashes
+          r.add_attrib key, value
         end
-        reo = RoleElementOrder.create(:order => index, :role_id=> role.id)
+      else
+        Rails.logger.info "#{bc_name} #{role} has no attributes in #{template_file}"
       end
     end
-    
+
+    # this is our tempate
+    barclamp.template_id = template.id
+    barclamp.save!
+
     # import users 
     if json["attributes"] and json["attributes"]["crowbar"] and json["attributes"]["crowbar"]["users"]
       json["attributes"]["crowbar"]["users"].each do |user, password|
@@ -238,21 +257,22 @@ class Barclamp < ActiveRecord::Base
         u.save!
       end
     end
+  
     return barclamp
   end
 
 
   #legacy approach - expects name of barclamp for YML import
-  def self.import_1x(bc_name)
-    bc_file = File.join('barclamps', bc_name+'.yml')
-    throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
-    bc = YAML.load_file bc_file
-    throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
+  def self.import_1x(bc_name, bc=nil)
+    if bc.nil?
+      bc_file = File.join('barclamps', bc_name+'.yml')
+      throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
+      bc = YAML.load_file bc_file
+      throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
+    end
     # Can't do the || trick booleans because nil is false.
-    amp = bc['barclamp']['allow_multiple_proposals']
-    amp = false if amp.nil?
-    um = bc['barclamp']['user_managed']
-    um = true if um.nil?
+    amp = bc['barclamp']['allow_multiple_proposals'] rescue false
+    um = bc['barclamp']['user_managed'] rescue true
     gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
     gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
     barclamp = Barclamp.create(
@@ -324,32 +344,10 @@ class Barclamp < ActiveRecord::Base
     template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
     if File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
-      self.import_1x_deployment(barclamp, json)
- 
-      # CB1 TODO this is the old way - remove
-      prop = Proposal.create(:name => "template", :description => "template")
-      prop_config = ProposalConfig.new
-      prop_config.config = json["attributes"].to_json
-      prop_config.proposal = prop
-      prop_config.save!
-
-      prop.current_config = prop_config
-      prop.save!
-      barclamp.template = prop
       
       # Create the CB2 Configuration, Instances, & Attributes to match
-      # I think this really should be done in the barclamp initializer/register -> discussion to follow
-      unless barclamp.id.nil?
-        config = BarclampConfiguration.create({ :name => "default", :barclamp_id=>barclamp.id, :description=>"Imported from #{template_file}" })
-        template = BarclampInstance.create({:name => "template", 
-                                            :barclamp_configuration_id=>config.id, 
-                                            :description=>"Imported from #{template_file}"})
-        barclamp.template_id = template.id
-      end
-      
-      # CB2 TODO - put in the attribs!
-      
-      barclamp.save!
+      self.import_1x_deployment barclamp, json, template_file
+
     end
 
     return barclamp

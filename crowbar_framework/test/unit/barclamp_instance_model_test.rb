@@ -20,5 +20,19 @@ class BarclampInstanceModelTest < ActiveSupport::TestCase
     @bc = Barclamp.create! :name=>'bc_instance_test'
   end
   
+  test "add role to instance" do
+    name = "foo"
+    assert_nil Role.find_by_name name
+    bi = BarclampInstance.create :name => "add_role", :barclamp_id => @bc.id
+    assert_equal 0, bi.role_instances.count
+    assert_not_nil bi
+    # now add the role
+    ri = bi.add_role name
+    assert_not_nil ri
+    assert_equal name, ri.role.name
+    assert_not_nil Role.find_by_name name, "now we have the name"
+    assert_equal 1, bi.role_instances.count
+  end
+  
 end
 

@@ -28,32 +28,18 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
   attr_accessible :name, :description, :order, :status, :failed_reason
-  attr_accessible :barclamp_configuration_id
+  attr_accessible :barclamp_configuration_id, :role_instance_id, :barclamp_id
   
+  belongs_to      :barclamp
   belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
-  belongs_to      :configuration,     :class_name => "BarclampConfiguration"
-  has_many        :node_roles,        :dependent => :destroy 
-  has_many        :nodes,             :through => :node_roles
-  has_many        :roles,             :through => :node_roles
+  alias_attribute :configuration,           :barclamp_configuration
 
+  has_many        :roles,             :through => :role_instances
+  has_many        :role_instances,    :dependent => :destroy 
+  alias_attribute :instances,         :role_instances
+  
   def active?
     configuration.active_configuration_id == self.id
-  end
-  
-  def failed?
-    status == STATUS_FAILED
-  end
-
-  def applied?
-    status == STATUS_APPLIED
-  end
-
-  def queued?
-    status == STATUS_QUEUED
-  end
-
-  def committing?
-    status == STATUS_COMMITTING
   end
 
   ##
@@ -68,6 +54,12 @@ class BarclampInstance < ActiveRecord::Base
   def config_hash=(chash)
     config = chash.to_json
     save!
+  end
+
+  # Add a role to a Barclamp instance by creating the needed RoleInstance
+  def add_role(role)
+    role = Role.find_or_create_by_name(:name => role) unless role.is_a? Role
+    RoleInstance.create :role_id => role.id, :barclamp_instance_id => self.id 
   end
 
   ##
@@ -191,9 +183,8 @@ class BarclampInstance < ActiveRecord::Base
     new_config.failed_reason = nil
     new_config.save
 
-    node_roles.each do |nr|
-      new_nr = NodeRole.create :node_id => nr.node_id, :role_id => nr.role_id, :barclamp_instance_id=>new_config.id
-    end
+    # clone the instances
+    role_instances.each { |ri| ri.deep_clone(self.id) }
 
     new_config
   end

@@ -24,7 +24,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     @node = Node.find_or_create_by_name :name=>"units.example.com"
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
-    @na = @node.attrib_set @attrib, @value
+    @na = @node.set_attrib @attrib, @value
     assert_not_nil @na
     assert_equal @value, @na.value
     # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it

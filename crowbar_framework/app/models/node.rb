@@ -315,8 +315,8 @@ class Node < ActiveRecord::Base
     
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
   def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
-    set_attrib attrib, value, jig_run, useclass
     Rails.logger.warn "depricated node.attrib_set in favor of node.set_attrib"
+    set_attrib attrib, value, jig_run, useclass
   end
   def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
     

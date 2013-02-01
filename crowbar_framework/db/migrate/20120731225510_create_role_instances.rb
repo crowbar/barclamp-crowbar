@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateRoles < ActiveRecord::Migration
+class CreateRoleInstances < ActiveRecord::Migration
   def change  
-    create_table :roles do |t|
-      t.belongs_to  :barclamp
-      t.string      :name,        :null=> false
-      t.string      :description, :null=> true
-      t.integer     :order,       :default => 9999  
+    create_table :role_instances do |t|
+      t.belongs_to  :role
+      t.belongs_to  :barclamp_instance
+      t.string      :description,       :null=>true
+      t.integer     :order,             :default => 9999, :null => false
+      t.string      :states,            :default=>"all",  :null=>true
       t.timestamps
     end
     #natural key
-    add_index(:roles, [:barclamp_id, :name], :unique => true)   
+    add_index(:role_instances, [:barclamp_instance_id, :role_id], :unique => true)   
   end
 end

@@ -28,17 +28,7 @@ class Role < ActiveRecord::Base
   
   has_many :role_instances,       :dependent => :destroy, :inverse_of => :role
 
-  def priority= (value)
-    self.order = value
-  end
+  alias_attribute :priority,      :order
   
-  def priority
-    self.order
-  end
-  
-  def to_s
-    "Role: #{name}"
-  end
-
 end
 

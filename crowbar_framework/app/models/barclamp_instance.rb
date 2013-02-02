@@ -59,7 +59,11 @@ class BarclampInstance < ActiveRecord::Base
   # Add a role to a Barclamp instance by creating the needed RoleInstance
   def add_role(role)
     role = Role.find_or_create_by_name(:name => role) unless role.is_a? Role
-    RoleInstance.create :role_id => role.id, :barclamp_instance_id => self.id 
+    begin
+      RoleInstance.find_by_role_id_and_barclamp_id :role_id => role.id, :barclamp_instance_id => self.id 
+    rescue
+      RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id => role.id, :barclamp_instance_id => self.id
+    end 
   end
 
   ##

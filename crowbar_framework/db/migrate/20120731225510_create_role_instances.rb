@@ -19,6 +19,7 @@ class CreateRoleInstances < ActiveRecord::Migration
       t.belongs_to  :barclamp_instance
       t.string      :description,       :null=>true
       t.integer     :order,             :default => 9999, :null => false
+      t.integer     :run_order,         :default => 9999, :null => false
       t.string      :states,            :default=>"all",  :null=>true
       t.timestamps
     end

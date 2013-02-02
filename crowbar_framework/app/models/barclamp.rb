@@ -15,7 +15,7 @@
 
 class Barclamp < ActiveRecord::Base
 
-  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type
+  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :template, :allow_multiple_proposals, :template_id
@@ -68,6 +68,9 @@ class Barclamp < ActiveRecord::Base
   has_and_belongs_to_many :members, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "member_id", :order => "[order], [name] ASC"
   has_and_belongs_to_many :parents, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "barclamp_id", :association_foreign_key => "member_id", :order => "[order], [name] ASC"
 
+  alias_attribute :configsallow_multiple_proposals?,      :allow_multiple_proposals
+
+
   #
   # Helper function to load the service object
   #
@@ -84,10 +87,6 @@ class Barclamp < ActiveRecord::Base
     @service
   end
   
-  def allow_multiple_proposals?
-    return allow_multiple_proposals
-  end
-
   #
   # Order barclamps by their order value and then their name
   #
@@ -211,61 +210,74 @@ class Barclamp < ActiveRecord::Base
   #  - element_run_list_order - role priorities
   #  - transitions - should transitions be passed to the bc.
   #  - transition_list - which state transitions to pass to barclamp
-  def self.import_1x_deployment(barclamp, json, template_file)
-    bc_name = barclamp.name
-    
-    jdeploy = json["deployment"][bc_name]
-    barclamp.mode = jdeploy["config"]["mode"] rescue "full"
-    barclamp.description = (json["description"] rescue bc_name.humanize) unless barclamp.description
-    barclamp.transitions = jdeploy["config"]["transitions"] rescue false
-    barclamp.transition_list = jdeploy["config"]["transition_list"].join(",") rescue ""
+  def import_template(json=nil, template_file=nil)
 
-    template = BarclampInstance.create  :name => "template", 
-                                        :barclamp_id=>barclamp.id,
-                                        :description=>"Imported from #{template_file}"
+
+    template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
+    if json.nil?
+      throw "cannot import template #{template_file} not found" unless File.exists? template_file
+      json = JSON::load File.open(template_file, 'r')
+    end
+
+    # all deployment details get imported into the template
+    template = BarclampInstance.create(
+                  :name => I18n.t('template', :scope => "model.barclamp", :name=>name.humanize),
+                  :barclamp_id=>self.id,
+                  :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)
+                )
 
     # add the roles & attributes
-    json["deployment"].keys.each_with_index do |role, index|
-      r = template.add_role role
-      r.states = jdeploy["element_states"][role].join(",") rescue "all"
-      r.order = jdeploy["element_run_list_order"][role] rescue -1
-      r.description = "Imported from bc-template-#{bc_name}.json"
-puts role + " " + r.inspect
-      r.save
-      RoleElementOrder.create(:order => index, :role_id=> r.role.id)
-      # ASSUME that the roles have dedicated attribs
-      if json["attributes"][role]
-        json["attributes"][role].each do |key, value|
-          # this will handle strings or hashes
-          r.add_attrib key, value
-        end
-      else
-        Rails.logger.info "#{bc_name} #{role} has no attributes in #{template_file}"
+    jdeploy = json["deployment"][name]
+    jdeploy["element_order"].each_with_index do |role_hash, top_index|
+      role_hash.each_with_index do |role, index|
+        states = jdeploy["element_states"][role].join(",") rescue "all"
+        run_order = jdeploy["element_run_list_order"][role] rescue -1
+        order = 100+(top_index*100)+index
+        ri = template.add_role role
+        ri.update_attributes( :states => states,
+                              :order => order,
+                              :run_order => run_order, 
+                              :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)  
+                            )
       end
+    end
+
+    # theses need to move into AttribInstnaces
+    mode = jdeploy["config"]["mode"] rescue "full"
+    transitions = jdeploy["config"]["transitions"] rescue false
+    transition_list = jdeploy["config"]["transition_list"].join(",") rescue ""
+    # add environment
+
+    jattrib = json["attributes"][name]
+    role = template.add_role name
+    jattrib.each do |key, value|
+      # this will handle strings or hashes
+      role.add_attrib key, value
     end
 
     # this is our tempate
-    barclamp.template_id = template.id
-    barclamp.save!
+    template_id = template.id
+    save!
 
     # import users 
-    if json["attributes"] and json["attributes"]["crowbar"] and json["attributes"]["crowbar"]["users"]
-      json["attributes"]["crowbar"]["users"].each do |user, password|
-        pass = password['password']
-        u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
-        u.digest_password(pass)   # this is required if we want API access
-        u.save!
-      end
+    users = json["attributes"]["crowbar"]["users"] rescue Hash.new
+    users.each do |user, password|
+      pass = password['password']
+      u = User.find_or_create_by_username!(:username=>user.dup, :password=>pass.dup, :is_admin=>true)
+      u.digest_password(pass)   # this is required if we want API access
+      u.save!
     end
   
-    return barclamp
   end
 
 
-  #legacy approach - expects name of barclamp for YML import
-  def self.import_1x(bc_name, bc=nil)
+  # Import from existing Config data 
+  def self.import_1x(bc_name, bc=nil, source_path=nil)
+    barclamp = Barclamp.find_or_create_by_name(bc_name)
+    # load JSON
     if bc.nil?
-      bc_file = File.join('barclamps', bc_name+'.yml')
+      source_path ||= File.join '..','barclamps', bc_name
+      bc_file = File.join(source_path, 'crowbar.yml')
       throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
       bc = YAML.load_file bc_file
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
@@ -275,33 +287,29 @@ puts role + " " + r.inspect
     um = bc['barclamp']['user_managed'] rescue true
     gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
     gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
-    barclamp = Barclamp.create(
-        :name        => bc_name,
-        :display     => bc['barclamp']['display'] || bc_name.humanize,
-        :description => bc['barclamp']['description'] || bc_name.humanize,
-        :online_help => bc['barclamp']['online_help'],
-        :version     => bc['barclamp']['version'] || 2,
-        :user_managed=> um,
-        :allow_multiple_proposals => amp,
-        
-        :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
-        :layout      => bc['crowbar']['layout'] || 2,
-        :order       => bc['crowbar']['order'] || 0,
-        :run_order   => bc['crowbar']['run_order'] || 0,
-        :jig_order  => bc['crowbar']['chef_order'] || 0,
-
-        :mode        => "full",
-        :transitions => false,
-
-        :commit      => gitcommit,
-        :build_on    => gitdate
-      )
-      
+    barclamp.update_attributes( :display     => bc['barclamp']['display'] || bc_name.humanize,
+                                :description => bc['barclamp']['description'] || bc_name.humanize,
+                                :online_help => bc['barclamp']['online_help'],
+                                :version     => bc['barclamp']['version'] || 2,
+                                :source_path => source_path,
+                                :user_managed=> um || true,
+                                :allow_multiple_proposals => amp || false,
+                                :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
+                                :layout      => bc['crowbar']['layout'] || 2,
+                                :order       => bc['crowbar']['order'] || 0,
+                                :run_order   => bc['crowbar']['run_order'] || 0,
+                                :jig_order  => bc['crowbar']['chef_order'] || 0,
+                                :mode        => "full",
+                                :transitions => false,
+                                :build_on    => (gitdate || 'unknown'),
+                                :commit      => (gitcommit || 'unknown')   )
+    barclamp.save
+    
     # memberships (if memembership is missing, we'll let you into the club anyway)
     if bc['barclamp']['member']
       bc['barclamp']['member'].each do |owner|
         o = Barclamp.find_by_name owner
-        o.members << barclamp if o
+        o.members << barclamp if o and !o.members.include? barclamp
       end
     end
 
@@ -311,7 +319,7 @@ puts role + " " + r.inspect
         prereq = prereq[1..100] if prereq.starts_with? "@"
         pre = Barclamp.find_by_name prereq
         throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
-        barclamp.prereqs << pre
+        barclamp.prereqs << pre 
       end
     end
     
@@ -328,6 +336,7 @@ puts role + " " + r.inspect
     rescue Exception => e
       #nothing
     end
+    
     begin
       rpms = Os.find_by_name "centos-6.2"
       bc['rpms'].each do |k, v|
@@ -340,15 +349,9 @@ puts role + " " + r.inspect
     rescue Exception => e
       #nothing
     end
-    
-    template_file = File.join('barclamps', 'templates', "bc-template-#{bc_name}.json")
-    if File.exists? template_file
-      json = JSON::load File.open(template_file, 'r')
-      
-      # Create the CB2 Configuration, Instances, & Attributes to match
-      self.import_1x_deployment barclamp, json, template_file
 
-    end
+    # bring in template
+    barclamp.import_template
 
     return barclamp
   end

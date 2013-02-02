@@ -207,6 +207,9 @@ en:
         proposal_count: Proposals
         status: Status
         barclamp: Barclamp
+    barclamp:
+      imported: "Imported from %{file}"
+      template: "%{name} template"
 
   # Views
   nodes:

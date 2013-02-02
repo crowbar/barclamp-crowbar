@@ -96,7 +96,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b
     t = b.template
-    assert_equal "template", t.name
+    assert_equal "Crowbar template", t.name, "this comes from the model.barclamp.template localization"
     assert_instance_of BarclampInstance, t
     assert_equal "crowbar", t.roles.first.name
   end
@@ -148,30 +148,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     rescue
       flunk("Exception inside get roles due to missing roles by order")
     end
-  end
-
-  test "roles get priority from deployment section" do
-    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
-    bc = Barclamp.new
-    bc.name = "foo"
-    Barclamp.import_1x_deployment(bc,json,"bc-foo.json")
-    rmap = {}
-    bc.template.role_instances.each do |r|
-      rmap [r.name] = r.order
-    end
-    assert_equal 80, rmap['foo_mon_master']
-    assert_equal 81, rmap['foo_mon']
-    assert_equal 82, rmap['foo_store']
-  end
-
-  test "roles are ordered correctly" do
-    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
-    bc = Barclamp.create :name=>"foo"
-    Barclamp.import_1x_deployment(bc,json,"bc-foo.json")
-    ordered = bc.roles(true)    # (true) forces a reload of the model
-    assert_equal 'foo_mon_master', ordered.first.name
-    assert_equal 'foo_mon', ordered.second.name
-    assert_equal 'foo_store', ordered.third.name
   end
 
   test "barclamp type from name works" do

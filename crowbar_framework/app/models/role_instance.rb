@@ -18,7 +18,7 @@
 
 class RoleInstance < ActiveRecord::Base
 
-  attr_accessible :description, :order, :states
+  attr_accessible :description, :order, :run_order, :states
   attr_accessible :barclamp_instance_id, :role_id
   
   belongs_to      :role,              :inverse_of => :role_instances

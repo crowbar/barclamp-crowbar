@@ -17,6 +17,18 @@
 -export([step/3]).
 -import(bdd_utils).
 
+step(Config, _Global, {step_given, {Scenario, _N}, ["I mark the logs with",Mark]}) -> 
+  URL = bdd_utils:config(marker_url, undefined),
+  S = bdd_utils:integer_to_list(Scenario),
+  SafePre = string:tokens(Mark," "),
+  Safe = string:join(SafePre,"_"),
+  case URL of
+    undefined -> bdd_utils:log(info, bdd_catchall, stop, "could not mark because marker_url was not set",[]);
+    _         -> eurl:get(Config, eurl:path(URL, S)),
+                 eurl:get(Config, eurl:path(URL, Safe)),
+                 bdd_utils:log(debug, bdd_catchall, step, "Log marked with ~p and ~p",[S, Mark])
+  end;
+
 step(_Config, _Result, {_, _N, ["pause", Time, "seconds to", Message]}) -> 
   {T, _} = string:to_integer(Time),
   io:format("\t\t\t...paused ~p seconds in order to ~s.~n", [T, Message]),

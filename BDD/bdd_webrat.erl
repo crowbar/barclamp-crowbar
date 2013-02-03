@@ -82,6 +82,8 @@ step(Config, Result, {step_then, _N, ["I should not see", Text, "in section", Id
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
 
+step(Config, Result, {step_then, N, ["I should see a heading", Text]}) -> 
+  step(Config, Result, {step_then, N, ["I should see heading", Text]});
 step(_Config, Result, {step_then, _N, ["I should see heading", Text]}) -> 
 	bdd_utils:log(debug, bdd_webrat, step, "see heading ~p", [Text]),
 	Out = [eurl:find_heading(R,Text) || R <- Result],

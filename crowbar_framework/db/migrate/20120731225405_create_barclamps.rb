@@ -21,13 +21,14 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string     :display
       t.integer    :version
       t.string     :online_help,               :null=>true
+      t.string     :source_path,               :null=>true
       t.integer    :proposal_schema_version,   :default=>2
       t.integer    :layout,                    :default=>2
       t.integer    :order,                     :default=>9999
       t.integer    :run_order,                 :default=>1000
       t.integer    :jig_order,                 :default=>1000
-      t.string     :commit,                    :null=>true
-      t.date       :build_on,                  :null=>true
+      t.string     :commit,                    :null=>true, :default=>'unknown'
+      t.date       :build_on,                  :null=>true, :default=>'unknown'
       t.boolean    :user_managed,              :default=>true
       t.boolean    :allow_multiple_proposals,  :default=>false
       t.string     :mode,                      :default=>"full"

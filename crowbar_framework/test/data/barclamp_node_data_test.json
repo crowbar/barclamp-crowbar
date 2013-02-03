@@ -1593,7 +1593,9 @@
           "structures" : { "count" : "66",
               "size" : "3952"
             },
-          "system" : { "all_records" : [ { "Family" : "Server",
+          "system" : 
+            { "all_records" : [ 
+              { "Family" : "Server",
                     "Manufacturer" : "Dell      ",
                     "Product Name" : "C6100           ",
                     "SKU Number" : "To Be Filled By O.E.M.",

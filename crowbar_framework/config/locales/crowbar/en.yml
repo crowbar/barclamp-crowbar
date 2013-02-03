@@ -207,6 +207,9 @@ en:
         proposal_count: Proposals
         status: Status
         barclamp: Barclamp
+    barclamp:
+      imported: "Imported from %{file}"
+      template: "%{name} template"
 
   # Views
   nodes:
@@ -367,12 +370,13 @@ en:
     graph:
       title: Barclamp Graph
       parents: Parents
-      roles: Roles
+      roles: Role
       proposals: Proposals
       attribs: Attributes
       members: Members
       configs: Configurations
       instance: Instance
+      template: Template
     modules:
       title: All Barclamps
     index:

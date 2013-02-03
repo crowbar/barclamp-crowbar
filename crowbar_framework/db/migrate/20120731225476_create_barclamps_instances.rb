@@ -18,7 +18,8 @@ class CreateBarclampsInstances < ActiveRecord::Migration
       t.string      :name,                        :null=>false, :default=>I18n.t('not_set')
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>10000
-      t.belongs_to  :barclamp_configuration,      :null=>false
+      t.belongs_to  :barclamp_configuration,      :null=>true
+      t.belongs_to  :barclamp,                    :null=>false                    
       t.integer     :status,                      :default => BarclampInstance::STATUS_NONE
       t.string      :failed_reason,               :null=>true
       t.timestamps      

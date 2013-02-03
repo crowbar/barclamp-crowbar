@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -22,8 +22,6 @@ class BarclampModelTest < ActiveSupport::TestCase
       Barclamp.import_1x 'crowbar'
     end
     b = Barclamp.find_by_name "crowbar"
-    r = Role.find_or_create_by_name :name=>'crowbar'
-    b.roles << r unless b.roles.include? r
   end
   
   def validate_deep_compare_prop_conf(conf, conf2)
@@ -88,7 +86,7 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     r = b.roles
 
-    r1 = Role.find_by_name_and_barclamp_id("crowbar", b.id)
+    r1 = Role.find_by_name("crowbar")
 
     assert_equal 1, r.size
     assert_equal true, r.include?(r1)
@@ -98,9 +96,9 @@ class BarclampModelTest < ActiveSupport::TestCase
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b
     t = b.template
-
-    p = Proposal.find_by_name_and_barclamp_id("template", b.id)
-    assert_equal t, p
+    assert_equal "Crowbar template", t.name, "this comes from the model.barclamp.template localization"
+    assert_instance_of BarclampInstance, t
+    assert_equal "crowbar", t.roles.first.name
   end
 
   test "Proposals empty" do
@@ -130,25 +128,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal [ "1.0" ], b.versions
   end
 
-  test "Proposal Create" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
-    assert_not_nil b
-    begin 
-      prop = b.create_proposal 
-    rescue
-      flunk("Exception on create proposal")
-      return false
-    end
-    assert prop.name.starts_with?("create")
-    validate_deep_compare_prop(prop, b.template)
-
-    prop = b.create_proposal("fred")
-    assert_equal "fred", prop.name
-    validate_deep_compare_prop(prop, b.template)
-
-    e = assert_raise(ActiveRecord::RecordInvalid) { prop = b.create_proposal("fred") }
-  end
-
   test "Naming Conventions" do
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"1123") }
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"1foo") }
@@ -158,45 +137,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"nospacesatall ") }
   end
   
-  test "Proposal Get" do
-    b = Barclamp.find_or_create_by_name("crowbar")
-    assert_not_nil b
-
-    begin
-      prop = b.create_proposal("fred")
-    rescue
-      flunk("Exception on create proposal")
-      return false
-    end
-
-    assert_equal 1, b.proposals.size
-
-    assert_equal nil, b.get_proposal("John")
-    prop = b.get_proposal("fred")
-    assert_instance_of(Proposal, prop)
-    assert_equal "fred", prop.name
-  end
-
-  test "Proposal Delete" do
-    b = Barclamp.find_or_create_by_name("crowbar")
-    assert_not_nil b
-    begin
-      prop = b.create_proposal("fred")
-    rescue
-      flunk("Exception on create proposal")
-      return false
-    end
-    b.reload
-
-    assert b.delete_proposal(b.get_proposal("fred"))
-    b.proposals.reload
-    assert_equal nil, b.get_proposal("fred")
-
-    prop = b.create_proposal("fred")
-    b.proposals.reload
-    assert_equal 1, b.proposals.size
-  end
-
   test "Get Roles by Order" do
     b = Barclamp.find_or_create_by_name("crowbar")
     assert_not_nil b
@@ -208,30 +148,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     rescue
       flunk("Exception inside get roles due to missing roles by order")
     end
-  end
-
-  test "roles get priority from deployment section" do
-    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
-    bc = Barclamp.new
-    bc.name = "foo"
-    Barclamp.import_1x_deployment(bc,json)
-    rmap = {}
-    bc.roles.all.each do |r|
-      rmap [r.name] = r.priority
-    end
-    assert_equal 80, rmap['foo_mon_master']
-    assert_equal 81, rmap['foo_mon']
-    assert_equal 82, rmap['foo_store']
-  end
-
-  test "roles are ordered correctly" do
-    json = JSON::load File.open(File.join(TEST_DATA_PATH,"bc-foo.json"))    
-    bc = Barclamp.create :name=>"foo"
-    Barclamp.import_1x_deployment(bc,json)
-    ordered = bc.roles(true)    # (true) forces a reload of the model
-    assert_equal 'foo_mon_master', ordered.first.name
-    assert_equal 'foo_mon', ordered.second.name
-    assert_equal 'foo_store', ordered.third.name
   end
 
   test "barclamp type from name works" do

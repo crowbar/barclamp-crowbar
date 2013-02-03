@@ -22,6 +22,8 @@ class CreateAttribInstances < ActiveRecord::Migration
       t.belongs_to  :jig_run,       :null=>true
       t.string      :value_actual,  :default=>"empty"
       t.string      :value_request, :default=>"empty"
+      t.integer     :id_actual,     :default=>-1
+      t.integer     :id_request,    :default=>-1
       t.timestamps      
     end
 

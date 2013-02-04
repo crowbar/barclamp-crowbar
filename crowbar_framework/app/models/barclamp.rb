@@ -49,9 +49,6 @@ class Barclamp < ActiveRecord::Base
                 :class_name => "Proposal", 
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   
-  # this should go away...old models
-  has_many :barclamp_attribs,   :dependent => :destroy 
-  has_many :attribs,            :through => :barclamp_attribs
   
   # Crowbar 2.0 models
   has_one  :template,                 :class_name => "BarclampInstance"
@@ -62,6 +59,9 @@ class Barclamp < ActiveRecord::Base
   
   has_many :barclamp_configurations,  :dependent => :destroy
   alias_attribute :configs,           :barclamp_configurations
+  
+  has_many :jig_maps,                 :dependent => :destroy
+  has_many :jigs,                     :through => :jig_maps
   
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
@@ -127,7 +127,7 @@ class Barclamp < ActiveRecord::Base
     else
       throw "barclamp.add_attrib cannot use #{attrib.class} to create from attribute: #{attrib.inspect}"
     end
-    ba = BarclampAttrib.find_or_create_by_barclamp_and_attrib self, a
+    ba = self.template.add_attrib a
     unless map.nil?
       if map.is_a? String
         ba.map = map 

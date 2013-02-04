@@ -12,18 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 class Attrib < ActiveRecord::Base
+
     
   attr_accessible :name, :description, :order
 
   validates_format_of     :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
-  has_many   :attrib_instances,   :dependent => :destroy
-  has_many   :nodes,              :through => :attrib_instances
-  has_many   :barclamp_attribs,   :dependent => :destroy 
-  has_many   :barclamps,          :through=>:barclamp_attribs
+  has_many    :attrib_instances,    :dependent => :destroy
+  has_many    :nodes,               :through => :attrib_instances
+  
+  has_many    :barclamp_instances,  :through => :attrib_instance
+  has_many    :barclamps,           :through => :barclamp_instances
+  
+  has_many    :jig_maps             :dependent => :destroy 
+  has_many    :jigs,                :through => :jig_maps
     
 end
 

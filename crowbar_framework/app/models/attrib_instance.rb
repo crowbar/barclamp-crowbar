@@ -15,14 +15,16 @@
 
 class AttribInstance < ActiveRecord::Base
 
-  before_create :create_identity
+  before_create :set_type
 
-  attr_accessible :node_id, :attrib_id, :type     # core relationshipships
+  attr_accessible :node_id, :attrib_id, :role_instance_id, :type     # core relationshipships
   attr_accessible :value_actual, :value_request   # data storage
   attr_accessible :jig_run_id                     # jig relationship
 
   belongs_to      :attrib
   belongs_to      :node
+  has_one         :role_instance
+  has_one         :role,            :through=>:role_instance
   belongs_to      :jig_run
   alias_attribute :run,       :jig_run
 
@@ -106,7 +108,7 @@ class AttribInstance < ActiveRecord::Base
   private
   
   # make sure some safe values are set for the node
-  def create_identity
+  def set_type
     self.type = Crowbar::AttribInstanceDefault.to_s if self.type.nil?
   end
   

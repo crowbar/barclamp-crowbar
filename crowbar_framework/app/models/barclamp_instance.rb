@@ -35,7 +35,9 @@ class BarclampInstance < ActiveRecord::Base
   alias_attribute :configuration,           :barclamp_configuration
 
   has_many        :roles,             :through => :role_instances
-  has_many        :role_instances,    :dependent => :destroy 
+  has_many        :role_instances,    :dependent => :destroy
+  has_many        :private_roles,     :class_name => :role_instance, :conditions=>'run_order<0'
+  has_many        :public_roles,      :class_name => :role_instance, :conditions=>'run_order>=0'
   alias_attribute :instances,         :role_instances
   
   def active?
@@ -47,11 +49,13 @@ class BarclampInstance < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
+    # TODO REMOVE / REPLACE
     {} unless config
     JSON::parse(config)
   end
 
   def config_hash=(chash)
+    # TODO REMOVE
     config = chash.to_json
     save!
   end
@@ -66,114 +70,9 @@ class BarclampInstance < ActiveRecord::Base
     end 
   end
 
-  ##
-  # Set node_roles from proposal json elements
-  #
-  # This is used to convert the elements section of a json config
-  # into node role objects tying the node/role/config_instance together.
-  #
-  def update_node_roles(elements)
-    nodes.delete_all
-    elements.each do |role_name, node_list|
-      role = Role.find_by_name(role_name)
-      node_list.each do |node_name|
-        node = Node.find_by_name(node_name)
-        nr = NodeRole.create
-        nr.node = node
-        nr.role = role
-        node_roles << nr
-      end
-    end
-    reload
-  end
-
-  #
-  # Helper function to tie a node and role to this config_instance
-  #
-  def add_node_to_role(node, role)
-    nr = NodeRole.find_by_node_id_and_role_id_and_barclamp_instance_id(node.id, role.id, self.id)
-    unless nr
-      nr = NodeRole.create
-      nr.node = node
-      nr.role = role
-      node_roles << nr
-    end
-    true
-  end
-
-  #
-  # Helper function to remove a node/role pair from thie config_instance
-  #
-  def remove_node_from_role(node, role)
-    nr = NodeRole.find_by_node_id_and_role_id_and_barclamp_instance_id(node.id, role.id, self.id)
-    if nr
-      nr.destroy 
-      reload
-    end
-    true
-  end
-
-  #
-  # Helper function to remove all nodes from this config_instance
-  # 
-  def remove_all_nodes
-    nodes.delete_all
-  end
-
-  #
-  # Helper function to build a list of nodes in a specific role (specified by name).
-  #
-  def get_nodes_by_role(role_name)
-    role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
-    nrs = NodeRole.find_all_by_role_id_and_barclamp_instance_id(role.id, self.id)
-    answer = []
-    nrs.each do |nr|
-      answer << nr.node
-    end
-    answer
-  end
-
-  #
-  # Helper function to get a hash where the keys are role names and the values
-  # are lists of nodes for that role.
-  #
-  def get_nodes_by_roles
-    answer = {}
-    node_roles.each do |nr|
-      answer[nr.role.name] = [] unless answer[nr.role.name]
-      answer[nr.role.name] << nr.node
-    end
-    answer
-  end
-
-  #
-  # Helper function to look-up a node's specific config for this proposal
-  #
-  # Returns the hash from the node role's json blob
-  #
-  def get_node_config_hash(node)
-    nr = NodeRole.find_by_node_id_and_barclamp_instance_id_and_role_id(node.id, self.id, nil)
-    return {} unless nr
-    return {} unless nr.config
-    nr.config_hash
-  end
-
-  #
-  # Helper function to set the hash into the node's specific config holder.
-  #
-  # Stores the hash into the node role's json blob
-  #
-  def set_node_config_hash(node, hash)
-    nr = NodeRole.find_by_node_id_and_barclamp_instance_id_and_role_id(node.id, self.id, nil)
-    unless nr
-      nr = NodeRole.create
-      nr.barclamp_instance = self
-      nr.role = nil
-      nr.node = node
-      nr.save
-    end
-
-    nr.config_hash = hash
+  def add_attrib(attrib, role=nil)
+    role = public_roles.first if role.nil?
+    role.add_attrib(attrib)
   end
 
   ##
@@ -198,6 +97,7 @@ class BarclampInstance < ActiveRecord::Base
   # This will be chef code part of Jig abstraction
   # 
   def to_proposal_object_hash
+    # OLD CB1 
     phash = {}
 
     bc_name = proposal.barclamp.name

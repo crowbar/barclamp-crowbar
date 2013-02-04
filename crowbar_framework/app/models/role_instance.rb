@@ -27,7 +27,11 @@ class RoleInstance < ActiveRecord::Base
 
 
   def add_attrib(attrib, value=nil, path=nil)
-    #TBD
+    begin 
+      AttribInstance.find_by_attrib_id_and_role_instance_id attrib.id, self.id
+    rescue
+      AttribInstance.create :attrib_id => attrib.id, :role_instance_id => self.id, :description=>path 
+    end
   end
   
   ##

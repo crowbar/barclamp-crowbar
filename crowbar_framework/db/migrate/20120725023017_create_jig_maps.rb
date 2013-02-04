@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,15 @@
 class CreateJigMaps < ActiveRecord::Migration
   def change
     create_table :jig_maps do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true
-      t.string :order,        :default=>10000
-
-      t.references :jig
-
+      t.references :jig,      :null => false
+      t.references :barclamp, :null => false 
+      t.references :attrib,   :null => false
+      t.string :map,          :null=>false
       t.timestamps
     end
     
     #natural key
-    add_index(:jig_maps, :name, :unique => true)  
+    add_index(:jig_maps, [:jig_id, :barclamp_id, :attrib_id], :unique => true)  
     
   end
 end

@@ -98,7 +98,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   end
 
   test "Attrib-Barclamp wrong type add" do
-    e = assert_raise(NameError) {  bca = @bc.add_attrib(666) }
+    e = assert_raise(NameError, ArgumentError) {  bca = @bc.add_attrib(666) }
     assert_equal "uncaught throw `barclamp.add_attrib cannot use Fixnum to create from attribute: 666'", e.message
   end
   

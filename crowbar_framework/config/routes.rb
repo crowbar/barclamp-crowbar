@@ -37,6 +37,8 @@ Crowbar::Application.routes.draw do
     resources :role_element_orders do as_routes end
   end
 
+# DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
+
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end

@@ -212,28 +212,22 @@ class Barclamp < ActiveRecord::Base
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
 
-
     template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
     if json.nil?
       throw "cannot import template #{template_file} not found" unless File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
     end
 
-    # all deployment details get imported into the template
-    template = BarclampInstance.create(
-                  :name => I18n.t('template', :scope => "model.barclamp", :name=>name.humanize),
-                  :barclamp_id=>self.id,
-                  :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)
-                )
+    create_template template_file
 
     # add the roles & attributes
     jdeploy = json["deployment"][name]
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
       role_hash.each_with_index do |role, index|
         states = jdeploy["element_states"][role].join(",") rescue "all"
-        run_order = jdeploy["element_run_list_order"][role] rescue -1
         order = 100+(top_index*100)+index
-        ri = template.add_role role
+        run_order = jdeploy["element_run_list_order"][role] rescue order
+        ri = self.template.add_role role
         ri.update_attributes( :states => states,
                               :order => order,
                               :run_order => run_order, 
@@ -249,15 +243,11 @@ class Barclamp < ActiveRecord::Base
     # add environment
 
     jattrib = json["attributes"][name]
-    role = template.add_role name
+    role = self.template.add_role name
     jattrib.each do |key, value|
       # this will handle strings or hashes
       role.add_attrib key, value
     end
-
-    # this is our tempate
-    template_id = template.id
-    save!
 
     # import users 
     users = json["attributes"]["crowbar"]["users"] rescue Hash.new
@@ -274,10 +264,10 @@ class Barclamp < ActiveRecord::Base
   # Import from existing Config data 
   def self.import_1x(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
+    source_path ||= File.join '..','barclamps', bc_name
+    bc_file = File.join(source_path, 'crowbar.yml')
     # load JSON
     if bc.nil?
-      source_path ||= File.join '..','barclamps', bc_name
-      bc_file = File.join(source_path, 'crowbar.yml')
       throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
       bc = YAML.load_file bc_file
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
@@ -350,12 +340,34 @@ class Barclamp < ActiveRecord::Base
       #nothing
     end
 
-    # bring in template
+    barclamp.create_template bc_file
+    # all deployment details get imported into the template
     barclamp.import_template
 
     return barclamp
   end
 
+  # make the our tempate
+  def create_template(bc_file)
+
+    if template_id.nil?
+      t = BarclampInstance.create(
+                :name => I18n.t('template', :scope => "model.barclamp", :name=>self.name.humanize),
+                :barclamp_id=>self.id,
+                :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>bc_file)
+              )
+      template_id = t.id
+      # attach the default private role
+      ri = template.add_role Role.find_private
+      ri.order = 1
+      ri.run_order = -1   # this tells Crowbar NOT to give the information to the Jig
+      ri.description = I18n.t('model.barclamp.private_role_description'),
+      ri.save
+      save
+    end
+    
+  end
+  
   private 
   
   # This method ensures that we have a type defined for 

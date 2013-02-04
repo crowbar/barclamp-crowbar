@@ -30,5 +30,11 @@ class Role < ActiveRecord::Base
 
   alias_attribute :priority,      :order
   
+  def self.find_private  
+    Role.find_or_create_by_name :name => "private", 
+                                :description => I18n.t('model.role.private_role_description'),
+                                :order => 1
+  end
+  
 end
 

@@ -210,6 +210,8 @@ en:
     barclamp:
       imported: "Imported from %{file}"
       template: "%{name} template"
+    role:
+      private_role_description: "Private Role for Internal Data"
 
   # Views
   nodes:

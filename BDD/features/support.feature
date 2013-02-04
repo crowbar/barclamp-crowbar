@@ -18,3 +18,7 @@ Feature: Support UI
   Scenario: Use the Log Marker
     When I go to the "utils/marker/foo" page
     Then I should see "foo"
+    
+  Scenario: Localization from Regular Step
+    When I go to the "barclamp/graph" page
+    Then I should see {bdd:crowbar.i18n.barclamp.graph.title}

@@ -48,7 +48,6 @@ Feature: Scaffolds
     When I go to the "scaffolds/roles" page
     Then I should see "Roles"
       And I should see "Name"
-      And I should see "States"
       And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"

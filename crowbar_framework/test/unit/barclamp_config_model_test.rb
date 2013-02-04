@@ -50,7 +50,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
     assert       !config.active?
     assert_nil   config.active_instance
     # add instance
-    instance = BarclampInstance.create :name=>"active2", :barclamp_configuration_id=>config.id
+    instance = BarclampInstance.create :name=>"active2", :barclamp_configuration_id=>config.id, :barclamp_id => @bc.id
     assert_equal 1, config.instances.count
     assert       !config.active?
     assert_nil   config.active_instance
@@ -63,14 +63,14 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check missing" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :barclamp_id => @bc.id
     c = BarclampConfiguration.find config.id
     assert_equal  'inactive', c.status
   end
   
   test "status check none" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_NONE
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_NONE, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -79,7 +79,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check pending" do    
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_QUEUED
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_QUEUED, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -88,7 +88,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check unready" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_COMMITTING
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_COMMITTING, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -97,7 +97,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check failed" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_FAILED
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status =>BarclampInstance::STATUS_FAILED, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -106,7 +106,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check applied" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_APPLIED
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_APPLIED, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -115,7 +115,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "status check hold" do
     config = BarclampConfiguration.create :name=>"status", :barclamp_id=>@bc.id
-    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status => -1
+    instance = BarclampInstance.create :name=>"status2", :barclamp_configuration_id=>config.id, :status => -1, :barclamp_id => @bc.id
     config.active_instance = instance
     config.save!
     c = BarclampConfiguration.find config.id
@@ -124,8 +124,8 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "deep clone" do
     config = BarclampConfiguration.create :name=>"clone", :barclamp_id=>@bc.id
-    instance1 = BarclampInstance.create :name=>"clone1", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_APPLIED
-    instance2 = BarclampInstance.create :name=>"clone2", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_FAILED
+    instance1 = BarclampInstance.create :name=>"clone1", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_APPLIED, :barclamp_id => @bc.id
+    instance2 = BarclampInstance.create :name=>"clone2", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_FAILED, :barclamp_id => @bc.id
     assert_not_nil config
     assert_not_nil instance1
     assert_not_nil instance2

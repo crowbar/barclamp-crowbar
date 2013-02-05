@@ -3,6 +3,9 @@
     - c = "#{bc.name.camelize}Controller"
     - if (eval(c).new.methods.include?('export') rescue false)
       = link_to t("export.#{bc.name}_export"), utils_export_path(:controller=>bc.name), :class => 'button'
+    - ec = "Barclamp#{bc.name.camelize}::BarclampsController"
+    - if (eval(ec).new.methods.include?('export') rescue false)
+      = link_to t("export.#{bc.name}_export"), eval("barclamp_#{bc.name}.export_barclamps_path"), :class => 'button'
 
 %h1= t '.title'
 -if @waiting

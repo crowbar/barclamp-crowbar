@@ -91,13 +91,13 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal :empty, na.state
     na.actual = value
     assert_equal value, na.value
-    assert_equal :set, na.state
+    assert_equal :ready, na.state
     na.save
     v = Node.find(n.id).attrib_get(name)
     assert_equal name, v.attrib.name
     assert_equal description, v.attrib.description
     assert_equal value, v.value
-    assert_equal :set, v.state
+    assert_equal :ready, v.state
   end
 
 

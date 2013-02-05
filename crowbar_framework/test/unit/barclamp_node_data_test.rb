@@ -85,11 +85,11 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     node = bc.process_inbound_data jig_run, @mynode, @sample
     # values should be updated
     assert_equal "0000:00/0000:00:01.0/0000:01:00.0", node.attrib_eth0
-    assert_equal :managed, node.attrib_get("eth0").state
+    assert_equal :ready, node.attrib_get("eth0").state
     assert_equal "00:25:64:2e:61:f6", node.attrib_eth0_switch_name
-    assert_equal :managed, node.attrib_get("eth0_switch_name").state
+    assert_equal :ready, node.attrib_get("eth0_switch_name").state
     assert_equal ".HR74KN1.CN7475106U0180.   ", node.attrib_serial_number
-    assert_equal :managed, node.attrib_get("serial_number").state
+    assert_equal :ready, node.attrib_get("serial_number").state
     
   end
 

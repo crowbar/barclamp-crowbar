@@ -29,6 +29,7 @@ class Jig < ActiveRecord::Base
   alias_attribute :runs,          :jig_runs
   
   has_many        :jig_maps,      :dependent => :destroy
+  alias_attribute :maps,          :jig_maps
   has_many        :barclamps,     :through => :jig_maps
   has_many        :attribs,       :through => :jig_maps
 
@@ -95,8 +96,8 @@ class Jig < ActiveRecord::Base
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  
   def run
-    event = JigEvent.create :name=>DateTime.now.to_s, :jig_id => self.id, :type=>"JigEvent", :description=>"Running #{self.name}"
-    JigRun.create :jig_event_id => event.id, :type => "JigRun", :name => event.name+"_1", :description=>"Running #{self.name}"
+    event = JigEvent.create :name=>DateTime.now.to_s, :jig_id => self.id, :description=>"Running #{self.name}"
+    JigRun.create :jig_event_id => event.id, :name => event.name+"_1", :description=>"Running #{self.name}"
   end
   
   # SUBCLASS THIS METHOD if you want to change how data is found in the input data

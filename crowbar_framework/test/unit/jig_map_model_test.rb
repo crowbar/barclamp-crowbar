@@ -16,7 +16,35 @@ require 'test_helper'
 require 'json'
 
 class JigMapModelTest < ActiveSupport::TestCase
+
+  def setup
+    @bc = Barclamp.create :name => "jig_map"
+    @attrib = Attrib.add 'map_jig'
+    @chef = Jig.find_or_create_by_name :name =>'chef', :type => 'BarclampChef::Jig', :order => 100
+    @test = Jig.find_or_create_by_name :name =>'test', :type => 'BarclampCrowbar::Jig', :order => 200 
+    assert_not_nil @chef
+    assert_not_nil @test
+  end
   
+  test "add map from string" do
+    count = @chef.maps.count
+    maps = JigMap.add @attrib, @bc, "foo"
+    assert_equal 2, maps.count
+    assert count < @chef.maps(true).count
+    assert count < @test.maps(true).count
+    assert_equal maps[0].map, "foo"
+    assert_equal maps[1].map, "foo"
+  end
+  
+  test "add map from hash" do
+    count = @chef.maps.count
+    maps = JigMap.add @attrib, @bc, {:chef=>"bar"}
+    assert_equal 2, maps.count
+    assert count < @chef.maps(true).count
+    assert count < @test.maps(true).count
+    assert_equal maps[0].map, "bar"
+    assert_equal maps[1].map, "bar"
+  end
   
 end
 

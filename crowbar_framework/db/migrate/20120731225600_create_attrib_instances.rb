@@ -28,8 +28,8 @@ class CreateAttribInstances < ActiveRecord::Migration
       t.timestamps      
     end
 
-    add_index(:attrib_instances,    [:attrib_id, :node_id, :role_instance_id],      :unique => true)   
-    add_index(:attrib_instances,    [:attrib_id, :node_id],                         :unique => false)   
-    add_index(:attrib_instances,    [:attrib_id, :role_instance_id],                :unique => false)   
+    add_index :attrib_instances,    [:attrib_id, :node_id, :role_instance_id],      :unique => true, :name => "attrib_instances_triple_id_attrib_node_role"
+    add_index :attrib_instances,    [:attrib_id, :node_id],                         :unique => false
+    add_index :attrib_instances,    [:attrib_id, :role_instance_id],                :unique => false   
   end
 end

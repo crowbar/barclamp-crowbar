@@ -21,4 +21,37 @@ class JigMap < ActiveRecord::Base
   belongs_to :barclamp
   belongs_to :attrib
 
+  DEFAULT_JIG = :chef
+
+  # adds the map relation between the attrib and barclamp for each jig
+  def self.add(attrib, barclamp, map)
+    maps = []
+    # be super friendly for chef and convert into the hash anyway assuming they wanted chef
+    map = {DEFAULT_JIG=>map} if map.is_a? String
+    # we want to add a test jig too
+    map[:crowbar] = map[DEFAULT_JIG] unless Rails.env.production?
+    # map into jig 
+    map.each do |jig, path|
+      # we will keep data that passed even if the jig is not created yet!
+      jtype = "Barclamp#{jig.to_s.camelize}::Jig"
+      jigs = Jig.find_all_by_type jtype
+      begin
+        if jigs.empty?
+          desc = I18n.t 'map_add', :scope=>'model.barclamp', :name=>barclamp.name
+          jigs << Jig.create(:name=>jig, :type => jtype, :description => desc) rescue nil
+        end
+        jigs.each do |j|
+           maps << JigMap.find_or_create_by_attrib_id_and_barclamp_id_and_jig_id(
+              :attrib_id => attrib.id, 
+              :barclamp_id => barclamp.id, 
+              :jig_id =>j.id, 
+              :map => path) if j
+        end
+      rescue
+        Rails.logger.debug "JigMap.add failed to create map between #{attrib.name}+#{barclamp.name}+#{jig} with path #{path}"
+      end
+    end  
+    maps
+  end
+  
 end

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 class CreateJigs < ActiveRecord::Migration
-  def change
+  def up
     create_table :jigs do |t|
       t.string :name
       t.string :description,  :null=>true
@@ -23,7 +23,8 @@ class CreateJigs < ActiveRecord::Migration
     end
     #natural key
     add_index(:jigs, :name, :unique => true)   
-
+    # create test jig
+    BarclampCrowbar::Jig.find_or_create_by_name(:name =>'test', :order=>9999) unless Rails.env.production? 
   end
 
   def down

@@ -16,7 +16,7 @@ class CreateJigEvents < ActiveRecord::Migration
     create_table :jig_events do |t|
       t.string :name,         :null=>false
       t.string :description,  :null=>true, :default=>true
-      t.string :type,         :null=>false
+      t.string :type,         :null=>"JigEvent"
       t.string :order,        :default=>10000
       t.integer :status
 

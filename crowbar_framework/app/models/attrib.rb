@@ -23,11 +23,35 @@ class Attrib < ActiveRecord::Base
   has_many    :attrib_instances,    :dependent => :destroy
   has_many    :nodes,               :through => :attrib_instances
   
-  has_many    :barclamp_instances,  :through => :attrib_instance
-  has_many    :barclamps,           :through => :barclamp_instances
+  has_many    :role_instances,      :through => :attrib_instances, :order=>"'order', 'role_order'"
+  has_many    :barclamp_instances,  :through => :role_instances
+  alias_attribute :instances,       :barclamp_instances
   
-  has_many    :jig_maps             :dependent => :destroy 
+  has_many    :jig_maps,            :dependent => :destroy 
   has_many    :jigs,                :through => :jig_maps
-    
+  has_many    :barclamps,           :through => :jig_maps
+   
+  def self.add(attrib, source='unknown')
+    if attrib.nil?       
+      throw "barclamp.add_attrib requires Attrib object or hash with :name"
+    elsif attrib.is_a? Attrib
+      a = attrib
+    elsif attrib.is_a? AttribInstance
+      a = attrib.attrib
+    elsif attrib.is_a? Fixnum
+      a = Attrib.find attrib
+    elsif attrib.is_a? String
+      # we can make them from just a string
+      a = Attrib.find_or_create_by_name :name => attrib, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>source)
+    elsif attrib.is_a? Hash
+      # we can make them from a hash if the creator wants to include more info
+      throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name
+      a = Attrib.find_or_create_by_name attrib
+    else
+      throw "barclamp.add_attrib cannot use #{attrib.class} to create from attribute: #{attrib.inspect}"
+    end 
+    a
+  end
+  
 end
 

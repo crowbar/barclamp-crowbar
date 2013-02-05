@@ -28,7 +28,7 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
   attr_accessible :name, :description, :order, :status, :failed_reason
-  attr_accessible :barclamp_configuration_id, :role_instance_id, :barclamp_id
+  attr_accessible :barclamp_configuration_id, :barclamp_id
   
   belongs_to      :barclamp
   belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
@@ -36,9 +36,13 @@ class BarclampInstance < ActiveRecord::Base
 
   has_many        :roles,             :through => :role_instances
   has_many        :role_instances,    :dependent => :destroy
-  has_many        :private_roles,     :class_name => :role_instance, :conditions=>'run_order<0'
-  has_many        :public_roles,      :class_name => :role_instance, :conditions=>'run_order>=0'
+  has_many        :private_roles,     :class_name => "RoleInstance", :conditions=>'run_order<0'
+  has_many        :public_roles,      :class_name => "RoleInstance", :conditions=>'run_order>=0'
   alias_attribute :instances,         :role_instances
+
+  has_many        :attrib_instances,  :through => :role_instances
+  alias_attribute :values,            :attrib_instances
+  has_many        :attribs, :through => :attrib_instances
   
   def active?
     configuration.active_configuration_id == self.id
@@ -70,9 +74,20 @@ class BarclampInstance < ActiveRecord::Base
     end 
   end
 
+  # Add attrib to barclamp
+  # assume first public role (fall back to private role) if none given
   def add_attrib(attrib, role=nil)
-    role = public_roles.first if role.nil?
-    role.add_attrib(attrib)
+    if role.nil?
+      role = public_roles.first
+      role = private_roles.first if role.nil?
+    else
+      role = Role.add role, name
+    end
+    desc = I18n.t 'added', :scope => 'node.role', :name=>self.name
+    ri = RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id=>role.id, 
+                                                                         :barclamp_instance_id=>self.id,
+                                                                         :description=>desc
+    ri.add_attrib attrib, self.name
   end
 
   ##

@@ -23,10 +23,15 @@ class AttribInstance < ActiveRecord::Base
 
   belongs_to      :attrib
   belongs_to      :node
-  has_one         :role_instance
-  has_one         :role,            :through=>:role_instance
+
+  belongs_to      :role_instance
+  has_one         :role,              :through=>:role_instance
+  has_one         :barclamp_instance, :through=>:role_instance
+  alias_attribute :instance,          :barclamp_instance
+  has_one         :barclamp,          :through=>:barclamp_instance
+  
   belongs_to      :jig_run
-  alias_attribute :run,       :jig_run
+  alias_attribute :run,               :jig_run
 
   DEFAULT_CLASS = Crowbar::AttribInstanceDefault rescue AttribInstance
   
@@ -37,6 +42,15 @@ class AttribInstance < ActiveRecord::Base
     node_id = (node.nil? ? 0 : node.id)
     attrib_id = (attrib.nil? ? nil : attrib.id)
     defaultclass.find_or_create_by_attrib_id_and_node_id :node_id=>node_id, :attrib_id=>attrib_id
+  end
+
+  # list the jig maps that apply to this attribute
+  def maps
+    JigMap.find_all_by_attrib_id_and_barclamp_id attrib.id, barclamp.id
+  end
+  
+  def name
+    attrib.name
   end
 
   # for now, none of the proposed values are visible

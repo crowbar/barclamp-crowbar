@@ -256,7 +256,7 @@ class Barclamp < ActiveRecord::Base
     end
 
     # this is our tempate
-    template_id = template.id
+    self.template_id = template.id
     save!
 
     # import users 

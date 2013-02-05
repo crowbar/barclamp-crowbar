@@ -21,7 +21,11 @@
             - t.role_instances.each do |ri|
               - role = ri.role
               - unless role.nil?              
-                %li= "#{t ".roles"}: #{role.name} (run_order=#{ri.run_order})" 
+                %li
+                  = "#{t ".roles"}: #{role.name} (run_order=#{ri.run_order})" 
+                  %ul
+                    - ri.attrib_instances.each do |ai|
+                      %li{:id=>ai.id}= ai.name
               - else
                 %li= "#{t ".roles"}: no role! RoleInstance = #{ri.inspect}" 
         %li
@@ -39,9 +43,5 @@
           %ul{:id=>"#{bc.id}_props"}
             - bc.proposals.each do |prop|
               %li= prop.name
-        %li
-          = t ".attribs"
-          %ul{:id=>"#{bc.id}_attribs"}
-            - bc.attribs.each do |a|
-              %li= a.name
+
     

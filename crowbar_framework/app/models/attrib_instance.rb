@@ -99,11 +99,11 @@ class AttribInstance < ActiveRecord::Base
     if v_actual.eql? MARSHAL_EMPTY and v_request.eql? MARSHAL_EMPTY
       return :empty
     elsif !v_actual.eql? v_request and !v_request.eql? MARSHAL_EMPTY
-      return :active
+      return :unready
     elsif run == 0
-      return :set
+      return :ready
     else
-      return :managed
+      return :ready
     end
   end
   

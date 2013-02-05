@@ -78,8 +78,8 @@ add_attrib({Atom, Name, Description, Order, _Type}) ->
   bdd_utils:log(info, "Created Attrib ~p=~p named ~p", [Atom, Key, Name]).
 
 add_node({Atom, Name, Description, Order, Group}) ->
-  JSON = nodes:json(Name, Description, Order),
-  Path = apply(nodes, g, [path]),
+  JSON = node:json(Name, Description, Order),
+  Path = apply(node, g, [path]),
   Result = json:parse(bdd_restrat:create([], Path, JSON)),
   Key = json:keyfind(Result, id),
   groups:step([], [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),

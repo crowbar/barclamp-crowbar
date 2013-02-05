@@ -211,14 +211,6 @@ class NodesController < ApplicationController
   def show
     # for temporary backwards compatibility, we'll combine the chef object and db object
     @node = Node.find_key params[:id]
-    chef_node =
-        begin
-          @node.jig_hash || {}
-        rescue
-          {}
-        end
-    #api_hash = Node.to_api_hash(chef_node.merge(@node.attributes))
-
     respond_to do |format|
       format.html # show.html.erb
       format.json {

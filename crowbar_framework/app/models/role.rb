@@ -37,14 +37,15 @@ class Role < ActiveRecord::Base
   end
   
   def self.add(role, source='unknown')
+    # this should become a switch as some point!
     if role.is_a? Role
       r = role
     elsif role.is_a? RoleInstance
       r = role.role
-    elsif role.is_a? String
+    elsif role.is_a? String or role.is_a? Symbol
       # we can make them from just a string
       desc = I18n.t 'model.role.default_create_description', :name=>source
-      r = Role.find_or_create_by_name :name => role, :description => desc
+      r = Role.find_or_create_by_name :name => role.to_s, :description => desc
     elsif role.is_a? Hash
       # we can make them from a hash if the creator wants to include more info
       throw "role.add requires attribute :name" if role.nil? or !role.has_key? :name

@@ -32,6 +32,7 @@ class Attrib < ActiveRecord::Base
   has_many    :barclamps,           :through => :jig_maps
    
   def self.add(attrib, source='unknown')
+    # this should become a switch as some point!
     if attrib.nil?       
       throw "barclamp.add_attrib requires Attrib object or hash with :name"
     elsif attrib.is_a? Attrib
@@ -40,9 +41,9 @@ class Attrib < ActiveRecord::Base
       a = attrib.attrib
     elsif attrib.is_a? Fixnum
       a = Attrib.find attrib
-    elsif attrib.is_a? String
+    elsif attrib.is_a? String or attrib.is_a? Symbol
       # we can make them from just a string
-      a = Attrib.find_or_create_by_name :name => attrib, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>source)
+      a = Attrib.find_or_create_by_name :name => attrib.to_s, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>source)
     elsif attrib.is_a? Hash
       # we can make them from a hash if the creator wants to include more info
       throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name

@@ -61,7 +61,7 @@ bash "Compile the Asssets" do
 end
 
 bash "Run the database migrations" do
-  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake db:migrate"
+  code "cd /opt/dell/crowbar_framework ; RAILS_ENV=production rake railties:install:migrations ; RAILS_ENV=production rake db:migrate"
   not_if "test -e /opt/dell/crowbar_framework/chef_install.done"
 end
 

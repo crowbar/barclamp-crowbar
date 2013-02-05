@@ -51,7 +51,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal :empty, @mynode.attrib_get(a2.attrib.name).state
     a3 = bc.add_attrib "serial_number", "dmi/base_board/serial_number" # ".HR74KN1.CN7475106U0180.   "
     assert_equal "serial_number", a3.attrib.name
-    assert_equal c, bc.attribs(true).count
+    assert_equal c+3, bc.attribs(true).count
     assert_nil @mynode.attrib_get(a3.attrib.name).value
     assert_equal :empty, @mynode.attrib_get(a3.attrib.name).state
 

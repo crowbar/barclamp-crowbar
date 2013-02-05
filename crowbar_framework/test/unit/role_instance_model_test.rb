@@ -22,7 +22,7 @@ class RoleInstanceModelTest < ActiveSupport::TestCase
     @bi = BarclampInstance.create :name=>"template", :barclamp_configuration_id => @bc.id, :barclamp_id => @bc.id
     @bc.template_id = @bi.id
     @bc.save
-    @ri = RoleInstance.create :barclamp_instance_id => @bc.template_id, :role_id=>@role.id
+    @ri = RoleInstance.create :barclamp_instance_id => @bi.id, :role_id=>@role.id
   end
   
   test "Barclamp Template has RoleInstances" do

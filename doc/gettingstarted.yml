@@ -4,26 +4,23 @@ copyright: "2013 by Dell, Inc"
 author: Dell CloudEdge Team
 date: "February 1, 2013"
 
-#gettingstarted/gettingstarted:
+gettingstarted/configuring_network:
   order: 100
 
-gettingstarted/configuring_network:
-  order: 500
-
 gettingstarted/installing_admin_node:
-  order: 1000
+  order: 500
     
 gettingstarted/installing_crowbar:
-  order: 1500
+  order: 1000
 
 gettingstarted/discovering_nodes:
-  order: 2000
+  order: 1500
     
 gettingstarted/installing_openstack:
-  order: 2500
+  order: 2000
     
 gettingstarted/installing_hadoop:
-  order: 3000
+  order: 2500
 
 gettingstarted/additional_info:
-  order: 3500
+  order: 3000

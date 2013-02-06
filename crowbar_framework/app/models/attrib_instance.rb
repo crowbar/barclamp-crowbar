@@ -34,7 +34,10 @@ class AttribInstance < ActiveRecord::Base
   def self.find_or_create_by_attrib_and_node(attrib, node=nil, defaultclass=DEFAULT_CLASS)
     node_id = (node.nil? ? 0 : node.id)
     attrib_id = (attrib.nil? ? nil : attrib.id)
-    defaultclass.find_or_create_by_attrib_id_and_node_id :node_id=>node_id, :attrib_id=>attrib_id
+
+    ai = AttribInstance.find_by_attrib_id_and_node_id(attrib_id, node_id)
+    ai = defaultclass.create!(:node_id=>node_id, :attrib_id=>attrib_id) if ai.nil?
+    ai
   end
 
   # for now, none of the proposed values are visible

@@ -163,6 +163,11 @@ debs:
     - nginx
     - ipmitool
     - efibootmgr
+    - kwalify
+    - rabbitmq-server
+    - chef
+    - chef-server
+    - chef-server-webui
   build_pkgs:
     - ruby1.9.1
     - rubygems
@@ -224,6 +229,7 @@ debs:
     - ruby1.9.1
     - ruby1.9.1-dev
     - rubygems
+    - libshadow-ruby1.8
     # runit stuff
     - runit
     # sudo stuff
@@ -262,7 +268,6 @@ rpms:
       - libxml2-devel
       - zlib-devel
   required_pkgs:
-    - install
     - rubygems
     - gcc
     - make
@@ -272,6 +277,10 @@ rpms:
     - tcpdump
     - nginx
     - efibootmgr
+    - rabbitmq-server
+    - rubygem-chef
+    - rubygem-chef-server
+    - rubygem-ohai
   build_pkgs:
     - rubygems
     - ruby-devel
@@ -343,7 +352,7 @@ gems:
     - bundler
     - bunny-(<0.8.0)
     - cancan
-    - chef-(~>10.16.2)
+    - chef-(~>10.16)
     - chefspec
     - database_cleaner
     - delayed_job_active_record

@@ -23,6 +23,13 @@ class JigMap < ActiveRecord::Base
 
   DEFAULT_JIG = :chef
 
+  def self.get_map(jig, barclamp, attrib)
+    j = Jig.find_by_name jig
+    b = Barclamp.find_by_name barclamp
+    a = Attrib.find_by_name attrib
+    JigMap.find_by_jig_id_and_barclamp_id_and_attrib_id j.id, b.id, a.id
+  end
+
   # adds the map relation between the attrib and barclamp for each jig
   def self.add(attrib, barclamp, map)
     maps = []

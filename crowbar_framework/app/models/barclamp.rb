@@ -121,7 +121,7 @@ class Barclamp < ActiveRecord::Base
   def add_attrib(attrib, map=nil, role=nil)
     # find the attrib
     a = Attrib.add attrib, self.name
-    r = role.nil? ? role : Role.add(role, self.name)
+    r = role.nil? ? nil : Role.add(role, self.name)
     # map it
     JigMap.add a, self, map unless map.nil?
     # add the attrib to the barclamp instance

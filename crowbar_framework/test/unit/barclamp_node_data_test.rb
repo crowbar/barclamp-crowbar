@@ -30,9 +30,13 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     @bc = Barclamp.create :name=>"node_data"
     @template = BarclampInstance.create :name=>'node template test', :barclamp_id=>@bc.id
     @role = @template.add_role 'bndt'
+    @template.add_role 'private'
     @bc.template_id = @template.id
     @bc.save    
-    assert_equal 1, @bc.template.roles(true).count
+    assert_equal 2, @bc.template.roles(true).count
+    assert_equal 2, @bc.role_instances.count
+    assert_equal 'private', @bc.template.roles(true).second.name
+    assert_equal 'bndt', @bc.template.roles(true).first.name
   end
 
   test "Use Hint to Extract Data" do
@@ -43,7 +47,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
   test "Barclamp add attrib creates correct AttribInstances" do
     role_count = @bc.template.role_instances.count
-    assert_equal 1, role_count
+    assert_equal 2, role_count
     assert_equal "bndt", @bc.template.role_instances.first.name
     
     # add the attributes that we want to test
@@ -64,23 +68,43 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     jig = BarclampCrowbar::Jig.find_or_create_by_name :name=>'test'
     jig_run = jig.run
     bc = @bc 
-    c = bc.attribs(true).count
+    c = bc.template.role_instances.first.attrib_instances(true).count
+
+    assert_equal "test", Jig.find(1).name
+    assert_equal 1, Jig.count, "we should have the test jig"
+    assert_equal 0, @bc.jig_maps.count, "no jig mappings"
+    
     # add the attributes that we want to test
     a1 = bc.add_attrib "eth0", "crowbar_ohai/detected/network/eth0"  #expected "0000:00/0000:00:01.0/0000:01:00.0"
     assert_equal "eth0", a1.attrib.name
-    assert_nil @mynode.attrib_get(a1.attrib.name).value
-    assert_equal :empty, @mynode.attrib_get(a1).state
+    assert_equal "crowbar_ohai/detected/network/eth0", JigMap.get_map("chef","node_data", "eth0").map
+
     a2 = bc.add_attrib "eth0_switch_name", "crowbar_ohai/switch_config/eth1/switch_name" # expected "00:25:64:2e:61:f6"
     assert_equal "eth0_switch_name", a2.attrib.name
-    assert_nil @mynode.attrib_get(a2.attrib.name).value
-    assert_equal :empty, @mynode.attrib_get(a2.attrib.name).state
+    assert_equal "crowbar_ohai/switch_config/eth1/switch_name", JigMap.get_map("chef","node_data", "eth0_switch_name").map
+
     a3 = bc.add_attrib "serial_number", "dmi/base_board/serial_number" # ".HR74KN1.CN7475106U0180.   "
     assert_equal "serial_number", a3.attrib.name
-    assert_equal c+6, bc.attribs(true).count
+    assert_equal "dmi/base_board/serial_number", JigMap.get_map("chef","node_data", "serial_number").map
+
+    assert_equal 2, @bc.template.role_instances.count
+    assert_equal 3, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances before nodes are assigned"
+
+    assert_equal "chef", Jig.find(2).name
+    assert_equal 2, Jig.count, "we should have the chef and test jig"
+    assert_equal 6, @bc.jig_maps.count, "this is the jig mappings"
+
+    assert_nil @mynode.attrib_get(a1.attrib.name).value
+    assert_equal :empty, @mynode.attrib_get(a1).state
+    assert_nil @mynode.attrib_get(a2.attrib.name).value
+    assert_equal :empty, @mynode.attrib_get(a2.attrib.name).state
     assert_nil @mynode.attrib_get(a3.attrib.name).value
     assert_equal :empty, @mynode.attrib_get(a3.attrib.name).state
-    assert_equal 1, @bc.template.role_instances.count
-    assert_equal 6, @bc.template.attrib_instances.count
+
+    assert_equal 6, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances after nodes are assigned"
+    
+    assert_equal "bndt", @bc.template.role_instances.first.name
+    assert_equal "private", @bc.template.role_instances.second.name
 
     node = bc.process_inbound_data jig_run, @mynode, @sample
     # values should be updated

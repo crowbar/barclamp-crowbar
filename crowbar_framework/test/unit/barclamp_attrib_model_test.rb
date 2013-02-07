@@ -23,7 +23,13 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     assert_not_nil @crowbar, "we need to have a crowbar barclamp"
     @bc = Barclamp.find_or_create_by_name :name=>"test"
+    @template = BarclampInstance.create :name=>'template test', :barclamp_id=>@bc.id
+    @template.add_role 'bamt'
+    @bc.template_id = @template.id
+    @bc.save
     assert_not_nil @bc, "we need to have a base barclamp"
+    assert_not_nil @bc.template
+    assert @bc.template.roles.count > 0
     @attrib = Attrib.find_or_create_by_name :name=>"unit_test", :barclamp_id=>@bc.id, :description=>'unit test target'
     assert_not_nil @attrib, "we need a base attrib"
     assert_equal 0, @attrib.barclamps.count, "and we start with no barclamps assigned"
@@ -31,7 +37,6 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
 
   test "barclamp attrib has base attribs" do
     return
-    # TODO THIS NEEDS TO CHANGE
     o = AttribInstance.find_or_create_by_barclamp_instance_id_and_attrib_id :barclamp_instance_id=>@bc.id, :attrib_id => @attrib.id
     @bc.add_attrib @attrib
     assert_not_nil o
@@ -58,37 +63,24 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   
   test "Barclamp-Attrib Relation" do
     count = @bc.attribs.size
-    bca = @bc.add_attrib :name=>"relationtest"
-    assert_not_nil bca
-    a = bca.attrib
-    assert_not_nil a
+    ai = @bc.add_attrib({:name=>"relationtest"}, {:chef=>"unit_test"})
+    a = ai.attrib
+    assert_not_nil ai
     assert @bc.attribs.size > count
-    b = Barclamp.find @bc.id
-    assert b.attribs.size > count
-    assert b.attribs.include? a
+    assert @bc.attribs(true).size > count
+    assert @bc.attribs(true).include? a
+    assert @bc.jigs.include? Jig.find_by_name('chef')
   end  
 
-  test "Attrib-Barclamp add attrib works" do
+  test "Attrib-Barclamp add attrib with map works" do
     h = "then look on top of the toilet tank"
     description = "fall through"
     order = 90
-    bca = @bc.add_attrib(@attrib, {:description=>@hint, :order=>999})
-    assert_not_nil bca, 'add attrib works'
-    assert_equal @hint, bca.description
-    assert_equal 999, bca.order
-    assert_equal @attrib.name, bca.attrib.name
-    assert_equal @attrib.order, bca.attrib.order
-    bca.description = h
-    bca.order = 666
-    bca.save
-    a = BarclampAttrib.find bca.id
-    assert_not_nil a
-    assert_equal h, a.description
-    assert_not_equal @hint, a.description
-    assert_equal 666, a.order
-    assert_not_equal 999, a.order
-    assert_equal @bc.id, a.barclamp_id
-    assert_equal @attrib.id, a.attrib_id
+    a1 = @bc.add_attrib @attrib, @hint
+    assert_not_nil a1, 'add attrib works'
+    assert_equal @hint, a1.maps.first.map
+    assert_equal @attrib.name, a1.attrib.name
+    assert_equal @attrib.order, a1.attrib.order
   end
   
   test "Attrib-Barclamp add string attrib works" do
@@ -98,8 +90,8 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   end
 
   test "Attrib-Barclamp wrong type add" do
-    e = assert_raise(NameError, ArgumentError) {  bca = @bc.add_attrib(666) }
-    assert_equal "uncaught throw `barclamp.add_attrib cannot use Fixnum to create from attribute: 666'", e.message
+    e = assert_raise(ActiveRecord::RecordNotFound) {  bca = @bc.add_attrib(666) }
+    assert_equal "Couldn't find Attrib with id=666", e.message
   end
   
   test "Barclamp addAttrib requires name not description or order" do
@@ -118,12 +110,11 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   
   test "Barclamp addAttrib adds to barclamp list" do
     name = "domoveme"
-    count = @bc.attribs.count
-    a = Attrib.find_or_create_by_name :name=>name
-    a1 = @bc.add_attrib a
+    count = @bc.template.attribs.count
+    a = Attrib.add :name=>name
+    a1 = @bc.add_attrib a, 'map/this'
     assert_not_nil a1
-    bc = Barclamp.find @bc.id
-    assert_equal count+1, bc.attribs.count    
+    assert_equal count+1, @bc.template.attribs(true).count    
     assert_equal a1.barclamp.id, @bc.id
     assert a1.attrib.barclamps.include?(@bc), "this is the new barclamp"
   end

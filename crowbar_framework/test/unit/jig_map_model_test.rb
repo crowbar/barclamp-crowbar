@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -17,33 +17,38 @@ require 'json'
 
 class JigMapModelTest < ActiveSupport::TestCase
 
-  test "Unique Name" do
-    cm = JigMap.create! :name=>"nodups"
-    assert_not_nil cm
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { JigMap.create!(:name => "nodups") }
-  end
-
-  test "Check on illegal names" do
-    c = Jig.find_or_create_by_name_and_type(:name=>'name_parent', :type=>'JigTest')
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => "1123", :jig=>c) }
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => "1foo*cs", :jig=>c) }
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => "Ille!gal", :jig=>c) }
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => " nospaces", :jig=>c) }
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => "no spaces", :jig=>c) }
-    assert_raise(ActiveRecord::RecordInvalid) { JigMap.create!(:name => "nospacesatall ", :jig=>c) }
+  def setup
+    @bc = Barclamp.create :name => "jig_map"
+    @attrib = Attrib.add 'map_jig'
+    @chef = Jig.find_or_create_by_name :name =>'chef', :type => 'BarclampChef::Jig', :order => 100
+    @test = Jig.find_or_create_by_name :name =>'test', :type => 'BarclampCrowbar::Jig', :order => 200 
+    assert_not_nil @chef
+    assert_not_nil @test
   end
   
-  test "Must have jig parent" do
-    return true  #this is busted for now, skip
-    c = Jig.find_or_create_by_name_and_type(:name=>'parent', :type=>'JigTest')
-    assert_equal false, c.nil?
-    assert_equal c.name, "parent"
-    assert_equal c.type, "JigTest"
-    m = JigMap.create! :name=>"maptest", :jig=>c
-    assert_equal m.jig.name, "parent"
+  test "add map from string" do
+    count = BarclampChef::Jig.count + BarclampCrowbar::Jig.count
+    chefmaps = @chef.maps(true).count
+    testmaps = @test.maps(true).count
+    maps = JigMap.add @attrib, @bc, "foo"
+    assert_equal count, maps.count
+    assert chefmaps < @chef.maps(true).count
+    assert testmaps < @test.maps(true).count
+    assert_equal maps[0].map, "foo"
+    assert_equal maps[1].map, "foo"
   end
   
-  
+  test "add map from hash" do
+    count = BarclampChef::Jig.count + BarclampCrowbar::Jig.count
+    chefmaps = @chef.maps(true).count
+    testmaps = @test.maps(true).count
+    maps = JigMap.add @attrib, @bc, {:chef=>"bar"}
+    assert_equal count, maps.count
+    assert chefmaps < @chef.maps(true).count
+    assert testmaps < @test.maps(true).count
+    assert_equal maps[0].map, "bar"
+    assert_equal maps[1].map, "bar"
+  end
   
 end
 

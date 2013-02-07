@@ -19,6 +19,7 @@ class CreateAttribInstances < ActiveRecord::Migration
       t.string      :type,          :null => false, :default => Crowbar::AttribInstanceDefault.to_s
       t.belongs_to  :attrib,        :null=>false
       t.belongs_to  :node,          :null=>true
+      t.belongs_to  :role_instance, :null=>true
       t.belongs_to  :jig_run,       :null=>true
       t.string      :value_actual,  :default=>"empty"
       t.string      :value_request, :default=>"empty"
@@ -27,6 +28,8 @@ class CreateAttribInstances < ActiveRecord::Migration
       t.timestamps      
     end
 
-    add_index(:attrib_instances,    [:attrib_id, :node_id],     :unique => true)   
+    add_index :attrib_instances,    [:attrib_id, :node_id, :role_instance_id],      :unique => true, :name => "attrib_instances_triple_id_attrib_node_role"
+    add_index :attrib_instances,    [:attrib_id, :node_id],                         :unique => false
+    add_index :attrib_instances,    [:attrib_id, :role_instance_id],                :unique => false   
   end
 end

@@ -21,13 +21,29 @@ class RoleInstance < ActiveRecord::Base
   attr_accessible :description, :order, :run_order, :states
   attr_accessible :barclamp_instance_id, :role_id
   
+  validates_uniqueness_of :role_id, :scope => :barclamp_instance_id  
+  
   belongs_to      :role,              :inverse_of => :role_instances
   belongs_to      :barclamp_instance
   alias_attribute :instance,          :barclamp_instance
-
-
-  def add_attrib(attrib, value=nil, path=nil)
-    #TBD
+  has_one         :barclamp,          :through => :barclamp_instance
+  
+  has_many        :attrib_instances,  :dependent => :destroy
+  alias_attribute :values,            :attrib_instances
+  has_many        :attribs,           :through => :attrib_instances
+  
+  # alias helper
+  def name
+    role.name
+  end
+  
+  def add_attrib(attrib, value=nil, map=nil)
+    a = Attrib.add attrib, barclamp.name
+    begin 
+      AttribInstance.find_by_attrib_id_and_role_instance_id! a.id, self.id
+    rescue
+      AttribInstance.create :attrib_id => a.id, :role_instance_id => self.id
+    end
   end
   
   ##

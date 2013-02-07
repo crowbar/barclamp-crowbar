@@ -2,10 +2,6 @@ Feature: Scaffolds
   In order develop the system
   The devoper operator, Greg
   wants to be able to quickly check the models
-
-  TODO: proposal_queue_item 
-  TODO: proposal_queue 
-  TODO: role_element_order 
   
   Scenario: Attribute
     When I go to the "scaffolds/attribs" page

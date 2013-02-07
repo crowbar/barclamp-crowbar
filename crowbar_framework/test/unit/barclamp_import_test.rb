@@ -22,12 +22,14 @@ class BarclampModelTest < ActiveSupport::TestCase
       Barclamp.import_1x 'crowbar'
     end
     b = Barclamp.find_by_name "crowbar"
+    assert_not_nil b.template_id
+    assert_equal "private", b.template.private_roles.first.role.name
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
 
   test "roles get priority from deployment section" do
     json = JSON::load File.open("test/data/foo/chef/data_bags/crowbar/bc-template-foo.json")
-    bc = Barclamp.create :name => "foo"
+    bc = Barclamp.import_1x "foo", nil, "test/data/foo"
     bc.import_template(json,"bc-foo.json")
     rmap = {}
     bc.template.role_instances.each do |r|
@@ -43,9 +45,10 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc = Barclamp.create :name=>"foo"
     bc.import_template(json,"bc-foo.json")
     ordered = bc.roles(true)    # (true) forces a reload of the model
-    assert_equal 'foo_mon_master', ordered.first.name
-    assert_equal 'foo_mon', ordered.second.name
-    assert_equal 'foo_store', ordered.third.name
+    assert_equal 'private', ordered.first.name
+    assert_equal 'foo_mon_master', ordered.second.name
+    assert_equal 'foo_mon', ordered.third.name
+    assert_equal 'foo_store', ordered.fourth.name
   end
 
   test "barclamp import fails on missing yml" do

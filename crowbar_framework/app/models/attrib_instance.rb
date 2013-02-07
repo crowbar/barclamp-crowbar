@@ -15,16 +15,23 @@
 
 class AttribInstance < ActiveRecord::Base
 
-  before_create :create_identity
+  before_create :set_type
 
-  attr_accessible :node_id, :attrib_id, :type     # core relationshipships
+  attr_accessible :node_id, :attrib_id, :role_instance_id, :type     # core relationshipships
   attr_accessible :value_actual, :value_request   # data storage
   attr_accessible :jig_run_id                     # jig relationship
 
   belongs_to      :attrib
   belongs_to      :node
+
+  belongs_to      :role_instance
+  has_one         :role,              :through=>:role_instance
+  has_one         :barclamp_instance, :through=>:role_instance
+  alias_attribute :instance,          :barclamp_instance
+  has_one         :barclamp,          :through=>:barclamp_instance
+  
   belongs_to      :jig_run
-  alias_attribute :run,       :jig_run
+  alias_attribute :run,               :jig_run
 
   DEFAULT_CLASS = Crowbar::AttribInstanceDefault rescue AttribInstance
   
@@ -38,6 +45,15 @@ class AttribInstance < ActiveRecord::Base
     ai = AttribInstance.find_by_attrib_id_and_node_id(attrib_id, node_id)
     ai = defaultclass.create!(:node_id=>node_id, :attrib_id=>attrib_id) if ai.nil?
     ai
+  end
+
+  # list the jig maps that apply to this attribute
+  def maps
+    JigMap.find_all_by_attrib_id_and_barclamp_id attrib.id, barclamp.id
+  end
+  
+  def name
+    attrib.name
   end
 
   # for now, none of the proposed values are visible
@@ -86,11 +102,11 @@ class AttribInstance < ActiveRecord::Base
     if v_actual.eql? MARSHAL_EMPTY and v_request.eql? MARSHAL_EMPTY
       return :empty
     elsif !v_actual.eql? v_request and !v_request.eql? MARSHAL_EMPTY
-      return :active
+      return :unready
     elsif run == 0
-      return :set
+      return :ready
     else
-      return :managed
+      return :ready
     end
   end
   
@@ -109,7 +125,7 @@ class AttribInstance < ActiveRecord::Base
   private
   
   # make sure some safe values are set for the node
-  def create_identity
+  def set_type
     self.type = Crowbar::AttribInstanceDefault.to_s if self.type.nil?
   end
   

@@ -33,6 +33,37 @@ class RoleModelTest < ActiveSupport::TestCase
     assert_equal nr.order, nr.priority
   end
   
+  test "private role" do
+    p = Role.find_private
+    assert_equal "private", p.name
+    assert_equal 1, p.order
+  end
+  
+  test "add by name" do
+    name = "foo"
+    c = Role.count
+    r = Role.add name
+    assert_equal c+1, Role.count
+    assert_equal name, r.name
+  end
+  
+  test "add finds existing" do
+    name = "bar"
+    r = Role.add name
+    Role.add "ignore_me"
+    n = Role.add name
+    assert_equal r.id, n.id
+    assert_equal name, n.name
+  end
+
+  test "add finds from role" do
+    name = "bar"
+    r = Role.add name
+    n = Role.add r
+    assert_equal r.id, n.id
+    assert_equal name, n.name
+  end
+  
 #  test "default category" do
 #    g = Role.create!(:name=>"foo")
 #    assert_not_nil g, "Node Created"

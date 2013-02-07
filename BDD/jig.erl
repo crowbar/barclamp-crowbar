@@ -23,7 +23,7 @@ g(Item) ->
     path -> "2.0/crowbar/2.0/jig";
     name -> "bddjig";
     atom -> jig1;
-    type -> "JigTest";
+    type -> "BarclampCrowbar::Jig";
     node_atom -> "global-node.testing.com";
     _ -> crowbar:g(Item)
   end.
@@ -31,16 +31,10 @@ g(Item) ->
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
-  try JSON of
-    J -> 
-        R =[bdd_utils:is_a("^Jig[A-Z][a-z0-9]*$", json:keyfind(J, type)), 
-            length(J) =:= 7,
-            crowbar_rest:validate(J)],
-        bdd_utils:assert(R)
-  catch
-    X: Y -> io:format("ERROR: parse error ~p:~p~n", [X, Y]),
-		false
-	end. 
+  R =[bdd_utils:is_a(JSON, "^Barclamp[A-Z][A-Za-z0-9]*::Jig$", type), 
+      bdd_utils:is_a(JSON, length, 7),
+      crowbar_rest:validate(JSON)],
+  bdd_utils:assert(R). 
 
 % Common Routine
 % Creates JSON used for POST/PUT requests

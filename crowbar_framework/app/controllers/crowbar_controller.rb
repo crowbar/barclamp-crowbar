@@ -37,7 +37,7 @@ class CrowbarController < BarclampController
       return
     end
     @node = Node.find_key(params[:id]) if params[:id]
-    if params[:target]
+    if params['target'].eql? 'attrib'
       node_attribs
     end
   end
@@ -48,22 +48,18 @@ class CrowbarController < BarclampController
       return
     end
     @node = Node.find_key(params[:id]) if params[:id]
-    @attrib = Attrib.find_key(params[:target_id]) if params[:target_id]
+    @attrib = Attrib.find_key(params['target_id']) if params['target_id']
     # POST and PUT (do the same thing since PUT will create the missing info)
     if request.post? or request.put?
       if @node.nil?
          render :text=>I18n.t('api.not_found', :type=>'node', :id=>params[:id]), :status => 404
       else
-        @na = @node.attrib_get(params[:target_id])
-        if params["value"]
-          @na.actual = params["value"]
-          @na.save
-        end
+        @na = @node.set_attrib((@attrib || params['target_id']), params["value"])
         render :json => @na
       end
     # DELETE
     elsif request.delete? and @attrib
-      id = @node.attrib_get(@attrib)
+      id = @node.get_attrib(@attrib)
       id.delete
       render :text=>I18n.t('api.deleted', :id=>id.object_id, :obj=>'attrib_instance')
     # fall through REST actions (all require ID)
@@ -75,7 +71,7 @@ class CrowbarController < BarclampController
     # list (no ID)
     elsif request.get?  
       attribs = {}
-      @node.attrib_instances.each { |a| attribs[a.attrib.id] = (a.value.nil? ? 'null' : a.value ) }
+      @node.attrib_instances.each { |a| attribs[a.attrib.id] = (a.value || 'null') }
       render :json => attribs
     # Catch
     else

@@ -47,7 +47,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     assert_nil v.jig_run_id
     v.actual = @value
     assert_equal @value, v.actual
-    assert_equal :set, v.state
+    assert_equal :ready, v.state
     assert_not_nil v.jig_run_id
   end
   
@@ -66,7 +66,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     value = "2b"
     v.actual = value
     assert_equal value, v.value
-    assert_equal :set, v.state
+    assert_equal :ready, v.state
   end
     
   test "Attrib Instance stores actual values" do
@@ -85,7 +85,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     assert_not_nil na
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual
-    assert_equal :set, na.state
+    assert_equal :ready, na.state
   end
   
   test "Attrib Instance removed when node deleted" do
@@ -246,14 +246,14 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     assert_nil na.jig_run_id
     na.request = value
     na.save
-    assert_equal :active, na.state
+    assert_equal :unready, na.state
     assert_equal value, na.request
     assert_not_nil na.jig_run_id
         
     na2 = AttribInstance.find na.id
     assert_not_nil na2
     assert_equal nil, na2.value
-    assert_equal :active, na2.state
+    assert_equal :unready, na2.state
     assert_equal value, na2.request
     assert_not_nil na2.jig_run_id
   end
@@ -268,11 +268,11 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     assert_equal :empty, na.state
     assert_equal nil, na.request
     na.request = value
-    assert_equal :active, na.state
+    assert_equal :unready, na.state
     assert_equal value, na.request
     assert_equal nil, na.value
     na.actual = value
-    assert_equal :set, na.state
+    assert_equal :ready, na.state
     assert_equal value, na.value
     assert_equal value, na.actual
     assert_equal value, na.request

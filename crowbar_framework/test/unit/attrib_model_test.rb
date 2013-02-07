@@ -21,16 +21,25 @@ class AttribModelTest < ActiveSupport::TestCase
   def setup
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
   end  
-  
-  test "Attribs exposed" do
-    name = "attrs"
+    
+  test "Attribs exposed add hash" do
+    name = "attrs_hash"
     description = "Attrib test"
     order = 666
-    a = Attrib.create :name=>name, :description=>description, :order=>order
+    a = Attrib.add({:name=>name, :description=>description, :order=>order}, "foo")
     assert_not_nil a
     assert_equal name, a.name
     assert_equal description, a.description
     assert_equal order, a.order
+  end
+
+  test "Attribs exposed add simple" do
+    name = "attrs_simple"
+    order = 666
+    a = Attrib.add name, "foo"
+    assert_not_nil a
+    assert_equal name, a.name
+    assert a.description =~ /foo/
   end
   
   test "Unique Name" do

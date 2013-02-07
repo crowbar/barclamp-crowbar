@@ -22,6 +22,8 @@ class BarclampModelTest < ActiveSupport::TestCase
       Barclamp.import_1x 'crowbar'
     end
     b = Barclamp.find_by_name "crowbar"
+    assert_not_nil b.template_id
+    assert_equal "private", b.template.private_roles.first.role.name
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
 

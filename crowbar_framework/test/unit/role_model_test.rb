@@ -47,7 +47,7 @@ class RoleModelTest < ActiveSupport::TestCase
     assert_equal name, r.name
   end
   
-  rest "add finds existing" do
+  test "add finds existing" do
     name = "bar"
     r = Role.add name
     Role.add "ignore_me"
@@ -56,7 +56,7 @@ class RoleModelTest < ActiveSupport::TestCase
     assert_equal name, n.name
   end
 
-  rest "add finds from role" do
+  test "add finds from role" do
     name = "bar"
     r = Role.add name
     n = Role.add r

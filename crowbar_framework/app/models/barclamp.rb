@@ -213,7 +213,7 @@ class Barclamp < ActiveRecord::Base
   def import_template(json=nil, template_file=nil)
 
 
-    template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
+    template_file ||= File.join(source_path, 'templates', "bc-template-#{name}.json")
     if json.nil?
       throw "cannot import template #{template_file} not found" unless File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
@@ -276,8 +276,8 @@ class Barclamp < ActiveRecord::Base
     barclamp = Barclamp.find_or_create_by_name(bc_name)
     # load JSON
     if bc.nil?
-      source_path ||= File.join '..','barclamps', bc_name
-      bc_file = File.join(source_path, 'crowbar.yml')
+      source_path ||= 'barclamps'
+      bc_file = File.join(source_path, "#{bc_name}.yml")
       throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
       bc = YAML.load_file bc_file
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name

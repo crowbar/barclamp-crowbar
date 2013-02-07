@@ -29,14 +29,17 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_not_nil @node, "for the exected node"
     @bc = Barclamp.create :name=>"node_data"
     @template = BarclampInstance.create :name=>'node template test', :barclamp_id=>@bc.id
+    assert_equal 0, @template.role_instances.count
     @role = @template.add_role 'bndt'
+    assert_equal 1, @template.role_instances(true).count
     @template.add_role 'private'
+    assert_equal 2, @template.role_instances(true).count
     @bc.template_id = @template.id
     @bc.save    
     assert_equal 2, @bc.template.roles(true).count
     assert_equal 2, @bc.role_instances.count
-    assert_equal 'private', @bc.template.roles(true).second.name
-    assert_equal 'bndt', @bc.template.roles(true).first.name
+    assert_equal 'private', @bc.template.roles(true).first.name
+    assert_equal 'bndt', @bc.template.roles(true).second.name
   end
 
   test "Use Hint to Extract Data" do
@@ -48,7 +51,8 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
   test "Barclamp add attrib creates correct AttribInstances" do
     role_count = @bc.template.role_instances.count
     assert_equal 2, role_count
-    assert_equal "bndt", @bc.template.role_instances.first.name
+    assert_equal "private", @bc.template.role_instances.first.name
+    assert_equal "bndt", @bc.template.role_instances.second.name
     
     # add the attributes that we want to test
     a1 = @bc.add_attrib "eth0", "crowbar_ohai/detected/network/eth0", @role  #expected "0000:00/0000:00:01.0/0000:01:00.0"
@@ -71,7 +75,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     c = bc.template.role_instances.first.attrib_instances(true).count
 
     assert_equal "test", Jig.find(1).name
-    assert_equal 1, Jig.count, "we should have the test jig"
+    assert_equal 1, BarclampCrowbar::Jig.count, "we should have the test jig"
     assert_equal 0, @bc.jig_maps.count, "no jig mappings"
     
     # add the attributes that we want to test
@@ -87,12 +91,11 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal "serial_number", a3.attrib.name
     assert_equal "dmi/base_board/serial_number", JigMap.get_map("chef","node_data", "serial_number").map
 
-    assert_equal 2, @bc.template.role_instances.count
+    assert_equal 2, @bc.template.role_instances(true).count
     assert_equal 3, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances before nodes are assigned"
 
-    assert_equal "chef", Jig.find(2).name
-    assert_equal 2, Jig.count, "we should have the chef and test jig"
-    assert_equal 6, @bc.jig_maps.count, "this is the jig mappings"
+    assert_equal 3, Jig.count, "we should have two chef (chef & admin_chef) and test jig"
+    assert_equal Jig.count*3, @bc.jig_maps.count, "this is the jig mappings"
 
     assert_nil @mynode.attrib_get(a1.attrib.name).value
     assert_equal :empty, @mynode.attrib_get(a1).state
@@ -103,8 +106,8 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
     assert_equal 6, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances after nodes are assigned"
     
-    assert_equal "bndt", @bc.template.role_instances.first.name
-    assert_equal "private", @bc.template.role_instances.second.name
+    assert_equal "private", @bc.template.role_instances.first.name
+    assert_equal "bndt", @bc.template.role_instances.second.name
 
     node = bc.process_inbound_data jig_run, @mynode, @sample
     # values should be updated

@@ -27,21 +27,25 @@ class JigMapModelTest < ActiveSupport::TestCase
   end
   
   test "add map from string" do
-    count = @chef.maps.count
+    count = BarclampChef::Jig.count + BarclampCrowbar::Jig.count
+    chefmaps = @chef.maps(true).count
+    testmaps = @test.maps(true).count
     maps = JigMap.add @attrib, @bc, "foo"
-    assert_equal count+2, maps.count
-    assert count < @chef.maps(true).count
-    assert count < @test.maps(true).count
+    assert_equal count, maps.count
+    assert chefmaps < @chef.maps(true).count
+    assert testmaps < @test.maps(true).count
     assert_equal maps[0].map, "foo"
     assert_equal maps[1].map, "foo"
   end
   
   test "add map from hash" do
-    count = @chef.maps.count
+    count = BarclampChef::Jig.count + BarclampCrowbar::Jig.count
+    chefmaps = @chef.maps(true).count
+    testmaps = @test.maps(true).count
     maps = JigMap.add @attrib, @bc, {:chef=>"bar"}
-    assert_equal count+2, maps.count
-    assert count < @chef.maps(true).count
-    assert count < @test.maps(true).count
+    assert_equal count, maps.count
+    assert chefmaps < @chef.maps(true).count
+    assert testmaps < @test.maps(true).count
     assert_equal maps[0].map, "bar"
     assert_equal maps[1].map, "bar"
   end

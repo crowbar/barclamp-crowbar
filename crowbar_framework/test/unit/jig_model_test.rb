@@ -71,10 +71,11 @@ class JigModelTest < ActiveSupport::TestCase
   end
 
   test "create event for jig with run" do
-    j = BarclampCrowbar::Jig.create :name=>"test"
+    j = BarclampCrowbar::Jig.find_or_create_by_name :name=>"test"
     assert_not_nil j
     r = j.run
     assert_not_nil r
+    assert_not_nil r.event
     assert_equal j, r.event.jig
     assert_equal 1, r.event.runs.count
   end

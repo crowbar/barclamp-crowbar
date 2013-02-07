@@ -27,6 +27,8 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
+  ROLE_ORDER         = "'role_instances'.'order', 'role_instances'.'run_order'"
+  
   attr_accessible :name, :description, :order, :status, :failed_reason
   attr_accessible :barclamp_configuration_id, :barclamp_id
   
@@ -35,9 +37,9 @@ class BarclampInstance < ActiveRecord::Base
   alias_attribute :configuration,           :barclamp_configuration
 
   has_many        :roles,             :through => :role_instances
-  has_many        :role_instances,    :dependent => :destroy
-  has_many        :private_roles,     :class_name => "RoleInstance", :conditions=>'run_order<0'
-  has_many        :public_roles,      :class_name => "RoleInstance", :conditions=>'run_order>=0'
+  has_many        :role_instances,    :dependent => :destroy, :order => ROLE_ORDER
+  has_many        :private_roles,     :class_name => "RoleInstance", :conditions=>'run_order<0', :order => ROLE_ORDER
+  has_many        :public_roles,      :class_name => "RoleInstance", :conditions=>'run_order>=0', :order => ROLE_ORDER
   alias_attribute :instances,         :role_instances
 
   has_many        :attrib_instances,  :through => :role_instances
@@ -78,8 +80,8 @@ class BarclampInstance < ActiveRecord::Base
   # assume first public role (fall back to private role) if none given
   def add_attrib(attrib, role=nil)
     if role.nil?
-      role = public_roles.first
-      role = private_roles.first if role.nil?
+      role = public_roles.first.role
+      role = private_roles.first.role if role.nil?
     else
       role = Role.add role, self.name
     end

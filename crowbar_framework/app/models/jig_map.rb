@@ -51,7 +51,7 @@ class JigMap < ActiveRecord::Base
            maps << JigMap.find_or_create_by_attrib_id_and_barclamp_id_and_jig_id(
               :attrib_id => attrib.id, 
               :barclamp_id => barclamp.id, 
-              :jig_id =>j.id, 
+              :jig_id => j.id, 
               :map => path) if j
         end
       rescue

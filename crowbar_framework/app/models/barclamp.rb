@@ -18,7 +18,7 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
-  attr_accessible :template, :allow_multiple_proposals, :template_id
+  attr_accessible :allow_multiple_proposals, :template_id
 
   before_create :create_type_from_name
   
@@ -49,27 +49,33 @@ class Barclamp < ActiveRecord::Base
                 :class_name => "Proposal", 
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   
-  # this should go away...old models
-  has_many :barclamp_attribs,   :dependent => :destroy 
-  has_many :attribs,            :through => :barclamp_attribs
   
-  # Crowbar 2.0 models
-  has_one  :template,                 :class_name => "BarclampInstance"
+  # Template Data
+  has_one  :template,                 :class_name => "BarclampInstance", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
   has_many :roles,                    :class_name => "Role", :through=>:template, :order=>'"role_instances"."order"'
+  has_many :attrib_instances,         :through => :template
+  has_many :role_instances,           :through => :template
   
+  # Instance Trains
   has_many :barclamp_instances,       :dependent => :destroy
   alias_attribute :instances,         :barclamp_instances
   
+  # Configurations
   has_many :barclamp_configurations,  :dependent => :destroy
   alias_attribute :configs,           :barclamp_configurations
   
+  # Jig Interactions
+  has_many :jig_maps,                 :dependent => :destroy
+  has_many :jigs,                     :through => :jig_maps
+  # reminder! this is NOT the same as .template.attribs!!!
+  has_many :attribs,                  :through => :jig_maps
+
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
   has_and_belongs_to_many :members, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "member_id", :order => "[order], [name] ASC"
   has_and_belongs_to_many :parents, :class_name=>'Barclamp', :join_table=>'barclamp_members', :foreign_key => "barclamp_id", :association_foreign_key => "member_id", :order => "[order], [name] ASC"
 
   alias_attribute :configsallow_multiple_proposals?,      :allow_multiple_proposals
-
 
   #
   # Helper function to load the service object
@@ -106,39 +112,20 @@ class Barclamp < ActiveRecord::Base
   # Barclamps are responsible to creating the attributes that they will manage
   # INPUTS: 
   #   Attrib name or object to assign to barclamp
-  #   map (optional) provides information to help barclamp resolve inbound data from jigs
+  #   map (optional) hash provides information to help barclamp resolve inbound data from jigs
   # RETURNS: Attrib
   # name is required, all other fields are optional
   # attributes cannot be reassigned to a different barclamp
   # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
   #
-  def add_attrib attrib, map = nil
-    if attrib.nil?       
-      throw "barclamp.add_attrib requires Attrib object or hash with :name"
-    elsif attrib.is_a? Attrib
-      a = attrib
-    elsif attrib.is_a? String
-      # we can make them from just a string
-      a = Attrib.find_or_create_by_name :name => attrib, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>self.name)
-    elsif attrib.is_a? Hash
-      # we can make them from a hash if the creator wants to include more info
-      throw "barclamp.add_attrib requires attribute :name" if attrib.nil? or !attrib.has_key? :name
-      a = Attrib.find_or_create_by_name attrib
-    else
-      throw "barclamp.add_attrib cannot use #{attrib.class} to create from attribute: #{attrib.inspect}"
-    end
-    ba = BarclampAttrib.find_or_create_by_barclamp_and_attrib self, a
-    unless map.nil?
-      if map.is_a? String
-        ba.map = map 
-      elsif map.is_a? Hash and map.has_key? :description
-        ba.update_attributes map 
-      else
-        Rails.logger.warn "barclamp.add_attrib could not set map #{map} because it was not a string or hash with key :description"
-      end
-      ba.save
-    end
-    ba
+  def add_attrib(attrib, map=nil, role=nil)
+    # find the attrib
+    a = Attrib.add attrib, self.name
+    r = role.nil? ? nil : Role.add(role, self.name)
+    # map it
+    JigMap.add a, self, map unless map.nil?
+    # add the attrib to the barclamp instance
+    template.add_attrib a, r unless template.nil?
   end
 
   #
@@ -192,12 +179,42 @@ class Barclamp < ActiveRecord::Base
   
   # take run data from the jig and process it into attributes
   # returns the node
+  # WARNING - this has NOT been optimized!
   def process_inbound_data jig_run, node, data
-    self.barclamp_attribs.each do |ba|
-      # get the value
-      value = jig_run.jig.find_attrib_in_data data, ba.map
-      # store the value
-      node.attrib_set(ba.attrib, value, jig_run)
+    jig = jig_run.jig
+    maps = JigMap.where :jig_id=>jig.id, :barclamp_id=>self.id
+    maps.each do |map|
+      # there is only 1 map per barclamp/jig/attrib
+      a = map.attrib
+      # there can be multiple AttribInstances per node/barclamp instance
+      attribs = AttribInstance.where :attrib_id=>a.id, :node_id=>node.id
+      if attribs.empty?
+        # create the AIs for the data using the unbound role attribes that are already there
+        unset_attribs = AttribInstance.where :attrib_id=>a.id, :node_id => nil
+        unset_attribs.each do |na|
+          # attach node to barclamp data (from role association)
+          if na.barclamp.id == self.id
+            # create a node specific version of it
+            node_attrib = na.dup
+            node_attrib.node_id = node.id
+            node_attrib.save
+          end
+        end
+      end
+      # THIS NEEDS TO BE UPDATED TO ONLY UPDATE THE ACTIVE INSTANCES!
+      attribs.each do |ai|
+        # we only update the attribs linked to this barclamp 
+        # performance note: this is an expensive thing to figure out!
+        if !ai.role_instance_id.nil? and ai.barclamp.id == self.id 
+          # get the value
+          value = jig.find_attrib_in_data data, map.map
+          # store the value
+          target = AttribInstance.find ai.id
+          target.actual = value
+          target.jig_run_id = jig_run.id
+          target.save!
+        end
+      end
     end
     node
   end
@@ -212,28 +229,22 @@ class Barclamp < ActiveRecord::Base
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
 
-
     template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
     if json.nil?
       throw "cannot import template #{template_file} not found" unless File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
     end
 
-    # all deployment details get imported into the template
-    template = BarclampInstance.create(
-                  :name => I18n.t('template', :scope => "model.barclamp", :name=>name.humanize),
-                  :barclamp_id=>self.id,
-                  :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)
-                )
+    create_template template_file
 
     # add the roles & attributes
     jdeploy = json["deployment"][name]
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
       role_hash.each_with_index do |role, index|
         states = jdeploy["element_states"][role].join(",") rescue "all"
-        run_order = jdeploy["element_run_list_order"][role] rescue -1
         order = 100+(top_index*100)+index
-        ri = template.add_role role
+        run_order = jdeploy["element_run_list_order"][role] rescue order
+        ri = self.template.add_role role
         ri.update_attributes( :states => states,
                               :order => order,
                               :run_order => run_order, 
@@ -249,15 +260,11 @@ class Barclamp < ActiveRecord::Base
     # add environment
 
     jattrib = json["attributes"][name]
-    role = template.add_role name
+    role = self.template.add_role name
     jattrib.each do |key, value|
       # this will handle strings or hashes
       role.add_attrib key, value
     end
-
-    # this is our tempate
-    self.template_id = template.id
-    save!
 
     # import users 
     users = json["attributes"]["crowbar"]["users"] rescue Hash.new
@@ -274,10 +281,10 @@ class Barclamp < ActiveRecord::Base
   # Import from existing Config data 
   def self.import_1x(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
+    source_path ||= File.join '..','barclamps', bc_name
+    bc_file = File.join(source_path, 'crowbar.yml')
     # load JSON
     if bc.nil?
-      source_path ||= File.join '..','barclamps', bc_name
-      bc_file = File.join(source_path, 'crowbar.yml')
       throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
       bc = YAML.load_file bc_file
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
@@ -350,12 +357,34 @@ class Barclamp < ActiveRecord::Base
       #nothing
     end
 
-    # bring in template
+    barclamp.create_template bc_file
+    # all deployment details get imported into the template
     barclamp.import_template
 
     return barclamp
   end
 
+  # make the our tempate
+  def create_template(bc_file)
+
+    if self.template_id.nil?
+      t = BarclampInstance.create(
+                :name => I18n.t('template', :scope => "model.barclamp", :name=>self.name.humanize),
+                :barclamp_id=>self.id,
+                :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>bc_file)
+              )
+      self.template_id = t.id
+      # attach the default private role
+      ri = t.add_role Role.find_private
+      ri.order = 1
+      ri.run_order = -1   # this tells Crowbar NOT to give the information to the Jig
+      ri.description = I18n.t('model.barclamp.private_role_description'),
+      ri.save
+      save
+    end
+    
+  end
+  
   private 
   
   # This method ensures that we have a type defined for 

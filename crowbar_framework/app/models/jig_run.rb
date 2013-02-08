@@ -19,9 +19,10 @@
 
 class JigRun < ActiveRecord::Base
   attr_accessible :name, :description, :type, :order, :result, :status, :jig_event_id
-  
+
   belongs_to      :jig_event  # the event triggering this run
   alias_attribute :event,     :jig_event
+  has_one         :jig,       :through => :jig_event
 
   has_many        :attrib_instances
   has_many        :nodes,             :through   => :attrib_instances   # may need unique filter to eliminate dup nodes

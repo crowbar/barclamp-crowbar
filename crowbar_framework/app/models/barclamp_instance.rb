@@ -27,16 +27,24 @@ class BarclampInstance < ActiveRecord::Base
   STATUS_FAILED      = 4  # Attempted commit failed
   STATUS_APPLIED     = 5  # Attempted commit succeeded
 
+  ROLE_ORDER         = "'role_instances'.'order', 'role_instances'.'run_order'"
+  
   attr_accessible :name, :description, :order, :status, :failed_reason
-  attr_accessible :barclamp_configuration_id, :role_instance_id, :barclamp_id
+  attr_accessible :barclamp_configuration_id, :barclamp_id
   
   belongs_to      :barclamp
   belongs_to      :barclamp_configuration,  :inverse_of => :barclamp_instances
   alias_attribute :configuration,           :barclamp_configuration
 
   has_many        :roles,             :through => :role_instances
-  has_many        :role_instances,    :dependent => :destroy 
+  has_many        :role_instances,    :dependent => :destroy, :order => ROLE_ORDER
+  has_many        :private_roles,     :class_name => "RoleInstance", :conditions=>'run_order<0', :order => ROLE_ORDER
+  has_many        :public_roles,      :class_name => "RoleInstance", :conditions=>'run_order>=0', :order => ROLE_ORDER
   alias_attribute :instances,         :role_instances
+
+  has_many        :attrib_instances,  :through => :role_instances
+  alias_attribute :values,            :attrib_instances
+  has_many        :attribs, :through => :attrib_instances
   
   def active?
     configuration.active_configuration_id == self.id
@@ -47,18 +55,20 @@ class BarclampInstance < ActiveRecord::Base
   # This tracks the attributes sections
   #
   def config_hash
+    # TODO REMOVE / REPLACE
     {} unless config
     JSON::parse(config)
   end
 
   def config_hash=(chash)
+    # TODO REMOVE
     config = chash.to_json
     save!
   end
 
   # Add a role to a Barclamp instance by creating the needed RoleInstance
   def add_role(role)
-    role = Role.find_or_create_by_name(:name => role) unless role.is_a? Role
+    role = Role.add role, self.name
     begin
       RoleInstance.find_by_role_id_and_barclamp_id :role_id => role.id, :barclamp_instance_id => self.id 
     rescue
@@ -66,114 +76,20 @@ class BarclampInstance < ActiveRecord::Base
     end 
   end
 
-  ##
-  # Set node_roles from proposal json elements
-  #
-  # This is used to convert the elements section of a json config
-  # into node role objects tying the node/role/config_instance together.
-  #
-  def update_node_roles(elements)
-    nodes.delete_all
-    elements.each do |role_name, node_list|
-      role = Role.find_by_name(role_name)
-      node_list.each do |node_name|
-        node = Node.find_by_name(node_name)
-        nr = NodeRole.create
-        nr.node = node
-        nr.role = role
-        node_roles << nr
-      end
+  # Add attrib to barclamp
+  # assume first public role (fall back to private role) if none given
+  def add_attrib(attrib, role=nil)
+    if role.nil?
+      role = public_roles.first.role
+      role = private_roles.first.role if role.nil?
+    else
+      role = Role.add role, self.name
     end
-    reload
-  end
-
-  #
-  # Helper function to tie a node and role to this config_instance
-  #
-  def add_node_to_role(node, role)
-    nr = NodeRole.find_by_node_id_and_role_id_and_barclamp_instance_id(node.id, role.id, self.id)
-    unless nr
-      nr = NodeRole.create
-      nr.node = node
-      nr.role = role
-      node_roles << nr
-    end
-    true
-  end
-
-  #
-  # Helper function to remove a node/role pair from thie config_instance
-  #
-  def remove_node_from_role(node, role)
-    nr = NodeRole.find_by_node_id_and_role_id_and_barclamp_instance_id(node.id, role.id, self.id)
-    if nr
-      nr.destroy 
-      reload
-    end
-    true
-  end
-
-  #
-  # Helper function to remove all nodes from this config_instance
-  # 
-  def remove_all_nodes
-    nodes.delete_all
-  end
-
-  #
-  # Helper function to build a list of nodes in a specific role (specified by name).
-  #
-  def get_nodes_by_role(role_name)
-    role = Role.find_by_name_and_barclamp_id(role_name, proposal.barclamp.id)
-    nrs = NodeRole.find_all_by_role_id_and_barclamp_instance_id(role.id, self.id)
-    answer = []
-    nrs.each do |nr|
-      answer << nr.node
-    end
-    answer
-  end
-
-  #
-  # Helper function to get a hash where the keys are role names and the values
-  # are lists of nodes for that role.
-  #
-  def get_nodes_by_roles
-    answer = {}
-    node_roles.each do |nr|
-      answer[nr.role.name] = [] unless answer[nr.role.name]
-      answer[nr.role.name] << nr.node
-    end
-    answer
-  end
-
-  #
-  # Helper function to look-up a node's specific config for this proposal
-  #
-  # Returns the hash from the node role's json blob
-  #
-  def get_node_config_hash(node)
-    nr = NodeRole.find_by_node_id_and_barclamp_instance_id_and_role_id(node.id, self.id, nil)
-    return {} unless nr
-    return {} unless nr.config
-    nr.config_hash
-  end
-
-  #
-  # Helper function to set the hash into the node's specific config holder.
-  #
-  # Stores the hash into the node role's json blob
-  #
-  def set_node_config_hash(node, hash)
-    nr = NodeRole.find_by_node_id_and_barclamp_instance_id_and_role_id(node.id, self.id, nil)
-    unless nr
-      nr = NodeRole.create
-      nr.barclamp_instance = self
-      nr.role = nil
-      nr.node = node
-      nr.save
-    end
-
-    nr.config_hash = hash
+    desc = I18n.t 'added', :scope => 'model.role', :name=>self.name
+    ri = RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id=>role.id, 
+                                                                         :barclamp_instance_id=>self.id,
+                                                                         :description=>desc
+    ri.add_attrib attrib, nil, self.name
   end
 
   ##
@@ -198,6 +114,7 @@ class BarclampInstance < ActiveRecord::Base
   # This will be chef code part of Jig abstraction
   # 
   def to_proposal_object_hash
+    # OLD CB1 
     phash = {}
 
     bc_name = proposal.barclamp.name

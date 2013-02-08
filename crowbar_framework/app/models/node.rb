@@ -305,32 +305,44 @@ class Node < ActiveRecord::Base
     get_attrib attrib
   end
   def get_attrib(attrib)
-    a = Attrib.find_key attrib 
-    if a.nil?
-      # find or create the attrib
-      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
-    end
-    AttribInstance.find_or_create_by_attrib_and_node(a, self)
+    get_attribs(attrib).first
   end
-    
+
+  # get the attributes (adds if missing)    
+  def get_attribs(attrib, useclass=AttribInstance::DEFAULT_CLASS)
+    a = Attrib.add attrib 
+    attribs = AttribInstance.find_all_by_attrib_id_and_node_id a.id, self.id
+    # did we get something?  no, then add it
+    if attribs.empty?
+      # work from defined roles first
+      from_role = a.attrib_instances.first
+      if from_role.nil?
+        attribs << AttribInstance.find_or_create_by_attrib_and_node(a, self, useclass)
+      else
+        new_attrib = from_role.dup
+        new_attrib.node_id = self.id
+        new_attrib.save
+        attribs << new_attrib
+      end
+    end
+    attribs
+  end
+  
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
   def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
     Rails.logger.warn "depricated node.attrib_set in favor of node.set_attrib"
     set_attrib attrib, value, jig_run, useclass
   end
-  def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
-    
-    # determine if we need to lookup or create a new attrib
-    a = Attrib.find_key attrib
-    if a.nil?
-      # find or create the attrib
-      a = Attrib.find_or_create_by_name :name=>attrib, :description=>I18n.t('model.attribs.node.default_create_description')
+  def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)    
+    # get the attributes (adds if missing)
+    attribs = get_attribs(attrib, useclass)
+    # iterate over all the attribs and set them to the new value
+    attribs.each do |na|
+      na.actual = value
+      na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.id : jig_run)
+      na.save
     end
-    na = AttribInstance.find_or_create_by_attrib_and_node a, self, useclass
-    na.actual = value
-    na.jig_run_id = (jig_run.is_a?(JigRun) ? jig_run.id : jig_run)
-    na.save
-    na
+    attribs.first
   end
     
   def method_missing(m,*args,&block)

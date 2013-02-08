@@ -35,7 +35,7 @@ validate(J) ->
       bdd_utils:is_a(J, boolean, admin), 
       bdd_utils:is_a(J, dbid, os_id), 
       bdd_utils:is_a(J, string, alias), 
-      length(J) =:= 12,
+      bdd_utils:is_a(J, length, 12),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 

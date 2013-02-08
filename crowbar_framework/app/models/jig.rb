@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,10 +23,15 @@ class Jig < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
-  has_many        :jig_events,   :dependent => :destroy 
-  alias_attribute :events,       :jig_events
-  has_many        :jig_runs,     :through => :jig_events
-  alias_attribute :runs,         :jig_runs
+  has_many        :jig_events,    :dependent => :destroy 
+  alias_attribute :events,        :jig_events
+  has_many        :jig_runs,      :through => :jig_events
+  alias_attribute :runs,          :jig_runs
+  
+  has_many        :jig_maps,      :dependent => :destroy
+  alias_attribute :maps,          :jig_maps
+  has_many        :barclamps,     :through => :jig_maps
+  has_many        :attribs,       :through => :jig_maps
 
   #####
   #  Find the right instance to use for applying the given configuration.
@@ -91,8 +96,8 @@ class Jig < ActiveRecord::Base
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  
   def run
-    event = JigEvent.create :name=>DateTime.now.to_s, :jig_id => self.id, :type=>"JigEvent", :description=>"Running #{self.name}"
-    JigRun.create :jig_event_id => event.id, :type => "JigRun", :name => event.name+"_1", :description=>"Running #{self.name}"
+    event = JigEvent.create :name=>DateTime.now.to_s, :jig_id => self.id, :description=>"Running #{self.name}"
+    JigRun.create :jig_event_id => event.id, :name => event.name+"_1", :description=>"Running #{self.name}"
   end
   
   # SUBCLASS THIS METHOD if you want to change how data is found in the input data

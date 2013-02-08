@@ -32,7 +32,7 @@ validate(JSON) ->
   R =[bdd_utils:is_a(JSON, dbid, node_id), 
       bdd_utils:is_a(JSON, dbid, attrib_id), 
       bdd_utils:is_a(JSON, str, value), 
-      bdd_utils:is_a(JSON, "^(empty|set|managed|test|active)$", state), 
+      bdd_utils:is_a(JSON, "^(empty|unready|test|ready)$", state), 
       % standard checks (have to do because name is NOT standard)
       bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
       bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat

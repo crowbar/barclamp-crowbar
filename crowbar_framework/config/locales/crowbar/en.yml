@@ -78,6 +78,7 @@ en:
       nodes: Nodes
       groups: Groups
       roles: Roles
+      attrib_instances: Data
       proposals: Proposals
       configs: "Proposal Configs"
       menus: Menu Items
@@ -210,6 +211,11 @@ en:
     barclamp:
       imported: "Imported from %{file}"
       template: "%{name} template"
+      map_add: "Automatically added by %{name}"
+    role:
+      added: "Added from #{name}"
+      default_create_description: "%{name} Created Role"
+      private_role_description: "Private Role for Internal Data"
 
   # Views
   nodes:

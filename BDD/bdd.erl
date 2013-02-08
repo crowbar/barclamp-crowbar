@@ -331,7 +331,7 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	case Step of
 	  {step_skip, S}    ->  log(info,"Skipping ~p ~s", [ScenarioID, S]), 
                     	    skip;
-	  {step_while, S}    -> While = [list_to_atom(A) || A <-S],
+	  {step_while, S}    -> While = [binary_to_atom(A, utf8) || A <- re:split(S," ")],
                           Env = bdd_utils:config(Config, environment, undefined),
                           % while list is not included in env list then skip  (opposite of while)
                     	    case lists:member(Env, While) of 
@@ -340,7 +340,7 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
                     	      _        -> log(debug,"While skipping ~p [~p not in ~p]", [ScenarioID, Env, While]), 
                     	                  skip
                     	    end;
-		{step_unless, S}  ->  Unless = [list_to_atom(A) || A <-S],
+		{step_unless, S}  ->  Unless = [binary_to_atom(A, utf8) || A <- re:split(S," ")],
                           Env = bdd_utils:config(Config, environment, undefined),
                           % unless list is included in env list then skip (opposite of unless)
                     	    case lists:member(Env, Unless) of 

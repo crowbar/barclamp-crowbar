@@ -17,32 +17,36 @@ require 'test_helper'
 class RoleInstanceModelTest < ActiveSupport::TestCase
 
   def setup
-    @role = Role.create :name => "test"
+    @role = Role.find_or_create_by_name :name => "test"
+    assert_not_nil @role
     @bc = Barclamp.create :name=>"instance"
+    assert_not_nil @bc
     @bi = BarclampInstance.create :name=>"template", :barclamp_configuration_id => @bc.id, :barclamp_id => @bc.id
+    assert_not_nil @bi
     @bc.template_id = @bi.id
     @bc.save
     @ri = RoleInstance.create :barclamp_instance_id => @bi.id, :role_id=>@role.id
+    assert_not_nil @ri
   end
   
   test "Barclamp Template has RoleInstances" do
     assert_not_nil @bc
     bi = @bc.template
     assert_not_nil bi
-    # TODO: ROB, fix this test!
-    # assert bi.roles.count>0, "we need to have at least 1 role"
-    #ri = bi.role_instances.first
-    #assert_equal "test", ri.role.name, "one of the roles is the one from setup"
+    assert bi.role_instances.count>0, "we need to have at least 1 role"
+    ri = bi.role_instances.first
+    assert_equal "test", ri.role.name, "one of the roles is the one from setup"
   end
 
   test "Relation to BarclampInstance" do
+    assert_equal "template", @ri.barclamp_instance.name
     assert_equal "template", @ri.instance.name
   end
   
   test "Relation to Role" do
-    # TODO: rob fix this test! ;)
-    return
-    #assert_equal "test", @ri.role.name
+    assert_not_nil @ri.role
+    assert_equal "test", @ri.role.name
+    assert_equal "test", @ri.name
   end
 
   test "Relation to AttribInstance" do

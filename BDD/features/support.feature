@@ -22,3 +22,12 @@ Feature: Support UI
   Scenario: Localization from Regular Step
     When I go to the "barclamp/graph" page
     Then I should see {bdd:crowbar.i18n.barclamp.graph.title}
+    
+  Scenario: Find Mark in Log
+    While local or devtool
+    Given I mark the logs with "REMAIN CALM"
+    When I inspect the "../crowbar_framework/log/development.log" for "MARK >>>>>"
+    Then I should grep "MARK >>>>>"
+      And I should grep "REMAIN_CALM"
+      And I should grep "<<<<< KRAM"
+    

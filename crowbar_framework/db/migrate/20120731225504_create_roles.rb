@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
 class CreateRoles < ActiveRecord::Migration
   def change  
     create_table :roles do |t|
-      t.belongs_to  :barclamp
       t.string      :name,        :null=> false
       t.string      :description, :null=> true
       t.integer     :order,       :default => 9999  
       t.timestamps
     end
     #natural key
-    add_index(:roles, [:barclamp_id, :name], :unique => true)   
+    add_index(:roles, [:name], :unique => true)   
   end
 end

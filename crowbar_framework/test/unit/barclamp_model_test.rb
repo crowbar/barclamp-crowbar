@@ -24,47 +24,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     b = Barclamp.find_by_name "crowbar"
   end
   
-  def validate_deep_compare_prop_conf(conf, conf2)
-    return if conf == nil and conf2 == nil
-    assert_not_nil conf
-    assert_not_nil conf2
-    assert_equal conf.status, conf2.status
-  end
-
-  def validate_deep_compare_prop(prop, prop2)
-    return if prop == nil and prop2 == nil
-    assert_not_nil prop
-    assert_not_nil prop2
-
-    assert_not_equal prop.id, prop2.id
-    assert_not_equal prop.name, prop2.name
-    assert_equal prop.last_applied_rev, prop2.last_applied_rev
-    assert_equal prop.description, prop2.description
-
-    validate_deep_compare_prop_conf(prop.active_config, prop2.active_config)
-    validate_deep_compare_prop_conf(prop.current_config, prop2.current_config)
-
-    # Make sure active and current are in the list of proposals.
-    if prop.active_config
-      assert prop.proposal_configs.map { |x| x.id }.include?(prop.active_config.id)
-    end
-    if prop2.active_config
-      assert prop2.proposal_configs.map { |x| x.id }.include?(prop2.active_config.id)
-    end
-    if prop.current_config
-      assert prop.proposal_configs.map { |x| x.id }.include?(prop.current_config.id)
-    end
-    if prop2.current_config
-      assert prop2.proposal_configs.map { |x| x.id }.include?(prop2.current_config.id)
-    end
-
-    # Make sure that the proposals match as well.
-    assert_equal prop.proposal_configs.size, prop2.proposal_configs.size
-    (0..(prop.proposal_configs.size - 1)).each do |x|
-      validate_deep_compare_prop_conf(prop.proposal_configs[x], prop2.proposal_configs[x])
-    end
-  end
-
   test "Unique Name" do
     b = Barclamp.create! :name=>"nodup"
     assert_not_nil b
@@ -87,9 +46,11 @@ class BarclampModelTest < ActiveSupport::TestCase
     r = b.roles
 
     r1 = Role.find_by_name("crowbar")
+    r2 = Role.find_private
 
-    assert_equal 1, r.size
-    assert_equal true, r.include?(r1)
+    assert_equal 2, r.size
+    assert r.include? r1
+    assert r.include? r2
   end
 
   test "Template Relation" do
@@ -98,7 +59,8 @@ class BarclampModelTest < ActiveSupport::TestCase
     t = b.template
     assert_equal "Crowbar template", t.name, "this comes from the model.barclamp.template localization"
     assert_instance_of BarclampInstance, t
-    assert_equal "crowbar", t.roles.first.name
+    assert_equal "private", t.roles.first.name
+    assert_equal "crowbar", t.roles.second.name
   end
 
   test "Proposals empty" do
@@ -143,9 +105,11 @@ class BarclampModelTest < ActiveSupport::TestCase
     ro = b.roles
     assert_not_nil ro
     begin
-      assert_equal 1, ro.length
-      assert_equal 'crowbar', ro[0].name
+      assert_equal 2, ro.length
+      assert_equal 'private', ro.first.name
+      assert_equal 'crowbar', ro.second.name
     rescue
+      
       flunk("Exception inside get roles due to missing roles by order")
     end
   end

@@ -49,39 +49,7 @@ Feature: Scaffolds
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
-      And there should be no translation errors
-    
-  Scenario: Proposals
-    When I go to the "scaffolds/proposals" page
-    Then I should see "Proposals"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Last applied rev"
-      And I should see "Active config"
-      And I should see "Barclamp"
-      And I should see "Current config"
-      And I should see "Proposal config"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-      
-  Scenario: Proposals Configs
-    When I go to the "scaffolds/proposal_configs" page
-    Then I should see "ProposalConfigs"
-      And I should see "Config"
-      And I should see "Failed reason"
-      And I should see "Revision"
-      And I should see "Status"
-      And I should see "Proposal"
-      And I should see "Node"
-      And I should see "Node role"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors        
+      And there should be no translation errors    
       
   Scenario: Menu Items
     When I go to the "scaffolds/navs" page

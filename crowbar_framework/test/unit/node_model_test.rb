@@ -17,7 +17,7 @@ require 'test_helper'
 class NodeModelTest < ActiveSupport::TestCase
 
   def setup
-    @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
+    @crowbar = Barclamp.import_1x "crowbar"
   end
 
 
@@ -117,5 +117,18 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal :empty, a.state
   end
 
+  test "attribs without role get set as user defined" do
+    name = "annie"
+    node = "daddy.warbucks.com"
+    n = Node.create :name=>node
+    assert_not_nil n
+    a = n.attrib_get(name)
+    assert_not_nil a
+    assert_equal name, a.attrib.name
+    assert_equal "user_defined", a.role_instance.name
+    assert_equal n.id, a.node_id
+    assert_equal @crowbar.id, a.barclamp_instance.barclamp_id
+  end
+  
 end
 

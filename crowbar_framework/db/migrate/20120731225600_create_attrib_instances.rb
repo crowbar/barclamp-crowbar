@@ -16,10 +16,10 @@ class CreateAttribInstances < ActiveRecord::Migration
     
   def change
     create_table :attrib_instances do |t|
-      t.string      :type,          :null => false, :default => Crowbar::AttribInstanceDefault.to_s
+      t.string      :type,          :null => false, :default => AttribInstance::DEFAULT_CLASS.to_s
       t.belongs_to  :attrib,        :null=>false
+      t.belongs_to  :role_instance, :null=>false
       t.belongs_to  :node,          :null=>true
-      t.belongs_to  :role_instance, :null=>true
       t.belongs_to  :jig_run,       :null=>true
       t.string      :value_actual,  :default=>"empty"
       t.string      :value_request, :default=>"empty"

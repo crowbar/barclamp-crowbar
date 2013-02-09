@@ -42,13 +42,16 @@ class Barclamp < ActiveRecord::Base
   #   the template proposal
   # 
   
-  # this should go away...old models
+  # CB1 this should go away...old models
   has_many :proposals, :conditions => 'proposals.name != "template"'
-  # this should go away...old models
+  # CB1 this should go away...old models
   has_many :active_proposals, 
                 :class_name => "Proposal", 
                 :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
   
+  # Active Instances
+  # NOTE!!! This is a placeholder for now - needs to be updated to use the BarclampConfig
+  has_many :active,                   :class_name => "BarclampInstance", :foreign_key=>:id, :primary_key=>:template_id
   
   # Template Data
   has_one  :template,                 :class_name => "BarclampInstance", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
@@ -219,8 +222,7 @@ class Barclamp < ActiveRecord::Base
     node
   end
 
-  ### private method.
-  # Parse the deployment section of a barclamps template
+  # Parse the deployment section of a barclamps template 
   # The following sections are parsed:
   #  - element_order - grouping of roles to execute in parallel/serial.
   #  - element_states - node states in which roles are allowed to execute
@@ -228,7 +230,7 @@ class Barclamp < ActiveRecord::Base
   #  - transitions - should transitions be passed to the bc.
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
-
+    
     template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
     if json.nil?
       throw "cannot import template #{template_file} not found" unless File.exists? template_file
@@ -274,12 +276,15 @@ class Barclamp < ActiveRecord::Base
       u.digest_password(pass)   # this is required if we want API access
       u.save!
     end
-  
+      
   end
 
 
   # Import from existing Config data 
   def self.import_1x(bc_name, bc=nil, source_path=nil)
+    self.import bc_name, bc, source_path
+  end
+  def self.import(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
     source_path ||= File.join '..','barclamps', bc_name
     bc_file = File.join(source_path, 'crowbar.yml')

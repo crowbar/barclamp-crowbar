@@ -13,9 +13,9 @@
 # limitations under the License.
 #
 
-class Crowbar::AttribInstanceDefault < AttribInstance
+class BarclampCrowbar::AttribInstanceDefault < AttribInstance
 
-  # Returns state of value of :empty, :set (by API) or :managed (by Jig)
+  # Returns state of value of :empty, :unready or :ready
   def state 
     AttribInstance.calc_state value_actual , value_request, jig_run_id
   end

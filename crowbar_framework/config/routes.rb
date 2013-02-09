@@ -14,7 +14,7 @@
 # 
 Crowbar::Application.routes.draw do
 
-  namespace :scaffolds do
+ namespace :scaffolds do
     resources :attribs do as_routes end
     resources :barclamps do as_routes end
     resources :groups do as_routes end
@@ -25,22 +25,54 @@ Crowbar::Application.routes.draw do
     resources :proposal_configs do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
-    resources :groups do as_routes end  
-    resources :interfaces do as_routes end
-    resources :networks do as_routes end
-    resources :ip_addresses do as_routes end
     resources :jig_attributes do as_routes end
     resources :os do as_routes end
     resources :os_packages do as_routes end
     resources :proposal_queues do as_routes end
     resources :proposal_queue_items do as_routes end
     resources :role_element_orders do as_routes end
+    resources :node_attribute_filters do as_routes end
+    # Network scaffolds
+    resources :allocated_ip_addresses do as_routes end
+    resources :bmc_interfaces do as_routes end
+    resources :bonds do as_routes end
+    resources :bus_maps do as_routes end
+    resources :buses do as_routes end
+    resources :conduit_actions do as_routes end
+    resources :conduit_filters do as_routes end
+    resources :conduit_rules do as_routes end
+    resources :conduits do as_routes end
+    resources :create_bonds do as_routes end
+    resources :create_vlans do as_routes end
+    resources :interface_maps do as_routes end
+    resources :interface_selectors do as_routes end
+    resources :interfaces do as_routes end
+    resources :ip_addresses do as_routes end
+    resources :ip_ranges do as_routes end
+    resources :network_mode_filters do as_routes end
+    resources :networks do as_routes end
+    resources :node_attribute_filters do as_routes end
+    resources :physical_interfaces do as_routes end
+    resources :routers do as_routes end
+    resources :select_by_indices do as_routes end
+    resources :select_by_speeds do as_routes end
+    resources :vlan_interfaces do as_routes end
+    resources :vlans do as_routes end
   end
 
 # DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
 
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
+  end
+  
+  # resources :conduits
+  scope 'network' do
+    # resource :conduit
+    # resources :network, :only => [:show, :new, :create, :edit, :update, :destroy]
+    resources :networks, :conduits
+    # get 'network', :controller => 'networks', :action=>'networks', :constraints => { :id => /.*/ }, :as => :network
+    # get 'conduit', :controller => 'conduits', :action=>'show', :constraints => { :id => /.*/ }, :as => :conduit
   end
 
 
@@ -53,9 +85,9 @@ Crowbar::Application.routes.draw do
 
   scope 'network' do
     version = "2.0"
-    get '/', :controller => 'network', :action=>'switch', :as => :network
-    get 'switch(/:id)', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
-    get 'vlan(/:id)', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
+    get '/', :controller => 'networks', :action=>'switch', :as => :network
+    get 'switch(/:id)', :controller => 'networks', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
+    get 'vlan(/:id)', :controller => 'networks', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
     get ":controller/#{version}", :action=>'network', :as => :network_barclamp
   end
 
@@ -150,14 +182,15 @@ Crowbar::Application.routes.draw do
             match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
             # group + node CRUD operations
             match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-            get    "network/networks", :controller => 'network', :action=>'networks'     # MOVE TO GENERIC!
-            get    "network/networks/:id", :controller => 'network', :action=>'network_show'     # MOVE TO GENERIC!
-            post   "network/networks", :controller => 'network', :action=>'network_create'     # MOVE TO GENERIC!
-            put    "network/networks/:id", :controller => 'network', :action=>'network_update'     # MOVE TO GENERIC!
-            delete "network/networks/:id", :controller => 'network', :action=>'network_delete'     # MOVE TO GENERIC!
-            post   "network/networks/:id/allocate_ip", :controller => 'network', :action=>'network_allocate_ip'
-            delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'network', :action=>'network_deallocate_ip'
-            post   "network/networks/:id/enable_interface", :controller => 'network', :action=>'network_enable_interface'
+
+            get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
+            get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
+            post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
+            put    "network/networks/:id", :controller => 'networks', :action=>'network_update'     # MOVE TO GENERIC!
+            delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
+            post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
+            delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
+			post   "network/networks/:id/enable_interface", :controller => 'networks', :action=>'network_enable_interface'
 
             # basic list operations 
             get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!

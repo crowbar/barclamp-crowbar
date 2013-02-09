@@ -15,7 +15,7 @@
 
 class AttribInstance < ActiveRecord::Base
 
-  before_create :set_type
+  before_create :set_type_and_role
 
   attr_accessible :node_id, :attrib_id, :role_instance_id, :type     # core relationshipships
   attr_accessible :value_actual, :value_request   # data storage
@@ -125,8 +125,17 @@ class AttribInstance < ActiveRecord::Base
   private
   
   # make sure some safe values are set for the node
-  def set_type
+  def set_type_and_role
+    # we need to have a type, cannot use the superclass!
     self.type = DEFAULT_CLASS.to_s if self.type.nil?
+    # we need to have a roleinstance!
+    # if the relationship does not exist then assume it's user defined
+    if self.role_instance_id.nil?
+      role = Role.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
+      crowbar = Barclamp.find_by_name 'crowbar'
+      user = crowbar.active.first.add_role role
+      self.role_instance_id = user.id
+    end
   end
   
 end

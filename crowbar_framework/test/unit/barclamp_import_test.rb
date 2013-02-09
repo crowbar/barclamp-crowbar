@@ -44,7 +44,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     json = JSON::load File.open("test/data/foo/chef/data_bags/crowbar/bc-template-foo.json")    
     bc = Barclamp.create :name=>"foo"
     bc.import_template(json,"bc-foo.json")
-    ordered = bc.roles(true)    # (true) forces a reload of the model
+    ordered = bc.role_instances(true)    # (true) forces a reload of the model
     assert_equal 'private', ordered.first.name
     assert_equal 'foo_mon_master', ordered.second.name
     assert_equal 'foo_mon', ordered.third.name

@@ -217,6 +217,7 @@ en:
       added: "Added from #{name}"
       default_create_description: "%{name} Created Role"
       private_role_description: "Private Role for Internal Data"
+      user_defined_role_description: "User Defined Attributes"
 
   # Views
   nodes:

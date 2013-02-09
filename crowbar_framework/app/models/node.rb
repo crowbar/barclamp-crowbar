@@ -94,24 +94,25 @@ class Node < ActiveRecord::Base
   # Update the Jig view of the node at this point.
   #
   def update_jig
-    chef_online = !(Jig.find_by_name('chef').nil?)
+    #chef_online = !(Jig.find_by_name('chef').nil?)
     # TODO - this should move into the Jig object!
-    if chef_online
-      cno = NodeObject.find_node_by_name(name)
-      if cno 
-        cno.crowbar["state"] = self.state
-        cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
-        cno.crowbar["crowbar"]["allocated"] = self.allocated
-  
-        # Get the active ones and merge into config
-        nrs = NodeRole.find_all_by_node_id(self.id)
-        nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-        nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
-  
-        cno.rebuild_run_list
-        cno.save
-      end
-    end
+    # CB1
+    #if chef_online
+    #  cno = NodeObject.find_node_by_name(name)
+    #  if cno 
+    #    cno.crowbar["state"] = self.state
+    #    cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
+    #    cno.crowbar["crowbar"]["allocated"] = self.allocated
+    #
+    #    # Get the active ones and merge into config
+    #    nrs = NodeRole.find_all_by_node_id(self.id)
+    #    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+    #    nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
+    #
+    #    cno.rebuild_run_list
+    #    cno.save
+    #  end
+    #end
   end
 
   def reset_jig_access
@@ -228,11 +229,12 @@ class Node < ActiveRecord::Base
     ipmi_cmd("chassis identify")
   end
 
+# CB1
   def run_list(pending = true)
-    nrs = NodeRole.find_all_by_node_id(self.id)
-    # Get the active ones
-    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-    nrs.map { |x| x.role }
+#    nrs = NodeRole.find_all_by_node_id(self.id)
+#    # Get the active ones
+#    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+#    nrs.map { |x| x.role }
   end
 
   # Associate the node to a barclamp via the role
@@ -258,28 +260,29 @@ class Node < ActiveRecord::Base
   #
   #   This includes updating the Jig node role with node specific data.
   #
+  # CB1
   def update_run_list
-    nrs = NodeRole.find_all_by_node_id(self.id)
-    # Get the active ones
-    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
+#    nrs = NodeRole.find_all_by_node_id(self.id)
+#    # Get the active ones
+#    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
 
     # For each of the roles
-    cno = jig_hash
-    cno.clear_run_list_map
-    nrs.each do |nr|
-      if nr.role
+#    cno = jig_hash
+#    cno.clear_run_list_map
+#    nrs.each do |nr|
+#      if nr.role
         # This is node role that defines run_list entry
-        cno.add_to_run_list(nr.role.name, nr.role.barclamp.jig_order, nr.role.states.split(","))
-        config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
-        cno.add_to_run_list(config_name, nr.role.barclamp.jig_order, ["all"])
-      end
+#        cno.add_to_run_list(nr.role.name, nr.role.barclamp.jig_order, nr.role.states.split(","))
+#        config_name = "#{nr.role.barclamp.name}-config-#{nr.proposal_config.proposal.name}"
+#        cno.add_to_run_list(config_name, nr.role.barclamp.jig_order, ["all"])
+#      end
       # Has custom data.
-      if nr.config
-        hash = nr.config_hash
-        cno.crowbar.merge(hash)
-      end
-    end
-    cno.save
+#      if nr.config
+#        hash = nr.config_hash
+#        cno.crowbar.merge(hash)
+#      end
+#    end
+#    cno.save
   end
   
   # Friendly name for the UI

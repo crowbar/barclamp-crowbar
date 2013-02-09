@@ -19,6 +19,7 @@ require 'chef'
 class BarclampNodeDataTest < ActiveSupport::TestCase
 
   def setup
+    BarclampChef::Jig.find_or_create_by_name :name=>'chef'
     file = File.join 'test', 'data', 'barclamp_node_data_test.json'
     assert File.exist?(file), "source file #{file}"
     @sample = JSON::load File.open("#{file}", 'r')
@@ -42,6 +43,12 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal 'bndt', @bc.template.roles(true).second.name
   end
 
+  test "we have the expected jigs" do
+    assert_not_nil Jig.find_by_name('test'), "test jig exists"
+    assert_not_nil Jig.find_by_name 'chef', "chef jig exists"
+    assert_equal 2, Jig.count, "we should have two chef (chef & admin_chef) and test jig"
+  end
+  
   test "Use Hint to Extract Data" do
     jig = BarclampCrowbar::Jig.new
     assert_equal @node, jig.find_attrib_in_data(@sample, "fqdn")
@@ -94,7 +101,6 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal 2, @bc.template.role_instances(true).count
     assert_equal 3, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances before nodes are assigned"
 
-    assert_equal 3, Jig.count, "we should have two chef (chef & admin_chef) and test jig"
     assert_equal Jig.count*3, @bc.jig_maps.count, "this is the jig mappings"
 
     assert_nil @mynode.attrib_get(a1.attrib.name).value

@@ -60,13 +60,13 @@ class RoleInstance < ActiveRecord::Base
     end
   end
   
-  # Assignes a node to the role by creating a AttribInstanceNodeRole
+  # Assignes a node to the role by creating a AttribInstanceHasRole
   def add_node(node)
     has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id node.id, self.id
     HAS_NODE_ROLE.create :role_instance_id => self.id, :node_id => node.id unless has_node
   end
 
-  # Unassigns a node to the role by creating a AttribInstanceNodeRole
+  # Unassigns a node to the role by creating a AttribInstanceHasRole
   def remove_node(node)
     has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id node.id, self.id
     HAS_NODE_ROLE.delete has_node

@@ -15,6 +15,42 @@ jQuery.localizedValue = function(val){
 };
 
 jQuery(document).ready(function($) {
+	
+
+	/**
+	 * Utility method for retrieving a jQuery element by passing in the id of the element you want.
+	 * Simply a shortcut.
+	 *
+	 * @usage $.getById("some_element_id");
+	 * @param id
+	 * @returns element
+	 */
+	jQuery.getById = function(id) {
+		return $("#" + id);
+	};
+	
+	/**
+	 * Add load details behavior to anchor tags by class.
+	 *
+	 * @usage $.loadDetails(anchor_class, details_id);
+	 * @param anchor_class, the anchor tags we want to add loadDetails on
+	 * @param details_id, id of div we are going to load content into.
+	 * @returns boolean
+	 */
+	jQuery.loadDetails = function(anchor_class, details_id) {
+		$achors = $('a.' + anchor_class);
+		$achors.click(function(e) {
+			selected = $(this).attr('id');
+			$.getById(details_id).load($(this).attr('href'));
+			$('tr.selected', $(this).parent('table')).removeClass('selected');
+			$(this).parent('tr').addClass('selected');
+			e.preventDefault();
+		});
+		return true;
+	};
+
+
+  
   
   $('textarea.editor').each(function(index) {
     CodeMirror.fromTextArea(this, {
@@ -23,6 +59,7 @@ jQuery(document).ready(function($) {
     });
   });
   
+  // TODO: deprecate in favor of $.loadDetails
   $('a.node_details').click(function(e) {
     selected = $(this).attr('id');
     $('#details').load($(this).attr('href'));
@@ -30,7 +67,7 @@ jQuery(document).ready(function($) {
     $(this).parents('tr').addClass('selected');
     e.preventDefault();
   });
-  
+
   $('#details .roles a').live('click', function(e) {
     link = $(this);
     $.getJSON(link.attr('href'), function(data) {

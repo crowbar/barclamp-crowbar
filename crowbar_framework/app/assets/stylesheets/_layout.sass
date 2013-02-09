@@ -25,9 +25,17 @@ header
   nav
     float: right
     margin-top: 50px
-    ul
+    > ul
+      > li
+        > ul
+          top: 20px !important
+        
+    ul /*top*/
       +inline_list
       z-index: 1000
+      li.has_children > a:before
+        content: "<  "
+        display: inline
       li
         position: relative
         line-height: 18px
@@ -38,26 +46,16 @@ header
             color: $nav_selected
         a:hover
           color: $nav_selected
-        ul
-          display: none
-          border: 1px solid $header_border
-          background: $page_bg
-          position: absolute
-          right: 0
-          top: 20px
-          width: 150px
+        ul /* level 2 */
+          +nav_ul
           li
             display: inline
             a
-              display: block
-              line-height: 18px
-              text-align: right
-              margin: 0
-              padding: 5px 10px !important
-        &:hover ul
+              +nav_a
+        &:hover > ul
           display: block
           +shadow
-
+          
 .notice
   text-align: center
   color: $notice_fg

@@ -33,9 +33,6 @@ class CreateNavs < ActiveRecord::Migration
       Nav.find_or_create_by_item :item=>'dashboard', :parent_item=>'nodes', :name=>'nav.dashboard', :description=>'nav.dashboard_description', :path=>"dashboard_path", :order=>100
       Nav.find_or_create_by_item :item=>'bulkedit', :parent_item=>'nodes', :name=>'nav.list', :description=>'nav.list_description', :path=>"nodes_list_path(:allocated=>'yes')", :order=>200
       Nav.find_or_create_by_item :item=>'families', :parent_item=>'nodes', :name=>'nav.families', :description=>'nav.families_description', :path=>"nodes_families_path", :order=>300, :development=>true
-  
-    # network
-    Nav.find_or_create_by_item :item=>'network', :parent_item=>'root', :name=>'nav.network', :description=>'nav.network_description', :path=>"network_path", :order=>2000, :development=>true
 
     # barclamps
     Nav.find_or_create_by_item :item=>'barclamps', :parent_item=>'root', :name=>'nav.barclamps', :description=>'nav.barclamps_description', :path=>"barclamp_modules_path", :order=>3000, :development=>true

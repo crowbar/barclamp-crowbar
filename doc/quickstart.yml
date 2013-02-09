@@ -1,0 +1,26 @@
+# theses are the default meta_data values
+license: Apache 2
+copyright: "2013 by Dell, Inc"
+author: Dell CloudEdge Team
+date: "February 1, 2013"
+
+gettingstarted/configuring_network:
+  order: 100
+
+gettingstarted/installing_admin_node:
+  order: 500
+    
+gettingstarted/installing_crowbar:
+  order: 1000
+
+gettingstarted/discovering_nodes:
+  order: 1500
+    
+gettingstarted/installing_openstack:
+  order: 2000
+    
+gettingstarted/installing_hadoop:
+  order: 2500
+
+gettingstarted/additional_info:
+  order: 3000

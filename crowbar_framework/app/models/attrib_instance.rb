@@ -33,7 +33,7 @@ class AttribInstance < ActiveRecord::Base
   belongs_to      :jig_run
   alias_attribute :run,               :jig_run
 
-  DEFAULT_CLASS = Crowbar::AttribInstanceDefault rescue AttribInstance
+  DEFAULT_CLASS = BarclampCrowbar::AttribInstanceDefault rescue AttribInstance
   
   MARSHAL_NIL   = "\004\b0"
   MARSHAL_EMPTY = "empty"
@@ -126,7 +126,7 @@ class AttribInstance < ActiveRecord::Base
   
   # make sure some safe values are set for the node
   def set_type
-    self.type = Crowbar::AttribInstanceDefault.to_s if self.type.nil?
+    self.type = DEFAULT_CLASS.to_s if self.type.nil?
   end
   
 end

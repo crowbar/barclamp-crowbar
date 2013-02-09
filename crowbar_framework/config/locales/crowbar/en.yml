@@ -203,6 +203,7 @@ en:
         data: JSON Data
         proposal_count: Proposals
       role:
+        has_node: "System Assigned Attrib for Role-Node membership"
         name: Proposal
         description: Description
         proposal_count: Proposals

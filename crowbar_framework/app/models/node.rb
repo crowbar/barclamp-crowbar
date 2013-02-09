@@ -20,12 +20,20 @@ class Node < ActiveRecord::Base
   attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
   attr_readonly   :fingerprint
   
+  # for Node-Role relationship
+  HAS_NODE_ROLE = BarclampCrowbar::AttribInstanceHasNode
+  # Make sure we have names that are legal
+  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+  # for to_api_hash
+  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
+                    "admin", "allocated", "os_id", "created_at", "updated_at"]
+
   # 
   # Validate the name should unique (no matter the case)
   # and that it starts with a valid FQDN
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
+  validates_format_of :name, :with=>FQDN_RE, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   validates_length_of :name, :maximum => 255
 
   # TODO: 'alias' will move to DNS BARCLAMP someday, but will prob hang around here a while
@@ -35,43 +43,39 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :attrib_instances,  :class_name => "AttribInstance", :foreign_key => :node_id, :dependent => :destroy
-  has_many :attribs,           :through => :attrib_instances
+  has_many :attrib_instances,   :class_name => "AttribInstance", :foreign_key => :node_id, :dependent => :destroy
+  has_many :attribs,            :through => :attrib_instances
+
+  has_many :attrib_instance_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :node_id
+  has_many :role_instances,     :through => :attrib_instance_has_nodes
+  has_many :barclamp_instances, :through => :role_instances
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
-  # for to_api_hash
-  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
-                    "admin", "allocated", "os_id", "created_at", "updated_at"]
-
-  #
-  # Find a set of nodes by role name
-  #
-  def self.find_by_role_name(role_name)
-    role = Role.find_by_name(role_name)
-    return [] unless role
-
-    nrs = NodeRole.find_all_by_role_id(role.id)
-    # Get the active ones
-    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-    nrs.map { |x| x.node }
-  end
-
   #
   # Create function that integrates with Jig functions.
-  #
+  # CB1 TODO remove
   def self.create_with_jig(name)
-    chef_node = NodeObject.find_node_by_name(name)
-    node = Node.create(:name => name)
-    node.admin = true if chef_node and chef_node.admin?
-    node.save!
-    unless chef_node
-      cno = NodeObject.create_new name
-      cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
-      cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
-      cno.save
+    n = Node.find_by_name name
+    n.create_with_jig
+    n
+  end
+  def create_with_jig
+    throw "this needs to move to the jig"
+    jig.all.each do |j|
+      jig.add_node self
     end
-    node
+#    chef_node = NodeObject.find_node_by_name(name)
+#    node = Node.create(:name => name)
+#    node.admin = true if chef_node and chef_node.admin?
+#    node.save!
+#    unless chef_node
+#      cno = NodeObject.create_new name
+#      cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
+#      cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
+#      cno.save
+#    end
+#    node
   end
 
   # if there key is a hash, recurse.  Otherwise, take the addin value.
@@ -126,6 +130,7 @@ class Node < ActiveRecord::Base
     end
   end
 
+  # CB1 remove
   def jig_hash
     NodeObject.find_node_by_name name 
   end
@@ -135,10 +140,12 @@ class Node < ActiveRecord::Base
   # XXX: Once networking is better defined, we should use those routines
   #
   def address(net = "admin")
+    throw "CB1 do not use - use attrib_admin_address"
     jig_hash.address(net)
   end
 
   def public_ip
+    throw "CB1 do not use - use attrib_public_ip"
     jig_hash.public_ip
   end
 
@@ -171,12 +178,11 @@ class Node < ActiveRecord::Base
   # Helper function for allocated
   #
   def allocated?
-    self.allocated
+    get_attrib("allocated").value || false
   end
 
   def allocate
-    self.allocated = true
-    save
+    set_attrib("allocated", true) 
   end
 
   
@@ -191,6 +197,7 @@ class Node < ActiveRecord::Base
     cb.transition "default", name, new_state, old_state
   end
 
+  # CB1 these are really IMPI actions - please move!
   def ipmi_cmd(cmd)
     bmc          = jig_hash.address("bmc").addr rescue nil
     bmc_user     = jig_hash.get_bmc_user
@@ -198,21 +205,25 @@ class Node < ActiveRecord::Base
     system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} #{cmd}") unless bmc.nil?
   end
 
+  # CB1 these are really IMPI actions - please move!
   def reboot
     set_state("reboot")
     ipmi_cmd("power cycle")
   end
 
+  # CB1 these are really IMPI actions - please move!
   def shutdown
     set_state("shutdown")
     ipmi_cmd("power off")
   end
 
+  # CB1 these are really IMPI actions - please move!
   def poweron
     set_state("poweron")
     ipmi_cmd("power on")
   end
 
+  # CB1 these are really IMPI actions - please move!
   def identify
     ipmi_cmd("chassis identify")
   end
@@ -224,6 +235,20 @@ class Node < ActiveRecord::Base
     nrs.map { |x| x.role }
   end
 
+  # Associate the node to a barclamp via the role
+  # This will create a AttribInstanceHasRole object to the requested RoleInstance
+  def add_role(role_instance)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id self.id, role_instance.id
+    HAS_NODE_ROLE.create :role_instance_id => role_instance.id, :node_id => self.id unless has_node
+  end
+
+  # Deassociate the node to a barclamp via the role
+  # This will delete the AttribInstanceHasRole object to the requested RoleInstance
+  def remove_role(role_instance)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id self.id, role_instance.id
+    HAS_NODE_ROLE.delete has_node if has_node
+  end
+  
   # XXX: Make this better one day.  Perf is not good.  Direct select would be better
   # A custom query should be able to build the list straight up.
   #
@@ -350,6 +375,7 @@ class Node < ActiveRecord::Base
     if method.starts_with? "attrib_"
       return get_attrib(method[7..100]).value
     elsif method.starts_with? "jig_"
+      Rails.logger.warn "node.#{method} depricated.  switch to node.attrib_*"
       return get_attrib(method[5..100]).value
     else
       super.method_missing(m,*args,&block)

@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,6 +56,15 @@ class Node < ActiveRecord::Base
     nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
     nrs.map { |x| x.node }
   end
+
+
+  #
+  # Returns the roles associated with the node
+  #
+  def roles
+    Role.joins("join node_roles on role_id = roles.id and node_id = #{self.id}")
+  end
+
 
   #
   # Create function that integrates with Jig functions.

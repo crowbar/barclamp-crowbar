@@ -135,7 +135,7 @@ def get_json(path)
 end
 
 def get_json2(path)
-  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
+  uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
   res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug

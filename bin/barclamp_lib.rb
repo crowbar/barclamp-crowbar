@@ -26,6 +26,7 @@ require 'getoptlong'
 # gather_cli replies on the exact format they are in. 
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000
+@url = nil
 @headers = {
   "Accept" => "application/json",
   "Content-Type" => "application/json"
@@ -48,6 +49,7 @@ end
     [ [ '--password', '-P', GetoptLong::REQUIRED_ARGUMENT ], "--password <password> or -P <password>  - specifies the password" ],
     [ [ '--hostname', '-n', GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - specifies the destination server" ],
     [ [ '--port', '-p', GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - specifies the destination server port" ],
+    [ [ '--url', GetoptLong::REQUIRED_ARGUMENT ], "--url <http://host:port> - specifies the API address URL" ],
     [ [ '--debug', '-d', GetoptLong::NO_ARGUMENT ], "--debug or -d - turns on debugging information" ],
     [ [ '--data', GetoptLong::REQUIRED_ARGUMENT ], "--data <data> - used by create or edit as data (must be in json format)" ],
     [ [ '--file', GetoptLong::REQUIRED_ARGUMENT ], "--file <file> - used by create or edit as data when read from a file (must be in json format)" ],
@@ -135,7 +137,7 @@ def get_json(path)
 end
 
 def get_json2(path)
-  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
+  uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
   res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -157,7 +159,7 @@ def post_json(path, data)
 end
 
 def post_json2(path, data=nil, verb =Net::HTTP::Post )
-  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
+  uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
   res = authenticate(verb,uri,data)
 
   puts "DEBUG: (post) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -174,7 +176,7 @@ def put_json(path, data)
 end
 
 def put_json2(path, data=nil)
-  uri = URI.parse("http://#{@hostname}:#{@port}/#{path}")
+  uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
   res = authenticate(Net::HTTP::Put,uri,data)
 
   puts "DEBUG: (put) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -427,6 +429,8 @@ def opt_parse()
         usage 0
       when '--debug'
         @debug = true
+      when '--url'
+        @url = arg
       when '--hostname'
         @hostname = arg
       when '--username'

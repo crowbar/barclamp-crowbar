@@ -185,7 +185,7 @@ is_a(JSON, Type, Key) ->
   case is_a(Type, Value) of
     true  -> true;
     X     -> 
-      log(warn, "Key ~p with Value ~p did not pass is_a(~p) test.  Result was ~p.", [Key, Value, Type, X]),
+      log(warn, "Key ~p did not pass bdd_utils:is_a(~p, ~p). Result was ~p.", [Key, Type, Value, X]),
       false
   end.
   

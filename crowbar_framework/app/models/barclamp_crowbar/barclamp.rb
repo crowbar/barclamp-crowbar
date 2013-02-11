@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,7 @@
 # limitations under the License.
 #
 
-class RoleMap < ActiveRecord::Base
-
-  attr_accessible :name, :value, :revision
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_format_of :value, :with=>/^[a-zA-Z][_a-zA-Z0-9]+/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-
-  belongs_to :role
-  belongs_to :barclamp
-
-
-  def to_s
-    "RoleMap: #{name}\nValue: #{value}"
-  end
-
+# This class is the fall back class for barclamps that are missing Barclamp subclasses
+class BarclampCrowbar::Barclamp < Barclamp
+  
 end
-

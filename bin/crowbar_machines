@@ -21,6 +21,8 @@ require 'uri'
 require 'json'
 require 'getoptlong'
 
+require 'crowbar_cli_lib'
+
 @debug = false
 @hostname = ENV["CROWBAR_IP"]
 # DO NOT CHANGE THE FORMAT OF THE NEXT 2 LINES.
@@ -28,6 +30,7 @@ require 'getoptlong'
 # rewrite the addreses when it is serving the CLI.
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000
+@url = "http://#{@hostname}:#{@port}"
 @headers = {
   "Accept" => "application/json",
   "Content-Type" => "application/json"
@@ -49,8 +52,9 @@ end
     [ [ '--help', '-h', GetoptLong::NO_ARGUMENT ], "--help or -h - help" ],
     [ [ '--username', '-U', GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - specifies the username to use" ],
     [ [ '--password', '-P', GetoptLong::REQUIRED_ARGUMENT ], "--password <password> or -P <password>  - specifies the password to use" ],
-    [ [ '--hostname', '-n', GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - specifies the destination server" ],
-    [ [ '--port', '-p', GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - specifies the destination server port" ],
+    [ [ '--hostname', '-n', GetoptLong::OPTIONAL_ARGUMENT  ], "--hostname <name or ip> or -n <name or ip>  - specifies the destination server" ],
+    [ [ '--port', '-p', GetoptLong::OPTIONAL_ARGUMENT  ], "--port <port> or -p <port> - specifies the destination server port" ],
+    [ [ '--url', GetoptLong::OPTIONAL_ARGUMENT  ], "--url or -H - server HTTP info" ],
     [ [ '--debug', '-d', GetoptLong::NO_ARGUMENT ], "--debug or -d - turns on debugging information" ],
     [ [ '--data', GetoptLong::REQUIRED_ARGUMENT ], "--data <data> - used by create or edit as data (must be in json format)" ],
     [ [ '--file', GetoptLong::REQUIRED_ARGUMENT ], "--file <file> - used by create or edit as data when read from a file (must be in json format)" ],
@@ -117,7 +121,7 @@ def authenticate(req,uri,data=nil)
 end  
 
 def get_json(path)
-  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
+  uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
   res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -286,7 +290,6 @@ def opt_parse()
   sub_options = @options.map { |x| x[0] }
   lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
-
   opts.each do |opt, arg|
     case opt
       when '--help'
@@ -299,6 +302,8 @@ def opt_parse()
         @username = arg
       when '--password'
         @password = arg
+      when '--url'
+        @url = arg
       when '--port'
         @port = arg.to_i
       when '--data'
@@ -337,6 +342,7 @@ end
 
 def main()
   opt_parse
+  cli = CrowbarCliLib.new()
   res = run_command
   puts res[0]
   exit res[1]

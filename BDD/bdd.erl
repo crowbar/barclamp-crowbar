@@ -328,26 +328,32 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	  {step_and, SS} -> {LastStep, SS};
 	  {Type, SS} -> {Type, SS}
 	end,
+	% calculate for the skips
+	{_, OStype} = os:type(),
 	case Step of
 	  {step_skip, S}    ->  log(info,"Skipping ~p ~s", [ScenarioID, S]), 
                     	    skip;
 	  {step_while, S}    -> While = [binary_to_atom(A, utf8) || A <- re:split(S," ")],
                           Env = bdd_utils:config(Config, environment, undefined),
                           % while list is not included in env list then skip  (opposite of while)
-                    	    case lists:member(Env, While) of 
-                    	      true     -> log(debug,"bdd:test_scenario: while running ~p [~p in ~p]", [ScenarioID, Env, While]),
-                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_while, ScenarioID);
-                    	      _        -> log(debug,"While skipping ~p [~p not in ~p]", [ScenarioID, Env, While]), 
-                    	                  skip
+                          WhileEnv = lists:member(Env, While),
+                          WhileOS = lists:member(OStype, While),
+                    	    if WhileEnv; WhileOS ->
+                    	        log(debug,"bdd:test_scenario: while running ~p [~p/P in ~p]", [ScenarioID, Env, OStype, While]),
+                              scenario_steps(Config, T, N, Given, When, Then, Finally, step_while, ScenarioID);
+                    	      true -> log(debug,"While skipping ~p [~p/~p not in ~p]", [ScenarioID, Env, OStype, While]), 
+                    	        skip
                     	    end;
 		{step_unless, S}  ->  Unless = [binary_to_atom(A, utf8) || A <- re:split(S," ")],
                           Env = bdd_utils:config(Config, environment, undefined),
                           % unless list is included in env list then skip (opposite of unless)
-                    	    case lists:member(Env, Unless) of 
-                    	      true        -> log(debug,"Unless skipping ~p [~p not in ~p]", [ScenarioID, Env, Unless]), 
-                    	                  skip;
-                    	      _           -> log(debug,"bdd:test_scenario: running unless ~p [~p in ~p]", [ScenarioID, Env, Unless]),
-                                        scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID)
+                          UnlessEnv = lists:member(Env, Unless),
+                          UnlessOS = lists:member(OStype, Unless),
+                    	    if UnlessEnv; UnlessOS ->
+                	            log(debug,"Unless skipping ~p [~p/~p  in ~p]", [ScenarioID, Env, OStype, Unless]), 
+                    	        skip;
+                    	      true -> log(debug,"bdd:test_scenario: running unless ~p [~p/~p not in ~p]", [ScenarioID, Env, OStype, Unless]),
+                              scenario_steps(Config, T, N, Given, When, Then, Finally, step_unless, ScenarioID)
                     	    end;
 		{step_given, S}   -> scenario_steps(Config, T, N+1, [{step_given, {ScenarioID, N}, S} | Given], When, Then, Finally, step_given, ScenarioID);
 		{step_when, S}    -> scenario_steps(Config, T, N+1, Given, [{step_when, {ScenarioID, N}, S} | When], Then, Finally, step_when, ScenarioID);

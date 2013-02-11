@@ -6,6 +6,10 @@ Feature: Navigation, Check Core Navigation
   Scenario: Translation Check
     When I go to the home page
     Then there should be no translation errors
+
+  Scenario: Top Nav Renders
+    When I go to the home page
+    Then I should not see "Render Error"
           
   Scenario: Home Page Nav
     When I go to the home page

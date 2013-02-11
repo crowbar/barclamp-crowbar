@@ -22,7 +22,7 @@
 g(Item) ->
   case Item of
     "cli" -> g(cli);
-    cli -> "cd ../bin && crowbar";
+    cli -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "global-node.testing.com";
     node_atom -> global_node;

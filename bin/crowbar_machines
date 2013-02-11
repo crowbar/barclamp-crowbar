@@ -21,6 +21,8 @@ require 'uri'
 require 'json'
 require 'getoptlong'
 
+require 'crowbar_cli_lib'
+
 @debug = false
 @hostname = ENV["CROWBAR_IP"]
 # DO NOT CHANGE THE FORMAT OF THE NEXT 2 LINES.
@@ -28,7 +30,7 @@ require 'getoptlong'
 # rewrite the addreses when it is serving the CLI.
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000
-@url = "http://#{hostname}:#{port}"
+@url = "http://#{@hostname}:#{@port}"
 @headers = {
   "Accept" => "application/json",
   "Content-Type" => "application/json"
@@ -119,9 +121,7 @@ def authenticate(req,uri,data=nil)
 end  
 
 def get_json(path)
-#  uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   uri = URI.parse((@url || "http://#{@hostname}:#{@port}") + "/#{path}" )
-
   res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
@@ -290,7 +290,6 @@ def opt_parse()
   sub_options = @options.map { |x| x[0] }
   lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
-
   opts.each do |opt, arg|
     case opt
       when '--help'
@@ -343,6 +342,7 @@ end
 
 def main()
   opt_parse
+  cli = CrowbarCliLib.new()
   res = run_command
   puts res[0]
   exit res[1]

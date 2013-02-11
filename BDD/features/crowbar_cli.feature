@@ -4,23 +4,25 @@ Feature: Crowbar CLI
   wants to use a command line interface
 
   Scenario: CLI has help
-    While local or devtool
+    Unless windows
     Given CLI is {apply:crowbar.g.cli}
-    When I run the "help" command
-    Then the CLI should return "Crowbar help"
+    When I run the "users help" command
+    Then the CLI should return "Usage:"
+      And the CLI should return "--help"
       And the CLI should return "--username"
       And the CLI should return "--password"    
+      And the CLI should return "--url"    
     
   Scenario: CLI Connects
-    While local or devtool
+    Unless windows
     Given CLI is {apply:crowbar.g.cli}
-    When I run the "users" command
+    When I run the "users list" command
     Then the CLI should return "crowbar"
-      And the CLI should return "machine_user"
+      And the CLI should return "machine-install"
       And the CLI should return "developer"
       
   Scenario: Machines List
-    While local or devtool
+    Unless windows
     Given there is a {object:node} "cli.cr0wbar.com"
     Given CLI is {apply:crowbar.g.cli} 
     When I run the "machines list" command

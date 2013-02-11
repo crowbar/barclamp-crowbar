@@ -4,17 +4,23 @@ Feature: Scaffolds
   wants to be able to quickly check the models
   
   Scenario: Attribute
-    When I go to the "scaffolds/attribs" page
-    Then I should see "Attributes"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Order"
-      And I should see "Nodes"
+    When I go to the "scaffolds/attrib_instances" page
+    Then I should see heading "AttribInstances"
+      And I should see "Type"
+      And I should see "Value actual"
+      And I should see "Value request"
+      And I should see "Attrib"
+      And I should see "Barclamp"
+      And I should see "Jig run"
+      And I should see "Node"
+      And I should see "Role"
+      And I should see "Role instance"
+      And I should see "BarclampCrowbar::AttribInstanceDefault"
       And there should be no translation errors
       
   Scenario: Barclamp
     When I go to the "scaffolds/barclamps" page
-    Then I should see "Barclamps"
+    Then I should see heading "Barclamps"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
@@ -27,7 +33,7 @@ Feature: Scaffolds
       
   Scenario: Nodes
     When I go to the "scaffolds/nodes" page
-    Then I should see "Nodes"
+    Then I should see heading "Nodes"
       And I should see "Name"
       And I should see "Description"
       And I should see "Groups"
@@ -42,7 +48,7 @@ Feature: Scaffolds
       
   Scenario: Roles
     When I go to the "scaffolds/roles" page
-    Then I should see "Roles"
+    Then I should see heading "Roles"
       And I should see "Name"
       And I should see "Barclamp"
       And I should see "Created At"
@@ -53,7 +59,7 @@ Feature: Scaffolds
       
   Scenario: Menu Items
     When I go to the "scaffolds/navs" page
-    Then I should see "Navs"
+    Then I should see heading "Navs"
       And I should see "Name"
       And I should see "Description"
       And I should see "Development"
@@ -68,7 +74,7 @@ Feature: Scaffolds
       
   Scenario: Docs
     When I go to the "scaffolds/docs" page
-    Then I should see "Docs"
+    Then I should see heading "Docs"
       And I should see "Author"
       And I should see "Copyright"
       And I should see "Date"
@@ -88,7 +94,7 @@ Feature: Scaffolds
       
   Scenario: Configuration Attibs
     When I go to the "scaffolds/attribs" page
-    Then I should see "Attrib"
+    Then I should see heading "Attribs"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
@@ -101,7 +107,7 @@ Feature: Scaffolds
       
   Scenario: Interfaces
     When I go to the "scaffolds/interfaces" page
-    Then I should see "Interfaces"
+    Then I should see heading "Interfaces"
       And I should see "Name"
       And I should see "Ip addresses"
       And I should see "Created At"
@@ -112,7 +118,7 @@ Feature: Scaffolds
       
   Scenario: Os
     When I go to the "scaffolds/os" page
-    Then I should see "Os"
+    Then I should see heading "Os"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
@@ -126,7 +132,7 @@ Feature: Scaffolds
 
   Scenario: OsPackages
     When I go to the "scaffolds/os_packages" page
-    Then I should see "OsPackages"
+    Then I should see heading "OsPackages"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
@@ -139,7 +145,7 @@ Feature: Scaffolds
       
   Scenario: Groups
     When I go to the "scaffolds/groups" page
-    Then I should see "Groups"
+    Then I should see heading "Groups"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"

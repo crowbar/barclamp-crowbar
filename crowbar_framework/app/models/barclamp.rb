@@ -229,7 +229,7 @@ class Barclamp < ActiveRecord::Base
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
 
-    template_file ||= File.join(source_path, 'chef', 'data_bags', 'crowbar', "bc-template-#{name}.json")
+    template_file ||= File.join(source_path, 'templates', "bc-template-#{name}.json")
     if json.nil?
       throw "cannot import template #{template_file} not found" unless File.exists? template_file
       json = JSON::load File.open(template_file, 'r')
@@ -281,8 +281,8 @@ class Barclamp < ActiveRecord::Base
   # Import from existing Config data 
   def self.import_1x(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
-    source_path ||= File.join '..','barclamps', bc_name
-    bc_file = File.join(source_path, 'crowbar.yml')
+    source_path ||= 'barclamps'
+    bc_file = File.join(source_path, "#{bc_name}.yml")
     # load JSON
     if bc.nil?
       throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file

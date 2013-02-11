@@ -6,7 +6,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 3. Troubleshoot the Chef client if necessary by running the following command on problematic nodes:
 
 		$ chef-client
-4. Verify nodes statuses in the Crowbar UI (*Nodes > Dashboard*), ensuring that all nodes' icons are green.
+4. Verify nodes statuses in the Crowbar UI by navigating to *Nodes > Dashboard*, and then ensuring that all nodes' icons are green.
 5. Print the *Nodes > Inventory* screen for later reference, when you select services. See *Service Selection* below.
 6. Invoke the Cloudera Manager UI.
 
@@ -16,7 +16,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 
 	c. Restart the Cloudera Manager server in order for the license to take effect.
 
-7. Open an SSH console on the node that has the Cloudera Manager (*clouderamanager-server*) role applied to it (login=*root/crowbar*) and execute the following commands:
+7. Open an SSH console on the node that has the *clouderamanager-server* (Cloudera Manager) role applied to it. The login credentials are *root/crowbar*. Then execute the following commands:
 
 		$ cd /etc/init.d
 		$ sudo service cloudera-scm-server restart
@@ -59,7 +59,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 
 2. Select *All hosts accept same password*.
 
-	a. Enter the SSH login password for the cluster (default=*crowbar*).
+	a. Enter the SSH login password for the cluster. The default password is *crowbar*.
 
 	b. Confirm the password.
 
@@ -106,8 +106,8 @@ If you entered the Cloudera Manager License key, you will see this additional sc
 ###Review Configuration Changes###
 If you entered the Cloudera Manager License key, you will see this additional screen.
 
-1. Set the mail server hostname for alerts (*localhost*).
-2. Set the mail server message recipients for alerts (*root*).
+1. Set the mail server hostname for alerts to *localhost*.
+2. Set the mail server message recipients for alerts to *root*.
 3. Click the *Continue* button.
 
 ###Cluster Services Initialization###

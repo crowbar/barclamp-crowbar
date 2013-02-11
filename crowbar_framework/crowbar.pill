@@ -1,0 +1,12 @@
+Bluepill.application("crowbar-webserver") do |app|
+  app.process("puma") do |p|
+    p.start_command = "puma -C puma.cfg"
+    p.stdout = "/dev/null"
+    p.stderr = "/dev/null"
+    p.working_dir = "/opt/dell/crowbar_framework"
+    p.uid = "crowbar"
+    p.gid = "crowbar"
+    p.daemonize = true
+    p.stop_grace_time = 5.seconds
+  end
+end

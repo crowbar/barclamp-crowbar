@@ -28,7 +28,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "roles get priority from deployment section" do
-    json = JSON::load File.open("test/data/foo/chef/data_bags/crowbar/bc-template-foo.json")
+    json = JSON::load File.open("test/data/foo/templates/bc-template-foo.json")
     bc = Barclamp.import_1x "foo", nil, "test/data/foo"
     bc.import_template(json,"bc-foo.json")
     rmap = {}
@@ -41,8 +41,9 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
   
   test "roles are ordered correctly" do
-    json = JSON::load File.open("test/data/foo/chef/data_bags/crowbar/bc-template-foo.json")    
+    json = JSON::load File.open("test/data/foo/templates/bc-template-foo.json")    
     bc = Barclamp.create :name=>"foo"
+    bc.source_path = "test/data/foo"
     bc.import_template(json,"bc-foo.json")
     ordered = bc.role_instances(true)    # (true) forces a reload of the model
     assert_equal 'private', ordered.first.name

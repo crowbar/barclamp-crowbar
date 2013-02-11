@@ -1,0 +1,26 @@
+#!/bin/bash
+
+pushd /opt/dell/crowbar_framework
+
+export RAILS_ENV=production
+su -s /bin/bash -c "bundle install --local" crowbar
+
+su -s /bin/bash -c "rake assets:precompile" crowbar
+su -s /bin/bash -c "rake db:migrate" crowbar
+su -s /bin/bash -c "script/rails generate delayed_job:active_record" crowbar
+su -s /bin/bash -c "rake railties:install:migrations" crowbar
+su -s /bin/bash -c "rake db:migrate" crowbar
+popd
+
+# FIXME: This should be part of the crowbar-barclamp-crowbar
+# package
+mkdir -p /var/run/crowbar/
+chown crowbar:crowbar /var/run/crowbar
+
+# FIXME: We need an init script for this in the package. Ideally without using
+# bluepill
+bluepill load /opt/dell/crowbar_framework/crowbar.pill
+
+# TODO: We probably should wait here until the web app is really running and
+# answering request
+

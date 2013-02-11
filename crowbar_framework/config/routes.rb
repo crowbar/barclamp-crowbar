@@ -21,8 +21,6 @@ Crowbar::Application.routes.draw do
     resources :roles do as_routes end
     resources :nodes do as_routes end
     resources :attrib_instances do as_routes end
-    resources :proposals do as_routes end
-    resources :proposal_configs do as_routes end
     resources :docs do as_routes end
     resources :navs do as_routes end
     resources :jig_attributes do as_routes end
@@ -32,7 +30,7 @@ Crowbar::Application.routes.draw do
     resources :proposal_queue_items do as_routes end
     resources :role_element_orders do as_routes end
     resources :node_attribute_filters do as_routes end
-    # Network scaffolds
+    # Network scaffolds (these should move to the network barclamp)
     resources :allocated_ip_addresses do as_routes end
     resources :bmc_interfaces do as_routes end
     resources :bonds do as_routes end

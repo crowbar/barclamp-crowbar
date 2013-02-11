@@ -12,8 +12,8 @@ BDD selects the `default.config` file automatically.  You can choose which confi
     <th>Comment</th>
   </tr>
   <tr>
-    <td>URL</td>
-    <td>Yes</td>
+    <td>url</td>
+    <td>yes</td>
     <td>none</td>
     <td>This is the URL that BDD will use for testing</td>
   </tr>
@@ -59,6 +59,31 @@ BDD selects the `default.config` file automatically.  You can choose which confi
     <td>undefined</td>
     <td>If undefined, this behavior is turned off.  If defined, BDD does a web request to URL with debug information to make it easier to find matching steps in the log.  For Crowbar, the url is `utils/marker`</td>
   </tr>
+  <tr>
+    <td>cli</td>
+    <td>no</td>
+    <td>undefined</td>
+    <td>Used by bdd_clirat for the command to the CLI if not in the given</td>
+  </tr>
+  <tr>
+    <td>cli_user_key</td>
+    <td>no</td>
+    <td>--username</td>
+    <td>Used by bdd_clirat to pass the username into the CLI</td>
+  </tr>
+  <tr>
+    <td>cli_password_key</td>
+    <td>no</td>
+    <td>--password</td>
+    <td>Used by bdd_clirat to pass the password into the CLI</td>
+  </tr>
+  <tr>
+    <td>cli_url_key</td>
+    <td>no</td>
+    <td>--url</td>
+    <td>Used by bdd_clirat to pass the URL into the CLI</td>
+  </tr>
+  
 </table>
 
 

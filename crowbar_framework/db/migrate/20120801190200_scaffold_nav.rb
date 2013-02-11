@@ -18,12 +18,11 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'scaffold', :name=>'nav.scaffold.top', :path=>"scaffolds_nodes_path", :description=>'nav.scaffold.top_description', :order=>7000, :development=>true
   
     Nav.find_or_create_by_item :item=>'scaffold_attribs', :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1100, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_attrib_instance', :parent_item=>'scaffold', :name=>'nav.scaffold.attrib_instances',  :path=>"scaffolds_attrib_instances_path", :order=>1200, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_barclamps', :parent_item=>'scaffold', :name=>'nav.scaffold.barclamps',  :path=>"scaffolds_barclamps_path", :order=>1000, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nodes', :parent_item=>'scaffold', :name=>'nav.scaffold.nodes', :path=>"scaffolds_nodes_path", :order=>2000, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_roles', :parent_item=>'scaffold', :name=>'nav.scaffold.roles', :path=>"scaffolds_roles_path", :order=>2100, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_groups', :parent_item=>'scaffold', :name=>'nav.scaffold.groups', :path=>"scaffolds_groups_path", :order=>2300, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_proposals', :parent_item=>'scaffold', :name=>'nav.scaffold.proposals', :path=>"scaffolds_proposals_path", :order=>3500, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_configs', :parent_item=>'scaffold', :name=>'nav.scaffold.configs', :path=>"scaffolds_proposal_configs_path", :order=>3500, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_docs', :parent_item=>'scaffold', :name=>'nav.scaffold.docs', :path=>"scaffolds_docs_path", :order=>5500, :development=>true
 

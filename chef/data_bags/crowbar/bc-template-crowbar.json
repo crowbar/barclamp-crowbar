@@ -17,7 +17,6 @@
       "realm": "Crowbar",
       "web_port": 3000,
       "users": {
-        "machine-install": { "password": "machine_password" },
         "crowbar": { "password": "crowbar" }
       }
     },

@@ -157,39 +157,6 @@ directory "/var/run/crowbar" do
   action :create
 end
 
-unless ::File.exists?("/etc/crowbar.install.key")
-  key=%x{dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null}.strip
-  node.normal["crowbar"] ||= Hash.new
-  node.normal["crowbar"]["users"] ||= Hash.new
-  node.normal["crowbar"]["users"]["machine-install"] ||= Hash.new
-  node.normal["crowbar"]["users"]["machine-install"]["password"]=key
-  node.save
-  File.open('/etc/crowbar.install.key',"w") do |f|
-    f.puts("machine-install:#{key}")
-  end
-end
-
-unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
-  web_port = node["crowbar"]["web_port"]
-  realm = node["crowbar"]["realm"]
-  users = node["crowbar"]["users"]
-  # Fix passwords into digests.
-  users.each do |k,h|
-    h["digest"] = Digest::MD5.hexdigest("#{k}:#{realm}:#{h["password"]}") if h["digest"].nil?
-  end
-
-  template "/opt/dell/crowbar_framework/htdigest" do
-    source "htdigest.erb"
-    variables(:users => users, :realm => realm)
-    owner "crowbar"
-    owner "crowbar"
-    mode "0644"
-  end
-else
-  web_port = 3000
-  realm = nil
-end
-
 bash "set permissions" do
   code "chown -R crowbar:crowbar /opt/dell/crowbar_framework"
   not_if "ls -al /opt/dell/crowbar_framework/README | grep -q crowbar"

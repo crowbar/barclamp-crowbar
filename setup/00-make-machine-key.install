@@ -1,0 +1,5 @@
+#!/bin/bash
+if [[ ! -e /etc/crowbar.install.key ]]; then
+    dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null | \
+        (read key rest; echo "machine-install:$key" >/etc/crowbar.install.key)
+fi

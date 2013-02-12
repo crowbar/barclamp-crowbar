@@ -19,7 +19,7 @@
 -export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/5, log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
--export([features/1, features/2, feature_name/2]).
+-export([features/1, features/2, feature_name/2, os_type/0]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
 -export([is_site_up/1, is_a/2, is_a/3, marker/1]).
 -define(NORMAL_TOKEN, 1).
@@ -377,6 +377,14 @@ add_token(Token, TokenList) ->
     _ -> [NewToken|TokenList]
   end.
 
+os_type() ->
+  case os:type() of
+    {win32, _}    -> windows;
+    {_, nt}       -> windows;
+    {unix, linux} -> linux;
+    {_, Other}    -> Other    
+  end.
+  
 % This routine is used for special subtitutions in steps that run functions or turn strings into atoms
 token_substitute(_Config, [$a, $p, $p, $l, $y, $: | Apply]) -> [File, Method | Params] = string:tokens(Apply, "."),
                                                               apply(list_to_atom(File), list_to_atom(Method), Params);

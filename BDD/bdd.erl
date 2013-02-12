@@ -329,7 +329,7 @@ scenario_steps(Config, [H | T], N, Given, When, Then, Finally, LastStep, Scenari
 	  {Type, SS} -> {Type, SS}
 	end,
 	% calculate for the skips
-	{_, OStype} = os:type(),
+	OStype = bdd_utils:os_type(),
 	case Step of
 	  {step_skip, S}    ->  log(info,"Skipping ~p ~s", [ScenarioID, S]), 
                     	    skip;

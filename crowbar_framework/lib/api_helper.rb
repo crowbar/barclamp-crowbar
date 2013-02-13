@@ -29,7 +29,7 @@ module ApiHelper
       begin 
         if key.nil?
           all
-        elsif key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
+        elsif db_id?(key)
           find_all_by_id key.to_i
         else key.is_a? String
           find_all_by_name key
@@ -42,7 +42,7 @@ module ApiHelper
     # Helper to allow API to use ID or name
     def find_key(key)
       begin
-        if key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
+        if db_id?(key)
           find key.to_i
         elsif key.is_a? String
           find_by_name key
@@ -55,6 +55,10 @@ module ApiHelper
       end
     end
 
+    # Helper to determine if a given key is an ActiveRecord DB ID
+    def db_id?(key)
+      key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
+    end
   end 
 
 end

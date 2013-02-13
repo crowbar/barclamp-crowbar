@@ -5,18 +5,21 @@ The OpenStack barclamp proposals installation order is important, but not readil
 
 The examples below are just a few of the possible combinations of OpenStack barclamp proposals.
 
-###Nova Compute Cluster###
+- **Nova Compute Cluster** - install barclamps in this order:
+
 	1. MySQL
 	2. Keystone
 	3. Nova-dashboard
 	4. Nova
-###Swift Storage Cluster###
+
+- **Swift Storage Cluster** - install barclamps in this order:
+
 	1. MySQL
 	2. Keystone
 	3. Swift
 	4. Nova-dashboard
 	5. Nova
-###Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests###
+- **Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests** - install barclamps in this order:
 	1. MySQL
 	2. Keystone
 	3. Swift

@@ -22,5 +22,5 @@ This guide is intended to help get you up and running with Crowbar, with either 
 	- Cluster Services Initialization
 	- Configuration Completion
 	- Service Display
-- More Information
-	- OpenStack Barclamp Proposals Installation Order
+- Additional Information
+	- TBD

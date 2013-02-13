@@ -31,7 +31,7 @@ class User < ActiveRecord::Base
 
 
   validates :username, :uniqueness => {:case_sensitive => false}, :presence => true
-  DIGEST_REALM = "Crowbar - By selecting OK are agreeing to the License Agreement"
+  DIGEST_REALM = "Crowbar"
   
   
   def self.find_by_id_or_username(id_or_username)

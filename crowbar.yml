@@ -45,7 +45,7 @@ roles:
       - all
     attributes:
       "realm": 
-        default: "Crowbar - By selecting OK are agreeing to the License"
+        default: "Crowbar"
   "crowbar":
     attributes:
       # register attributes of interest 

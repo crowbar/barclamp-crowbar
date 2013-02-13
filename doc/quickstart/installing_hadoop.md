@@ -2,7 +2,7 @@
 Use these instructions to install and configure a Hadoop cluster using Crowbar.
 
 1. Configure and apply Hadoop barclamp proposals in Crowbar (this step also allocates nodes).
-2. Verify nodes statuses (all nodes green in Crowbar Nodes UI).
+2. Verify nodes statuses (all nodes icons are green in Crowbar *Nodes* UI).
 3. Troubleshoot the Chef client if necessary by running the following command on problematic nodes:
 
 		$ chef-client
@@ -50,7 +50,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 	b. Enter this URL - *[http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/](http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/ "Impala repository")*
 5. Select *Custom Repository for Cloudera Manager*.
 
-	c. Enter this URL - *http://192.168.124.10:8091/redhat-6.2/crowbar-extra/clouderamanager*
+	a. Enter this URL - *http://192.168.124.10:8091/redhat-6.2/crowbar-extra/clouderamanager*
 7. Leave the *GPG Key URL* field empty.
 8. Click the *Continue* button.
 
@@ -83,7 +83,7 @@ The Cloudera Manager Host Inspector runs during this part of the installation pr
 ###Service Selection###
 1. Select the services that you want to install. You can install All Services now or Core Services and optionally add additional services in the future.
 
-**Important:** Click the *Inspect Role Assignments* button to configure the Hadoop cluster services. **Do not** select *Continue*, as this will give you the default role assignments, which may not be acceptable to you.
+**Important:** Click the *Inspect Role Assignments* button to configure the Hadoop cluster services. **Do not select *Continue***, as this will give you the default role assignments, which may not be acceptable to you.
 
 ###Inspect Role Assignments #1###
 1. Select the Cloudera Manager role assignments for Hadoop cluster deployment.

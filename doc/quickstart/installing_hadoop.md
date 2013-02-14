@@ -1,4 +1,4 @@
-##Installing Hadoop##
+#Installing Hadoop#
 Use these instructions to install and configure a Hadoop cluster using Crowbar.
 
 1. Configure and apply Hadoop barclamp proposals in Crowbar (this step also allocates nodes).
@@ -23,7 +23,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 8. Log back into the Cloudera Manager UI.
 9. Click the *Continue* button.
 
-###Node Search###
+##Node Search##
 1. Enter the IP range or hostname search pattern for all Hadoop cluster nodes. Cloudera Manager will search the cluster using this pattern and will consider any node with a Cloudera Manager agent process running on it as a valid Hadoop node candidate. For example:
 - *192.168.124.[ 80-90]* will attempt to discover all the nodes between 192.168.124.80 and 192.168.124.90
 - *192.168.124.8[1-3]* will attempt to discover 192.168.124.81, 192.168.124.82, and 192.168.124.83
@@ -31,11 +31,11 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 2. Optionally, enter the host’s SSH Port. The default port is 22.
 3. Click the *Search* button.
 
-###Node Search Results###
+##Node Search Results##
 1. Verify that all your Hadoop nodes have been discovered.
 2. Make any cluster configuration adjustments by selecting or deselecting any checkboxes.
 
-###Repository Configuration###
+##Repository Configuration##
 1. Click the *Install CDH On Selected Hosts* button.
 
 	a. Select *CDH4* for installation.
@@ -54,7 +54,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 7. Leave the *GPG Key URL* field empty.
 8. Click the *Continue* button.
 
-###SSH Credentials###
+##SSH Credentials##
 1. Select *Login to all hosts as root*.
 
 2. Select *All hosts accept same password*.
@@ -66,36 +66,36 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 3. Click the *Start Installation* button.
 4. Accept the default settings for the SSH port and number of simultaneous installations.
 
-###Package Install###
+##Package Install##
 
 You will see bar graphs next to each node and the name of the package it is installing.
 
 1. Wait for the installation process to complete.
 2. Click the *Continue* button.
 
-###Host Inspector###
+##Host Inspector##
 The Cloudera Manager Host Inspector runs during this part of the installation process in order to validate the proper cluster configuration for the Hadoop installation.
 
 1. Wait for this process to complete.
 2. Click the *Run Again* button if you want to run the Host Inspector again.
 3. Click the *Continue* button.
 
-###Service Selection###
+##Service Selection##
 1. Select the services that you want to install. You can install All Services now or Core Services and optionally add additional services in the future.
 
-**Important:** Click the *Inspect Role Assignments* button to configure the Hadoop cluster services. **Do not select *Continue***, as this will give you the default role assignments, which may not be acceptable to you.
+**Important:** Click the *Inspect Role Assignments* button to configure the Hadoop cluster services. **Do not** select *Continue*, as this will give you the default role assignments, which may not be acceptable to you.
 
-###Inspect Role Assignments #1###
+##Inspect Role Assignments #1##
 1. Select the Cloudera Manager role assignments for Hadoop cluster deployment.
 2. Click the *Continue* button.
 
-###Inspect Role Assignments #2###
+##Inspect Role Assignments #2##
 If you entered the Cloudera Manager License key, you will see this additional screen.
 
 1. Select the role assignments for Hadoop add-ons services and monitoring services (Activity Monitor, Service Monitor Resource Manager). Best practice is to assign these roles to the Edge node.
 2. Click the *Continue* button.
 
-###Monitoring Database Setup###
+##Monitoring Database Setup##
 If you entered the Cloudera Manager License key, you will see this additional screen.
 
 1. Select *Use Embedded Database*.
@@ -103,21 +103,21 @@ If you entered the Cloudera Manager License key, you will see this additional sc
 3. Click the *Test Connection* button to make sure you can connect to all the databases (required).
 4. Click the *Continue* button.
 
-###Review Configuration Changes###
+##Review Configuration Changes##
 If you entered the Cloudera Manager License key, you will see this additional screen.
 
 1. Set the mail server hostname for alerts to *localhost*.
 2. Set the mail server message recipients for alerts to *root*.
 3. Click the *Continue* button.
 
-###Cluster Services Initialization###
+##Cluster Services Initialization##
 1. Wait for the Hadoop cluster installation process to complete.
 2. Click the *Continue* button.
 
-###Configuration Completion###
+##Configuration Completion##
 If the Hadoop configuration steps complete successfully, you will see the final Cloudera Manager confirmation screen.
 
 1. Click the *Continue* button.
 
-###Service Display###
-This is the normal startup screen after Cloudera Manager has completed the installation steps.
+##Service Display##
+This is the normal start-up screen after Cloudera Manager has completed the installation steps.

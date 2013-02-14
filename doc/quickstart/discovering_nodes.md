@@ -1,4 +1,4 @@
-##Discovering Network Nodes##
+#Discovering Network Nodes#
 
 To initiate discovery of network nodes:
 

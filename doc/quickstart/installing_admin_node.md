@@ -1,4 +1,4 @@
-# Configuring and Installing the Crowbar Admin Node #
+#Configuring and Installing the Crowbar Admin Node#
 The admin node must be configured first. Installing the admin node involves installing the base operating system, optionally customizing the Crowbar configuration (primarily the networking configuration), and installing Crowbar itself.
 
 Once configured, Crowbar running on the admin node is used to configure and deploy the rest of the solution, and to provide ongoing operations management. The admin node manages all the cluster compute and storage nodes. It assigns the other nodes IP addresses, PXE boots them, configures them, and provides them the necessary software for their roles.

@@ -1,4 +1,4 @@
-##Installing OpenStack##
+#Installing OpenStack#
 After node discovery, use these instructions to install and configure an OpenStack cluster using Crowbar.
 
 1. Allocate the nodes in the Crowbar UI by navigating to *Nodes > Bulk Edit*, and then selecting *Allocate*.
@@ -10,12 +10,12 @@ After node discovery, use these instructions to install and configure an OpenSta
 
 **Note:** This can take some time; please be patient.
 
-###About OpenStack Barclamps###
+##About OpenStack Barclamps##
 The OpenStack barclamp proposals installation order is important, but not readily apparent. It depends greatly upon your planned cloud usage (e.g., Nova compute  cluster, Swift storage cluster, etc.).
 
 The examples below are just a few of the possible combinations of OpenStack barclamp proposals. They are not definitive.
 
-####Nova Compute Cluster####
+###Nova Compute Cluster###
 
 | Install Order | Barclamp |
 |-- | ----- |
@@ -24,7 +24,7 @@ The examples below are just a few of the possible combinations of OpenStack barc
 | 3 | Nova-dashboard |
 | 4 | Nova |
 
-####Swift Storage Cluster####
+###Swift Storage Cluster###
  
 |  Install Order | Barclamp |
 |-- | ----- |
@@ -34,7 +34,7 @@ The examples below are just a few of the possible combinations of OpenStack barc
 | 4 | Nova-dashboard |
 | 5 | Nova |
 
-####Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests####
+###Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests###
 
 |  Install Order | Barclamp |
 |-- | ----- |
@@ -45,5 +45,4 @@ The examples below are just a few of the possible combinations of OpenStack barc
 | 5 | Nova-dashboard |
 | 6 | Nova |
 | 7 | Tempest |
-
 

@@ -5,8 +5,10 @@ export RAILS_ENV=production
   tasks=("bundle install --local" "rake assets:precompile" "rake db:migrate"
       "script/rails generate delayed_job:active_record" "rake railties:install:migrations"
       "rake db:migrate")
-  for task in "${tasks[@]}"; do 
-      su -s /bin/bash -c "$task" crowbar
+  for task in "${tasks[@]}"; do
+      su -s /bin/bash -c "$task" crowbar && continue
+      echo "Task $task failed." >&2
+      exit 1
   done)
 
 # FIXME: This should be part of the crowbar-barclamp-crowbar

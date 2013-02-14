@@ -13,7 +13,7 @@ After node discovery, use these instructions to install and configure an OpenSta
 ##About OpenStack Barclamps##
 The OpenStack barclamp proposals installation order is important, but not readily apparent. It depends greatly upon your planned cloud usage (e.g., Nova compute  cluster, Swift storage cluster, etc.).
 
-The examples below are just a few of the possible combinations of OpenStack barclamp proposals. They are not definitive.
+The examples below represent just a few of the possible combinations of OpenStack barclamp proposals. They are not intended to be definitive.
 
 ###Nova Compute Cluster###
 

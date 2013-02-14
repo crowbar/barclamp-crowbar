@@ -7,7 +7,7 @@ Use these instructions to install and configure a Hadoop cluster using Crowbar.
 
 		$ chef-client
 4. Verify nodes statuses in the Crowbar UI by navigating to *Nodes > Dashboard*, and then ensuring that all nodes' icons are green.
-5. Print the *Nodes > Inventory* screen for later reference, when you select services. See *Service Selection* below.
+5. Print the *Nodes > Inventory* screen for later reference, when you select services. See **Service Selection** below.
 6. Invoke the Cloudera Manager UI.
 
 	a. Upload the Cloudera Manager license key, if applicable.
@@ -82,8 +82,9 @@ The Cloudera Manager Host Inspector runs during this part of the installation pr
 
 ##Service Selection##
 1. Select the services that you want to install. You can install All Services now or Core Services and optionally add additional services in the future.
+2. Click the *Inspect Role Assignments* button to configure the Hadoop cluster services.
 
-**Important:** Click the *Inspect Role Assignments* button to configure the Hadoop cluster services. **Do not** select *Continue*, as this will give you the default role assignments, which may not be acceptable to you.
+**Important:** **Do not** select *Continue*, as this will give you the default role assignments, which may not be acceptable to you.
 
 ##Inspect Role Assignments #1##
 1. Select the Cloudera Manager role assignments for Hadoop cluster deployment.

@@ -160,9 +160,17 @@ Crowbar::Application.routes.draw do
      
   devise_scope :user do
   
-  # API routes (must be json and must prefix 2.0)
+  # API routes (must be json and must prefix 2.0)()
   scope :defaults => {:format=> 'json'} do
     # 2.0 API Pattern
+    scope 'crowbar' do
+      scope '2.0' do
+        resources :configs, :controller=>'barclamp_configs' 
+        resources :instances, :controller=>'barclamp_instances'
+        resources :roles, :controller=>'barclamp_roles'         
+      end
+    end
+    # depricated 2.0 API Pattern
     scope '2.0' do
       constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
 

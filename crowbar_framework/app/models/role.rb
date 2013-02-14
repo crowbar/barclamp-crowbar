@@ -19,7 +19,7 @@ class Role < ActiveRecord::Base
   # states: node states that this role will be included in the excution list for the node
   attr_accessible :name, :states, :order, :description
   
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :name, :with=>/^[a-zA-Z][_\-a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
   # an element_order determines the execution group(s) of the role, relative to other roles in 

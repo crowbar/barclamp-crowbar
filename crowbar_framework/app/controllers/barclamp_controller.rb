@@ -18,9 +18,11 @@ class BarclampController < ApplicationController
 
   def barclamp
    
+    # CB2
+    @barclamp = Barclamp.find_key params[:id]
+    # CB1
     @bc_name = params[:barclamp] || params[:controller] unless @bc_name
-    @barclamp_object = Barclamp.find_by_name(@bc_name) unless @barclamp_object
-     puts "barclamp #{@bc_name} #{@barclamp_object}"
+    @barclamp_object ||= Barclamp.find_by_name(@bc_name) unless @barclamp_object
     @barclamp_object
   end
   private :barclamp

@@ -60,6 +60,7 @@ en:
   next: Next
   prev: Previous
   export: Export
+  default: Default
   
   test:
     verify: "Affirmative"

@@ -22,16 +22,6 @@
 # active_instance is the currently active proposal instance (or queued or committing)
 # proposed_instance is the most recently editted/created instance. (It might not be applied).
 #
-# Configuraiton usage:
-#   When a barclamp is imported, a template configuration is created with a default values.
-#   The barclamp provides these defaults in the crowbar.yml and <barclamp>.json files.
-#
-#   When a 'configuration' of the barclamp is created, the template object is cloned.
-#   The deep_clone routine is used to build a complete deep copy of the template for
-#   future editting.
-#
-#   As the configuration is editted, 'instances' are saved to capture changes overtime.
-# 
 
 class BarclampConfiguration < ActiveRecord::Base
   
@@ -45,8 +35,10 @@ class BarclampConfiguration < ActiveRecord::Base
   has_many        :barclamp_instances,  :class_name => "BarclampInstance", :inverse_of => :barclamp_configuration, :dependent => :destroy
   alias_attribute :instances,           :barclamp_instances
   
-  belongs_to :active_instance,        :class_name => "BarclampInstance", :foreign_key => "active_instance_id"
-  belongs_to :proposed_instance,      :class_name => "BarclampInstance", :foreign_key => "proposed_instance_id"
+  belongs_to :active_instance,          :class_name => "BarclampInstance", :foreign_key => "active_instance_id"
+  alias_attribute :active,              :active_instance
+  belongs_to :proposed_instance,        :class_name => "BarclampInstance", :foreign_key => "proposed_instance_id"
+  alias_attribute :proposed,            :proposed_instance
 
   def active?
     active_instance_id != nil
@@ -71,37 +63,13 @@ class BarclampConfiguration < ActiveRecord::Base
       'failed'
     when 5 
       'ready'
+    when 666 
+      'deleted'
     when 999
       'inactive'
     else 
       'hold'
     end
-  end
-
-  #
-  # Deep clone routine.  In Rails3.1+, clone was changed to dup.
-  #
-  # Dup copies the object and recreates a new id.
-  # Recursively copy the 'instances' under the object.
-  #
-  # This would be used for two cases: 
-  #   1. cloning the template for a new configuration during create.
-  #   2. creating a copy of an existing configuration to seed a new barclamp.
-  #
-  def deep_clone
-    new_prop = self.dup
-    new_prop.name = new_prop.name + "_" + self.id.to_s
-    new_prop.save!
-
-    instances.each do |x| 
-      # copy instance and tie to new parent
-      new_x = x.deep_clone new_prop
-      new_x.save!
-      new_prop.active_instance = new_x if x == active_instance
-      new_prop.proposed_instance = new_x if x == proposed_instance
-    end
-
-    new_prop
   end
 
 end

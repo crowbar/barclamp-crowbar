@@ -29,7 +29,7 @@ class BarclampInstance < ActiveRecord::Base
 
   ROLE_ORDER         = "'role_instances'.'order', 'role_instances'.'run_order'"
   
-  attr_accessible :name, :description, :order, :status, :failed_reason
+  attr_accessible :id, :name, :description, :order, :status, :failed_reason
   attr_accessible :barclamp_configuration_id, :barclamp_id
   
   belongs_to      :barclamp
@@ -47,7 +47,7 @@ class BarclampInstance < ActiveRecord::Base
   has_many        :attribs, :through => :attrib_instances
   
   def active?
-    configuration.active_configuration_id == self.id
+    configuration.active_instance_id == self.id
   end
 
   ##
@@ -67,13 +67,12 @@ class BarclampInstance < ActiveRecord::Base
   end
 
   # Add a role to a Barclamp instance by creating the needed RoleInstance
+  # Returns a RoleInstance (not a role)
   def add_role(role)
     role = Role.add role, self.name
-    begin
-      RoleInstance.find_by_role_id_and_barclamp_id :role_id => role.id, :barclamp_instance_id => self.id 
-    rescue
-      RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id => role.id, :barclamp_instance_id => self.id
-    end 
+    ri = RoleInstance.find_by_role_id_and_barclamp_instance_id role.id, self.id 
+    ri ||= RoleInstance.find_or_create_by_role_id_and_barclamp_instance_id :role_id => role.id, :barclamp_instance_id => self.id
+    ri
   end
 
   # Add attrib to barclamp
@@ -94,17 +93,16 @@ class BarclampInstance < ActiveRecord::Base
 
   ##
   # Clone this config_instance
-  # optionally, change parent too
-  def deep_clone(parent_configuration=nil)
-    new_config = self.dup
-    new_config.barclamp_configuration_id = parent_configuration.id if parent_configuration
-    new_config.name += "_" + self.id.to_s
-    new_config.status = STATUS_NONE
-    new_config.failed_reason = nil
-    new_config.save
+  # optionally, change parent too (you do NOT have parents for templates)
+  def deep_clone(parent_configuration=nil, name=nil, with_nodes=true)
+    new_config = BarclampInstance.create(
+          :barclamp_id => barclamp_id = self.barclamp_id,
+          :barclamp_configuration_id => (parent_configuration.nil? ? nil : parent_configuration.id),
+          :name => name || (self.name + "_" + self.id.to_s),
+          :description => self.description, :order => self.order)
 
     # clone the instances
-    role_instances.each { |ri| ri.deep_clone(self.id) }
+    role_instances.each { |ri| ri.deep_clone(new_config, with_nodes) }
 
     new_config
   end
@@ -114,42 +112,8 @@ class BarclampInstance < ActiveRecord::Base
   # This will be chef code part of Jig abstraction
   # 
   def to_proposal_object_hash
-    # OLD CB1 
-    phash = {}
-
-    bc_name = proposal.barclamp.name
-    phash["id"] = "bc-#{bc_name}-#{proposal.name}"
-    phash["description"] = proposal.description
-    phash["attributes"] = JSON::parse(config)
-    phash["deployment"] = {}
-    phash["deployment"][bc_name] = {}
-    phash["deployment"][bc_name]["config"] = {}
-    phash["deployment"][bc_name]["config"]["environment"] = "#{bc_name}-config-#{proposal.name}"
-    phash["deployment"][bc_name]["config"]["mode"] = proposal.barclamp.mode
-    phash["deployment"][bc_name]["config"]["transitions"] = proposal.barclamp.transitions
-    phash["deployment"][bc_name]["config"]["transition_list"] = proposal.barclamp.transition_list.split(",")
-    phash["deployment"][bc_name]["crowbar-revision"] = 0
-    phash["deployment"][bc_name]["element_order"] = []
-    phash["deployment"][bc_name]["element_states"] = {}
-    proposal.barclamp.roles.each do |role|
-      phash["deployment"][bc_name]["element_states"][role.name] = role.states.split(",")
-      role.role_element_orders.each do |roe|
-        index = roe.order
-        phash["deployment"][bc_name]["element_order"][index] = [] unless phash["deployment"][bc_name]["element_order"][index]
-        phash["deployment"][bc_name]["element_order"][index] << role.name
-      end
-    end
-
-    elements = {}
-    node_roles.each do |nr|
-      next unless nr.role
-      next unless nr.node
-      elements[nr.role.name] = [] unless elements[nr.role.name]
-      elements[nr.role.name] << nr.node.name
-    end
-    phash["deployment"][bc_name]["elements"] = elements
-
-    phash
+    throw "depricated"
+    # depricated!
   end
 
 end

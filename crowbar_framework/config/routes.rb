@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -164,10 +164,11 @@ Crowbar::Application.routes.draw do
   scope :defaults => {:format=> 'json'} do
     # 2.0 API Pattern
     scope 'crowbar' do
+      namespace = 'BarclampCrowbar'
       scope '2.0' do
-        resources :configs, :controller=>'barclamp_configs' 
-        resources :instances, :controller=>'barclamp_instances'
-        resources :roles, :controller=>'barclamp_roles'         
+        resources :configs, :controller=>"#{namespace}::barclamp_configs"
+        resources :instances, :controller=>"#{namespace}::barclamp_instances"
+        resources :roles, :controller=>"#{namespace}::barclamp_roles"
       end
     end
     # depricated 2.0 API Pattern
@@ -233,11 +234,8 @@ Crowbar::Application.routes.draw do
       end
     end
   end
- 
-
     
   end 
-
  
   scope 'proposal' do
     version = "2.0"

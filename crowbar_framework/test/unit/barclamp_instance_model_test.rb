@@ -34,6 +34,10 @@ class BarclampInstanceModelTest < ActiveSupport::TestCase
     assert_equal 1, bi.role_instances.count
   end
   
+  test "Check proections on illegal config names" do
+    assert_raise(ActiveRecord::RecordInvalid) { BarclampConfiguration.create!(:name => "template") }
+  end
+  
   test "deep clone works" do
     b = Barclamp.import 'test'
     bi = BarclampInstance.create :name=>"deep_clone", :status => BarclampInstance::STATUS_APPLIED, :barclamp_id => b.id 

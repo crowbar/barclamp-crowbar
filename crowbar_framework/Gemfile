@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-source "http://127.0.0.1:3001"
+source "file:///tftpboot/gemsite"
 #source 'http://rubygems.org'
 
 gem 'rails', '~> 3.2.11'

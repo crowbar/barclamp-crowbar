@@ -1,16 +1,15 @@
 #!/bin/bash
 
-pushd /opt/dell/crowbar_framework
-
 export RAILS_ENV=production
-su -s /bin/bash -c "bundle install --local" crowbar
-
-su -s /bin/bash -c "rake assets:precompile" crowbar
-su -s /bin/bash -c "rake db:migrate" crowbar
-su -s /bin/bash -c "script/rails generate delayed_job:active_record" crowbar
-su -s /bin/bash -c "rake railties:install:migrations" crowbar
-su -s /bin/bash -c "rake db:migrate" crowbar
-popd
+( cd /opt/dell/crowbar_framework
+  tasks=("bundle install --local" "rake assets:precompile" "rake db:migrate"
+      "script/rails generate delayed_job:active_record" "rake railties:install:migrations"
+      "rake db:migrate")
+  for task in "${tasks[@]}"; do
+      su -s /bin/bash -c "$task" crowbar && continue
+      echo "Task $task failed." >&2
+      exit 1
+  done)
 
 # FIXME: This should be part of the crowbar-barclamp-crowbar
 # package
@@ -22,5 +21,5 @@ chown crowbar:crowbar /var/run/crowbar
 bluepill load /opt/dell/crowbar_framework/crowbar.pill
 
 # TODO: We probably should wait here until the web app is really running and
-# answering request
-
+# answering request. For now, just sleep.
+sleep 5

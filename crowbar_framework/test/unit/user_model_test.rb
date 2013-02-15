@@ -18,7 +18,7 @@ require 'digest/md5'
 class UserModelTest < ActiveSupport::TestCase
 
   test "Realm did not change" do
-    assert_equal User::DIGEST_REALM, "Crowbar - By selecting OK are agreeing to the License Agreement"
+    assert_equal User::DIGEST_REALM, "Crowbar"
   end
 
   test "Verify Password Works" do

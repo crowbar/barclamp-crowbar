@@ -47,6 +47,35 @@ class BarclampController < ApplicationController
     end
   end
 
+
+  #
+  # Barclamp catalog
+  # 
+  # Provides restful API call for 
+  # List actions       /barclamp:/api_version:/catalog  GET 
+  # 
+  add_help(:catalog)
+  def catalog 
+    # class naming convention for barclamp controllers->  BarclampLogging::BarclampsController == "logging"
+    bc_match = self.class.name.match(/Barclamp([\w]+)::.*/) 
+    # if no match, assume something like "CrowbarContoller"
+    barclamp_name = bc_match ? bc_match[1].downcase : f.controller_name.classify.downcase
+
+    bc = Barclamp.find_by_name(barclamp_name)
+    render :json => { :name=>"unknown"} unless bc
+
+    # TODO: find actions by introspection?
+    render :json => {
+      :name=>bc.name, 
+      :version=>bc.version, 
+      :api_version=>bc.api_version,
+      :api_version_accepts=>bc.api_version_accepts, 
+      :actions=>['node','group','jig', 'attrib'],
+      :license=>bc.license,
+      :copyright=>bc.copyright
+    }
+  end
+
   #
   # Provides the restful api call for
   # List Versions 	/crowbar/<barclamp-name> 	GET 	Returns a json list of string names for the versions 

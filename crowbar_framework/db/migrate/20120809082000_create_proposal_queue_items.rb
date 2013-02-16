@@ -18,7 +18,7 @@ class CreateProposalQueueItems < ActiveRecord::Migration
       t.integer    :position
       t.string     :queue_reason
       t.belongs_to :proposal_queue
-      t.belongs_to :proposal_config
+      t.belongs_to :barclamp_instance
       t.timestamps
     end
   end

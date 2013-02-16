@@ -17,6 +17,6 @@ class ProposalQueueItem < ActiveRecord::Base
   attr_accessible :position, :queue_reason
 
   belongs_to :proposal_queue
-  belongs_to :proposal_config
+  belongs_to :barclamp_instance
 end
 

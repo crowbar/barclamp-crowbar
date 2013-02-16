@@ -105,17 +105,6 @@ Feature: Scaffolds
       And I should see "Create New"
       And there should be no translation errors        
       
-  Scenario: Interfaces
-    When I go to the "scaffolds/interfaces" page
-    Then I should see heading "Interfaces"
-      And I should see "Name"
-      And I should see "Ip addresses"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-      
   Scenario: Os
     When I go to the "scaffolds/os" page
     Then I should see heading "Os"

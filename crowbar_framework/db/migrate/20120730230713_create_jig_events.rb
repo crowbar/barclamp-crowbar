@@ -21,7 +21,7 @@ class CreateJigEvents < ActiveRecord::Migration
       t.integer :status
 
       t.references :jig
-      t.references :proposal_config
+      t.references :barclamp_instance
       t.references :jig_map
 
       t.timestamps

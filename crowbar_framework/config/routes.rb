@@ -64,44 +64,35 @@ Crowbar::Application.routes.draw do
     get 'status', :on => :collection
   end
   
-  # resources :conduits
-  scope 'network' do
-    # resource :conduit
-    # resources :network, :only => [:show, :new, :create, :edit, :update, :destroy]
-    resources :networks, :conduits
-    # get 'network', :controller => 'networks', :action=>'networks', :constraints => { :id => /.*/ }, :as => :network
-    # get 'conduit', :controller => 'conduits', :action=>'show', :constraints => { :id => /.*/ }, :as => :conduit
-  end
-
-
-  # documentation / help
+  # UI scope documentation / help
   scope 'docs' do
     get '/', :controller=>'docs', :action=>'index', :as => "docs"
     get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic", :constraints => { :id => /.*/ }
-    get ':controller/:id', :action=>'docs', :as => "docs_barclamp"
   end
 
+  # CB1 - should move to network barclamp!
   scope 'network' do
     version = "2.0"
+    resources :networks, :conduits
     get '/', :controller => 'networks', :action=>'switch', :as => :network
     get 'switch(/:id)', :controller => 'networks', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
     get 'vlan(/:id)', :controller => 'networks', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
-    get ":controller/#{version}", :action=>'network', :as => :network_barclamp
   end
 
+  # UI scope
   scope 'utils' do
-    version = "2.0"
-    get '/', :controller=>'support', :action=>'index', :as => :utils
-    get 'i18n/:id', :controller=>'support', :action=>'i18n', :constraints => { :id => /.*/ }, :as => :utils_i18n
-    get 'marker/:id', :controller=>'support', :action=>'marker', :constraints => { :id => /.*/ }, :as => :utils_marker
-    get 'files/:id', :controller=>'support', :action=>'index', :constraints => { :id => /.*/ }, :as => :utils_files
-    get 'import(/:id)', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => :utils_import
-    get 'upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => :utils_upload
-    get 'restart/:id', :controller=>'support', :action=>'restart', :constraints => { :id => /.*/ }, :as => :restart
-    get ":controller/#{version}/export", :action=>'export', :as => :utils_export
-    get ":controller/#{version}", :action=>'utils', :as => :utils_barclamp
+    constraints(:id => /.*/ ) do
+      get '/', :controller=>'support', :action=>'index', :as => :utils
+      get 'i18n/:id', :controller=>'support', :action=>'i18n', :as => :utils_i18n
+      get 'marker/:id', :controller=>'support', :action=>'marker', :as => :utils_marker
+      get 'files/:id', :controller=>'support', :action=>'index', :as => :utils_files
+      get 'import(/:id)', :controller=>'support', :action=>'import', :as => :utils_import
+      get 'upload/:id', :controller=>'support', :action=>'upload', :as => :utils_upload
+      get 'restart/:id', :controller=>'support', :action=>'restart', :as => :restart
+    end
   end
 
+  # UI scope - legacy methods
   scope 'support' do
     get 'logs', :controller => 'support', :action => 'logs'
     get 'get_cli', :controller => 'support', :action => 'get_cli'
@@ -111,11 +102,6 @@ Crowbar::Application.routes.draw do
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
-    constraints(:id => /([a-zA-Z0-9\-\.\_]*)/ ) do
-      get ":controller/network(/:id)", :action=>"network", :as=>"barclamp_network"
-      get ":controller/node(/:id)", :action=>"node", :as=>"barclamp_node"
-      get ":controller/util(/:id)", :action=>"util", :as=>"barclamp_util"
-    end
   end
 
   # UI only routes
@@ -130,8 +116,6 @@ Crowbar::Application.routes.draw do
         post ':id/edit' => "nodes#update", :as => :update_node
         put  ':id/update' => 'nodes#update', :as => :update_node
         get  ':id' => 'nodes#show', :as => 'node'
-        # barclamp UI extension
-        match ':controller(/:id)', :action=>'nodes', :as=> :nodes_barclamp
       end
       scope 'nodes' do
         post 'list' => "nodes#list", :as => :nodes_list
@@ -159,135 +143,83 @@ Crowbar::Application.routes.draw do
   resources :users, :except => :new 
      
   devise_scope :user do
-  
-  # API routes (must be json and must prefix 2.0)()
-  scope :defaults => {:format=> 'json'} do
-    # 2.0 API Pattern
-    scope 'crowbar' do
-      namespace = 'BarclampCrowbar'
-      scope '2.0' do
-        resources :configs, :controller=>"#{namespace}::barclamp_configs"
-        resources :instances, :controller=>"#{namespace}::barclamp_instances"
-        resources :roles, :controller=>"#{namespace}::barclamp_roles"
-      end
-    end
-    # depricated 2.0 API Pattern
-    scope '2.0' do
-      constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
-
-        # status operations
-        scope 'status' do
-          get "node(/:id)" => 'nodes#status', :as=>'node_status'
+    
+    # API routes (must be json and must prefix 2.0)()
+    scope :defaults => {:format=> 'json'} do
+      # 2.0 API Pattern
+      scope 'crowbar' do
+        namespace = 'BarclampCrowbar'
+        scope 'v2' do
+          resources :configs, :controller=>"#{namespace}::barclamp_configs"
+          resources :instances, :controller=>"#{namespace}::barclamp_instances"
+          resources :roles, :controller=>"#{namespace}::barclamp_roles"
         end
-
-        # actions
-        get "node/:id/hit/:req" => "nodes#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
-                
-        scope 'crowbar' do    # MOVE TO GENERIC!
-          scope '2.0' do      # MOVE TO GENERIC!
-            # TODO: TEMPORARY UNTIL WE FIX THE ROUTE MODEL
-            match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
-            # group + node CRUD operations
-            match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-
-            get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
-            get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
-            post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
-            put    "network/networks/:id", :controller => 'networks', :action=>'network_update'     # MOVE TO GENERIC!
-            delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
-            post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
-            delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
-			post   "network/networks/:id/enable_interface", :controller => 'networks', :action=>'network_enable_interface'
-
-            # basic list operations 
-            get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
-            get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
-            #get ":action", :controller=>'crowbar'
-            # basic CRUD operations
-            # (replace w/ generic)
-            match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
-            resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
-            resources :group, :controller=>'groups'     # MOVE TO GENERIC!
-            
-           
-            # these all need to be updated.
-            scope 'users' do
-              get :controller => "users", :action => "users"
-              get ":id", :controller => "users", :action => "user_show"
-              post :controller => "users", :action => "user_create"
-              put ":id", :controller => "users", :action => "user_update"
-              delete ":id", :controller => "users", :action => "user_delete"
-              post ":id/admin", :controller => "users", :action => "user_make_admin"
-              delete ":id/admin", :controller => "users", :action => "user_remove_admin"
-              post ":id/lock", :controller => "users", :action => "user_lock"
-              delete ":id/lock", :controller => "users", :action => "user_unlock"
-              put ":id/reset_password", :controller => "users", :action => "user_reset_password"
+      end
+      # depricated 2.0 API Pattern
+      scope '2.0' do
+        constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
+  
+          # status operations
+          scope 'status' do
+            get "node(/:id)" => 'nodes#status', :as=>'node_status'
+          end
+  
+          # actions
+          get "node/:id/hit/:req" => "nodes#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
+                  
+          scope 'crowbar' do    # MOVE TO GENERIC!
+            scope '2.0' do      # MOVE TO GENERIC!
+              # TODO: TEMPORARY UNTIL WE FIX THE ROUTE MODEL
+              match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
+              # group + node CRUD operations
+              match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
+  
+              get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
+              get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
+              post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
+              put    "network/networks/:id", :controller => 'networks', :action=>'network_update'     # MOVE TO GENERIC!
+              delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
+              post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
+              delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
+  			post   "network/networks/:id/enable_interface", :controller => 'networks', :action=>'network_enable_interface'
+  
+              # basic list operations 
+              get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
+              get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
+              #get ":action", :controller=>'crowbar'
+              # basic CRUD operations
+              # (replace w/ generic)
+              match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
+              resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
+              resources :group, :controller=>'groups'     # MOVE TO GENERIC!
+              
+             
+              # these all need to be updated.
+              scope 'users' do
+                get :controller => "users", :action => "users"
+                get ":id", :controller => "users", :action => "user_show"
+                post :controller => "users", :action => "user_create"
+                put ":id", :controller => "users", :action => "user_update"
+                delete ":id", :controller => "users", :action => "user_delete"
+                post ":id/admin", :controller => "users", :action => "user_make_admin"
+                delete ":id/admin", :controller => "users", :action => "user_remove_admin"
+                post ":id/lock", :controller => "users", :action => "user_lock"
+                delete ":id/lock", :controller => "users", :action => "user_unlock"
+                put ":id/reset_password", :controller => "users", :action => "user_reset_password"
+              end
             end
           end
+          
+          # generic barclamp matcher
+          match ":controller/:version/:action/:id/:target/:target_id", :as => :barclamp_action_target
+          match ":controller/:version/:action(/:id)", :as => :barclamp_action
+          match ":controller(/:version)", :action=> 'catalog'
+                  
         end
-        
-        # generic barclamp matcher
-        match ":controller/:version/:action/:id/:target/:target_id", :as => :barclamp_action_target
-        match ":controller/:version/:action(/:id)", :as => :barclamp_action
-        match ":controller(/:version)", :action=> 'catalog'
-                
       end
     end
-  end
     
   end 
- 
-  scope 'proposal' do
-    version = "2.0"
-    get    "status/#{version}(/:id)(.:format)", :controller=>'proposals', :action => 'status', :constraints => { :id => /.*/ }, :as=>:proposal_status
-  end
   
-  scope 'crowbar' do
-    version = "1.0"
-
-    get    ":controller/#{version}/help", :action => 'help', :as => :help_barclamp
-    get    ":controller/#{version}/proposals/nodes", :action=>'nodes', :as => :barclamp_nodes
-    put    ":controller/#{version}/proposals", :action => 'proposal_create', :as => :create_proposal_barclamp
-    get    ":controller/#{version}/proposals", :action => 'proposals', :as => :proposals_barclamp
-    post   ":controller/#{version}/proposals/commit/:id", :action => 'proposal_commit', :as => :commit_proposal_barclamp
-    delete ":controller/#{version}/proposals/dequeue/:id", :action => 'proposal_dequeue', :as => :dequeue_barclamp
-    delete ":controller/#{version}/proposals/:id", :action => 'proposal_delete', :as => :delete_proposal_barclamp
-    post   ":controller/#{version}/proposals/:id", :action => 'proposal_update', :as => :update_proposal_barclamp
-    get    ":controller/#{version}/proposals/:id", :action => 'proposal_show', :as => :proposal_barclamp
-    get    ":controller/#{version}/elements", :action => 'elements'
-    get    ":controller/#{version}/elements/:id", :action => 'element_info'
-    match  ":controller/#{version}/transition/:id", :action => 'transition', :via => [:get, :post]
-    get    ":controller/#{version}", :action => 'index', :as => :index_barclamp
-    delete ":controller/#{version}/:id", :action => 'delete', :as => :delete_barclamp
-    get    ":controller/#{version}/:id", :action => 'show', :as => :show_barclamp
-    get    ":controller", :action => 'versions', :as => :versions_barclamp
-    post   ":controller/#{version}/:action/:id", :as => :action_barclamp
-    get    '/', :controller => 'barclamp', :action => 'barclamp_index', :as => :barclamp_index_barclamp
-    get    "modules/#{version}", :controller => 'barclamp', :action => 'modules', :as => :barclamp_modules
-            
-    # Generic fall through routes
-    get    ":barclamp/#{version}/help", :action => 'help', :controller => 'barclamp'
-    get    ":barclamp/#{version}/proposals/nodes", :controller => "barclamp", :action=>'nodes'
-    put    ":barclamp/#{version}/proposals", :action => 'proposal_create', :controller => 'barclamp'
-    get    ":barclamp/#{version}/proposals", :action => 'proposals', :controller => 'barclamp'
-    post   ":barclamp/#{version}/proposals/commit/:id", :action => 'proposal_commit', :controller => 'barclamp'
-    get    ":barclamp/#{version}/proposals/status(/:id)(.:format)", :controller => 'barclamp', :action => 'proposal_status', :controller => 'barclamp'
-    delete ":barclamp/#{version}/proposals/:id", :action => 'proposal_delete', :controller => 'barclamp'
-    post   ":barclamp/#{version}/proposals/:id", :action => 'proposal_update', :controller => 'barclamp'
-    get    ":barclamp/#{version}/proposals/:id", :action => 'proposal_show', :controller => 'barclamp'
-    get    ":barclamp/#{version}/elements", :action => 'elements', :controller => 'barclamp'
-    get    ":barclamp/#{version}/elements/:id", :action => 'element_info', :controller => 'barclamp'
-    match  ":barclamp/#{version}/transition/:id", :action => 'transition', :via => [:get, :post], :controller => 'barclamp'
-    get    ":barclamp/#{version}", :action => 'index', :controller => 'barclamp'
-    get    ":barclamp/#{version}/status", :action => 'status', :controller => 'barclamp'
-    delete ":barclamp/#{version}/:id", :action => 'delete', :controller => 'barclamp'
-    get    ":barclamp/#{version}/:id", :action => 'show', :controller => 'barclamp'
-    get    ":barclamp", :action => 'versions', :controller => 'barclamp'
-    post   ":barclamp/#{version}/:action/:id", :controller => 'barclamp'
-
-    match "/", :controller => 'barclamp', :action => 'barclamp_index', :via => :get, :as => :barclamp_index_barclamp
-        
-  end
-
   root :to => "nodes#index"  
 end

@@ -12,31 +12,12 @@
   - else
     = begin render :partial => "barclamp/#{@barclamp.name}/index" rescue (render :partial => 'barclamp/index') end
 
+%h2
+  =t 'work_in_progress', :message=>"polling is disabled"
+  
 :javascript
-  function CB1update() {
-    $.ajaxSetup({ timeout: 15000 }) 
-    $.getJSON('#{proposal_status_path}', function(data) {
-      // If role has changed, re-render the page
-      if (data['count'] != #{Proposal.count}) {
-        location.reload();
-      };
-      
-      // Update proposals status
-      $.each(data['proposals'], function(key,val) {
-        led_update($('#'+key), key, val, data['i18n'][key]['proposal'] + ' - ' + data['i18n'][key]['status']);
-        led_update($('#'+key+'_details'), key, val, data['i18n'][key]['status']);
-      });
-
-    });
+  function CB2update() {
+    // missing polling function!!!  please see CB1 code 
+    // https://github.com/cloudedge/barclamp-crowbar/blob/release/fred/master/crowbar_framework/app/views/barclamp/index.html.haml
   }
   
-  function led_update(td, key, val, i18n) {
-    if(!td.hasClass(val)){
-      td.destroy();
-      td.attr('class', val+' led');
-      td.attr('title', i18n);
-      td.effect("highlight", {color: '#666666'}, 2000);
-      // remove the button since it does not reflect the state anymore
-      $('#'+key+'_button').attr('hidden', 'true');
-    };  
-  }

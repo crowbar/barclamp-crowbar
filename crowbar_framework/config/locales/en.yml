@@ -51,6 +51,7 @@ en:
   maybe: Maybe
   chuck_norris: Die!!!
   depricated: "WARNING Depricated!"
+  work_in_progress: "Work in progress notice: %{message}"
   updating: Updating...
   note: Note
   hint: Hint

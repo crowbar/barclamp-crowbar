@@ -102,6 +102,9 @@ Crowbar::Application.routes.draw do
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
+    # legacy...likey to be refactored
+    get "modules", :controller=>'barclamp', :action=>"modules", :as=>"barclamp_modules"
+    get "/", :controller=>'barclamp', :action=>"modules", :as=>"index_barclamp"
   end
 
   # UI only routes

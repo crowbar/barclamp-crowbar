@@ -18,12 +18,16 @@ class BarclampController < ApplicationController
 
   def barclamp
    
-    # CB2
-    @barclamp = Barclamp.find_key params[:id]
-    # CB1
-    @bc_name = params[:barclamp] || params[:controller] unless @bc_name
-    @barclamp_object ||= Barclamp.find_by_name(@bc_name) unless @barclamp_object
-    @barclamp_object
+    if @bc.nil?
+      # class naming convention for barclamp controllers->  BarclampLogging::BarclampsController == "logging"
+      bc_match = self.class.name.match(/Barclamp([\w]+)::.*/) 
+      # if no match, assume something like "CrowbarContoller"
+      barclamp_name = bc_match ? bc_match[1].downcase : f.controller_name.classify.downcase
+      # this is the shared barclamp object for the controller
+      @bc = Barclamp.find_by_name(barclamp_name)
+    end
+    @bc
+    
   end
   private :barclamp
 
@@ -57,24 +61,18 @@ class BarclampController < ApplicationController
   # List actions       /barclamp:/api_version:/catalog  GET 
   # 
   add_help(:catalog)
-  def catalog 
-    # class naming convention for barclamp controllers->  BarclampLogging::BarclampsController == "logging"
-    bc_match = self.class.name.match(/Barclamp([\w]+)::.*/) 
-    # if no match, assume something like "CrowbarContoller"
-    barclamp_name = bc_match ? bc_match[1].downcase : f.controller_name.classify.downcase
-
-    bc = Barclamp.find_by_name(barclamp_name)
-    render :json => { :name=>"unknown"} unless bc
+  def catalog     
+    render :json => { :name=>"unknown"} unless barclamp
 
     # TODO: find actions by introspection?
     render :json => {
-      :name=>bc.name, 
-      :version=>bc.version, 
-      :api_version=>bc.api_version,
-      :api_version_accepts=>bc.api_version_accepts, 
+      :name=>@bc.name, 
+      :version=>@bc.version, 
+      :api_version=>@bc.api_version,
+      :api_version_accepts=>@bc.api_version_accepts, 
       :actions=>['node','group','jig', 'attrib'],
-      :license=>bc.license,
-      :copyright=>bc.copyright
+      :license=>@bc.license,
+      :copyright=>@bc.copyright
     }
   end
 

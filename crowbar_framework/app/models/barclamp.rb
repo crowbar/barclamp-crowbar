@@ -19,6 +19,7 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
   attr_accessible :allow_multiple_configs, :template_id
+  attr_accessible :api_version, :api_version_accepts, :liscense, :copyright
   before_create :create_type_from_name
 
   # legacy for CB1 remove after 2013-03-01
@@ -290,6 +291,10 @@ class Barclamp < ActiveRecord::Base
                                 :description => bc['barclamp']['description'] || bc_name.humanize,
                                 :online_help => bc['barclamp']['online_help'],
                                 :version     => bc['barclamp']['version'] || 2,
+                                :api_version => bc['barclamp']['api_version'] || "v2",
+                                :api_version_accepts => bc['barclamp']['api_version_accepts'] || "|v2|",
+                                :license     => bc['barclamp']['license'] || "apache2",
+                                :copyright   => bc['barclamp']['copyright'] || "Dell, Inc 2013",
                                 :source_path => source_path,
                                 :user_managed=> um || true,
                                 :allow_multiple_proposals => amp || false,

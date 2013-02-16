@@ -42,7 +42,6 @@ validate(J) ->
       bdd_utils:is_a(J, string, commit), 
       bdd_utils:is_a(J, string, source_path), 
       bdd_utils:is_a(J, number, version), 
-      bdd_utils:is_a(J, length, 22),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R, debug). 
 

@@ -19,6 +19,10 @@ barclamp:
   description: Self-referential barclamp enabling other barclamps
   online_help: 'https://crowbar.github.com/'
   version: 0
+  license: "apache2"
+  copyright: "Dell, Inc 2013"
+  api_version: "v2"
+  api_version_accepts: "v2"
   proposal_schema_version: 2
   member:
     - crowbar

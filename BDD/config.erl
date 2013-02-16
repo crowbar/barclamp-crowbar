@@ -48,3 +48,5 @@ inspector(Config) ->
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
+step(_Config, _Result, {_Type, _N, ["END OF CONFIG"]}) ->
+  false.

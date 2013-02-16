@@ -18,7 +18,7 @@
 
 class RoleInstance < ActiveRecord::Base
 
-  attr_accessible :description, :order, :run_order, :states
+  attr_accessible :id, :description, :order, :run_order, :states
   attr_accessible :barclamp_instance_id, :role_id
   
   HAS_NODE_ROLE = BarclampCrowbar::AttribInstanceHasNode
@@ -52,7 +52,7 @@ class RoleInstance < ActiveRecord::Base
   end
   
   def add_attrib(attrib, value=nil, map=nil)
-    a = Attrib.add attrib, barclamp.name
+    a = Attrib.add attrib, (barclamp.nil? ? nil : barclamp.name)
     begin 
       AttribInstance.find_by_attrib_id_and_role_instance_id! a.id, self.id
     rescue
@@ -75,15 +75,25 @@ class RoleInstance < ActiveRecord::Base
   ##
   # Clone this role_instance
   # optionally, change parent too
-  def deep_clone(bc_instance=nil)
+  # with_nodes allows for template copies that should have not nodes assigned yet
+  def deep_clone(bc_instance=nil, with_nodes=true)
     new_role = self.dup
-    new_role.barclamp_instance_id = bc_instance.id if bc_instance
+    new_role.barclamp_instance_id = bc_instance.read_attribute(:id) if bc_instance
     new_role.save
 
-    # clone the attributes
-    # not there yet!
+    # clone the attributes (includes node-roles)
+    attrib_instances.each do |ai|
+      # if we are cloning a template then we need the option of no nodes
+      if with_nodes or ai.node_id.nil?
+        new_ai = ai.dup
+        new_ai.role_instance_id = new_role.id
+        new_ai.jig_run_id = nil
+        new_ai.save
+      end
+    end
 
     new_role
+    
   end
 
 end

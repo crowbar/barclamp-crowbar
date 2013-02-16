@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -20,8 +20,10 @@ module ApiHelper
 
   def self.included(base)
     base.extend(ClassMethods)
+    base.extend(InstanceMethods)
   end
 
+  # for the top level classes (finders, etc)
   module ClassMethods
     
     # Helper that returns SET of all (or limited listed based on ID or name)
@@ -60,6 +62,19 @@ module ApiHelper
       key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/
     end
   end 
+
+  # for each instance (so we can use self)
+  module InstanceMethods
+    
+    def json_wrapper(type=nil, url_base=nil)
+      inner = self.api_hash rescue self.attributes 
+      type ||= self.class.to_s.downcase
+      url_base ||= "/crowbar/2.0/#{type}"
+      outter = { type => inner, 'url'=>"#{url_base}/#{self.id}" }
+      outter.to_json
+    end
+
+  end
 
 end
 ActiveRecord::Base.send :include, ApiHelper

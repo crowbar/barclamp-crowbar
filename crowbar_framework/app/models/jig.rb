@@ -64,7 +64,7 @@ class Jig < ActiveRecord::Base
       }
       logger.debug("Node roles, #{nrs.inspect}")
       #node_roles = new_config.get_nodes_by_roles    # hash of role -> list of nodes     
-      ordered_roles = new_config.barclamp.get_roles_by_order # array of: arry of role.
+      ordered_roles = new_config.role_instances # array of: arry of role.
       order = 1
       ordered_roles.each { |r_list|             
         r_list.each { |r| 

@@ -36,7 +36,9 @@ require 'json'
 # 
 
 class ServiceObject
+  
   def self.bc_name
+    Rails.logger.warn "Service object depricated"
     self.name.underscore[/(.*)_service$/,1]
   end
 
@@ -44,24 +46,29 @@ class ServiceObject
   # Initialization setup routines
   #
   def initialize(thelogger)
+    Rails.logger.warn "Service object depricated"
     @bc_name = "unknown"
     @logger = thelogger || Rails.logger
   end
 
   def bc_name=(new_name)
+    Rails.logger.warn "Service object depricated"
     @bc_name = new_name
     @barclamp = Barclamp.find_by_name(@bc_name)
   end
   
   def bc_name 
+    Rails.logger.warn "Service object depricated"
     @bc_name
   end
   
   def logger
+    Rails.logger.warn "Service object depricated"
     @logger
   end
 
   def barclamp
+    Rails.logger.warn "Service object depricated"
     @barclamp
   end
 
@@ -77,6 +84,7 @@ class ServiceObject
 # API Functions
 #
   def transition(prop_name, node_name, state)
+    Rails.logger.warn "Service object depricated"
     [200, ""]
   end
 
@@ -89,6 +97,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def destroy_active(prop_name)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     @logger.debug "Trying to deactivate role #{prop_name}" 
     prop = @barclamp.get_proposal(prop_name)
     return [404, {}] if prop.nil? or not prop.active?
@@ -122,6 +131,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def dequeue_proposal(inst)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     prop = @barclamp.get_proposal(inst)
     return [404, {}] if prop.nil? or not prop.active? or not prop.active_config.queued?
 
@@ -134,6 +144,7 @@ class ServiceObject
   # Helper routine: Updates current_config
   # 
   def _proposal_update(new_prop, params)
+    Rails.logger.warn "Service object depricated MOVEING TO BARCLAMP"
     if params["attributes"]
       chash = new_prop.current_config.config_hash
       new_prop.current_config.config_hash = chash.merge(params["attributes"])
@@ -155,6 +166,7 @@ class ServiceObject
   # The @barclamp.create_proposal routine must be called to create the base objects.
   #
   def create_proposal(name)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     @barclamp.create_proposal(name)
   end
 
@@ -164,6 +176,7 @@ class ServiceObject
   # The @barclamp.commit_proposal routine must be called to create the base objects.
   #
   def commit_proposal(proposal)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     ## nothing by default, let subclasses override.
   end
 
@@ -177,6 +190,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_create(params)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     return [400, I18n.t('model.service.empty_parameters')] unless params
     base_id = params["id"]
     return [400, I18n.t('model.service.missing_id')] unless base_id
@@ -203,6 +217,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_edit(params)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     proposal = @barclamp.get_proposal(params["id"])
     return [404, I18n.t('model.service.cannot_find')] if proposal.nil?
 
@@ -223,6 +238,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_delete(inst)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     prop = @barclamp.get_proposal(inst)
     if prop.nil?
       [404, I18n.t('model.service.cannot_find')]
@@ -245,6 +261,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   #
   def proposal_commit(inst, in_queue = false)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     prop = @barclamp.get_proposal(inst)
     if prop.nil?
       [404, "#{I18n.t('.cannot_find', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
@@ -267,6 +284,7 @@ class ServiceObject
   # proposal_elements is a hash from the elements field for the deployment/bc hash
   #
   def validate_proposal_elements proposal_elements
+    Rails.logger.warn "Service object depricated"
     proposal_elements.each do |role_and_elements|
       elements = role_and_elements[1]
       uniq_elements = elements.uniq
@@ -287,6 +305,7 @@ class ServiceObject
   # proposal is a hash in json proposal format
   #
   def validate_proposal proposal
+    Rails.logger.warn "Service object depricated"
     path = "#{::Rails.root}/barclamps/schemas"
     validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     Rails.logger.info "validating proposal #{@bc_name}"
@@ -314,6 +333,7 @@ class ServiceObject
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
   def apply_role(new_config, in_queue)
+    Rails.logger.warn "Service object depricated MOVING TO JIG"
     #
     # Handled in ProposalQueue.queue_proposal
     #   Get dependents
@@ -435,6 +455,7 @@ class ServiceObject
   # Override function to inject changes to nodes after role update, but before chef-client runs.
   #
   def apply_role_pre_chef_call(old_config, new_config, all_nodes)
+    Rails.logger.warn "Service object depricated MOVING TO JIG"
     # noop by default.
   end
 
@@ -443,6 +464,7 @@ class ServiceObject
   # Returns: List of hashs { "barclamp" => bcname, "inst" => instname }
   #
   def proposal_dependencies(role)
+    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
     # Default none
     []
   end
@@ -453,6 +475,7 @@ class ServiceObject
   # This is a helper function for places that need to add a node to a role in a proposal_config
   #
   def add_role_to_instance_and_node(node_name, prop_name, newrole)
+    Rails.logger.warn "Service object depricated MOVING TO JIG"
     @logger.debug("ARTOI: enterin #{node_name}, #{prop_name}, #{newrole}")
     node = Node.find_by_name node_name    
     if node.nil?
@@ -494,6 +517,7 @@ class ServiceObject
   # fork and exec ssh call to node and return pid.
   #
   def run_remote_chef_client(node, command, logfile_name)
+    Rails.logger.warn "Service object depricated MOVING TO JIG"
     Kernel::fork {
       # Make sure all file descriptors are closed
       ObjectSpace.each_object(IO) do |io|
@@ -531,17 +555,20 @@ class ServiceObject
 
 
   def self.id?(object_id)
+    Rails.logger.warn "Service object depricated"
     object_id = object_id.to_s
     object_id.match('^[0-9]+') ? true : false
   end
 
 
   def self.name?(object_id)
+    Rails.logger.warn "Service object depricated"
     !self.id?(object_id)
   end
 
 
   def self.get_object(type, object_id)
+    Rails.logger.warn "Service object depricated"
     object = nil
     object_id = object_id.to_s
 
@@ -565,6 +592,7 @@ class ServiceObject
 
 
   def self.get_object_safe(type, object_id)
+    Rails.logger.warn "Service object depricated"
     begin
       return get_object(type, object_id)
     rescue ActiveRecord::RecordNotFound => ex

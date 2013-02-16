@@ -51,6 +51,7 @@ en:
   maybe: Maybe
   chuck_norris: Die!!!
   depricated: "WARNING Depricated!"
+  work_in_progress: "Work in progress notice: %{message}"
   updating: Updating...
   note: Note
   hint: Hint
@@ -60,6 +61,7 @@ en:
   next: Next
   prev: Previous
   export: Export
+  default: Default
   
   test:
     verify: "Affirmative"
@@ -79,4 +81,5 @@ en:
     fqdn: "Item must be a fully qualified domain name (FQDN) such as 'server.example.com'."
     group_category: "Group Model Validation Error: type is not an allowed category"
     barclamp_excludes: "Barclamp name is reserved for Crowbar internal operations"
+    config_excludes: "Config name 'template' is reserved for Crowbar internal operations"
     not_in_set: "Object %{obj} property %{prop} can only take one of [%{set}]."

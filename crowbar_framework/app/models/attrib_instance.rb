@@ -133,7 +133,10 @@ class AttribInstance < ActiveRecord::Base
     if self.role_instance_id.nil?
       role = Role.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
       crowbar = Barclamp.find_by_name 'crowbar'
-      user = crowbar.active.first.add_role role
+      # use the actice instance
+      base_config = crowbar.active.first || crowbar.template
+      # if no active instance, use the template
+      user = base_config.add_role role
       self.role_instance_id = user.id
     end
   end

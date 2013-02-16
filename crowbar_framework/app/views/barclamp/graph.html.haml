@@ -37,11 +37,5 @@
                 - c.instances.each do |i|
                   %li
                     = "#{t '.instance'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"
-        %li
-          = t ".proposals"
-          %em= t 'depricated'
-          %ul{:id=>"#{bc.id}_props"}
-            - bc.proposals.each do |prop|
-              %li= prop.name
 
     

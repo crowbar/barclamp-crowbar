@@ -1,6 +1,7 @@
 *~
 
 erl_crash.dump
+/BDD/default.config
 trace_*.txt
 *.beam
 /crowbar_framework/log/test.*

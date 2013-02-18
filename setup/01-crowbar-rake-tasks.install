@@ -23,7 +23,7 @@ case $OS in
         libshadow-ruby1.8 markdown vim
         gem install tilt puma bundler;;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
-        gem install tilt puma bundler
+        gem install tilt puma bundler;;
     suse) zypper -y install curl rubygem-rake rubygem-json rubygem-syslogger \
         rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml \
         rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-puma \

@@ -1,9 +1,49 @@
 #!/bin/bash
 
+## only do this on real installs.
+[[  -d /tftpboot/ubuntu_dvd/dell/Version || \
+    -d /tftpboot/redhat_dvd/dell/Version || \
+    -d /opt/dell/barclamps/crowbar ]] || \
+    { echo "Not an admin node, not installing Crowbar"; exit 0; }
+
+
+if [[ -f /etc/redhat-release || -f /etc/centos-release ]]; then
+    OS=redhat
+elif [[ -d /etc/apt ]]; then
+    OS=ubuntu
+elif [[ -f /etc/SuSE-release ]]; then
+    OS=suse
+else
+    exit 1
+fi
+
+case $OS in
+    ubuntu) apt-get -y install curl sqlite sqlite3 libsqlite3-dev \
+        libshadow-ruby1.8 markdown vim
+        gem install tilt puma bundler;;
+    redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
+        gem install tilt puma bundler
+    suse) zypper -y install curl rubygem-rake rubygem-json rubygem-syslogger \
+        rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml \
+        rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-puma \
+        rubygem-ruby-shadow vim;;
+    *) exit 1;;
+esac
+
+if ! grep -q '^crowbar:' /etc/passwd; then
+    useradd -m /home/crowbar -U \
+        -p '$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve.' \
+        -s /bin/bash \
+        crowbar
+fi
+
 export RAILS_ENV=production
 ( cd /opt/dell/crowbar_framework
-  tasks=("bundle install --local" "rake assets:precompile" "rake db:migrate"
-      "script/rails generate delayed_job:active_record" "rake railties:install:migrations"
+  tasks=("bundle install --local"
+      "rake assets:precompile"
+      "rake railties:install:migrations"
+      "rake db:migrate"
+      "script/rails generate delayed_job:active_record"
       "rake db:migrate")
   for task in "${tasks[@]}"; do
       su -s /bin/bash -c "$task" crowbar && continue
@@ -15,10 +55,91 @@ export RAILS_ENV=production
 # package
 mkdir -p /var/run/crowbar/
 chown crowbar:crowbar /var/run/crowbar
+chmod 0700 /var/run/crowbar
+
+# Make our /etc/profile/crowbar.sh 
+mkdir -p /etc/profile.d
+cat > /etc/profile.d/crowbar.sh <<EOF
+# Make sure /opt/dell/bin is in the root path
+if ! echo \${PATH} | /bin/grep -q /opt/dell/bin ; then
+        if [ \$(/usr/bin/id -u) = 0 ] ; then
+                PATH=${PATH}:/opt/dell/bin
+        fi
+fi
+
+if [ -f /etc/crowbar.install.key ] ; then
+    export CROWBAR_KEY=\$(cat /etc/crowbar.install.key)
+fi
+EOF
+cd /opt/dell/crowbar
+# Make some auxilliary files that the Crowbar webapp will rely on.
+mkdir -p /opt/dell/crowbar_cramework/tmp
+
+for lock in queue ip; do
+    touch "tmp/$lock.lock"
+    chmod 644 "tmp/$lock.lock"
+done
+
+cat >config.ru <<EOF
+require ::File.expand_path('../config/environment', __FILE__)
+run Crowbar::Application
+EOF
+
+declare -A puma_cfgs
+puma_cfgs["production"]="puma.cfg"
+puma_cfgs["development"]="puma-dev.cfg"
+puma_cfgs["test"]="puma-test.cfg"
+
+for cfg in "${!puma_cfgs[@]}"; do
+    touch "log/$cfg.log"
+    chmod 644 "log/cfg.log"
+
+    cat >"${puma_cfgs[$cfg]}" <<EOF
+bind("tcp://0.0.0.0:3000")
+pidfile("/var/run/crowbar/crowbar.pid")
+rackup("/opt/dell/crowbar_framework/config.ru")
+environment("$cfg")
+state_path("/var/run/crowbar/puma.state")
+EOF
+done
+
+for d in /var/run/crowbar /opt/dell/crowbar_framework; do
+    chown -R crowbar:crowbar "$d"
+done
 
 # FIXME: We need an init script for this in the package. Ideally without using
 # bluepill
-bluepill load /opt/dell/crowbar_framework/crowbar.pill
+
+if [[ $os != suse ]]; then
+    bluepill load /opt/dell/crowbar_framework/crowbar.pill
+    cat >/etc/init.d/crowbar <<EOF
+case \$1 in
+    start|'')
+        # clean up files just in case
+        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
+
+        # Mark us as readying, and get our cert.
+	if [ -f /etc/default/tftpd-hpa ] ; then
+          service tftpd-hpa stop
+          service tftpd-hpa start
+        fi
+	echo "Done";;
+    stop) bluepill crowbar-webserver stop;;
+    status) bluepill crowbar-webserver status;;
+    restart) killall -HUP puma;;
+    *) echo "Unknown action $1";;
+esac
+EOF
+    chmod 755 /etc/init/d/crowbar
+    for i in 3 5 2; do
+        [[ -d /etc/rc$i.d ]] || continue
+        ln -sf /etc/init.d/crowbar "/etc/rc$i.d/S99crowbar"
+    done
+else
+    # Suse specific stuff here.
+fi
+
+/etc/init.d/crowbar start
 
 # TODO: We probably should wait here until the web app is really running and
 # answering request. For now, just sleep.

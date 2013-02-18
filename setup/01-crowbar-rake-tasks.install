@@ -41,7 +41,6 @@ fi
 # FIXME: This should be part of the crowbar-barclamp-crowbar
 # package
 mkdir -p /var/run/crowbar/
-chown crowbar:crowbar /var/run/crowbar
 chmod 0700 /var/run/crowbar
 
 # Make our /etc/profile/crowbar.sh 
@@ -59,15 +58,20 @@ if [ -f /etc/crowbar.install.key ] ; then
 fi
 EOF
 cd /opt/dell/crowbar_framework
+
+for d in /var/run/crowbar /opt/dell/crowbar_framework; do
+    chown -R crowbar:crowbar "$d"
+done
+
 export RAILS_ENV=production
-tasks=("bundle install --local"
-    "rake assets:precompile"
+tasks=("rake assets:precompile"
     "rake railties:install:migrations"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
+bundle install
 for task in "${tasks[@]}"; do
-    su -s /bin/bash -c "$task" crowbar && continue
+    su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2
     exit 1
 done
@@ -91,7 +95,7 @@ puma_cfgs["test"]="puma-test.cfg"
 
 for cfg in "${!puma_cfgs[@]}"; do
     touch "log/$cfg.log"
-    chmod 644 "log/cfg.log"
+    chmod 644 "log/$cfg.log"
 
     cat >"${puma_cfgs[$cfg]}" <<EOF
 bind("tcp://0.0.0.0:3000")
@@ -100,10 +104,6 @@ rackup("/opt/dell/crowbar_framework/config.ru")
 environment("$cfg")
 state_path("/var/run/crowbar/puma.state")
 EOF
-done
-
-for d in /var/run/crowbar /opt/dell/crowbar_framework; do
-    chown -R crowbar:crowbar "$d"
 done
 
 # FIXME: We need an init script for this in the package. Ideally without using
@@ -135,6 +135,7 @@ EOF
         ln -sf /etc/init.d/crowbar "/etc/rc$i.d/S99crowbar"
     done
 else
+    :
     # Suse specific stuff here.
 fi
 

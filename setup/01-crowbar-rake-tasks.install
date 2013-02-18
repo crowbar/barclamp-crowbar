@@ -6,6 +6,7 @@
     -d /opt/dell/barclamps/crowbar ]] || \
     { echo "Not an admin node, not installing Crowbar"; exit 0; }
 
+set -x
 
 if [[ -f /etc/redhat-release || -f /etc/centos-release ]]; then
     OS=redhat
@@ -37,20 +38,6 @@ if ! grep -q '^crowbar:' /etc/passwd; then
         crowbar
 fi
 
-export RAILS_ENV=production
-( cd /opt/dell/crowbar_framework
-  tasks=("bundle install --local"
-      "rake assets:precompile"
-      "rake railties:install:migrations"
-      "rake db:migrate"
-      "script/rails generate delayed_job:active_record"
-      "rake db:migrate")
-  for task in "${tasks[@]}"; do
-      su -s /bin/bash -c "$task" crowbar && continue
-      echo "Task $task failed." >&2
-      exit 1
-  done)
-
 # FIXME: This should be part of the crowbar-barclamp-crowbar
 # package
 mkdir -p /var/run/crowbar/
@@ -71,10 +58,22 @@ if [ -f /etc/crowbar.install.key ] ; then
     export CROWBAR_KEY=\$(cat /etc/crowbar.install.key)
 fi
 EOF
-cd /opt/dell/crowbar
-# Make some auxilliary files that the Crowbar webapp will rely on.
-mkdir -p /opt/dell/crowbar_cramework/tmp
+cd /opt/dell/crowbar_framework
+export RAILS_ENV=production
+tasks=("bundle install --local"
+    "rake assets:precompile"
+    "rake railties:install:migrations"
+    "rake db:migrate"
+    "script/rails generate delayed_job:active_record"
+    "rake db:migrate")
+for task in "${tasks[@]}"; do
+    su -s /bin/bash -c "$task" crowbar && continue
+    echo "Task $task failed." >&2
+    exit 1
+done
 
+# Make some auxilliary files that the Crowbar webapp will rely on.
+mkdir -p tmp
 for lock in queue ip; do
     touch "tmp/$lock.lock"
     chmod 644 "tmp/$lock.lock"

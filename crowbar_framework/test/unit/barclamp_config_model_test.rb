@@ -122,23 +122,69 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
     assert_equal  'hold', c.status    
   end
   
-  test "deep clone" do
-    config = BarclampConfiguration.create :name=>"clone", :barclamp_id=>@bc.id
-    instance1 = BarclampInstance.create :name=>"clone1", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_APPLIED, :barclamp_id => @bc.id
-    instance2 = BarclampInstance.create :name=>"clone2", :barclamp_configuration_id=>config.id, :status => BarclampInstance::STATUS_FAILED, :barclamp_id => @bc.id
+  test "create proposal without name is default" do
+    test = Barclamp.import 'test'
+    assert_equal 0, test.configs.count
+    assert_not_nil test.template
+    config = test.create_proposal
     assert_not_nil config
-    assert_not_nil instance1
-    assert_not_nil instance2
-    nc = config.deep_clone
-    assert_not_equal config.id, nc.id
-    assert_equal     config.instances.count, nc.instances.count
-    assert !(["clone1", "clone2"].include? nc.instances.first.name), "cloned names should not be the same"
-    assert !(["clone1", "clone2"].include? nc.instances.second.name), "cloned names should not be the same"
-    assert (["clone1_#{instance1.id}", "clone2_#{instance2.id}"].include? nc.instances.first.name), "cloned names include the ID of the source object"
-    assert (["clone1_#{instance1.id}", "clone2_#{instance2.id}"].include? nc.instances.second.name), "cloned names include the ID of the source object" 
-    assert !([instance1.id, instance2.id].include? nc.instances.first.id )
-    assert !([instance1.id, instance2.id].include? nc.instances.second.id )
+    assert_equal 1, test.configs(true).count
+    assert_equal config.id, test.configs.first.id
+    assert_equal I18n.t('default'), config.name
+    assert_equal test.id, config.barclamp_id
   end
   
+  test "Can create config from barclamp" do
+    test = Barclamp.import 'test'
+    assert !test.allow_multiple_configs, "need this to be 1 for this test"
+    assert_equal 0, test.configs.count
+    assert_not_nil test.template
+    config = test.create_proposal 'foo'
+    assert_not_nil config
+    assert_equal 1, test.configs(true).count
+    assert_equal config.id, test.configs.first.id
+    assert_equal 'foo', config.name
+    assert_equal test.id, config.barclamp_id
+  end
+  
+  test "Allow multiple proposals works" do
+    test = Barclamp.import 'test'
+    assert !test.allow_multiple_configs, "need this to be 1 for this test"
+    assert_equal 0, test.configs.count
+    assert_not_nil test.template
+    config = test.create_proposal 'foo'
+    assert_not_nil config
+    # this will fail
+    c2 = test.create_proposal 'bar'
+    assert_nil c2
+    assert_equal 'foo', test.configs(true).first.name
+    assert_equal 1, test.configs(true).count
+    # now change the setting and try again
+    test.allow_multiple_configs = true
+    c3 = test.create_proposal 'bar'
+    assert_not_nil c3
+    assert_equal 'bar', c3.name
+    assert_equal 2, test.configs(true).count
+  end
+  
+  test "create proposal clones roles" do    
+    test = Barclamp.import  'test'
+    assert_not_nil test
+    count = test.template.role_instances.count
+    r = test.template.add_role "clone_me"
+    assert_not_nil r
+    # make sure this role is first in the list
+    r.run_order = 1
+    r.order = 1
+    r.save
+    assert_equal "clone_me", r.role.name
+    assert_equal r.role.id, test.template.role_instances.second.role.id, "confirm that added role is second after private"
+    # now make sure it shiows up in the cone
+    config = test.create_proposal "cloned"
+    assert_not_nil config
+    assert_not_equal test.template_id, config.id
+    assert_equal test.template.role_instances.count, config.proposed.role_instances.count
+    assert_equal test.template.role_instances.second.role_id, config.proposed.role_instances.second.role_id
+  end
 end
 

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
 # Settings specified here will take precedence over those in config/environment.rb
 
 # In the development environment your application's code is reloaded on
@@ -41,6 +39,7 @@ config.action_mailer.raise_delivery_errors = false
 
 config.log_level = :debug
 
+#CB1 DEPRICATE
 CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
 CHEF_NODE_NAME ="crowbar"
 CHEF_SERVER_URL = "http://192.168.124.10:4000"

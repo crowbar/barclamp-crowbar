@@ -74,7 +74,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "Active Proposals empty" do
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b
-    t = b.active_proposals
+    t = b.active
 
     assert_equal [], t
   end
@@ -87,7 +87,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "Versions" do
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b
-    assert_equal [ "1.0" ], b.versions
+    assert_equal [ "2.0" ], b.versions
   end
 
   test "Naming Conventions" do

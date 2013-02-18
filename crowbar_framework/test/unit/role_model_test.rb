@@ -24,6 +24,11 @@ class RoleModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"no spaces") }
     assert_raise(ActiveRecord::RecordInvalid) { Role.create!(:name=>"nospacesatall ") }
   end
+
+  test "names can have dash" do
+    assert_nothing_raised { Role.create!(:name=>"chef-role")  }
+    assert_not_nil Role.find_by_name 'chef-role'
+  end
       
   test "order is priority" do
     nr = Role.new

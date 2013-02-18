@@ -65,7 +65,8 @@ class RoleInstanceModelTest < ActiveSupport::TestCase
 
   test "Deep clone works at surface layer" do
     r = Role.create :name => "clone" 
-    ri = RoleInstance.create :role_id=>@role.id, :barclamp_instance => @bi.id
+    assert_not_nil r
+    ri = RoleInstance.create :role_id=>r.id, :barclamp_instance_id => @bi.id
     new_bi = BarclampInstance.create :name => "value", :barclamp_id => @bi.barclamp.id
     new_ri = ri.deep_clone new_bi
     assert_not_equal ri.id, new_ri.id, "different objects"
@@ -73,12 +74,22 @@ class RoleInstanceModelTest < ActiveSupport::TestCase
     assert_not_equal ri.barclamp_instance_id, new_ri.barclamp_instance_id, "should not have same instance"
   end
 
-  test "Add Attrib adds string attribute" do
-    #TBD
-  end
-  
-  test "Add Attrib add hash attribute" do
-    #TBD
+  test "Deep clone works at attrib layer" do
+    r = Role.create :name => "deep_clone" 
+    ri = RoleInstance.create :role_id=>r.id, :barclamp_instance_id => @bi.id
+    ri.add_attrib 'foo', 'bar'
+    ri.add_attrib 'open', 'stack'
+    assert_equal 2, ri.values.count
+    first = ri.values.first
+    second = ri.values.second
+    new_bi = BarclampInstance.create :name => "deep_value", :barclamp_id => @bi.barclamp.id
+    new_ri = ri.deep_clone new_bi
+    assert_not_nil new_ri
+    assert_not_nil 2, new_ri.values.count
+    assert_equal first.name, new_ri.values.first.name
+    assert_equal first.value, new_ri.values.first.value
+    assert_equal second.name, new_ri.values.second.name
+    assert_equal second.value, new_ri.values.second.value
   end
 
 end

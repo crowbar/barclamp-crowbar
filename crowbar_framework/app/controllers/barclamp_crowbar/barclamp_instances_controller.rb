@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-#######
-#  configuration details for a given proposals.
-#  proposal 
 #
-class ProposalConfig < ActiveRecord::Base
+class BarclampCrowbar::BarclampInstancesController < ApplicationController
 
-  #
-  # Status of the proposal
-  #
-  STATUS_NONE        = 1  # Not applied, just created
-  STATUS_QUEUED      = 2  # Attempt at commit, but is queued
-  STATUS_COMMITTING  = 3  # Attempt at commit is in progress
-  STATUS_FAILED      = 4  # Attempted commit failed
-  STATUS_APPLIED     = 5  # Attempted commit succeeded
-
+  def index
+    out = {:list=> [], :type=>:instance, :link=>instances_path}
+    ::BarclampInstance.all.each { |bi| out[:list] << bi }
+    render :json=>out
+  end
+  
 end

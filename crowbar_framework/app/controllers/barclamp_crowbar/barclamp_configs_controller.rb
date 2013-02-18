@@ -1,3 +1,4 @@
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateJigEvents < ActiveRecord::Migration
-  def change
-    create_table :jig_events do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true, :default=>true
-      t.string :type,         :null=>"JigEvent"
-      t.string :order,        :default=>10000
-      t.integer :status
+#
+class BarclampCrowbar::BarclampConfigsController < ApplicationController
 
-      t.references :jig
-      t.references :barclamp_instance
-      t.references :jig_map
-
-      t.timestamps
-    end
+  def index
+    out = {:list=> [], :type=>:config, :link=>configs_path}
+    ::BarclampConfiguration.all.each { |bc| out[:list] << bc }
+    render :json=>out
   end
+
 end

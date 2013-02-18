@@ -15,8 +15,8 @@
 class CreateRoleInstances < ActiveRecord::Migration
   def change  
     create_table :role_instances do |t|
-      t.belongs_to  :role
-      t.belongs_to  :barclamp_instance
+      t.belongs_to  :role,              :null=>false
+      t.belongs_to  :barclamp_instance, :null=>false
       t.string      :description,       :null=>true
       t.integer     :order,             :default => 9999, :null => false
       t.integer     :run_order,         :default => 9999, :null => false

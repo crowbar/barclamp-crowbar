@@ -18,10 +18,12 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
-  attr_accessible :allow_multiple_proposals, :template_id
+  attr_accessible :allow_multiple_configs, :template_id
   attr_accessible :api_version, :api_version_accepts, :liscense, :copyright
-
   before_create :create_type_from_name
+
+  # legacy for CB1 remove after 2013-03-01
+  alias_attribute :allow_multiple_proposals, :allow_multiple_configs
   
   # 
   # Validate the name should unique 
@@ -32,41 +34,24 @@ class Barclamp < ActiveRecord::Base
     
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  #
-  # Proposals are all stored in the proposal table
-  # There is a special proposal barclamp.  This is the template proposal
-  # that defines the initial content for a new proposal
-  #
-  # The three helpers are for:
-  #   all proposals (that aren't template)
-  #   all active proposals (that aren't template and have attempted application)
-  #   the template proposal
-  # 
-  
-  # CB1 this should go away...old models
-  has_many :proposals, :conditions => 'proposals.name != "template"'
-  # CB1 this should go away...old models
-  has_many :active_proposals, 
-                :class_name => "Proposal", 
-                :conditions => [ 'name <> ? AND active_config_id IS NOT NULL', "template"]
-  
-  # Active Instances
-  # NOTE!!! This is a placeholder for now - needs to be updated to use the BarclampConfig
-  has_many :active,                   :class_name => "BarclampInstance", :foreign_key=>:id, :primary_key=>:template_id
-  
+    
   # Template Data
   has_one  :template,                 :class_name => "BarclampInstance", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
   has_many :roles,                    :class_name => "Role", :through=>:template, :order=>'"role_instances"."order"'
   has_many :attrib_instances,         :through => :template
   has_many :role_instances,           :through => :template
   
-  # Instance Trains
+  # Instance Trains (may not all be the same configuration!)
   has_many :barclamp_instances,       :dependent => :destroy
   alias_attribute :instances,         :barclamp_instances
   
   # Configurations
   has_many :barclamp_configurations,  :dependent => :destroy
   alias_attribute :configs,           :barclamp_configurations
+  alias_attribute :proposals,         :barclamp_configurations   # legacy support
+  has_many :active,                   :class_name => "BarclampConfiguration", :conditions=>"'active_instance_id' is not null"
+  alias_attribute :active_configs,    :active         
+  alias_attribute :active_proposals,  :active                   # legacy support
   
   # Jig Interactions
   has_many :jig_maps,                 :dependent => :destroy
@@ -92,6 +77,7 @@ class Barclamp < ActiveRecord::Base
   #   Barclamp.find_by_name("network").operations(@logger).allocate_ip(...)
   #
   def operations(logger = nil)
+    Rails.logger.warn "Service object depricated"
     @service = eval("#{name.camelize}Service.new logger") unless @service
     @service.bc_name = name
     @service
@@ -109,7 +95,7 @@ class Barclamp < ActiveRecord::Base
   # We should set this to something one day.
   #
   def versions
-    [ "1.0" ]
+    [ "2.0" ]
   end
 
   # 
@@ -133,53 +119,40 @@ class Barclamp < ActiveRecord::Base
   end
 
   #
-  # Override function:
+  # Possible Override function
   #
   # Creates a new proposal from the template object.  
   # Barclamps can override this function to tweak config or add nodes
   #
   # Overriding functions should call super to get the template object.
   #
-  # Input: Optional: Name
-  # Output: Proposal Object Based upon template.
+  # Inputs: 
+  #  Optional: Config Name / Hash (default to default)
+  # Output: Config Object Based upon template.
   #
-  def create_proposal(name = nil)
-    template.deep_clone(name || "created_#{Time.now.strftime("%y%m%d_%H%M%S")}")
-  end
-
-  # XXX: This may be too much for what Andi planned.  This could be done as 
-  # deleted flag and not removed from the database.
-  def delete_proposal(prop)
-    prop.destroy
-  end
-
-  # GOING AWAY!
-  def get_proposal(name)
-    Proposal.find_by_name_and_barclamp_id(name, self.id)
-  end
-
-  # GOING AWAY!
-  def get_role(name)
-    Role.find_by_name_and_barclamp_id(name, self.id)
-  end
-
-  #
-  # Get the roles group by the role orders.
-  # This is used to order jig runs by role sets
-  # This used to be the element_order structure in the json
-  #
-  # GOING AWAY!
-  def get_roles_by_order
-    # THIS SHOULD USE barclamp.roles
-    run_order = []
-    roles.each do |role|
-      role.role_element_orders.each do |roe|
-        run_order[roe.order] = [] unless run_order[roe.order]
-        run_order[roe.order] << role
+  def create_proposal(config=nil)
+    config = {:name=>config} if config.is_a? String
+    config ||= { :name => I18n.t('default')}
+    bc = nil
+    if allow_multiple_proposals or configs.count==0
+      # setup required items
+      config[:barclamp_id]  = self.id
+      config[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
+      BarclampConfiguration.transaction do 
+        # create a new configuration
+        bc = BarclampConfiguration.create config
+        # one day, we could use non-templates for the base!
+        based_on ||= self.template    
+        # create the instances
+        config = based_on.deep_clone bc, config.name, false
+        # attach the instance to the config
+        bc.proposed_instance_id = config.id
+        bc.save
       end
     end
-    run_order
+    bc
   end
+
   
   # take run data from the jig and process it into attributes
   # returns the node
@@ -244,15 +217,17 @@ class Barclamp < ActiveRecord::Base
     jdeploy = json["deployment"][name]
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
       role_hash.each_with_index do |role, index|
-        states = jdeploy["element_states"][role].join(",") rescue "all"
-        order = 100+(top_index*100)+index
-        run_order = jdeploy["element_run_list_order"][role] rescue order
-        ri = self.template.add_role role
-        ri.update_attributes( :states => states,
-                              :order => order,
-                              :run_order => run_order, 
-                              :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)  
-                            )
+        unless role.nil?
+          states = jdeploy["element_states"][role].join(",") rescue "all"
+          order = 100+(top_index*100)+index
+          run_order = jdeploy["element_run_list_order"][role] rescue order
+          ri = self.template.add_role role
+          ri.update_attributes( :states => states,
+                                :order => order,
+                                :run_order => run_order, 
+                                :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)  
+                              )
+        end
       end
     end
 

@@ -58,6 +58,7 @@ Feature: Navigation, Check Core Navigation
       And there should be no translation errors
 
   Scenario: Crowbar Barclamps Nav
+    Skip until we have this page again
     Given I am on the home page
     When I click on the "Crowbar" menu item
     Then I should see "Crowbar Members" in the body  

@@ -1,4 +1,4 @@
-% Copyright 2011, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6]).
+-export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2]).
 -import(bdd_utils).
 -import(json).
 
@@ -49,6 +49,11 @@ i18n(Config, T) ->
     not_found -> bdd_utils:log(Config, warn, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!";
     R -> R
   end.
+
+json(Part, JSON)  ->  
+  Key = atom_to_list(Part),
+  {Key, P} = lists:keyfind(Key,1,JSON), 
+  P.
 
 % MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
 validate(JSON) ->

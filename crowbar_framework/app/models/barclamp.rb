@@ -205,11 +205,10 @@ class Barclamp < ActiveRecord::Base
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
     # this shoudl go away as we migrate the data into Crowbar.yml
-    template_file ||= File.join(source_path, 'templates', "bc-template-#{name}.json")
-    if json.nil?
-      throw "cannot import template #{template_file} not found" unless File.exists? template_file
-      json = JSON::load File.open(template_file, 'r')
-    end
+    template_file ||= [ File.join(source_path, 'templates', "bc-template-#{name}.json"),
+                        File.join('opt','dell','chef','data_bags',"bc-template-#{name}.json")].detect{|f|File.exists?(f)}
+    throw "cannot import template for #{name}" if template_file.nil?
+    json = JSON::load File.open(template_file, 'r') if json.nil?
 
     create_template template_file
 

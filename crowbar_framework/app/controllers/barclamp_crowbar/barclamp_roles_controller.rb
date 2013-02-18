@@ -13,12 +13,6 @@
 # limitations under the License.
 #
 #
-class BarclampCrowbar::BarclampRolesController < ApplicationController
-
-  def index
-    out = {:list=> [], :type=>:role, :link=>roles_path}
-    IIBarclampRoles.all.each { |br| out[:list] << br }
-    render :json=>out
-  end
+class BarclampCrowbar::BarclampRolesController < BarclampRolesController
 
 end

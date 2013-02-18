@@ -71,13 +71,13 @@ Crowbar::Application.routes.draw do
   end
 
   # CB1 - should move to network barclamp!
-  scope 'network' do
-    version = "2.0"
-    resources :networks, :conduits
-    get '/', :controller => 'networks', :action=>'switch', :as => :network
-    get 'switch(/:id)', :controller => 'networks', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
-    get 'vlan(/:id)', :controller => 'networks', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
-  end
+  #scope 'network' do
+    #version = "2.0"
+    #resources :networks, :conduits
+    #get '/', :controller => 'networks', :action=>'switch', :as => :network
+    #get 'switch(/:id)', :controller => 'networks', :action=>'switch', :constraints => { :id => /.*/ }, :as => :switch
+    #get 'vlan(/:id)', :controller => 'networks', :action=>'vlan', :constraints => { :id => /.*/ }, :as => :vlan
+  #end
 
   # UI scope
   scope 'utils' do
@@ -129,10 +129,12 @@ Crowbar::Application.routes.draw do
   
   
 
-  # Digest Auth 
-  get 'digest' => 'digest#index' 
+  # Digest Auth
+  # can remove?  if so, remove the digest_controller too!
+  #get 'digest' => 'digest#index' 
   
      
+  # REVIEW NEEDED!  should this be under the devise_scope??
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
   delete 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
@@ -153,9 +155,22 @@ Crowbar::Application.routes.draw do
       scope 'crowbar' do
         namespace = 'BarclampCrowbar'
         scope 'v2' do
+
+          resources :barclamps, :controller=>"#{namespace}::barclamps"
+          match "template"  => "#{namespace}::barclamps#template"
+          
           resources :configs, :controller=>"#{namespace}::barclamp_configs"
+          match "configs/:id/commit"      => "#{namespace}::barclamp_configs#commit",     :as=>'configs_commit'
+          match "configs/:id/dequeue"     => "#{namespace}::barclamp_configs#dequeue",    :as=>'configs_dequeue'
+          match "configs/:id/propose"     => "#{namespace}::barclamp_configs#propose",    :as=>'configs_propose'
+          match "configs/:id/transistion" => "#{namespace}::barclamp_configs#transition", :as=>'configs_transistion'
+          
           resources :instances, :controller=>"#{namespace}::barclamp_instances"
+
           resources :roles, :controller=>"#{namespace}::barclamp_roles"
+          match "roles/:id/attribs"       => "#{namespace}::barclamp_roles#attribs",  :as=>'roles_attribs'
+          match "roles/:id/nodes"         => "#{namespace}::barclamp_roles#nodes",    :as=>'roles_nodes'
+
         end
       end
       # depricated 2.0 API Pattern
@@ -168,7 +183,7 @@ Crowbar::Application.routes.draw do
           end
   
           # actions
-          get "node/:id/hit/:req" => "nodes#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
+          get "node/:id/hit/:req" => "nodes\#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
                   
           scope 'crowbar' do    # MOVE TO GENERIC!
             scope '2.0' do      # MOVE TO GENERIC!
@@ -176,16 +191,7 @@ Crowbar::Application.routes.draw do
               match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
               # group + node CRUD operations
               match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-  
-              get    "network/networks", :controller => 'networks', :action=>'networks'     # MOVE TO GENERIC!
-              get    "network/networks/:id", :controller => 'networks', :action=>'network_show'     # MOVE TO GENERIC!
-              post   "network/networks", :controller => 'networks', :action=>'network_create'     # MOVE TO GENERIC!
-              put    "network/networks/:id", :controller => 'networks', :action=>'network_update'     # MOVE TO GENERIC!
-              delete "network/networks/:id", :controller => 'networks', :action=>'network_delete'     # MOVE TO GENERIC!
-              post   "network/networks/:id/allocate_ip", :controller => 'networks', :action=>'network_allocate_ip'
-              delete "network/networks/:id/deallocate_ip/:network_id/:node_id", :controller => 'networks', :action=>'network_deallocate_ip'
-  			post   "network/networks/:id/enable_interface", :controller => 'networks', :action=>'network_enable_interface'
-  
+    
               # basic list operations 
               get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
               get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!

@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -15,6 +15,7 @@
 
 require 'uri'
 require 'digest/md5'
+require 'active_support/core_ext/string'
 
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
@@ -70,13 +71,37 @@ class ApplicationController < ActionController::Base
       template
     }
   end
-  
+
+  # needed by Devise auth
   def is_ajax?
     request.xhr?
   end
   
-  def is_dev?
-    Rails.env.development?
+  # formats API json output 
+  # using this makes it easier to update the API format for all models
+  def api_index(type, list, link=nil)
+    link ||= eval("#{type.to_s.pluralize(0)}_path")   # figure out path from type
+    out = {:json=>{:list=>list, :type=>type, :link=>link}}
+  end
+
+  # formats API json for output
+  # using this makes it easier to update the API format for all models
+  def api_show(type, type_class, key=nil, link=nil)
+    key ||= params[:id]
+    link ||= eval("#{type.to_s.pluralize(0)}_path")+"/"+key   # figure out path from type
+    o = type_class.find_key key
+    if o
+      return {:json=>{:item=>o, :type=>type, :link=>link}}
+    else
+      return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
+    end
+  end
+    
+  # shared routine that finds the barclamp for other base calls (e.g.: barclampInstance, config & role)
+  def barclamp
+    name = params[:controller] =~ /^barclamp_([a-z][_a-z0-9]*)/
+    @barclamp = Barclamp.find_by_name($1 || 'crowbar') if @barclamp.nil? or @barclamp.name.eql? name
+    @barclamp
   end
   
   add_help(:help)

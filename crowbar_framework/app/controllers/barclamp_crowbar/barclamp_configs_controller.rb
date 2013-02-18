@@ -13,12 +13,6 @@
 # limitations under the License.
 #
 #
-class BarclampCrowbar::BarclampConfigsController < ApplicationController
-
-  def index
-    out = {:list=> [], :type=>:config, :link=>configs_path}
-    ::BarclampConfiguration.all.each { |bc| out[:list] << bc }
-    render :json=>out
-  end
+class BarclampCrowbar::BarclampConfigsController < BarclampConfigsController
 
 end

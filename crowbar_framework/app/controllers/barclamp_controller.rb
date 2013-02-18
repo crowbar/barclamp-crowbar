@@ -16,26 +16,6 @@ require 'json'
 
 class BarclampController < ApplicationController
 
-  def barclamp
-   
-    if @bc.nil?
-      # class naming convention for barclamp controllers->  BarclampLogging::BarclampsController == "logging"
-      bc_match = self.class.name.match(/Barclamp([\w]+)::.*/) 
-      # if no match, assume something like "CrowbarContoller"
-      barclamp_name = bc_match ? bc_match[1].downcase : f.controller_name.classify.downcase
-      # this is the shared barclamp object for the controller
-      @bc = Barclamp.find_by_name(barclamp_name)
-    end
-    @bc
-    
-  end
-  private :barclamp
-
-  def operations
-    barclamp.operations(logger)
-  end
-  private :operations
-
   self.help_contents = Array.new(superclass.help_contents)
 
   #
@@ -62,7 +42,8 @@ class BarclampController < ApplicationController
   # 
   add_help(:catalog)
   def catalog     
-    render :json => { :name=>"unknown"} unless barclamp
+    @bc = barclamp
+    render :json => { :name=>"unknown"} unless @bc
 
     # TODO: find actions by introspection?
     render :json => {
@@ -85,6 +66,10 @@ class BarclampController < ApplicationController
     render :json => barclamp.versions
   end
 
+  # Redirects the requested to the instance that is the requested template
+  def template
+    redirect_to "/#{barclamp.name}/v2/instances/#{barclamp.template_id}"
+  end
   #
   # Provides the restful api call for
   # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name> 	POST 	Informs the barclamp instance of a change of state in the specified node 

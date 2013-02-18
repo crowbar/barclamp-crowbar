@@ -13,6 +13,14 @@
 # limitations under the License.
 #
 #
-class BarclampCrowbar::BarclampInstancesController < BarclampInstancesController
+class BarclampInstancesController < ApplicationController
 
+  def index
+    render api_index :instance, barclamp.barclamp_instances.all
+  end
+  
+  def show
+    render api_show :instance, BarclampInstance
+  end
+  
 end

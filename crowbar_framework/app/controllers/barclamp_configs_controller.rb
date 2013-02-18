@@ -16,11 +16,22 @@
 class BarclampConfigsController < ApplicationController
 
   def index
-    render api_index :config, barclamp.barclamp_configurations.all
+    render api_index :config, barclamp.configs.all
   end
 
   def show
     render api_show :config, BarclampConfiguration
+  end
+  
+  def create
+    bcc = barclamp.create_proposal params
+    redirect_to config_path + "/#{bcc.id}"
+  end
+  
+  def update
+    bcc = BarclampConfiguration.find_key params[:id]
+    raise "cannot change barclamp_id" unless params[:barclamp_id].nil? or params[:barclamp_id]==bcc.barclamp_id
+    bcc.update_attribs params
   end
   
   def commit

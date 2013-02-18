@@ -126,13 +126,6 @@ Crowbar::Application.routes.draw do
       end
     end
   end
-  
-  
-
-  # Digest Auth
-  # can remove?  if so, remove the digest_controller too!
-  #get 'digest' => 'digest#index' 
-  
      
   # REVIEW NEEDED!  should this be under the devise_scope??
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
@@ -151,26 +144,27 @@ Crowbar::Application.routes.draw do
     
     # API routes (must be json and must prefix 2.0)()
     scope :defaults => {:format=> 'json'} do
-      # 2.0 API Pattern
-      scope 'crowbar' do
-        namespace = 'BarclampCrowbar'
-        scope 'v2' do
-
-          resources :barclamps, :controller=>"#{namespace}::barclamps"
-          match "template"  => "#{namespace}::barclamps#template"
-          
-          resources :configs, :controller=>"#{namespace}::barclamp_configs"
-          match "configs/:id/commit"      => "#{namespace}::barclamp_configs#commit",     :as=>'configs_commit'
-          match "configs/:id/dequeue"     => "#{namespace}::barclamp_configs#dequeue",    :as=>'configs_dequeue'
-          match "configs/:id/propose"     => "#{namespace}::barclamp_configs#propose",    :as=>'configs_propose'
-          match "configs/:id/transistion" => "#{namespace}::barclamp_configs#transition", :as=>'configs_transistion'
-          
-          resources :instances, :controller=>"#{namespace}::barclamp_instances"
-
-          resources :roles, :controller=>"#{namespace}::barclamp_roles"
-          match "roles/:id/attribs"       => "#{namespace}::barclamp_roles#attribs",  :as=>'roles_attribs'
-          match "roles/:id/nodes"         => "#{namespace}::barclamp_roles#nodes",    :as=>'roles_nodes'
-
+      # v2 API Pattern
+      scope ':barclamp' do
+        scope ':version' do
+          constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
+            
+            resources :barclamps
+            match "template"                => "barclamps#template"
+            
+            resources :configs,  :controller=>"barclamp_configs"
+            match "configs/:id/commit"      => "barclamp_configs#commit",     :as=>'configs_commit'
+            match "configs/:id/dequeue"     => "barclamp_configs#dequeue",    :as=>'configs_dequeue'
+            match "configs/:id/propose"     => "barclamp_configs#propose",    :as=>'configs_propose'
+            match "configs/:id/transistion" => "barclamp_configs#transition", :as=>'configs_transistion'
+            
+            resources :instances,:controller=>"barclamp_instances"
+  
+            resources :roles,    :controller=>"barclamp_roles"
+            match "roles/:id/attribs"       => "barclamp_roles#attribs",  :as=>'roles_attribs'
+            match "roles/:id/nodes"         => "barclamp_roles#nodes",    :as=>'roles_nodes'
+            
+          end
         end
       end
       # depricated 2.0 API Pattern

@@ -81,7 +81,7 @@ class ApplicationController < ActionController::Base
   # using this makes it easier to update the API format for all models
   def api_index(type, list, link=nil)
     link ||= eval("#{type.to_s.pluralize(0)}_path")   # figure out path from type
-    out = {:json=>{:list=>list, :type=>type, :link=>link}}
+    out = {:json=>{:list=>list, :count=>list.count, :type=>type, :link=>link}}
   end
 
   # formats API json for output
@@ -99,8 +99,9 @@ class ApplicationController < ActionController::Base
     
   # shared routine that finds the barclamp for other base calls (e.g.: barclampInstance, config & role)
   def barclamp
-    name = params[:controller] =~ /^barclamp_([a-z][_a-z0-9]*)/
-    @barclamp = Barclamp.find_by_name($1 || 'crowbar') if @barclamp.nil? or @barclamp.name.eql? name
+    name = params[:barclamp]    # fall through routes specify the barclamp
+    name ||= $1 if params[:controller] =~ /^barclamp_([a-z][_a-z0-9]*)/
+    @barclamp = Barclamp.find_by_name name if @barclamp.nil? or @barclamp.name.eql? name
     @barclamp
   end
   

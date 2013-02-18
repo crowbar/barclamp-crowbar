@@ -16,7 +16,7 @@
 class BarclampInstancesController < ApplicationController
 
   def index
-    render api_index :instance, barclamp.barclamp_instances.all
+    render api_index :instance, barclamp.instances.all
   end
   
   def show

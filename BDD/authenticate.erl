@@ -48,13 +48,13 @@ step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = httpc:request(URL),
   {digest, Code};
 
-step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
+step(_Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
   U = bdd_utils:config(user),
   P = bdd_utils:config(password),
   bdd_utils:config_set(user, User),
   bdd_utils:config_set(password, Pass),
-  URL = eurl:uri(C, "utils/digest"),
-  {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request(C,URL),
+  URL = eurl:uri([], "utils/digest"),
+  {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request([],URL),
   bdd_utils:config_set(user, U),
   bdd_utils:config_set(password, P),
   R;

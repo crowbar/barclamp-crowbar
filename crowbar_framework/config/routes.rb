@@ -82,13 +82,14 @@ Crowbar::Application.routes.draw do
   # UI scope
   scope 'utils' do
     constraints(:id => /.*/ ) do
-      get '/', :controller=>'support', :action=>'index', :as => :utils
-      get 'i18n/:id', :controller=>'support', :action=>'i18n', :as => :utils_i18n
-      get 'marker/:id', :controller=>'support', :action=>'marker', :as => :utils_marker
-      get 'files/:id', :controller=>'support', :action=>'index', :as => :utils_files
-      get 'import(/:id)', :controller=>'support', :action=>'import', :as => :utils_import
-      get 'upload/:id', :controller=>'support', :action=>'upload', :as => :utils_upload
-      get 'restart/:id', :controller=>'support', :action=>'restart', :as => :restart
+      get '/'             => 'support#index', :as => :utils
+      get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n
+      get 'marker/:id'    => 'support#marker', :as => :utils_marker
+      get 'files/:id'     => 'support#index', :as => :utils_files
+      get 'import(/:id)'  => 'support#import', :as => :utils_import
+      get 'upload/:id'    => 'support#upload', :as => :utils_upload
+      get 'restart/:id'   => 'support#restart', :as => :restart
+      get 'digest'        => "support#digest"
     end
   end
 

@@ -20,7 +20,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/barclamp";
+    path -> "crowbar/v2/barclamps";
     name -> "bddbarclamp";
     atom -> barclamp1;
     _ -> crowbar:g(Item)

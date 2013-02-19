@@ -93,7 +93,7 @@ class UsersController < BarclampController
   end
   
   def is_edit_mode?
-    current_user.is_admin? && is_dev?
+    current_user.is_admin? && Rails.env.development?
   end
   
   ############################## API Calls ####################################

@@ -49,11 +49,11 @@ step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   {digest, Code};
 
 step(Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
-  U = bdd_utils:config(Config, user),
-  P = bdd_utils:config(Config, password),
-  C1 = bdd_utils:config_set(Config, user, User),
-  C = bdd_utils:config_set(C1, password, Pass),
-  URL = eurl:uri(C, "digest"),
+  U = bdd_utils:config(user),
+  P = bdd_utils:config(password),
+  bdd_utils:config_set(user, User),
+  bdd_utils:config_set(password, Pass),
+  URL = eurl:uri(C, "utils/digest"),
   {_Status,{{_Protocol,_Code,_Comment}, _Fields, R}} = simple_auth:request(C,URL),
   bdd_utils:config_set(user, U),
   bdd_utils:config_set(password, P),

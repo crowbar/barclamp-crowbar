@@ -17,6 +17,9 @@
 
 class SupportController < ApplicationController
   
+  skip_before_filter :crowbar_auth, :only => :digest
+  before_filter :digest_auth!, :only => :digest
+  
   # used to pass a string into the debug logger to help find specificall calls  
   def marker
     Rails.logger.info "\nMARK >>>>> #{params[:id]} <<<<< KRAM\n"
@@ -29,6 +32,14 @@ class SupportController < ApplicationController
       render :text=>I18n.translate(params[:id], :raise => I18n::MissingTranslationData)
     rescue I18n::MissingTranslationData
       render :text=>"No translation for #{params[:id]}", :status => 404
+    end
+  end
+  
+  def digest
+    if session[:digest_user]
+      render :text => t('user.digest_success', :default=>'success')
+    else
+      render :text => "digest", :status => :unauthorized
     end
   end
   

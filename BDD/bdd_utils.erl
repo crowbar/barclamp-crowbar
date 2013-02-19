@@ -321,7 +321,8 @@ scenario_retrieve(ID, Key, Default) ->
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),
-	CleanLine1 = string:strip(CleanLine0, left, $\t),
+	CleanLine01 = string:strip(CleanLine0, left, $#),
+	CleanLine1 = string:strip(CleanLine01, left, $\t),
 	CleanLine11 = string:strip(CleanLine1, right, $\r),
 	CleanLine2 = string:strip(CleanLine11),
 	string:strip(CleanLine2, right, $.).

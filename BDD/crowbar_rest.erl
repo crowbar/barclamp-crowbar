@@ -13,10 +13,13 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate_core/1, validate/1, inspector/2]).
+-export([step/3, g/1, validate_core/1, validate/1, api_wrapper/1, inspector/2]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
+
+-record(list, {type = unknown, data = [], link = unknown, count = -1 }).
+-record(item, {type = unknown, data = [], link = unknown}).
 
 g(Item) ->
   case Item of
@@ -38,11 +41,21 @@ validate(JSON) ->
        validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
+api_wrapper(JSON) ->
+  Type = list_to_atom(json:keyfind(JSON, "type")),
+  Link = json:keyfind(JSON, "link"),
+  List = json:keyfind(JSON, "list"),
+  case List of
+    not_found -> #item{type=Type, data=json:keyfind(JSON, "item"), link=Link};
+    _         -> #list{type=Type, data=List, link=Link, count=json:keyfind(JSON, "count")}
+  end.
+
 % Common Routine - returns a list of items from the system, used for house keeping
 inspector(Config, Feature) ->
   Raw = eurl:get(Config, apply(Feature, g, [path])),
   JSON = json:parse(Raw),
-  [{Feature, ID, Name} || {ID, Name} <- JSON].
+  List = api_wrapper(JSON),
+  [{Feature, ID, Name} || {ID, Name} <- List#list.data].
   
 % given a path + key, returns the ID of the object
 get_id(Config, Path, Key) -> 

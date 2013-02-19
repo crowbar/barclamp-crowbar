@@ -1,5 +1,5 @@
-# Crowbar Installation Quick Start Guide#
-This guide is intended to help get you up and running with Crowbar, with either OpenStack or Hadoop, as quickly as possible. It contains the following instructions:
+#Crowbar Installation Quick Start Guide#
+This guide is intended to help get you up and running with Crowbar, to deploy either an OpenStack or Hadoop cluster, as quickly as possible. It contains the following instructions:
 
 - Configuring the Network
 - Configuring and Installing the Crowbar Admin Node
@@ -22,5 +22,5 @@ This guide is intended to help get you up and running with Crowbar, with either 
 	- Cluster Services Initialization
 	- Configuration Completion
 	- Service Display
-- More Information
-	- OpenStack Barclamp Proposals Installation Order
+- Additional Information
+	- TBD

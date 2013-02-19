@@ -129,7 +129,7 @@ case \$1 in
     *) echo "Unknown action $1";;
 esac
 EOF
-    chmod 755 /etc/init/d/crowbar
+    chmod 755 /etc/init.d/crowbar
     for i in 3 5 2; do
         [[ -d /etc/rc$i.d ]] || continue
         ln -sf /etc/init.d/crowbar "/etc/rc$i.d/S99crowbar"

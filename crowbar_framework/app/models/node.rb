@@ -75,12 +75,12 @@ class Node < ActiveRecord::Base
   # XXX: Once networking is better defined, we should use those routines
   #
   def address(net = "admin")
-    throw "CB1 do not use - use attrib_admin_address"
+    raise "CB1 do not use - use attrib_admin_address"
     jig_hash.address(net)
   end
 
   def public_ip
-    throw "CB1 do not use - use attrib_public_ip"
+    raise "CB1 do not use - use attrib_public_ip"
     jig_hash.public_ip
   end
 

@@ -17,7 +17,7 @@ require 'spec_helper'
 
 describe CrowbarUtils do
   describe "Locking functions" do
-    it "should throw an exception if file create fails" do
+    it "should raise an exception if file create fails" do
       File.stub(:new) {nil}
       expect {
         CrowbarUtils.lock_held?("fred")

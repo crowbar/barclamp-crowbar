@@ -27,7 +27,7 @@ class AttribModelTest < ActiveSupport::TestCase
     @na = @node.set_attrib @attrib, @value
     assert_not_nil @na
     assert_equal @value, @na.value
-    # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
+    # Ruby 1.8 and 1.9 raise different exceptions in this case, so handle it
     # accordingly. Simplify once we remove 1.8 support.
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end

@@ -40,7 +40,7 @@ class AttribHasNodeTest < ActiveSupport::TestCase
     assert @hasnode1.is_a? Attrib
     assert_equal HAS_NODE, @node1.attrib_has_nodes.first.name
     assert_equal @role.id, @hasnode1.role_id
-    # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
+    # Ruby 1.8 and 1.9 raise different exceptions in this case, so handle it
     # accordingly. Simplify once we remove 1.8 support.
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end

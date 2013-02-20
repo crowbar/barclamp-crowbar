@@ -13,19 +13,16 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate_core/1, validate/1, api_wrapper/1, inspector/2]).
+-export([step/3, g/1, validate_core/1, validate/1, api_wrapper/1, api_wrapper_raw/1, api_wrapper/2, inspector/2]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
-
--record(list, {type = unknown, data = [], link = unknown, count = -1 }).
--record(item, {type = unknown, data = [], link = unknown}).
+-include("bdd.hrl").
 
 g(Item) ->
   case Item of
     _ -> crowbar:g(Item)
   end.
-
 % validates JSON in a generic way common to all objects
 validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
@@ -41,13 +38,23 @@ validate(JSON) ->
        validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
-api_wrapper(JSON) ->
-  Type = list_to_atom(json:keyfind(JSON, "type")),
+api_wrapper_raw(J) ->  
+  JSON = json:parse(J),
+  api_wrapper(JSON).
+api_wrapper(JSON) ->  
+  Type = json:keyfind(JSON, "type"),
+  api_wrapper(Type, JSON).
+api_wrapper(not_found, JSON) -> #item{data=JSON};
+api_wrapper(Type, JSON) when is_list(Type) 
+                             -> api_wrapper(list_to_atom(Type), JSON);
+api_wrapper(Type, JSON)      ->
   Link = json:keyfind(JSON, "link"),
   List = json:keyfind(JSON, "list"),
   case List of
     not_found -> #item{type=Type, data=json:keyfind(JSON, "item"), link=Link};
-    _         -> #list{type=Type, data=List, link=Link, count=json:keyfind(JSON, "count")}
+    _         -> IDs = [{json:keyfind(R,"id"),json:keyfind(R,"name")} || R <- List],
+                % note: the ids field is for backward compatability against the legacy 2.0 api
+                 #list{type=Type, data=List, link=Link, count=json:keyfind(JSON, "count"), ids = IDs}
   end.
 
 % Common Routine - returns a list of items from the system, used for house keeping

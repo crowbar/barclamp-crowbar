@@ -49,6 +49,7 @@ step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
   {digest, Code};
 
 step(_Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
+  bdd_utils:config_unset(auth_field),
   U = bdd_utils:config(user),
   P = bdd_utils:config(password),
   bdd_utils:config_set(user, User),

@@ -8,7 +8,7 @@ Feature: Barclamp API
     Then there should be a value "crowbar"
       And there should be a value "provisioner"
 
-  Scenario: Barclamps List
+  Scenario: Barclamps List with Network
     Skip remember to put the network back into the above test!!
     When REST gets the {object:barclamp} list
     Then there should be a value "network"

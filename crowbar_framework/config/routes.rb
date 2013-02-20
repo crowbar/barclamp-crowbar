@@ -165,6 +165,9 @@ Crowbar::Application.routes.draw do
             match "roles/:id/attribs"       => "barclamp_roles#attribs",  :as=>'roles_attribs'
             match "roles/:id/nodes"         => "barclamp_roles#nodes",    :as=>'roles_nodes'
             
+            resources :jigs
+            resources :attribs
+            resources :nodes
           end
         end
       end
@@ -182,19 +185,15 @@ Crowbar::Application.routes.draw do
                   
           scope 'crowbar' do    # MOVE TO GENERIC!
             scope '2.0' do      # MOVE TO GENERIC!
-              # TODO: TEMPORARY UNTIL WE FIX THE ROUTE MODEL
-              match "barclamp(/:id)", :controller=>'crowbar', :action=>'barclamp_temp', :version=>'2.0'
               # group + node CRUD operations
               match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
     
-              # basic list operations 
-              get "node", :controller=>'nodes', :action=>'index'     # MOVE TO GENERIC!
+
               get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
               #get ":action", :controller=>'crowbar'
               # basic CRUD operations
               # (replace w/ generic)
               match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
-              resources :node, :controller=>'nodes'     # MOVE TO GENERIC!
               resources :group, :controller=>'groups'     # MOVE TO GENERIC!
               
              

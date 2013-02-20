@@ -25,10 +25,22 @@ class BarclampsController < ApplicationController
     render api_show :barclamp, Barclamp
   end
 
+  def destroy
+    render api_not_supported 'delete', 'barclamp'
+  end
+  
+  def update
+    render api_not_supported 'put', 'barclamp'
+  end
+  
+  def create
+    render api_not_supported 'post', 'barclamp'
+  end
+  
   # Redirects the requested to the instance that is the requested template
   def template
     redirect_to "/#{barclamp.name}/v2/instances/#{barclamp.template_id}"
   end
-
+  
 end
 

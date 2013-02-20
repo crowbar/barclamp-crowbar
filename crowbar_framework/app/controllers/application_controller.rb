@@ -80,23 +80,47 @@ class ApplicationController < ActionController::Base
   # formats API json output 
   # using this makes it easier to update the API format for all models
   def api_index(type, list, link=nil)
-    link ||= eval("#{type.to_s.pluralize(0)}_path")   # figure out path from type
-    out = {:json=>{:list=>list, :count=>list.count, :type=>type, :link=>link}}
+    if params[:version].eql?('v2') 
+      link ||= eval("#{type.to_s.pluralize(0)}_path")   # figure out path from type
+      return {:json=>{:list=>list, :count=>list.count, :type=>type, :link=>link}}
+    else
+      return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
+    end
   end
 
   # formats API json for output
   # using this makes it easier to update the API format for all models
-  def api_show(type, type_class, key=nil, link=nil)
-    key ||= params[:id]
-    link ||= eval("#{type.to_s.pluralize(0)}_path")+"/"+key   # figure out path from type
-    o = type_class.find_key key
-    if o
-      return {:json=>{:item=>o, :type=>type, :link=>link}}
+  def api_show(type, type_class, key=nil, link=nil, o=nil)
+    if params[:version].eql?('v2') 
+      key ||= params[:id]
+      link ||= "#{eval("#{type.to_s.pluralize(0)}_path")}/#{key}"   # figure out path from type
+      o ||= type_class.find_key key
+      if o
+        return {:json=>{:item=>o, :type=>type, :link=>link}}
+      else
+        return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
+      end
     else
-      return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
+      return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
     end
   end
     
+  # formats API for delete
+  # using this makes it easier to update the API format for all models
+  def api_delete(type, key=nil)
+    if params[:version].eql?('v2') 
+      key ||= params[:id]
+      type.delete type.find_key(key)
+      return {:text=>I18n.t('api.deleted', :id=>key, :obj=>'jig')}
+    else
+      return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
+    end
+  end
+
+  def api_not_supported(verb, object)
+    return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405}
+  end
+  
   # shared routine that finds the barclamp for other base calls (e.g.: barclampInstance, config & role)
   def barclamp
     name = params[:barclamp]    # fall through routes specify the barclamp

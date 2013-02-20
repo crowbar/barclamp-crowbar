@@ -15,7 +15,7 @@
 #
 class NodesController < ApplicationController
 
-  # API GET /2.0/crowbar/2.0/nodes
+  # API GET /crowbar/v2/nodes
   # UI GET /dashboard
   def index
     # EventQueue.publish(Events::WebEvent.new("nodes index page"))
@@ -39,7 +39,7 @@ class NodesController < ApplicationController
     end
     respond_to do |format|
       format.html # index.html.haml
-      format.json { render :json => @nodes }
+      format.json { render api_index :node, Node.all }
     end
   end
 
@@ -209,36 +209,26 @@ class NodesController < ApplicationController
   # GET /2.0/node/1
   # GET /2.0/node/foo.example.com
   def show
-    # for temporary backwards compatibility, we'll combine the chef object and db object
-    @node = Node.find_key params[:id]
     respond_to do |format|
-      format.html # show.html.erb
+      format.html {
+        # for temporary backwards compatibility, we'll combine the chef object and db object
+        @node = Node.find_key params[:id]
+      } # show.html.erb
       format.json {
-        render :json => @node
+        render api_show :node, Node
       }
     end
   end
 
   # RESTful DELETE of the node resource
   def destroy
-    target = Node.find_key params[:id]
-    if target.nil?
-      render :text=>"Could not find node '#{params[:id]}'", :status => 404
-    else
-      if target.delete
-        render :text => "Node #{params[:id]} deleted!"
-      else
-        render :text=>"Could not delete node '#{params[:id]}'", :status => 500
-      end
-    end
+    render api_delete Node
   end
   
   # RESTfule POST of the node resource
   def create
-    if request.post?
-      @node = Node.create! params
-      render :json => @node
-    end
+    a = Attrib.create params
+    render api_show :attrib, Attrib, a.id.to_s, nil, a
   end
   
   def edit
@@ -253,6 +243,7 @@ class NodesController < ApplicationController
   end
 
   # RESTfule PUT of the node resource
+  # CB1 - please review & update
   def update
     get_node_and_network(params[:id] || params[:name])
     if params[:submit] == t('nodes.edit.allocate')

@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,23 @@
 # limitations under the License.
 #
 #
-class JigController < ApplicationController
+class AttribsController < ApplicationController
 
+  def index
+    render api_index :attrib, Attrib.all
+  end
 
-  # REMOVE ME?
+  def show
+    render api_show :attrib, Attrib
+  end
+
+  def create
+    a = Attrib.create params
+    render api_show :attrib, Attrib, a.id.to_s, nil, a
+  end
   
+  def destroy
+    render api_delete Attrib
+  end
+      
 end

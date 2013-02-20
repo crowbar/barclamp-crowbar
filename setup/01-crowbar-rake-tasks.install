@@ -19,8 +19,7 @@ else
 fi
 
 case $OS in
-    ubuntu) apt-get -y install curl sqlite sqlite3 libsqlite3-dev \
-        libshadow-ruby1.8 markdown vim
+    ubuntu) apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
         gem install tilt puma bundler;;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
         gem install tilt puma bundler;;
@@ -138,6 +137,10 @@ else
     :
     # Suse specific stuff here.
 fi
+
+for d in /var/run/crowbar /opt/dell/crowbar_framework; do
+    chown -R crowbar:crowbar "$d"
+done
 
 /etc/init.d/crowbar start
 

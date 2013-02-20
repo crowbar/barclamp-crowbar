@@ -165,6 +165,11 @@ debs:
     - ipmitool
     - efibootmgr
     - kwalify
+    - curl
+    - sqlite3
+    - libsqlite3-dev
+    - markdown
+    - vim
   build_pkgs:
     - ruby1.9.1
     - ruby1.9.1-dev
@@ -259,12 +264,18 @@ rpms:
   required_pkgs:
     - rubygems
     - gcc
+    - gcc-c++
     - make
     - ruby-devel
     - libxml2-devel
     - zlib-devel
     - tcpdump
     - efibootmgr
+    - curl
+    - sqlite
+    - sqlite-devel
+    - python-markdown
+    - vim
   build_pkgs:
     - rubygems
     - ruby-devel

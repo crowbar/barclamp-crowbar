@@ -239,7 +239,6 @@ debs:
 rpms:
   redhat-6.2:
     repos:
-
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
@@ -249,7 +248,6 @@ rpms:
       - zlib-devel
   centos-6.2:
     repos:
-      - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
@@ -317,7 +315,6 @@ rpms:
     - openssh-server
     - openssh
     # rabbitmq stuff
-    - rabbitmq-server
     # ruby stuff
     - ruby
     - ruby-devel

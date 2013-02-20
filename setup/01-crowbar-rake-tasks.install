@@ -19,15 +19,13 @@ else
 fi
 
 case $OS in
-    ubuntu) apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
-        gem install tilt puma bundler;;
+    ubuntu)
+        dpkg -l crowbar-barclamp-crowbar &>/dev/null || {
+            apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
+            gem install tilt puma bundler
+        };;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
         gem install tilt puma bundler;;
-    suse) zypper -y install curl rubygem-rake rubygem-json rubygem-syslogger \
-        rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml \
-        rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-puma \
-        rubygem-ruby-shadow vim;;
-    *) exit 1;;
 esac
 
 if ! grep -q '^crowbar:' /etc/passwd; then

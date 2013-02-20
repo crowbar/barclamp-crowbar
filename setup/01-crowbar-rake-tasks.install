@@ -20,10 +20,9 @@ fi
 
 case $OS in
     ubuntu)
-        dpkg -l crowbar-barclamp-crowbar &>/dev/null || {
-            apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
-            gem install tilt puma bundler
-        };;
+        dpkg -l crowbar-barclamp-crowbar &>/dev/null || \
+        apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
+        gem install tilt puma bundler;;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
         gem install tilt puma bundler;;
 esac

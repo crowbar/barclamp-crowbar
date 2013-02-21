@@ -250,14 +250,18 @@ step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]})
     {ajax, J, _}          -> apply(Object, validate, [J])
   end;
     
-step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> step(Config, Results, {step_then, _N, ["there is a key",Key]});
-step(Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
-  JSON = get_JSON(Results),
-  bdd_utils:log(Config, trace, "JSON list ~p should have ~p~n", [JSON, Key]),
-  length([K || {K, _} <- JSON, K == Key])==1;
+step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
+  step(Config, Results, {step_then, _N, ["there is a key",Key]});
+step(_Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "There should be a Key ~p",[Key]),
+  length([K || {K, _} <- Obj#item.data, K == Key])==1;
                                                                 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
-  Value =:= json:value(get_JSON(Results), Key);
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
+  bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#item.data]),
+  Value =:= json:value(Obj#item.data, Key);
 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
@@ -275,7 +279,9 @@ step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Coun
   Items >= C;
 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 
-  bdd_utils:is_a(number, json:value(get_JSON(Results), Key));
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be a number",[Key]),
+  bdd_utils:is_a(number, json:value(Obj#item.data, Key));
                                                        
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(get_JSON(Results), Key));

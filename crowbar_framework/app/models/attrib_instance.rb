@@ -84,18 +84,25 @@ class AttribInstance < ActiveRecord::Base
   end
   
   def as_json options={}
-   {
+   j = {
      :id=> id,
      :node_id=> node_id,
      :attrib_id=> attrib_id,
-     :name=> attrib.name + "@" + node.name,
      :value=> value,
      :state => state,
-     :order => attrib.order,              # allows object to confirm to Crowbar pattern
-     :description=> attrib.description,   # allows object to confirm to Crowbar pattern
      :created_at=> created_at,
-     :updated_at=> updated_at
+     :updated_at=> updated_at,
+     :name => I18n.t('unknown'),
+     :order => -1,
+     :description=> I18n.t('not_set')
    }
+   # protects against error
+   if attrib
+    j[:name] = "#{attrib.name}@#{node.name}" rescue I18n.t('unknown')
+    j[:order] = attrib.order              # allows object to confirm to Crowbar pattern
+    j[:description] = attrib.description  # allows object to confirm to Crowbar pattern
+   end
+   j
   end
   
   def self.calc_state v_actual, v_request, run

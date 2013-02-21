@@ -163,11 +163,13 @@ Crowbar::Application.routes.draw do
   
             resources :roles,    :controller=>"barclamp_roles"
             match "roles/:id/attribs"       => "barclamp_roles#attribs",  :as=>'roles_attribs'
-            match "roles/:id/nodes"         => "barclamp_roles#nodes",    :as=>'roles_nodes'
+            match "roles/:id/nodes"         => "barclamp_roles#nodes", :as=>'roles_nodes'
             
             resources :jigs
             resources :attribs
+            
             resources :nodes
+            match "nodes/:id/attribs(/:attrib)" => "nodes#attribs", :as=>'nodes_attribs'
           end
         end
       end

@@ -19,55 +19,6 @@ class CrowbarController < BarclampController
     @title = I18n.t('title', :scope=>'barclamp.crowbar.index')
     super
   end
-  
-  def node
-    unless params[:version].eql?('2.0')
-      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
-      return
-    end
-    @node = Node.find_key(params[:id]) if params[:id]
-    if params['target'].eql? 'attrib'
-      node_attribs
-    end
-  end
-  
-  def node_attribs
-    unless params[:version].eql?('2.0')
-      render :text=>I18n.t('api.wrong_version', :version=>params[:version]) 
-      return
-    end
-    @node = Node.find_key(params[:id]) if params[:id]
-    @attrib = Attrib.find_key(params['target_id']) if params['target_id']
-    # POST and PUT (do the same thing since PUT will create the missing info)
-    if request.post? or request.put?
-      if @node.nil?
-         render :text=>I18n.t('api.not_found', :type=>'node', :id=>params[:id]), :status => 404
-      else
-        @na = @node.set_attrib((@attrib || params['target_id']), params["value"])
-        render :json => @na
-      end
-    # DELETE
-    elsif request.delete? and @attrib
-      id = @node.get_attrib(@attrib)
-      id.delete
-      render :text=>I18n.t('api.deleted', :id=>id.object_id, :obj=>'attrib_instance')
-    # fall through REST actions (all require ID)
-    elsif request.get? and @attrib
-      @na = AttribInstance.find_by_node_id_and_attrib_id @node.id, @attrib.id
-      render :json => @na
-    elsif params[:target_id]
-      render :text=>I18n.t('api.not_found', :type=>'attrib_instance', :id=>params[:target_id]), :status => 404
-    # list (no ID)
-    elsif request.get?  
-      attribs = {}
-      @node.attrib_instances.each { |a| attribs[a.attrib.id] = (a.value || 'null') }
-      render :json => attribs
-    # Catch
-    else
-      render :text=>I18n.t('api.unknown_request'), :status => 400
-    end
-    
-  end
-  
+      
 end
 

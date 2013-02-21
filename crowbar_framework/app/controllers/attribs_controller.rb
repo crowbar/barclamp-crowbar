@@ -25,7 +25,7 @@ class AttribsController < ApplicationController
 
   def create
     a = Attrib.create params
-    render api_show :attrib, Attrib, a.id.to_s, nil, a
+    render api_show :attrib, Attrib, nil, nil, a
   end
   
   def destroy

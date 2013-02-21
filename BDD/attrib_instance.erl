@@ -16,20 +16,24 @@
 -module(attrib_instance).
 -export([json/1, validate/1, g/1]).
 -export([node_add_attrib/3, path/2]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path    -> "attrib";    % MUST BE USED WITH NODE!!!
+    path    -> "attribs";    % MUST BE USED WITH NODE!!!
     attrib  -> "crowbar";
     value   -> "rocks";
     _       -> crowbar:g(Item)
   end.
   
 % Common Routine
-validate(JSON) ->
-  R =[bdd_utils:is_a(JSON, dbid, node_id), 
+validate(J) ->
+  Wrapper = crowbar_rest:api_wrapper(J),
+  JSON = Wrapper#item.data,
+  R =[Wrapper#item.type == attrib,
+      bdd_utils:is_a(JSON, dbid, node_id), 
       bdd_utils:is_a(JSON, dbid, attrib_id), 
       bdd_utils:is_a(JSON, str, value), 
       bdd_utils:is_a(JSON, "^(empty|unready|test|ready)$", state), 

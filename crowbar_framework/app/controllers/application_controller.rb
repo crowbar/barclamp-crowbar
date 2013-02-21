@@ -92,6 +92,8 @@ class ApplicationController < ActionController::Base
   # using this makes it easier to update the API format for all models
   def api_show(type, type_class, key=nil, link=nil, o=nil)
     if params[:version].eql?('v2') 
+      # we've got information to move forward
+      key ||= o.id unless o.nil?
       key ||= params[:id]
       link ||= "#{eval("#{type.to_s.pluralize(0)}_path")}/#{key}"   # figure out path from type
       o ||= type_class.find_key key

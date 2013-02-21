@@ -150,7 +150,6 @@ debs:
       - deb-src http://extras.ubuntu.com/ubuntu precise main
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ precise-0.10 main
   #repos:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main
@@ -158,23 +157,21 @@ debs:
     - ruby1.9.1
     - ruby1.9.1-dev
     - gcc
-    - rubygems
     - tcpdump
     - libcurl4-gnutls-dev
     - build-essential
     - libxml2-dev
     - zlib1g-dev
-    - nginx
     - ipmitool
     - efibootmgr
     - kwalify
-    - rabbitmq-server
-    - chef
-    - chef-server
-    - chef-server-webui
+    - curl
+    - sqlite3
+    - libsqlite3-dev
+    - markdown
+    - vim
   build_pkgs:
     - ruby1.9.1
-    - rubygems
     - ruby1.9.1-dev
     - build-essential
     - libsqlite3-dev
@@ -207,9 +204,6 @@ debs:
     - sqlite
     - sqlite3
     - libsqlite3-dev
-    - chef
-    - chef-server
-    - chef-server-webui
     - kwalify
     - libcurl4-gnutls-dev
     # minicom stuff
@@ -232,8 +226,6 @@ debs:
     # ruby stuff
     - ruby1.9.1
     - ruby1.9.1-dev
-    - rubygems
-    - libshadow-ruby1.8
     # runit stuff
     - runit
     # sudo stuff
@@ -252,7 +244,6 @@ debs:
 rpms:
   redhat-6.2:
     repos:
-      - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
@@ -262,7 +253,6 @@ rpms:
       - zlib-devel
   centos-6.2:
     repos:
-      - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
       - libcurl-devel
@@ -274,17 +264,18 @@ rpms:
   required_pkgs:
     - rubygems
     - gcc
+    - gcc-c++
     - make
     - ruby-devel
     - libxml2-devel
     - zlib-devel
     - tcpdump
-    - nginx
     - efibootmgr
-    - rabbitmq-server
-    - rubygem-chef
-    - rubygem-chef-server
-    - rubygem-ohai
+    - curl
+    - sqlite
+    - sqlite-devel
+    - python-markdown
+    - vim
   build_pkgs:
     - rubygems
     - ruby-devel
@@ -315,7 +306,6 @@ rpms:
     - curl
     - sqlite
     - sqlite-devel
-    - rubygem-chef-server
     - rubygem-kwalify
     - createrepo
     # minicom stuff
@@ -336,7 +326,6 @@ rpms:
     - openssh-server
     - openssh
     # rabbitmq stuff
-    - rabbitmq-server
     # ruby stuff
     - ruby
     - ruby-devel

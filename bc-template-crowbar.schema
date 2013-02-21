@@ -33,11 +33,6 @@
 	       }
 	    }
 	  }
-        },
-        "rails": { "type": "map", "required": true, "mapping": {
-            "environment": { "type": "str", "required": true },
-            "max_pool_size": { "type": "int", "required": true }
-          }
         }
       }
     },

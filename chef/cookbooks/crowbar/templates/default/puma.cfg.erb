@@ -1,7 +1,0 @@
-
-bind("tcp://<%= @web_host%>:<%= @web_port %>")
-pidfile("/var/run/crowbar/crowbar.pid")
-rackup("/opt/dell/crowbar_framework/config.ru")
-environment("<%= @environment %>")
-state_path("/var/run/crowbar/puma.state")
-

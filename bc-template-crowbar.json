@@ -4,25 +4,12 @@
   "attributes": {
     "crowbar": {
       "instances": {
-        "deployer": [ "default" ],
-        "ipmi": [ "default" ],
-        "provisioner": [ "default" ],
-        "network": [ "default" ],
-        "ntp": [ "default" ],
-        "dns": [ "default" ],
-        "nagios": [ "default" ],
-        "ganglia": [ "default" ],
-        "logging": [ "default" ]
       },
       "realm": "Crowbar",
       "web_port": 3000,
       "users": {
         "crowbar": { "password": "crowbar" }
       }
-    },
-    "rails": {
-      "max_pool_size": 256,
-      "environment": "production"
     }
   },
   "deployment": {

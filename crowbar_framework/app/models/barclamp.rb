@@ -205,11 +205,9 @@ class Barclamp < ActiveRecord::Base
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
     # this shoudl go away as we migrate the data into Crowbar.yml
-    template_file ||= File.join(source_path, 'templates', "bc-template-#{name}.json")
-    if json.nil?
-      throw "cannot import template #{template_file} not found" unless File.exists? template_file
-      json = JSON::load File.open(template_file, 'r')
-    end
+    template_file ||= File.expand_path(File.join('..','barclamps',name,"bc-template-#{name}.json"))
+    throw "cannot import #{template_file} for #{name}" unless File.exists?(template_file)
+    json = JSON::load File.open(template_file, 'r') if json.nil?
 
     create_template template_file
 
@@ -268,17 +266,17 @@ class Barclamp < ActiveRecord::Base
   end
 
 
-  # Import from existing Config data 
+  # Import from existing Config data
   def self.import_1x(bc_name, bc=nil, source_path=nil)
     self.import bc_name, bc, source_path
   end
   def self.import(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
-    source_path ||= 'barclamps'
-    bc_file = File.join(source_path, "#{bc_name}.yml")
+    source_path ||= '../barclamps'
+    bc_file = File.expand_path(File.join(source_path, bc_name,"crowbar.yml"))
     # load JSON
     if bc.nil?
-      throw "Barclamp import file #{bc_file} not found" unless File.exist? bc_file
+      throw "Barclamp metadata #{bc_file} for #{bc_name} not found" unless File.exists?(bc_file)
       bc = YAML.load_file bc_file
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
     end

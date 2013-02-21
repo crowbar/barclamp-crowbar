@@ -1,0 +1,34 @@
+{
+  "id": "bc-template-crowbar",
+  "description": "Self-referential barclamp enabling other barclamps",
+  "attributes": {
+    "crowbar": {
+      "instances": {
+      },
+      "realm": "Crowbar",
+      "web_port": 3000,
+      "users": {
+        "crowbar": { "password": "crowbar" }
+      }
+    }
+  },
+  "deployment": {
+    "crowbar": {
+      "crowbar-revision": 0,
+      "element_states": {
+        "crowbar": [ "all" ]
+      },
+      "elements": {},
+      "element_order": [
+        [ "crowbar" ]
+      ],
+      "config": {
+        "environment": "crowbar-config-test",
+        "mode": "full",
+        "transitions": false,
+        "transition_list": [ ]
+      }
+    }
+  }
+}
+

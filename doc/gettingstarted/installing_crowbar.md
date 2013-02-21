@@ -1,4 +1,4 @@
-##Installing Crowbar##
+#Installing Crowbar#
 The initial admin node installation does not complete the Crowbar installation, to allow the network configuration to be customized. After any customizations have been made, the final Crowbar installation can be completed. The networks cannot be reconfigured after Crowbar is installed.
 
 To complete the Crowbar installation:
@@ -7,7 +7,7 @@ To complete the Crowbar installation:
 2. Verify or edit the network configuration file in your editor of choice.  For example:
 
 		$ vi /opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json
-3. Enter the following commands:
+3. Once you have verified or modified the Network JSON, enter the following commands in a terminal session:
 
 		$ sudo –i
 		$ cd /tftpboot/ubuntu_dvd/extra

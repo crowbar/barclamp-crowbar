@@ -306,7 +306,7 @@ gems:
     - syslogger
     - sass
     - simple-navigation
-    - haml
+    - haml-3.1.7
     - net-http-digest_auth
     - rails-2.3.14
     - activesupport-2.3.14
@@ -316,7 +316,7 @@ gems:
     - rainbows
     - sendfile
     - sqlite3-ruby
-    - rdoc
+    # rdoc
     - net-ssh-multi
     - formtastic-1.2.4
     - xml-simple

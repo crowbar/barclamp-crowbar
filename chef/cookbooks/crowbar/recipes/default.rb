@@ -53,6 +53,7 @@ user "crowbar" do
   home "/home/crowbar"
   password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
+  not_if "egrep -qi '^crowbar:' /etc/passwd"
 end
 
 directory "/root/.chef" do
@@ -179,6 +180,14 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :logfile => "/opt/dell/crowbar_framework/log/development.log",
             :app_location => "/opt/dell/crowbar_framework")
 end
+
+%w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
+  file "/etc/logrotate.d/#{f}" do
+    action :delete
+  end
+end
+
+cookbook_file "/etc/logrotate.d/chef-server"
 
 bluepill_service "crowbar-webserver" do
   variables(:processes => [ {

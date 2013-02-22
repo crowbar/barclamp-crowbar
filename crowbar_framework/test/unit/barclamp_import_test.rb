@@ -14,7 +14,7 @@
 # 
 require 'test_helper'
  
-class BarclampModelTest < ActiveSupport::TestCase
+class BarclampImportTest < ActiveSupport::TestCase
 
   def setup
     # we need to make sure that we have crowbar role
@@ -23,7 +23,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     end
     b = Barclamp.find_by_name "crowbar"
     assert_not_nil b.template_id
-    assert_equal "private", b.template.private_roles.first.role.name
+    assert_equal "private", b.template.private_roles.first.role_type.name
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
 
@@ -32,8 +32,8 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc = Barclamp.import_1x "foo", nil, "test/data/foo"
     bc.import_template(json,"bc-foo.json")
     rmap = {}
-    bc.template.role_instances.each do |r|
-      rmap [r.role.name] = r.run_order
+    bc.template.roles.each do |r|
+      rmap [r.role_type.name] = r.run_order
     end
     assert_equal 80, rmap['foo_mon_master']
     assert_equal 81, rmap['foo_mon']
@@ -45,7 +45,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     bc = Barclamp.create :name=>"foo"
     bc.source_path = "test/data/foo"
     bc.import_template(json,"bc-foo.json")
-    ordered = bc.role_instances(true)    # (true) forces a reload of the model
+    ordered = bc.roles(true)    # (true) forces a reload of the model
     assert_equal 'private', ordered.first.name
     assert_equal 'foo_mon_master', ordered.second.name
     assert_equal 'foo_mon', ordered.third.name
@@ -64,7 +64,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal 'https://crowbar.github.com/barclamp-foo', bc.online_help
     assert_equal 0, bc.version
     assert_equal path, bc.source_path
-    assert_equal false, bc.allow_multiple_proposals
+    assert_equal false, bc.allow_multiple_deployments
     assert_equal true, bc.user_managed
     # not sure why this is failing... assert_equal "unknown", bc.build_on
     assert_equal "unknown", bc.commit

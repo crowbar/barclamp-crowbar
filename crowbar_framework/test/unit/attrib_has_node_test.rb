@@ -15,7 +15,7 @@
 require 'test_helper'
 require 'json'
 
-class AttribInstanceHasNodeTest < ActiveSupport::TestCase
+class AttribHasNodeTest < ActiveSupport::TestCase
 
   HAS_NODE = "has_node"
 
@@ -25,7 +25,7 @@ class AttribInstanceHasNodeTest < ActiveSupport::TestCase
     @crowbar = Barclamp.import_1x 'crowbar'
     assert_not_nil @crowbar
     assert_not_nil @crowbar.template
-    assert_equal 2, @crowbar.template.role_instances.count
+    assert_equal 2, @crowbar.template.roles.count
     @role = @crowbar.template.public_roles.first
     assert_not_nil @role
     
@@ -34,28 +34,28 @@ class AttribInstanceHasNodeTest < ActiveSupport::TestCase
     assert_not_nil @node1
     assert_not_nil @node2
     # manual assign
-    @hasnode1 = BarclampCrowbar::AttribInstanceHasNode.create :role_instance_id=>@role.id, :node_id=>@node1.id
+    @hasnode1 = BarclampCrowbar::AttribHasNode.create :role_id=>@role.id, :node_id=>@node1.id
     assert_not_nil @hasnode1
-    assert_instance_of BarclampCrowbar::AttribInstanceHasNode, @hasnode1
-    assert @hasnode1.is_a? AttribInstance
-    assert_equal HAS_NODE, @node1.attrib_instance_has_nodes.first.attrib.name
-    assert_equal @role.id, @hasnode1.role_instance_id
+    assert_instance_of BarclampCrowbar::AttribHasNode, @hasnode1
+    assert @hasnode1.is_a? Attrib
+    assert_equal HAS_NODE, @node1.attrib_has_nodes.first.attrib.name
+    assert_equal @role.id, @hasnode1.role_id
     # Ruby 1.8 and 1.9 throws different exceptions in this case, so handle it
     # accordingly. Simplify once we remove 1.8 support.
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
 
   test "classes are right" do
-    assert_equal BarclampCrowbar::AttribInstanceHasNode, Node::HAS_NODE_ROLE
+    assert_equal BarclampCrowbar::AttribHasNode, Node::HAS_NODE_ROLE
   end
   test "special attrib is used correctly on create" do
-    assert_instance_of BarclampCrowbar::AttribInstanceHasNode, @hasnode1
+    assert_instance_of BarclampCrowbar::AttribHasNode, @hasnode1
     a = @hasnode1.attrib
     assert_instance_of Attrib, a
     assert_equal HAS_NODE, a.name
     assert_equal I18n.t('model.attribs.role.has_node'), a.description
     assert_equal 999999, a.order
-    assert_equal @role.id, @hasnode1.role_instance_id
+    assert_equal @role.id, @hasnode1.role_id
   end
   
   test "attrib id is read only" do
@@ -71,34 +71,34 @@ class AttribInstanceHasNodeTest < ActiveSupport::TestCase
   test "assign role to node instance" do
     node3 = Node.find_or_create_by_name :name=>"assign.example.com"
     assert_not_nil node3
-    assert_equal 0, node3.attrib_instance_has_nodes.count
+    assert_equal 0, node3.attrib_has_nodes.count
     hasrole = node3.add_role @role
     assert_not_nil hasrole
-    assert_equal 1, node3.attrib_instance_has_nodes.count
+    assert_equal 1, node3.attrib_has_nodes.count
     assert_instance_of Node::HAS_NODE_ROLE, hasrole
     assert_equal HAS_NODE, hasrole.attrib.name
-    assert_equal @role.id, hasrole.role_instance_id
+    assert_equal @role.id, hasrole.role_id
     # and test unassign too
     node3.remove_role @role
-    assert_equal 0, node3.attrib_instance_has_nodes.count
+    assert_equal 0, node3.attrib_has_nodes.count
   end
     
   test "assign node instance to role" do
-    count = @role.attrib_instance_has_nodes.count
+    count = @role.attrib_has_nodes.count
     node3 = Node.find_or_create_by_name :name=>"assign2.example.com"
     assert_not_nil node3
-    assert_equal 0, node3.attrib_instance_has_nodes.count
+    assert_equal 0, node3.attrib_has_nodes.count
     hasrole = @role.add_node node3
     assert_not_nil hasrole
-    assert_equal 1, node3.attrib_instance_has_nodes.count
-    assert_equal count+1, @role.attrib_instance_has_nodes.count
+    assert_equal 1, node3.attrib_has_nodes.count
+    assert_equal count+1, @role.attrib_has_nodes.count
     assert_instance_of Node::HAS_NODE_ROLE, hasrole
     assert_equal HAS_NODE, hasrole.attrib.name
-    assert_equal @role.id, hasrole.role_instance_id
+    assert_equal @role.id, hasrole.role_id
     # and test unassign too
     @role.remove_node node3
-    assert_equal 0, node3.attrib_instance_has_nodes(true).count    
-    assert_equal count, @role.attrib_instance_has_nodes(true).count
+    assert_equal 0, node3.attrib_has_nodes(true).count    
+    assert_equal count, @role.attrib_has_nodes(true).count
   end
   
 end

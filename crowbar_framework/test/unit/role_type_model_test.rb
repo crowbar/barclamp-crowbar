@@ -14,7 +14,7 @@
 # 
 require 'test_helper'
  
-class RoleModelTest < ActiveSupport::TestCase
+class RoleTypeModelTest < ActiveSupport::TestCase
   
   test "Naming Conventions" do
     assert_raise(ActiveRecord::RecordInvalid) { RoleType.create!(:name=>"1123") }

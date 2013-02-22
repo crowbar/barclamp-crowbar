@@ -23,7 +23,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     assert_not_nil @crowbar, "we need to have a crowbar barclamp"
     @bc = Barclamp.find_or_create_by_name :name=>"test"
-    @template = BarclampInstance.create :name=>'template test', :barclamp_id=>@bc.id
+    @template = Snapshot.create :name=>'template test', :barclamp_id=>@bc.id
     @template.add_role 'bamt'
     @bc.template_id = @template.id
     @bc.save
@@ -37,13 +37,13 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
 
   test "barclamp attrib has base attribs" do
     return
-    o = AttribInstance.find_or_create_by_barclamp_instance_id_and_attrib_id :barclamp_instance_id=>@bc.id, :attrib_id => @attrib.id
+    o = Attrib.find_or_create_by_snapshot_id_and_attrib_id :snapshot_id=>@bc.id, :attrib_id => @attrib.id
     @bc.add_attrib @attrib
     assert_not_nil o
     o.description=@hint
     o.order=666
     o.save
-    bca = AttribInstance.find_or_create_by_barclamp_instance_id_and_attrib_id :barclamp_instance_id=>@bc.id, :attrib_id => @attrib.id
+    bca = Attrib.find_or_create_by_snapshot_id_and_attrib_id :snapshot_id=>@bc.id, :attrib_id => @attrib.id
     assert_equal @bc.id, bca.barclamp.id
     assert_equal @bc.id, bca.barclamp_id
     assert_equal @attrib.id, bca.attrib.id
@@ -55,7 +55,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   test "attribute without barclamp is ok" do
     assert_not_nil @crowbar, "we need the crowbar barclamp"
     count = @crowbar.attribs.size
-    a = Attrib.find_or_create_by_name :name=>"default_to_crowbar"
+    a = AttribType.find_or_create_by_name :name=>"default_to_crowbar"
     assert_not_nil a
     assert_not_nil a.barclamps
     assert_equal 0, a.barclamps.count
@@ -111,7 +111,7 @@ class BarclampAttribModelTest < ActiveSupport::TestCase
   test "Barclamp addAttrib adds to barclamp list" do
     name = "domoveme"
     count = @bc.template.attribs.count
-    a = Attrib.add :name=>name
+    a = AttribType.add :name=>name
     a1 = @bc.add_attrib a, 'map/this'
     assert_not_nil a1
     assert_equal count+1, @bc.template.attribs(true).count    

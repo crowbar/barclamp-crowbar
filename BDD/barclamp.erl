@@ -35,7 +35,7 @@ validate(JSON) ->
   R =[Wrapper#item.type == barclamp,
       bdd_utils:is_a(J, boolean, user_managed), 
       bdd_utils:is_a(J, number, layout), 
-      bdd_utils:is_a(J, boolean, allow_multiple_configs), 
+      bdd_utils:is_a(J, boolean, allow_multiple_deployments), 
       bdd_utils:is_a(J, number, proposal_schema_version), 
       bdd_utils:is_a(J, number, jig_order), 
       % invalid test bdd_utils:is_a(J, string, transistions), 

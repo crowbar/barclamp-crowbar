@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateAttribInstances < ActiveRecord::Migration
+class CreateAttribs < ActiveRecord::Migration
     
   def change
-    create_table :attrib_instances do |t|
-      t.string      :type,          :null => false, :default => AttribInstance::DEFAULT_CLASS.to_s
-      t.belongs_to  :attrib,        :null=>false
-      t.belongs_to  :role_instance, :null=>false
+    create_table :attribs do |t|
+      t.string      :type,          :null => false, :default => Attrib::DEFAULT_CLASS.to_s
+      t.belongs_to  :attrib_type,   :null=>false
+      t.belongs_to  :role,          :null=>false
       t.belongs_to  :node,          :null=>true
       t.belongs_to  :jig_run,       :null=>true
       t.string      :value_actual,  :default=>"empty"
@@ -28,8 +28,8 @@ class CreateAttribInstances < ActiveRecord::Migration
       t.timestamps      
     end
 
-    add_index :attrib_instances,    [:attrib_id, :node_id, :role_instance_id],      :unique => true, :name => "attrib_instances_triple_id_attrib_node_role"
-    add_index :attrib_instances,    [:attrib_id, :node_id],                         :unique => false
-    add_index :attrib_instances,    [:attrib_id, :role_instance_id],                :unique => false   
+    add_index :attribs,    [:attrib_type_id, :node_id, :role_id],      :unique => true
+    add_index :attribs,    [:attrib_type_id, :node_id],                :unique => false
+    add_index :attribs,    [:attrib_type_id, :role_id],                :unique => false   
   end
 end

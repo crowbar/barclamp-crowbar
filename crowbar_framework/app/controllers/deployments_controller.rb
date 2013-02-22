@@ -13,23 +13,23 @@
 # limitations under the License.
 #
 #
-class BarclampConfigsController < ApplicationController
+class DeploymentsController < ApplicationController
 
   def index
-    render api_index :config, barclamp.configs.all
+    render api_index :deployment, barclamp.deployments.all
   end
 
   def show
-    render api_show :config, BarclampConfiguration
+    render api_show :deployment, Deployment
   end
   
   def create
     bcc = barclamp.create_proposal params
-    redirect_to config_path + "/#{bcc.id}"
+    redirect_to deployment_path + "/#{bcc.id}"
   end
   
   def update
-    bcc = BarclampConfiguration.find_key params[:id]
+    bcc = Deployment.find_key params[:id]
     raise "cannot change barclamp_id" unless params[:barclamp_id].nil? or params[:barclamp_id]==bcc.barclamp_id
     bcc.update_attribs params
   end

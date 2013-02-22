@@ -13,27 +13,29 @@
 # limitations under the License.
 #
 #
+
+# REVIEW - IS THIS NEEDED?
 class BarclampRolesController < ApplicationController
 
   def index
-    render api_index :role, barclamp.role_instances.all
+    render api_index :role, barclamp.roles.all
   end
 
   def show
-    render api_show :role, RoleInstance
+    render api_show :role, Role
   end
   
   def attribs
     id = params[:id]
-    ri = RoleInstance.find_key id
+    ri = Role.find_key id
     if ri.nil?
-      render :text=>I18n.t('api.not_found', :id=>id, :type=>'role_instance'), :status => 404
+      render :text=>I18n.t('api.not_found', :id=>id, :type=>'role'), :status => 404
     elsif request.get?
-      out = {:list=> [], :type=>:role, :link=>roles_attribs_path(:id=>id)}
-      ri.attrib_instances.all.each { |ai| out[:list] << ai }
+      out = {:list=> [], :type=>:role, :link=>attribs_path(:id=>id)}
+      ri.attribs.all.each { |ai| out[:list] << ai }
       render :json=>out
     else
-      render :text=>I18n.t('api.not_supported', :verb=>'PUT/POST/DELETE', :obj=>'role_instance'), :status => 501
+      render :text=>I18n.t('api.not_supported', :verb=>'PUT/POST/DELETE', :obj=>'role'), :status => 501
     end
   end
 

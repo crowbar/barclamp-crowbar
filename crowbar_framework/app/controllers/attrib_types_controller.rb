@@ -12,18 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateAttribs < ActiveRecord::Migration
-  
-  def change
-    create_table :attribs do |t|
-      t.string :name,         :null=>false
-      t.string :description,  :null=>true
-      t.integer :order,       :default=>10000
-      t.timestamps
-    end
-    #natural key
-    add_index(:attribs, :name, :unique => true)   
+#
+class AttribTypesController < ApplicationController
 
+  def index
+    render api_index :attrib_type, AttribType.all
   end
 
+  def show
+    render api_show :attrib_type, AttribType
+  end
+
+  def create
+    a = AttribType.create params
+    render api_show :attrib_type, AttribType, nil, nil, a
+  end
+  
+  def destroy
+    render api_delete AttribType
+  end
+      
 end

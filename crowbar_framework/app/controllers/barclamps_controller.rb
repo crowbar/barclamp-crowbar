@@ -37,9 +37,9 @@ class BarclampsController < ApplicationController
     render api_not_supported 'post', 'barclamp'
   end
   
-  # Redirects the requested to the instance that is the requested template
+  # Redirects the requested to the snapshot that is the requested template
   def template
-    redirect_to "/#{barclamp.name}/v2/instances/#{barclamp.template_id}"
+    redirect_to snapshot_path(:id=>barclamp.template_id)
   end
   
 end

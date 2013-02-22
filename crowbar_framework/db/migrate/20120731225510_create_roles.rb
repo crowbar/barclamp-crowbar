@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateProposalQueueItems < ActiveRecord::Migration
-  def change
-    create_table :proposal_queue_items do |t|
-      t.integer    :position
-      t.string     :queue_reason
-      t.belongs_to :proposal_queue
-      t.belongs_to :barclamp_instance
+class CreateRoles < ActiveRecord::Migration
+  def change  
+    create_table :roles do |t|
+      t.belongs_to  :role,              :null=>false
+      t.belongs_to  :snapshot,          :null=>false
+      t.string      :description,       :null=>true
+      t.integer     :order,             :default => 9999, :null => false
+      t.integer     :run_order,         :default => 9999, :null => false
+      t.string      :states,            :default=>"all",  :null=>true
       t.timestamps
     end
+    #natural key
+    add_index(:roles, [:snapshot_id, :role_id], :unique => true)   
   end
 end

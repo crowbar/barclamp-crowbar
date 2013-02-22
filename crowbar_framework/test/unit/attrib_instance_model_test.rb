@@ -43,7 +43,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
   end
   
   test "Attrib Instance actual values state correct" do
-    v = @node.attrib_get('state_test')
+    v = @node.get_attrib('state_test')
     assert_nil v.jig_run_id
     v.actual = @value
     assert_equal @value, v.actual
@@ -94,7 +94,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     n = Node.create :name=>name
     assert_not_nil n
     n.save
-    na = n.attrib_get(attrib)
+    na = n.get_attrib(attrib)
     assert_not_nil na
     id = na.id
     na2 = AttribInstance.find id 
@@ -111,7 +111,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     n = Node.create :name=>name
     assert_not_nil n
     n.save
-    na = n.attrib_get(attrib)
+    na = n.get_attrib(attrib)
     a = Attrib.find_by_name attrib
     assert_not_nil na
     id = na.id
@@ -161,7 +161,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
     v = @na
     v.actual = value
     v.save
-    assert_equal value, @node.attrib_get(@attrib.name).value
+    assert_equal value, @node.get_attrib(@attrib.name).value
   end
   
   test "Node can have attributes" do
@@ -237,7 +237,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
   test "Node stores proposed attrib and sets state" do
     value = "proposed value"
     name = "unit_proposed"
-    na = @node.attrib_get(name)
+    na = @node.get_attrib(name)
     assert_not_nil na
     assert_equal name, na.attrib.name
     assert_nil na.value
@@ -261,7 +261,7 @@ class AttribInstanceModelTest < ActiveSupport::TestCase
   test "Node state reflects proposed state" do
     value = "state value"
     name = "unit_state"
-    na = @node.attrib_get(name)
+    na = @node.get_attrib(name)
     assert_not_nil na
     assert_equal name, na.attrib.name
     assert_equal nil, na.value

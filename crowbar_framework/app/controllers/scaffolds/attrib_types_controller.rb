@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::ProposalQueueItemsController < ApplicationController
-  active_scaffold :proposal_queue_item do |conf|
+class Scaffolds::AttribTypesController < ApplicationController
+  active_scaffold :attrib_type do |conf|
   end
 end 

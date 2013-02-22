@@ -67,13 +67,13 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal "eth0", a1.attrib.name
     assert_equal "bndt", a1.role.name
     assert_nil a1.node_id
-    an = @mynode.attrib_get("eth0")
+    an = @mynode.get_attrib("eth0")
     assert_not_equal a1.id, an.id
     assert_not_equal a1.node_id, an.node_id
     assert_equal a1.role_instance_id, an.role_instance_id
     assert_equal a1.attrib_id, an.attrib_id
     assert_nil an.value
-    assert_equal :empty, @mynode.attrib_get(a1).state
+    assert_equal :empty, @mynode.get_attrib(a1).state
   end
   
   test "Barclamp Register creates & stores attributes" do
@@ -104,12 +104,12 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
     assert_equal Jig.count*3, @bc.jig_maps.count, "this is the jig mappings"
 
-    assert_nil @mynode.attrib_get(a1.attrib.name).value
-    assert_equal :empty, @mynode.attrib_get(a1).state
-    assert_nil @mynode.attrib_get(a2.attrib.name).value
-    assert_equal :empty, @mynode.attrib_get(a2.attrib.name).state
-    assert_nil @mynode.attrib_get(a3.attrib.name).value
-    assert_equal :empty, @mynode.attrib_get(a3.attrib.name).state
+    assert_nil @mynode.get_attrib(a1.attrib.name).value
+    assert_equal :empty, @mynode.get_attrib(a1).state
+    assert_nil @mynode.get_attrib(a2.attrib.name).value
+    assert_equal :empty, @mynode.get_attrib(a2.attrib.name).state
+    assert_nil @mynode.get_attrib(a3.attrib.name).value
+    assert_equal :empty, @mynode.get_attrib(a3.attrib.name).state
 
     assert_equal 6, @bc.template.role_instances.first.attrib_instances.count, "this is the role instances after nodes are assigned"
     
@@ -119,11 +119,11 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     node = bc.process_inbound_data jig_run, @mynode, @sample
     # values should be updated
     assert_equal "0000:00/0000:00:01.0/0000:01:00.0", node.attrib_eth0
-    assert_equal :ready, node.attrib_get("eth0").state
+    assert_equal :ready, node.get_attrib("eth0").state
     assert_equal "00:25:64:2e:61:f6", node.attrib_eth0_switch_name
-    assert_equal :ready, node.attrib_get("eth0_switch_name").state
+    assert_equal :ready, node.get_attrib("eth0_switch_name").state
     assert_equal ".HR74KN1.CN7475106U0180.   ", node.attrib_serial_number
-    assert_equal :ready, node.attrib_get("serial_number").state
+    assert_equal :ready, node.get_attrib("serial_number").state
     
   end
 

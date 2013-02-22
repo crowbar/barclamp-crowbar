@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateBarclampsInstances < ActiveRecord::Migration
+class CreateSnapshots < ActiveRecord::Migration
   def change
-    create_table :barclamp_instances do |t|
+    create_table :snapshots do |t|
       t.string      :name,                        :null=>false, :default=>I18n.t('not_set')
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>10000
-      t.belongs_to  :barclamp_configuration,      :null=>true
+      t.belongs_to  :deployment,                  :null=>true
       t.belongs_to  :barclamp,                    :null=>false                    
-      t.integer     :status,                      :default => BarclampInstance::STATUS_NONE
+      t.integer     :status,                      :default => Snapshot::STATUS_NONE
       t.string      :failed_reason,               :null=>true
       t.timestamps      
     end

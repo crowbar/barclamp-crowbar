@@ -40,7 +40,7 @@ class ApplicationController < ActionController::Base
   # for each method we are going to expose to the CLI.
   # Since it is a class method, it will not be bothered by the Rails
   # trying to expose it to everything else, and we can call it to build
-  # up our help contents at class creation time instead of instance creation
+  # up our help contents at class creation time instead of snapshot creation
   # time, so there is minimal overhead.
   # Since we are just storing an arrray of singleton hashes, adding more
   # user-oriented stuff (descriptions, exmaples, etc.) should not be a problem.

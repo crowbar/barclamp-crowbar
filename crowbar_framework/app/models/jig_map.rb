@@ -15,23 +15,23 @@
 class JigMap < ActiveRecord::Base
   
   attr_accessible :map
-  attr_accessible :jig_id, :barclamp_id, :attrib_id
+  attr_accessible :jig_id, :barclamp_id, :attrib_type_id
   
   belongs_to :jig
   belongs_to :barclamp
-  belongs_to :attrib
+  belongs_to :attrib_type
 
   DEFAULT_JIG = :chef
 
-  def self.get_map(jig, barclamp, attrib)
+  def self.get_map(jig, barclamp, attrib_type)
     j = Jig.find_by_name jig
     b = Barclamp.find_by_name barclamp
-    a = Attrib.find_by_name attrib
-    JigMap.find_by_jig_id_and_barclamp_id_and_attrib_id j.id, b.id, a.id
+    a = AttribType.find_by_name attrib_type
+    JigMap.find_by_jig_id_and_barclamp_id_and_attrib_type_id j.id, b.id, a.id
   end
 
   # adds the map relation between the attrib and barclamp for each jig
-  def self.add(attrib, barclamp, map)
+  def self.add(attrib_type, barclamp, map)
     maps = []
     # be super friendly for chef and convert into the hash anyway assuming they wanted chef
     map = {DEFAULT_JIG=>map} if map.is_a? String
@@ -48,14 +48,14 @@ class JigMap < ActiveRecord::Base
           jigs << Jig.create(:name=>jig, :type => jtype, :description => desc) rescue nil
         end
         jigs.each do |j|
-           maps << JigMap.find_or_create_by_attrib_id_and_barclamp_id_and_jig_id(
-              :attrib_id => attrib.id, 
+           maps << JigMap.find_or_create_by_attrib_type_id_and_barclamp_id_and_jig_id(
+              :attrib_type_id => attrib_type.id, 
               :barclamp_id => barclamp.id, 
               :jig_id => j.id, 
               :map => path) if j
         end
       rescue
-        Rails.logger.debug "JigMap.add failed to create map between #{attrib.name}+#{barclamp.name}+#{jig} with path #{path}"
+        Rails.logger.debug "JigMap.add failed to create map between #{attrib_type.name}+#{barclamp.name}+#{jig} with path #{path}"
       end
     end  
     maps

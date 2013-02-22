@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#
+class RoleTypesController < ApplicationController
 
-class Scaffolds::RolesController < ApplicationController
-  active_scaffold :role do |conf|
+  def index
+    render api_index :role_type, RoleType.all
   end
-end 
+
+  def show
+    render api_show :role_type, RoleType
+  end
+
+  def create
+    rt = RoleType.create params
+    render api_show :role_type, RoleType, nil, nil, rt
+  end
+  
+  def destroy
+    render api_delete RoleType
+  end
+      
+end

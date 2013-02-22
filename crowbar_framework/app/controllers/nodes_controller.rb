@@ -179,6 +179,19 @@ class NodesController < ApplicationController
     
   end
 
+  def status
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Status Action: refactoring by CloudEdge')
+  end
+  
+  def attribs
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Attribs Action: refactoring by CloudEdge')
+  end
+  
+  def group
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Group Action: refactoring by CloudEdge')    
+  end
+  
+  # CB1 move to IMPI
   def hit
     action = params[:req]
     name = params[:name] || params[:id]
@@ -244,12 +257,12 @@ class NodesController < ApplicationController
       # working objects
       node = Node.find_key params[:id]
       # we need to treat attribs by type OR ID 
-      # except that the ID is the attrib_instance while the name is the type
+      # except that the ID is the attrib while the name is the type
       if params[:attrib]
-        attrib = Attrib.add params[:attrib]
-        ai = AttribInstance.find_by_node_id_and_attrib_id node.id, attrib.id
+        attrib = AttribType.add params[:attrib]
+        ai = Attrib.find_by_node_id_and_attrib_id node.id, attrib.id
       elsif params[:attrib] =~ /^[0-9]+$/
-        ai = AttribInstance.find params[:attrib]
+        ai = Attrib.find params[:attrib]
         attrib = ai.attrib
       end
   
@@ -257,18 +270,18 @@ class NodesController < ApplicationController
       if request.post? or request.put?
         # this is setup to add the param even if we could not find it earlier
         ai.value = params["value"]
-        render api_show :attrib, AttribInstance, nil, nil, ai
+        render api_show :attrib, Attrib, nil, nil, ai
       # DELETE
       elsif request.delete? and attrib and node
-        render api_delete AttribInstance, ai.id
+        render api_delete Attrib, ai.id
       # fall through REST actions (all require ID)
       elsif request.get? and attrib
-        render api_show :attrib, AttribInstance, nil, nil, ai
+        render api_show :attrib, Attrib, nil, nil, ai
       elsif params[:attrib]
         render :text=>I18n.t('api.not_found', :type=>'attrib', :id=>params[:attrib]), :status => :not_found
       # list (no ID)
       elsif request.get?  
-        render api_index :attrib, node.attrib_instances, nodes_attribs_path
+        render api_index :attrib, node.attribs, nodes_attribs_path
       # Catch
       else
         render :text=>I18n.t('api.unknown_request'), :status => 400

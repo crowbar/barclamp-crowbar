@@ -18,12 +18,12 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
-  attr_accessible :allow_multiple_configs, :template_id
+  attr_accessible :allow_multiple_deployments, :template_id
   attr_accessible :api_version, :api_version_accepts, :liscense, :copyright
   before_create :create_type_from_name
 
   # legacy for CB1 remove after 2013-03-01
-  alias_attribute :allow_multiple_proposals, :allow_multiple_configs
+  alias_attribute :allow_multiple_proposals, :allow_multiple_deployments
   
   # 
   # Validate the name should unique 
@@ -33,31 +33,23 @@ class Barclamp < ActiveRecord::Base
   validates_exclusion_of :name, :in => %w(framework barclamp docs machines users support application), :message => I18n.t("db.barclamp_excludes", :default=>"Illegal barclamp name")
     
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  
-    
+      
   # Template Data
-  has_one  :template,                 :class_name => "BarclampInstance", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
-  has_many :roles,                    :class_name => "Role", :through=>:template, :order=>'"role_instances"."order"'
-  has_many :attrib_instances,         :through => :template
-  has_many :role_instances,           :through => :template
+  has_one  :template,                 :class_name => "Snapshot", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
+  has_many :attribs,                  :through => :template
+  has_many :roles,                    :through => :template
+  has_many :role_types,               :through => :roles, :order=>'"roles"."order"'
   
-  # Instance Trains (may not all be the same configuration!)
-  has_many :barclamp_instances,       :dependent => :destroy
-  alias_attribute :instances,         :barclamp_instances
-  
-  # Configurations
-  has_many :barclamp_configurations,  :dependent => :destroy
-  alias_attribute :configs,           :barclamp_configurations
-  alias_attribute :proposals,         :barclamp_configurations   # legacy support
-  has_many :active,                   :class_name => "BarclampConfiguration", :conditions=>"'active_instance_id' is not null"
-  alias_attribute :active_configs,    :active         
-  alias_attribute :active_proposals,  :active                   # legacy support
+  # Deployment Chains (may not all be the same deployment!)
+  has_many :deployments,              :dependent => :destroy
+  has_many :snapshots,                :through => :deployments
+  alias_attribute :proposals,         :deployments    # legacy support
   
   # Jig Interactions
   has_many :jig_maps,                 :dependent => :destroy
   has_many :jigs,                     :through => :jig_maps
   # reminder! this is NOT the same as .template.attribs!!!
-  has_many :attribs,                  :through => :jig_maps
+  has_many :attrib_types,             :through => :jig_maps
 
   has_and_belongs_to_many :packages, :class_name=>'OsPackage', :join_table => "barclamp_packages", :foreign_key => "barclamp_id"
   has_and_belongs_to_many :prereqs, :class_name=>'Barclamp', :join_table => "barclamp_dependencies", :foreign_key => "prereq_id"
@@ -66,23 +58,6 @@ class Barclamp < ActiveRecord::Base
 
   alias_attribute :configsallow_multiple_proposals?,      :allow_multiple_proposals
 
-  #
-  # Helper function to load the service object
-  #
-  # This is used to allow callers to get access to the barclamp's
-  # service functions.  There are two primary use cases,
-  # 1. barclamp controller wants a generic method to call a common routine.
-  #   @barclamp.operations.proposal_create
-  # 2. Barclamp wants to call other barclamp
-  #   Barclamp.find_by_name("network").operations(@logger).allocate_ip(...)
-  #
-  def operations(logger = nil)
-    Rails.logger.warn "Service object depricated"
-    @service = eval("#{name.camelize}Service.new logger") unless @service
-    @service.bc_name = name
-    @service
-  end
-  
   #
   # Order barclamps by their order value and then their name
   #
@@ -108,13 +83,13 @@ class Barclamp < ActiveRecord::Base
   # attributes cannot be reassigned to a different barclamp
   # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
   #
-  def add_attrib(attrib, map=nil, role=nil)
+  def add_attrib(attrib_type, map=nil, role_type=nil)
     # find the attrib
-    a = Attrib.add attrib, self.name
-    r = role.nil? ? nil : Role.add(role, self.name)
+    a = AttribType.add attrib_type, self.name
+    r = role_type.nil? ? nil : RoleType.add(role_type, self.name)
     # map it
     JigMap.add a, self, map unless map.nil?
-    # add the attrib to the barclamp instance
+    # add the attrib type to the barclamp snapshot
     template.add_attrib a, r unless template.nil?
   end
 
@@ -130,23 +105,23 @@ class Barclamp < ActiveRecord::Base
   #  Optional: Config Name / Hash (default to default)
   # Output: Config Object Based upon template.
   #
-  def create_proposal(config=nil)
-    config = {:name=>config} if config.is_a? String
-    config ||= { :name => I18n.t('default')}
+  def create_proposal(deployment=nil)
+    deployment = {:name=>deployment} if deployment.is_a? String
+    deployment ||= { :name => I18n.t('default')}
     bc = nil
-    if allow_multiple_proposals or configs.count==0
+    if allow_multiple_deployments or deployments.count==0
       # setup required items
-      config[:barclamp_id]  = self.id
-      config[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
-      BarclampConfiguration.transaction do 
-        # create a new configuration
-        bc = BarclampConfiguration.create config
+      deployment[:barclamp_id]  = self.id
+      deployment[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
+      Deployment.transaction do 
+        # create a new deployment
+        bc = Deployment.create deployment
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
-        # create the instances
-        config = based_on.deep_clone bc, config.name, false
-        # attach the instance to the config
-        bc.proposed_instance_id = config.id
+        # create the snapshot 
+        snapshot = based_on.deep_clone bc, deployment.name, false
+        # attach the snapshot to the config
+        bc.proposed_snapshot_id = snapshot.id
         bc.save
       end
     end
@@ -162,12 +137,12 @@ class Barclamp < ActiveRecord::Base
     maps = JigMap.where :jig_id=>jig.id, :barclamp_id=>self.id
     maps.each do |map|
       # there is only 1 map per barclamp/jig/attrib
-      a = map.attrib
-      # there can be multiple AttribInstances per node/barclamp instance
-      attribs = AttribInstance.where :attrib_id=>a.id, :node_id=>node.id
+      a = map.attrib_type
+      # there can be multiple Attribs per node/barclamp snapshot
+      attribs = Attrib.where :attrib_type_id=>a.id, :node_id=>node.id
       if attribs.empty?
         # create the AIs for the data using the unbound role attribes that are already there
-        unset_attribs = AttribInstance.where :attrib_id=>a.id, :node_id => nil
+        unset_attribs = Attrib.where :attrib_type_id=>a.id, :node_id => nil
         unset_attribs.each do |na|
           # attach node to barclamp data (from role association)
           if na.barclamp.id == self.id
@@ -178,15 +153,15 @@ class Barclamp < ActiveRecord::Base
           end
         end
       end
-      # THIS NEEDS TO BE UPDATED TO ONLY UPDATE THE ACTIVE INSTANCES!
+      # THIS NEEDS TO BE UPDATED TO ONLY UPDATE THE ACTIVE SNAPSHOTS!
       attribs.each do |ai|
         # we only update the attribs linked to this barclamp 
         # performance note: this is an expensive thing to figure out!
-        if !ai.role_instance_id.nil? and ai.barclamp.id == self.id 
+        if !ai.role_id.nil? and ai.barclamp.id == self.id 
           # get the value
           value = jig.find_attrib_in_data data, map.map
           # store the value
-          target = AttribInstance.find ai.id
+          target = Attrib.find ai.id
           target.actual = value
           target.jig_run_id = jig_run.id
           target.save!
@@ -204,8 +179,9 @@ class Barclamp < ActiveRecord::Base
   #  - transitions - should transitions be passed to the bc.
   #  - transition_list - which state transitions to pass to barclamp
   def import_template(json=nil, template_file=nil)
-    # this shoudl go away as we migrate the data into Crowbar.yml
-    template_file ||= File.expand_path(File.join('..','barclamps',name,"bc-template-#{name}.json"))
+
+    template_file ||= File.expand_path(File.join(source_path,"bc-template-#{name}.json"))
+    template_file = File.expand_path(File.join(source_path,"config-template.json")) unless File.exists? template_file 
     throw "cannot import #{template_file} for #{name}" unless File.exists?(template_file)
     json = JSON::load File.open(template_file, 'r') if json.nil?
 
@@ -272,8 +248,8 @@ class Barclamp < ActiveRecord::Base
   end
   def self.import(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
-    source_path ||= '../barclamps'
-    bc_file = File.expand_path(File.join(source_path, bc_name,"crowbar.yml"))
+    source_path ||= "/opt/dell/barclamps/#{bc_name}"    # would be nice to be smarter, but this is OK for now
+    bc_file = File.expand_path(File.join(source_path, "crowbar.yml"))
     # load JSON
     if bc.nil?
       throw "Barclamp metadata #{bc_file} for #{bc_name} not found" unless File.exists?(bc_file)
@@ -281,7 +257,8 @@ class Barclamp < ActiveRecord::Base
       throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
     end
     # Can't do the || trick booleans because nil is false.
-    amp = bc['barclamp']['allow_multiple_proposals'] rescue false
+    amp = bc['barclamp']['allow_multiple_deployments'] rescue nil
+    amp ||= bc['barclamp']['allow_multiple_proposals'] rescue false
     um = bc['barclamp']['user_managed'] rescue true
     gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
     gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
@@ -363,7 +340,7 @@ class Barclamp < ActiveRecord::Base
   def create_template(bc_file)
 
     if self.template_id.nil?
-      t = BarclampInstance.create(
+      t = Snapshot.create(
                 :name => I18n.t('template', :scope => "model.barclamp", :name=>self.name.humanize),
                 :barclamp_id=>self.id,
                 :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>bc_file)

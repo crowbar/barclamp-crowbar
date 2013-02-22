@@ -17,7 +17,7 @@
 # Stores the role application order within a barclamp.
 #
 class RoleElementOrder < ActiveRecord::Base
-  attr_accessible :order, :role_id
-  belongs_to :role
+  attr_accessible :order, :role_type_id
+  belongs_to :role_type
 end
 

@@ -1,0 +1,112 @@
+# Copyright 2013, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+orchestration:
+  mode: full
+  
+roles:
+  "private":
+    order: 100
+    run_order: -1
+    states:
+      - all
+    attributes:
+      "realm": 
+        default: "Crowbar"
+  "crowbar":
+    attributes:
+      # register attributes of interest 
+      "physical_drives": 
+        default: :nil
+        chef: :no_map
+      "memory": 
+        default: :nil
+        chef: :no_map
+      "cpu_type": 
+        default: :nil
+        chef: :no_map
+      "cpu_count": 
+        default: :nil
+        chef: :no_map
+      "dmi_product_name": 
+        default: :nil
+        chef: :no_map
+      "raid_set": 
+        default: :nil
+        chef: :no_map
+      "nics_count":
+        default: :nil
+        chef: :no_map
+      "nics_list":
+        default: :nil
+        chef: :no_map
+      "uptime":
+        default: :nil
+        chef: :no_map
+      "drives_count":
+        default: :nil
+        chef: :no_map
+      "drives_list":
+      # DMI data collected by Crowbar 
+      "product_info":
+        default: :nil
+        chef: "dmi/system/product_info"
+      "node_family":
+        default: :nil
+        chef: "dmi/system/family"
+      "manufacturer":
+        default: :nil
+        chef: "dmi/system/manufacturer"
+      "product_name":
+        default: :nil
+        chef: "dmi/system/product_name"
+      "serial_number":
+        default: :nil
+        chef: "dmi/system/serial_number"
+      "node_uuid":
+        default: :nil
+        chef: "dmi/system/uuid"
+                
+      # THESE SHOULD BE MOVED INTO THE BARCLAMPS THE SUPPLY THEM!!! 
+      # likely move to network barclamp
+      "public_ip":
+        default: :nil
+        chef: :no_map
+      "mac":
+        default: :nil
+        chef: :no_map                       #eth0
+      # likely move to DNS barclamp
+      "alias":
+        default: :nil
+        chef: "dns/alias"
+      # likely move to bios barclamp
+      "asset_tag":
+        default: :nil
+        chef: :no_map
+      "bios_set":
+        default: :nil
+        chef: "crowbar/hardware/bios_set"
+      # likely move to impi barclamp
+      "impi_enabled":
+        default: :nil
+        chef: :no_map
+      "bmc_user":
+        default: :nil
+        chef: "ipmi/bmc_user" 
+      "bmc_password":
+        default: :nil
+        chef: "ipmi/bmc_password"
+      "bmc_address":
+        default: :nil
+        chef: "ipmi/bmc_address"

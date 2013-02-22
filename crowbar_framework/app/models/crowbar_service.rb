@@ -141,7 +141,7 @@ class CrowbarService < ServiceObject
   # proposal_config's data.  
   #
   # The override calls the parent function to get this applied, but then follows that with
-  # a set of create/commit calls for each instance in the configuration.  This usually
+  # a set of create/commit calls for each instance in the deployment.  This usually
   # creates the default deployed barclamps.
   #
   def apply_role (role, in_queue)

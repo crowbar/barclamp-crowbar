@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-class BarclampInstancesController < ApplicationController
+class CreateAttribTypes < ActiveRecord::Migration
+  
+  def change
+    create_table :attrib_types do |t|
+      t.string :name,         :null=>false
+      t.string :description,  :null=>true
+      t.integer :order,       :default=>10000
+      t.timestamps
+    end
+    #natural key
+    add_index(:attrib_types, :name, :unique => true)   
 
-  def index
-    render api_index :instance, barclamp.instances.all
   end
-  
-  def show
-    render api_show :instance, BarclampInstance
-  end
-  
+
 end

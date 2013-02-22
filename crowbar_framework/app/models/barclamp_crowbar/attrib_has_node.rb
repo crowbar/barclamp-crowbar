@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class BarclampCrowbar::AttribInstanceHasNode < AttribInstance
+class BarclampCrowbar::AttribHasNode < Attrib
 
   before_save :special_attrib
   
@@ -31,10 +31,10 @@ class BarclampCrowbar::AttribInstanceHasNode < AttribInstance
   # this is a special purpose attrib and can only be this type
   def special_attrib
     # we're going to ENFORCE that this model uses the has_role type
-    a = Attrib.find_by_id self.attrib_id
+    a = AttribType.find_by_id self.attrib_type_id
     if a.nil? or !a.name.eql? HASNODE_NAME
-      has_node = Attrib.add :name=>HASNODE_NAME, :description=>I18n.t('model.attribs.role.has_node'), :order=>999999
-      self.attrib_id = has_node.id
+      has_node = AttribType.add :name=>HASNODE_NAME, :description=>I18n.t('model.attribs.role.has_node'), :order=>999999
+      self.attrib_type_id = has_node.id
     end
   end
       

@@ -86,14 +86,14 @@ class NodeModelTest < ActiveSupport::TestCase
     n.save
     a = Attrib.create :name=>name, :description=>description
     a.save
-    na = n.attrib_get(a)
+    na = n.get_attrib(a)
     assert_equal nil, na.value
     assert_equal :empty, na.state
     na.actual = value
     assert_equal value, na.value
     assert_equal :ready, na.state
     na.save
-    v = Node.find(n.id).attrib_get(name)
+    v = Node.find(n.id).get_attrib(name)
     assert_equal name, v.attrib.name
     assert_equal description, v.attrib.description
     assert_equal value, v.value
@@ -106,7 +106,7 @@ class NodeModelTest < ActiveSupport::TestCase
     node = "attrib.example.com"
     n = Node.create :name=>node
     assert_not_nil n
-    a = n.attrib_get(name)
+    a = n.get_attrib(name)
     assert_not_nil a
     assert_equal I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>'unknown'), a.attrib.description
     assert_nil a.value
@@ -122,7 +122,7 @@ class NodeModelTest < ActiveSupport::TestCase
     node = "daddy.warbucks.com"
     n = Node.create :name=>node
     assert_not_nil n
-    a = n.attrib_get(name)
+    a = n.get_attrib(name)
     assert_not_nil a
     assert_equal name, a.attrib.name
     assert_equal "user_defined", a.role_instance.name

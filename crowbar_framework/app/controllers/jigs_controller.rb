@@ -25,7 +25,7 @@ class JigsController < ApplicationController
 
   def create
     j = Jig.create params
-    render api_show :jig, Jig, j.id.to_s, nil, j
+    render api_show :jig, Jig, nil, nil, j
   end
   
   def destroy

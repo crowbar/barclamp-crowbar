@@ -136,7 +136,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "Can create config from barclamp" do
     test = Barclamp.import 'test'
-    assert !test.allow_multiple_configs, "need this to be 1 for this test"
+    assert !test.allow_multiple_deployments, "need this to be 1 for this test"
     assert_equal 0, test.configs.count
     assert_not_nil test.template
     config = test.create_proposal 'foo'
@@ -149,7 +149,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
   
   test "Allow multiple proposals works" do
     test = Barclamp.import 'test'
-    assert !test.allow_multiple_configs, "need this to be 1 for this test"
+    assert !test.allow_multiple_deployments, "need this to be 1 for this test"
     assert_equal 0, test.configs.count
     assert_not_nil test.template
     config = test.create_proposal 'foo'
@@ -160,7 +160,7 @@ class BarclampConfigModelTest < ActiveSupport::TestCase
     assert_equal 'foo', test.configs(true).first.name
     assert_equal 1, test.configs(true).count
     # now change the setting and try again
-    test.allow_multiple_configs = true
+    test.allow_multiple_deployments = true
     c3 = test.create_proposal 'bar'
     assert_not_nil c3
     assert_equal 'bar', c3.name

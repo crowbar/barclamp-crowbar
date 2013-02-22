@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#
+class RolesController < ApplicationController
 
-class Scaffolds::ProposalQueuesController < ApplicationController
-  active_scaffold :proposal_queue do |conf|
+  def index
+    render api_index :role, Role.all
   end
-end 
+
+  def show
+    render api_show :role, Role
+  end
+      
+end

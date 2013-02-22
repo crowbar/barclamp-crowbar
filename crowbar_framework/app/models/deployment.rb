@@ -14,19 +14,19 @@
 #
 
 ############
-# A 'configuration' of a barclamp represents a deployed (or deployable) cluster of the 
+# A 'deployment' of a barclamp represents a deployed (or deployable) cluster of the 
 # barclamp's technology (e.g. mySql, NTP, openstack Nova, etc)
-# It has a ""history"" of configuration instances that were created and applied.
+# It has a ""history"" of deployment snapshots that were created and applied.
 #
-# 'instances' is the history relation. It contains all historical configurations.
-# active_instance is the currently active proposal instance (or queued or committing)
-# proposed_instance is the most recently editted/created instance. (It might not be applied).
+# 'snapshots' is the history relation. It contains all historical deployments.
+# active_snapshot is the currently active proposal snapshot (or queued or committing)
+# proposed_snapshot is the most recently editted/created snapshot. (It might not be applied).
 #
 
-class BarclampConfiguration < ActiveRecord::Base
+class BarclampDeployment < ActiveRecord::Base
   
   attr_accessible :name, :description, :order
-  attr_accessible :barclamp_id, :active_instance_id, :proposed_instance_id
+  attr_accessible :barclamp_id, :active_snapshot_id, :proposed_snapshot_id
 
   validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
@@ -34,16 +34,15 @@ class BarclampConfiguration < ActiveRecord::Base
   
 
   belongs_to      :barclamp
-  has_many        :barclamp_instances,  :class_name => "BarclampInstance", :inverse_of => :barclamp_configuration, :dependent => :destroy
-  alias_attribute :instances,           :barclamp_instances
+  has_many        :snapshots,           :inverse_of => :deployment, :dependent => :destroy
   
-  belongs_to :active_instance,          :class_name => "BarclampInstance", :foreign_key => "active_instance_id"
-  alias_attribute :active,              :active_instance
-  belongs_to :proposed_instance,        :class_name => "BarclampInstance", :foreign_key => "proposed_instance_id"
-  alias_attribute :proposed,            :proposed_instance
+  belongs_to :active_snapshot,          :class_name => "Snapshot", :foreign_key => "active_snapshot_id"
+  alias_attribute :active,              :active_snapshot
+  belongs_to :proposed_snapshot,        :class_name => "Snapshot", :foreign_key => "proposed_snapshot_id"
+  alias_attribute :proposed,            :proposed_snapshot
 
   def active?
-    active_instance_id != nil
+    active_snapshot_id != nil
   end
 
   #
@@ -51,7 +50,7 @@ class BarclampConfiguration < ActiveRecord::Base
   # XXX: This should really move to an helper module
   #
   def status
-    state = (active_instance.nil? ? 999 : active_instance.status)
+    state = (active_snapshot.nil? ? 999 : active_snapshot.status)
     case state
     when 0 
       'missing'

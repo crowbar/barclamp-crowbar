@@ -1,4 +1,4 @@
-# Copyright 2013, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::AttribInstancesController < ApplicationController
-  active_scaffold :attrib_instance do |conf|
+class Scaffolds::JigsController < ApplicationController
+  active_scaffold :jig do |conf|
   end
 end 

@@ -74,13 +74,13 @@ en:
       top_description: "Developer Tools"
       barclamps: Barclamps
       jig: "DevOps Jig"
-      attribs: Attributes
+      attrib_types: Attributes
       nodes: Nodes
       groups: Groups
       roles: Roles
-      attrib_instances: Data
-      proposals: Proposals
-      configs: "Proposal Configs"
+      attribs: Data
+      deployments: Deployment
+      snapshots: Snapshots
       menus: Menu Items
       docs: Doc Topics
       os: "Operating Systems"
@@ -127,7 +127,7 @@ en:
       none: CB1 No Proposal
       unknown: CB1 Unknown, requesting status...
     failures:
-      show_active_failed: Actived instance not found.
+      show_active_failed: "Actived snapshot not found."
       Failed to apply the proposal to: Failed to apply proposal
       Did not fail.  Successfully applied: Did not fail.  Successfully applied
       No success information for proposal: No success information for proposal
@@ -167,7 +167,7 @@ en:
       illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.
       already_commit: Proposal already being applied.
       cannot_find: Failed to find proposal
-      instance_active: Can not delete active proposals.
+      snapshot_active: Can not delete active proposals.
       unknown_delete_fail: Unknown delete failure
     attribs:
       barclamp:
@@ -382,8 +382,8 @@ en:
       proposals: Proposals
       attribs: Attributes
       members: Members
-      configs: Configurations
-      instance: Instance
+      deployments: deployments
+      snapshot: snapshot
       template: Template
     modules:
       title: All Barclamps
@@ -430,7 +430,7 @@ en:
       remove: Remove Node
       add: Drop Node here to add to Role
       filter: Filter available node list by entering the first letters of the node name
-      no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
+      no_dup: "No action taken: An snapshot of Node [0] already exists in Role [1]"
       added: Added Node [0] to Role [1]
       removed: Removed Node [0] from Role [1]
       node_deleted: "WARNING: Deleted"

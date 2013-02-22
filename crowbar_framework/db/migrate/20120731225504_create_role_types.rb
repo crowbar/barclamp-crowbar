@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateRoleInstances < ActiveRecord::Migration
+class CreateRoleTypes < ActiveRecord::Migration
   def change  
-    create_table :role_instances do |t|
-      t.belongs_to  :role,              :null=>false
-      t.belongs_to  :barclamp_instance, :null=>false
-      t.string      :description,       :null=>true
-      t.integer     :order,             :default => 9999, :null => false
-      t.integer     :run_order,         :default => 9999, :null => false
-      t.string      :states,            :default=>"all",  :null=>true
+    create_table :role_types do |t|
+      t.string      :name,        :null=> false
+      t.string      :description, :null=> true
+      t.integer     :order,       :default => 9999  
       t.timestamps
     end
     #natural key
-    add_index(:role_instances, [:barclamp_instance_id, :role_id], :unique => true)   
+    add_index(:role_types, [:name], :unique => true)   
   end
 end

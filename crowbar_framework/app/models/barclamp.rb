@@ -240,7 +240,7 @@ class Barclamp < ActiveRecord::Base
     jattrib.each do |key, value|
       # this will handle strings or hashes
       role.add_attrib key, value
-    end
+    end unless jattrib.nil?
 
     # import users 
     users = json["attributes"]["crowbar"]["users"] rescue Hash.new

@@ -137,7 +137,7 @@ class Attrib < ActiveRecord::Base
     # we need to have a role!
     # if the relationship does not exist then assume it's user defined
     if self.role_id.nil?
-      role = Role.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
+      role = RoleType.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
       crowbar = Barclamp.find_by_name 'crowbar'
       # use the actice snapshot
       base_config = crowbar.active.first || crowbar.template

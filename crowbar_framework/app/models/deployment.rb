@@ -23,7 +23,7 @@
 # proposed_snapshot is the most recently editted/created snapshot. (It might not be applied).
 #
 
-class BarclampDeployment < ActiveRecord::Base
+class Deployment < ActiveRecord::Base
   
   attr_accessible :name, :description, :order
   attr_accessible :barclamp_id, :active_snapshot_id, :proposed_snapshot_id

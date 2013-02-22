@@ -15,7 +15,7 @@
 class CreateRoles < ActiveRecord::Migration
   def change  
     create_table :roles do |t|
-      t.belongs_to  :role,              :null=>false
+      t.belongs_to  :role_type,         :null=>false
       t.belongs_to  :snapshot,          :null=>false
       t.string      :description,       :null=>true
       t.integer     :order,             :default => 9999, :null => false
@@ -24,6 +24,6 @@ class CreateRoles < ActiveRecord::Migration
       t.timestamps
     end
     #natural key
-    add_index(:roles, [:snapshot_id, :role_id], :unique => true)   
+    add_index(:roles, [:snapshot_id, :role_type_id], :unique => true)   
   end
 end

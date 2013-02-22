@@ -13,14 +13,14 @@
 % limitations under the License. 
 % 
 % 
--module(instance).
+-module(snapshot).
 -export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/instances";
+    path -> "crowbar/v2/snapshots";
     _ -> crowbar:g(Item)
   end.
   
@@ -41,7 +41,7 @@ create(ID, Name, Extras) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  bdd_restrat:inspector(Config, instance).  % shared inspector works here, but may not always
+  bdd_restrat:inspector(Config, snapshot).  % shared inspector works here, but may not always
 
 % Common Routine
 % Creates JSON used for POST/PUT requests

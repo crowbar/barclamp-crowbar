@@ -30,8 +30,8 @@ class Snapshot < ActiveRecord::Base
   belongs_to      :deployment,        :inverse_of => :snapshot
 
   has_many        :roles,             :dependent => :destroy, :order => ROLE_ORDER
-  has_many        :private_roles,     :class_name => "Roles", :conditions=>'run_order<0', :order => ROLE_ORDER
-  has_many        :public_roles,      :class_name => "Roles", :conditions=>'run_order>=0', :order => ROLE_ORDER
+  has_many        :private_roles,     :class_name => "Role", :conditions=>'run_order<0', :order => ROLE_ORDER
+  has_many        :public_roles,      :class_name => "Role", :conditions=>'run_order>=0', :order => ROLE_ORDER
   has_many        :roles_types,       :through => :roles
 
   has_many        :attribs,           :through => :roles
@@ -45,7 +45,7 @@ class Snapshot < ActiveRecord::Base
   # Add a role to a snapshot by creating the needed Role
   # Returns a Role (not a role_type)
   def add_role(role_type)
-    role_type = Role.add role_type, self.name
+    role_type = RoleType.add role_type, self.name
     ri = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id 
     ri ||= Role.find_or_create_by_role_type_id_and_snapshot_id :role_type_id => role_type.id, :snapshot_id => self.id
     ri

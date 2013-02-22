@@ -45,8 +45,8 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     r = b.roles
 
-    r1 = Role.find_by_name("crowbar")
-    r2 = Role.find_private
+    r1 = RoleType.find_by_name("crowbar")
+    r2 = RoleType.find_private
 
     assert_equal 2, r.size
     assert r.include? r1

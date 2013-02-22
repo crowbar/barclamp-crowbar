@@ -27,7 +27,7 @@ class Barclamp < ActiveRecord::Base
   
   # 
   # Validate the name should unique 
-  # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
+  # and that it starts with an alph and only contains alpha,digits,underscore
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_exclusion_of :name, :in => %w(framework barclamp docs machines users support application), :message => I18n.t("db.barclamp_excludes", :default=>"Illegal barclamp name")
@@ -248,90 +248,95 @@ class Barclamp < ActiveRecord::Base
   end
   def self.import(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
-    source_path ||= "/opt/dell/barclamps/#{bc_name}"    # would be nice to be smarter, but this is OK for now
+    source_path ||= "../barclamps/#{bc_name}"    # would be nice to be smarter, but this is OK for now
     bc_file = File.expand_path(File.join(source_path, "crowbar.yml"))
     # load JSON
     if bc.nil?
-      throw "Barclamp metadata #{bc_file} for #{bc_name} not found" unless File.exists?(bc_file)
+      raise "Barclamp metadata #{bc_file} for #{bc_name} not found" unless File.exists?(bc_file)
       bc = YAML.load_file bc_file
-      throw 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
-    end
-    # Can't do the || trick booleans because nil is false.
-    amp = bc['barclamp']['allow_multiple_deployments'] rescue nil
-    amp ||= bc['barclamp']['allow_multiple_proposals'] rescue false
-    um = bc['barclamp']['user_managed'] rescue true
-    gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
-    gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
-    barclamp.update_attributes( :display     => bc['barclamp']['display'] || bc_name.humanize,
-                                :description => bc['barclamp']['description'] || bc_name.humanize,
-                                :online_help => bc['barclamp']['online_help'],
-                                :version     => bc['barclamp']['version'] || 2,
-                                :api_version => bc['barclamp']['api_version'] || "v2",
-                                :api_version_accepts => bc['barclamp']['api_version_accepts'] || "|v2|",
-                                :license     => bc['barclamp']['license'] || "apache2",
-                                :copyright   => bc['barclamp']['copyright'] || "Dell, Inc 2013",
-                                :source_path => source_path,
-                                :user_managed=> um || true,
-                                :allow_multiple_proposals => amp || false,
-                                :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
-                                :layout      => bc['crowbar']['layout'] || 2,
-                                :order       => bc['crowbar']['order'] || 0,
-                                :run_order   => bc['crowbar']['run_order'] || 0,
-                                :jig_order  => bc['crowbar']['chef_order'] || 0,
-                                :mode        => "full",
-                                :transitions => false,
-                                :build_on    => (gitdate || 'unknown'),
-                                :commit      => (gitcommit || 'unknown')   )
-    barclamp.save
-    
-    # memberships (if memembership is missing, we'll let you into the club anyway)
-    if bc['barclamp']['member']
-      bc['barclamp']['member'].each do |owner|
-        o = Barclamp.find_by_name owner
-        o.members << barclamp if o and !o.members.include? barclamp
-      end
-    end
-
-    # requires (will fail if prereq is missing)
-    if bc['barclamp']['requires']
-      bc['barclamp']['requires'].each do |prereq|
-        prereq = prereq[1..100] if prereq.starts_with? "@"
-        pre = Barclamp.find_by_name prereq
-        throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
-        barclamp.prereqs << pre 
-      end
+      raise 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
     end
     
-    # packages (only import 1.x for latest OS)
-    begin    
-      debs = Os.find_by_name "ubuntu-12.04"
-      bc['debs'].each do |k, v|
-        if k.eql? 'pkgs'
-          v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
-        elsif k.eql? debs.name
-          v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
+    Barclamp.transaction do
+    
+      # Can't do the || trick booleans because nil is false.
+      amp = bc['barclamp']['allow_multiple_deployments'] rescue nil
+      amp ||= bc['barclamp']['allow_multiple_proposals'] rescue false
+      um = bc['barclamp']['user_managed'] rescue true
+      gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
+      gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
+      barclamp.update_attributes( :display     => bc['barclamp']['display'] || bc_name.humanize,
+                                  :description => bc['barclamp']['description'] || bc_name.humanize,
+                                  :online_help => bc['barclamp']['online_help'],
+                                  :version     => bc['barclamp']['version'] || 2,
+                                  :api_version => bc['barclamp']['api_version'] || "v2",
+                                  :api_version_accepts => bc['barclamp']['api_version_accepts'] || "|v2|",
+                                  :license     => bc['barclamp']['license'] || "apache2",
+                                  :copyright   => bc['barclamp']['copyright'] || "Dell, Inc 2013",
+                                  :source_path => source_path,
+                                  :user_managed=> um || true,
+                                  :allow_multiple_proposals => amp || false,
+                                  :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
+                                  :layout      => bc['crowbar']['layout'] || 2,
+                                  :order       => bc['crowbar']['order'] || 0,
+                                  :run_order   => bc['crowbar']['run_order'] || 0,
+                                  :jig_order  => bc['crowbar']['chef_order'] || 0,
+                                  :mode        => "full",
+                                  :transitions => false,
+                                  :build_on    => (gitdate || 'unknown'),
+                                  :commit      => (gitcommit || 'unknown')   )
+      barclamp.save
+      
+      # memberships (if memembership is missing, we'll let you into the club anyway)
+      if bc['barclamp']['member']
+        bc['barclamp']['member'].each do |owner|
+          o = Barclamp.find_by_name owner
+          o.members << barclamp if o and !o.members.include? barclamp
         end
       end
-    rescue Exception => e
-      #nothing
-    end
-    
-    begin
-      rpms = Os.find_by_name "centos-6.2"
-      bc['rpms'].each do |k, v|
-        if k.eql? 'pkgs'
-          v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>prms.id) }
-        elsif k.eql? rpms.name
-          v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>rpms.id) }
+  
+      # requires (will fail if prereq is missing)
+      if bc['barclamp']['requires']
+        bc['barclamp']['requires'].each do |prereq|
+          prereq = prereq[1..100] if prereq.starts_with? "@"
+          pre = Barclamp.find_by_name prereq
+          throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
+          barclamp.prereqs << pre 
         end
       end
-    rescue Exception => e
-      #nothing
-    end
-
-    barclamp.create_template bc_file
-    # all deployment details get imported into the template
-    barclamp.import_template
+      
+      # packages (only import 1.x for latest OS)
+      begin    
+        debs = Os.find_by_name "ubuntu-12.04"
+        bc['debs'].each do |k, v|
+          if k.eql? 'pkgs'
+            v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
+          elsif k.eql? debs.name
+            v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>debs.id) }
+          end
+        end
+      rescue Exception => e
+        #nothing
+      end
+      
+      begin
+        rpms = Os.find_by_name "centos-6.2"
+        bc['rpms'].each do |k, v|
+          if k.eql? 'pkgs'
+            v.each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>prms.id) }
+          elsif k.eql? rpms.name
+            v['pkgs'].each { |pkg| barclamp.packages << OsPackage.find_or_create_by_name_and_os_id(:name=>pkg, :os_id=>rpms.id) }
+          end
+        end
+      rescue Exception => e
+        #nothing
+      end
+  
+      barclamp.create_template bc_file
+      # all deployment details get imported into the template
+      barclamp.import_template
+    
+    end # transaction  
 
     return barclamp
   end
@@ -347,7 +352,7 @@ class Barclamp < ActiveRecord::Base
               )
       self.template_id = t.id
       # attach the default private role
-      ri = t.add_role Role.find_private
+      ri = t.add_role RoleType.find_private
       ri.order = 1
       ri.run_order = -1   # this tells Crowbar NOT to give the information to the Jig
       ri.description = I18n.t('model.barclamp.private_role_description'),

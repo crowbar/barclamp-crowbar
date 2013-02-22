@@ -39,20 +39,22 @@ fi
 mkdir -p /var/run/crowbar/
 chmod 0700 /var/run/crowbar
 
-# Make our /etc/profile/crowbar.sh 
-mkdir -p /etc/profile.d
-cat > /etc/profile.d/crowbar.sh <<EOF
-# Make sure /opt/dell/bin is in the root path
-if ! echo \${PATH} | /bin/grep -q /opt/dell/bin ; then
-        if [ \$(/usr/bin/id -u) = 0 ] ; then
-                PATH=${PATH}:/opt/dell/bin
-        fi
+# Fix up /etc/environment
+if ! grep -q '/opt/dell/bin' /etc/environment; then
+    export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/dell/bin"
+    sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
 fi
 
+# Make our /etc/profile/crowbar.sh
+if [[ ! -f /etc/profile.d/crowbar.sh ]]; then
+    mkdir -p /etc/profile.d
+    cat > /etc/profile.d/crowbar.sh <<EOF
+# Make sure that CROWBAR_KEY is in the environment
 if [ -f /etc/crowbar.install.key ] ; then
     export CROWBAR_KEY=\$(cat /etc/crowbar.install.key)
 fi
 EOF
+fi
 cd /opt/dell/crowbar_framework
 
 for d in /var/run/crowbar /opt/dell/crowbar_framework; do

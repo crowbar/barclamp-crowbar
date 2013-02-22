@@ -206,7 +206,7 @@ class Barclamp < ActiveRecord::Base
   def import_template(json=nil, template_file=nil)
     # this shoudl go away as we migrate the data into Crowbar.yml
     template_file ||= File.expand_path(File.join('..','barclamps',name,"bc-template-#{name}.json"))
-    throw "cannot import #{template_file} for #{name}" unless File.exists?(template_file)
+    return unless File.exists?(template_file)
     json = JSON::load File.open(template_file, 'r') if json.nil?
 
     create_template template_file

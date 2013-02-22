@@ -182,7 +182,9 @@ class Barclamp < ActiveRecord::Base
 
     template_file ||= File.expand_path(File.join(source_path,"bc-template-#{name}.json"))
     template_file = File.expand_path(File.join(source_path,"config-template.json")) unless File.exists? template_file 
-    throw "cannot import #{template_file} for #{name}" unless File.exists?(template_file)
+
+    return unless File.exists?(template_file)
+
     json = JSON::load File.open(template_file, 'r') if json.nil?
 
     create_template template_file
@@ -216,7 +218,7 @@ class Barclamp < ActiveRecord::Base
     jattrib.each do |key, value|
       # this will handle strings or hashes
       role.add_attrib key, value
-    end
+    end unless jattrib.nil?
 
     # import users 
     users = json["attributes"]["crowbar"]["users"] rescue Hash.new

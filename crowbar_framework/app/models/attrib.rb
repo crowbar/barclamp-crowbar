@@ -17,7 +17,7 @@ class Attrib < ActiveRecord::Base
 
   before_create :set_type_and_role
 
-  attr_accessible :node_id, :attrib_type_id, :role_id, :type     # core relationshipships
+  attr_accessible :node_id, :attrib_type_id, :role_id, :type     # core relationship
   attr_accessible :value_actual, :value_request   # data storage
   attr_accessible :jig_run_id                     # jig relationship
 
@@ -52,7 +52,7 @@ class Attrib < ActiveRecord::Base
   end
   
   def name
-    attrib.name
+    attrib_type.name
   end
 
   # for now, none of the proposed values are visible
@@ -86,7 +86,7 @@ class Attrib < ActiveRecord::Base
    j = {
      :id=> id,
      :node_id=> node_id,
-     :attrib_id=> attrib_id,
+     :attrib_id=> attrib_type_id,
      :value=> value,
      :state => state,
      :created_at=> created_at,
@@ -96,10 +96,10 @@ class Attrib < ActiveRecord::Base
      :description=> I18n.t('not_set')
    }
    # protects against error
-   if attrib
-    j[:name] = "#{attrib.name}@#{node.name}" rescue I18n.t('unknown')
-    j[:order] = attrib.order              # allows object to confirm to Crowbar pattern
-    j[:description] = attrib.description  # allows object to confirm to Crowbar pattern
+   if attrib_type
+    j[:name] = "#{attrib_type.name}@#{node.name}" rescue I18n.t('unknown')
+    j[:order] = attrib_type.order              # allows object to confirm to Crowbar pattern
+    j[:description] = attrib_type.description  # allows object to confirm to Crowbar pattern
    end
    j
   end

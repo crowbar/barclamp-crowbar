@@ -50,4 +50,8 @@ class DeploymentsController < ApplicationController
     render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Commit Action: refactoring by CloudEdge')
   end
 
+  def status
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Status Action: refactoring by CloudEdge')
+  end
+
 end

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::AttribsController < ApplicationController
-  active_scaffold :attrib do |conf|
+class Scaffolds::JigMapsController < ApplicationController
+  active_scaffold :jig_map do |conf|
   end
 end 

@@ -13,24 +13,10 @@
 # limitations under the License. 
 # 
 Crowbar::Application.routes.draw do
-
-  namespace :scaffolds do
-    resources :attrib_typess do as_routes end
-    resources :attribs do as_routes end
-    resources :barclamps do as_routes end
-    resources :docs do as_routes end
-    resources :groups do as_routes end
-    resources :nodes do as_routes end
-    resources :jigs do as_routes end
-    resources :navs do as_routes end
-    resources :os do as_routes end
-    resources :os_packages do as_routes end
-    resources :role_element_orders do as_routes end
-    resources :role_types do as_routes end
-  end
-
+  
 # DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
 
+  # ??? what is this ??
   resources :nodes, :only => [:index, :new] do
     get 'status', :on => :collection
   end
@@ -52,6 +38,26 @@ Crowbar::Application.routes.draw do
       get 'upload/:id'    => 'support#upload', :as => :utils_upload
       get 'restart/:id'   => 'support#restart', :as => :restart
       get 'digest'        => "support#digest"
+    end
+    namespace :scaffolds do
+      resources :attrib_types do as_routes end
+      resources :attribs do as_routes end
+      resources :barclamps do as_routes end
+      resources :deployments do as_routes end
+      resources :docs do as_routes end
+      resources :groups do as_routes end
+      resources :jig_events do as_routes end
+      resources :jig_maps do as_routes end
+      resources :jig_runs do as_routes end
+      resources :jigs do as_routes end
+      resources :navs do as_routes end
+      resources :nodes do as_routes end
+      resources :os do as_routes end
+      resources :os_packages do as_routes end
+      resources :role_element_orders do as_routes end
+      resources :role_types do as_routes end
+      resources :roles do as_routes end
+      resources :snapshots do as_routes end
     end
   end
 
@@ -107,6 +113,13 @@ Crowbar::Application.routes.draw do
     
     # API routes (must be json and must prefix 2.0)()
     scope :defaults => {:format=> 'json'} do
+   
+      scope 'framework' do            
+        scope 'status' do
+          get "nodes(/:id/)" => "nodes#status",  :as=>'nodes_status'
+          get "deployments(/:id/)" => "deployments#status",  :as=>'deployments_status'
+        end
+      end
       
       # v2 API Pattern
       scope ':barclamp' do
@@ -133,14 +146,13 @@ Crowbar::Application.routes.draw do
             resources :attribs
             resources :attrib_types
             
-            get "nodes/status"                  => "nodes#status"
             resources :nodes
-            match "nodes/:id/status"            => "nodes#status",  :as=>'nodes_status'
             match "nodes/:id/attribs(/:attrib)" => "nodes#attribs", :as=>'nodes_attribs'
             match "nodes/:id/group(/:group)"    => "nodes#group",   :as=>'nodes_groups'
             
             resources :groups
             resources :users
+
           end
         end
       end

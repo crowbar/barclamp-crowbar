@@ -79,11 +79,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_equal [], t
   end
 
-  test "Operations function" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
-    assert_instance_of(CrowbarService, b.operations)
-  end
-
   test "Versions" do
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b

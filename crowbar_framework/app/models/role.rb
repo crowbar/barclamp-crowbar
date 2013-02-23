@@ -26,6 +26,7 @@ class Role < ActiveRecord::Base
   belongs_to      :role_type,         :inverse_of => :role
   belongs_to      :snapshot
   has_one         :barclamp,          :through => :snapshot
+  has_one         :deployment,        :through => :snapshot
   
   has_many        :attribs,           :dependent => :destroy
   has_many        :attrib_types,      :through => :attribs
@@ -72,7 +73,7 @@ class Role < ActiveRecord::Base
   # Clone this role
   # optionally, change parent too
   # with_nodes allows for template copies that should have not nodes assigned yet
-  def deep_clone(snapshot=nil, with_nodes=true)
+  def deep_clone(snapshot=nil, clone_with_nodes=true)
     new_role = self.dup
     new_role.snapshot_id = snapshot.read_attribute(:id) if snapshot
     new_role.save
@@ -80,7 +81,7 @@ class Role < ActiveRecord::Base
     # clone the attributes (includes node-roles)
     attribs.each do |ai|
       # if we are cloning a template then we need the option of no nodes
-      if with_nodes or ai.node_id.nil?
+      if clone_with_nodes or ai.node_id.nil?
         new_ai = ai.dup
         new_ai.role_id = new_role.id
         new_ai.jig_run_id = nil

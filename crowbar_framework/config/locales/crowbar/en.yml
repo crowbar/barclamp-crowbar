@@ -84,6 +84,7 @@ en:
       menus: Menu Items
       docs: Doc Topics
       os: "Operating Systems"
+      jigs: Jigs
     
     error: Render Error
 
@@ -376,14 +377,14 @@ en:
         proposal: Proposal
         description: Description
     graph:
-      title: Barclamp Graph
+      title: "Barclamp Graph"
       parents: Parents
       roles: Role
       proposals: Proposals
       attribs: Attributes
       members: Members
-      deployments: deployments
-      snapshot: snapshot
+      deployments: Deployments
+      snapshots: Snapshots
       template: Template
     modules:
       title: All Barclamps

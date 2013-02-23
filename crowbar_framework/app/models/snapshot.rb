@@ -32,10 +32,10 @@ class Snapshot < ActiveRecord::Base
   has_many        :roles,             :dependent => :destroy, :order => ROLE_ORDER
   has_many        :private_roles,     :class_name => "Role", :conditions=>'run_order<0', :order => ROLE_ORDER
   has_many        :public_roles,      :class_name => "Role", :conditions=>'run_order>=0', :order => ROLE_ORDER
-  has_many        :roles_types,       :through => :roles
+  has_many        :role_types,        :through => :roles
 
   has_many        :attribs,           :through => :roles
-  has_many        :attribs_types,     :through => :attribs
+  has_many        :attrib_types,      :through => :attribs
   
   def active?
     deployment.active_snapshot_id == self.id

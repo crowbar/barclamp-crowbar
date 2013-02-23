@@ -18,24 +18,24 @@
           = t ".template"
           = ": #{t.name} (#{t.description})"
           %ul{:id=>"#{bc.id}_roles"}
-            - t.role_instances.each do |ri|
-              - role = ri.role
+            - t.roles.each do |ri|
+              - role = ri.role_type
               - unless role.nil?              
                 %li
                   = "#{t ".roles"}: #{role.name} (run_order=#{ri.run_order})" 
                   %ul
-                    - ri.attrib_instances.each do |ai|
+                    - ri.attribs.each do |ai|
                       %li{:id=>ai.id}= ai.name
               - else
-                %li= "#{t ".roles"}: no role! RoleInstance = #{ri.inspect}" 
+                %li= "#{t ".roles"}: no role! Role = #{ri.inspect}" 
         %li
-          = t ".configs"
-          %ul{:id=>"#{bc.id}_configs"}
-            - bc.configs.each do |c|
+          = t ".deployments"
+          %ul{:id=>"#{bc.id}_deployments"}
+            - bc.deployments.each do |c|
               %li
                 = "#{c.name}: #{(c.active?) ? t('active') : ''} #{c.description}"
-                - c.instances.each do |i|
+                - c.snapshots.each do |i|
                   %li
-                    = "#{t '.instance'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"
+                    = "#{t '.snapshot'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"
 
     

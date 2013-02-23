@@ -1,4 +1,4 @@
-# Copyright 2013, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::AttribsController < ApplicationController
-  active_scaffold :attrib do |conf|
+class Scaffolds::RolesController < ApplicationController
+  active_scaffold :role do |conf|
   end
 end 

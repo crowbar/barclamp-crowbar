@@ -119,7 +119,6 @@ class NodesController < ApplicationController
         flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
       end
     end
-    @options = CrowbarService.read_options
     @nodes = {}
     Node.all.each do |node|
       @nodes[node.name] = node if params[:allocated].nil? or !node.allocated?
@@ -177,10 +176,6 @@ class NodesController < ApplicationController
     end
     render :inline => {:sum => sum, :status=>status, :state=>state, :i18n=>i18n, :groups=>groups, :count=>state.length}.to_json, :cache => false
     
-  end
-
-  def status
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Status Action: refactoring by CloudEdge')
   end
   
   def attribs
@@ -269,7 +264,7 @@ class NodesController < ApplicationController
       # POST and PUT (do the same thing since PUT will create the missing info)
       if request.post? or request.put?
         # this is setup to add the param even if we could not find it earlier
-        ai.value = params["value"]
+        ai.actual = params["value"]
         render api_show :attrib, Attrib, nil, nil, ai
       # DELETE
       elsif request.delete? and attrib and node

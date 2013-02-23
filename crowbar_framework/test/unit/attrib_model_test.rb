@@ -33,12 +33,12 @@ class AttribModelTest < ActiveSupport::TestCase
   end
   
   test "Attrib Instances must attrib" do
-    assert_raise(ActiveRecord::StatementInvalid) { Attrib..create :node_id=>@node.id, :attrib_id=>nil }
+    assert_raise(ActiveRecord::StatementInvalid) { Attrib.create :node_id=>@node.id, :attrib_id=>nil }
   end
   
   test "Attrib Instance can have no run" do
     a = Attrib.create :name=>"no_run"
-    v = Attrib..create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
+    v = Attrib.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
     assert_not_nil v
   end
   
@@ -56,10 +56,10 @@ class AttribModelTest < ActiveSupport::TestCase
     a = Attrib.create :name=>"unset"
     assert_not_nil a
     assert_not_nil n
-    v = Attrib..create :node_id=>n.id, :attrib_id=>a.id
+    v = Attrib.create :node_id=>n.id, :attrib_id=>a.id
     assert_not_nil v
-    v = Attrib..find v.id
-    assert_instance_of Attrib.::DEFAULT_CLASS, v
+    v = Attrib.find v.id
+    assert_instance_of Attrib::DEFAULT_CLASS, v
     assert_equal :empty, v.state
     assert_nil v.actual
     assert_equal v.class::MARSHAL_EMPTY, v.value_actual
@@ -97,12 +97,12 @@ class AttribModelTest < ActiveSupport::TestCase
     na = n.attrib_get(attrib)
     assert_not_nil na
     id = na.id
-    na2 = Attrib..find id 
+    na2 = Attrib.find id 
     assert_not_nil na2
     
     assert n.destroy
     assert_raise(ActiveRecord::RecordNotFound) { Node.find n.id }
-    assert_raise(ActiveRecord::RecordNotFound) { Attrib..find id }
+    assert_raise(ActiveRecord::RecordNotFound) { Attrib.find id }
   end
   
   test "Attrib Instance removed when attribute deleted" do
@@ -117,14 +117,14 @@ class AttribModelTest < ActiveSupport::TestCase
     id = na.id
     assert a.destroy
     assert_raise(ActiveRecord::RecordNotFound) { Attrib.find a.id }
-    assert_raise(ActiveRecord::RecordNotFound) { Attrib..find id }
+    assert_raise(ActiveRecord::RecordNotFound) { Attrib.find id }
   end
     
   test "Attrib Instance find_or_create" do
     a = Attrib.create :name=>"busted"
     assert_not_nil a
     assert_raise(ActiveRecord::StatementInvalid) { Attrib..find_or_create_by_attrib_and_node(nil, @node) }
-    na = Attrib..find_or_create_by_attrib_and_node(@node, a)
+    na = Attrib.find_or_create_by_attrib_and_node(@node, a)
     assert_not_nil na
   end
 
@@ -250,7 +250,7 @@ class AttribModelTest < ActiveSupport::TestCase
     assert_equal value, na.request
     assert_not_nil na.jig_run_id
         
-    na2 = Attrib..find na.id
+    na2 = Attrib.find na.id
     assert_not_nil na2
     assert_equal nil, na2.value
     assert_equal :unready, na2.state

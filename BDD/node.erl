@@ -22,6 +22,7 @@
 g(Item) ->
   case Item of
     path -> "crowbar/v2/nodes";
+    status_path -> "/framework/status/nodes";
     name -> "bdd1.example.com";
     atom -> node1;
     _ -> crowbar:g(Item)

@@ -19,6 +19,8 @@
 % Common Routine
 g(Item) ->
   case Item of
+    path -> "dashboard";
+    status_path -> node:g(status_path);
     name -> "dashboard1.example.com";
     atom -> dashboard1;
     _ -> node:g(Item)
@@ -43,8 +45,8 @@ step(_Config, Given, {step_when, _N, ["I examine the dashboard fingerprint"]}) -
 % ==== THEN
 step(Config, Result, {step_then, _N, ["the dashboard fingerprint should match the REST fingerprint"]}) ->
   {fingerprint, Hash} = lists:keyfind(fingerprint, 1, Result),
-  %When AJAX requests the "2.0/status/node" page
-  JSON = eurl:get(Config, "2.0/status/node"),
+  %When AJAX requests the "/framework/status/nodes" page
+  JSON = eurl:get(Config, g(status_path)),
   R = json:parse(JSON),
   %Then key "fingerprint" should be a number
   {"sum", Test} = lists:keyfind("sum", 1, R),

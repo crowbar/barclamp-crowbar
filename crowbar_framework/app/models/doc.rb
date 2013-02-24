@@ -12,8 +12,6 @@
 # See the License for the specific language governnig permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
-#
 class Doc < ActiveRecord::Base
   
   self.primary_key = "name"  

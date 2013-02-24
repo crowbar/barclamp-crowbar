@@ -44,7 +44,7 @@ step(Config, _Given, {step_when, _N, ["I go to home page"]}) ->
   Message;
 
 step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
-  URL = eurl:uri(Config, "2.0/status/node"),
+  URL = eurl:uri(Config, node:g(status_path)),
   {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = httpc:request(URL),
   {digest, Code};
 

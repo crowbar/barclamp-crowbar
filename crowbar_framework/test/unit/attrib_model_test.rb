@@ -23,7 +23,7 @@ class AttribModelTest < ActiveSupport::TestCase
     @value = "unit test"
     @crowbar = Barclamp.find_or_create_by_name :name=>"crowbar"
     @node = Node.find_or_create_by_name :name=>"units.example.com"
-    @attrib = Attrib.find_or_create_by_name :name=>"unit_test"
+    @attrib = AttribType.add :name=>"unit_test"
     @na = @node.set_attrib @attrib, @value
     assert_not_nil @na
     assert_equal @value, @na.value
@@ -33,17 +33,17 @@ class AttribModelTest < ActiveSupport::TestCase
   end
   
   test "Attrib Instances must attrib" do
-    assert_raise(ActiveRecord::StatementInvalid) { Attrib.create :node_id=>@node.id, :attrib_id=>nil }
+    assert_raise(ActiveRecord::StatementInvalid) { Attrib.create :node_id=>@node.id, :attrib_type_id=>nil }
   end
   
   test "Attrib Instance can have no run" do
-    a = Attrib.create :name=>"no_run"
-    v = Attrib.create :node_id=>@node.id, :attrib_id=>a.id, :jig_run_id=>nil
+    a = AttribType.add :name=>"no_run"
+    v = Attrib.create :node_id=>@node.id, :attrib_type_id=>a.id, :jig_run_id=>nil
     assert_not_nil v
   end
   
   test "Attrib Instance actual values state correct" do
-    v = @node.attrib_get('state_test')
+    v = @node.get_attrib('state_test')
     assert_nil v.jig_run_id
     v.actual = @value
     assert_equal @value, v.actual
@@ -53,10 +53,10 @@ class AttribModelTest < ActiveSupport::TestCase
   
   test "Attrib Instance stores values state correct" do
     n = Node.create :name=>"pending.example.com"
-    a = Attrib.create :name=>"unset"
+    a = AttribType.create :name=>"unset"
     assert_not_nil a
     assert_not_nil n
-    v = Attrib.create :node_id=>n.id, :attrib_id=>a.id
+    v = Attrib.create :node_id=>n.id, :attrib_type_id=>a.id
     assert_not_nil v
     v = Attrib.find v.id
     assert_instance_of Attrib::DEFAULT_CLASS, v
@@ -79,9 +79,9 @@ class AttribModelTest < ActiveSupport::TestCase
     v.save!
     n = Node.find @node.id
     assert_not_nil n
+    assert n.attrib_types.count > 0
     assert n.attribs.count > 0
-    assert n.attrib_instances.count > 0
-    na = n.attrib_instances[0]
+    na = n.attribs[0]
     assert_not_nil na
     assert_equal value, na.value
     assert_equal Marshal::dump(value), na.value_actual
@@ -94,7 +94,7 @@ class AttribModelTest < ActiveSupport::TestCase
     n = Node.create :name=>name
     assert_not_nil n
     n.save
-    na = n.attrib_get(attrib)
+    na = n.get_attrib(attrib)
     assert_not_nil na
     id = na.id
     na2 = Attrib.find id 
@@ -111,20 +111,20 @@ class AttribModelTest < ActiveSupport::TestCase
     n = Node.create :name=>name
     assert_not_nil n
     n.save
-    na = n.attrib_get(attrib)
-    a = Attrib.find_by_name attrib
+    na = n.get_attrib(attrib)
+    a = AttribType.add attrib
     assert_not_nil na
     id = na.id
     assert a.destroy
-    assert_raise(ActiveRecord::RecordNotFound) { Attrib.find a.id }
-    assert_raise(ActiveRecord::RecordNotFound) { Attrib.find id }
+    assert_raise(ActiveRecord::RecordNotFound) { AttribType.find a.id }
+    assert_raise(ActiveRecord::RecordNotFound) { AttribType.find id }
   end
     
   test "Attrib Instance find_or_create" do
-    a = Attrib.create :name=>"busted"
+    a = AttribType.add :name=>"busted"
     assert_not_nil a
-    assert_raise(ActiveRecord::StatementInvalid) { Attrib..find_or_create_by_attrib_and_node(nil, @node) }
-    na = Attrib.find_or_create_by_attrib_and_node(@node, a)
+    assert_raise(RuntimeError) { Attrib.find_or_create_by_attrib_type_and_node(nil, @node) }
+    na = Attrib.find_or_create_by_attrib_type_and_node(@node, a)
     assert_not_nil na
   end
 
@@ -161,85 +161,77 @@ class AttribModelTest < ActiveSupport::TestCase
     v = @na
     v.actual = value
     v.save
-    assert_equal value, @node.attrib_get(@attrib.name).value
+    assert_equal value, @node.get_attrib(@attrib).value
   end
   
   test "Node can have attributes" do
-    attrib = Attrib.find_or_create_by_name :name=>"foo"
+    attrib = AttribType.add :name=>"foo"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar.test.com"
     assert_not_nil node
     nbefore = node.attribs.length
     abefore = attrib.nodes.length
-    node.attribs << attrib
-    # retrieve from cache
-    n = Node.find_by_name "bar.test.com"
-    a = Attrib.find_by_name "foo"
+    na = node.get_attrib attrib
     # node has attributes
-    assert_equal nbefore+1, n.attribs.length
-    assert n.attribs.include? a
+    assert_equal nbefore+1, node.attribs(true).length
+    assert node.attribs.include? na
     # attribute has nodes
-    assert_equal abefore+1, a.nodes.length
-    assert a.nodes.include? n
+    assert_equal abefore+1, attrib.nodes(true).length
+    assert attrib.nodes.include? node
   end
   
   test "Attrib can have nodes" do
-    attrib = Attrib.find_or_create_by_name :name=>"foo2"
+    attrib = AttribType.add :name=>"foo2"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar2.test.com"
     assert_not_nil node
     nbefore = node.attribs.length
     abefore = attrib.nodes.length
-    attrib.nodes << node
-    # retrieve from cache
-    n = Node.find_by_name "bar2.test.com"
-    a = Attrib.find_by_name "foo2"
+    a = node.get_attrib attrib
     # node has attributes
-    assert_equal nbefore+1, n.attribs.length
-    assert n.attribs.include? a
+    assert_equal nbefore+1, node.attribs(true).length
+    assert node.attribs.include? a
     # attribute has nodes
-    assert_equal abefore+1, a.nodes.length
-    assert a.nodes.include? n
+    assert_equal abefore+1, attrib.nodes(true).length
+    assert attrib.nodes(true).include? node
   end
   
   test "Attrib remove node" do
-    attrib = Attrib.find_or_create_by_name :name=>"foo3"
+    attrib = AttribType.find_or_create_by_name :name=>"foo3"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar3.test.com"
     assert_not_nil node
     attrib.nodes << node
     n = Node.find_by_name "bar3.test.com"
-    a = Attrib.find_by_name "foo3"
+    a = AttribType.add "foo3"
     assert a.nodes.include? n
     a.nodes.delete n
     n_after = Node.find_by_name "bar3.test.com"
-    a_after = Attrib.find_by_name "foo3"
+    a_after = AttribType.find_by_name "foo3"
     assert !a_after.nodes.include?(n_after)
     assert !n_after.attribs.include?(a_after)
   end
   
   test "Node remove attribute" do
-    attrib = Attrib.find_or_create_by_name :name=>"foo4"
+    attrib = AttribType.find_or_create_by_name :name=>"foo4"
     assert_not_nil attrib
     node = Node.find_or_create_by_name :name=>"bar4.test.com"
     assert_not_nil node
     attrib.nodes << node
     n = Node.find_by_name "bar4.test.com"
-    a = Attrib.find_by_name "foo4"
-    assert a.nodes.include? n
+    a = n.get_attrib "foo4"
+    assert_equal a.node_id, n.id
     n.attribs.delete a
-    n_after = Node.find_by_name "bar4.test.com"
-    a_after = Attrib.find_by_name "foo4"
-    assert !a_after.nodes.include?(n_after)
-    assert !n_after.attribs.include?(a_after)
+    assert !n.attribs(true).include?(a)
+    assert !n.get_attribs("foo4").include?(a)
   end
   
   test "Node stores proposed attrib and sets state" do
     value = "proposed value"
     name = "unit_proposed"
-    na = @node.attrib_get(name)
+    na = @node.get_attrib(name)
     assert_not_nil na
-    assert_equal name, na.attrib.name
+    assert_equal name, na.name
     assert_nil na.value
     assert_equal :empty, na.state
     assert_nil na.request
@@ -261,9 +253,9 @@ class AttribModelTest < ActiveSupport::TestCase
   test "Node state reflects proposed state" do
     value = "state value"
     name = "unit_state"
-    na = @node.attrib_get(name)
+    na = @node.get_attrib(name)
     assert_not_nil na
-    assert_equal name, na.attrib.name
+    assert_equal name, na.name
     assert_equal nil, na.value
     assert_equal :empty, na.state
     assert_equal nil, na.request

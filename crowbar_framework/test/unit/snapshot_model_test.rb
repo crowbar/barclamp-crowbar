@@ -29,13 +29,13 @@ class SnapshotModelTest < ActiveSupport::TestCase
     # now add the role
     ri = bi.add_role name
     assert_not_nil ri
-    assert_equal name, ri.role.name
+    assert_equal name, ri.role_type.name
     assert_not_nil RoleType.find_by_name name, "now we have the name"
     assert_equal 1, bi.roles.count
   end
   
   test "Check proections on illegal config names" do
-    assert_raise(ActiveRecord::RecordInvalid) { BarclampConfiguration.create!(:name => "template") }
+    assert_raise(ActiveRecord::RecordInvalid) { Deployment.create!(:name => "template") }
   end
   
   test "deep clone works" do
@@ -43,8 +43,8 @@ class SnapshotModelTest < ActiveSupport::TestCase
     bi = Snapshot.create :name=>"deep_clone", :status => Snapshot::STATUS_APPLIED, :barclamp_id => b.id 
     r1 = RoleType.create :name=>"something"
     r2 = RoleType.create :name=>"anotherthing"
-    ri1 = Role.create :role_id => r1.id, :snapshot_id=>bi.id, :order=>100
-    ri2 = Role.create :role_id => r2.id, :snapshot_id=>bi.id, :order=>200
+    ri1 = Role.create :role_type_id => r1.id, :snapshot_id=>bi.id, :order=>100
+    ri2 = Role.create :role_type_id => r2.id, :snapshot_id=>bi.id, :order=>200
     assert_equal 2, bi.roles(true).count
     clone = bi.deep_clone nil, 'new_me'
     assert_not_nil clone

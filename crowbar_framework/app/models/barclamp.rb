@@ -88,9 +88,9 @@ class Barclamp < ActiveRecord::Base
     a = AttribType.add attrib_type, self.name
     r = role_type.nil? ? nil : RoleType.add(role_type, self.name)
     # map it
-    JigMap.add a, self, map unless map.nil?
+    JigMap.add a, self, map if map
     # add the attrib type to the barclamp snapshot
-    template.add_attrib a, r unless template.nil?
+    template.add_attrib a, r if template
   end
 
   #
@@ -108,24 +108,24 @@ class Barclamp < ActiveRecord::Base
   def create_proposal(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
     deployment ||= { :name => I18n.t('default')}
-    bc = nil
+    proposal = nil
     if allow_multiple_deployments or deployments.count==0
       # setup required items
       deployment[:barclamp_id]  = self.id
       deployment[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
       Deployment.transaction do 
         # create a new deployment
-        bc = Deployment.create deployment
+        proposal = Deployment.create deployment
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
         # create the snapshot 
-        snapshot = based_on.deep_clone bc, deployment.name, false
+        snapshot = based_on.deep_clone proposal, deployment.name, false
         # attach the snapshot to the config
-        bc.proposed_snapshot_id = snapshot.id
-        bc.save
+        proposal.proposed_snapshot_id = snapshot.id
+        proposal.save
       end
     end
-    bc
+    proposal
   end
 
   
@@ -370,8 +370,9 @@ class Barclamp < ActiveRecord::Base
   def create_type_from_name
     throw "barclamps require a name" if self.name.nil?
     file = "#{self.name}"
-    myclass = "#{self.name.camelize}::Barclamp"
-    file = File.join 'app','models',self.name, "barclamp.rb"
+    myclass = "Barclamp#{self.name.camelize}::Barclamp"
+    # this will need to be fixed for the engines!!
+    file = File.join 'app','models',"barclamp_#{self.name}", "barclamp.rb"
     if !self.type.nil?
       # do nothing - everything is OK
     elsif File.exist? file

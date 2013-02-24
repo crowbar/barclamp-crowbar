@@ -28,7 +28,7 @@ class BarclampImportTest < ActiveSupport::TestCase
   end
 
   test "roles get priority from deployment section" do
-    json = JSON::load File.open("test/data/foo/templates/bc-template-foo.json")
+    json = JSON::load File.open("test/data/foo/bc-template-foo.json")
     bc = Barclamp.import_1x "foo", nil, "test/data/foo"
     bc.import_template(json,"bc-foo.json")
     rmap = {}
@@ -41,19 +41,22 @@ class BarclampImportTest < ActiveSupport::TestCase
   end
   
   test "roles are ordered correctly" do
-    json = JSON::load File.open("test/data/foo/templates/bc-template-foo.json")    
     bc = Barclamp.create :name=>"foo"
     bc.source_path = "test/data/foo"
-    bc.import_template(json,"bc-foo.json")
-    ordered = bc.roles(true)    # (true) forces a reload of the model
-    assert_equal 'private', ordered.first.name
-    assert_equal 'foo_mon_master', ordered.second.name
-    assert_equal 'foo_mon', ordered.third.name
-    assert_equal 'foo_store', ordered.fourth.name
+    t = Snapshot.create(:name=>"test", :barclamp_id=>bc.id)
+    bc.template_id = t.id
+    bc.import_template
+    bc.save
+    ordered = bc.template.roles(true)    # (true) forces a reload of the model
+    assert bc.template.roles(true).count>0
+    assert_equal 'foo_mon_master', ordered.first.name
+    assert_equal 'foo_mon', ordered.second.name
+    assert_equal 'foo_store', ordered.third.name
   end
 
   test "barclamp import fails on missing yml" do
-    assert_raise(NameError) {  Barclamp.import_1x 'bar', nil, 'test/data/foo' }
+     e = assert_raise(RuntimeError) {  Barclamp.import_1x 'bar', nil, 'test/data/foo' }
+     assert_equal "Barclamp name must match name from YML file", e.message
   end
   
   test "barclamp info set for import" do

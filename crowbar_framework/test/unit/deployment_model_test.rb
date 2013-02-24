@@ -17,7 +17,7 @@ require 'test_helper'
 class DeploymentModelTest < ActiveSupport::TestCase
 
   def setup
-    @bc = Barclamp.create! :name=>'bc_config_test'
+    @bc = Barclamp.import 'foo', nil, 'test/data/foo'
   end
   
   test "Unique per Barclamp Name" do
@@ -44,21 +44,18 @@ class DeploymentModelTest < ActiveSupport::TestCase
   end
 
   test "Active works" do
-    config = Deployment.create :name=>"active", :barclamp_id=>@bc.id
-    assert_equal 0, config.snapshots.count
-    assert_equal 0, config.snapshots.count
-    assert       !config.active?
-    assert_nil   config.active_snapshot
-    # add snapshot
-    snapshot = Snapshot.create :name=>"active2", :deployment_id=>config.id, :barclamp_id => @bc.id
+    config = @bc.create_proposal "active"
+    assert_not_nil config
     assert_equal 1, config.snapshots.count
     assert       !config.active?
+    assert_nil   config.active_snapshot
     assert_nil   config.active_snapshot
     # now activate
-    config.active_snapshot = snapshot
-    assert_equal 1, config.snapshots.count
+    config.active_snapshot = config.proposed_snapshot
+    config.save
+    assert_equal 1, config.snapshots(true).count
     assert       config.active?
-    assert_equal snapshot, config.active_snapshot
+    assert_not_nil config.active_snapshot
   end
   
   test "status check missing" do
@@ -124,12 +121,12 @@ class DeploymentModelTest < ActiveSupport::TestCase
   
   test "create proposal without name is default" do
     test = Barclamp.import 'test'
-    assert_equal 0, test.configs.count
+    assert_equal 0, test.deployments.count
     assert_not_nil test.template
     config = test.create_proposal
     assert_not_nil config
-    assert_equal 1, test.configs(true).count
-    assert_equal config.id, test.configs.first.id
+    assert_equal 1, test.deployments(true).count
+    assert_equal config.id, test.deployments.first.id
     assert_equal I18n.t('default'), config.name
     assert_equal test.id, config.barclamp_id
   end
@@ -137,12 +134,12 @@ class DeploymentModelTest < ActiveSupport::TestCase
   test "Can create config from barclamp" do
     test = Barclamp.import 'test'
     assert !test.allow_multiple_deployments, "need this to be 1 for this test"
-    assert_equal 0, test.configs.count
+    assert_equal 0, test.deployments.count
     assert_not_nil test.template
     config = test.create_proposal 'foo'
     assert_not_nil config
-    assert_equal 1, test.configs(true).count
-    assert_equal config.id, test.configs.first.id
+    assert_equal 1, test.deployments(true).count
+    assert_equal config.id, test.deployments.first.id
     assert_equal 'foo', config.name
     assert_equal test.id, config.barclamp_id
   end
@@ -150,21 +147,21 @@ class DeploymentModelTest < ActiveSupport::TestCase
   test "Allow multiple proposals works" do
     test = Barclamp.import 'test'
     assert !test.allow_multiple_deployments, "need this to be 1 for this test"
-    assert_equal 0, test.configs.count
+    assert_equal 0, test.deployments.count
     assert_not_nil test.template
     config = test.create_proposal 'foo'
     assert_not_nil config
     # this will fail
     c2 = test.create_proposal 'bar'
     assert_nil c2
-    assert_equal 'foo', test.configs(true).first.name
-    assert_equal 1, test.configs(true).count
+    assert_equal 'foo', test.deployments(true).first.name
+    assert_equal 1, test.deployments(true).count
     # now change the setting and try again
     test.allow_multiple_deployments = true
     c3 = test.create_proposal 'bar'
     assert_not_nil c3
     assert_equal 'bar', c3.name
-    assert_equal 2, test.configs(true).count
+    assert_equal 2, test.deployments(true).count
   end
   
   test "create proposal clones roles" do    
@@ -177,14 +174,14 @@ class DeploymentModelTest < ActiveSupport::TestCase
     r.run_order = 1
     r.order = 1
     r.save
-    assert_equal "clone_me", r.role.name
-    assert_equal r.role.id, test.template.roles.second.role.id, "confirm that added role is second after private"
+    assert_equal "clone_me", r.role_type.name
+    assert_equal r.role_type_id, test.template.roles.second.role_type_id, "confirm that added role is second after private"
     # now make sure it shiows up in the cone
     config = test.create_proposal "cloned"
     assert_not_nil config
     assert_not_equal test.template_id, config.id
     assert_equal test.template.roles.count, config.proposed.roles.count
-    assert_equal test.template.roles.second.role_id, config.proposed.roles.second.role_id
+    assert_equal test.template.roles.second.role_type_id, config.proposed.roles.second.role_type_id
   end
 end
 

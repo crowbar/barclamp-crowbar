@@ -247,17 +247,17 @@ class Node < ActiveRecord::Base
   end
 
   # get the attributes (adds if missing)    
-  def get_attribs(attrib_type, useclass=Attrib::DEFAULT_CLASS)
+  def get_attribs(attrib_type, use_class=Attrib::DEFAULT_CLASS)
     a = AttribType.add attrib_type
     attribs = Attrib.find_all_by_attrib_type_id_and_node_id a.id, self.id
     # did we get something?  no, then add it
     if attribs.empty?
       # work from defined roles first
-      from_role = a.attribs.first
-      if from_role.nil?
-        attribs << Attrib.find_or_create_by_attrib_type_and_node(a, self, useclass)
+      from_attrib = a.attribs.first
+      if from_attrib.nil?
+        attribs << Attrib.find_or_create_by_attrib_type_and_node(a, self, use_class)
       else
-        new_attrib = from_role.dup
+        new_attrib = from_attrib.dup
         new_attrib.node_id = self.id
         new_attrib.save
         attribs << new_attrib
@@ -267,9 +267,9 @@ class Node < ActiveRecord::Base
   end
   
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
-  def set_attrib(attrib_type, value=nil, jig_run=0, useclass=Attrib::DEFAULT_CLASS)    
+  def set_attrib(attrib_type, value=nil, jig_run=0, use_class=Attrib::DEFAULT_CLASS)    
     # get the attributes (adds if missing)
-    attribs = get_attribs(attrib_type, useclass)
+    attribs = get_attribs(attrib_type, use_class)
     # iterate over all the attribs and set them to the new value
     attribs.each do |na|
       na.actual = value

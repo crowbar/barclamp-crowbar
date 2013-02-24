@@ -27,6 +27,8 @@ class AttribType < ActiveRecord::Base
   has_many    :snapshots,           :through => :roles
   
   has_many    :jig_maps,            :dependent => :destroy 
+  alias_attribute :maps,            :jig_maps
+
   has_many    :jigs,                :through => :jig_maps
   has_many    :barclamps,           :through => :jig_maps
    
@@ -35,7 +37,7 @@ class AttribType < ActiveRecord::Base
     if attrib_type.nil?       
       raise "attrib_type.add requires Attrib object or hash with :name"
     elsif attrib_type.is_a? AttribType
-      a = attrib
+      a = attrib_type
     elsif attrib_type.is_a? Attrib
       a = attrib_type.attrib_type
     elsif attrib_type.is_a? Fixnum

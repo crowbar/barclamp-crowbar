@@ -26,8 +26,9 @@ class Attrib < ActiveRecord::Base
   belongs_to      :role
 
   has_one         :role_type,         :through=>:role
-  has_one         :deployment,        :through=>:role
-  has_one         :barclamp,          :through=>:deployment
+  has_one         :snapshot,          :through=>:role
+  has_one         :deployment,        :through=>:snapshot
+  has_one         :barclamp,          :through=>:snapshot
   
   belongs_to      :jig_run
   alias_attribute :run,               :jig_run
@@ -38,11 +39,11 @@ class Attrib < ActiveRecord::Base
   MARSHAL_EMPTY = "empty"
   
   def self.find_or_create_by_attrib_type_and_node(attrib_type, node=nil, defaultclass=DEFAULT_CLASS)
-    node_id = (node.nil? ? 0 : node.id)
-    attrib_type_id = (attrib_type.nil? ? nil : attrib_type.id)
-
-    ai = Attrib.find_by_attrib_type_id_and_node_id(attrib_type_id, node_id)
-    ai = defaultclass.create!(:node_id=>node_id, :attrib_type_id=>attrib_type_id) if ai.nil?
+    raise "attrib_type must be provided" unless attrib_type
+    node_id = node.read_attribute(:id) if node
+    attrib_type_id = attrib_type.read_attribute(:id)
+    ai = Attrib.find_by_attrib_type_id_and_node_id attrib_type_id, node_id
+    ai ||= defaultclass.create! :node_id=>node_id, :attrib_type_id=>attrib_type_id 
     ai
   end
 
@@ -51,8 +52,19 @@ class Attrib < ActiveRecord::Base
     JigMap.find_all_by_attrib_type_id_and_barclamp_id attrib.id, barclamp.id
   end
   
+  # convenience method to get name from type
   def name
-    attrib_type.name
+    attrib_type.name rescue I18n.t('unknown')
+  end
+  
+  # convenience method to get description from type
+  def description
+    attrib_type.description rescue I18n.t('not_set')
+  end
+
+  # convenience method to get order from type
+  def order
+    attrib_type.order rescue -1
   end
 
   # for now, none of the proposed values are visible
@@ -83,7 +95,7 @@ class Attrib < ActiveRecord::Base
   end
   
   def as_json options={}
-   j = {
+   {
      :id=> id,
      :node_id=> node_id,
      :attrib_id=> attrib_type_id,
@@ -91,17 +103,10 @@ class Attrib < ActiveRecord::Base
      :state => state,
      :created_at=> created_at,
      :updated_at=> updated_at,
-     :name => I18n.t('unknown'),
-     :order => -1,
-     :description=> I18n.t('not_set')
+     :name => name,
+     :order => order,
+     :description=> description
    }
-   # protects against error
-   if attrib_type
-    j[:name] = "#{attrib_type.name}@#{node.name}" rescue I18n.t('unknown')
-    j[:order] = attrib_type.order              # allows object to confirm to Crowbar pattern
-    j[:description] = attrib_type.description  # allows object to confirm to Crowbar pattern
-   end
-   j
   end
   
   def self.calc_state v_actual, v_request, run
@@ -137,12 +142,13 @@ class Attrib < ActiveRecord::Base
     # we need to have a role!
     # if the relationship does not exist then assume it's user defined
     if self.role_id.nil?
-      role = RoleType.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
+      role_type = RoleType.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
       crowbar = Barclamp.find_by_name 'crowbar'
-      # use the actice snapshot
-      base_config = crowbar.active.first || crowbar.template
+      base_config = crowbar.template
+      # use the proposed snapshot
+      base_config = crowbar.deployments.first.proposed if crowbar.deployments.count>0
       # if no active snapshot, use the template
-      user = base_config.add_role role
+      user = base_config.add_role role_type
       self.role_id = user.id
     end
   end

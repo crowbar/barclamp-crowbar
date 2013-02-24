@@ -56,7 +56,7 @@ class Snapshot < ActiveRecord::Base
   def add_attrib(attrib_type, role_type=nil)
     if role_type.nil?
       role_type = public_roles.first.role_type
-      role_type = private_roles.first.role_type if role.nil?
+      role_type = private_roles.first.role_type if role_type.nil?
     else
       role_type = RoleType.add role_type, self.name
     end
@@ -71,11 +71,13 @@ class Snapshot < ActiveRecord::Base
   # Clone this snapshot
   # optionally, change parent too (you do NOT have parents for templates)
   def deep_clone(parent_deployment=nil, name=nil, with_nodes=true)
-    new_snap = Snapshot.create(
-          :barclamp_id => barclamp_id = self.barclamp_id,
-          :barclamp_deployment_id => (parent_deployment.nil? ? nil : parent_deployment.id),
-          :name => name || (self.name + "_" + self.id.to_s),
-          :description => self.description, :order => self.order)
+
+    new_snap = self.dup
+    new_snap.deployment_id = parent_deployment.id if parent_deployment
+    new_snap.name = name || "#{self.name}_#{self.id}"
+    new_snap.status = STATUS_NONE
+    new_snap.failed_reason = nil
+    new_snap.save
 
     # clone the roles
     roles.each { |ri| ri.deep_clone(new_snap, with_nodes) }

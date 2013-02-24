@@ -93,6 +93,9 @@ class Barclamp < ActiveRecord::Base
     template.add_attrib a, r if template
   end
 
+
+  DEFAULT_DEPLOYMENT_NAME = I18n.t('default')
+
   #
   # Possible Override function
   #
@@ -107,7 +110,7 @@ class Barclamp < ActiveRecord::Base
   #
   def create_proposal(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
-    deployment ||= { :name => I18n.t('default')}
+    deployment ||= { :name => DEFAULT_DEPLOYMENT_NAME}
     proposal = nil
     if allow_multiple_deployments or deployments.count==0
       # setup required items

@@ -18,7 +18,7 @@ class BarclampImportCrowbar < ActiveRecord::Migration
     Barclamp.import_1x 'crowbar'
     # this is needed for testing
     if Rails.env.development? or Rails.env.test? 
-      Role.create :name=>'crowbar', :barclamp_id=>Barclamp.find_by_name('crowbar').id, :description=>'DEVELOPER - added for dev and test.  May cause issues'
+      RoleType.add :name=>'crowbar', :barclamp_id=>Barclamp.find_by_name('crowbar').id, :description=>'DEVELOPER - added for dev and test.  May cause issues'
     end
   end
 

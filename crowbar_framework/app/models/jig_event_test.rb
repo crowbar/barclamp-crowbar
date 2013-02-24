@@ -21,8 +21,8 @@ class JigEventTest < JigEvent
     super.init
   end
 
-  def run(config_id)
-    super.run config_id
+  def run(deploy_id)
+    super.run deploy_id
     config_id
   end
 

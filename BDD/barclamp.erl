@@ -15,12 +15,13 @@
 % 
 -module(barclamp).
 -export([step/3, json/3, validate/1, inspector/1, g/1]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/barclamp";
+    path -> "crowbar/v2/barclamps";
     name -> "bddbarclamp";
     atom -> barclamp1;
     _ -> crowbar:g(Item)
@@ -28,10 +29,13 @@ g(Item) ->
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  R =[bdd_utils:is_a(J, boolean, user_managed), 
+validate(JSON) ->
+  Wrapper = crowbar_rest:api_wrapper(JSON),
+  J = Wrapper#item.data,
+  R =[Wrapper#item.type == barclamp,
+      bdd_utils:is_a(J, boolean, user_managed), 
       bdd_utils:is_a(J, number, layout), 
-      bdd_utils:is_a(J, boolean, allow_multiple_configs), 
+      bdd_utils:is_a(J, boolean, allow_multiple_deployments), 
       bdd_utils:is_a(J, number, proposal_schema_version), 
       bdd_utils:is_a(J, number, jig_order), 
       % invalid test bdd_utils:is_a(J, string, transistions), 

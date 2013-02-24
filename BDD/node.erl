@@ -15,12 +15,14 @@
 % 
 -module(node).
 -export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/node";
+    path -> "crowbar/v2/nodes";
+    status_path -> "/framework/status/nodes";
     name -> "bdd1.example.com";
     atom -> node1;
     _ -> crowbar:g(Item)
@@ -28,8 +30,11 @@ g(Item) ->
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  R =[bdd_utils:is_a(J, integer, fingerprint), 
+validate(JSON) ->
+  Wrapper = crowbar_rest:api_wrapper(JSON),
+  J = Wrapper#item.data,
+  R =[Wrapper#item.type == node,
+      bdd_utils:is_a(J, integer, fingerprint), 
       bdd_utils:is_a(J, boolean, allocated), 
       bdd_utils:is_a(J, string, state), 
       bdd_utils:is_a(J, boolean, admin), 
@@ -101,7 +106,10 @@ step(Config, _Given, {step_when, _N, ["REST assigns",attrib,Attrib,"to",node,Nod
   bdd_restrat:ajax_return(attrib_instance:path(Node, Attrib), post, 200, R);
 
 step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib, Attrib]}) -> 
-  R = attrib_instance:node_add_attrib(Config, Node, Attrib),
+  Result = attrib_instance:node_add_attrib(Config, Node, Attrib),
+bdd_utils:puts("!!! has attrib ~p", [Result]),  
+  R = crowbar_rest:api_wrapper_raw(Result),
+bdd_utils:puts("$$$ has attrib ~p", [R]),  
   {"node_id", NodeID} = lists:keyfind("node_id", 1, json:parse(R)),
   {"attrib_id", AttribID} = lists:keyfind("attrib_id", 1, json:parse(R)),
   {"id", NodeAttrib} = lists:keyfind("id", 1, json:parse(R)),
@@ -140,7 +148,7 @@ step(Config, _Given, {step_when, _N, ["REST unassigns",attrib,Attribute,"from",n
   step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from",node,Node]}); 
 step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from",node,Node]}) -> 
   NodePath = eurl:path(g(path), Node),
-  Path = eurl:path(NodePath,"attrib"),
+  Path = eurl:path(NodePath,attrib_instance:g(path)),
   bdd_utils:log(Config, debug, "Node disconnect node+attributes ~p ~p", [Path, Attribute]),
   {Code, Info} = eurl:delete(Config, Path, Attribute, all),
   {ajax, Code, Info};

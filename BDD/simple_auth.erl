@@ -90,7 +90,7 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
       Headers ++ [{"Authorization", HeaderInjection}];
     _ -> Headers ++ [{"Cookie", AuthField}]
   end,
-  bdd_utils:log(Config, demp, "simple_auth:request making http request Method ~p URL ~p Headers ~p Opts ~p", [Method, URL, TrialHeaders, HTTPOptions2]),
+  bdd_utils:log(Config, dump, "simple_auth:request making http request Method ~p URL ~p Headers ~p Opts ~p", [Method, URL, TrialHeaders, HTTPOptions2]),
 
   %% try request
   {Status, Result} = 
@@ -104,10 +104,10 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
         {{"HTTP 1.0", 999, Result}, [], ""}
     end,
 
-  bdd_utils:log(trace, "simple_auth:request User ~p Password ~p URL ~p StatusCode ~p",[User, Password, URL, StatusCode]),
+  bdd_utils:log(trace, simple_auth, request, "User ~p Password ~p URL ~p StatusCode ~p",[User, Password, URL, StatusCode]),
   case StatusCode of
     401 -> 
-      bdd_utils:log(Config, trace, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
+      bdd_utils:log(trace,  simple_auth, request, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
       DigestLine = proplists:get_value("www-authenticate", ResponseHeaders),
       HeaderDigested = case DigestLine of
         [$D, $i, $g, $e, $s, $t, $  | _] -> 

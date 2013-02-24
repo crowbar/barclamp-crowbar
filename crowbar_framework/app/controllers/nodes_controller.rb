@@ -15,7 +15,7 @@
 #
 class NodesController < ApplicationController
 
-  # API GET /2.0/crowbar/2.0/nodes
+  # API GET /crowbar/v2/nodes
   # UI GET /dashboard
   def index
     # EventQueue.publish(Events::WebEvent.new("nodes index page"))
@@ -39,7 +39,7 @@ class NodesController < ApplicationController
     end
     respond_to do |format|
       format.html # index.html.haml
-      format.json { render :json => @nodes }
+      format.json { render api_index :node, Node.all }
     end
   end
 
@@ -119,7 +119,6 @@ class NodesController < ApplicationController
         flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
       end
     end
-    @options = CrowbarService.read_options
     @nodes = {}
     Node.all.each do |node|
       @nodes[node.name] = node if params[:allocated].nil? or !node.allocated?
@@ -178,7 +177,16 @@ class NodesController < ApplicationController
     render :inline => {:sum => sum, :status=>status, :state=>state, :i18n=>i18n, :groups=>groups, :count=>state.length}.to_json, :cache => false
     
   end
-
+  
+  def attribs
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Attribs Action: refactoring by CloudEdge')
+  end
+  
+  def group
+    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Group Action: refactoring by CloudEdge')    
+  end
+  
+  # CB1 move to IMPI
   def hit
     action = params[:req]
     name = params[:name] || params[:id]
@@ -209,36 +217,26 @@ class NodesController < ApplicationController
   # GET /2.0/node/1
   # GET /2.0/node/foo.example.com
   def show
-    # for temporary backwards compatibility, we'll combine the chef object and db object
-    @node = Node.find_key params[:id]
     respond_to do |format|
-      format.html # show.html.erb
+      format.html {
+        # for temporary backwards compatibility, we'll combine the chef object and db object
+        @node = Node.find_key params[:id]
+      } # show.html.erb
       format.json {
-        render :json => @node
+        render api_show :node, Node
       }
     end
   end
 
   # RESTful DELETE of the node resource
   def destroy
-    target = Node.find_key params[:id]
-    if target.nil?
-      render :text=>"Could not find node '#{params[:id]}'", :status => 404
-    else
-      if target.delete
-        render :text => "Node #{params[:id]} deleted!"
-      else
-        render :text=>"Could not delete node '#{params[:id]}'", :status => 500
-      end
-    end
+    render api_delete Node
   end
   
   # RESTfule POST of the node resource
   def create
-    if request.post?
-      @node = Node.create! params
-      render :json => @node
-    end
+    n = Node.create params
+    render api_show :node, Node, n.id.to_s, nil, n
   end
   
   def edit
@@ -247,12 +245,51 @@ class NodesController < ApplicationController
     Group.all(:conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
   end
 
+  def attribs
+    unless params[:version].eql?('v2') 
+      render :text=>I18n.t('api.wrong_version', :version=>params[:version])
+    else
+      # working objects
+      node = Node.find_key params[:id]
+      # we need to treat attribs by type OR ID 
+      # except that the ID is the attrib while the name is the type
+      if params[:attrib]
+        attrib = AttribType.add params[:attrib]
+        ai = Attrib.find_by_node_id_and_attrib_id node.id, attrib.id
+      elsif params[:attrib] =~ /^[0-9]+$/
+        ai = Attrib.find params[:attrib]
+        attrib = ai.attrib
+      end
+  
+      # POST and PUT (do the same thing since PUT will create the missing info)
+      if request.post? or request.put?
+        # this is setup to add the param even if we could not find it earlier
+        ai.actual = params["value"]
+        render api_show :attrib, Attrib, nil, nil, ai
+      # DELETE
+      elsif request.delete? and attrib and node
+        render api_delete Attrib, ai.id
+      # fall through REST actions (all require ID)
+      elsif request.get? and attrib
+        render api_show :attrib, Attrib, nil, nil, ai
+      elsif params[:attrib]
+        render :text=>I18n.t('api.not_found', :type=>'attrib', :id=>params[:attrib]), :status => :not_found
+      # list (no ID)
+      elsif request.get?  
+        render api_index :attrib, node.attribs, nodes_attribs_path
+      # Catch
+      else
+        render :text=>I18n.t('api.unknown_request'), :status => 400
+      end
+    end
+  end
 
   def allocate
     # allocate node
   end
 
   # RESTfule PUT of the node resource
+  # CB1 - please review & update
   def update
     get_node_and_network(params[:id] || params[:name])
     if params[:submit] == t('nodes.edit.allocate')

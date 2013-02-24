@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
 
+# CB1 class
 class MachinesController < ApplicationController
 
   self.help_contents = Array.new(superclass.help_contents)

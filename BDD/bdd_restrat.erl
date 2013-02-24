@@ -15,8 +15,9 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5, validate/1]).
--export([get_JSON/1, ajax_return/4]).
-  
+-export([get_JSON/1, get_Object/1, ajax_return/4]).
+-include("bdd.hrl").
+
 % HELPERS ============================
 
 % ASSUME, only 1 ajax result per feature
@@ -34,6 +35,11 @@ get_JSON(Results, all) ->
          {ajax, 500, "bdd_restrat:get_JSON error"}
   end.
 
+get_Object(Results) ->
+  Obj = crowbar_rest:api_wrapper_raw(Results),
+  bdd_utils:log(debug, bdd_restrat, get_Object, "API wrapper type ~p for url ~p",[Obj#item.type, Obj#item.link]),
+  Obj.
+
 % this should NOT be called here, only in the objects
 validate(_) -> bdd_utils:log(warn, "bdd_restrat:validate should not be called. Use your platform specific validator").
 
@@ -41,11 +47,12 @@ validate(_) -> bdd_utils:log(warn, "bdd_restrat:validate should not be called. U
 get_id(Config, Path, Key) -> get_id(Config, eurl:path(Path,Key)).
 get_id(Config, Path) ->
   R = eurl:get_page(Config, Path, all),
-  bdd_utils:log(Config, trace, "bdd_restrat:get_id path ~p Result: ~p", [Path, R]),
+  bdd_utils:log(trace, bdd_restrat, get_id, "path ~p Result: ~p", [Path, R]),
   {"id", ID} = try R of
     {200, []}      -> {"id", "-1"};
     {200, "null"}  -> {"id", "-1"};
-    {200, Result}  -> lists:keyfind("id", 1, json:parse(Result));
+    {200, Result}  -> Obj = get_Object(Result), 
+                      lists:keyfind("id", 1, Obj#item.data);
     _              -> {"id", "-1"}
   catch 
     _ -> {"id", "-1"}
@@ -206,9 +213,10 @@ step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_a
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Object) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = apply(Object, g, [path]),
-  bdd_utils:log(Config, trace, "REST get ~p path", [URI]),
+  bdd_utils:log(debug, bdd_restrat, step, "REST get ~p list for ~p path", [Object, URI]),
   {Code, JSON} = eurl:get_page(Config, URI, all),
-  ajax_return(URI, get, Code, JSON);
+  Wrapper = crowbar_rest:api_wrapper_raw(JSON),
+  ajax_return(URI, get, Code, Wrapper#list.ids);
 
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
@@ -242,14 +250,18 @@ step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]})
     {ajax, J, _}          -> apply(Object, validate, [J])
   end;
     
-step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> step(Config, Results, {step_then, _N, ["there is a key",Key]});
-step(Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
-  JSON = get_JSON(Results),
-  bdd_utils:log(Config, trace, "JSON list ~p should have ~p~n", [JSON, Key]),
-  length([K || {K, _} <- JSON, K == Key])==1;
+step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 
+  step(Config, Results, {step_then, _N, ["there is a key",Key]});
+step(_Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "There should be a Key ~p",[Key]),
+  length([K || {K, _} <- Obj#item.data, K == Key])==1;
                                                                 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
-  Value =:= json:value(get_JSON(Results), Key);
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
+  bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#item.data]),
+  Value =:= json:value(Obj#item.data, Key);
 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
@@ -267,7 +279,9 @@ step(_Config, Results, {step_then, _N, ["key",Key,"should contain at least",Coun
   Items >= C;
 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 
-  bdd_utils:is_a(number, json:value(get_JSON(Results), Key));
+  Obj = get_Object(get_JSON(Results)),
+  bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be a number",[Key]),
+  bdd_utils:is_a(number, json:value(Obj#item.data, Key));
                                                        
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(get_JSON(Results), Key));

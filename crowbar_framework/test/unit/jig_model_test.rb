@@ -79,9 +79,7 @@ class JigModelTest < ActiveSupport::TestCase
     assert_equal j, r.event.jig
     assert_equal 1, r.event.runs.count
   end
-  
-  test "Jig event is the right subtype" do
-  end
+
   
 end
 

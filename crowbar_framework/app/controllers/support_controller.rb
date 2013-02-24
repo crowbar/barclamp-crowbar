@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
+
 
 class SupportController < ApplicationController
+  
+  skip_before_filter :crowbar_auth, :only => :digest
+  before_filter :digest_auth!, :only => :digest
   
   # used to pass a string into the debug logger to help find specificall calls  
   def marker
@@ -29,6 +31,14 @@ class SupportController < ApplicationController
       render :text=>I18n.translate(params[:id], :raise => I18n::MissingTranslationData)
     rescue I18n::MissingTranslationData
       render :text=>"No translation for #{params[:id]}", :status => 404
+    end
+  end
+  
+  def digest
+    if session[:digest_user]
+      render :text => t('user.digest_success', :default=>'success')
+    else
+      render :text => "digest", :status => :unauthorized
     end
   end
   

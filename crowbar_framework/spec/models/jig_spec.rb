@@ -51,7 +51,7 @@ describe "jig proposal manipulation" do
     n2 = Factory(:node)
     barclamp = Barclamp.find_by_name("test")
     params = { "id" =>"test_prop", "attributes" => {} }
-    barclamp.operations.proposal_create(params)
+    barclamp.proposal_create(params)
     barclamp
   end
 

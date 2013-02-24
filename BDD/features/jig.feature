@@ -5,7 +5,7 @@ Feature: Jigs API
 
   Scenario: Jig List
     Given there is a jig "my_special_jig"
-    When REST gets the jig list
+    When REST gets the {object:jig} list
     Then there should be a value "my_special_jig"
       And there should be a value "bddjig"
     Finally REST removes the jig "my_special_jig"

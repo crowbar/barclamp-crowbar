@@ -40,17 +40,17 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
   
   test "Roles Relation" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    b = Barclamp.find_by_name 'crowbar'
     assert_not_nil b
 
     r = b.roles
 
-    r1 = Role.find_by_name("crowbar")
-    r2 = Role.find_private
+    r1 = RoleType.find_private
+    r2 = RoleType.find_by_name("crowbar")
 
     assert_equal 2, r.size
-    assert r.include? r1
-    assert r.include? r2
+    assert_equal r1.id, r.first.role_type_id
+    assert_equal r2.id, r.second.role_type_id
   end
 
   test "Template Relation" do
@@ -58,30 +58,17 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_not_nil b
     t = b.template
     assert_equal "Crowbar template", t.name, "this comes from the model.barclamp.template localization"
-    assert_instance_of BarclampInstance, t
+    assert_instance_of Snapshot, t
     assert_equal "private", t.roles.first.name
     assert_equal "crowbar", t.roles.second.name
   end
 
-  test "Proposals empty" do
+  test "Deployments empty" do
     b = Barclamp.find_or_create_by_name(:name=>"crowbar")
     assert_not_nil b
-    t = b.proposals
+    t = b.deployments
 
     assert_equal [], t
-  end
-
-  test "Active Proposals empty" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
-    assert_not_nil b
-    t = b.active
-
-    assert_equal [], t
-  end
-
-  test "Operations function" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
-    assert_instance_of(CrowbarService, b.operations)
   end
 
   test "Versions" do
@@ -117,11 +104,10 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "barclamp type from name works" do
     name = "test"
     # we need to make sure that the barclamp is not in the DB
-    testclass = name.camelize+"::Barclamp"
-    if File.exist? File.join('app', 'models', name, 'barclamp.rb')
-      id = Barclamp.find_by_name name
-      Barclamp.delete id
-      bc = Barclamp.find_or_create_by_name :name=>name
+    testclass = "Barclamp#{name.camelize}::Barclamp"
+    # this will have to be fixed when we merge in the engines code!
+    if File.exist? File.join('app', 'models', "barclamp_#{name}", 'barclamp.rb')
+      bc = Barclamp.find_by_name name
       assert_not_nil bc
       assert_equal name, bc.name
       assert_equal testclass, bc.type

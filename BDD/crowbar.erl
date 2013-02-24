@@ -32,11 +32,12 @@ g(Item) ->
     _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
   end.
 
-i18n(Config, T1, T2, T3, T4, T5) -> i18n(Config, [T1, T2, T3, T4, T5]).
-i18n(Config, T1, T2, T3, T4) -> i18n(Config, [T1, T2, T3, T4]).
-i18n(Config, T1, T2, T3) -> i18n(Config, [T1, T2, T3]).
-i18n(Config, T1, T2) -> i18n(Config, [T1, T2]).
-i18n(Config, T) -> 
+i18n(Config, T1, T2, T3, T4, T5) -> i18n_lookup(Config, [T1, T2, T3, T4, T5]).
+i18n(Config, T1, T2, T3, T4) -> i18n_lookup(Config, [T1, T2, T3, T4]).
+i18n(Config, T1, T2, T3) -> i18n_lookup(Config, [T1, T2, T3]).
+i18n(Config, T1, T2) -> i18n_lookup(Config, [T1, T2]).
+i18n(Config, T) -> i18n_lookup(Config, [T]).
+i18n_lookup(Config, T) -> 
   Path = string:tokens(T, "+:/"),
   KeyList = case length(Path) of
     1 -> lists:nth(1, Path);

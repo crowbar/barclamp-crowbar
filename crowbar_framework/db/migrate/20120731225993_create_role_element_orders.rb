@@ -16,7 +16,7 @@ class CreateRoleElementOrders < ActiveRecord::Migration
   def change
     create_table :role_element_orders do |t|
       t.integer :order
-      t.belongs_to :role
+      t.belongs_to :role_type
       t.timestamps
     end
   end

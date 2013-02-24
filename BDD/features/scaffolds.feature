@@ -3,9 +3,9 @@ Feature: Scaffolds
   The devoper operator, Greg
   wants to be able to quickly check the models
   
-  Scenario: Attribute
-    When I go to the "scaffolds/attrib_instances" page
-    Then I should see heading "AttribInstances"
+  Scenario: Attribs
+    When I go to the "utils/scaffolds/attribs" page
+    Then I should see heading "Attribs"
       And I should see "Type"
       And I should see "Value actual"
       And I should see "Value request"
@@ -14,12 +14,22 @@ Feature: Scaffolds
       And I should see "Jig run"
       And I should see "Node"
       And I should see "Role"
-      And I should see "Role instance"
-      And I should see "BarclampCrowbar::AttribInstanceDefault"
+      And I should see "Role_Type"
+      And I should see "BarclampCrowbar::AttribDefault"
       And there should be no translation errors
-      
+
+  Scenario: Attrib Type
+    When I go to the "utils/scaffolds/attrib_types" page
+    Then I should see heading "AttribTypes"
+      And I should see "Name"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors    
+  
   Scenario: Barclamp
-    When I go to the "scaffolds/barclamps" page
+    When I go to the "utils/scaffolds/barclamps" page
     Then I should see heading "Barclamps"
       And I should see "Name"
       And I should see "Description"
@@ -32,7 +42,7 @@ Feature: Scaffolds
       And there should be no translation errors
       
   Scenario: Nodes
-    When I go to the "scaffolds/nodes" page
+    When I go to the "utils/scaffolds/nodes" page
     Then I should see heading "Nodes"
       And I should see "Name"
       And I should see "Description"
@@ -45,10 +55,20 @@ Feature: Scaffolds
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors
-      
+
   Scenario: Roles
-    When I go to the "scaffolds/roles" page
+    When I go to the "utils/scaffolds/roles" page
     Then I should see heading "Roles"
+      And I should see "Description"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors    
+            
+  Scenario: Role Types
+    When I go to the "utils/scaffolds/role_types" page
+    Then I should see heading "RoleTypes"
       And I should see "Name"
       And I should see "Barclamp"
       And I should see "Created At"
@@ -57,8 +77,8 @@ Feature: Scaffolds
       And I should see "Create New"
       And there should be no translation errors    
       
-  Scenario: Menu Items
-    When I go to the "scaffolds/navs" page
+  Scenario: Navs
+    When I go to the "utils/scaffolds/navs/" page
     Then I should see heading "Navs"
       And I should see "Name"
       And I should see "Description"
@@ -73,7 +93,7 @@ Feature: Scaffolds
       And there should be no translation errors  
       
   Scenario: Docs
-    When I go to the "scaffolds/docs" page
+    When I go to the "utils/scaffolds/docs/" page
     Then I should see heading "Docs"
       And I should see "Author"
       And I should see "Copyright"
@@ -91,22 +111,21 @@ Feature: Scaffolds
       And I should see "Create New"
       And there should be no translation errors  
       
-      
-  Scenario: Configuration Attibs
-    When I go to the "scaffolds/attribs" page
-    Then I should see heading "Attribs"
+  Scenario: Deployments
+    When I go to the "utils/scaffolds/deployments" page
+    Then I should see heading "Deployments"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Attrib instances"
+      And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
-      And there should be no translation errors        
-      
+      And there should be no translation errors 
+                  
   Scenario: Os
-    When I go to the "scaffolds/os" page
+    When I go to the "utils/scaffolds/os" page
     Then I should see heading "Os"
       And I should see "Name"
       And I should see "Description"
@@ -120,7 +139,7 @@ Feature: Scaffolds
       And there should be no translation errors  
 
   Scenario: OsPackages
-    When I go to the "scaffolds/os_packages" page
+    When I go to the "utils/scaffolds/os_packages" page
     Then I should see heading "OsPackages"
       And I should see "Name"
       And I should see "Description"
@@ -131,9 +150,21 @@ Feature: Scaffolds
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors  
-      
+
+  Scenario: Jigs
+    When I go to the "utils/scaffolds/jigs" page
+    Then I should see heading "Jigs"
+      And I should see "Name"
+      And I should see "Description"
+      And I should see "Order"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors 
+            
   Scenario: Groups
-    When I go to the "scaffolds/groups" page
+    When I go to the "utils/scaffolds/groups" page
     Then I should see heading "Groups"
       And I should see "Name"
       And I should see "Description"

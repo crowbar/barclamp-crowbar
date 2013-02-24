@@ -26,7 +26,7 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string     :copyright,                 :default=>"Dell, Inc 2013"
       t.string     :online_help,               :null=>true
       t.string     :source_path,               :null=>true
-      t.integer    :proposal_schema_version,   :default=>2
+      t.integer    :proposal_schema_version,   :default=>2    # TODO: remove this item
       t.integer    :layout,                    :default=>2
       t.integer    :order,                     :default=>9999
       t.integer    :run_order,                 :default=>1000
@@ -34,7 +34,7 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string     :commit,                    :null=>true, :default=>'unknown'
       t.date       :build_on,                  :null=>true, :default=>'unknown'
       t.boolean    :user_managed,              :default=>true
-      t.boolean    :allow_multiple_configs,    :default=>false
+      t.boolean    :allow_multiple_deployments,:default=>false
       t.string     :mode,                      :default=>"full"
       t.boolean    :transitions,               :default=>false
       t.string     :transition_list,           :default=>"all"

@@ -19,7 +19,7 @@ class JigMapModelTest < ActiveSupport::TestCase
 
   def setup
     @bc = Barclamp.create :name => "jig_map"
-    @attrib = Attrib.add 'map_jig'
+    @attrib = AttribType.add 'map_jig'
     @chef = Jig.find_or_create_by_name :name =>'chef', :type => 'BarclampChef::Jig', :order => 100
     @test = Jig.find_or_create_by_name :name =>'test', :type => 'BarclampCrowbar::Jig', :order => 200 
     assert_not_nil @chef

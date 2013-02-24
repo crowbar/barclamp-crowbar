@@ -14,7 +14,10 @@
 
 # SimpleCov supports only Ruby 1.9. It must be required and started before the
 # application code loads, so keep this block at the top.
-require 'simplecov'
+if RUBY_VERSION != '1.8.7'
+  require 'simplecov'
+  SimpleCov.start
+end
 
 ENV["RAILS_ENV"] = "test"
 require File.expand_path("../../config/environment", __FILE__)

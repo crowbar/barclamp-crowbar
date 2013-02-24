@@ -1,9 +1,8 @@
 *~
-
 erl_crash.dump
-/BDD/default.config
 trace_*.txt
-*.beam
+/BDD/*.beam
+/BDD/default.config
 /crowbar_framework/log/test.*
 /crowbar_framework/db/node_description.yml
 *.dia.autosave

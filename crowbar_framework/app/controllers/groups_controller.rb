@@ -45,52 +45,21 @@ class GroupsController < ApplicationController
     end
   end
 
-  # GET 2.0/crowbar/2.0/group
   def index
-    @groups = {}
-    Group.all.each { |g| @groups[g.id]=g.name }
-    respond_to do |format|
-      format.html # index.html.erb
-      format.json { render :json => @groups }
-    end    
-  end
-  
-  # GET 2.0/crowbar/2.0/group/1
-  # GET 2.0/crowbar/2.0/group/name
-  def show
-    @group = Group.find_key params[:id]
-    respond_to do |format|
-      format.html # show.html.erb
-      format.json { render :json => @group }
-    end
+    render api_index :group, Group.all
   end
 
-  # RESTful delete of the node
-  def destroy
-    if request.delete?
-      target = Group.find_key(params[:id])
-      if target.nil?
-        render :text=>"Could not find group '#{params[:id]}'", :status => 404
-      else
-        if Group.delete(target.id) > 0
-          render :text => "Group #{params[:id]} deleted!"
-        else
-          render :text=>"Could not delete group '#{params[:id]}'", :status => 500
-        end
-      end
-    else
-      throw "HTTP DELETE required to complete this action"
-    end
+  def show
+    render api_show :group, Group
+  end
+
+  def create
+    g = Group.create params
+    render api_show :group, Group, nil, nil, g
   end
   
-  # RESTful create
-  def create
-    if request.post?
-      @group = Group.create! params
-      render :json => @group
-    else
-      throw "HTTP POST required to compelte this action"
-    end
+  def destroy
+    render api_delete Group
   end
   
 end

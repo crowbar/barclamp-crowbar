@@ -31,40 +31,40 @@ class Jig < ActiveRecord::Base
   has_many        :jig_maps,      :dependent => :destroy
   alias_attribute :maps,          :jig_maps
   has_many        :barclamps,     :through => :jig_maps
-  has_many        :attribs,       :through => :jig_maps
+  has_many        :attrib_types,  :through => :jig_maps
 
   #####
-  #  Find the right instance to use for applying the given configuration.
+  #  Find the right snapshot to use for applying the given deployment.
   # At this point, there's one - return it.
   # Some future possible directions:
   #   - Choose jig type by the barclamp being applied - allows different barclamps
   #     to be implemented using different technologies
-  #   - Choose a jig instance, by node location. Could allow mixing jig domains
-  #     where different instances (probably of the same type) manage different 
+  #   - Choose a jig snapshot, by node location. Could allow mixing jig domains
+  #     where different snapshots (probably of the same type) manage different 
   #     domains of nodes
-  def self.find_jig_for_config(config)
+  def self.find_jig_for_config(deployment)
     Jig.find_by_name('admin_chef')
   end
 
-  def self.prepare_proposal(new_config)
-    # collect all the depenent configurations
+  def self.prepare_proposal(new_deployment)
+    # collect all the depenent deployments
 
     Jig.transaction do 
-      jig = Jig.find_jig_for_config(new_config)    
-      evt = jig.create_event(new_config)
+      jig = Jig.find_jig_for_config(new_deployment)    
+      evt = jig.create_event(new_deployment)
   
       # create a JigEvent for each unique jig execution that needs to be performed
       # on each node. Events are tied in dependency list (to allow subsequent events)
       # to be fired when their dependencies complete.
       nrs = {}
-      new_config.node_roles.each { |nr| 
+      new_deployment.proposed.roles.each { |nr| 
         name = nr.role.name
         nrs[name] =[] unless nrs[name]
         nrs[name] << nr
       }
       logger.debug("Node roles, #{nrs.inspect}")
-      #node_roles = new_config.get_nodes_by_roles    # hash of role -> list of nodes     
-      ordered_roles = new_config.role_instances # array of: arry of role.
+      #node_roles = new_deployment.get_nodes_by_roles    # hash of role -> list of nodes     
+      ordered_roles = new_deployment.proposed.roles # array of: arry of role.
       order = 1
       ordered_roles.each { |r_list|             
         r_list.each { |r| 

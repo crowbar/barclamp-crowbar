@@ -21,7 +21,7 @@ class Node < ActiveRecord::Base
   attr_readonly   :fingerprint
   
   # for Node-Role relationship
-  HAS_NODE_ROLE = BarclampCrowbar::AttribInstanceHasNode
+  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
   # Make sure we have names that are legal
   FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
   # for to_api_hash
@@ -43,78 +43,16 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :attrib_instances,   :class_name => "AttribInstance", :foreign_key => :node_id, :dependent => :destroy
-  has_many :attribs,            :through => :attrib_instances
+  has_many :attribs,            :dependent => :destroy
+  has_many :attrib_types,       :through => :attribs
 
-  has_many :attrib_instance_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :node_id
-  has_many :role_instances,     :through => :attrib_instance_has_nodes
-  has_many :barclamp_instances, :through => :role_instances
+  has_many :attrib_has_nodes,   :class_name => HAS_NODE_ROLE, :foreign_key => :node_id
+  has_many :roles,              :through => :attrib_has_nodes
+  has_many :snapshots,          :through => :roles
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 
-  #
-  # Create function that integrates with Jig functions.
-  # CB1 TODO remove
-  def self.create_with_jig(name)
-    n = Node.find_by_name name
-    n.create_with_jig
-    n
-  end
-  def create_with_jig
-    throw "this needs to move to the jig"
-    jig.all.each do |j|
-      jig.add_node self
-    end
-#    chef_node = NodeObject.find_node_by_name(name)
-#    node = Node.create(:name => name)
-#    node.admin = true if chef_node and chef_node.admin?
-#    node.save!
-#    unless chef_node
-#      cno = NodeObject.create_new name
-#      cno.crowbar["crowbar"] = {} if cno.crowbar["crowbar"].nil?
-#      cno.crowbar["crowbar"]["network"] = {} if cno.crowbar["crowbar"]["network"].nil?
-#      cno.save
-#    end
-#    node
-  end
-
-  # if there key is a hash, recurse.  Otherwise, take the addin value.
-  def hash_merge!(base, addin)
-    addin.keys.each do |key|
-      if addin[key].is_a? Hash and base[key].is_a? Hash
-        base[key] = hash_merge!(base[key], addin[key])
-        next
-      end
-      base[key] = addin[key]
-    end
-    base
-  end
-
-  #
-  # Update the Jig view of the node at this point.
-  #
-  def update_jig
-    #chef_online = !(Jig.find_by_name('chef').nil?)
-    # TODO - this should move into the Jig object!
-    # CB1
-    #if chef_online
-    #  cno = NodeObject.find_node_by_name(name)
-    #  if cno 
-    #    cno.crowbar["state"] = self.state
-    #    cno.crowbar["crowbar"] = {} unless cno.crowbar["crowbar"]
-    #    cno.crowbar["crowbar"]["allocated"] = self.allocated
-    #
-    #    # Get the active ones and merge into config
-    #    nrs = NodeRole.find_all_by_node_id(self.id)
-    #    nrs = nrs.select { |x| x.proposal_config_id == x.proposal_config.proposal.active_config_id }
-    #    nrs.each { |nr| hash_merge!(cno.crowbar, nr.config_hash) }
-    #
-    #    cno.rebuild_run_list
-    #    cno.save
-    #  end
-    #end
-  end
-
+  #CB1 ?? 
   def reset_jig_access
     if ["discovered","hardware-installed","hardware-updated","reset", "delete",
         "hardware-installing","hardware-updating","reinstall",
@@ -131,11 +69,7 @@ class Node < ActiveRecord::Base
     end
   end
 
-  # CB1 remove
-  def jig_hash
-    NodeObject.find_node_by_name name 
-  end
-
+ 
   #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines
@@ -150,24 +84,6 @@ class Node < ActiveRecord::Base
     jig_hash.public_ip
   end
 
-  #
-  # XXX: Remove this as we better.
-  #
-  alias :super_save :save
-  def save
-    update_jig
-    super_save
-  end
-
-  #
-  # XXX: Remove this as we better.
-  #
-  alias :super_save! :save!
-  def save!
-    update_jig
-    super_save!
-  end
-  
   #
   # Helper function to test admin without calling admin. Style-thing.
   #
@@ -192,10 +108,10 @@ class Node < ActiveRecord::Base
   #
   # Use transition function to set state.
   #
+  # CB1
   def set_state(new_state, old_state = nil)
     # use the real transition function for this
-    cb = CrowbarService.new Rails.logger
-    cb.transition "default", name, new_state, old_state
+    #cb.transition "default", name, new_state, old_state
   end
 
   # CB1 these are really IMPI actions - please move!
@@ -238,16 +154,16 @@ class Node < ActiveRecord::Base
   end
 
   # Associate the node to a barclamp via the role
-  # This will create a AttribInstanceHasRole object to the requested RoleInstance
-  def add_role(role_instance)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id self.id, role_instance.id
-    HAS_NODE_ROLE.create :role_instance_id => role_instance.id, :node_id => self.id unless has_node
+  # This will create a AttribHasRole object to the requested Role
+  def add_role(role)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id self.id, role.id
+    HAS_NODE_ROLE.create :role_id => role.id, :node_id => self.id unless has_node
   end
 
   # Deassociate the node to a barclamp via the role
-  # This will delete the AttribInstanceHasRole object to the requested RoleInstance
-  def remove_role(role_instance)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_instance_id self.id, role_instance.id
+  # This will delete the AttribHasRole object to the requested Role
+  def remove_role(role)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id self.id, role.id
     HAS_NODE_ROLE.delete has_node if has_node
   end
   
@@ -325,29 +241,23 @@ class Node < ActiveRecord::Base
     end
   end  
 
-  # retrieves the Attrib from AttribInstance
-  # NOTE: for safety, will create the association if it is missing
-  def attrib_get(attrib)
-    #depricate this because it could confuse people w/ the method missing
-    Rails.logger.warn "depricated node.attrib_get in favor of node.get_attrib"
-    get_attrib attrib
-  end
-  def get_attrib(attrib)
-    get_attribs(attrib).first
+  # retrieves the Attrib from Attrib
+  def get_attrib(attrib_type)
+    get_attribs(attrib_type).first
   end
 
   # get the attributes (adds if missing)    
-  def get_attribs(attrib, useclass=AttribInstance::DEFAULT_CLASS)
-    a = Attrib.add attrib 
-    attribs = AttribInstance.find_all_by_attrib_id_and_node_id a.id, self.id
+  def get_attribs(attrib_type, use_class=Attrib::DEFAULT_CLASS)
+    a = AttribType.add attrib_type
+    attribs = Attrib.find_all_by_attrib_type_id_and_node_id a.id, self.id
     # did we get something?  no, then add it
     if attribs.empty?
       # work from defined roles first
-      from_role = a.attrib_instances.first
-      if from_role.nil?
-        attribs << AttribInstance.find_or_create_by_attrib_and_node(a, self, useclass)
+      from_attrib = a.attribs.first
+      if from_attrib.nil?
+        attribs << Attrib.find_or_create_by_attrib_type_and_node(a, self, use_class)
       else
-        new_attrib = from_role.dup
+        new_attrib = from_attrib.dup
         new_attrib.node_id = self.id
         new_attrib.save
         attribs << new_attrib
@@ -357,13 +267,9 @@ class Node < ActiveRecord::Base
   end
   
   # if you set the attribute from the new, then we require that you have a crowbar barclamp association
-  def attrib_set(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)
-    Rails.logger.warn "depricated node.attrib_set in favor of node.set_attrib"
-    set_attrib attrib, value, jig_run, useclass
-  end
-  def set_attrib(attrib, value=nil, jig_run=0, useclass=AttribInstance::DEFAULT_CLASS)    
+  def set_attrib(attrib_type, value=nil, jig_run=0, use_class=Attrib::DEFAULT_CLASS)    
     # get the attributes (adds if missing)
-    attribs = get_attribs(attrib, useclass)
+    attribs = get_attribs(attrib_type, use_class)
     # iterate over all the attribs and set them to the new value
     attribs.each do |na|
       na.actual = value
@@ -377,9 +283,6 @@ class Node < ActiveRecord::Base
     method = m.to_s
     if method.starts_with? "attrib_"
       return get_attrib(method[7..100]).value
-    elsif method.starts_with? "jig_"
-      Rails.logger.warn "node.#{method} depricated.  switch to node.attrib_*"
-      return get_attrib(method[5..100]).value
     else
       super.method_missing(m,*args,&block)
     end
@@ -392,12 +295,6 @@ class Node < ActiveRecord::Base
 
   def to_s
     "Node: #{name}"
-  end
-
-  # customize node hash delivered through api (as json)
-  # maybe a mixin, later...
-  def self.to_api_hash(attribute_hash)
-    attribute_hash.reject{|k,v| !API_ATTRIBUTES.include?(k) }
   end
 
   def ip

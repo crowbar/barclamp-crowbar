@@ -13,48 +13,84 @@
 # limitations under the License.
 #
 
+
 class Role < ActiveRecord::Base
 
-  # priority: the order this role gets applied in, system wide
-  # states: node states that this role will be included in the excution list for the node
-  attr_accessible :name, :states, :order, :description
+  attr_accessible :id, :description, :order, :run_order, :states
+  attr_accessible :snapshot_id, :role_type_id
   
-  validates_format_of :name, :with=>/^[a-zA-Z][_\-a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
 
-  # an element_order determines the execution group(s) of the role, relative to other roles in 
-  # the barcalmp.
-  has_many :role_element_orders,  :dependent => :destroy 
+  validates_uniqueness_of :role_type_id, :scope => :snapshot_id  
   
-  has_many :role_instances,       :dependent => :destroy, :inverse_of => :role
+  belongs_to      :role_type,         :inverse_of => :role
+  belongs_to      :snapshot
+  has_one         :barclamp,          :through => :snapshot
+  has_one         :deployment,        :through => :snapshot
+  
+  has_many        :attribs,           :dependent => :destroy
+  has_many        :attrib_types,      :through => :attribs
 
-  alias_attribute :priority,      :order
+  has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id
+  has_many        :nodes,             :through => :attrib_has_nodes
   
-  def self.find_private  
-    self.find_or_create_by_name :name => "private", 
-                                :description => I18n.t('model.role.private_role_description'),
-                                :order => 1
+  # alias helper
+  def name
+    role_type.name
   end
   
-  def self.add(role, source='unknown')
-    # this should become a switch as some point!
-    if role.is_a? Role
-      r = role
-    elsif role.is_a? RoleInstance
-      r = role.role
-    elsif role.is_a? String or role.is_a? Symbol
-      # we can make them from just a string
-      desc = I18n.t 'model.role.default_create_description', :name=>source
-      r = Role.find_or_create_by_name :name => role.to_s, :description => desc
-    elsif role.is_a? Hash
-      # we can make them from a hash if the creator wants to include more info
-      throw "role.add requires attribute :name" if role.nil? or !role.has_key? :name
-      r = Role.find_or_create_by_name role
-    else
-      throw "role.add cannot use #{role.class || 'nil'} to create from attribute: #{role.inspect}"
-    end 
-    r
+  def public?
+    self.run_order>=0
   end
   
+  def <=>(other)
+    # use Array#<=> to compare the attributes
+    [self.order, self.run_order, self.role.name] <=> [other.order, other.run_order, other.role.name]
+  end
+  
+  def add_attrib(attrib_type, value=nil, map=nil)
+    a = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
+    begin 
+      Attrib.find_by_attrib_type_id_and_role_id! a.id, self.id
+    rescue
+      Attrib::DEFAULT_CLASS.create :attrib_type_id => a.id, :role_id => self.id
+    end
+  end
+  
+  # Assignes a node to the role by creating a AttribInstanceHasRole
+  def add_node(node)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
+    HAS_NODE_ROLE.create :role_id => self.id, :node_id => node.id unless has_node
+  end
+
+  # Unassigns a node to the role by creating a AttribInstanceHasRole
+  def remove_node(node)
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
+    HAS_NODE_ROLE.delete has_node
+  end
+  
+  ##
+  # Clone this role
+  # optionally, change parent too
+  # with_nodes allows for template copies that should have not nodes assigned yet
+  def deep_clone(snapshot=nil, clone_with_nodes=true)
+    new_role = self.dup
+    new_role.snapshot_id = snapshot.read_attribute(:id) if snapshot
+    new_role.save
+
+    # clone the attributes (includes node-roles)
+    attribs.each do |ai|
+      # if we are cloning a template then we need the option of no nodes
+      if clone_with_nodes or ai.node_id.nil?
+        new_ai = ai.dup
+        new_ai.role_id = new_role.id
+        new_ai.jig_run_id = nil
+        new_ai.save
+      end
+    end
+
+    new_role
+    
+  end
+
 end
-

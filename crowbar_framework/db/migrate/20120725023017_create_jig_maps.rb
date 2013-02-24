@@ -15,15 +15,15 @@
 class CreateJigMaps < ActiveRecord::Migration
   def change
     create_table :jig_maps do |t|
-      t.references :jig,      :null => false
-      t.references :barclamp, :null => false 
-      t.references :attrib,   :null => false
-      t.string :map,          :null=>false
+      t.references :jig,          :null => false
+      t.references :barclamp,     :null => false 
+      t.references :attrib_type,  :null => false
+      t.string :map,              :null=>false
       t.timestamps
     end
     
     #natural key
-    add_index(:jig_maps, [:jig_id, :barclamp_id, :attrib_id], :unique => true)  
+    add_index(:jig_maps, [:jig_id, :barclamp_id, :attrib_type_id], :unique => true)  
     
   end
 end

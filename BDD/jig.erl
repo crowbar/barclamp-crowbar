@@ -15,12 +15,13 @@
 % 
 -module(jig).
 -export([step/3, json/4, validate/1, inspector/1, g/1]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "2.0/crowbar/2.0/jig";
+    path -> "crowbar/v2/jigs";
     name -> "bddjig";
     atom -> jig1;
     type -> "BarclampCrowbar::Jig";
@@ -30,8 +31,11 @@ g(Item) ->
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(JSON) ->
-  R =[bdd_utils:is_a(JSON, "^Barclamp[A-Z][A-Za-z0-9]*::Jig$", type), 
+validate(J) ->
+  Wrapper = crowbar_rest:api_wrapper(J),
+  JSON = Wrapper#item.data,
+  R =[Wrapper#item.type == jig,
+      bdd_utils:is_a(JSON, "^Barclamp[A-Z][A-Za-z0-9]*::Jig$", type), 
       bdd_utils:is_a(JSON, length, 7),
       crowbar_rest:validate(JSON)],
   bdd_utils:assert(R). 
@@ -59,8 +63,6 @@ step(Config, _Global, {step_given, _N, ["there is not a jig",Jig]}) ->
 step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]}) -> 
   step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", g(type)]});
 
-step(Config, _Given, {step_when, _N, ["REST gets the jig list"]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
 step(Config, _Given, {step_when, _N, ["REST gets the jig",Name]}) -> 
   bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});

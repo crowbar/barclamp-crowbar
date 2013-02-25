@@ -1,3 +1,6 @@
+*.lock
+.idea
+.rvmrc
 *~
 erl_crash.dump
 trace_*.txt

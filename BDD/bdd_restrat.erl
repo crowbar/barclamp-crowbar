@@ -15,7 +15,7 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5, validate/1]).
--export([get_JSON/1, get_Object/1, ajax_return/4]).
+-export([get_JSON/1, get_Object/1, alias/1, ajax_return/4]).
 -include("bdd.hrl").
 
 % HELPERS ============================
@@ -35,6 +35,10 @@ get_JSON(Results, all) ->
          {ajax, 500, "bdd_restrat:get_JSON error"}
   end.
 
+% handles cases where objects use names that conflict w/ internal namespaces
+alias(Object) ->  bdd_utils:config(alias_map,{Object, Object}).
+  
+% works w/ REST wrappers
 get_Object(Results) ->
   Obj = crowbar_rest:api_wrapper_raw(Results),
   bdd_utils:log(debug, bdd_restrat, get_Object, "API wrapper type ~p for url ~p",[Obj#item.type, Obj#item.link]),
@@ -163,8 +167,8 @@ step(Config, _Global, {step_given, _N, ["REST creates the",Object,Name]}) ->
 
 step(Config, _Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) -> 
   bdd_utils:log(Config, debug, "bdd_restrat: step REST creates the ~p ~p", [Object, Name]),
-  JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
-  Path = apply(Object, g, [path]),
+  JSON = apply(alias(Object), json, [Name, apply(alias(Object), g, [description]), apply(alias(Object), g, [order])]),
+  Path = apply(alias(Object), g, [path]),
   PutPostResult = eurl:put_post(Config, Path, JSON, post, all),
   bdd_utils:log(Config, trace, "bdd_restrat:REST creates the step: PutPostResult: ~p", [PutPostResult]),
   {Code, Result} = PutPostResult,
@@ -185,8 +189,8 @@ step(Config, _Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Na
   ReturnResult;
 
 step(Config, _Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Object) -> 
-  JSON = apply(Object, json, [Name, apply(Object, g, [description]), apply(Object, g, [order])]),
-  Path = eurl:path(apply(Object, g, [path]), Name),
+  JSON = apply(alias(Object), json, [Name, apply(alias(Object), g, [description]), apply(alias(Object), g, [order])]),
+  Path = eurl:path(apply(alias(Object), g, [path]), Name),
   step(Config, _Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
 
 step(Config, _Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]}) ->
@@ -199,7 +203,7 @@ step(Config, _Then, {step_finally, _N, ["REST deletes the", Object, Name]}) ->
   step(Config, _Then, {step_when, _N, ["REST deletes the",Object, Name]});
 
 step(Config, _Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is_atom(Object)-> 
-  Path = apply(Object, g, [path]),
+  Path = apply(alias(Object), g, [path]),
   R = eurl:delete(Config, Path, Name, all),
   {Code, Result} = R,
   bdd_utils:log(Config, debug, "bdd_restrat step delete ~p ~p = ~p ~p",[Object,Name, Code, Result]),
@@ -212,7 +216,7 @@ step(Config, Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_a
 
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Object) -> 
   % This relies on the pattern objects providing a g(path) value mapping to their root information
-  URI = apply(Object, g, [path]),
+  URI = apply(alias(Object), g, [path]),
   bdd_utils:log(debug, bdd_restrat, step, "REST get ~p list for ~p path", [Object, URI]),
   {Code, JSON} = eurl:get_page(Config, URI, all),
   Wrapper = crowbar_rest:api_wrapper_raw(JSON),
@@ -220,7 +224,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_a
 
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
-  URI = eurl:path(apply(Object, g, [path]), Key),
+  URI = eurl:path(apply(alias(Object), g, [path]), Key),
   case eurl:get_page(Config, URI, all) of
     {200, "null"} -> [];
     {200, JSON}   -> 
@@ -247,7 +251,7 @@ step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]})
     {ajax, Code, {_, URI}} when is_number(Code) -> 
         bdd_utils:log(Config, warn, "bdd_restrat: Object ~p code ~p at ~p", [Object, Code, URI]), 
         false;
-    {ajax, J, _}          -> apply(Object, validate, [J])
+    {ajax, J, _}          -> apply(alias(Object), validate, [J])
   end;
     
 step(Config, Results, {step_then, _N, ["there should be a key",Key]}) -> 

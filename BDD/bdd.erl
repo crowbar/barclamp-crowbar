@@ -273,7 +273,10 @@ step_run(Config, Input, Step) ->
 	
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
-	try apply(Feature, step, [Config, Input, Step]) of
+  % sometimes, we have to rename files, the alias lets the system handle that
+  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  % now we need to try and run the feature
+	try apply(Alias, step, [Config, Input, Step]) of
 		error -> 
 		  {error, Step};
 		Result -> 
@@ -379,7 +382,9 @@ inspect(Config) ->
 
 inspect(_Config, Result, []) -> Result;
 inspect(Config, Result, [Feature | Features]) ->
-  try apply(Feature, inspector, [Config]) of
+  % sometimes, we have to rename files, the alias lets the system handle that
+  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  try apply(Alias, inspector, [Config]) of
 		R -> R ++ inspect(Config, Result, Features)
 	catch
 		_X: _Y -> inspect(Config, Result, Features) % do nothing, we just ignore lack of inspectors

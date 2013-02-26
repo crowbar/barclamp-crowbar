@@ -386,9 +386,8 @@ en:
       deployments: Deployments
       snapshots: Snapshots
       template: Template
-    modules:
-      title: All Barclamps
     index:
+      title: All Barclamps
       members: Members
       proposals: proposals
       barclamp: Name

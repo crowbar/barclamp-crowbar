@@ -24,12 +24,18 @@ class BarclampController < ApplicationController
   # Provides the restful api call for
   # List Barclamps 	/crowbar 	GET 	Returns a json list of string names for barclamps 
   #
-  add_help(:barclamp_index)
-  def barclamp_index
-    @barclamps = Barclamp.all
+  add_help(:index)
+  def index
+    if params.has_key? :id
+      @barclamps = Barclamp.find_key params[:id]
+      @title ||= "#{barclamp.display} #{t('barclamp.index.members')}" 
+    else
+      @barclamps = Barclamp.all
+      @title ||= t 'barclamp.index.title'
+    end
     respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_index' }
-      format.json { render :json => @barclamps }
+      format.html { }
+      format.json { render api_index :barclamp, @barclamps  }
     end
   end
 
@@ -91,20 +97,6 @@ class BarclampController < ApplicationController
   add_help(:graph)
   def graph
     @barclamps = Barclamp.all
-  end
-  #
-  # Provides the restful api call for
-  # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of snapshots 
-  #
-  add_help(:index)
-  def index
-    respond_to do |format|
-      format.html { 
-        @title ||= "#{barclamp.display} #{t('barclamp.index.members')}" 
-        @modules = barclamp.members
-        render 'barclamp/index' 
-      }
-    end
   end
 
   #

@@ -71,14 +71,12 @@ Crowbar::Application.routes.draw do
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
-    # legacy...likey to be refactored
-    get "modules", :controller=>'barclamp', :action=>"modules", :as=>"barclamp_modules"
-    get "/", :controller=>'barclamp', :action=>"modules", :as=>"index_barclamp"
+    get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamps"
   end
 
   # UI only routes
-  scope :defaults => {:format=> 'html'} do
-    get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
+  scope 'dashboard' do
+    get "/", :controller => 'nodes', :action => 'index', :as => 'dashboard'
     constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
       scope  'node' do
@@ -95,7 +93,7 @@ Crowbar::Application.routes.draw do
       end
     end
   end
-     
+  
   # REVIEW NEEDED!  should this be under the devise_scope??
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password

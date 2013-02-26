@@ -48,10 +48,10 @@ class RoleType < ActiveRecord::Base
       r = RoleType.find_or_create_by_name :name => role_type.to_s, :description => desc
     elsif role_type.is_a? Hash
       # we can make them from a hash if the creator wants to include more info
-      throw "role_type.add requires attribute :name" if role_type.nil? or !role_type.has_key? :name
+      raise "role_type.add requires attribute :name" if role_type.nil? or !role_type.has_key? :name
       r = RoleType.find_or_create_by_name role_type
     else
-      throw "role_type.add cannot use #{role_type.class || 'nil'} to create from attribute: #{role_type.inspect}"
+      raise "role_type.add cannot use #{role_type.class || 'nil'} to create from attribute: #{role_type.inspect}"
     end 
     r
   end

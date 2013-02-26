@@ -221,7 +221,7 @@ en:
       user_defined_role_description: "User Defined Attributes"
 
   # Views
-  nodes:
+  dashboard:
     index:
       new_node: Add Node
       title: Node Dashboard
@@ -263,6 +263,7 @@ en:
       nics: NICs
       cpu: CPU Type
       hardware: Platform
+  nodes:
     new:
       title: Add Node
     show:

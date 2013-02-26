@@ -76,12 +76,16 @@ Crowbar::Application.routes.draw do
 
   # UI only routes
   scope 'dashboard' do
-    get "/", :controller => 'nodes', :action => 'index', :as => 'dashboard'
+    get '/' => 'dashboard#index'
+    get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
+    get 'families' => 'dashboard#families', :as => :nodes_families
+    get 'list' => 'dashboard#list',         :as => :nodes_list
+    
     constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
       scope  'node' do
-        get  'list' => "nodes#list", :as => :nodes_list
-        get  'families' => "nodes#families", :as => :nodes_families
+        get  'list' => "nodes#list"
+        get  'families' => "nodes#families"
         get  ':id/edit' => "nodes#edit", :as => :edit_node
         post ':id/edit' => "nodes#update", :as => :update_node
         put  ':id/update' => 'nodes#update', :as => :update_node

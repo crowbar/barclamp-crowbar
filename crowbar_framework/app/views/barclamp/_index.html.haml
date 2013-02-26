@@ -30,12 +30,12 @@
                   = ":"
                   %em= deployment.description
                   - #= render :partial => 'proposals/proposal', :locals=>{ :proposal=>config }
-              - if barclamp.allow_multiple_deployments or barclamp.deployment.count==0
-                = form_for :deployment, :remote => true, :url => deployment_path(:controller => deployment), :html => { :'data-type' => 'html', :'data-method' => 'post', :method => :post, :id => 'create_proposal_form', :class => "formtastic"} do |f|
+              - if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
+                - @deploy = Deployment.new
+                = form_for @deploy, :remote => true, :html => { :'data-type' => 'html', :'data-method' => 'post', :method => :post, :id => 'create_proposal', :class => "formtastic"} do |f|
                   %tr{:class => ["snapshot", cycle(:odd, :even)]}
                     %td{:style => "text-align:center"} +
                     %td
-                      = hidden_field_tag :barclamp, barclamp.name
                       = text_field_tag :name, t('proposal.items.default'), :size => 15
                     %td
                       = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }", :size => 60

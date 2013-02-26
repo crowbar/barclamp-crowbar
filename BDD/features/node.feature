@@ -51,7 +51,7 @@ Feature: Nodes
     Finally REST removes the node "bdd-node-list.example.com"
     
   Scenario: Node Detail
-    When I go to the "node/bdd1.example.com" page
+    When I go to the "dashboard/node/bdd1.example.com" page
     Then I should see "Full Name"
       And I should see "State"
       And I should see "Uptime"

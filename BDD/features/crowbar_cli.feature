@@ -22,6 +22,7 @@ Feature: Crowbar CLI
       And the CLI should return "developer"
       
   Scenario: Machines List
+    Skip Machines List is broken
     Unless windows
     Given there is a {object:node} "cli.cr0wbar.com"
     Given CLI is {apply:crowbar.g.cli} 

@@ -301,9 +301,11 @@ class Barclamp < ActiveRecord::Base
       end
   
       # requires (will fail if prereq is missing)
-      if bc['barclamp']['requires']
+      # Don't do this for now, as it will be broken until
+      # all the barclamps are engine-ized.
+      if bc['barclamp']['requires'] && false
         bc['barclamp']['requires'].each do |prereq|
-          prereq = prereq[1..100] if prereq.starts_with? "@"
+          prereq = prereq[1..-1] if prereq.starts_with? "@"
           pre = Barclamp.find_by_name prereq
           raise "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
           barclamp.prereqs << pre 

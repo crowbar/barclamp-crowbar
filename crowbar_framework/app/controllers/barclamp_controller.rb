@@ -27,8 +27,9 @@ class BarclampController < ApplicationController
   add_help(:index)
   def index
     if params.has_key? :id
-      @barclamps = Barclamp.find_key params[:id]
-      @title ||= "#{barclamp.display} #{t('barclamp.index.members')}" 
+      bc = Barclamp.find_key params[:id]
+      @barclamps = bc.members
+      @title ||= "#{t 'barclamp.index.members'} #{t('barclamp.'+bc.name+'.index.title')}" 
     else
       @barclamps = Barclamp.all
       @title ||= t 'barclamp.index.title'

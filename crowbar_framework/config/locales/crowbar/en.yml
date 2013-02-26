@@ -372,7 +372,7 @@ en:
       edit_deployment:
         deployment: Deployment
       index:
-        title: Crowbar Members
+        title: Crowbar Barclamp
         barclamp: Project
         state: Status
         proposal: Proposal
@@ -389,7 +389,7 @@ en:
       template: Template
     index:
       title: All Barclamps
-      members: Members
+      members: "Members of"
       proposals: proposals
       barclamp: Name
       status: Status

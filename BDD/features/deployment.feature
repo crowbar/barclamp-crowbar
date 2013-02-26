@@ -1,4 +1,4 @@
-Feature: Configuratons
+Feature: Deployments
   In order to track system configuration
   The system operator, Oscar
   wants to be able to manage configurations

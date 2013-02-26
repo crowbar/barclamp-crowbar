@@ -22,24 +22,30 @@ class NodesController < ApplicationController
     # k = Delayed::Job.enqueue(Jobs::TestJob.new)
     # puts "DEBUG: k = #{k.inspect}"
 
-    @sum = Node.sum(:fingerprint)
-    @groups = Group.find_all_by_category 'ui'
-    @node = Node.find_key params[:id]
-    session[:node] = params[:id]
-    if params.has_key?(:role)
-      result = Node.all 
-      @nodes = result.find_all { |node| node.role? params[:role] }
-      if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.name }
-         @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
-      end
+    if params.has_key? :group_id
+      g = Group.find_key params[:group_id]
+      render api_index :group, g.nodes
     else
-      @nodes = {}
-      Node.all.each { |n| @nodes[n.id]=n.name }
-    end
-    respond_to do |format|
-      format.html # index.html.haml
-      format.json { render api_index :node, Node.all }
+  
+      @sum = Node.sum(:fingerprint)
+      @groups = Group.find_all_by_category 'ui'
+      @node = Node.find_key params[:id]
+      session[:node] = params[:id]
+      if params.has_key?(:role)
+        result = Node.all 
+        @nodes = result.find_all { |node| node.role? params[:role] }
+        if params.has_key?(:names_only)
+           names = @nodes.map { |node| node.name }
+           @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
+        end
+      else
+        @nodes = {}
+        Node.all.each { |n| @nodes[n.id]=n.name }
+      end
+      respond_to do |format|
+        format.html # index.html.haml
+        format.json { render api_index :node, Node.all }
+      end
     end
   end
 
@@ -178,14 +184,6 @@ class NodesController < ApplicationController
     
   end
   
-  def attribs
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Attribs Action: refactoring by CloudEdge')
-  end
-  
-  def group
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Group Action: refactoring by CloudEdge')    
-  end
-  
   # CB1 move to IMPI
   def hit
     action = params[:req]
@@ -213,18 +211,11 @@ class NodesController < ApplicationController
     end
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200
   end
-
-  # GET /2.0/node/1
-  # GET /2.0/node/foo.example.com
+    
   def show
     respond_to do |format|
-      format.html {
-        # for temporary backwards compatibility, we'll combine the chef object and db object
-        @node = Node.find_key params[:id]
-      } # show.html.erb
-      format.json {
-        render api_show :node, Node
-      }
+      format.html { @node = Node.find_key params[:id] } # show.html.erb
+      format.json { render api_show :node, Node }
     end
   end
 
@@ -239,10 +230,8 @@ class NodesController < ApplicationController
     render api_show :node, Node, n.id.to_s, nil, n
   end
   
-  def edit
-    @node = Node.find_key params[:id]
-    @groups = {}
-    Group.all(:conditions=>["category=?",'ui']).each { |g| @groups[g.name] = g.id }
+  def update
+    render api_update :node, Node
   end
 
   def attribs
@@ -290,7 +279,7 @@ class NodesController < ApplicationController
 
   # RESTfule PUT of the node resource
   # CB1 - please review & update
-  def update
+  def update_remove
     get_node_and_network(params[:id] || params[:name])
     if params[:submit] == t('nodes.edit.allocate')
       @node.allocated = true

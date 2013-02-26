@@ -98,7 +98,7 @@ class Attrib < ActiveRecord::Base
    {
      :id=> id,
      :node_id=> node_id,
-     :attrib_id=> attrib_type_id,
+     :attrib_type_id=> attrib_type_id,
      :value=> value,
      :state => state,
      :created_at=> created_at,

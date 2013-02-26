@@ -13,9 +13,9 @@
 % limitations under the License. 
 % 
 % 
--module(groups).
+-module(group_cb).
 -export([step/3, json/3, json/4, g/1, validate/1, inspector/1]).
-	
+-include("bdd.hrl").	
 	
 g(Item) ->
   case Item of
@@ -42,22 +42,18 @@ validate(JSON) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
-  bdd_restrat:inspector(Config, groups).  % shared inspector works here, but may not always
+  bdd_restrat:inspector(Config, group).  % shared inspector works here, but may not always
   
 % Returns the JSON List Nodes in the Group
 get_group_nodes(Config, Group) ->
-  Path = eurl:path([g(path),Group, "node"]),
-  Result = eurl:get(Config, Path),
-  group_nodes(json:parse(Result), Group).
-  
-% Given a ERLANG list from the GET, will return the node list
-group_nodes(Result, Group) ->
-  {"name", Group} = lists:keyfind("name", 1, Result),   % make sure this is the group we think 
-  {"nodes", Nodes} = lists:keyfind("nodes", 1, Result),
-  Nodes.
+  URI = eurl:path([g(path),Group, "nodes"]),
+  bdd_utils:log(debug, group_cb, get_group_nodes, "get ~p list for ~p path", [Group, URI]),
+  {200, JSON} = eurl:get_page(Config, URI, all),
+  Wrapper = crowbar_rest:api_wrapper_raw(JSON),
+  Wrapper#list.ids.
   
 % DRY the path creation
-group_node_path(Group, Node) ->  eurl:path([g(path), Group, "node", Node]).
+group_node_path(Group, Node) ->  eurl:path([node:g(path), Node, "groups", Group]).
 
 % Build Group JSON  
 json(Name, Description, Order)           -> json(Name, Description, Order, "ui").
@@ -68,36 +64,15 @@ json(Name, Description, Order, Category) ->
 
 step(Config, _Given, {step_given, _N, ["REST adds the node",Node,"to",Group]}) -> 
   step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]});
-  
-step(Config, _Given, {step_when, _N, ["REST gets the group list"]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
-step(_Config, _Given, {step_when, _N, ["AJAX gets the group",Name]}) -> 
-  bdd_webrat:step(_Config, _Given, {step_when, _N, ["AJAX requests the",eurl:path(g(path),Name),"page"]});
-      
 step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]}) -> 
-  R = eurl:post(Config, group_node_path(Group, Node), []),
-  Result = json:parse(R),
-  bdd_utils:log(Config, trace, "group:step REST add the node ~p to ~p. Result was ~p",[Node, Group, Result]),
-  {nodes, group_nodes(Result, Group)};
+  bdd_utils:log(debug, group_cb, step, "group:step REST add the node ~p to ~p",[Node, Group]),
+  eurl:put_post(Config, group_node_path(Group, Node), [], put, all);
 
 step(Config, _Given, {step_when, _N, ["REST removes the node",Node,"from",Group]}) -> 
+  bdd_utils:log(debug, group_cb, step, "group:step REST remove the node ~p from ~p",[Node, Group]),
   eurl:delete(Config, group_node_path(Group, Node), []);
 
-step(Config, _Given, {step_when, _N, ["REST removes the group",Group]}) ->   
-  eurl:delete(Config, g(path), Group);
-
-step(Config, _Given, {step_when, _N, ["REST moves the node",Node,"from",GroupFrom,"to",GroupTo]}) -> 
-  %first check old group
-  Nodes = get_group_nodes(Config, GroupFrom),
-  1 = length([ N || {_ID, N} <- Nodes, N =:= Node]),
-  R = eurl:put(Config, group_node_path(GroupTo, Node), []),
-  Result = json:parse(R),
-  bdd_utils:log(Config, trace, "group:step REST move the node ~p to ~p. Result was ~p",[Node, GroupTo, Result]),
-  {nodes, group_nodes(Result, GroupTo)}; 
-  
-step(_Config, Result, {step_then, _N, ["the group is properly formatted"]}) -> 
-  bdd_restrat:step(_Config, Result, {step_then, _N, ["the", groups, "object is properly formatted"]});
 
 step(Config, _Result, {step_then, _N, ["there is not a",_Category,"group",Group]}) -> 
   % WARNING - this IGNORES THE CATEGORY, it is not really a true test for the step.
@@ -109,12 +84,14 @@ step(Config, _Result, {step_then, _N, ["there is not a",_Category,"group",Group]
 step(Config, _Result, {step_then, _N, ["the group",Group,"should have at least",Count,"node"]}) -> 
   {C, _} = string:to_integer(Count),
   Nodes = get_group_nodes(Config, Group),
+  bdd_utils:log(debug, group_cb, step_step, "Group ~p at least ~p from ~p", [Group, Count, Nodes]),
   Items = length(Nodes),
   Items >= C;
 
 step(Config, _Result, {step_then, _N, ["the group",Group,"should have",Count,"nodes"]}) -> 
   {C, _} = string:to_integer(Count),
   Nodes = get_group_nodes(Config, Group),
+  bdd_utils:log(debug, group_cb, step_step, "Group ~p has ~p from ~p", [Group, Count, Nodes]),
   length(Nodes) =:= C;
 
 step(Config, _Result, {step_then, _N, ["the node",Node,"should be in group",Group]}) -> 
@@ -141,9 +118,8 @@ step(Config, _Global, {step_setup, _N, _}) ->
   Config2 = bdd_restrat:create(Config1, g(path), g(atom2), name, JSON2),
   Config2;
 
-step(Config, _Global, {step_teardown, _N, _}) -> 
+step(_Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
-  Config2 = bdd_restrat:destroy(Config, g(path), g(atom2)),
-  Config1 = bdd_restrat:destroy(Config2, g(path), g(atom1)),
-  Config0 = bdd_restrat:destroy(Config1, node:g(path), g(atom_node1)),
-  Config0.
+  bdd_restrat:destroy(g(path), g(atom2)),
+  bdd_restrat:destroy(g(path), g(atom1)),
+  bdd_restrat:destroy(node:g(path), g(atom_node1)).

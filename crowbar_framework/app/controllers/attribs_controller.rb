@@ -16,18 +16,43 @@
 class AttribsController < ApplicationController
 
   def index
-    render api_index :attrib, Attrib.all
+    if params.has_key? :node_id
+      n = Node.find_key params[:node_id]
+      render api_index :attrib, n.attribs
+    else
+      render api_index :attrib, Attrib.all
+    end
   end
 
   def show
-    render api_show :attrib, Attrib
-  end
-
-  def create
-    a = Attrib.create params
-    render api_show :attrib, Attrib, nil, nil, a
+    if params.has_key? :node_id
+      redirect_to nodes_path(:id=>params[:node_id])
+    else
+      render api_show :attrib, Attrib
+    end
   end
   
+  def create
+    if params.has_key? :node_id
+      # TODO this needs to be restricted to the node only
+      a = Group.find_key params[:id]
+      n = Node.find_key parals[:node_id]
+      n.groups << g  if g and n
+      return {:text=>I18n.t('api.added', :item=>a.name, :collection=>'node.attribs')}
+    else
+      a = Attrib.create params
+      render api_show :attrib, Attrib, nil, nil, a
+    end
+  end
+  
+  def update
+    if params.has_key? :node_id
+      render api_not_supported 'put', 'nodes/:id/attribs/:id'
+    else  
+      render api_update :attrib, Attrib
+    end
+  end
+
   def destroy
     render api_delete Attrib
   end

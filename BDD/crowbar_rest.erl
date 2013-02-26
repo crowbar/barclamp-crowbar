@@ -52,6 +52,7 @@ api_wrapper(Type, JSON)      ->
   List = json:keyfind(JSON, "list"),
   case List of
     not_found -> #item{type=Type, data=json:keyfind(JSON, "item"), link=Link};
+    [[]]      -> #list{type=Type, data=[], link=Link, ids=[], count=0};
     _         -> IDs = [{json:keyfind(R,"id"),json:keyfind(R,"name")} || R <- List],
                 % note: the ids field is for backward compatability against the legacy 2.0 api
                  #list{type=Type, data=List, link=Link, count=json:keyfind(JSON, "count"), ids = IDs}

@@ -12,6 +12,8 @@
       value = (value == 'true' || value == 'True')
     } else if (type == 'integer') {
       value = parseInt(value);
+    } else if (type == 'float') {
+      value = parseFloat(value);
     } else if (type == 'array-string') {
       value = value.split(' ');
     } else if (type == 'array-boolean') {

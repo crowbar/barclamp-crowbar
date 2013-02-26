@@ -66,50 +66,33 @@ json(Name, Description, Order) ->
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
 
-step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"adds",attrib,Attrib,"with value",Value]}) -> 
-  JSON = attrib_instance:json(Value),
-  AttribID = attrib:create(Scenario, Attrib, []),
-  Path = attrib_instance:path(Node,AttribID),
-  R = eurl:put_post(Config, Path, JSON, post),
-  bdd_utils:log(debug, "node: node ~p adds Attrib ~p (~p)",[Node, Attrib, AttribID]),
-  bdd_utils:log(trace, "node: node adds .... ~p result ~p",[Node, R]);
+step(Config, _Global, {step_given, {_Scenario, _N}, [node,Node,"adds",attrib_type,Attrib,"with value",Value]}) -> 
+  R = attrib:node_add_attrib(Config, Node, Attrib, Value),
+  utils:log(debug, "node: node adds .... ~p result ~p",[Node, R]);
 
-step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"with",attrib,Attrib,"has value",Value]}) -> 
-  JSON = attrib_instance:json(Value),
-  NodeID = node:create(Scenario, Node, []),
-  AttribID = attrib:create(Scenario, Attrib, []),
-  Path = attrib_instance:path(NodeID,AttribID),
-  R = eurl:put_post(Config, Path, JSON, post),
-  bdd_utils:log(debug, "node: Given node ~p (~p) with Attrib ~p (~p)",[Node, NodeID, Attrib, AttribID]),
-  bdd_utils:log(trace, "node: Given node ..... ~p result ~p",[NodeID, R]);
+step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"with",attrib_type,Attrib,"has value",Value]}) -> 
+  step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"adds",attrib_type,Attrib,"with value",Value]});
 
-step(Config, _Given, {step_when, {_Scenario, _N}, [node,Node,"with",attrib,Attrib,"is set to value",Value]}) -> 
-  JSON = attrib_instance:json(Value),
-  Path = attrib_instance:path(Node,Attrib),
-  {Code, R} = eurl:put_post(Config, Path, JSON, put, all),
-  bdd_utils:log(debug, "node: update node ~p with Attrib ~p to ~p got code ~p",[Node, Attrib, Value, Code]),
-  bdd_utils:log(trace, "node: update Node ..... result ~p",[R]),
-  bdd_restrat:ajax_return(Path, put, Code, R);
+step(Config, Given, {step_when, {_Scenario, _N}, [node,Node,"with",attrib_type,Attrib,"is set to value",Value]}) -> 
+  step(Config, Given, {step_given, {_Scenario, _N}, [node,Node,"adds",attrib_type,Attrib,"with value",Value]});
 
 step(Config, _Given, {step_when, _N, ["REST gets the node-attribute list for",Node]}) -> 
-  Path = eurl:path(g(path), eurl:path(Node, attrib_instance:g(path))),
+  Path = eurl:path([g(path), Node, 'attribs']),
   bdd_utils:log(Config, debug, "Nodes get node-attributes path ~p", [Path]),
   eurl:get_ajax(Config, Path);
 
-step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",node,Node,"with",attrib,Attrib]}) -> 
-  Path = attrib_instance:path(Node,Attrib),
+step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",node,Node,"with",attrib_type,Attrib]}) -> 
+  Path = attrib:path(Node,Attrib),
   bdd_utils:log(trace,"node: Getting NodeAttrib: ~p", [Path]),
   eurl:get_ajax(Config, Path);
 
-step(Config, _Given, {step_when, _N, ["REST assigns",attrib,Attrib,"to",node,Node]}) -> 
-  R = attrib_instance:node_add_attrib(Config, Node, Attrib),
-  bdd_restrat:ajax_return(attrib_instance:path(Node, Attrib), post, 200, R);
+step(Config, _Given, {step_when, _N, ["REST assigns",attrib_type,Attrib,"to",node,Node]}) -> 
+  R = attrib:node_add_attrib(Config, Node, Attrib, 'no_value'),
+  bdd_restrat:ajax_return(attrib:path(Node, Attrib), post, 200, R);
 
-step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib, Attrib]}) -> 
-  Result = attrib_instance:node_add_attrib(Config, Node, Attrib),
-bdd_utils:puts("!!! has attrib ~p", [Result]),  
+step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib_type, Attrib]}) -> 
+  Result = attrib:node_add_attrib(Config, Node, Attrib),
   R = crowbar_rest:api_wrapper_raw(Result),
-bdd_utils:puts("$$$ has attrib ~p", [R]),  
   {"node_id", NodeID} = lists:keyfind("node_id", 1, json:parse(R)),
   {"attrib_id", AttribID} = lists:keyfind("attrib_id", 1, json:parse(R)),
   {"id", NodeAttrib} = lists:keyfind("id", 1, json:parse(R)),
@@ -118,19 +101,19 @@ bdd_utils:puts("$$$ has attrib ~p", [R]),
   bdd_utils:scenario_store(Scenario, attrib, AttribID),
   bdd_utils:scenario_store(Scenario, {nodeattrib, Node, Attrib}, NodeAttrib),
   bdd_utils:log(Config, debug, "node: given node ~p (~p) has attrib ~p (~p).  Result ~p",[Node, NodeID, Attrib, AttribID, R]),
-  bdd_restrat:ajax_return(attrib_instance:path(NodeID, AttribID), post, 200, R);
+  bdd_restrat:ajax_return(attrib:path(NodeID, AttribID), post, 200, R);
 
-step(Config, _Result, {step_then, {Scenario, _N}, [node,Node,"has no",attrib,Attrib]}) -> 
-  true =/= step(Config, _Result, {step_given, {Scenario, _N}, [node,Node,"has",attrib, Attrib]});
+step(Config, _Result, {step_then, {Scenario, _N}, [node,Node,"has no",attrib_type,Attrib]}) -> 
+  true =/= step(Config, _Result, {step_given, {Scenario, _N}, [node,Node,"has",attrib_type, Attrib]});
 
 step(Config, Result, {step_then, _N, ["the result is a valid node-attribute json"]}) ->
   bdd_utils:log(Config, x, "node: valid node-attribute? result ~p",[Result]),
   JSON = bdd_restrat:get_JSON(Result),
   bdd_utils:log(Config, debug, "node: valid node-attribute? json ~p",[JSON]),
-  attrib_instance:validate(JSON);
+  attrib:validate(JSON);
 
-step(Config, _Result, {step_then, _N, [node,Node,"has",attrib,Attribute]}) -> 
-  Path = attrib_instance:path(Node, Attribute),
+step(Config, _Result, {step_then, _N, [node,Node,"has",attrib_type,Attribute]}) -> 
+  Path = attrib:path(Node, Attribute),
   R = eurl:get_page(Config, Path, all),
   bdd_utils:log(Config, debug, "node node ~p has attribute ~p",[Node, Attribute]),
   bdd_utils:log(Config, trace, "node .... ~p result ~p",[Node, R]),
@@ -148,7 +131,7 @@ step(Config, _Given, {step_when, _N, ["REST unassigns",attrib,Attribute,"from",n
   step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from",node,Node]}); 
 step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from",node,Node]}) -> 
   NodePath = eurl:path(g(path), Node),
-  Path = eurl:path(NodePath,attrib_instance:g(path)),
+  Path = eurl:path(NodePath,attrib:g(path)),
   bdd_utils:log(Config, debug, "Node disconnect node+attributes ~p ~p", [Path, Attribute]),
   {Code, Info} = eurl:delete(Config, Path, Attribute, all),
   {ajax, Code, Info};
@@ -156,19 +139,19 @@ step(Config, _Given, {step_finally, _N, ["REST unassigns",attrib,Attribute,"from
 step(Config, _Global, {step_setup, _N, _}) -> 
   bdd:log(trace, "Entering Node setup step", []),
   % create attribute for tests
-  Attrib0 = attrib:json("bddtestglobal", g(description), 100),
-  bdd_restrat:create([], attrib:g(path), nodeattrib0, name, Attrib0),
-  Attrib1 = attrib:json("bddtest1", g(description), 101),
-  bdd_restrat:create([], attrib:g(path), nodeattrib1, name, Attrib1),
+  Attrib0 = attrib_type:json("bddtestglobal", g(description), 100),
+  bdd_restrat:create([], attrib_type:g(path), nodeattrib0, name, Attrib0),
+  Attrib1 = attrib_type:json("bddtest1", g(description), 101),
+  bdd_restrat:create([], attrib_type:g(path), nodeattrib1, name, Attrib1),
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
   bdd_restrat:create([], g(path), g(atom), name, Node),
-  attrib_instance:node_add_attribute([], g(name), "bddtestglobal"),
+  attrib_type:node_add_attribute([], g(name), "bddtestglobal"),
   Config;
 
 step(_Config, _Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
   bdd_restrat:destroy([], g(path), g(atom)),
-  bdd_restrat:destroy([], attrib:g(path), nodeattrib0),
-  bdd_restrat:destroy([], attrib:g(path), nodeattrib1).
+  bdd_restrat:destroy([], attrib_type:g(path), nodeattrib0),
+  bdd_restrat:destroy([], attrib_type:g(path), nodeattrib1).
   

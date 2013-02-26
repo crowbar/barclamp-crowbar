@@ -116,8 +116,8 @@ Crowbar::Application.routes.draw do
    
       scope 'framework' do            
         scope 'status' do
-          get "nodes(/:id/)" => "nodes#status",  :as=>'nodes_status'
-          get "deployments(/:id/)" => "deployments#status",  :as=>'deployments_status'
+          get "nodes(/:id)" => "nodes#status",  :as=>'nodes_status'
+          get "deployments(/:id)" => "deployments#status",  :as=>'deployments_status'
         end
       end
       

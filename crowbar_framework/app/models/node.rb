@@ -322,7 +322,6 @@ class Node < ActiveRecord::Base
     Jig.all.each { |c| c.delete_node(self) }
   end
 
-  
   # make sure some safe values are set for the node
   def default_population
     self.fingerprint = self.name.hash

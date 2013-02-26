@@ -47,7 +47,11 @@ module ApiHelper
         if db_id?(key)
           find key.to_i
         elsif key.is_a? String
-          find_by_name key
+          if key =~ /^[0-9]+$/
+            find key.to_i
+          else
+            find_by_name key rescue nil
+          end
         elsif key.is_a? ActiveRecord::Base  
           # if we get the object itself then use find to valid it exists
           find key.id

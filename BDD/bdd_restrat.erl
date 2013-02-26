@@ -245,6 +245,17 @@ step(_Config, Results, {step_then, _N, ["REST call returned success"]}) ->
            false
   end;
 
+
+step(Config, _Results, {step_then, _N, ["there is a", Object, Key]}) ->
+  URI = apply(alias(Object), g, [path]),
+  {Code, _} =eurl:get_page(Config, eurl:path(URI, Key), all),
+  200 =:= Code;
+
+step(Config, _Results, {step_then, _N, ["there is not a", Object, Key]}) ->
+  URI = apply(alias(Object), g, [path]),
+  {Code, _} =eurl:get_page(Config, eurl:path(URI, Key), all),
+  404 =:= Code;
+  
 step(Config, Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information 
   case get_JSON(Results, all) of 

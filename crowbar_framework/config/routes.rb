@@ -16,11 +16,6 @@ Crowbar::Application.routes.draw do
   
 # DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
 
-  # ??? what is this ??
-  resources :nodes, :only => [:index, :new] do
-    get 'status', :on => :collection
-  end
-  
   # UI scope documentation / help
   scope 'docs' do
     get '/', :controller=>'docs', :action=>'index', :as => "docs"
@@ -174,22 +169,9 @@ Crowbar::Application.routes.draw do
       scope '2.0' do
         constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
   
-          # MOVE TO IMPI actions
-          get "node/:id/hit/:req" => "nodes\#hit", :as => :hit_node # MOVE TO GENERIC - IPMI BARCLAMP??
                   
           scope 'crowbar' do    # MOVE TO GENERIC!
             scope '2.0' do      # MOVE TO GENERIC!
-              # group + node CRUD operations
-              match  "group/:id/node/(:node)" => 'groups#node_action',  :constraints => { :node => /([a-zA-Z0-9\-\.\_]*)/ }
-    
-
-              get "group", :controller=>'groups', :action=>'index'     # MOVE TO GENERIC!
-              #get ":action", :controller=>'crowbar'
-              # basic CRUD operations
-              # (replace w/ generic)
-              match "/node/:id/:target(/:target_id)" , :controller=>'crowbar', :action=>'node', :version=>'2.0'
-              resources :group, :controller=>'groups'     # MOVE TO GENERIC!
-              
              
               # these all need to be updated.
               scope 'users' do

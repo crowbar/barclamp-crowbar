@@ -302,7 +302,7 @@ class Barclamp < ActiveRecord::Base
         bc['barclamp']['requires'].each do |prereq|
           prereq = prereq[1..100] if prereq.starts_with? "@"
           pre = Barclamp.find_by_name prereq
-          throw "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
+          raise "ERROR: Cannot load barclamp #{bc_name} because prerequisite #{prereq} has not been imported" if pre.nil?
           barclamp.prereqs << pre 
         end
       end
@@ -368,7 +368,7 @@ class Barclamp < ActiveRecord::Base
   
   # This method ensures that we have a type defined for 
   def create_type_from_name
-    throw "barclamps require a name" if self.name.nil?
+    raise "barclamps require a name" if self.name.nil?
     file = "#{self.name}"
     myclass = "Barclamp#{self.name.camelize}::Barclamp"
     # this will need to be fixed for the engines!!

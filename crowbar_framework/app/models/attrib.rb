@@ -74,24 +74,24 @@ class Attrib < ActiveRecord::Base
     
   # Returns state of value of :empty, :set (by API) or :managed (by Jig)
   def state
-    throw "must be provided by subclass"
+    raise "must be provided by subclass"
   end
 
   def request=(value)
-    throw "must be provided by subclass"
+    raise "must be provided by subclass"
   end
   
   def request
-    throw "must be provided by subclass"
+    raise "must be provided by subclass"
   end
   
   # used by the API when values are set outside of Jig runs
   def actual=(value)
-    throw "must be provided by subclass"
+    raise "must be provided by subclass"
   end
   
   def actual
-    throw "must be provided by subclass"
+    raise "must be provided by subclass"
   end
   
   def as_json options={}

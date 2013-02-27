@@ -221,7 +221,7 @@ en:
       user_defined_role_description: "User Defined Attributes"
 
   # Views
-  nodes:
+  dashboard:
     index:
       new_node: Add Node
       title: Node Dashboard
@@ -248,7 +248,7 @@ en:
       failed: Node Save Failed
       admin: Crowbar Server
       title_all: Bulk Edit
-      title_unallocated: Bulk Edit (unallocated only)
+      title_unallocated: "Bulk Edit - unallocated only"
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
@@ -263,6 +263,7 @@ en:
       nics: NICs
       cpu: CPU Type
       hardware: Platform
+  nodes:
     new:
       title: Add Node
     show:
@@ -371,7 +372,7 @@ en:
       edit_deployment:
         deployment: Deployment
       index:
-        title: Crowbar Members
+        title: Crowbar Barclamp
         barclamp: Project
         state: Status
         proposal: Proposal
@@ -384,12 +385,11 @@ en:
       attribs: Attributes
       members: Members
       deployments: Deployments
-      snapshots: Snapshots
+      snapshot: Snapshots
       template: Template
-    modules:
-      title: All Barclamps
     index:
-      members: Members
+      title: All Barclamps
+      members: "Members of"
       proposals: proposals
       barclamp: Name
       status: Status

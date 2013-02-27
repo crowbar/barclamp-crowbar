@@ -1,44 +1,48 @@
-Feature: Configuratons
-  In order to track system configuration
+Feature: Deployments
+  In order to track system deploymenturation
   The system operator, Oscar
-  wants to be able to manage configurations
+  wants to be able to manage deploymenturations
 
-  Scenario: Configuration List
-    Skip until Rob completes this work
-    When REST gets the {object:config} list
-    Then there should be a value "crowbar: default"
-      And there should be a value "network: default"
-      And there should be a value "provisioner: default"
+  Scenario: Deployment List
+    When REST gets the {object:barclamp} "test" {object:deployment} list
+    Then the page returns {integer:200}
 
   Scenario: Test Barclamp Exists
-    Skip until Rob completes this work
-    Given there is a {object:barclamp} "test" 
+    Given I require a {object:barclamp} "test" 
     When REST gets the {object:barclamp} "test"
     Then the {object:barclamp} is properly formatted
     
-  Scenario: Create Test-Default config
-    Skip until Rob completes this work
-    Given there is an {object:barclamp} "test"
-    When create a {object:config} "default" on the {object:barclamp} "test"
-    Then the {object:barclamp} is properly formatted
-      And there should be a key "configs"
-      And there should be a value "default"
-    Finally REST removes the {object:config} "default" from the {object:barclamp} "test"
-    
-  Scenario: Test Test-Template has values
-    Skip until Rob completes this work
-    Given there is an {object:barclamp} "test"
-    When I get the {object:barclamp} "test" template
-    Then the {object:instance} is properly formatted
-      And there should be a key "test"
-      And there should be a value "test"
-  
-  Scenario: Create Test-Test
-    Skip until Rob completes this work
-    Given there is a {object:config} "test" on the {object:barclamp} "test"
-    When I get the proposed {object:instance} "test" on the {object:barclamp} "test"
-    Then the {object:instance} is properly formatted
-      And there should be a key "test"
-      And there should be a value "test"
-    Finally REST removes the {object:config} "test" from the {object:barclamp} "test"
-    
+  Scenario: Create Test-Default deployment
+    Given I require a {object:barclamp} "test"
+    When I propose a {object:deployment} "foobar" on the {object:barclamp} "test"
+    Then the {object:deployment} is properly formatted
+      And key "name" should be "foobar"
+    Finally REST removes the {object:deployment} "foobar"
+
+  Scenario: Created Template Shows up on UI
+    Given I require a {object:barclamp} "test"
+      And I propose a {object:deployment} "bdd_created_deployment" on the {object:barclamp} "test"
+    When I go to the "barclamp" page
+    Then I should see "bdd_created_deployment"
+      And there should be no translation errors
+    Finally REST removes the {object:deployment} "bdd_created_deployment"
+
+  Scenario: Deployment shows up on list
+    Given I require a {object:barclamp} "test"
+      And I propose a {object:deployment} "deploy_list" on the {object:barclamp} "test"
+    When REST gets the {object:barclamp} "test" {object:deployment} list
+    Then the page returns {integer:200}
+      And there should be a value "deploy_list"
+    Finally REST removes the {object:deployment} "deploy_list"
+
+  Scenario: Deployment does not shows up on wrong list
+    Given I require a {object:barclamp} "test"
+      And I require a {object:barclamp} "crowbar"
+      And I propose a {object:deployment} "ghost_deploy" on the {object:barclamp} "test"
+      And I propose a {object:deployment} "solid" on the {object:barclamp} "crowbar"
+    When REST gets the {object:barclamp} "crowbar" {object:deployment} list
+    Then the page returns {integer:200}
+      And there should not be a value "ghost_deploy"
+      And there should be a value "solid"
+    Finally REST removes the {object:deployment} "ghost_deploy"
+      And REST removes the {object:deployment} "solid"

@@ -138,7 +138,7 @@ class ApplicationController < ActionController::Base
   def barclamp
     name = params[:barclamp]    # fall through routes specify the barclamp
     name ||= $1 if params[:controller] =~ /^barclamp_([a-z][_a-z0-9]*)/
-    @barclamp = Barclamp.find_by_name name if @barclamp.nil? or @barclamp.name.eql? name
+    @barclamp = Barclamp.find_by_name name if @barclamp.nil? or !@barclamp.name.eql? name
     @barclamp
   end
   

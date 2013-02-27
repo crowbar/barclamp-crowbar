@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013 Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -12,7 +12,6 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(bdd_webrat).
 -export([step/3]).
@@ -148,8 +147,7 @@ step(Config, Result, {step_then, _N, ["we should get a 404 return"]}) ->
 
                                                                 
 step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  % depricated
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]});
+  bdd_utils:depricated({2013,6,1}, bdd_webrat, step, bdd_restrat, step, [Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]}]);
 
 step(_Config, _Result, {_Type, _N, ["END OF WEBRAT"]}) ->
   false.

@@ -41,6 +41,6 @@ class BarclampsController < ApplicationController
   def template
     redirect_to snapshot_path(:id=>barclamp.template_id)
   end
-  
+
 end
 

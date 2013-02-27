@@ -112,6 +112,15 @@ step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -
 step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 
   bdd_restrat:destroy(Config, groups:g(path), Group);
 
+% ============================  WHEN STEPS =========================================
+
+step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
+  Path = eurl:path([Barclamp,g(version),apply(bdd_restrat:alias(Resource),g,[resource])]),
+  bdd_utils:log(debug, crowbar, step, "REST get ~p list for ~p barclamp", [Resource, Barclamp]),
+  {Code, JSON} = eurl:get_page(Config, Path, all),
+  Wrapper = crowbar_rest:api_wrapper_raw(JSON),
+  bdd_utils:log(trace, bdd_restrat, step, "REST get ~p list: ~p", [Resource, Wrapper]),
+  bdd_restrat:ajax_return(Path, get, Code, Wrapper#list.ids);  
 
 % ============================  THEN STEPS =========================================
 

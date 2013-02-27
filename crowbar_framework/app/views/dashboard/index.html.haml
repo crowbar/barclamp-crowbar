@@ -69,7 +69,7 @@
   selected = '#{session[:node]}';
   
   function pie_title(total, ready, failed, unknown, unready, pending, building) {
-    var status = "#{t :status_pie, :scope=>'nodes.index'}";
+    var status = "#{t :status_pie, :scope=>'dashboard.index'}";
     status = status.replace("{0}", total);
     status = status.replace("{1}", ready);
     status = status.replace("{2}", failed);

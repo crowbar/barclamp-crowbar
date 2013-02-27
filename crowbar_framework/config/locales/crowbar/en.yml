@@ -248,7 +248,7 @@ en:
       failed: Node Save Failed
       admin: Crowbar Server
       title_all: Bulk Edit
-      title_unallocated: Bulk Edit (unallocated only)
+      title_unallocated: "Bulk Edit - unallocated only"
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
@@ -385,7 +385,7 @@ en:
       attribs: Attributes
       members: Members
       deployments: Deployments
-      snapshots: Snapshots
+      snapshot: Snapshots
       template: Template
     index:
       title: All Barclamps

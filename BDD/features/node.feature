@@ -22,7 +22,7 @@ Feature: Nodes
     Then I get a {integer:404} error
     
   Scenario: Status Empty
-    When AJAX requests the "/framework/status/nodes" page
+    When AJAX requests node status on "all"
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"
@@ -32,7 +32,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
 
   Scenario: Status Non Nodes
-    When AJAX requests the "/framework/status/nodes/0" page
+    When AJAX requests node status on "0"
     Then key "sum" should be a number
       And there should be a key "state"
       And there should be a key "status"

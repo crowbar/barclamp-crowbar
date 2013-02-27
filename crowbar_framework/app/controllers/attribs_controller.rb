@@ -26,7 +26,7 @@ class AttribsController < ApplicationController
 
   def show
     if params.has_key? :node_id
-      redirect_to nodes_path(:id=>params[:node_id])
+      redirect_to nodes_path(:id=>params[:node_id]), :method=>:get
     else
       render api_show :attrib, Attrib
     end

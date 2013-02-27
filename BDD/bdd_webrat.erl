@@ -148,8 +148,7 @@ step(Config, Result, {step_then, _N, ["we should get a 404 return"]}) ->
 
                                                                 
 step(Config, _Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  % depricated
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]});
+  bdd_utils:depricated({2013,6,1}, bdd_webrat, step, bdd_restrat, step, [Config, _Given, {step_when, _N, ["REST requests the",Page,"page"]});
 
 step(_Config, _Result, {_Type, _N, ["END OF WEBRAT"]}) ->
   false.

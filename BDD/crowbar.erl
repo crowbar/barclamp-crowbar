@@ -22,6 +22,7 @@
 g(Item) ->
   case Item of
     "cli" -> g(cli);
+    version -> "v2";
     cli -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "global-node.testing.com";
@@ -29,7 +30,7 @@ g(Item) ->
     name -> "bddtest";
     order -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
-    _ -> io:format("WARNING: Could not resolve g request for ~p (fall through catch).~n", [Item]), false
+    _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
 
 i18n(Config, T1, T2, T3, T4, T5) -> i18n_lookup(Config, [T1, T2, T3, T4, T5]).

@@ -71,15 +71,15 @@ Crowbar::Application.routes.draw do
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
-    get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamps"
+    get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamp"
   end
 
   # UI only routes
   scope 'dashboard' do
-    get '/' => 'dashboard#index'
+    get '/' => 'dashboard#index',           :as => :dashboard
     get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
-    get 'families' => 'dashboard#families', :as => :nodes_families
-    get 'list' => 'dashboard#list',         :as => :nodes_list
+    get 'families' => 'dashboard#families', :as => :dashboard_families
+    get 'list' => 'dashboard#list',         :as => :dashboard_list
     
     constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
@@ -128,7 +128,9 @@ Crowbar::Application.routes.draw do
         scope ':version' do
           constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
             
-            resources :barclamps
+            resources :barclamps do
+              resources :deployments
+            end
             match "template"                => "barclamps#template"
             
             resources :deployments do
@@ -210,6 +212,7 @@ Crowbar::Application.routes.draw do
     end
     
   end 
+
+  root :to => "dashboard#index"  
   
-  root :to => "nodes#index"  
 end

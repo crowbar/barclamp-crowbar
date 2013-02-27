@@ -7,21 +7,20 @@ Feature: Crowbar, Bulk Edit
     When I go to the home page
     Then I should see a menu for "Bulk&nbspEdit"
       And I should not see "something went wrong"
-      And there should be no translation errors
 
-  Scenario: %Bulk Edit Nav (default)
+  Scenario: Bulk Edit Nav (default)
     Given I am on the home page
     When I click on the "Bulk Edit" menu item
-    Then I should see "Bulk Edit \(unallocated only\)"
+    Then I should see heading {bdd:crowbar.i18n.dashboard.list.title_unallocated}
       And I should see "Allocate?"
       And I should see a link to "Show All"
       And I should not see "something went wrong"
       And there should be no translation errors
 
-  Scenario: %Bulk Edit Nav (show all)
-    Given I am on the "/nodes/list?allocated=yes" page
+  Scenario: Bulk Edit Nav (show all)
+    Given I am on the "/dashboard/list?allocated=yes" page
     When I click on the "Show All" link
-    Then I should see "Bulk Edit"
+    Then I should see heading {bdd:crowbar.i18n.dashboard.list.title_all}
       And I should see "Allocate?"
       And I should see a link to "Show Unallocated"
       And I should see a button with "Save"

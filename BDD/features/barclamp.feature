@@ -26,3 +26,4 @@ Feature: Barclamp UI
       And I should see "Provisioner"
       And I should see "polling is disabled"
       And there should be no translation errors
+      

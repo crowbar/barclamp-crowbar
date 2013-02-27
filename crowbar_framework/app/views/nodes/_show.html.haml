@@ -4,10 +4,10 @@
 
 %ul.buttons
   - if @node.bmc_set?
-    %li= link_to "Reboot", hit_node_path(@node.id, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
-    %li= link_to "Shutdown", hit_node_path(@node.id, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Power On", hit_node_path(@node.id, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Identify", hit_node_path(@node.name, 'identify'), :class => 'button', :'data-remote' => true
+    %li= link_to "Reboot", "/ipmi/v2/nodes/#{@node.id}/reboot", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
+    %li= link_to "Shutdown", "/ipmi/v2/nodes/#{@node.id}/shutdown", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Power On", "/ipmi/v2/nodes/#{@node.id}/poweron", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Identify", "/ipmi/v2/nodes/#{@node.id}/identify", :method=>:put, :class => 'button', :'data-remote' => true
 
 .column_50.first
   %dl
@@ -52,7 +52,7 @@
 
 %ul.buttons
   - unless @node.is_admin?
-    %li= link_to "Hardware Update", hit_node_path(@node.id, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reinstall", hit_node_path(@node.id, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Reset", hit_node_path(@node.id, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    %li= link_to "Delete", hit_node_path(@node.id, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Reboot", "/ipmi/v2/nodes/#{@node.id}/reboot", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
+    %li= link_to "Shutdown", "/ipmi/v2/nodes/#{@node.id}/shutdown", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Power On", "/ipmi/v2/nodes/#{@node.id}/poweron", :method=>:put, :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
+    %li= link_to "Identify", "/ipmi/v2/nodes/#{@node.id}/identify", :method=>:put, :class => 'button', :'data-remote' => true

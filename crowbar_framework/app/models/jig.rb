@@ -46,6 +46,28 @@ class Jig < ActiveRecord::Base
     Jig.find_by_name('admin_chef')
   end
 
+
+=begin 
+Allocate a node, and start the node install process
+=end
+  def self.install_node(node)
+
+  end
+
+=begin
+ Update node infomration from a Jig, and process node attributes 
+=end
+  def self.refresh_node(node)
+  end
+
+=begin 
+Start the process of instantiating a deployment into the environemt.
+Expecting the deployment to be "static" - i.e. not actively being modified.
+=end
+  def self.commit_proposal(deployment)
+  end
+
+
   def self.prepare_proposal(new_deployment)
     # collect all the depenent deployments
 

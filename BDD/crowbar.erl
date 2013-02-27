@@ -62,6 +62,8 @@ validate(JSON) ->
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 
+  % setup the groups object override
+  bdd_utils:config_set(alias_map,{group, group_cb}),
   bdd_utils:log(debug, "crowbar:step Global Setup running (creating node ~p)",[g(node_name)]),
   Node = node:json(g(node_name), Test ++ g(description), 100),
   bdd_restrat:create(Config, node:g(path), g(node_atom), name, Node),

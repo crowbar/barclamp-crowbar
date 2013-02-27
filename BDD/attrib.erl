@@ -14,7 +14,7 @@
 % 
 % 
 -module(attrib).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-export([step/3, json/3, path/2, node_add_attrib/3, node_add_attrib/4, validate/1, inspector/1, g/1, create/3]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -24,6 +24,7 @@ g(Item) ->
     path -> "crowbar/v2/attribs";
     name -> "bddattribute";
     atom -> attrib1;
+    value -> 'rocks';
     _ -> crowbar:g(Item)
   end.
   
@@ -41,6 +42,8 @@ validate(J) ->
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
+json(Value) ->  json:output([{"value",Value}]).
+
 create(ID, Name, Extras) ->
   % for now, we are ignoring the extras
   JSON = json(Name, 
@@ -48,6 +51,17 @@ create(ID, Name, Extras) ->
               proplists:get_value(order, Extras, g(order))),
   bdd_restrat:create(ID, attrib, g(path), Name, JSON).
 
+% helpers
+path(Node, Attrib) -> eurl:path([node:g(path), Node, 'attribs', Attrib]).
+
+node_add_attrib(Config, Node, Attribute) -> 
+  node_add_attrib(Config, Node, Attribute, g(value)).
+
+node_add_attrib(Config, Node, Attribute, Value) -> 
+  Path = path(Node, Attribute),
+  bdd_utils:log(debug, node, attrib, "Node connect node+attributes ~p", [Path]),
+  eurl:put_post(Config, Path, json(Value), put).
+  
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 

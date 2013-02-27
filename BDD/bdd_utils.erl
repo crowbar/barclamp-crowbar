@@ -234,6 +234,12 @@ is_site_up(Config) ->
 
 % config using BIFs
 config(Key) -> config(Key, undefined).
+config(Key, {ListKey, Default}) ->
+  List = config(Key,[]),
+  case lists:keyfind(ListKey, 1, List) of
+    {ListKey, Value}  -> Value;
+    false             -> Default
+  end;
 config(Key, Default) when is_atom(Key) -> 
   case get(Key) of
     undefined -> put(Key, Default), Default;
@@ -269,6 +275,11 @@ config(Config, Key, Default) ->
   	      end
 	end.
 
+config_set(Key, {ListKey, Value}) ->
+  List = config(Key, []),
+  NewList = lists:keystore(ListKey, 1, List, {ListKey, Value}),
+  put(Key, NewList),
+  NewList;
 config_set(Key, Value) ->
   put(Key, Value),
   {Key, Value}.

@@ -116,8 +116,8 @@ Crowbar::Application.routes.draw do
    
       scope 'framework' do            
         scope 'status' do
-          get "nodes(/:id/)" => "nodes#status",  :as=>'nodes_status'
-          get "deployments(/:id/)" => "deployments#status",  :as=>'deployments_status'
+          get "nodes(/:id)" => "nodes#status",  :as=>'nodes_status'
+          get "deployments(/:id)" => "deployments#status",  :as=>'deployments_status'
         end
       end
       
@@ -129,28 +129,37 @@ Crowbar::Application.routes.draw do
             resources :barclamps
             match "template"                => "barclamps#template"
             
-            resources :deployments
-            match "deployments/:id/commit"      => "deployments#commit",     :as=>'deployments_commit'
-            match "deployments/:id/dequeue"     => "deployments#dequeue",    :as=>'deployments_dequeue'
-            match "deployments/:id/propose"     => "deployments#propose",    :as=>'deployments_propose'
-            match "deployments/:id/transistion" => "deployments#transition", :as=>'deployments_transistion'
+            resources :deployments do
+              member do  
+                put 'commit'
+                put 'dequeue'
+                put 'propose'
+                put 'transistion'
+              end
+            end
             
             resources :snapshots
   
-            resources :roles
-            match "roles/:id/attribs"       => "barclamp_roles#attribs",  :as=>'roles_attribs'
-            match "roles/:id/nodes"         => "barclamp_roles#nodes", :as=>'roles_nodes'
+            resources :roles do
+              resources :attribs
+              resources :nodes
+            end
             resources :role_types
             
             resources :jigs
             resources :attribs
             resources :attrib_types
             
-            resources :nodes
-            match "nodes/:id/attribs(/:attrib)" => "nodes#attribs", :as=>'nodes_attribs'
-            match "nodes/:id/group(/:group)"    => "nodes#group",   :as=>'nodes_groups'
-            
-            resources :groups
+            resources :nodes do
+              resources :attribs
+              resources :groups
+            end
+                        
+            resources :groups do
+              member do
+                get 'nodes'
+              end
+            end
             resources :users
 
           end

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,18 @@ service crowbar stop
 pidof puma
 
 # start dev version of the server
-export RAILS_ENV=development
-export DEBUG=true 
-cd /opt/dell/crowbar_framework/
-chmod 777 -R .
-chown crowbar -R .
-rake db:create
-rake db:migrate
-rake db:schema:dump
+if [[ pwd = "/tmp/crowbar-dev-test/opt/dell/crowbar_framework" ]]; then
+  ~/crowbar/dev reload-unit-tests
+else        
+  export RAILS_ENV=development
+  export DEBUG=true 
+  cd /opt/dell/crowbar_framework/
+  chmod 777 -R .
+  chown crowbar -R .
+  rake db:create
+  rake db:migrate
+  rake db:schema:dump
+fi
+
 rails s Puma
-
-
 

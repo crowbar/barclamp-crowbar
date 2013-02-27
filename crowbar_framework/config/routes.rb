@@ -71,19 +71,21 @@ Crowbar::Application.routes.draw do
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
-    # legacy...likey to be refactored
-    get "modules", :controller=>'barclamp', :action=>"modules", :as=>"barclamp_modules"
-    get "/", :controller=>'barclamp', :action=>"modules", :as=>"index_barclamp"
+    get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamp"
   end
 
   # UI only routes
-  scope :defaults => {:format=> 'html'} do
-    get "dashboard", :controller => 'nodes', :action => 'index', :as => 'dashboard'
+  scope 'dashboard' do
+    get '/' => 'dashboard#index',           :as => :dashboard
+    get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
+    get 'families' => 'dashboard#families', :as => :dashboard_families
+    get 'list' => 'dashboard#list',         :as => :dashboard_list
+    
     constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
       scope  'node' do
-        get  'list' => "nodes#list", :as => :nodes_list
-        get  'families' => "nodes#families", :as => :nodes_families
+        get  'list' => "nodes#list"
+        get  'families' => "nodes#families"
         get  ':id/edit' => "nodes#edit", :as => :edit_node
         post ':id/edit' => "nodes#update", :as => :update_node
         put  ':id/update' => 'nodes#update', :as => :update_node
@@ -95,7 +97,7 @@ Crowbar::Application.routes.draw do
       end
     end
   end
-     
+  
   # REVIEW NEEDED!  should this be under the devise_scope??
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
@@ -126,7 +128,9 @@ Crowbar::Application.routes.draw do
         scope ':version' do
           constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
             
-            resources :barclamps
+            resources :barclamps do
+              resources :deployments
+            end
             match "template"                => "barclamps#template"
             
             resources :deployments do
@@ -208,6 +212,7 @@ Crowbar::Application.routes.draw do
     end
     
   end 
+
+  root :to => "dashboard#index"  
   
-  root :to => "nodes#index"  
 end

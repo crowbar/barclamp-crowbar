@@ -24,14 +24,18 @@ class DeploymentsController < ApplicationController
   end
   
   def create
-    bcc = barclamp.create_proposal params
-    redirect_to deployment_path + "/#{bcc.id}"
+    deploy = barclamp.create_proposal params
+    render api_show :deployment, Deployment, nil, nil, deploy
   end
   
   def update
     bcc = Deployment.find_key params[:id]
     raise "cannot change barclamp_id" unless params[:barclamp_id].nil? or params[:barclamp_id]==bcc.barclamp_id
     bcc.update_attribs params
+  end
+  
+  def destroy
+    render api_delete Deployment
   end
   
   def commit

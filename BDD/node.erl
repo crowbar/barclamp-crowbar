@@ -90,6 +90,14 @@ step(Config, _Given, {step_when, _N, ["REST assigns",attrib_type,Attrib,"to",nod
   R = attrib:node_add_attrib(Config, Node, Attrib, 'no_value'),
   bdd_restrat:ajax_return(attrib:path(Node, Attrib), post, 200, R);
 
+step(Config, _Given, {step_when, {_Scenario, _N}, ["AJAX requests node status on",ID]}) ->
+  Page = case ID of
+    "all" -> g(status_path);
+    X     -> eurl:path(g(status_path), X) 
+  end,
+  {200, JSON} = eurl:get_page(Config, Page, all),
+  {ajax, json:parse(JSON), {get, Page}};
+  
 step(Config, _Global, {step_given, {Scenario, _N}, [node,Node,"has",attrib_type, Attrib]}) -> 
   Result = attrib:node_add_attrib(Config, Node, Attrib),
   R = crowbar_rest:api_wrapper_raw(Result),

@@ -14,20 +14,29 @@
 % 
 % 
 -module(deployment).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-export([step/3, json/3, validate/1, inspector/1, g/1, create/3, path/1]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
     path -> "crowbar/v2/deployments";
+    resource -> "deployments";
     _ -> crowbar:g(Item)
   end.
   
+path(Barclamp) -> eurl:path([Barclamp, "v2", "deployments"]).
+
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  R =[bdd_utils:is_a(J, length, 12),
+validate(JSON) ->
+  Wrapper = crowbar_rest:api_wrapper(JSON),
+  J = Wrapper#item.data,
+  R =[Wrapper#item.type == deployment,
+      bdd_utils:is_a(J, length, 9),
+      bdd_utils:is_a(J, dbid, active_snapshot_id),
+      bdd_utils:is_a(J, dbid, proposed_snapshot_id),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
@@ -47,6 +56,16 @@ inspector(Deployment) ->
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+step(_C, _G, {step_given, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]})  -> step(_C, _G, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]});
+
+step(_, _, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]}) ->
+  Path = path(Barclamp),
+  JSON = json(Deployment, g(description), g(order)),
+  PutPostResult = eurl:put_post([], Path, JSON, post, all),
+  {Code, Result} = PutPostResult,
+  bdd_utils:log(debug, deployment, step, "deploy from barclamp ~p named ~p got ~p", [Path, JSON, Code]),
+  bdd_restrat:ajax_return(Path, post, Code, Result);
 
 step(_Deployment, _Result, {_Type, _N, ["END OF CONFIG"]}) ->
   false.

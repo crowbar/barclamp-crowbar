@@ -26,6 +26,8 @@ get_JSON(Results)      ->
   JSON.   
 get_JSON(Results, all) -> 
   try lists:keyfind(ajax, 1, Results) of
+    {ajax, 200, A}-> bdd_utils:log(debug, bdd_restrat, get_JSON, "This may be OK, found empty list instead of data in JSON in ajax result ~p",[A]),  
+                     {ajax, 200, A};
     {ajax, J, Ex} -> {ajax, J, Ex};
     false         -> bdd_utils:log(debug, "bdd_restrat:get_JSON did not find expected to ajax result",[]),
                      bdd_utils:log(trace, "more.... in ~p",[Results]),
@@ -145,6 +147,15 @@ step(Config, Global, {step_given, _N, ["there is not a",Object, Name]}) ->
 step(Config, Global, {step_given, _N, ["there is a",Object, Name]}) -> 
   step(Config, Global, {step_when, _N, ["REST creates the",Object,Name]});
 
+step(Config, _Global, {step_given, _N, ["I require a",Object, Key]}) -> 
+  URI = eurl:path(apply(alias(Object), g, [path]), Key),
+  case eurl:get_page(Config, URI, all) of
+    {200, "null"} -> bdd_utils:log(warn, bdd_restrat, step, "Required ~p object ~p was not found.  Test will likely fail",[Object, Key]);
+    {200, _}      -> bdd_utils:log(debug, bdd_restrat, step, "Required ~p object ~p found.",[Object, Key]);
+    {404, _}      -> bdd_utils:log(warn, bdd_restrat, step, "Required ~p object ~p not found (404).",[Object, Key]);
+    {Num, _}      -> bdd_utils:log(error, bdd_restrat, step, "Required ~p object ~p error code ~p.",[Object, Key, Num])
+  end;
+
 % WHEN STEPS ======================
 step(Config, _Given, {step_when, _N, ["REST cannot find the",Page,"page"]}) ->
   bdd_utils:log(Config, debug, "REST cannot find the... START"),
@@ -220,6 +231,7 @@ step(Config, _Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_a
   bdd_utils:log(debug, bdd_restrat, step, "REST get ~p list for ~p path", [Object, URI]),
   {Code, JSON} = eurl:get_page(Config, URI, all),
   Wrapper = crowbar_rest:api_wrapper_raw(JSON),
+  bdd_utils:log(trace, bdd_restrat, step, "REST get ~p list result ~p", [Object, Wrapper]),
   ajax_return(URI, get, Code, Wrapper#list.ids);
 
 step(Config, _Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
@@ -270,11 +282,12 @@ step(Config, Results, {step_then, _N, ["there should be a key",Key]}) ->
 step(_Config, Results, {step_then, _N, ["there is a key",Key]}) -> 
   Obj = get_Object(get_JSON(Results)),
   bdd_utils:log(debug, bdd_restrat, step, "There should be a Key ~p",[Key]),
-  length([K || {K, _} <- Obj#item.data, K == Key])==1;
+  bdd_utils:log(trace, bdd_restrat, step, "in ~p",[Obj#item.data]),
+  lists:keyfind(Key, 1, Obj#item.data) =/= false;
                                                                 
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
-  Obj = get_Object(get_JSON(Results)),
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
+  Obj = get_Object(get_JSON(Results)),
   bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#item.data]),
   Value =:= json:value(Obj#item.data, Key);
 
@@ -301,8 +314,13 @@ step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a numb
 step(_Config, Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(get_JSON(Results), Key));
                                                       
+step(C, R, {step_then, {S, N}, ["there should not be a value",Value]}) -> 
+  step(C, R, {step_then, {S, N}, ["there should be a value",Value]}) =/= true;
+
 step(_Config, Result, {step_then, {_Scenario, _N}, ["there should be a value",Value]}) -> 
-  Test = lists:keyfind(Value,2,get_JSON(Result)),
+  J = get_JSON(Result),
+  bdd_utils:log(debug, bdd_restrat, step, "there should be a value ~p got ~p", [Value, J]),
+  Test = lists:keyfind(Value,2,J),
   Test =/= false;
 
 step(_Config, Results, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) -> 

@@ -19,7 +19,7 @@ class ScaffoldNav < ActiveRecord::Migration
   
     Nav.find_or_create_by_item :item=>'scaffold_attribs',  :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1100, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_attrib_types',  :parent_item=>'scaffold', :name=>'nav.scaffold.attrib_types',  :path=>"scaffolds_attrib_types_path", :order=>1150, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_attribs',       :parent_item=>'scaffold', :name=>'nav.scaffold.attrib_instances',  :path=>"scaffolds_attrib_instances_path", :order=>1200, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_attribs',       :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1200, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_jigs',  :parent_item=>'scaffold', :name=>'nav.scaffold.jigs',  :path=>"scaffolds_jigs_path", :order=>1400, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_barclamps', :parent_item=>'scaffold', :name=>'nav.scaffold.barclamps',  :path=>"scaffolds_barclamps_path", :order=>1800, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_deployments', :parent_item=>'scaffold', :name=>'nav.scaffold.deployments',  :path=>"scaffolds_deployments_path", :order=>1810, :development=>true

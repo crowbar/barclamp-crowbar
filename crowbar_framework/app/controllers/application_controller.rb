@@ -118,6 +118,17 @@ class ApplicationController < ActionController::Base
       return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
     end
   end
+  
+  def api_update(type, type_class, key=nil)
+    key ||= params[:id]
+    o = type_class.find_key key
+    if o
+      o.update_attribs params
+      return api_show type, type_class, nil, nil, o
+    else
+      return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
+    end
+  end
 
   def api_not_supported(verb, object)
     return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405}

@@ -76,4 +76,11 @@ gem "launchy", ">= 2.1.0", :group => [:development, :test]
 # to use digest auth in cli unit tests
 gem 'net-http-digest_auth'
 
-# DO NOT DELETE OR ALTER THIS LINE - it is for engine mounts
+# Install gems from each barclamp.  The crowbar_path variable is
+# needed by Gemfile.d/*.gemfile so that they can determine the correct
+# path at run-time rather than having to hard-code a path at
+# install-time which may be different and therefore incorrect.
+crowbar_path = File.dirname(__FILE__)
+Dir.glob(File.join(crowbar_path, 'Gemfile.d', '*.gemfile')) do |gemfile|
+    eval(IO.read(gemfile), binding)
+end

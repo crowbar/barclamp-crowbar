@@ -22,6 +22,7 @@ class CreateSnapshots < ActiveRecord::Migration
       t.belongs_to  :barclamp,                    :null=>false                    
       t.integer     :status,                      :default => Snapshot::STATUS_NONE
       t.string      :failed_reason,               :null=>true
+      t.string      :element_order,               :null=>true
       t.timestamps      
     end
     #natural key -> none

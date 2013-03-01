@@ -23,7 +23,7 @@ class Snapshot < ActiveRecord::Base
 
   ROLE_ORDER         = "'roles'.'order', 'roles'.'run_order'"
   
-  attr_accessible :id, :name, :description, :order, :status, :failed_reason
+  attr_accessible :id, :name, :description, :order, :status, :failed_reason, :element_order
   attr_accessible :deployement_id, :barclamp_id
   
   belongs_to      :barclamp

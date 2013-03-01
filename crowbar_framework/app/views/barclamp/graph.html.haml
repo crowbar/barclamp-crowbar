@@ -14,15 +14,19 @@
           = ":"
           = bc.members.map{|b| "#{b.name}"}.join(", ")
         %li{:id=>"#{bc.id}_template"}
-          - t = bc.template
+          - template = bc.template
           = t ".template"
-          = ": #{t.name} (#{t.description})"
+          %strong= template.name
+          = " (#{template.description})"
           %ul{:id=>"#{bc.id}_roles"}
-            - t.roles.each do |ri|
+            - template.roles.each do |ri|
               - role = ri.role_type
               - unless role.nil?              
                 %li
-                  = "#{t ".roles"}: #{role.name} (run_order=#{ri.run_order})" 
+                  = t ".roles"
+                  %strong= role.name
+                  = "(run_order: #{ri.run_order})" 
+                  = "(#{t ".element_states"}: #{role.states})"
                   %ul
                     - ri.attribs.each do |ai|
                       %li{:id=>ai.id}= ai.name

@@ -26,7 +26,7 @@ class DependentJob < ActiveRecord::Migration
       t.belongs_to  :prereq
 
     end
-    add_index :dependent_job_dependencies, [:dependent_job_id, :prereq_id], :unique => true, :name =>"index_unique_ids"
+    add_index :dependent_job_dependencies, [:dependent_job_id, :prereq_id], :unique => true, :name =>"jobs_index_unique_ids"
   end
 end
 

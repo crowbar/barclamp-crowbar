@@ -18,6 +18,7 @@
 -export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2]).
 -import(bdd_utils).
 -import(json).
+-include("bdd.hrl").
 
 g(Item) ->
   case Item of
@@ -65,6 +66,7 @@ validate(JSON) ->
 step(Config, _Global, {step_setup, _N, Test}) -> 
   % setup the groups object override
   bdd_utils:config_set(alias_map,{group, group_cb}),
+  bdd_utils:config_set(api_map,{"application/vnd.crowbar+json", crowbar_rest}),
   bdd_utils:log(debug, "crowbar:step Global Setup running (creating node ~p)",[g(node_name)]),
   Node = node:json(g(node_name), Test ++ g(description), 100),
   bdd_restrat:create(Config, node:g(path), g(node_atom), name, Node),

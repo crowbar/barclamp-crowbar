@@ -15,7 +15,7 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5, validate/1]).
--export([get_JSON/1, get_Object/1, alias/1, ajax_return/4]).
+-export([get_JSON/1, get_Object/1, get_Object/2, api_wrapper/3, alias/1, ajax_return/4]).
 -include("bdd.hrl").
 
 % HELPERS ============================
@@ -40,10 +40,26 @@ get_JSON(Results, all) ->
 % handles cases where objects use names that conflict w/ internal namespaces
 alias(Object) ->  bdd_utils:config(alias_map,{Object, Object}).
   
-% works w/ REST wrappers
+% Determines the verseion of the API and calls the right REST wrappers
+get_Object(Results, URL) ->
+  case get(URL) of
+    undefined ->  get_Object(Results);
+    % work in progress
+    _         ->  get_Object(Results) %, bdd_utils:config(api_map,{Meta#meta_api.datatype, bdd_restrat})        
+  end.
+%get_Object(Results, {meta_api, DataType, Version}) ->
+%  API_wrapper = crowbar_rest, %work in progress, bdd_utils:config(api_map, DataType, bdd_restrat})
+%  apply(API_wrapper, api_wrapper, [Results, DataType, Version]);
+%get_Object(Results, _) ->
+%  Results.
+  
+api_wrapper(Results, _Datatype, _Version) ->
+  Results.
+  
+% old way - depricate!
 get_Object(Results) ->
   Obj = crowbar_rest:api_wrapper_raw(Results),
-  bdd_utils:log(debug, bdd_restrat, get_Object, "API wrapper type ~p for url ~p",[Obj#item.type, Obj#item.link]),
+  bdd_utils:log(debug, bdd_restrat, get_Object, "DEPRICATED API wrapper type ~p for url ~p",[Obj#item.type, Obj#item.link]),
   Obj.
 
 % this should NOT be called here, only in the objects
@@ -57,7 +73,7 @@ get_id(Config, Path) ->
   {"id", ID} = try R of
     {200, []}      -> {"id", "-1"};
     {200, "null"}  -> {"id", "-1"};
-    {200, Result}  -> Obj = get_Object(Result), 
+    {200, Result}  -> Obj = get_Object(Result, Path), 
                       lists:keyfind("id", 1, Obj#item.data);
     _              -> {"id", "-1"}
   catch 

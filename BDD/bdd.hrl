@@ -18,3 +18,6 @@
   % note: the ids field is for backward compatability against the legacy 2.0 api
 
 -record(item, {type = unknown, data, link = unknown}).
+
+% track URL data per API
+-record(meta_api, {datatype = "unknown", version = "0.0"}).

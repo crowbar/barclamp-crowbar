@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate_core/1, validate/1, api_wrapper/1, api_wrapper_raw/1, api_wrapper/2, inspector/2]).
+-export([step/3, g/1, validate_core/1, validate/1, api_wrapper/3, api_wrapper/1, api_wrapper_raw/1, api_wrapper/2, inspector/2]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
 -import(bdd_utils).
 -import(json).
@@ -38,6 +38,12 @@ validate(JSON) ->
        validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
+api_wrapper(Data, "application/vnd.crowbar+json", "1.9") -> api_wrapper_raw(Data);
+api_wrapper(Data, "application/json", "0.0")             -> #item{data=Data};
+api_wrapper(Data, Type, Version) ->
+  bdd_utils:log(warn, crowbar_rest, api_wrapper, "Fall through API type ~p version ~p",[Type, Version]),
+  Data.
+  
 api_wrapper_raw(J) ->  
   JSON = json:parse(J),
   api_wrapper(JSON).

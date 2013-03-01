@@ -387,6 +387,8 @@ en:
       deployments: Deployments
       snapshot: Snapshots
       template: Template
+      element_order: "Element Order"
+      element_states: "states"
     index:
       title: All Barclamps
       members: "Members of"

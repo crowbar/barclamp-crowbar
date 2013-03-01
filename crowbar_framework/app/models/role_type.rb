@@ -22,10 +22,6 @@ class RoleType < ActiveRecord::Base
   validates_format_of :name, :with=>/^[a-zA-Z][_\-a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
 
-  # an element_order determines the execution group(s) of the role, relative to other roles in 
-  # the barcalmp.
-  has_many :role_element_orders,  :dependent => :destroy 
-  
   has_many :roles,                :dependent => :destroy, :inverse_of => :role_type
 
   alias_attribute :priority,      :order

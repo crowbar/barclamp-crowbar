@@ -16,7 +16,6 @@
 # application code loads, so keep this block at the top.
 if RUBY_VERSION != '1.8.7'
   require 'simplecov'
-  SimpleCov.start
 end
 
 ENV["RAILS_ENV"] = "test"

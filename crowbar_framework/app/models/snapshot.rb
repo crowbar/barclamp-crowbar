@@ -24,7 +24,7 @@ class Snapshot < ActiveRecord::Base
   ROLE_ORDER         = "'roles'.'order', 'roles'.'run_order'"
   
   attr_accessible :id, :name, :description, :order, :status, :failed_reason, :element_order
-  attr_accessible :deployement_id, :barclamp_id
+  attr_accessible :deployement_id, :barclamp_id, :jig_event_id
   
   belongs_to      :barclamp
   belongs_to      :deployment,        :inverse_of => :snapshot
@@ -36,6 +36,8 @@ class Snapshot < ActiveRecord::Base
 
   has_many        :attribs,           :through => :roles
   has_many        :attrib_types,      :through => :attribs
+  
+  has_many        :jig_events
   
   def active?
     deployment.active_snapshot_id == self.id

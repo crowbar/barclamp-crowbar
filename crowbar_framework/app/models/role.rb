@@ -29,6 +29,8 @@ class Role < ActiveRecord::Base
   has_one         :deployment,        :through => :snapshot
   
   has_many        :attribs,           :dependent => :destroy
+  has_many        :role_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NULL'
+  has_many        :node_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NOT NULL'
   has_many        :attrib_types,      :through => :attribs
 
   has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id

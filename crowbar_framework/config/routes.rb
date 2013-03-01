@@ -15,7 +15,7 @@
 Crowbar::Application.routes.draw do
   
   # Install route from each barclamp
-  Dir.glob(File.join(File.dirname(__FILE__), 'config', 'routes.d', '*.routes')) do |routes_file|
+  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
       eval(IO.read(routes_file), binding)
   end
 

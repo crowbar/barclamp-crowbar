@@ -13,6 +13,9 @@
           = t ".members"
           = ":"
           = bc.members.map{|b| "#{b.name}"}.join(", ")
+        %li
+          = t '.element_order'
+          = bc.template.element_order.inspect
         %li{:id=>"#{bc.id}_template"}
           - template = bc.template
           = t ".template"
@@ -25,8 +28,8 @@
                 %li
                   = t ".roles"
                   %strong= role.name
-                  = "(run_order: #{ri.run_order})" 
-                  = "(#{t ".element_states"}: #{role.states})"
+                  = "(run_order: #{ri.run_order}," 
+                  = "#{t ".element_states"}: #{ri.states})"
                   %ul
                     - ri.attribs.each do |ai|
                       %li{:id=>ai.id}= ai.name

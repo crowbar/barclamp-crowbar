@@ -1,6 +1,8 @@
 # SimpleCov supports only Ruby 1.9. It must be required and started before the
 # application code loads, so keep this block at the top.
-require 'simplecov'
+if RUBY_VERSION != '1.8.7'
+  require 'simplecov'
+end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= 'test'

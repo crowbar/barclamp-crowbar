@@ -285,3 +285,4 @@ gems:
     - xml-simple
     - factory_girl_rails-(~>1.7.0)
     - foodcritic
+    - coveralls

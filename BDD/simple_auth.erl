@@ -29,6 +29,7 @@
 %% Exported Functions
 %%
 -export([request/5, request/2, authenticate_session/2, header/2, test_calc_response/0]).
+-include("bdd.hrl").
 
 %% Does digest authentication. 
 %% Callback function passes an authorization header and a URL,
@@ -105,7 +106,7 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
     end,
 
   bdd_utils:log(trace, simple_auth, request, "User ~p Password ~p URL ~p StatusCode ~p",[User, Password, URL, StatusCode]),
-  case StatusCode of
+  Response = case StatusCode of
     401 -> 
       bdd_utils:log(trace,  simple_auth, request, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
       DigestLine = proplists:get_value("www-authenticate", ResponseHeaders),
@@ -129,7 +130,15 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
       {Status,Result};
 
     _ -> {Status,{{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody}}
-  end.
+  end,
+  MediaType = proplists:get_value("content-type", ResponseHeaders),
+  Meta = case string:tokens(MediaType, ";=") of
+    [DataType, " version", Version | _ ] -> #meta_api{datatype=DataType, version=Version};
+    [DataType | _ ]                      -> #meta_api{datatype=DataType};
+    _                                    -> #meta_api{}
+  end,                
+  put(DigestURI, Meta),                    
+  Response.
 
 request(Method, URL, Headers, ContentType, Body, HTTPOptions, Options) ->
   case Method of 

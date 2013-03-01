@@ -20,7 +20,7 @@ class CreateRoles < ActiveRecord::Migration
       t.string      :description,       :null=>true
       t.integer     :order,             :default => 9999, :null => false
       t.integer     :run_order,         :default => 9999, :null => false
-      t.string      :states,            :default=>"all",  :null=>true
+      t.string      :states,            :default=>"all",  :null => true
       t.timestamps
     end
     #natural key

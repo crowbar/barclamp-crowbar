@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,13 +27,8 @@ FactoryGirl.define do
     name {Factory.next(:node_id)}
     admin false
   end
-  factory :role_element_order do
-    order 1
-  end
   factory :role do | role | 
     priority 1
-    # has-many association... funky
-    role_element_orders { [association(:role_element_order)] }
   end
   factory :base_barclamp, :class=>Barclamp  do
     name "testing_barclamp"

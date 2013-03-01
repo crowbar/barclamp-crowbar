@@ -194,22 +194,29 @@ class Barclamp < ActiveRecord::Base
 
     # add the roles & attributes
     jdeploy = json["deployment"][name]
+    self.template.element_order = jdeploy["element_order"]
+    # flatten the element order list
+    eorder = {}
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
       role_hash.each_with_index do |role, index|
-        unless role.nil?
-          states = jdeploy["element_states"][role].join(",") rescue "all"
-          order = 100+(top_index*100)+index
-          run_order = jdeploy["element_run_list_order"][role] rescue order
-          ri = self.template.add_role role
-          ri.update_attributes( :states => states,
-                                :order => order,
-                                :run_order => run_order, 
-                                :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)  
-                              )
-        end
+        eorder[role] ||= 100+(top_index*100)+index
       end
     end
-
+    # now capture roles from element states
+    if jdeploy["element_states"]
+      jdeploy["element_states"].each do |role, states|
+        states = states.join(",") rescue "all"
+        run_order = jdeploy["element_run_list_order"][role] rescue order
+        ri = self.template.add_role role
+        ri.update_attributes( :states => states,
+                              :order => eorder[role] || 1000,
+                              :run_order => run_order, 
+                              :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>template_file)  
+                                )
+        ri.save
+      end
+    end
+    
     # theses need to move into AttribInstnaces
     mode = jdeploy["config"]["mode"] rescue "full"
     transitions = jdeploy["config"]["transitions"] rescue false

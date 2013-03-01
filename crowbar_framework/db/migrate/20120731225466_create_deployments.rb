@@ -20,6 +20,7 @@ class CreateDeployments < ActiveRecord::Migration
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>10000
       t.references  :active_snapshot,             :null=>true
+      t.references  :committed_snapshot,          :null=>true
       t.references  :proposed_snapshot,           :null=>true
       t.timestamps      
     end

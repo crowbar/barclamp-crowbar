@@ -53,7 +53,7 @@ class NodesController < ApplicationController
       end
     end
     render :inline => {:sum => sum, :status=>status, :state=>state, :i18n=>i18n, :groups=>groups, :count=>state.length}.to_json, :cache => false
-    
+
   end
   
   # CB1 move to IMPI
@@ -124,8 +124,12 @@ class NodesController < ApplicationController
     end
   end
 
+  def transition
+    render api_not_supported 'put', 'node/transition'
+  end
+  
   def allocate
-    # allocate node
+    render api_not_supported 'put', 'node/allocate'
   end
 
   # RESTfule PUT of the node resource

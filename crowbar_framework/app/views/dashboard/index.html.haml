@@ -154,7 +154,7 @@
     // TODO: restore this:
     if (#{params.include?(:nopoll) ? 'false' : 'true'}) {
       $.ajaxSetup({ timeout: 3000 })
-      $.getJSON('#{nodes_status_path}', function(data) {
+      $.getJSON('#{nodes_status_path()}', function(data) {
         
         // reload path
         var repath = '#{dashboard_path}/'+selected;

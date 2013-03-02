@@ -20,7 +20,7 @@
 g(Item) ->
   case Item of
     categories -> ["ui","rack","tag"];
-    path -> "/crowbar/v2/groups";
+    path -> "/api/v2/groups";
     name1 -> "bddthings";
     atom1 -> group1;
     name2 -> "bdddelete";

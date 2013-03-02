@@ -205,7 +205,6 @@ class Barclamp < ActiveRecord::Base
         eorder[role] ||= 100+(top_index*100)+index
       end
     end
-puts "$$$ #{eorder.inspect}"
     # now capture roles from element states
     if jdeploy["element_states"]
       jdeploy["element_states"].each do |role, states|
@@ -386,12 +385,12 @@ puts "$$$ #{eorder.inspect}"
   def create_type_from_name
     raise "barclamps require a name" if self.name.nil?
     namespace = "Barclamp#{self.name.camelize}"
+    # these routines look for the namespace & class, 
     m = Module::const_get(namespace) rescue nil
-puts m.inspect
     if m
       c = m.const_get("Barclamp") rescue nil
     end
-puts c.inspect
+    # if they dont' find it we fall back to BarclampFramework
     self.type = (c.nil? ? "BarclampFramework" : "#{namespace}::Barclamp" )
   end
      

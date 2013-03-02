@@ -69,6 +69,22 @@ class Snapshot < ActiveRecord::Base
     ri.add_attrib attrib_type, nil, self.name
   end
 
+  # determines the role run order using the imported element_order
+  # return is a nested array of roles
+  def role_order
+    ro = []
+    if self.element_order
+      self.element_order.each do |parent|
+        children = []
+        parent.each do |role|
+          children << self.add_role(role)
+        end
+        ro << children
+      end
+    end
+    ro
+  end
+
   ##
   # Clone this snapshot
   # optionally, change parent too (you do NOT have parents for templates)

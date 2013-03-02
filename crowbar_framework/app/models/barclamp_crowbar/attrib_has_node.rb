@@ -19,12 +19,79 @@ class BarclampCrowbar::AttribHasNode < Attrib
   
   attr_protected :attrib_id
 
-  HASNODE_NAME = 'has_node'
-
-  # we are not using this yet - will be empty until it has meaning!
-  def state 
-    :empty
+  HASNODE_NAME = 'status'
+  
+  STATES = { 
+              Node::ERROR => 'error', 
+              Node::READY => 'ready', 
+              Node::UNKNOWN => 'unknown'
+           }
+  STATES.default = 'unknown'
+  
+  def state
+    (self.value_actual == MARSHAL_EMPTY ? Node::UNKNOWN : self.value_actual)
   end
+  
+  def state=(value)
+    self.value_request = Attrib.serial_in(value)
+    s = value.split[0].downcase rescue 'error'
+    # this is not the right way to do this, optimize
+    if STATES.value? s 
+      STATES.each do |key, value|
+        if value.eql? s
+          self.value_actual = key
+          break
+        end
+      end
+    else
+      self.value_actual = Node::ERROR
+    end
+    self.value_actual
+  end
+  
+  def ready?
+    self.value_actual == Node::READY
+  end
+  
+  def state_text
+    STATES[value_actual] || Attrib.serial_out(value_request) || 'unknown'
+  end
+  
+  def actual
+    state
+  end
+
+  def actual=(value)
+    state = value
+  end
+
+  def request=(value)
+    state = value
+  end
+  
+  def request
+    state
+  end
+    
+    # Makes the open ended state information into a subset of items for the UI
+  def status
+    return 'failed'
+    # if you add new states then you MUST expand the PIE chart on the nodes index page
+    case self.value_actual
+    when "ready"
+      "ready"     #green
+    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
+      "pending"   #flashing yellow
+    when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
+      "unknown"   #grey
+    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
+      "failed"    #flashing red
+    when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
+      "building"  #yellow
+    else
+      "unready"   #spinner
+    end
+  end  
   
   private
   

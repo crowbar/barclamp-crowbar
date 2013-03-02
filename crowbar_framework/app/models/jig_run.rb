@@ -31,8 +31,9 @@ class JigRun < ActiveRecord::Base
   RUN_UNKNOWN = 0
   RUN_PENDING = 1
   RUN_EXECUTING = 2
-  RUN_SUCCESS = 3
-  RUN_FAIL = 4
+  RUN_RETRY = 3
+  RUN_SUCCESS = 4
+  RUN_FAIL = 5
 
   # grand-parent object (perhaps can be a belongs_to :through?)
   def jig

@@ -18,6 +18,10 @@ class DependentJob < ActiveRecord::Migration
       t.string      :name
       t.string      :description
       t.boolean     :done
+      # the job's sub type
+      t.string      :type
+      # key that this job can be foud with.
+      t.string      :key
       t.timestamps
     end
 

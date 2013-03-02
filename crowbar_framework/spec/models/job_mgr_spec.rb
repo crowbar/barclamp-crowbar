@@ -58,7 +58,7 @@ describe "job manager" do
   end
 
 
-  def test_set_membership(set, included,_included)
+  def test_set_membership(set, included,_included=[])
     included.each { |x| set.should      include(x)}
     _included.each { |x| set.should_not include(x) }
   end
@@ -80,6 +80,17 @@ describe "job manager" do
     to_start = Jobs::JobsManager.find_jobs_to_start
     test_set_membership(to_start, [d4], [d1,d2,d3])
 
+  end
+
+  it "should persis subtypes" do
+    d1 = Jobs::BaseJob.create(:name=>"base1")
+    d1.save!
+    d2 = Jobs::TestJob.create(:name=>"test")
+    d2.save!
+
+    Jobs::DependentJob.count.should eq(2)
+    a = Jobs::DependentJob.all
+    test_set_membership(a,[d1,d2])
   end
 
 

@@ -129,7 +129,7 @@ class Node < ActiveRecord::Base
   end
   # get the state using the state attribute
   def state
-    state_attrib.state
+    state_attrib.state_text
   end
   
   def ready?
@@ -300,7 +300,7 @@ class Node < ActiveRecord::Base
   def to_s
     "Node: #{name}"
   end
-
+  
   def ip
     #TODO reference jig_hash.ip somehow?
     "unknown"

@@ -64,7 +64,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   end
 
   test "Deployments empty" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
+    b = Barclamp.find_or_create_by_name(:name=>"test")
     assert_not_nil b
     t = b.deployments
 

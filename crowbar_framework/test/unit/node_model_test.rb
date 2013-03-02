@@ -36,7 +36,7 @@ class NodeModelTest < ActiveSupport::TestCase
   test "state unknown" do
     n = Node.create! :name=>"unknown.node.com"
     assert_not_nil n, "created node"
-    assert_equal n.state, 'unknown'
+    assert_equal n.state, Node::UNKNOWN
   end
   
   test "lower case required" do

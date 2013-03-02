@@ -127,8 +127,8 @@ Crowbar::Application.routes.draw do
             resources :nodes do 
               resources :attribs
               resources :groups
-              put 'transistion'
-              put 'allocate'
+              match 'transistion'   # these should be limited to put, but being more lax for now
+              match 'allocate'   # these should be limited to put, but being more lax for now
             end
             resources :barclamps do
               resources :deployments

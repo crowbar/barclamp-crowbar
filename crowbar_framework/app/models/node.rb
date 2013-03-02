@@ -124,7 +124,7 @@ class Node < ActiveRecord::Base
   # set the state using the state attribute 
   def state=(value)
     a = state_attrib
-    a.state = value    
+    a.state = value
     a.save
   end
   # get the state using the state attribute

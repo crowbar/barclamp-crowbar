@@ -21,7 +21,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/attrib_types";
+    path -> "api/v2/attrib_types";
     type -> attrib_type;
     name -> "bddattributetype";
     atom -> attribtype1;

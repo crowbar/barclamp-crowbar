@@ -21,3 +21,6 @@
 
 % track URL data per API
 -record(meta_api, {datatype = "unknown", version = "0.0"}).
+
+% return rest data from a call
+-record(rest, {data = "error", code = 500, url = "/", datatype = "unknown", version="0.0"}).

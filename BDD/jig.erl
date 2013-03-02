@@ -21,7 +21,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/jigs";
+    path -> "api/v2/jigs";
     name -> "bddjig";
     atom -> jig1;
     type -> "BarclampCrowbar::Jig";

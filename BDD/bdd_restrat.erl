@@ -15,7 +15,7 @@
 -module(bdd_restrat).
 -export([step/3]).
 -export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3, update/5, validate/1]).
--export([get_JSON/1, get_Object/1, get_Object/2, api_wrapper/3, alias/1, ajax_return/4]).
+-export([get_JSON/1, get_REST/1, get_Object/1, get_Object/2, api_wrapper/3, alias/1, ajax_return/4]).
 -include("bdd.hrl").
 
 % HELPERS ============================
@@ -29,14 +29,26 @@ get_JSON(Results, all) ->
     {ajax, 200, A}-> bdd_utils:log(debug, bdd_restrat, get_JSON, "This may be OK, found empty list instead of data in JSON in ajax result ~p",[A]),  
                      {ajax, 200, A};
     {ajax, J, Ex} -> {ajax, J, Ex};
-    false         -> bdd_utils:log(debug, "bdd_restrat:get_JSON did not find expected to ajax result",[]),
-                     bdd_utils:log(trace, "more.... in ~p",[Results]),
-                     {ajax, 500, "bdd_restrat ajax not found"}
+    false         -> get_REST(Results)
   catch
     X -> bdd_utils:log(warn, "bdd_restrat:get_JSON error ~p in result ~p",[X,Results]),
          {ajax, 500, "bdd_restrat:get_JSON error"}
   end.
 
+% This is new - should replace ajax tuple with the rest record
+get_REST(Results) ->
+  try lists:keyfind(rest, 1, Results) of
+     % for now, just remap rest into ajax
+     {rest, Data, Code, Url, _Datatype, _Version}
+                  -> {ajax, Data, {Code, Url}};
+     false        -> bdd_utils:log(debug, "bdd_restrat:get_REST/JSON did not find expected to ajax result",[]),
+                     bdd_utils:log(trace, "more.... in ~p",[Results]),
+                     #rest{data="bdd_restrat ajax not found"}
+  catch
+    X -> bdd_utils:log(warn, bdd_restrat, get_REST, "error ~p in result ~p",[X,Results]),
+    #rest{data="bdd_restrat:get_REST error"}
+  end.
+  
 % handles cases where objects use names that conflict w/ internal namespaces
 alias(Object) ->  bdd_utils:config(alias_map,{Object, Object}).
   
@@ -334,7 +346,8 @@ step(C, R, {step_then, {S, N}, ["there should not be a value",Value]}) ->
   step(C, R, {step_then, {S, N}, ["there should be a value",Value]}) =/= true;
 
 step(_Config, Result, {step_then, {_Scenario, _N}, ["there should be a value",Value]}) -> 
-  J = get_JSON(Result),
+  Obj = get_Object(get_JSON(Result)),
+  J = Obj#item.data,
   bdd_utils:log(debug, bdd_restrat, step, "there should be a value ~p got ~p", [Value, J]),
   Test = lists:keyfind(Value,2,J),
   Test =/= false;

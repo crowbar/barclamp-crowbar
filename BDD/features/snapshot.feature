@@ -3,7 +3,7 @@ Feature: Instances
   The system operator, Oscar
   wants to be able to manage barclamp instances
 
-  Scenario: Instnaces List
+  Scenario: Snapshots List
     Skip until Rob completes this work
     When REST gets the {object:instance} list
     Then there should be a value "crowbar"
@@ -12,13 +12,11 @@ Feature: Instances
   Scenario: Crowbar Role
     Skip until Rob completes this work
     When REST gets the {object:instance} "crowbar"
-    Then there should be 
-      And the {object:instance} is properly formated
+    Then the {object:instance} is properly formated
       
   Scenario: Private Role
     Skip until Rob completes this work
     When REST gets the {object:instance} "private"
-    Then there should be 
-      And the {object:instance} is properly formated
+    Then the {object:instance} is properly formated
   
   

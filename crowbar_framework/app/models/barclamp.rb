@@ -201,9 +201,11 @@ class Barclamp < ActiveRecord::Base
     eorder = {}
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
       role_hash.each_with_index do |role, index|
+        # otder is a 2-d array, so we need to capture the row/col when we flatten it
         eorder[role] ||= 100+(top_index*100)+index
       end
     end
+puts "$$$ #{eorder.inspect}"
     # now capture roles from element states
     if jdeploy["element_states"]
       jdeploy["element_states"].each do |role, states|
@@ -383,18 +385,14 @@ class Barclamp < ActiveRecord::Base
   # This method ensures that we have a type defined for 
   def create_type_from_name
     raise "barclamps require a name" if self.name.nil?
-    file = "#{self.name}"
-    myclass = "Barclamp#{self.name.camelize}::Barclamp"
-    # this will need to be fixed for the engines!!
-    file = File.join 'app','models',"barclamp_#{self.name}", "barclamp.rb"
-    if !self.type.nil?
-      # do nothing - everything is OK
-    elsif File.exist? file
-      self.type = myclass
-    else
-      Rails.logger.warn "Creating barclamp #{self.name} using the generic model because the #{file} was not found."
-      self.type = "BarclampFramework"     # fall back to generic model
+    namespace = "Barclamp#{self.name.camelize}"
+    m = Module::const_get(namespace) rescue nil
+puts m.inspect
+    if m
+      c = m.const_get("Barclamp") rescue nil
     end
+puts c.inspect
+    self.type = (c.nil? ? "BarclampFramework" : "#{namespace}::Barclamp" )
   end
      
 end

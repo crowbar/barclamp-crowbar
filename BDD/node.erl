@@ -21,8 +21,8 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/nodes";
-    status_path -> "/framework/status/nodes";
+    path -> "api/v2/nodes";
+    status_path -> "/api/status/nodes";
     name -> "bdd1.example.com";
     atom -> node1;
     _ -> crowbar:g(Item)

@@ -89,8 +89,7 @@ Crowbar::Application.routes.draw do
         get  ':id' => 'nodes#show', :as => 'node'
       end
       scope 'nodes' do
-        post 'list' => "nodes#list", :as => :nodes_list
-        get  'list' => "nodes#list", :as => :nodes_list
+        match 'list' => "nodes#list", :as => :nodes_list
       end
     end
   end
@@ -110,32 +109,52 @@ Crowbar::Application.routes.draw do
      
   devise_scope :user do
     
-    # API routes (must be json and must prefix 2.0)()
+    # API routes (must be json and must prefix v2)()
     scope :defaults => {:format=> 'json'} do
-   
-      scope 'framework' do            
-        scope 'status' do
-          get "nodes(/:id)" => "nodes#status",  :as=>'nodes_status'
-          get "deployments(/:id)" => "deployments#status",  :as=>'deployments_status'
-        end
-      end
       
-      # v2 API Pattern
-      scope ':barclamp' do
-        scope ':version' do
-          constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
+      constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
+
+        # framework resources pattern (not barclamps specific)
+        scope 'api' do
+          
+          scope 'status' do
+            get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
+            get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
+          end
+
+          scope ':version' do
             
+            resources :nodes do 
+              resources :attribs
+              resources :groups
+              put 'transistion'
+              put 'allocate'
+            end
             resources :barclamps do
               resources :deployments
             end
+            resources :jigs 
+            #resources :users 
+            resources :attrib_types
+            resources :role_types
+            resources :groups do
+              member do
+                get 'nodes'
+              end
+            end
+          end # version
+        end # api
+        
+        # Barclamp resource v2 API Pattern
+        scope ':barclamp' do
+          scope ':version' do
+            
             match "template"                => "barclamps#template"
             
             resources :deployments do
               member do  
                 put 'commit'
-                put 'dequeue'
-                put 'propose'
-                put 'transistion'
+                put 'recall'
               end
             end
             
@@ -145,27 +164,12 @@ Crowbar::Application.routes.draw do
               resources :attribs
               resources :nodes
             end
-            resources :role_types
             
-            resources :jigs
             resources :attribs
-            resources :attrib_types
             
-            resources :nodes do
-              resources :attribs
-              resources :groups
-            end
-                        
-            resources :groups do
-              member do
-                get 'nodes'
-              end
-            end
-            resources :users
-
-          end
-        end
-      end
+          end # version scope
+        end # barclamp scope
+      end # id constraints
       
       # depricated 2.0 API Pattern
       scope '2.0' do

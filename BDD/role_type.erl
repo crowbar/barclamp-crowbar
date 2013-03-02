@@ -15,20 +15,23 @@
 % 
 -module(role_type).
 -export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/role_types";
+    path -> "api/v2/role_types";
     atom -> role1;
     _ -> crowbar:g(Item)
   end.
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  R =[bdd_utils:is_a(J, length, 4),
+validate(JSON) ->
+  Wrapper = crowbar_rest:api_wrapper(JSON),
+  J = Wrapper#item.data,
+  R =[bdd_utils:is_a(J, length, 6),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
@@ -48,7 +51,6 @@ inspector(Config) ->
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
-
                    
 step(Config, _Global, {step_setup, _N, _}) -> 
   Config;

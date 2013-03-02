@@ -14,16 +14,19 @@
 % 
 % 
 -module(snapshot).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-export([step/3, json/3, path/1, validate/1, inspector/1, g/1, create/3]).
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/snapshots";
+    resource_path -> "/v2/snapshots";
+    path -> "crowbar" ++ g(resource_path);
     _ -> crowbar:g(Item)
   end.
   
+path(Barclamp) -> Barclamp ++ g(resource_path).
+
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(J) ->

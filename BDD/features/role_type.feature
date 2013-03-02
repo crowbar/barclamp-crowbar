@@ -1,24 +1,22 @@
-Feature: Roles
+Feature: Role Types
   In order to track system roles
   The system operator, Oscar
   wants to be able to manage roles for instances
 
-  Scenario: Roles List
-    Skip until Rob completes this work
-    When REST gets the {object:role} list
+  Scenario: Role Types List
+    When REST gets the {object:role_type} list
     Then there should be a value "crowbar"
       And there should be a value "private"
 
   Scenario: Crowbar Role
-    Skip until Rob completes this work
-    When REST gets the {object:role} "crowbar"
-    Then there should be 
-      And the {object:role} is properly formated
+    When REST gets the {object:role_type} "crowbar"
+    Then there should be a value "crowbar"
+      And there should not be a value "private"
+      And the {object:role_type} is properly formatted
       
   Scenario: Private Role
-    Skip until Rob completes this work
-    When REST gets the {object:role} "private"
-    Then there should be 
-      And the {object:role} is properly formated
-  
-  
+    When REST gets the {object:role_type} "private"
+    Then the page returns {integer:200}
+      And there should be a value "private"
+      And the {object:role_type} is properly formatted
+

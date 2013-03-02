@@ -65,6 +65,32 @@ Start the process of instantiating a deployment into the environemt.
 Expecting the deployment to be "static" - i.e. not actively being modified.
 =end
   def self.commit_proposal(deployment)
+
+    # update the status of the deployment to committed 
+
+     # function role - created during barclamp import.
+     # need a list of the roles:
+     #   - the role list
+     #   - according to run element order: [[r1,r2,r3] [r4,r5,r6]]
+     #This comes from: deployment.
+     # deployment elements, nodes they apply to.
+     # This info is used to created:
+     #   1. the runs needed - each role x node combination generates a Run.
+     #   2. a set of jobs to reflect the dependencies between the runs, as reflected in the elements order
+     # these will be named e.g. crowbar-bc-ntp
+
+ 
+     # snapshot config role - holds the configuraiton from the deployments configuration
+     #  e.g. crowbar-deploy-ntp-<MyNTP>
+     # To populate it need: - non-node specific configuration for the deployment.
+     # From snapshot.roles.role_attribs
+     # (for now this will not include private role info.)
+     #
+
+     # node role - node specific info e.g crowbar-node-<node-name>
+     # snapshot -> role -> node.attribs
+
+
   end
 
 

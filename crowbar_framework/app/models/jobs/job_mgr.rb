@@ -65,6 +65,7 @@ A job in the system, that might have un-met dependencies
     def initialize(args = {},options={})
       super
       self.done = false
+      self.type = self.class.name
     end
 
 =begin 
@@ -96,6 +97,9 @@ This is an association class to hold connections between jobs and thier dependen
 
     attr_accessible :job
     attr_accessible :prereq
+    attr_accessible :type
+    attr_accessible :key
+
   end
 
 end

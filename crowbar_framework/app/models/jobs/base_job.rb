@@ -13,7 +13,9 @@
 # limitations under the License.
 #
 
-class Jobs::BaseJob
+require 'jobs/job_mgr'
+
+class Jobs::BaseJob < Jobs::DependentJob
 
   def enqueue(job)
     record_stat 'enqueue'

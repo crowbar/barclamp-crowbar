@@ -98,7 +98,7 @@ class ApplicationController < ActionController::Base
       # we've got information to move forward
       key ||= o.id unless o.nil?
       key ||= params[:id]
-      link ||= "#{eval("#{type.to_s.pluralize(0)}_path")}/#{key}"   # figure out path from type
+      link ||= request.path # figure out path from type
       o ||= type_class.find_key key
       if o
         return {:json=>{:item=>o, :type=>type, :link=>link}, :content_type=>CB_CONTENT_TYPE19}

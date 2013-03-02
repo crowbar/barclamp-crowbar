@@ -29,55 +29,47 @@ class BarclampCrowbar::AttribHasNode < Attrib
   STATES.default = 'unknown'
   
   def state
-    (self.value_actual == MARSHAL_EMPTY ? Node::UNKNOWN : self.value_actual)
+    (self.id_actual<0 ? Node::UNKNOWN : self.id_actual)
   end
   
   def state=(value)
-    self.value_request = Attrib.serial_in(value)
+    self.actual = value
+    self.jig_run_id = 0    
     s = value.split[0].downcase rescue 'error'
     # this is not the right way to do this, optimize
-    if STATES.value? s 
-      STATES.each do |key, value|
-        if value.eql? s
-          self.value_actual = key
-          break
-        end
-      end
+    self.id_actual = case s
+    when 'ready'
+      Node::READY
+    when 'error'
+      Node::ERROR
     else
-      self.value_actual = Node::ERROR
+      Node::UNKNOWN
     end
-    self.value_actual
   end
   
   def ready?
-    self.value_actual == Node::READY
+    self.state == Node::READY
   end
   
   def state_text
-    STATES[value_actual] || Attrib.serial_out(value_request) || 'unknown'
+    STATES[self.state] rescue 'error'
+  end
+    
+  # used by the API when values are set outside of Jig runs
+  def actual=(value)
+    self.value_actual = value
   end
   
   def actual
-    state
+    self.value_actual
   end
 
-  def actual=(value)
-    state = value
-  end
-
-  def request=(value)
-    state = value
-  end
   
-  def request
-    state
-  end
-    
     # Makes the open ended state information into a subset of items for the UI
   def status
     return 'failed'
     # if you add new states then you MUST expand the PIE chart on the nodes index page
-    case self.value_actual
+    case self.request
     when "ready"
       "ready"     #green
     when "discovered", "wait", "waiting", "user", "hold", "pending", "input"

@@ -245,5 +245,21 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_equal [], Snapshot.where(:id=>act_old.id), "remove the next old one"
   end
   
+  test "snapshot status tests" do
+    test = Barclamp.import 'test'
+    dep = test.create_deployment "foo"
+    assert dep.proposed.proposed? 
+    assert !dep.proposed.active? 
+    assert !dep.proposed.committed? 
+    dep.commit
+    assert dep.committed.committed?
+    assert !dep.committed.active?
+    assert !dep.committed.proposed?
+    dep.apply_committed
+    assert dep.active.active?
+    assert !dep.active.proposed?
+    assert !dep.active.committed?
+  end
+  
 end
 

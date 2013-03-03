@@ -124,7 +124,7 @@ class Barclamp < ActiveRecord::Base
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
         # create the snapshot 
-        snapshot = based_on.deep_clone proposal, deployment.name, false
+        snapshot = based_on.deep_clone proposal, deployment[:name], false
         # attach the snapshot to the config
         proposal.proposed_snapshot_id = snapshot.id
         proposal.save

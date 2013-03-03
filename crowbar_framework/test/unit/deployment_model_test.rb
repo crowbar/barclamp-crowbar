@@ -208,6 +208,23 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_equal [], Snapshot.where(:id=>prop_new.id), "it's deleted"
   end
   
+  test "deallocate has no nodes" do
+    test = Barclamp.import 'test'
+    node = Node.create :name=>"unit.test.com"
+    dep = test.create_deployment "foo"
+    # add node
+    dep.proposed.roles.first.add_node node
+    # get to an active snapshot
+    dep.commit
+    active = dep.apply_committed
+    assert_nil dep.committed_snapshot_id, "active = none committed"
+    # make sure we have a node
+    assert active.nodes.count > 0 
+    # node deallocate
+    commit = dep.commit_deallocate_applied
+    assert_equal 0, commit.nodes.count, "deallocate means no nodes"
+  end
+  
   test "commit_to_apply removes commit" do
     test = Barclamp.import 'test'
     dep = test.create_deployment "foo"

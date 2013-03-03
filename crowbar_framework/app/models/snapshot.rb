@@ -30,6 +30,7 @@ class Snapshot < ActiveRecord::Base
   belongs_to      :deployment,        :inverse_of => :snapshot
 
   has_many        :roles,             :dependent => :destroy, :order => ROLE_ORDER
+  has_many        :nodes,             :through => :roles
   has_many        :private_roles,     :class_name => "Role", :conditions=>'run_order<0', :order => ROLE_ORDER
   has_many        :public_roles,      :class_name => "Role", :conditions=>'run_order>=0', :order => ROLE_ORDER
   has_many        :role_types,        :through => :roles

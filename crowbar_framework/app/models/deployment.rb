@@ -92,6 +92,20 @@ class Deployment < ActiveRecord::Base
     self.active
   end
 
+
+  # commits a clone of the APPLIED snapshot without nodes
+  # this can be used to effectively halt a deployment as a way of deleting it
+  def commit_deallocate_applied
+    raise "cannot deallocate active unless there is no other committed work" if committed?
+    Deployment.transaction do
+      old_a = self.active
+      new_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
+      self.committed_snapshot_id = new_c.id
+      self.save
+    end
+    self.committed
+  end
+  
   #
   # UI Helper function to return a single string for status
   # XXX: This should really move to an helper module

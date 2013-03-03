@@ -59,7 +59,7 @@ class ServiceObject
   
   def bc_name 
     Rails.logger.warn "Service object depricated"
-    @bc_name
+    Barclamp.find_by_name('crowbar').name
   end
   
   def logger
@@ -69,15 +69,15 @@ class ServiceObject
 
   def barclamp
     Rails.logger.warn "Service object depricated"
-    @barclamp
+    Barclamp.find_by_name 'crowbar'
   end
 
   #
   # Human printable random password generator
-  #
+  # CB1
   def random_password(size = 12)
-    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
-    (1..size).collect{|a| chars[rand(chars.size)] }.join
+    # Depricated & Moved
+    BarclampCrowbar::Barclamp.random_password size
   end
 
 #

@@ -124,7 +124,7 @@ class Barclamp < ActiveRecord::Base
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
         # create the snapshot 
-        snapshot = based_on.deep_clone proposal, deployment.name, false
+        snapshot = based_on.deep_clone proposal, deployment[:name], false
         # attach the snapshot to the config
         proposal.proposed_snapshot_id = snapshot.id
         proposal.save
@@ -197,7 +197,7 @@ class Barclamp < ActiveRecord::Base
     # add the roles & attributes
     jdeploy = json["deployment"][name]
     ss = self.template
-    ss.element_order = Marshal::dump jdeploy["element_order"]
+    ss.element_order =  ActiveSupport::JSON.encode(jdeploy["element_order"])
     ss.save
     # flatten the element order list
     eorder = {}

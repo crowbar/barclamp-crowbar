@@ -17,7 +17,7 @@ require 'json'
 
 class AttribHasNodeTest < ActiveSupport::TestCase
 
-  HAS_NODE = "has_node"
+  HAS_NODE = BarclampCrowbar::AttribHasNode::HASNODE_NAME
 
   # tests the relationship between nodes and attributes
   def setup
@@ -99,6 +99,22 @@ class AttribHasNodeTest < ActiveSupport::TestCase
     @role.remove_node node3
     assert_equal 0, node3.attrib_has_nodes(true).count    
     assert_equal count, @role.attrib_has_nodes(true).count
+  end
+  
+  test "state works for most basic ready functions" do 
+    assert_equal Node::UNKNOWN, @hasnode1.state
+    assert !@hasnode1.ready?
+    @hasnode1.state = 'ready'
+    assert_equal Node::READY, @hasnode1.state
+    assert_equal Node::READY, @hasnode1.id_actual
+    assert_equal 'ready', @hasnode1.actual
+    assert_equal 'ready', @hasnode1.state_text
+    assert @hasnode1.ready?
+    @hasnode1.state = 'foobar'
+    assert_equal Node::UNKNOWN, @hasnode1.state
+    assert_equal 'unknown', @hasnode1.state_text
+    assert_equal 'foobar', @hasnode1.actual
+    assert !@hasnode1.ready?
   end
   
 end

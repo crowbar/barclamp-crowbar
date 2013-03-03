@@ -17,16 +17,22 @@ class Node < ActiveRecord::Base
   before_validation :default_population
   before_destroy    :jig_delete
   
-  attr_accessible :name, :description, :alias, :order, :state, :admin, :allocated
+  attr_accessible :name, :description, :alias, :order, :admin, :allocated
   attr_readonly   :fingerprint
   
-  # for Node-Role relationship
-  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
   # Make sure we have names that are legal
   FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
   # for to_api_hash
   API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
                     "admin", "allocated", "os_id", "created_at", "updated_at"]
+
+  # States (these are using in the AttribHasRole status)
+  READY = 0
+  ERROR = 666
+  UNKNOWN = 999
+
+  # for Node-Role relationship
+  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
 
   # 
   # Validate the name should unique (no matter the case)
@@ -102,18 +108,41 @@ class Node < ActiveRecord::Base
     set_attrib("allocated", true) 
   end
 
-  
-  #
-  # Helper function to set state.  Assumes that the node will be save outside if this routine.
+  # this mechanism requires that nodes are members of the Crowbar.crowbar role
+  def state_attrib
+    # TODO this needs to be optimized to eliminate all the lookups
+    cb_role = Barclamp.find_by_name('crowbar').deployments.first.proposal.private_roles.first
+    BarclampCrowbar::AttribHasNode.find_or_create_by_node_id_and_role_id self.id, cb_role.id
+  end
   #
   # Use transition function to set state.
   #
-  # CB1
   def set_state(new_state, old_state = nil)
-    # use the real transition function for this
-    #cb.transition "default", name, new_state, old_state
+    # depricated, use state instead
+    state = new_state
   end
+  # set the state using the state attribute 
+  def state=(value)
+    a = state_attrib
+    a.state = value
+    a.save
+  end
+  # get the state using the state attribute
+  def state
+    state_attrib.state_text
+  end
+  
+  def ready?
+    state_attrib.ready?
+  end
+  
+  # Makes the open ended state information into a subset of items for the UI
+  def status
+    state_attrib.status
+  end  
 
+
+  
   # CB1 these are really IMPI actions - please move!
   def ipmi_cmd(cmd)
     bmc          = jig_hash.address("bmc").addr rescue nil
@@ -201,12 +230,6 @@ class Node < ActiveRecord::Base
 #    cno.save
   end
   
-  # Friendly name for the UI
-
-  def ready?
-    state.eql? 'ready'
-  end
-  
   def virtual?
     jig_hash.virtual?
   end
@@ -221,25 +244,6 @@ class Node < ActiveRecord::Base
     []
   end
 
-  # Makes the open ended state information into a subset of items for the UI
-  def status
-    # if you add new states then you MUST expand the PIE chart on the nodes index page
-    subState = !state.nil? ? state.split[0].downcase : ""
-    case subState
-    when "ready"
-      "ready"     #green
-    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
-      "pending"   #flashing yellow
-    when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
-      "unknown"   #grey
-    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
-      "failed"    #flashing red
-    when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
-      "building"  #yellow
-    else
-      "unready"   #spinner
-    end
-  end  
 
   # retrieves the Attrib from Attrib
   def get_attrib(attrib_type)
@@ -296,7 +300,7 @@ class Node < ActiveRecord::Base
   def to_s
     "Node: #{name}"
   end
-
+  
   def ip
     #TODO reference jig_hash.ip somehow?
     "unknown"

@@ -24,8 +24,12 @@ class DeploymentsController < ApplicationController
   end
   
   def create
-    deploy = barclamp.create_proposal params
-    render api_show :deployment, Deployment, nil, nil, deploy
+    if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
+      deploy = barclamp.create_proposal params
+      render api_show :deployment, Deployment, nil, nil, deploy
+    else
+      render :status=>:not_acceptable, :text=>I18n.t('model.deployment.singleton')
+    end
   end
   
   def update

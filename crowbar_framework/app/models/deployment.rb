@@ -47,8 +47,49 @@ class Deployment < ActiveRecord::Base
   alias_attribute :proposed,            :proposed_snapshot
   alias_attribute :proposal,            :proposed_snapshot
 
+  # active includes nothing being committed
   def active?
-    active_snapshot_id != nil
+    !committed and !active_snapshot_id.nil?
+  end
+
+  def committed?
+    !committed_snapshot_id.nil?
+  end
+  
+  # commit the current proposal (cannot be done if there is a committed proposal)
+  def commit
+    raise "cannot commit a proposal unless there is no other currently in process" if committed? 
+    Deployment.transaction do
+      new_c = self.proposal     # promote this one
+      new_p = new_c.deep_clone self, nil, true   # create a clone for the new proposal
+      self.committed_snapshot_id = new_c.id
+      self.proposed_snapshot_id = new_p.id
+      self.save
+    end
+    self.committed
+  end
+
+  # recall the committing proposal (simply deleted the committed proposal)
+  def recall
+    Deployment.transaction do
+      old_c = self.committed     
+      self.committed_snapshot_id = nil
+      old_c.delete
+      self.save
+    end
+  end
+
+  # moves the commited proposal to the applied spot (deleted the old apply)
+  # this should only be called by a Jig!
+  def apply_committed
+    Deployment.transaction do
+      old_a = self.active
+      self.active_snapshot_id = self.committed_snapshot_id
+      self.committed_snapshot_id = nil
+      self.save
+      old_a.delete unless old_a.nil?
+    end
+    self.active
   end
 
   #

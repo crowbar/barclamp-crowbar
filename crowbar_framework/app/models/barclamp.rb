@@ -101,7 +101,7 @@ class Barclamp < ActiveRecord::Base
   #
   # Possible Override function
   #
-  # Creates a new proposal from the template object.  
+  # Creates a new deploy from the template object.  
   # Barclamps can override this function to tweak config or add nodes
   #
   # Overriding functions should call super to get the template object.
@@ -110,27 +110,30 @@ class Barclamp < ActiveRecord::Base
   #  Optional: Config Name / Hash (default to default)
   # Output: Config Object Based upon template.
   #
-  def create_proposal(deployment=nil)
+  def create_proposal(name=nil)
+    create_deployment(name)
+  end
+  def create_deployment(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
     deployment ||= { :name => DEFAULT_DEPLOYMENT_NAME}
-    proposal = nil
+    deploy = nil
     if allow_multiple_deployments or deployments.count==0
       # setup required items
       deployment[:barclamp_id]  = self.id
       deployment[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
       Deployment.transaction do 
         # create a new deployment
-        proposal = Deployment.create deployment
+        deploy = Deployment.create deployment
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
         # create the snapshot 
-        snapshot = based_on.deep_clone proposal, deployment.name, false
+        snapshot = based_on.deep_clone deploy, deployment.name, false
         # attach the snapshot to the config
-        proposal.proposed_snapshot_id = snapshot.id
-        proposal.save
+        deploy.proposed_snapshot_id = snapshot.id
+        deploy.save
       end
     end
-    proposal
+    deploy
   end
 
   

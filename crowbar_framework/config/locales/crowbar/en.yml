@@ -214,6 +214,8 @@ en:
       imported: "Imported from %{file}"
       template: "%{name} template"
       map_add: "Automatically added by %{name}"
+    deployment:
+      singlton: "This barclamp does not allow multiple proposals"
     role:
       added: "Added from #{name}"
       default_create_description: "%{name} Created Role"

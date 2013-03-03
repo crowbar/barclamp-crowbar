@@ -111,8 +111,9 @@ class AttribHasNodeTest < ActiveSupport::TestCase
     assert_equal 'ready', @hasnode1.state_text
     assert @hasnode1.ready?
     @hasnode1.state = 'foobar'
-    assert_equal Node::UNKNOWN, @hasnode1.state
-    assert_equal 'unknown', @hasnode1.state_text
+    assert_equal Node::UNREADY, @hasnode1.state
+    assert_equal 'foobar', @hasnode1.state_text
+    assert_equal 'unready', @hasnode1.status
     assert_equal 'foobar', @hasnode1.actual
     assert !@hasnode1.ready?
   end

@@ -16,4 +16,5 @@
 # This class is the fall back class for barclamps that are missing Barclamp subclasses
 class BarclampCrowbar::Barclamp < Barclamp
   
+  
 end

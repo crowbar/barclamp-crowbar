@@ -77,6 +77,36 @@ class Barclamp < ActiveRecord::Base
     [ "2.0" ]
   end
 
+  #
+  # Human printable random password generator
+  #
+  def self.random_password(size = 12)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
+    (1..size).collect{|a| chars[rand(chars.size)] }.join
+  end
+  
+  # this fall back routine just updates the state and does nothing else
+  def transition(snapshot, node, state, role_type_name=nil)
+
+    if role_name
+      role_type = RoleType.find_by_name role_type_name
+      role = Role.find_by_snapshot_id_and_role_type_id snapshot.id, role_type.id
+    end
+    
+    unless committed?
+      roles = (role.nil? ? snapshot.roles : [role])
+      
+      Snapshot.transaction do
+        roles.each do |r|
+          attrib = BarclampCrowbar::AttribHasNode.find_by_node_id_and_role_id node.id, r.id
+          attrib.state = state
+          attrib.save
+        end
+      end
+    end
+    
+  end
+  
   # 
   # Barclamps are responsible to creating the attributes that they will manage
   # INPUTS: 
@@ -98,6 +128,13 @@ class Barclamp < ActiveRecord::Base
   end
 
 
+  # indended to be OVERRIDEN for barclamps that want to validate deployments
+  # called before the proposal is committed
+  # was validate deployment in CB1
+  def is_valid?(deployment)
+    true
+  end
+  
   #
   # Possible Override function
   #
@@ -111,8 +148,12 @@ class Barclamp < ActiveRecord::Base
   # Output: Config Object Based upon template.
   #
   def create_proposal(name=nil)
+    # this is the very mininum function that we need to create a proposal
     create_deployment(name)
   end
+  
+  # Create deployment creates the bones of the proposal, but not the nodes
+  # create proposal can be overridden to put things in nodes
   def create_deployment(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
     deployment ||= { :name => DEFAULT_DEPLOYMENT_NAME}

@@ -59,6 +59,7 @@ class Deployment < ActiveRecord::Base
   # commit the current proposal (cannot be done if there is a committed proposal)
   def commit
     raise "cannot commit a proposal unless there is no other currently in process" if committed? 
+    raise "proposed deployment is not valid" unless self.barclamp.is_valid? self
     Deployment.transaction do
       new_c = self.proposal     # promote this one
       new_p = new_c.deep_clone self, nil, true   # create a clone for the new proposal
@@ -67,6 +68,12 @@ class Deployment < ActiveRecord::Base
       self.save
     end
     self.committed
+  end
+
+  # this is pending functionality because multiple pre-reqs will be required
+  # it is stubbed here because it was a CB1 method for the service object
+  def delete
+    raise "not implemented - this really should require a deallocate"
   end
 
   # recall the committing proposal (simply deleted the committed proposal)

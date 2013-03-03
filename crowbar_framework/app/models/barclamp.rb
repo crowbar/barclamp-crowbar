@@ -15,6 +15,10 @@
 
 class Barclamp < ActiveRecord::Base
 
+  silence_warnings do
+    DEFAULT_DEPLOYMENT_NAME = I18n.t('default', :default=>'default')
+  end
+
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
   attr_accessible :proposal_schema_version, :layout, :order, :run_order, :jig_order
   attr_accessible :commit, :build_on, :mode, :transitions, :transition_list
@@ -93,8 +97,6 @@ class Barclamp < ActiveRecord::Base
     template.add_attrib a, r if template
   end
 
-
-  DEFAULT_DEPLOYMENT_NAME = I18n.t('default')
 
   #
   # Possible Override function

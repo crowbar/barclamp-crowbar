@@ -197,7 +197,7 @@ class Barclamp < ActiveRecord::Base
     # add the roles & attributes
     jdeploy = json["deployment"][name]
     ss = self.template
-    ss.element_order = Marshal::dump jdeploy["element_order"]
+    ss.element_order =  ActiveSupport::JSON.encode(jdeploy["element_order"])
     ss.save
     # flatten the element order list
     eorder = {}

@@ -196,7 +196,9 @@ class Barclamp < ActiveRecord::Base
 
     # add the roles & attributes
     jdeploy = json["deployment"][name]
-    self.template.element_order = jdeploy["element_order"]
+    ss = self.template
+    ss.element_order = Marshal::dump jdeploy["element_order"]
+    ss.save
     # flatten the element order list
     eorder = {}
     jdeploy["element_order"].each_with_index do |role_hash, top_index|
@@ -390,8 +392,14 @@ class Barclamp < ActiveRecord::Base
     if m
       c = m.const_get("Barclamp") rescue nil
     end
-    # if they dont' find it we fall back to BarclampFramework
-    self.type = (c.nil? ? "BarclampFramework" : "#{namespace}::Barclamp" )
+    # if they dont' find it we fall back to BarclampFramework (this should go away!)
+    self.type = if c.nil?
+      Rails.logger.warn "Barclamp #{self.name} created with fallback Model!"
+      "BarclampFramework"
+    else 
+      "#{namespace}::Barclamp"
+    end
+    
   end
      
 end

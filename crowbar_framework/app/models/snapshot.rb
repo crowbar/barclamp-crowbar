@@ -73,11 +73,12 @@ class Snapshot < ActiveRecord::Base
   # return is a nested array of roles
   def role_order
     ro = []
-    if self.element_order
-      self.element_order.each do |parent|
+    source = Marshal::load(self.element_order)
+    if source
+      source.each do |parent|
         children = []
         parent.each do |role|
-          children << self.add_role(role)
+          children << self.add_role(role) if role
         end
         ro << children
       end

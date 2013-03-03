@@ -81,7 +81,7 @@ class Snapshot < ActiveRecord::Base
   # return is a nested array of roles
   def role_order
     ro = []
-    source = Marshal::load(self.element_order)
+    source = ActiveSupport::JSON.decode(self.element_order)
     if source
       source.each do |parent|
         children = []

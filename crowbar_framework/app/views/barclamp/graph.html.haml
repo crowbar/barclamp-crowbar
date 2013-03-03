@@ -15,7 +15,11 @@
           = bc.members.map{|b| "#{b.name}"}.join(", ")
         %li
           = t '.element_order'
-          = bc.template.element_order.inspect
+          %ol
+            - bc.template.role_order.each do |row|
+              %li
+                - row.each do |r|
+                  = "#{r.name} > "
         %li{:id=>"#{bc.id}_template"}
           - template = bc.template
           = t ".template"

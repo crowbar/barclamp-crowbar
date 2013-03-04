@@ -47,10 +47,72 @@ class Deployment < ActiveRecord::Base
   alias_attribute :proposed,            :proposed_snapshot
   alias_attribute :proposal,            :proposed_snapshot
 
+  # active includes nothing being committed
   def active?
-    active_snapshot_id != nil
+    !committed and !active_snapshot_id.nil?
   end
 
+  def committed?
+    !committed_snapshot_id.nil?
+  end
+  
+  # commit the current proposal (cannot be done if there is a committed proposal)
+  def commit
+    raise "cannot commit a proposal unless there is no other currently in process" if committed? 
+    raise "proposed deployment is not valid" unless self.barclamp.is_valid? self
+    Deployment.transaction do
+      new_c = self.proposal     # promote this one
+      new_p = new_c.deep_clone self, nil, true   # create a clone for the new proposal
+      self.committed_snapshot_id = new_c.id
+      self.proposed_snapshot_id = new_p.id
+      self.save
+    end
+    self.committed
+  end
+
+  # this is pending functionality because multiple pre-reqs will be required
+  # it is stubbed here because it was a CB1 method for the service object
+  def delete
+    raise "not implemented - this really should require a deallocate"
+  end
+
+  # recall the committing proposal (simply deleted the committed proposal)
+  def recall
+    Deployment.transaction do
+      old_c = self.committed     
+      self.committed_snapshot_id = nil
+      old_c.delete
+      self.save
+    end
+  end
+
+  # moves the commited proposal to the applied spot (deleted the old apply)
+  # this should only be called by a Jig!
+  def apply_committed
+    Deployment.transaction do
+      old_a = self.active
+      self.active_snapshot_id = self.committed_snapshot_id
+      self.committed_snapshot_id = nil
+      self.save
+      old_a.delete unless old_a.nil?
+    end
+    self.active
+  end
+
+
+  # commits a clone of the APPLIED snapshot without nodes
+  # this can be used to effectively halt a deployment as a way of deleting it
+  def commit_deallocate_applied
+    raise "cannot deallocate active unless there is no other committed work" if committed?
+    Deployment.transaction do
+      old_a = self.active
+      new_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
+      self.committed_snapshot_id = new_c.id
+      self.save
+    end
+    self.committed
+  end
+  
   #
   # UI Helper function to return a single string for status
   # XXX: This should really move to an helper module

@@ -59,7 +59,7 @@ class ServiceObject
   
   def bc_name 
     Rails.logger.warn "Service object depricated"
-    @bc_name
+    Barclamp.find_by_name('crowbar').name
   end
   
   def logger
@@ -69,23 +69,22 @@ class ServiceObject
 
   def barclamp
     Rails.logger.warn "Service object depricated"
-    @barclamp
+    Barclamp.find_by_name 'crowbar'
   end
 
   #
   # Human printable random password generator
-  #
+  # CB1
   def random_password(size = 12)
-    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
-    (1..size).collect{|a| chars[rand(chars.size)] }.join
+    # Depricated & Moved
+    BarclampCrowbar::Barclamp.random_password size
   end
 
 #
 # API Functions
 #
   def transition(prop_name, node_name, state)
-    Rails.logger.warn "Service object depricated"
-    [200, ""]
+    barclamp.transistion prop_name, node_name, state
   end
 
   #
@@ -95,31 +94,9 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def destroy_active(prop_name)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    @logger.debug "Trying to deactivate role #{prop_name}" 
-    prop = @barclamp.get_proposal(prop_name)
-    return [404, {}] if prop.nil? or not prop.active?
-
-    # Clear the nodes and apply the role.
-    new_prop_config = prop.active_config.deep_clone
-    new_prop_config.remove_all_nodes
-    new_prop_config.save!
-
-    # Apply new proposal_config
-    answer = apply_role(new_prop_config, false)
-
-    # Clear the active config
-    prop.active_config = nil
-    prop.save!
-
-    # CHEF: Actual undo
-    inst = "#{@bc_name}-config-#{prop_name}"
-    role = RoleObject.find_role_by_name(inst)
-    role.destroy if role
-
-    answer
+    barclamp.deployments.first.commit_deallocate_applied
   end
 
   #
@@ -129,55 +106,34 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def dequeue_proposal(inst)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    prop = @barclamp.get_proposal(inst)
-    return [404, {}] if prop.nil? or not prop.active? or not prop.active_config.queued?
-
-    ret = ProposalQueue.get_queue('prop_queue', @logger).dequeue_proposal(inst, @bc_name)
-    return [400, "error"] unless ret
-    [200, {}]
+    barclamp.deployments.first.recall
   end
 
   #
   # Helper routine: Updates current_config
-  # 
+  # CB1
   def _proposal_update(new_prop, params)
-    Rails.logger.warn "Service object depricated MOVEING TO BARCLAMP"
-    if params["attributes"]
-      chash = new_prop.current_config.config_hash
-      new_prop.current_config.config_hash = chash.merge(params["attributes"])
-    end
-    elems = params["deployment"][@bc_name]["elements"] rescue nil
-    new_prop.current_config.update_node_roles(elems) if elems and !elems.empty?
-
-    # Chef Code Here
-    raw_data = new_prop.current_config.to_proposal_object_hash
-    validate_proposal raw_data
-
-    # Write out proposal object.
-    return ProposalObject.write(raw_data)
+    # replaced with Attributes 
   end
 
   #
   # This can be overridden to provide a better creation proposal
   #
   # The @barclamp.create_proposal routine must be called to create the base objects.
-  #
+  # CB1
   def create_proposal(name)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    @barclamp.create_proposal(name)
+    barclamp.create_deployment name
   end
 
   #
   # This can be overridden to provide a better creation proposal
   #
   # The @barclamp.commit_proposal routine must be called to create the base objects.
-  #
+  # CB1
   def commit_proposal(proposal)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    ## nothing by default, let subclasses override.
+    barclamp.deployments.first.commit
   end
 
 
@@ -188,23 +144,9 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def proposal_create(params)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    return [400, I18n.t('model.service.empty_parameters')] unless params
-    base_id = params["id"]
-    return [400, I18n.t('model.service.missing_id')] unless base_id
-    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
-    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] unless base_id =~ Proposal::VALIDATION_EXPR
-
-    raise CrowbarException.new("Abstract Service Object") unless @barclamp
-    prop = @barclamp.get_proposal(base_id)
-    return [400, I18n.t('model.service.name_exists')] unless prop.nil?
-
-    new_prop = create_proposal(base_id)
-    new_prop.save!
-
-    _proposal_update new_prop, params
+    barclamp.deployment_create params
   end
 
   #
@@ -215,18 +157,10 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def proposal_edit(params)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    proposal = @barclamp.get_proposal(params["id"])
-    return [404, I18n.t('model.service.cannot_find')] if proposal.nil?
-
-    # Make copy of config for history.
-    new_prop_config = proposal.current_config.deep_clone
-    proposal.current_config = new_prop_config
-    proposal.save!
-
-    _proposal_update proposal, params
+    # TODO, we could make this work, but....
+    # basically, we'd iterate the params and attack to attibs
   end
 
   #
@@ -236,19 +170,9 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def proposal_delete(inst)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    prop = @barclamp.get_proposal(inst)
-    if prop.nil?
-      [404, I18n.t('model.service.cannot_find')]
-    elsif prop.active?
-      [400, I18n.t('model.service.instance_active')]
-    else
-      success = @barclamp.delete_proposal(prop)
-      [200, {}] if success
-      [400, I18n.t('model.service.unknown_delete_fail')] unless success
-    end
+    barclamp.deployments.first.delete 
   end
 
   #
@@ -259,45 +183,17 @@ class ServiceObject
   #
   # Output:
   #   [ HTTP Error Code, String Message ]
-  #
+  # CB1
   def proposal_commit(inst, in_queue = false)
-    Rails.logger.warn "Service object depricated MOVING TO BARCLAMP"
-    prop = @barclamp.get_proposal(inst)
-    if prop.nil?
-      [404, "#{I18n.t('.cannot_find', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
-    elsif prop.active? and prop.active_config.committing?
-      [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
-    else
-      begin
-        commit_proposal(prop)
-        apply_role(prop.current_config, in_queue)
-      rescue Net::HTTPServerException => e
-        [e.response.code, e.message]
-      rescue Chef::Exceptions::ValidationFailed => e2
-        [400, e2.message]
-      end
-    end
+    barclamp.deployment.first.commit
   end
 
   #
   # This can be overridden.  Specific to node validation.
   # proposal_elements is a hash from the elements field for the deployment/bc hash
-  #
+  # CB1
   def validate_proposal_elements proposal_elements
-    Rails.logger.warn "Service object depricated"
-    proposal_elements.each do |role_and_elements|
-      elements = role_and_elements[1]
-      uniq_elements = elements.uniq
-      if uniq_elements.length != elements.length
-        raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
-      end
-      uniq_elements.each do |node_name|
-        node = Node.find_by_name node_name
-        if node.nil?
-          raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
-        end
-      end
-    end
+    # moved to barclamp.is_valid? deployment
   end
 
   #
@@ -305,21 +201,7 @@ class ServiceObject
   # proposal is a hash in json proposal format
   #
   def validate_proposal proposal
-    Rails.logger.warn "Service object depricated"
-    path = "#{::Rails.root}/barclamps/schemas"
-    validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
-    Rails.logger.info "validating proposal #{@bc_name}"
-
-    errors = validator.validate(proposal)
-    if errors && !errors.empty?
-      strerrors = ""
-      errors.each do |e|
-        strerrors += "#{e.message}\n"
-      end
-      Rails.logger.info "validation errors in proposal #{@bc_name}"
-      raise Chef::Exceptions::ValidationFailed.new(strerrors)
-    end
-    validate_proposal_elements proposal['deployment'][@bc_name]["elements"]
+    # moved to barclamp.is_valid? deployment
   end
 
   #

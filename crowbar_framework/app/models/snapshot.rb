@@ -44,7 +44,7 @@ class Snapshot < ActiveRecord::Base
     deployment.active_snapshot_id == self.id
   end
 
-  def commited? 
+  def committed? 
     deployment.committed_snapshot_id == self.id
   end
   

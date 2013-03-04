@@ -26,6 +26,6 @@
             %tbody
               - if barclamp.deployments.count>0 
                 - barclamp.deployments.each do |deployment|
-                  = render :partial => "deployments/show", :locals=> { :deployment => deployment, }
+                  = render :partial => "deployments/show", :locals=> { :deployment => deployment }
               - if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
                 = render :partial => "deployments/new"

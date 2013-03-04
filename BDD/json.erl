@@ -85,7 +85,19 @@ json_array(Index, Value, RawJSON) ->
     {V, $,} ->  List = json_array(Index+1, [], T),              % more items, go get them
                #json{list=lists:merge([string:strip(V)], List#json.list), raw=List#json.raw};      % recurse to get next element
     {V, $]} -> #json{list=[string:strip(V)], raw=T};            % terminator, return
-    {V, $"} -> json_value_quoted(V, T);                         % run to next quote,exit
+    {V, $"} -> J = json_value_quoted(V, T),                     % run to next quote,exit
+                % jvq may not return a list, if not, keep going
+                if is_record(J, jsonkv) ->
+                      Item = J#jsonkv.value,
+                      Rest = json_array(Index+1, [], J#jsonkv.raw),
+                      List = if Rest#json.list =/= [[]] -> [Item | Rest#json.list];
+                                true -> [Item] end,
+                      #json{list=List, raw=Rest#json.raw};
+                   % this is the expected return, stop
+                   is_record(J, json) -> J;  
+                   % ouch!
+                   true -> throw('unexpected return for json_value_quoted')
+                end;
     {V, _} ->  json_array(Index, V ++ [Next], T)                % recurse
   end.
   

@@ -1,3 +1,6 @@
-%strong= deployment.name
-= ":"
-%em= deployment.description
+= link_to dashboard_path #deployments_path(:version=>'v2', :barclamp=>deployment.barclamp.name, :id=>deployment.id)
+  %strong
+    = deployment.name
+  = ":"
+  %em
+    = deployment.description

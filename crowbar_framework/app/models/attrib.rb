@@ -35,7 +35,7 @@ class Attrib < ActiveRecord::Base
 
   DEFAULT_CLASS = BarclampCrowbar::AttribDefault rescue Attrib
   
-  MARSHAL_NIL   = "\004\b0"
+  MARSHAL_NIL   = "null"
   MARSHAL_EMPTY = "empty"
   
   def self.find_or_create_by_attrib_type_and_node(attrib_type, node=nil, defaultclass=DEFAULT_CLASS)
@@ -122,14 +122,14 @@ class Attrib < ActiveRecord::Base
   end
   
   def self.serial_in value
-    Marshal::dump(value)
+     ActiveSupport::JSON.encode(value)
   end
 
   def self.serial_out value
     if value.eql? MARSHAL_EMPTY
       nil
     else
-      Marshal::load(value)
+      ActiveSupport::JSON.decode(value)
     end
   end
   

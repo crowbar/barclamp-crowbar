@@ -21,7 +21,12 @@ class Node < ActiveRecord::Base
   attr_readonly   :fingerprint
   
   # Make sure we have names that are legal
-  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+  # old:
+  #  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+  
+  # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't 
+  # be a top level domain ;p
+  FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/
   # for to_api_hash
   API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
                     "admin", "allocated", "os_id", "created_at", "updated_at"]

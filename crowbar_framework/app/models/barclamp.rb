@@ -77,6 +77,36 @@ class Barclamp < ActiveRecord::Base
     [ "2.0" ]
   end
 
+  #
+  # Human printable random password generator
+  #
+  def self.random_password(size = 12)
+    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
+    (1..size).collect{|a| chars[rand(chars.size)] }.join
+  end
+  
+  # this fall back routine just updates the state and does nothing else
+  def transition(snapshot, node, state, role_type_name=nil)
+
+    if role_name
+      role_type = RoleType.find_by_name role_type_name
+      role = Role.find_by_snapshot_id_and_role_type_id snapshot.id, role_type.id
+    end
+    
+    unless committed?
+      roles = (role.nil? ? snapshot.roles : [role])
+      
+      Snapshot.transaction do
+        roles.each do |r|
+          attrib = BarclampCrowbar::AttribHasNode.find_by_node_id_and_role_id node.id, r.id
+          attrib.state = state
+          attrib.save
+        end
+      end
+    end
+    
+  end
+  
   # 
   # Barclamps are responsible to creating the attributes that they will manage
   # INPUTS: 
@@ -98,10 +128,28 @@ class Barclamp < ActiveRecord::Base
   end
 
 
+  # indended to be OVERRIDEN for barclamps that want to validate deployments
+  # called before the proposal is committed
+  # was validate deployment in CB1
+  def is_valid?(deployment)
+    true
+  end
+  
+
+  #
+  # This method can be used by barclamps that can only have 1 deployment to
+  # retrieve a handle to the lone deployment, creating it if necessary
+  def create_or_get_deployment(deployment_name=nil)
+    deployment = create_deployment(deployment_name)
+    deployment = deployments[0] if deployment.nil?
+    deployment
+  end
+
+
   #
   # Possible Override function
   #
-  # Creates a new proposal from the template object.  
+  # Creates a new deploy from the template object.  
   # Barclamps can override this function to tweak config or add nodes
   #
   # Overriding functions should call super to get the template object.
@@ -110,27 +158,37 @@ class Barclamp < ActiveRecord::Base
   #  Optional: Config Name / Hash (default to default)
   # Output: Config Object Based upon template.
   #
-  def create_proposal(deployment=nil)
+  def create_proposal(name=nil)
+    # this is the very mininum function that we need to create a proposal
+    create_deployment(name)
+  end
+  
+  # Create deployment creates the bones of the proposal, but not the nodes
+  # create proposal can be overridden to put things in nodes
+  #
+  # Note that passing a deployment_name of nil will cause default the
+  # deployment name to I18n.t('default') if a new deployment is created.
+  def create_deployment(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
     deployment ||= { :name => DEFAULT_DEPLOYMENT_NAME}
-    proposal = nil
+    deploy = nil
     if allow_multiple_deployments or deployments.count==0
       # setup required items
       deployment[:barclamp_id]  = self.id
       deployment[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
       Deployment.transaction do 
         # create a new deployment
-        proposal = Deployment.create deployment
+        deploy = Deployment.create deployment
         # one day, we could use non-templates for the base!
         based_on ||= self.template    
         # create the snapshot 
-        snapshot = based_on.deep_clone proposal, deployment[:name], false
+        snapshot = based_on.deep_clone deploy, deployment[:name], false
         # attach the snapshot to the config
-        proposal.proposed_snapshot_id = snapshot.id
-        proposal.save
+        deploy.proposed_snapshot_id = snapshot.id
+        deploy.save
       end
     end
-    proposal
+    deploy
   end
 
   
@@ -243,8 +301,8 @@ class Barclamp < ActiveRecord::Base
       u.digest_password(pass)   # this is required if we want API access
       u.save!
     end
-    # Create the machine-install user.
-    unless User.find_by_username("machine-install")
+    # Create the machine-install user (but only on production deployment)
+    unless User.find_by_username("machine-install") || !Rails.env.production?
       if File.exists?('/etc/crowbar.install.key')
         user,pass = IO.read('/etc/crowbar.install.key').strip.split(':',2)
       else
@@ -292,7 +350,7 @@ class Barclamp < ActiveRecord::Base
                                   :copyright   => bc['barclamp']['copyright'] || "Dell, Inc 2013",
                                   :source_path => source_path,
                                   :user_managed=> um || true,
-                                  :allow_multiple_proposals => amp || false,
+                                  :allow_multiple_deployments => amp || false,
                                   :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
                                   :layout      => bc['crowbar']['layout'] || 2,
                                   :order       => bc['crowbar']['order'] || 0,

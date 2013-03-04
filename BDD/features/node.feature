@@ -66,8 +66,7 @@ Feature: Nodes
 
   Scenario: Node Detail REST
     When REST gets the {object:node} "bdd1.example.com"
-    Then key "fingerprint" should be a number
-      And there should be a key "state"
+    Then there should be a key "state"
       And there should be a key "name"
       And there should be a key "description"
       And there should be a key "created_at"

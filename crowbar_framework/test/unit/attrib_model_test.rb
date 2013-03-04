@@ -84,7 +84,7 @@ class AttribModelTest < ActiveSupport::TestCase
     na = n.attribs[0]
     assert_not_nil na
     assert_equal value, na.value
-    assert_equal Marshal::dump(value), na.value_actual
+    assert_equal ActiveSupport::JSON.encode(value), na.value_actual
     assert_equal :ready, na.state
   end
   

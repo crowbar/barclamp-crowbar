@@ -24,8 +24,12 @@ class DeploymentsController < ApplicationController
   end
   
   def create
-    deploy = barclamp.create_proposal params
-    render api_show :deployment, Deployment, nil, nil, deploy
+    if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
+      deploy = barclamp.create_proposal params
+      render api_show :deployment, Deployment, nil, nil, deploy
+    else
+      render :status=>:not_acceptable, :text=>I18n.t('model.deployment.singleton')
+    end
   end
   
   def update
@@ -39,19 +43,15 @@ class DeploymentsController < ApplicationController
   end
   
   def commit
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Commit Action: refactoring by CloudEdge')
+    deploy = Deployment.find_key params[:id]
+    deploy.commit
+    render api_show :deployment, Deployment, nil, nil, deploy
   end
 
-  def dequeue
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Commit Action: refactoring by CloudEdge')
-  end
-
-  def propose
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Commit Action: refactoring by CloudEdge')
-  end
-  
-  def transistion
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Commit Action: refactoring by CloudEdge')
+  def recall
+    deploy = Deployment.find_key params[:id]
+    deploy.recall
+    render api_show :deployment, Deployment, nil, nil, deploy
   end
 
   def status

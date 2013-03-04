@@ -10,3 +10,4 @@ public/stylesheets/*.css
 .beam
 vendor/cache
 *.swp
+coverage/

@@ -42,5 +42,28 @@ class BarclampsController < ApplicationController
     redirect_to snapshot_path(:id=>barclamp.template_id)
   end
 
+  #
+  # Barclamp catalog
+  # 
+  # Provides restful API call for 
+  # List actions       /barclamp:/api_version:/catalog  GET 
+  # 
+  add_help(:catalog)
+  def catalog     
+    @bc = barclamp
+    render :json => { :name=>"unknown"} unless @bc
+
+    # TODO: find actions by introspection?
+    render :json => {
+      :name=>@bc.name, 
+      :version=>@bc.version, 
+      :api_version=>@bc.api_version,
+      :api_version_accepts=>@bc.api_version_accepts, 
+      :actions=>['node','group','jig', 'attrib'],
+      :license=>@bc.license,
+      :copyright=>@bc.copyright
+    }
+  end
+
 end
 

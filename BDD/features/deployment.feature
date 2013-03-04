@@ -36,14 +36,21 @@ Feature: Deployments
     Finally REST removes the {object:deployment} "deploy_list"
 
   Scenario: Deployment does not shows up on wrong list
-    Skip ROB FIX THIS - this is a regression!
     Given I require a {object:barclamp} "test"
-      And I require a {object:barclamp} "crowbar"
+      And I require a {object:barclamp} "logging"
       And I propose a {object:deployment} "ghost_deploy" on the {object:barclamp} "test"
-      And I propose a {object:deployment} "solid" on the {object:barclamp} "crowbar"
-    When REST gets the {object:barclamp} "crowbar" {object:deployment} list
+      And I propose a {object:deployment} "solid" on the {object:barclamp} "logging"
+    When REST gets the {object:barclamp} "logging" {object:deployment} list
     Then the page returns {integer:200}
       And there should not be a value "ghost_deploy"
       And there should be a value "solid"
     Finally REST removes the {object:deployment} "ghost_deploy"
       And REST removes the {object:deployment} "solid"
+
+  Scenario: The Deployment page renderse
+    Given I am on the "barclamp" page
+    When I click on the "default" link
+    Then I should see a heading "Crowbar default deployment"
+      And I should see a heading "crowbar role"
+      And I should see {bdd:crowbar.i18n.deployment.show.deployment}
+      And I should see {bdd:crowbar.i18n.deployment.show.attributes}

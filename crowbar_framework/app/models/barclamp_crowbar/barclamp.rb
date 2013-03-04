@@ -15,5 +15,10 @@
 
 # This class is the fall back class for barclamps that are missing Barclamp subclasses
 class BarclampCrowbar::Barclamp < Barclamp
-  
+
+  def transition(snapshot, node, state, role_type_name=nil)
+    Rails.logger.debug "Crowbar transition enter: #{name} to #{state}"
+    super.transition snapshot, node, state, role_type_name
+  end
+
 end

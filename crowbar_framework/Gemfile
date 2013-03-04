@@ -26,7 +26,6 @@ gem 'sass-rails',   '~> 3.2.3'
 gem 'simple-navigation'
 gem 'syslogger'
 gem 'kwalify'
-gem 'chef', '~>10.8'
 gem 'puma'
 gem 'amqp'
 gem 'xml-simple'
@@ -48,7 +47,7 @@ gem 'rcov',      :platforms => :ruby_18, :group => [:development, :test]
 gem 'simplecov', :platforms => :ruby_19, :group => :test, :require => false
 gem 'coveralls', :platforms => :ruby_19, :group => :test, :require => false
 
-gem "chefspec", :group => [:development, :test]
+#gem "chefspec", :group => [:development, :test]
 gem "rspec-rails", "~> 2.11.4", :group => [:development, :test]
 # These to require Ruby 1.9.3
 gem "factory_girl", "<3.0" , :group => [:development, :test]

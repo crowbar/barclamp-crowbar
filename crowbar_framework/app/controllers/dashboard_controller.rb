@@ -16,7 +16,7 @@
 class DashboardController < ApplicationController
 
   def index  
-    @sum = Node.sum(:fingerprint)
+    @sum = Node.name_hash
     @groups = Group.find_all_by_category 'ui'
     @node = Node.find_key params[:id]
     session[:node] = params[:id]

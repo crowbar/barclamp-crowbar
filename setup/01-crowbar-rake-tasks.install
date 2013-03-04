@@ -22,7 +22,7 @@ case $OS in
     ubuntu)
         dpkg -l crowbar-barclamp-crowbar &>/dev/null || \
         apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
-        gem install tilt puma bundler;;
+        gem install bundler;;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
         gem install tilt puma bundler;;
 esac
@@ -34,6 +34,13 @@ if ! grep -q '^crowbar:' /etc/passwd; then
         crowbar
 fi
 
+if ! grep -q crowbar /etc/sudoers; then
+    chmod u+w /etc/sudoers
+    echo 'crowbar ALL=(ALL:ALL) NOPASSWD: ALL' >>/etc/sudoers
+    chmod u-w /etc/sudoers
+fi
+    
+
 # FIXME: This should be part of the crowbar-barclamp-crowbar
 # package
 mkdir -p /var/run/crowbar/
@@ -41,8 +48,13 @@ chmod 0700 /var/run/crowbar
 
 # Fix up /etc/environment
 if ! grep -q '/opt/dell/bin' /etc/environment; then
-    export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/dell/bin"
+    export PATH="$PATH:/opt/dell/bin"
     sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
+fi
+
+# make sure RAILS_ENV is set to production
+if ! grep -q 'RAILS_ENV' /etc/environment; then
+    echo "export RAILS_ENV=production" >> /etc/environment
 fi
 
 # Make our /etc/profile/crowbar.sh
@@ -61,13 +73,17 @@ for d in /var/run/crowbar /opt/dell/crowbar_framework; do
     chown -R crowbar:crowbar "$d"
 done
 
+BUNDLE_INSTALL_ARGS="--path vendor/bundle"
+if [[ $OS = suse ]]; then
+    BUNDLE_INSTALL_ARGS="--local"
+fi
 export RAILS_ENV=production
 tasks=("rake assets:precompile"
     "rake railties:install:migrations"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
-bundle install
+bundle install $BUNDLE_INSTALL_ARGS
 for task in "${tasks[@]}"; do
     su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2
@@ -104,37 +120,13 @@ state_path("/var/run/crowbar/puma.state")
 EOF
 done
 
-# FIXME: We need an init script for this in the package. Ideally without using
-# bluepill
-
-if [[ $os != suse ]]; then
-    bluepill load /opt/dell/crowbar_framework/crowbar.pill
-    cat >/etc/init.d/crowbar <<EOF
-case \$1 in
-    start|'')
-        # clean up files just in case
-        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
-
-        # Mark us as readying, and get our cert.
-	if [ -f /etc/default/tftpd-hpa ] ; then
-          service tftpd-hpa stop
-          service tftpd-hpa start
-        fi
-	echo "Done";;
-    stop) bluepill crowbar-webserver stop;;
-    status) bluepill crowbar-webserver status;;
-    restart) killall -HUP puma;;
-    *) echo "Unknown action $1";;
-esac
-EOF
-    chmod 755 /etc/init.d/crowbar
+if [[ $OS != suse ]]; then
     for i in 3 5 2; do
         [[ -d /etc/rc$i.d ]] || continue
         ln -sf /etc/init.d/crowbar "/etc/rc$i.d/S99crowbar"
     done
 else
-    :
-    # Suse specific stuff here.
+    chkconfig crowbar on
 fi
 
 for d in /var/run/crowbar /opt/dell/crowbar_framework; do

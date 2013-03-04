@@ -18,16 +18,22 @@ class Node < ActiveRecord::Base
   before_destroy    :jig_delete
   
   attr_accessible :name, :description, :alias, :order, :admin, :allocated
-  attr_readonly   :fingerprint
   
   # Make sure we have names that are legal
-  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+  # old:
+  #  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
+  
+  # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't 
+  # be a top level domain ;p
+  FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/
   # for to_api_hash
-  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
-                    "admin", "allocated", "os_id", "created_at", "updated_at"]
+  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "admin",
+                    "allocated", "os_id", "created_at", "updated_at"]
 
-  # States (these are using in the AttribHasRole status)
   READY = 0
+  UNREADY = 1
+  PENDING = 2
+  BUILDING = 69
   ERROR = 666
   UNKNOWN = 999
 
@@ -75,7 +81,9 @@ class Node < ActiveRecord::Base
     end
   end
 
- 
+  def self.name_hash
+    Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
+  end
   #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines
@@ -328,9 +336,9 @@ class Node < ActiveRecord::Base
 
   # make sure some safe values are set for the node
   def default_population
-    self.fingerprint = self.name.hash
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
+    # the line belowrequires a crowbar deployment to which the status attribute is tied
     self.state ||= 'unknown' 
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')

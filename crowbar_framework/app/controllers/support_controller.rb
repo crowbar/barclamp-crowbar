@@ -80,7 +80,6 @@ class SupportController < ApplicationController
     end
     respond_to do |format|
       format.html # index.html.haml
-      format.xml  { render :xml => @exports }
       format.json { render :json => @exports }
     end
   end
@@ -179,9 +178,8 @@ class SupportController < ApplicationController
       end
       respond_to do |format|
         format.html # index.html.haml
-        format.xml  { render :xml => @imports }
         format.json { render :json => @imports }
-      end   
+      end
     end 
   end
   

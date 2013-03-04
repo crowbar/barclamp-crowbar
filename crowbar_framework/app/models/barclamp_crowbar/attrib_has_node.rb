@@ -21,38 +21,54 @@ class BarclampCrowbar::AttribHasNode < Attrib
 
   HASNODE_NAME = 'status'
   
-  STATES = { 
+  STATUS = { 
               Node::ERROR => 'error', 
+              Node::UNKNOWN => 'unknown',
               Node::READY => 'ready', 
-              Node::UNKNOWN => 'unknown'
+              Node::UNREADY => 'unready',
+              Node::PENDING => 'pending',
+              Node::BUILDING => 'building'
            }
-  STATES.default = 'unknown'
   
   def state
     (self.id_actual<0 ? Node::UNKNOWN : self.id_actual)
   end
   
   def state=(value)
-    self.actual = value
     self.jig_run_id = 0    
-    s = value.split[0].downcase rescue 'error'
-    # this is not the right way to do this, optimize
-    self.id_actual = case s
-    when 'ready'
-      Node::READY
-    when 'error'
-      Node::ERROR
+    if value.is_a? Integer
+      self.id_actual = value
+      self.actual = STATUS[value]
     else
-      Node::UNKNOWN
+      self.actual = value
+      s = value.split[0].downcase rescue 'error'
+      self.id_actual = case s
+      when "ready"
+        Node::READY     #green
+      when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
+        Node::PENDING   #flashing yellow
+      when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
+        Node::UNKNOWN   #grey
+      when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
+        Node::ERROR    #flashing red
+      when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
+        Node::BUILDING  #yellow
+      else
+        Node::UNREADY   #spinner
+      end
     end
   end
   
   def ready?
     self.state == Node::READY
   end
+
+  def status
+    STATUS[state] || STATUS[Node::UNKNOWN]
+  end
   
   def state_text
-    STATES[self.state] rescue 'error'
+    self.value_actual
   end
     
   # used by the API when values are set outside of Jig runs
@@ -63,27 +79,6 @@ class BarclampCrowbar::AttribHasNode < Attrib
   def actual
     self.value_actual
   end
-
-  
-    # Makes the open ended state information into a subset of items for the UI
-  def status
-    return 'failed'
-    # if you add new states then you MUST expand the PIE chart on the nodes index page
-    case self.request
-    when "ready"
-      "ready"     #green
-    when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
-      "pending"   #flashing yellow
-    when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
-      "unknown"   #grey
-    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
-      "failed"    #flashing red
-    when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
-      "building"  #yellow
-    else
-      "unready"   #spinner
-    end
-  end  
   
   private
   

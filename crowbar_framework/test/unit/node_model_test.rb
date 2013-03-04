@@ -36,7 +36,7 @@ class NodeModelTest < ActiveSupport::TestCase
   test "state unknown" do
     n = Node.create! :name=>"unknown.node.com"
     assert_not_nil n, "created node"
-    assert_equal 'unknown', n.state
+    assert_equal 'empty', n.state
     assert_equal Node::UNKNOWN, n.state_attrib.state
   end
   
@@ -57,16 +57,6 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal n.groups.size, 1
     assert_equal n.groups[0].id, g.id
   end
-
-  test "fingerprint" do
-    n = Node.create :name=>"fingerprint.example.com"
-    assert_not_nil n.fingerprint
-    assert_not_equal n.fingerprint, 0
-    fp = n.fingerprint
-    n.name = "hash.example.com"
-    n.save!
-    assert_not_equal n.fingerprint, fp
-  end
   
   test "Naming Conventions" do
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"fqdnrequired") }
@@ -77,6 +67,7 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>" nospaces.bar.it") }
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"no spaces.dell.com") }
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"nospacesatall.end.edu ") }
+    assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"musthaveatleastthreedomains.com") }
   end
 
   test "Get Attribute for existing attribute gets value" do

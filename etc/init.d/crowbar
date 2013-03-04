@@ -1,0 +1,60 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          crowbar-webserver
+# Required-Start:    $syslog $network $named
+# Should-Start:      xinetd chef-server
+# Required-Stop:     $syslog $network $named
+# Should-Stop:       xinetd chef-server
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: Start the Crowbar Web application
+# Description:       Manages the Crowbar Web application
+#       via bluepill
+### END INIT INFO
+
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+for f in /var/lib/gems/*/bin; do
+    [[ -x $f/bluepill ]] || continue
+    PATH="$PATH:$f"
+done
+BLUEPILL_CONFIG="/opt/dell/crowbar_framework/crowbar.pill"
+GEMFILE_LOCK=/opt/dell/crowbar_framework/Gemfile.lock
+if [[ -f /etc/redhat-release || -f /etc/centos-release ]]; then
+    OS=redhat
+elif [[ -d /etc/apt ]]; then
+    OS=ubuntu
+elif [[ -f /etc/SuSE-release ]]; then
+    OS=suse
+fi
+
+mkdir -p /var/run/crowbar && chown crowbar:crowbar /var/run/crowbar
+
+case "$1" in
+    start)
+        echo -n "Starting Crowbar webserver"
+        if [[ $OS = suse ]]; then
+            # refresh the Gemfile.lock content before starting the server
+            # (outdated file can cause problems after any of the required
+            # rubygems were updated)
+            rm -f $GEMFILE_LOCK
+            (cd /opt/dell/crowbar_framework; bundle install --local --quiet)
+        fi
+        bluepill load $BLUEPILL_CONFIG
+        ;;
+    stop)
+        echo -n "Stoppint Crowbar webserver"
+        bluepill crowbar-webserver stop
+        bluepill quit
+        ;;
+    status)
+        bluepill crowbar-webserver status
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

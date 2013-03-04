@@ -257,7 +257,7 @@ config(Config, Key) ->
 % returns value for key from Config (returns default if missing)
 config([], Key, Default)     -> config(Key, Default);  
 config(Config, Key, Default) ->
-  % TODO - this should use the get first, but we're transistioning so NOT YET
+  % TODO - this should use the get first, but we're transitioning so NOT YET
   case lists:keyfind(Key,1,Config) of
     {Key, undefined} -> config(Key, Default);
     {Key, Value} -> 

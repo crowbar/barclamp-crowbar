@@ -127,7 +127,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_not_nil config
     assert_equal 1, test.deployments(true).count
     assert_equal config.id, test.deployments.first.id
-    assert_equal I18n.t('default'), config.name
+    assert_equal I18n.t('default'), config.name.downcase
     assert_equal test.id, config.barclamp_id
   end
   

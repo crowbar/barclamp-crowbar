@@ -26,8 +26,10 @@ class Node < ActiveRecord::Base
   API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
                     "admin", "allocated", "os_id", "created_at", "updated_at"]
 
-  # States (these are using in the AttribHasRole status)
   READY = 0
+  UNREADY = 1
+  PENDING = 2
+  BUILDING = 69
   ERROR = 666
   UNKNOWN = 999
 

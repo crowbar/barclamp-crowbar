@@ -36,7 +36,7 @@ class NodeModelTest < ActiveSupport::TestCase
   test "state unknown" do
     n = Node.create! :name=>"unknown.node.com"
     assert_not_nil n, "created node"
-    assert_equal 'unknown', n.state
+    assert_equal 'empty', n.state
     assert_equal Node::UNKNOWN, n.state_attrib.state
   end
   

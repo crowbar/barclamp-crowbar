@@ -127,7 +127,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_not_nil config
     assert_equal 1, test.deployments(true).count
     assert_equal config.id, test.deployments.first.id
-    assert_equal I18n.t('default'), config.name
+    assert_equal Barclamp::DEFAULT_DEPLOYMENT_NAME, config.name
     assert_equal test.id, config.barclamp_id
   end
   
@@ -183,5 +183,83 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_equal test.template.roles.count, config.proposed.roles.count
     assert_equal test.template.roles.second.role_type_id, config.proposed.roles.second.role_type_id
   end
+  
+  test "commit proposal clones" do
+    test = Barclamp.import 'test'
+    dep = test.create_deployment "foo"
+    prop = dep.proposal
+    assert_not_nil dep.proposal
+    assert_nil dep.committed_snapshot_id
+    assert !dep.committed?
+    commit = dep.commit
+    assert_equal commit.id, dep.committed_snapshot_id, "pointers moved"
+    assert_not_equal prop.id, dep.proposed_snapshot_id, "new prop different"
+    assert dep.committed?
+  end
+  
+  test "recall commit deletes" do
+    test = Barclamp.import 'test'
+    dep = test.create_deployment "foo"
+    prop_old = dep.proposal
+    prop_new = dep.commit
+    assert_not_equal prop_old.id, dep.proposed.id
+    dep.recall
+    assert_nil dep.committed_snapshot_id, "pointer is null"
+    assert_equal [], Snapshot.where(:id=>prop_new.id), "it's deleted"
+  end
+  
+  test "deallocate has no nodes" do
+    test = Barclamp.import 'test'
+    node = Node.create :name=>"unit.test.com"
+    dep = test.create_deployment "foo"
+    # add node
+    dep.proposed.roles.first.add_node node
+    # get to an active snapshot
+    dep.commit
+    active = dep.apply_committed
+    assert_nil dep.committed_snapshot_id, "active = none committed"
+    # make sure we have a node
+    assert active.nodes.count > 0 
+    # node deallocate
+    commit = dep.commit_deallocate_applied
+    assert_equal 0, commit.nodes.count, "deallocate means no nodes"
+  end
+  
+  test "commit_to_apply removes commit" do
+    test = Barclamp.import 'test'
+    dep = test.create_deployment "foo"
+    prop_old = dep.proposal
+    commit_new = dep.commit
+    prop_new = dep.proposal
+    assert_nil dep.active
+    assert_not_equal prop_old.id, dep.proposed.id
+    act = dep.apply_committed
+    assert_nil dep.committed_snapshot_id
+    assert_equal commit_new.id, dep.active_snapshot_id
+    assert_not_equal dep.proposed.id, act.id
+    # test with TWO cycles!
+    prop_new = dep.commit
+    act_old = dep.active
+    dep.apply_committed
+    assert_equal prop_new.id, dep.active.id
+    assert_equal [], Snapshot.where(:id=>act_old.id), "remove the next old one"
+  end
+  
+  test "snapshot status tests" do
+    test = Barclamp.import 'test'
+    dep = test.create_deployment "foo"
+    assert dep.proposed.proposed? 
+    assert !dep.proposed.active? 
+    assert !dep.proposed.committed? 
+    dep.commit
+    assert dep.committed.committed?
+    assert !dep.committed.active?
+    assert !dep.committed.proposed?
+    dep.apply_committed
+    assert dep.active.active?
+    assert !dep.active.proposed?
+    assert !dep.active.committed?
+  end
+  
 end
 

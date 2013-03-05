@@ -101,9 +101,57 @@ en:
     details_by: updated by
     
   # General Proposal components
-  proposal:
-    items:
-      default: proposal
+  deployment:
+    show:
+      title: "%{barclamp} %{deployment} deployment"
+      deployment: Nodes
+      attributes: Attributes
+      role: "%{role} role"
+      key: Key
+
+      apply_changes: Apply changes now?
+
+      create_proposal_success: Successfully created the proposal
+      commit_proposal: Apply
+      commit_proposal_success: Successfully applied the proposal
+      commit_proposal_queued: Successfully queued the proposal until the following become ready
+      save_proposal: Save
+      save_proposal_success: Successfully saved changes to the proposal
+      dequeue_proposal: Dequeue
+      dequeue_proposal_success: Successfully dequeued the proposal
+      dequeue_proposal_failure: Failed to dequeue the proposal
+      destroy_changes: Deactivate proposal now?
+      destroy_active: Deactivate
+      destroy_active_success: Successfully deactivated the proposal
+      destroy_active_failure: Failed to deactivate the proposal
+      delete_changes: Delete proposal now?
+      delete_proposal: Delete
+      delete_proposal_success: Successfully deleted the proposal
+      delete_proposal_failure: Failed to delete the proposal
+      confirm_delete_proposal: Are you sure you wish to delete this proposal?
+      available_nodes: Available Nodes
+      ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
+
+    node_selector:
+      title: Node Deployment
+      hint: Drag nodes for deployment from Available Nodes into the selected Role
+      msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
+      remove: Remove Node
+      add: Drop Node here to add to Role
+      filter: Filter available node list by entering the first letters of the node name
+      no_dup: "No action taken: An snapshot of Node [0] already exists in Role [1]"
+      added: Added Node [0] to Role [1]
+      removed: Removed Node [0] from Role [1]
+      node_deleted: "WARNING: Deleted"
+      node_deleted_title: "You must remove this node in order to save the proposal."
+      error: "Cannot add Node [0] to Role [1]. Error [2]"
+      constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
+      constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
+      constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
+    edit_attributes_raw:
+      title: Proposal Attributes
+    edit_deployment_raw:
+      title: Deployment
     actions:
       apply: Apply
       save: Save
@@ -159,7 +207,6 @@ en:
       invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
       too_long_dns: Alias not saved because it exceeds FQDN 63 character length
       duplicate_alias: Alias not saved because a node already has the same alias
-    proposal: Proposal
     service:
       empty_parameters: Must specify calling parameters
       missing_id: Missing id.
@@ -404,62 +451,7 @@ en:
       confirm_dequeue: Are you sure you wish to dequeue this proposal?
       confirm_recall: Are you sure you wish to deactivate this proposal?
       confirm_delete: Are you sure you wish to delete this proposal?
-      no_action: No Action for 
-    proposal_show:
-      title: Edit Proposal
-      apply_changes: Apply changes now?
-      create_proposal_success: Successfully created the proposal
-      commit_proposal: Apply
-      commit_proposal_success: Successfully applied the proposal
-      commit_proposal_queued: Successfully queued the proposal until the following become ready
-      save_proposal: Save
-      save_proposal_success: Successfully saved changes to the proposal
-      dequeue_proposal: Dequeue
-      dequeue_proposal_success: Successfully dequeued the proposal
-      dequeue_proposal_failure: Failed to dequeue the proposal
-      destroy_changes: Deactivate proposal now?
-      destroy_active: Deactivate
-      destroy_active_success: Successfully deactivated the proposal
-      destroy_active_failure: Failed to deactivate the proposal
-      delete_changes: Delete proposal now?
-      delete_proposal: Delete
-      delete_proposal_success: Successfully deleted the proposal
-      delete_proposal_failure: Failed to delete the proposal
-      confirm_delete_proposal: Are you sure you wish to delete this proposal?
-      available_nodes: Available Nodes
-      ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
-    node_selector:
-      title: Node Deployment
-      hint: Drag nodes for deployment from Available Nodes into the selected Role
-      msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
-      remove: Remove Node
-      add: Drop Node here to add to Role
-      filter: Filter available node list by entering the first letters of the node name
-      no_dup: "No action taken: An snapshot of Node [0] already exists in Role [1]"
-      added: Added Node [0] to Role [1]
-      removed: Removed Node [0] from Role [1]
-      node_deleted: "WARNING: Deleted"
-      node_deleted_title: "You must remove this node in order to save the proposal."
-      error: "Cannot add Node [0] to Role [1]. Error [2]"
-      constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
-      constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
-      constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
-    edit_attributes_raw:
-      title: Proposal Attributes
-    edit_deployment_raw:
-      title: Deployment
-    show:
-      edit: Edit Proposal
-      deployment: Nodes Deployment
-      attributes: Proposal Attributes
-      role: Role
-      key: Key
-    show_attributes_raw:
-      key: Key
-    show_deployment_raw:
-      role: Role
-      nodes: Nodes
-      none: No Nodes Deployed
+      no_action: "No Action for" 
 
   # node.raid_set
   raid:

@@ -5,7 +5,7 @@ As a final step, it is important to verify that your deployment has succeeded. C
 You should consult the getting started guide and barclamps specific to your system for details on verification of deployment.
 ##Managing Barclamps##
 This section briefly describes barclamps, and how to import barclamps. 
->![notes.png](graphics/notes.png "notes.png") For information about creating barclamps, please visit [https://github.com/dellcloudedge/crowbar/wiki/Barclamp:-create-&-install-steps](https://github.com/crowbar/crowbar/wiki/Barclamp%3A-create-%26-install-steps "Creating barclamps") 
+>![notes.png](graphics/notes.png "notes.png") For information about creating barclamps, please visit [https://github.com/crowbar/crowbar/wiki/Barclamp:-create-&-install-steps](https://github.com/crowbar/crowbar/wiki/Barclamp%3A-create-%26-install-steps "Creating barclamps") 
 ###Introduction###
 A barclamp is a deployment module that is imported from its own code repository into the Crowbar framework. A barclamp cannot operate without Crowbar, but you do not have to create a unique build of Crowbar in order to create a barclamp.
 >![notes.png](graphics/notes.png "notes.png") You must install Crowbar before importing barclamps.

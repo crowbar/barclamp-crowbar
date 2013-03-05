@@ -46,3 +46,11 @@ Feature: Deployments
       And there should be a value "solid"
     Finally REST removes the {object:deployment} "ghost_deploy"
       And REST removes the {object:deployment} "solid"
+
+  Scenario: The Deployment page renderse
+    Given I am on the "barclamp" page
+    When I click on the "default" link
+    Then I should see a heading "Crowbar default deployment"
+      And I should see a heading "crowbar role"
+      And I should see {bdd:crowbar.i18n.deployment.show.deployment}
+      And I should see {bdd:crowbar.i18n.deployment.show.attributes}

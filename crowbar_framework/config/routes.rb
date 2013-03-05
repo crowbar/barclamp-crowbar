@@ -67,6 +67,7 @@ Crowbar::Application.routes.draw do
   # Barclamp UI routes (overlays that can be used generically by barclamps to create custom views)
   # The pattern is /barclamp/[your barclamp]/[method]
   scope 'barclamp' do
+    get "/:barclamp/deployment/:id" => "deployment#show", :as=>"deployment"
     get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
     get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamp"
   end
@@ -133,10 +134,14 @@ Crowbar::Application.routes.draw do
             resources :barclamps do
               resources :deployments
             end
+            resources :deployments
+            resources :snapshots
             resources :jigs 
             #resources :users 
             resources :attrib_types
+            resources :attribs
             resources :role_types
+            resources :roles
             resources :groups do
               member do
                 get 'nodes'

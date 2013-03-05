@@ -1,0 +1,31 @@
+%p{:style => 'float:right'}
+  = link_to t('cancel'), barclamp_path(:deployment_id=>@deployment.id), :class => 'button'
+
+.led.unknown{:id => @deployment.id, :title=>t('deployment.status.unknown'), :style=>'float:left'} 
+%h1= t '.title', :barclamp=>@barclamp.display, :deployment=>@deployment.name
+
+= form_for :deployment, :url => deployment_path(:id => @deployment.id, :controller => 'deployment', :barclamp=>@barclamp.name), :html => { :method => :put, :'data-type' => 'html', :id => 'update_deployment_form', :class => "box" } do |f|
+
+  - @deployment.proposal.roles.each do |role|
+    %h2= t '.role', :role=>role.name
+    %p= role.description
+    %table.data.box{:id=> role.id }
+      %tr
+        %th= t '.attributes'
+        %th= t '.deployment'
+      %tr
+        %td
+          - if role.role_attribs.count == 0 
+            %p= t 'no_items'
+          - else
+            - role.role_attribs.each do |a|
+              %p= "#{a.name} = #{a.value}"          
+        %td
+          - if role.nodes.count == 0 
+            %p= t 'no_items'
+          - else
+            - role.nodes.each do |n|
+              %p= n.name
+
+%p{:style=>'float:right'}
+  = render :partial => 'buttons', :locals => { :deployment=>@deployment }

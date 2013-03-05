@@ -1,0 +1,16 @@
+case \$1 in
+    start|'')
+        # clean up files just in case
+        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
+
+        # Mark us as readying, and get our cert.
+	if [ -f /etc/default/tftpd-hpa ] ; then
+          service tftpd-hpa stop
+          service tftpd-hpa start
+        fi
+	echo "Done";;
+    stop) bluepill crowbar-webserver stop;;
+    status) bluepill crowbar-webserver status;;
+    restart) killall -HUP puma;;
+    *) echo "Unknown action $1";;
+esac

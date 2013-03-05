@@ -34,6 +34,13 @@ if ! grep -q '^crowbar:' /etc/passwd; then
         crowbar
 fi
 
+if ! grep -q crowbar /etc/sudoers; then
+    chmod u+w /etc/sudoers
+    echo 'crowbar ALL=(ALL:ALL) NOPASSWD: ALL' >>/etc/sudoers
+    chmod u-w /etc/sudoers
+fi
+    
+
 # FIXME: This should be part of the crowbar-barclamp-crowbar
 # package
 mkdir -p /var/run/crowbar/

@@ -1,16 +1,38 @@
-case \$1 in
-    start|'')
-        # clean up files just in case
-        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          crowbar-webserver
+# Required-Start:    $syslog $network $named
+# Should-Start:      xinetd chef-server
+# Required-Stop:     $syslog $network $named
+# Should-Stop:       xinetd chef-server
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: Start the Crowbar Web application
+# Description:       Manages the Crowbar Web application
+#       via bluepill
+### END INIT INFO
 
-        # Mark us as readying, and get our cert.
-	if [ -f /etc/default/tftpd-hpa ] ; then
-          service tftpd-hpa stop
-          service tftpd-hpa start
-        fi
-	echo "Done";;
-    stop) bluepill crowbar-webserver stop;;
-    status) bluepill crowbar-webserver status;;
-    restart) killall -HUP puma;;
-    *) echo "Unknown action $1";;
+BLUEPILL="/usr/bin/bluepill"
+BLUEPILL_CONFIG="/opt/dell/crowbar_framework/crowbar.pill"
+
+case "$1" in
+    start)
+        echo -n "Starting Crowbar webserver"
+        $BLUEPILL load $BLUEPILL_CONFIG
+        ;;
+    stop)
+        echo -n "Stoppint Crowbar webserver"
+        $BLUEPILL crowbar-webserver stop
+        $BLUEPILL quit
+        ;;
+    status)
+        $BLUEPILL crowbar-webserver status
+        ;;
+    restart)
+        $BLUEPILL crowbar-webserver restart
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
 esac

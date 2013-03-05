@@ -104,37 +104,13 @@ state_path("/var/run/crowbar/puma.state")
 EOF
 done
 
-# FIXME: We need an init script for this in the package. Ideally without using
-# bluepill
-
-if [[ $os != suse ]]; then
-    bluepill load /opt/dell/crowbar_framework/crowbar.pill
-    cat >/etc/init.d/crowbar <<EOF
-case \$1 in
-    start|'')
-        # clean up files just in case
-        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
-
-        # Mark us as readying, and get our cert.
-	if [ -f /etc/default/tftpd-hpa ] ; then
-          service tftpd-hpa stop
-          service tftpd-hpa start
-        fi
-	echo "Done";;
-    stop) bluepill crowbar-webserver stop;;
-    status) bluepill crowbar-webserver status;;
-    restart) killall -HUP puma;;
-    *) echo "Unknown action $1";;
-esac
-EOF
-    chmod 755 /etc/init.d/crowbar
+if [[ $OS != suse ]]; then
     for i in 3 5 2; do
         [[ -d /etc/rc$i.d ]] || continue
         ln -sf /etc/init.d/crowbar "/etc/rc$i.d/S99crowbar"
     done
 else
-    :
-    # Suse specific stuff here.
+    chkconfig crowbar on
 fi
 
 for d in /var/run/crowbar /opt/dell/crowbar_framework; do

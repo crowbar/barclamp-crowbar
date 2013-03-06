@@ -109,6 +109,7 @@ class UsersController < ApplicationController
     respond_with(@user) do |format|
       format.html do
         if !params[:cancel].nil?
+          @user = nil
           setup_users
           return render :action => :index
         end
@@ -316,7 +317,9 @@ class UsersController < ApplicationController
  def fetch_user
     ret = nil
     begin
-      @user = User.find_by_id_or_username((params[:user].nil? or params[:user][:id].nil?) ? params[:id] : params[:user][:id])
+      @user = User.find_by_id_or_username((params[:user].nil? or params[:user][:id].nil?) ? \
+      ((params[:user_id].nil?) ? params[:id] : params[:user_id]) : \
+      params[:user][:id])
       ret = [200, ""]
     rescue ActiveRecord::RecordNotFound => ex
       puts "ActiveRecord::RecordNotFound #{ex}"

@@ -143,11 +143,11 @@ Crowbar::Application.routes.draw do
           end
   
           resources :users do
-                post ":id/admin", :controller => "users", :action => "make_admin"
-                delete ":id/admin", :controller => "users", :action => "remove_admin"
-                post ":id/lock", :controller => "users", :action => "lock"
-                delete ":id/lock", :controller => "users", :action => "unlock"
-                put ":id/reset_password", :controller => "users", :action => "reset_password"
+                post "admin", :controller => "users", :action => "make_admin"
+                delete "admin", :controller => "users", :action => "remove_admin"
+                post "lock", :controller => "users", :action => "lock"
+                delete "lock", :controller => "users", :action => "unlock"
+                put "reset_password", :controller => "users", :action => "reset_password"
            end
 	      end # version
       end # api

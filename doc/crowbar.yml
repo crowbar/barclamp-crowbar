@@ -6,23 +6,41 @@ date: "February 1, 2013"
 
 framework/gettingstarted:
 
-  crowbar/gettingstarted/configuring_network:
+  crowbar/gettingstarted/configuring_network.md:
     order: 100
   
-  crowbar/gettingstarted/installing_admin_node:
+  crowbar/gettingstarted/installing_admin_node.md:
+    order: 200
+      
+  crowbar/gettingstarted/installing_crowbar.md:
+    order: 300
+  
+  crowbar/gettingstarted/discovering_nodes.md:
+    order: 400
+      
+  crowbar/gettingstarted/installing_openstack.md:
     order: 500
       
-  crowbar/gettingstarted/installing_crowbar:
-    order: 1000
+  crowbar/gettingstarted/installing_hadoop.md:
+    order: 600
   
-  crowbar/gettingstarted/discovering_nodes:
-    order: 1500
-      
-  crowbar/gettingstarted/installing_openstack:
-    order: 2000
-      
-  crowbar/gettingstarted/installing_hadoop:
-    order: 2500
-  
-  crowbar/gettingstarted/additional_info:
-    order: 3000
+  crowbar/gettingstarted/additional_info.md:
+    order: 700
+framework/userguide:
+
+	crowbar/userguide/book.md:
+	  order: 800
+	crowbar/userguide/introduction.md:
+	  order: 900
+	crowbar/userguide/crowbar-framework.ms\d:
+	  order: 1000
+	crowbar/userguide/crowbar-operation.md:
+	  order: 1100
+	crowbar/userguide/using-crowbar.md:
+	  order: 1200
+	crowbar/userguide/networking.md:
+	  order: 1300
+	crowbar/userguide/core-barclamps.md:
+	  order: 1400
+	crowbar/userguide/supplemental-material.md:
+	  order: 1500

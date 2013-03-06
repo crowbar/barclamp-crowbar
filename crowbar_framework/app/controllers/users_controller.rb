@@ -68,7 +68,7 @@ class UsersController < ApplicationController
  
  add_help(:reset_password,[:id, :password, :password_confirmation],[:put])
  def reset_password
-  ret = fetch_user
+   ret = fetch_user
   respond_with(@user)  do |format|
     Rails.logger.debug("Reset password for user #{@user}")
     format.html do
@@ -92,7 +92,7 @@ class UsersController < ApplicationController
       begin
          @user.admin_reset_password = true
          reset_success = @user.reset_password!(password, password_confirmation)
-         raise ActiveRecord::RecordInvalid.new( @user) unless reset_success
+         raise ActiveRecord::RecordInvalid.new(@user) unless reset_success
       rescue ActiveRecord::RecordInvalid, ArgumentError => ex
           Rails.logger.error(ex.message)
           ret = [500, ex.message]
@@ -313,7 +313,7 @@ class UsersController < ApplicationController
     end
   end
   
-  def fetch_user
+ def fetch_user
     ret = nil
     begin
       @user = User.find_by_id_or_username((params[:user].nil? or params[:user][:id].nil?) ? params[:id] : params[:user][:id])

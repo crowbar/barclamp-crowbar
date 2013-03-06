@@ -45,7 +45,7 @@
      - @users.each do |user|
       %tr.node{ :class => cycle(:odd, :even) }
        -if is_edit_mode?
-        %td{:nowrap=>"nowrap"}= link_to user.username, edit_user_path(user)
+        %td{:nowrap=>"nowrap"}= link_to user.username, edit_path(user)
        -else
         %td{:nowrap=>"nowrap"}= user.username
        %td= user.email

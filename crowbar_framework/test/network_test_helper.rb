@@ -21,7 +21,6 @@ class NetworkTestHelper
     network = BarclampNetwork::Network.new
     network.name = name
     network.dhcp_enabled = true
-    network.use_vlan = false
     network.subnet = BarclampNetwork::IpAddress.create!( :cidr => "192.168.122.11/24" )
     network.conduit = create_or_get_conduit(deployment, "intf0")
     network.router = create_a_router()
@@ -77,15 +76,16 @@ class NetworkTestHelper
 
     rule = BarclampNetwork::ConduitRule.new()
     rule.conduit_filters << create_a_conduit_filter()
-    rule.conduit_actions << create_a_conduit_action()
+    rule.conduit_actions << create_a_config_action()
     rule.interface_selectors << ifs
     rule
   end
 
 
-  # Create a conduit action
-  def self.create_a_conduit_action
+  # Create a config action
+  def self.create_a_config_action
     create_bond = BarclampNetwork::CreateBond.new()
+    create_bond.order = 1
     create_bond.team_mode = 6
     create_bond
   end

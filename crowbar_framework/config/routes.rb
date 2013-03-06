@@ -114,6 +114,7 @@ Crowbar::Application.routes.draw do
       constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
 
         # framework resources pattern (not barclamps specific)
+         scope 'api' do
           scope ':version' do
             scope 'status' do
               get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
@@ -152,7 +153,7 @@ Crowbar::Application.routes.draw do
                 put ":id/reset_password", :controller => "users", :action => "reset_password"
             end
           end # version
-        # end # api
+        end # api
         
         # Barclamp resource v2 API Pattern
         scope ':barclamp' do

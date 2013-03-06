@@ -85,6 +85,8 @@ class NodesController < ApplicationController
     n = Node.create params
     # Evil, dirty hack to create a Chef version of the node as well.
     system("knife node create #{params[:name]} --defaults -d")
+    # All nodes need to have the deployer-client present.
+    system("knife node run_list add #{params[:name]} role[deployer-client]")
     render api_show :node, Node, n.id.to_s, nil, n
   end
   

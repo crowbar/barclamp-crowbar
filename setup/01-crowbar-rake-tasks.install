@@ -74,7 +74,7 @@ tasks=("rake assets:precompile"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
-bundle install
+bundle install --path vendor/bundle
 for task in "${tasks[@]}"; do
     su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2

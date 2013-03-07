@@ -22,7 +22,7 @@ case $OS in
     ubuntu)
         dpkg -l crowbar-barclamp-crowbar &>/dev/null || \
         apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
-        gem install tilt puma bundler;;
+        gem install bundler;;
     redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
         gem install tilt puma bundler;;
 esac
@@ -48,7 +48,7 @@ chmod 0700 /var/run/crowbar
 
 # Fix up /etc/environment
 if ! grep -q '/opt/dell/bin' /etc/environment; then
-    export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/dell/bin"
+    export PATH="$PATH:/opt/dell/bin"
     sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
 fi
 
@@ -74,7 +74,7 @@ tasks=("rake assets:precompile"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
-bundle install
+bundle install --path vendor/bundle
 for task in "${tasks[@]}"; do
     su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2

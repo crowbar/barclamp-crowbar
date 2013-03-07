@@ -48,7 +48,7 @@ chmod 0700 /var/run/crowbar
 
 # Fix up /etc/environment
 if ! grep -q '/opt/dell/bin' /etc/environment; then
-    export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/dell/bin"
+    export PATH="$PATH:/opt/dell/bin"
     sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
 fi
 

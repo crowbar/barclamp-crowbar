@@ -82,7 +82,7 @@ add_node({Atom, Name, Description, Order, Group}) ->
   Path = apply(node, g, [path]),
   Result = json:parse(bdd_restrat:create([], Path, JSON)),
   Key = json:keyfind(Result, id),
-  groups:step([], [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),
+  group_cg:step([], [], {step_when, 0, ["REST adds the node",Name,"to",Group]}),
   bdd_utils:config_set(Atom, Key),
   storename(node, Name),
   bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, Key, Name, Group]).

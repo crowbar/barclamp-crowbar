@@ -72,12 +72,21 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
+    n = Node.find params
+    unless n.nil?
+      system("knife node delete #{n[:name]}")
+      system("knife client delete #{n[:name]}")
+    end
     render api_delete Node
   end
   
   # RESTfule POST of the node resource
   def create
     n = Node.create params
+    # Evil, dirty hack to create a Chef version of the node as well.
+    system("knife node create #{params[:name]} --defaults -d")
+    # All nodes need to have the deployer-client present.
+    system("knife node run_list add #{params[:name]} role[deployer-client]")
     render api_show :node, Node, n.id.to_s, nil, n
   end
   

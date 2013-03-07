@@ -107,7 +107,7 @@ class Deployment < ActiveRecord::Base
     raise "cannot deallocate active unless there is no other committed work" if committed?
     Deployment.transaction do
       old_a = self.active
-      qnew_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
+      new_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
       self.committed_snapshot_id = new_c.id
       self.save
     end

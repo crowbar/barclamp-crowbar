@@ -104,8 +104,8 @@ class Deployment < ActiveRecord::Base
   # this can be used to effectively halt a deployment as a way of deleting it
   def commit_deallocate_active
     # commit_deallocated_active
-`    raise "cannot deallocate active unless there is no other committed work" if committed?
-`    Deployment.transaction do
+    raise "cannot deallocate active unless there is no other committed work" if committed?
+    Deployment.transaction do
       old_a = self.active
       qnew_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
       self.committed_snapshot_id = new_c.id

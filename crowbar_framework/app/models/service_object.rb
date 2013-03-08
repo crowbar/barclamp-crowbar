@@ -84,7 +84,7 @@ class ServiceObject
 # API Functions
 #
   def transition(prop_name, node_name, state)
-    barclamp.transistion prop_name, node_name, state
+    barclamp.transition prop_name, node_name, state
   end
 
   #

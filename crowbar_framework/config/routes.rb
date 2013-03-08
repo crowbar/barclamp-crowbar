@@ -115,15 +115,15 @@ Crowbar::Application.routes.draw do
       # framework resources pattern (not barclamps specific)
       scope 'api' do
        scope ':version' do
-  	     scope 'status' do
-  	       get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
-  	       get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
-  	     end
-
+          scope 'status' do
+            get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
+            get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
+          end
+          
           resources :nodes do 
             resources :attribs
             resources :groups
-            match 'transistion'   # these should be limited to put, but being more lax for now
+            match 'transition'   # these should be limited to put, but being more lax for now
             match 'allocate'   # these should be limited to put, but being more lax for now
           end
           resources :barclamps do

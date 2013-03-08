@@ -133,23 +133,26 @@ class NodesController < ApplicationController
     end
   end
 
-  def transistion
-    if request.put? or request.get?
-      key = ( params[:id] || params[:node_id])
-      n = Node.find_key key
-      if n
-        sa = n.state_attrib 
-        sa.state = params[:value]
-        sa.save
-        redirect_to nodes_path :version=>params[:version], :id=>n.id, :node_id=>key
-      else
-        render :text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found  
-      end
-    else
-      render api_not_supported 'post|delete', 'node/:id/transistion'
+  def transition
+    unless request.put?
+      render api_not_supported 'post|delete|get', 'node/:id/transition'
+      return
     end
+    key = params[:id] || params[:node_id]
+    n = Node.find_key(key) || nil
+    unless n
+      render(:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found)
+    end
+    sa = n.state_attrib
+    old_state = sa.state
+    new_state = params[:value] || params[:state]
+    # rest_of_transition(n,old_state,state)
+    sa.state = new_state # may need to change
+    sa.save
+    # Just show the node for now.  This will need to evolve.
+    render api_show :node, Node, n.id.to_s, nil, n
   end
-  
+
   def allocate
     render api_not_supported 'put', 'node/allocate'
   end

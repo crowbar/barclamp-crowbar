@@ -18,7 +18,7 @@ class BarclampCrowbar::Barclamp < Barclamp
 
   def transition(snapshot, node, state, role_type_name=nil)
     Rails.logger.debug "Crowbar transition enter: #{name} to #{state}"
-    super.transistion snapshot, node, state, role_type_name
+    super.transition snapshot, node, state, role_type_name
   end
 
 end

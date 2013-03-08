@@ -98,8 +98,8 @@ Crowbar::Application.routes.draw do
   # REVIEW NEEDED!  should this be under the devise_scope??
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
-  delete 'unlock_user/:id', :controller => 'users', :action=>'unlock_user', :constraints => { :id => /.*/ }, :as => :unlock_user
-  post 'lock_user/:id', :controller => 'users', :action=>'lock_user', :constraints => { :id => /.*/ }, :as => :lock_user
+  delete 'unlock/:id', :controller => 'users', :action=>'unlock', :constraints => { :id => /.*/ }, :as => :unlock
+  post 'lock/:id', :controller => 'users', :action=>'lock', :constraints => { :id => /.*/ }, :as => :lock
   match "manage_users", :controller => 'users', :action => 'index'
   match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
                                
@@ -107,8 +107,6 @@ Crowbar::Application.routes.draw do
   
   get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
   resources :users, :except => :new 
-     
-  devise_scope :user do
     
     # API routes (must be json and must prefix v2)()
     scope :defaults => {:format=> 'json'} do
@@ -116,14 +114,11 @@ Crowbar::Application.routes.draw do
       constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
 
         # framework resources pattern (not barclamps specific)
-        scope 'api' do
-          
-          scope 'status' do
-            get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
-            get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
-          end
-
           scope ':version' do
+            scope 'status' do
+              get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
+              get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
+            end
             
             resources :nodes do 
               resources :attribs
@@ -147,8 +142,17 @@ Crowbar::Application.routes.draw do
                 get 'nodes'
               end
             end
+            
+            resources :users
+            scope 'users' do
+                post ":id/admin", :controller => "users", :action => "make_admin"
+                delete ":id/admin", :controller => "users", :action => "remove_admin"
+                post ":id/lock", :controller => "users", :action => "lock"
+                delete ":id/lock", :controller => "users", :action => "unlock"
+                put ":id/reset_password", :controller => "users", :action => "reset_password"
+            end
           end # version
-        end # api
+        # end # api
         
         # Barclamp resource v2 API Pattern
         scope ':barclamp' do
@@ -172,39 +176,12 @@ Crowbar::Application.routes.draw do
             
             resources :attribs
             
+           
+            
           end # version scope
         end # barclamp scope
       end # id constraints
-      
-      # depricated 2.0 API Pattern
-      scope '2.0' do
-        constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /[0-9].[0-9]/ ) do
-  
-                  
-          scope 'crowbar' do    # MOVE TO GENERIC!
-            scope '2.0' do      # MOVE TO GENERIC!
-             
-              # these all need to be updated.
-              scope 'users' do
-                get :controller => "users", :action => "users"
-                get ":id", :controller => "users", :action => "user_show"
-                post :controller => "users", :action => "user_create"
-                put ":id", :controller => "users", :action => "user_update"
-                delete ":id", :controller => "users", :action => "user_delete"
-                post ":id/admin", :controller => "users", :action => "user_make_admin"
-                delete ":id/admin", :controller => "users", :action => "user_remove_admin"
-                post ":id/lock", :controller => "users", :action => "user_lock"
-                delete ":id/lock", :controller => "users", :action => "user_unlock"
-                put ":id/reset_password", :controller => "users", :action => "user_reset_password"
-              end
-            end
-          end
-                  
-        end
-      end
     end
-    
-  end 
 
   root :to => "dashboard#index"  
   

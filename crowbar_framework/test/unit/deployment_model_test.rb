@@ -216,12 +216,12 @@ class DeploymentModelTest < ActiveSupport::TestCase
     dep.proposed.roles.first.add_node node
     # get to an active snapshot
     dep.commit
-    active = dep.apply_committed
+    active = dep.activate_committed
     assert_nil dep.committed_snapshot_id, "active = none committed"
     # make sure we have a node
     assert active.nodes.count > 0 
     # node deallocate
-    commit = dep.commit_deallocate_applied
+    commit = dep.commit_deallocate_active
     assert_equal 0, commit.nodes.count, "deallocate means no nodes"
   end
   
@@ -233,14 +233,14 @@ class DeploymentModelTest < ActiveSupport::TestCase
     prop_new = dep.proposal
     assert_nil dep.active
     assert_not_equal prop_old.id, dep.proposed.id
-    act = dep.apply_committed
+    act = dep.activate_committed
     assert_nil dep.committed_snapshot_id
     assert_equal commit_new.id, dep.active_snapshot_id
     assert_not_equal dep.proposed.id, act.id
     # test with TWO cycles!
     prop_new = dep.commit
     act_old = dep.active
-    dep.apply_committed
+    dep.activate_committed
     assert_equal prop_new.id, dep.active.id
     assert_equal [], Snapshot.where(:id=>act_old.id), "remove the next old one"
   end
@@ -255,7 +255,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert dep.committed.committed?
     assert !dep.committed.active?
     assert !dep.committed.proposed?
-    dep.apply_committed
+    dep.activate_committed
     assert dep.active.active?
     assert !dep.active.proposed?
     assert !dep.active.committed?

@@ -54,6 +54,11 @@ Allocate a node, and start the node install process
 
   end
 
+  # OVERRIDE action to add a node to the environment
+  def create_node(node)
+    # do nothing, 
+  end
+  
 =begin
  Update node infomration from a Jig, and process node attributes 
 =end
@@ -65,7 +70,7 @@ Start the process of instantiating a deployment into the environemt.
 Expecting the deployment to be "static" - i.e. not actively being modified.
 =end
   def self.commit_proposal(deployment)
-
+    deployment.commit
     # update the status of the deployment to committed 
 
      # function role - created during barclamp import.

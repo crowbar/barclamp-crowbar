@@ -74,8 +74,7 @@ class NodesController < ApplicationController
   def destroy
     n = Node.find params
     unless n.nil?
-      system("knife node delete #{n[:name]}")
-      system("knife client delete #{n[:name]}")
+      Jig.all.each {|j| j.delete_node(n)}
     end
     render api_delete Node
   end
@@ -83,8 +82,9 @@ class NodesController < ApplicationController
   # RESTfule POST of the node resource
   def create
     n = Node.create params
-    # Evil, dirty hack to create a Chef version of the node as well.
-    system("knife node create #{params[:name]} --defaults -d")
+    Jig.all.each {|j| j.create_node(n)}
+
+    # DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
     # All nodes need to have the deployer-client present.
     system("knife node run_list add #{params[:name]} role[deployer-client]")
     render api_show :node, Node, n.id.to_s, nil, n

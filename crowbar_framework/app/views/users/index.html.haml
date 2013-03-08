@@ -61,9 +61,9 @@
          = link_to t(".reset_password"), edit_password_path(user), :class=>'link'
          = " | "
          - if (user.access_locked?)
-          = link_to t(".unlock"), unlock_path(user.id), :class=>'link', :method => :delete
+          = link_to t(".unlock"), unlock_user_path(user.id), :class=>'link', :method => :delete
          - else
-          = link_to t(".lock"), lock_path(user.id), :class=>'link', :method => :post
+          = link_to t(".lock"), lock_user_path(user.id), :class=>'link', :method => :post
     - else
      %tr
       %td{ :colspan=>5 }

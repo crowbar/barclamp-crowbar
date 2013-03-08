@@ -18,7 +18,7 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
 @barclamp = "user"
 
-USERS_PATH = "2.0/crowbar/2.0/users"
+USERS_PATH = "v2/users"
 
 
 @commands["list"] = [ "list()", "list - Show a list of current users" ]

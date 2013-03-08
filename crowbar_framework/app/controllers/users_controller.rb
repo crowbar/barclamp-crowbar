@@ -12,88 +12,167 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-class UsersController < BarclampController
+class UsersController < ApplicationController
   respond_to :html, :json
   
   helper_method :is_edit_mode?
-  
-  def initialize #act like a barclamp
-    @bc_name = "user"
-    @barclamp_object = Barclamp.new
-    @barclamp_object.name = "user"
-    super
-  end
-  
+
+  add_help(:index,[],[:get])
   def index
-    setup_users
-  end
-
-  def unlock_user
-    user = User.find(params[:id])
-    user.unlock_access! if (user.access_locked?)
-    redirect_to users_path, :notice => t("users.index.unlocked")
-  end
-
-  def lock_user
-    user = User.find(params[:id])
-    user.lock_access! if !(user.access_locked?)
-    redirect_to users_path, :notice => t("users.index.locked")
-  end
-
-  def reset_password
-    if !params[:cancel].nil?
-      setup_users
-      return render :action => :index
-    end
-    check_password
-    
-    @user = User.find(params[:user][:id])
-    @user.admin_reset_password = true
-    if @user.reset_password!(params[:user][:password],params[:user][:password_confirmation])
-      redirect_to users_path, :notice => t("users.index.reset_password_success")
-    else
-      setup_users
-      render :action => :index
+    ret = fetch_users
+    respond_with(@users)  do |format|
+      format.html do
+        setup_users
+        render
+      end
+      format.json do
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        user_hash = Hash.new
+        @users.each do |user|
+          user_hash[user.id] = user.username
+        end
+        render :json => user_hash.to_json
+      end
     end
   end
-
-  def edit
-    @user = User.find(params[:id])
-    edit_common
+  
+  add_help(:unlock,[:id],[:delete]) 
+  def unlock
+    ret = fetch_user
+    respond_with(@user)  do |format|
+      @user.unlock_access! if (!@user.nil? and @user.access_locked?)
+      format.html do
+        redirect_to users_path, :notice => t("users.index.unlocked")
+      end
+      format.json do
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => @user.to_json
+      end
+    end
   end
 
-  def edit_password
-    @user = User.find(params[:id])
-    @user.admin_reset_password = true
-    edit_common
+  add_help(:lock,[:id],[:post])
+  def lock
+    ret = fetch_user
+    respond_with(@user)  do |format|
+      @user.lock_access! if (!@user.nil? and !@user.access_locked?)
+      format.html do
+        redirect_to users_path, :notice => t("users.index.locked")
+      end
+      format.json do
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => @user.to_json
+      end
+   end
+ end 
+ 
+ add_help(:reset_password,[:id, :password, :password_confirmation],[:put])
+ def reset_password
+   ret = fetch_user
+  respond_with(@user)  do |format|
+    Rails.logger.debug("Reset password for user #{@user}")
+    format.html do
+      if !params[:cancel].nil?
+        @user = nil
+        setup_users
+        return render :action => :index
+      end
+      check_password
+      @user.admin_reset_password = true
+      if @user.reset_password!(params[:user][:password],params[:user][:password_confirmation])
+        redirect_to users_path, :notice => t("users.index.reset_password_success")
+      else
+        setup_users
+        render :action => :index
+      end
+    end
+    format.json do
+      password = params[:password]
+      password_confirmation = params[:password_confirmation]
+      begin
+         @user.admin_reset_password = true
+         reset_success = @user.reset_password!(password, password_confirmation)
+         raise ActiveRecord::RecordInvalid.new(@user) unless reset_success
+      rescue ActiveRecord::RecordInvalid, ArgumentError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+      end  if ret[0]==200
+      return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+      render :json => @user.to_json
+    end
+   end
   end
 
+  add_help(:update,[:id, :username, :email,:remember_me, :is_admin],[:put])
   def update
-    # check_password
-    if !params[:cancel].nil?
-      setup_users
-      return render :action => :index
-    end
-    
-    @user = User.find(params[:id])
-    if @user.update_attributes(params[:user])
-      redirect_to users_path, :notice => t("users.index.update_success")
-    else
-      setup_users
-      render :action => :index
+    ret = fetch_user
+    respond_with(@user) do |format|
+      format.html do
+        if !params[:cancel].nil?
+          @user = nil
+          setup_users
+          return render :action => :index
+        end
+        if @user.update_attributes(params[:user])
+          redirect_to users_path, :notice => t("users.index.update_success")
+        else
+          setup_users
+          render :action => :index
+        end
+      end
+      format.json do
+        begin
+          User.transaction do 
+            hash = {:username => params[:username], :email => params[:email], :remember_me => params[:remember_me], :is_admin => params[:is_admin] }
+            @user.update_attributes!(hash)
+          end
+        rescue ActiveRecord::RecordNotFound, ArgumentError => ex
+          Rails.logger.warn(ex.message)
+          ret = [400, ex.message]
+        rescue ActiveRecord::RecordInvalid, ArgumentError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+        rescue RuntimeError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+        end if ret[0]==200
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => @user.to_json
+      end
     end
   end
 
-  def create
-    check_password
-    
-    @user = User.new(params[:user])
-    if @user.save
-      redirect_to users_path, :notice => t("users.index.create_success")
-    else
-      setup_users
-      render :action => :index
+ add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
+ def create
+    respond_with(@user = populate_user)  do |format|
+      format.html do
+        check_password
+        if @user.save
+          redirect_to users_path, :notice => t("users.index.create_success")
+        else
+          setup_users
+          render :action => :index
+        end
+      end
+      format.json do
+        begin
+          ret = [200, ""]
+          User.transaction do
+            @user.save!
+          end
+        rescue ActiveRecord::RecordNotFound, ActiveRecord::RecordInvalid, ArgumentError => ex
+          Rails.logger.warn(ex.message)
+          ret = [400, ex.message]
+        rescue ActiveRecord::RecordInvalid, ArgumentError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+        rescue RuntimeError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+        end
+        return render :text => ret[1], :status => ret[0] if ret[0] != 200
+        render :json => @user.to_json
+      end
     end
   end
 
@@ -111,259 +190,90 @@ class UsersController < BarclampController
     current_user.is_admin? && Rails.env.development?
   end
   
-  ############################## API Calls ####################################
   
-  add_help(:user_list,[],[:get])
-  def users
-    Rails.logger.debug("Listing users");
-
-    user_hash = Hash.new
-    
-    User.all.each { |user|
-     user_hash[user.id] = user.username
-    }
-
-    respond_to do |format|
-      format.json { render :json => user_hash.to_json }
-    end
-  end
-
-  add_help(:user_show,[:id],[:get])
-  def user_show
-    id = params[:id]
-
-    Rails.logger.debug("Showing user #{id}");
-
-    ret = nil
-    user = nil
-    begin
-      user = User.find_by_id_or_username(id)
-      ret = [200,  user]
-    rescue ActiveRecord::RecordNotFound => ex
-      puts "ActiveRecord::RecordNotFound #{ex}"
-      Rails.logger.warn(ex.message)
-      ret = [404, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      puts "RuntimeError #{ex}"
-      ret = [500, ex.message]
-    end
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
-    end
-  end
-
-  add_help(:user_create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
-  def user_create
-    username = params[:username]
-    email = params[:email]
-    password = params[:password]
-    password_confirmation = params[:password_confirmation]
-    remember_me = params[:remember_me]
-    is_admin = params[:is_admin]
-    Rails.logger.debug("Entering user_create, input:  #{username}, #{email}, #{password}, #{password_confirmation}, #{remember_me}, #{is_admin}")
-    ret = nil
-    user = nil
-    begin
-      User.transaction do
-        user = User.new(
-            :username => username,
-            :email => email,
-            :password => password,
-            :password_confirmation => password_confirmation,
-            :remember_me => remember_me,
-            :is_admin => is_admin)
-        user.save!
+  add_help(:show,[:id],[:get])
+  def show
+    ret = fetch_user
+    respond_with(@user)  do |format|
+      format.html do
+        render
       end
-      ret = [200, user] 
-    rescue ActiveRecord::RecordNotFound, ActiveRecord::RecordInvalid, ArgumentError => ex
-      Rails.logger.warn(ex.message)
-      ret = [400, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
-    end
-    
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json() }
-    end
-  end
-
-  add_help(:user_update,[:id, :username, :email,:remember_me, :is_admin],[:put])
-  def user_update
-    id = params[:id]
-    username = params[:username]
-    email = params[:email]
-    remember_me = params[:remember_me]
-    is_admin = params[:is_admin]
-
-    Rails.logger.debug("Updating user #{id}");
-
-    ret = nil
-    user = nil
-    begin
-      User.transaction do
-        user = User.find_by_id_or_username(id)
-        hash = {:username => username, :email => email, :remember_me => remember_me, :is_admin => is_admin }
-        Rails.logger.debug("Attribute hash is: #{hash.inspect}")
-        user.update_attributes(hash)
-        user.save!
+      format.json do
+        return render :text => ret[1], :status => ret[0] if ret[0] != 200
+        render :json => @user.to_json
       end
-      ret = [200, user]
-    rescue ActiveRecord::RecordNotFound, ArgumentError => ex
-      Rails.logger.warn(ex.message)
-      ret = [400, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
-    end
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json() }
     end
   end
-
-  add_help(:user_delete,[:id],[:delete])
-   def user_delete
-    Rails.logger.debug("Deleting user #{params[:id]}");
-
-    ret = nil
-    id = params[:id]
-    begin
-      user =  User.find_by_id_or_username(id)
-      Rails.logger.debug("Deleting user #{user.id}/\"#{user.username}\"")
-      User.destroy(user)
-      ret = [200, ""]
-    rescue ActiveRecord::RecordNotFound => ex
-      Rails.logger.warn(ex.message)
-      ret = [404, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
-    end
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
-  end
-
-  add_help(:user_make_admin,[:id],[:post])
-  def user_make_admin
-    id = params[:id]
-
-    Rails.logger.debug("Making user #{id} admin");
-
-    ret = user_update_admin(id, true)
-
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
-    end
-  end
-
-  add_help(:user_remove_admin,[:id],[:delete])
-  def user_remove_admin
-    id = params[:id]
-
-    Rails.logger.debug("Removing admin privilege for user #{id}");
-
-    ret = user_update_admin(id, false)
-
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
-    end
-  end
-
-  add_help(:user_lock,[:id],[:post])
-  def user_lock
-    id = params[:id]
-
-    Rails.logger.debug("Locking user #{id}");
-
-    ret = nil
-    begin
-      user = User.find_by_id_or_username(id)
-      user.lock_access! unless (user.access_locked?)
-      user.save
-      ret = [200, user]
-    rescue ActiveRecord::RecordNotFound => ex
-      Rails.logger.warn(ex.message)
-      ret = [404, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
-    end
-
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
-    end
-  end
-
-  add_help(:user_unlock,[:id],[:delete])
-  def user_unlock
-    id = params[:id]
-
-    Rails.logger.debug("Unlocking user #{id}");
-
-    ret = nil
-    begin
-      user = User.find_by_id_or_username(id)
-      user.unlock_access! if (user.access_locked?)
-      user.save
-      ret = [200, user]
-    rescue ActiveRecord::RecordNotFound => ex
-      Rails.logger.warn(ex.message)
-      ret = [404, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
-    end
-
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
-    end
-  end
-
-  add_help(:user_reset_password,[:id, :password, :password_confirmation],[:put])
-   def user_reset_password
-    id = params[:id]
-    password = params[:password]
-    password_confirmation = params[:password_confirmation]
-
-    Rails.logger.debug("Reset password for user #{id}");
-
-    ret = nil
-    begin
-      user = User.find_by_id_or_username(id)
-      user.admin_reset_password = true
-      ret = user.reset_password!(password,password_confirmation)
-      if ret
-        ret = [200, user]
-      else
-        raise RuntimeError, "Failed resetting password: #{password}, password confirmation: #{password_confirmation}"
+  
+  add_help(:delete,[:id],[:delete])
+  def destroy
+    ret = fetch_user
+    respond_with(@user)  do |format|
+      Rails.logger.debug("Deleting user #{@user.id}/\"#{@user.username}\"") unless @user.nil?
+      format.html do
+        User.destroy @user
+        render
       end
-    rescue ActiveRecord::RecordNotFound => ex
-      Rails.logger.warn(ex.message)
-      ret = [404, ex.message]
-    rescue RuntimeError => ex
-      Rails.logger.error(ex.message)
-      ret = [500, ex.message]
+      format.json do
+        begin
+          User.destroy @user
+        rescue ActiveRecord::RecordNotFound => ex
+          Rails.logger.warn(ex.message)
+          ret = [404, ex.message]
+        rescue RuntimeError => ex
+          Rails.logger.error(ex.message)
+          ret = [500, ex.message]
+        end if ret[0] == 200
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => ret[1]
+      end
     end
-
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-
-    respond_to do |format|
-      format.json { render :json => ret[1].to_json()}
+  end
+  
+  add_help(:make_admin,[:id],[:post])
+  def make_admin
+    ret = fetch_user
+    respond_with(@user)  do |format|
+      Rails.logger.debug("Making user #{@user.id} admin") unless @user.nil?
+      format.html do
+        @user.is_admin = true;
+        @user.save
+        render
+      end
+      format.json do
+        ret = update_admin(true) if ret[0] == 200
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => @user.to_json
+      end
     end
+  end
+
+  add_help(:remove_admin,[:id],[:delete])
+  def remove_admin
+    ret = fetch_user
+    respond_with(@user) do |format|
+      format.html do
+        @user.is_admin = false;
+        @user.save
+        render
+      end
+      format.json do
+        ret = update_admin(false) if ret[0] == 200
+        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
+        render :json => @user.to_json
+      end
+    end
+  end
+  
+  def edit
+    fetch_user
+    edit_common
+  end
+
+  def edit_password
+    code, exception = fetch_user
+    @user.admin_reset_password = true if code == 200
+    edit_common
   end
 
   private
@@ -382,20 +292,19 @@ class UsersController < BarclampController
 
   def setup_users
     if (current_user.is_admin)
-      @users = User.all
+      @users = User.all if @users.nil?
       @user ||= User.new
     else
       @users = [current_user]
     end
     
   end
-  
-  def user_update_admin(id_username, onOff=false)
+
+  def update_admin(onOff=false)
     begin
-      user = User.find_by_id_or_username(id_username)
-      user.is_admin = onOff;
-      user.save
-      [200, user]
+      @user.is_admin = onOff;
+      @user.save
+      [200, ""]
     rescue ActiveRecord::RecordNotFound => ex
       Rails.logger.warn(ex.message)
       [404, ex.message]
@@ -405,4 +314,46 @@ class UsersController < BarclampController
     end
   end
   
+ def fetch_user
+    ret = nil
+    begin
+      @user = User.find_by_id_or_username((params[:user].nil? or params[:user][:id].nil?) ? \
+      ((params[:user_id].nil?) ? params[:id] : params[:user_id]) : \
+      params[:user][:id])
+      ret = [200, ""]
+    rescue ActiveRecord::RecordNotFound => ex
+      puts "ActiveRecord::RecordNotFound #{ex}"
+      Rails.logger.warn(ex.message)
+      ret = [404, ex.message]
+    rescue RuntimeError => ex
+      Rails.logger.error(ex.message)
+      puts "RuntimeError #{ex}"
+      ret = [500, ex.message]
+    end
+    ret
+  end
+  
+  def fetch_users
+    ret = nil
+    begin
+      @users = User.all
+      ret = [200,  ""]
+    rescue ActiveRecord::RecordNotFound => ex
+      puts "ActiveRecord::RecordNotFound #{ex}"
+      Rails.logger.warn(ex.message)
+      ret = [404, ex.message]
+    rescue RuntimeError => ex
+      Rails.logger.error(ex.message)
+      puts "RuntimeError #{ex}"
+      ret = [500, ex.message]
+    end
+    ret
+  end
+  
+  def populate_user
+    return User.new(params[:user]) unless params[:user].nil?
+    User.new(:username => params[:username], :email => params[:email], :password => params[:password], \
+     :password_confirmation => params[:password_confirmation], :remember_me => params[:remember_me], \
+     :is_admin => params[:is_admin])
+  end
 end

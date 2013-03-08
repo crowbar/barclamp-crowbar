@@ -41,7 +41,6 @@ Details:
 
     {
       "id":4,
-      "fingerprint":-1224971211,
       "state":null,
       "name":"greg.example.com",
       "description":null,

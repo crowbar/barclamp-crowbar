@@ -50,5 +50,22 @@ describe "jig proposal manipulation" do
     barclamp
   end
 
+  def create_basic_prop
+    test = Barclamp.import 'test'
+    node1 = Node.create :name=>"unit1.test.com"
+    node2 = Node.create :name=>"unit2.test.com"
+    dep = test.create_deployment "foo"
+    # add node
+    dep.proposed.roles.first.add_node node1
+    dep.proposed.roles.second.add_node node2
+    # get to an active snapshot
+    dep.commit
+  end
+
+  it "can create basic proposal with 2 nodes" do
+    create_basic_prop
+  end
+
+
 end
 

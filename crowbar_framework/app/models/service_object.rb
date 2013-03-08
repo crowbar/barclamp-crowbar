@@ -96,7 +96,7 @@ class ServiceObject
   #   [ HTTP Error Code, String Message ]
   # CB1
   def destroy_active(prop_name)
-    barclamp.deployments.first.commit_deallocate_applied
+    barclamp.deployments.first.commit_deallocate_active
   end
 
   #

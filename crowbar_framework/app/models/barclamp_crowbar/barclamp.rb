@@ -16,5 +16,23 @@
 # This class is the fall back class for barclamps that are missing Barclamp subclasses
 class BarclampCrowbar::Barclamp < Barclamp
   
+  def transition(snapshot, node, state, role_type_name=nil)
+    
+    Rails.logger.debug "Crowbar transition enter: #{name} to #{state}"
+    
+    # for all transitions
+    Snapshot.transaction do
+      case state
+      when 'discovering','testing' 
+        Rails.logger.debug "Crowbar transition: creating new node for #{name} to #{state}"
+        node = Jig.all.each { |j| j.create_node(node) }
+      else
+        # nothing
+      end
+    end
+
+    super.transistion snapshot, node, state, role_type_name
+    
+  end
   
 end

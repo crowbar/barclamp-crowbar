@@ -88,7 +88,7 @@ class Deployment < ActiveRecord::Base
 
   # moves the commited proposal to the applied spot (deleted the old apply)
   # this should only be called by a Jig!
-  def apply_committed
+  def activate_committed
     Deployment.transaction do
       old_a = self.active
       self.active_snapshot_id = self.committed_snapshot_id
@@ -102,7 +102,8 @@ class Deployment < ActiveRecord::Base
 
   # commits a clone of the APPLIED snapshot without nodes
   # this can be used to effectively halt a deployment as a way of deleting it
-  def commit_deallocate_applied
+  def commit_deallocate_active
+    # commit_deallocated_active
     raise "cannot deallocate active unless there is no other committed work" if committed?
     Deployment.transaction do
       old_a = self.active

@@ -57,16 +57,6 @@ class NodeModelTest < ActiveSupport::TestCase
     assert_equal n.groups.size, 1
     assert_equal n.groups[0].id, g.id
   end
-
-  test "fingerprint" do
-    n = Node.create :name=>"fingerprint.example.com"
-    assert_not_nil n.fingerprint
-    assert_not_equal n.fingerprint, 0
-    fp = n.fingerprint
-    n.name = "hash.example.com"
-    n.save!
-    assert_not_equal n.fingerprint, fp
-  end
   
   test "Naming Conventions" do
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"fqdnrequired") }

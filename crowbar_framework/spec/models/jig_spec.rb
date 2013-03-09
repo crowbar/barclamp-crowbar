@@ -40,6 +40,8 @@ end
 
 
 describe "jig proposal manipulation" do
+  # make sure that the there's a crowbar deploment (named 'test')
+  include_context "crowbar test deployment"
 
   def setup_test_barclamp_with_2_nodes
     n1 = Factory(:node)

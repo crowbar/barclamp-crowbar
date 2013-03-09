@@ -46,7 +46,6 @@ The following sentences can be used for testing HTML web pages where you can cha
 The following sentences can be used for testing REST JSON (aka AJAX) API calls where you can change the information in 
 
 * When REST requests the "2.0/node/status" page
-* Then key "fingerprint" should be a number
 * Then key "[nodes][admin][state]" should be "Ready"
 * Then key "count" should be "0"
 * Then key "[groups][0]" should contain "7" items

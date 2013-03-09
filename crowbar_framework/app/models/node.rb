@@ -18,7 +18,6 @@ class Node < ActiveRecord::Base
   before_destroy    :jig_delete
   
   attr_accessible :name, :description, :alias, :order, :admin, :allocated
-  attr_readonly   :fingerprint
   
   # Make sure we have names that are legal
   # old:
@@ -28,8 +27,8 @@ class Node < ActiveRecord::Base
   # be a top level domain ;p
   FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/
   # for to_api_hash
-  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "fingerprint",
-                    "admin", "allocated", "os_id", "created_at", "updated_at"]
+  API_ATTRIBUTES = ["id", "name", "description", "order", "state", "admin",
+                    "allocated", "os_id", "created_at", "updated_at"]
 
   READY = 0
   UNREADY = 1
@@ -82,7 +81,9 @@ class Node < ActiveRecord::Base
     end
   end
 
- 
+  def self.name_hash
+    Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
+  end
   #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines
@@ -335,7 +336,6 @@ class Node < ActiveRecord::Base
 
   # make sure some safe values are set for the node
   def default_population
-    self.fingerprint = self.name.hash
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
     self.state ||= 'unknown' 

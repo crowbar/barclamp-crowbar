@@ -34,7 +34,6 @@ validate(JSON) ->
   Wrapper = crowbar_rest:api_wrapper(JSON),
   J = Wrapper#item.data,
   R =[Wrapper#item.type == node,
-      bdd_utils:is_a(J, integer, fingerprint), 
       bdd_utils:is_a(J, boolean, allocated), 
       bdd_utils:is_a(J, string, state), 
       bdd_utils:is_a(J, boolean, admin), 

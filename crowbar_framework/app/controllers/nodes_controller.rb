@@ -36,7 +36,7 @@ class NodesController < ApplicationController
     status = {}
     state = {}
     i18n = {}
-    sum = Node.sum(:fingerprint)
+    sum = Node.name_hash
     begin
       result = Node.find_keys params[:id]
       unless result.nil?

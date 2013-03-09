@@ -28,7 +28,7 @@ Feature: Barclamp Catalog
     Then key "api_version" should be "v2"
     And  key "name" should be "network"
 
-  Scenario: %Fetch Deployer Barclamp Catalog
+  Scenario: Fetch Deployer Barclamp Catalog
     When REST requests the "/deployer/v2/barclamps/catalog" page
     Then key "api_version" should be "v2"
     And  key "name" should be "deployer"

@@ -338,6 +338,7 @@ class Node < ActiveRecord::Base
   def default_population
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
+    # the line belowrequires a crowbar deployment to which the status attribute is tied
     self.state ||= 'unknown' 
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')

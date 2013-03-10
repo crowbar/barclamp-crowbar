@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+=begin
+  The Jig (base class) provides abstract interface for jig implementations. The general pattern
+  is  that the base class provides class methods, that either:
+   - locate the appropriate Jig instance and call the instance method on them
+   - call the respective instance method on all jig's
+
+  The exact pattern depends on the operation - some operations are 'broadcast' in nature, 
+  while some should only target a particular jig instance.
+=end
+
+
 class Jig < ActiveRecord::Base
 
   attr_accessible :name, :description, :type, :order
@@ -54,15 +66,25 @@ Allocate a node, and start the node install process
 
   end
 
-  # OVERRIDE action to add a node to the environment
-  def create_node(node)
-    # do nothing, 
+=begin 
+Create a node in all jig. The exact actions depend on the jig.
+=end
+  def self.create_node(node)
+    broadcast_to_jigs { |jig| jig.create_node(node) }    
+  end
+
+=begin 
+Delete a node from all jig. The exact actions depend on the jig.
+=end
+  def self.delete_node(node)
+    broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
   
 =begin
  Update node infomration from a Jig, and process node attributes 
 =end
   def self.refresh_node(node)
+    broadcast_to_jigs { |jig| jig.refresh_node(node)  }        
   end
 
 =begin 
@@ -192,5 +214,26 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   end
   
 
+private
 
+
+
+=begin
+  Utility method to iterate over jigs, and callback to  the mandatory block.
+  If an error occurs on one jig, iteration continues to others.
+  Jigs are left to manage thier own transactions - if one jig failes, the 
+  others should not be impacted (hence no over arching transaction)
+=end
+  def self.broadcast_to_jigs(desc="no description")
+
+    raise "no block given" unless block_given?
+    Jig.all.each { |x|  
+      begin
+        
+        yield x
+      rescue => exc
+        Rails.logger.warn("failed to invoke #{desc} on jig: #{x.inspect}")
+      end
+    }
+  end
 end

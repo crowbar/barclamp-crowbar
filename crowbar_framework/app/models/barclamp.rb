@@ -287,8 +287,8 @@ class Barclamp < ActiveRecord::Base
       u.digest_password(pass)   # this is required if we want API access
       u.save!
     end
-    # Create the machine-install user.
-    unless User.find_by_username("machine-install")
+    # Create the machine-install user (but only on production deployment)
+    unless User.find_by_username("machine-install") || !Rails.env.production?
       if File.exists?('/etc/crowbar.install.key')
         user,pass = IO.read('/etc/crowbar.install.key').strip.split(':',2)
       else

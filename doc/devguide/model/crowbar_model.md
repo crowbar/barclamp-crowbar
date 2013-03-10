@@ -33,7 +33,7 @@ Notes:
 
 ##### process_inbound_data
 
-##### transistion
+##### transition
 
 This is a critical function, it determines which actions the barclamp takes when it gets new information.
 

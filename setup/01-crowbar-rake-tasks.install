@@ -52,6 +52,11 @@ if ! grep -q '/opt/dell/bin' /etc/environment; then
     sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
 fi
 
+# make sure RAILS_ENV is set to production
+if ! grep -q 'RAILS_ENV' /etc/environment; then
+    echo "export RAILS_ENV=production" >> /etc/environment
+fi
+
 # Make our /etc/profile/crowbar.sh
 if [[ ! -f /etc/profile.d/crowbar.sh ]]; then
     mkdir -p /etc/profile.d

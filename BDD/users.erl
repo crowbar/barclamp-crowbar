@@ -20,7 +20,7 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "/2.0/crowbar/2.0/users";
+    path -> "/api/v2/users";
     natural_key -> username; % unlike most crowbar objects, this uses username as the natural key
     username -> "oscar";
 	email -> "oscar@grouch.com";

@@ -19,6 +19,8 @@ for f in /var/lib/gems/*/bin; do
 done
 BLUEPILL_CONFIG="/opt/dell/crowbar_framework/crowbar.pill"
 
+mkdir -p /var/run/crowbar && chown crowbar:crowbar /var/run/crowbar
+
 case "$1" in
     start)
         echo -n "Starting Crowbar webserver"

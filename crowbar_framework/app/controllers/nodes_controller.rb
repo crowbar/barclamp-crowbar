@@ -72,7 +72,7 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    n = find_ndoe(params)    
+    n = find_node(params)    
     run_in_prod_only do
       system("knife node delete -y #{node.name}")
       system("knife client delete -y #{node.name}")
@@ -233,7 +233,7 @@ Find a node by name or ID based on the passed in params
 in: params from request
 =end
 
-  def find_ndoe(params)
+  def find_node(params)
     if p= params[:name]
       return Node.find_by_name p
     end

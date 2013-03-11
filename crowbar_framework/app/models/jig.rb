@@ -167,6 +167,10 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   def delete_node(node)
     Rails.logger.debug("jig.delete_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
+
+  def create_node(node)
+    Rails.logger.debug("jig.create_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
+  end
   
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  

@@ -27,6 +27,7 @@ case "$1" in
     stop)
         echo -n "Stoppint Crowbar webserver"
         bluepill crowbar-webserver stop
+        bluepill quit
         ;;
     status)
         bluepill crowbar-webserver status

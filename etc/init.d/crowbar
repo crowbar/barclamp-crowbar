@@ -27,6 +27,8 @@ elif [[ -f /etc/SuSE-release ]]; then
     OS=suse
 fi
 
+mkdir -p /var/run/crowbar && chown crowbar:crowbar /var/run/crowbar
+
 case "$1" in
     start)
         echo -n "Starting Crowbar webserver"

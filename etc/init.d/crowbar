@@ -18,21 +18,40 @@ for f in /var/lib/gems/*/bin; do
     PATH="$PATH:$f"
 done
 BLUEPILL_CONFIG="/opt/dell/crowbar_framework/crowbar.pill"
+GEMFILE_LOCK=/opt/dell/crowbar_framework/Gemfile.lock
+if [[ -f /etc/redhat-release || -f /etc/centos-release ]]; then
+    OS=redhat
+elif [[ -d /etc/apt ]]; then
+    OS=ubuntu
+elif [[ -f /etc/SuSE-release ]]; then
+    OS=suse
+fi
 
 case "$1" in
     start)
         echo -n "Starting Crowbar webserver"
+        if [[ $OS = suse ]]; then
+            # refresh the Gemfile.lock content before starting the server
+            # (outdated file can cause problems after any of the required
+            # rubygems were updated)
+            rm -f $GEMFILE_LOCK
+            pushd /opt/dell/crowbar_framework > /dev/null
+            bundle install --local --quiet
+            popd > /dev/null
+        fi
         bluepill load $BLUEPILL_CONFIG
         ;;
     stop)
         echo -n "Stoppint Crowbar webserver"
         bluepill crowbar-webserver stop
+        bluepill quit
         ;;
     status)
         bluepill crowbar-webserver status
         ;;
     restart)
-        bluepill crowbar-webserver restart
+        $0 stop
+        $0 start
         ;;
     *)
         echo "Usage: $0 {start|stop|status|restart}"

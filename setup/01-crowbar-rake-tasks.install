@@ -73,13 +73,17 @@ for d in /var/run/crowbar /opt/dell/crowbar_framework; do
     chown -R crowbar:crowbar "$d"
 done
 
+BUNDLE_INSTALL_ARGS="--path vendor/bundle"
+if [[ $OS = suse ]]; then
+    BUNDLE_INSTALL_ARGS="--local"
+fi
 export RAILS_ENV=production
 tasks=("rake assets:precompile"
     "rake railties:install:migrations"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
-bundle install --path vendor/bundle
+bundle install $BUNDLE_INSTALL_ARGS
 for task in "${tasks[@]}"; do
     su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2

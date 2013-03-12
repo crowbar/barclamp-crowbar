@@ -131,26 +131,19 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   
       # create a JigEvent for each unique jig execution that needs to be performed
       # on each node. Events are tied in dependency list (to allow subsequent events)
-      # to be fired when their dependencies complete.
-      nrs = {}
-      new_deployment.proposed.roles.each { |nr| 
-        name = nr.role.name
-        nrs[name] =[] unless nrs[name]
-        nrs[name] << nr
-      }
-      logger.debug("Node roles, #{nrs.inspect}")
-      #node_roles = new_deployment.get_nodes_by_roles    # hash of role -> list of nodes     
-      ordered_roles = new_deployment.proposed.roles # array of: arry of role.
+      # to be fired when their dependencies complete.      
+      roles = new_deployment.proposal.role_order # nested array representing role ordering (to level array - order, inner - parallel)
+      logger.debug("Role elemenets, #{roles}")
       order = 1
-      ordered_roles.each { |r_list|             
+      roles.each { |r_list|             
         r_list.each { |r| 
-          logger.debug("handling #{r}, which has #{nrs[r.name].inspect} ")
-          nrs[r.name].each { |nr| 
+          logger.debug("handling #{r}, which has #{r.nodes.inspect} ")
+          r.nodes.each { |nr| 
             # create events for nodes that are not currently in the right state,
             # they won't be executed until the node does transition to the right place.
             # next unless  r.states.include?("all") or n.states.include?(n.state)
-            jig.create_run_for(evt,nr,order);
-          } if nrs[r.name]  ### barclamp might have roles that have no nodes...
+            jig.create_run_for(evt,node, r,order);
+          } unless r.nodes.nil? or r.nodes.empty? ### barclamp might have roles that have no nodes...
         }
         order +=1
       }

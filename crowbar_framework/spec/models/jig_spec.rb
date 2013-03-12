@@ -13,8 +13,6 @@
 # limitations under the License.
 #
 require 'spec_helper'
-require 'factory_girl_rails'
-
 
 describe "jig proposal manipulation" do
   # make sure that the there's a crowbar deploment (named 'test')
@@ -24,20 +22,27 @@ describe "jig proposal manipulation" do
 
 
   context "test barclamp with 2 nodes" do
-    before(:all) {
+    let(:deployment)  { 
+      Barclamp.import 'test' unless Barclamp.find_by_name("test")
       barclamp = Barclamp.find_by_name("test")
-      params = { "id" =>"test_prop", "attributes" => {} }
-      dep = barclamp.create_deployment "foo"
-      barclamp.create_proposal(params)
+      dep = barclamp.create_deployment "foo" 
+      dep = barclamp.deployments.first if dep.nil?
+      dep
+    }
+
+    let(:test_role1) { deployment.proposal.roles.first}
+    let(:test_role2) { deployment.proposal.roles.second}
+
+    before(:all) {            
       # add node
-      dep.proposed.roles.first.add_node node1
-      dep.proposed.roles.second.add_node node2
-      dep.commit
+      test_role1.add_node(node1)
+      test_role2.add_node(node2)
     }
 
 
     it "should create event and runs" do
-
+      Jig.commit_proposal(deployment)
+      JigEvent.all.count.should eql(1)
     end
   end
 end

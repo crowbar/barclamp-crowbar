@@ -68,6 +68,7 @@ en:
       "framework/licenses": "Licenses"
       "framework/releasenotes": "Release Notes"
       "framework/userguide": "User Guide"
+      "framework/README": "README"
     
     scaffold:
       top: Scaffolds

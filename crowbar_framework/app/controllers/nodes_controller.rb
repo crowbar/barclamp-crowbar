@@ -72,21 +72,25 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    n = Node.find params
-    unless n.nil?
-      Jig.all.each {|j| j.delete_node(n)}
-    end
+    n = find_node(params)    
+    run_in_prod_only do
+      system("knife node delete -y #{node.name}")
+      system("knife client delete -y #{node.name}")
+    end unless n.nil?
     render api_delete Node
   end
   
   # RESTfule POST of the node resource
   def create
     n = Node.create params
-    Jig.all.each {|j| j.create_node(n)}
+    #Jig.all.each {|j| j.create_node(n)}
 
     # DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
     # All nodes need to have the deployer-client present.
-    system("knife node run_list add #{params[:name]} role[deployer-client]")
+    run_in_prod_only do
+      system("knife node create #{node.name} --defaults -d")
+      system("knife node run_list add #{params[:name]} role[deployer-client]")
+    end
     render api_show :node, Node, n.id.to_s, nil, n
   end
   
@@ -220,6 +224,30 @@ class NodesController < ApplicationController
     end
     @network.sort
 =end
+  end
+
+private
+
+=begin 
+Find a node by name or ID based on the passed in params
+in: params from request
+=end
+
+  def find_node(params)
+    if p= params[:name]
+      return Node.find_by_name p
+    end
+  
+    if id= params[:id]
+      return Node.find_by_id id
+    end
+  end
+
+=begin   
+Only run the supplied block on production environemnt (typically because it uses chef or somesuch)
+=end  
+  def run_in_prod_only(&block)
+    yield if Rails.env.production?
   end
 
 end

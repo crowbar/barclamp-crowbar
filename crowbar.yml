@@ -31,6 +31,7 @@ barclamp:
     - redhat-6.2
     - centos-6.2
     - opensuse-12.2
+    - fedora-18
 
 crowbar:
   layout: 2.0
@@ -159,6 +160,13 @@ rpms:
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly
+      - yum-plugin-priorities
+      - createrepo
+      - libxml2-devel
+      - zlib-devel
+  fedora-18:
+    build_pkgs:
+      - libcurl-devel
       - yum-plugin-priorities
       - createrepo
       - libxml2-devel

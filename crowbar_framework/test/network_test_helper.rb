@@ -165,15 +165,18 @@ class NetworkTestHelper
 
 
   def self.create_a_barclamp()
-    barclamp = BarclampNetwork::Barclamp.new(:name => "default")
-    barclamp.save!
+    barclamp = BarclampNetwork::Barclamp.find_key(BarclampNetwork::Barclamp::BARCLAMP_NAME)
+    if barclamp.nil?
+      barclamp = BarclampNetwork::Barclamp.new(:name => BarclampNetwork::Barclamp::BARCLAMP_NAME)
+      barclamp.save!
 
-    snapshot = Snapshot.new()
-    snapshot.barclamp = barclamp
-    snapshot.save!
+      snapshot = Snapshot.new()
+      snapshot.barclamp = barclamp
+      snapshot.save!
 
-    barclamp.template = snapshot
-    barclamp.save!
+      barclamp.template = snapshot
+      barclamp.save!
+    end
     barclamp
   end
 end

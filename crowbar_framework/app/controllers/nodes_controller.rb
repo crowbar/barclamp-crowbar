@@ -74,8 +74,7 @@ class NodesController < ApplicationController
   def destroy
     n = find_node(params)    
     run_in_prod_only do
-      system("knife node delete -y #{node.name}")
-      system("knife client delete -y #{node.name}")
+      Jig.delete_node(n)
     end unless n.nil?
     render api_delete Node
   end
@@ -83,13 +82,12 @@ class NodesController < ApplicationController
   # RESTfule POST of the node resource
   def create
     n = Node.create params
-    #Jig.all.each {|j| j.create_node(n)}
-
+  
     # DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
     # All nodes need to have the deployer-client present.
     run_in_prod_only do
-      system("knife node create #{node.name} --defaults -d")
-      system("knife node run_list add #{params[:name]} role[deployer-client]")
+      Jig.create_node(n)
+      system("knife node run_list add #{n.name} role[deployer-client]")
     end
     render api_show :node, Node, n.id.to_s, nil, n
   end

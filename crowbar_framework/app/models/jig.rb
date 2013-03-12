@@ -92,7 +92,8 @@ Start the process of instantiating a deployment into the environemt.
 Expecting the deployment to be "static" - i.e. not actively being modified.
 =end
   def self.commit_proposal(deployment)
-    deployment.commit
+    
+    prepare_proposal(deployment)
     # update the status of the deployment to committed 
 
      # function role - created during barclamp import.

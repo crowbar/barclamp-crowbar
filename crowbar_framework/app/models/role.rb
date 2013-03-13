@@ -19,7 +19,8 @@ class Role < ActiveRecord::Base
   attr_accessible :id, :description, :order, :run_order, :states
   attr_accessible :snapshot_id, :role_type_id
   
-  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
+  HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
+  HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
 
   validates_uniqueness_of :role_type_id, :scope => :snapshot_id  
   
@@ -32,6 +33,9 @@ class Role < ActiveRecord::Base
   has_many        :role_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NULL'
   has_many        :node_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NOT NULL'
   has_many        :attrib_types,      :through => :attribs
+
+  has_many        :attrib_has_deployments, :class_name => HAS_DEPLOYMENT, :foreign_key => :role_id
+  has_many        :prerequisites,     :source => :deployment, :through => :attrib_has_deployments, :foreign_key=>:id_actual
 
   has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id
   has_many        :nodes,             :through => :attrib_has_nodes
@@ -56,6 +60,27 @@ class Role < ActiveRecord::Base
       Attrib.find_by_attrib_type_id_and_role_id! a.id, self.id
     rescue
       Attrib::DEFAULT_CLASS.create :attrib_type_id => a.id, :role_id => self.id
+    end
+  end
+
+  # links role to a barclamp it depends on
+  # will create a default deployment if none exists
+  def require_deployment(barclamp_name, deployment_name=Barclamp::DEFAULT_DEPLOYMENT_NAME, role_type=nil)
+    bc = Barclamp.find_by_name barclamp_name
+    deployment = Deployment.find_by_barclamp_id_and_name bc.id, deployment_name
+    # if we did not find a deployment, then we have to create one
+    if deployment.nil?
+      # cannot create barclamps if we are a singleton and already have one
+      deployment = if bc.allow_multiple_deployments or bc.deployments.count == 0
+        bc.create_proposal deployment_name
+      else
+        bc.deployments.first
+      end
+    end
+    if deployment
+      HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
+                                                             :id_actual   => deployment.read_attribute(:id),
+                                                             :value_actual=> role_type
     end
   end
   

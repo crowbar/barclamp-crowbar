@@ -147,7 +147,7 @@ class Barclamp < ActiveRecord::Base
 
   # Expected Override function
   # this processes the actions needed when a deployment is commited
-  def commit
+  def commit_deployment(deployment)
     
     # do nothing for now
     

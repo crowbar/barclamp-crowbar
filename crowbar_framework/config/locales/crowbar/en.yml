@@ -102,9 +102,10 @@ en:
     details_by: updated by
     
   # General Proposal components
-  deployment:
+  deployments:
     show:
       title: "%{barclamp} %{deployment} deployment"
+      prereqs: Prerequisites
       deployment: Nodes
       attributes: Attributes
       role: "%{role} role"

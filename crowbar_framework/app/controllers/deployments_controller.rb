@@ -20,7 +20,18 @@ class DeploymentsController < ApplicationController
   end
 
   def show
-    render api_show :deployment, Deployment
+    respond_to do |format|
+      format.html { 
+                    @barclamp = Barclamp.find_key params[:barclamp]
+                    id = params[:id]
+                    @deployment = if id =~ /^[0-9]+$/
+                      Deployment.find id.to_i
+                    else
+                      Deployment.find_by_barclamp_id_and_name @barclamp.id, id
+                    end
+      } # show.html.erb
+      format.json { render api_show :deployment, Deployment }
+    end
   end
   
   def create

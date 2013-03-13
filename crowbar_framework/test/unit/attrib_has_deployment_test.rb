@@ -62,38 +62,40 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
   
   test "deployment is created if missing" do
     t = Barclamp.find_by_name 'test'
-    assert 0, t.deployments 
+    assert_equal 0, t.deployments.count
     attrib = @role.require_deployment 'test', 'foo'
-    assert 1, t.deployments
+    assert_equal 1, t.deployments(true).count
     assert_equal 'foo', t.deployments.first.name
   end
 
   test "deployment finds first if none given and only 1 allowed" do
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = false
-    t.create_deployment 'bar'
-    assert 1, t.deployments 
+    t.save
+    t.create_deployment
+    assert_equal 1, t.deployments.count
     attrib = @role.require_deployment 'test'
-    assert 1, t.deployments(true)
+    assert_equal 1, t.deployments(true).count
     assert_equal Barclamp::DEFAULT_DEPLOYMENT_NAME, attrib.deployment.name
   end
 
   test "deployment creates new if none given and multiple allowed" do
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = true
+    t.save
     t.create_deployment
-    assert 1, t.deployments 
+    assert_equal 1, t.deployments.count 
     attrib = @role.require_deployment 'test', 'bar'
-    assert 2, t.deployments(true)
+    assert_equal 2, t.deployments(true).count
     assert_equal 'bar', attrib.deployment.name
   end
   
   test "deployment finds match if given" do
     t = Barclamp.find_by_name 'test'
     t.create_deployment 'bar'
-    assert 1, t.deployments 
+    assert_equal 1, t.deployments.count
     attrib = @role.require_deployment 'test', 'bar'
-    assert 1, t.deployments
+    assert_equal 1, t.deployments(true).count
     assert_equal 'bar', attrib.deployment.name
   end
 

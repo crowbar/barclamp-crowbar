@@ -11,9 +11,18 @@
     %p= role.description
     %table.data.box{:id=> role.id }
       %tr
+        %th= t '.prereqs'
         %th= t '.attributes'
         %th= t '.deployment'
       %tr
+        %td
+          - if role.prerequisites.count == 0 
+            %p= t 'no_items'
+          - else
+            - role.prerequisites.each do |a|
+              %p
+                = "#{a.deployment.name}"
+                = ".#{a.role_type}" unless a.role_type.nil?              
         %td
           - if role.role_attribs.count == 0 
             %p= t 'no_items'

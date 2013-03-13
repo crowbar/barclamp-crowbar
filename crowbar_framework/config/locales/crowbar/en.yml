@@ -253,6 +253,7 @@ en:
         proposal_count: Proposals
       role:
         has_node: "System Assigned Attrib for Role-Node membership"
+        has_deployment: "System Assigned Attrib for Deployment dependencies"
         name: Proposal
         description: Description
         proposal_count: Proposals

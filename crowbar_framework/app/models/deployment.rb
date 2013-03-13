@@ -114,13 +114,18 @@ class Deployment < ActiveRecord::Base
     self.committed
   end
   
+  # This is from the snapshot
+  # TODO: good enough for now, but likely to change
+  def state
+    (active_snapshot.nil? ? 999 : active_snapshot.status)
+  end
+  
   #
   # UI Helper function to return a single string for status
   # XXX: This should really move to an helper module
   #
   def status
-    state = (active_snapshot.nil? ? 999 : active_snapshot.status)
-    case state
+    case self.state
     when 0 
       'missing'
     when 1 

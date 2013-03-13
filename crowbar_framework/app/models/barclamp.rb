@@ -135,6 +135,17 @@ class Barclamp < ActiveRecord::Base
     true
   end
   
+
+  #
+  # This method can be used by barclamps that can only have 1 deployment to
+  # retrieve a handle to the lone deployment, creating it if necessary
+  def create_or_get_deployment(deployment_name=nil)
+    deployment = create_deployment(deployment_name)
+    deployment = deployments[0] if deployment.nil?
+    deployment
+  end
+
+
   #
   # Possible Override function
   #
@@ -154,6 +165,9 @@ class Barclamp < ActiveRecord::Base
   
   # Create deployment creates the bones of the proposal, but not the nodes
   # create proposal can be overridden to put things in nodes
+  #
+  # Note that passing a deployment_name of nil will cause default the
+  # deployment name to I18n.t('default') if a new deployment is created.
   def create_deployment(deployment=nil)
     deployment = {:name=>deployment} if deployment.is_a? String
     deployment ||= { :name => DEFAULT_DEPLOYMENT_NAME}

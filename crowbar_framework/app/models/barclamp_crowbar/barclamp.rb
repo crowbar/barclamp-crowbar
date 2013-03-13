@@ -19,17 +19,20 @@ class BarclampCrowbar::Barclamp < Barclamp
   def create_proposal(name=nil)
     
     # create the jobs that you need heere!!
-    self.members.each do |bc|
-      if bc.deployments.count == 0
-        bc.create_proposal name
-      end
-    end
-
+    
+    # WIP by Rob H
+    #self.members.each do |bc|
+    #  if bc.deployments.count == 0
+    #    bc.create_proposal name
+    #  end
+    #end
+    super name
+    
   end
 
   # called when a deployment is committed
   # creates jobs needed for the commit
-  def commit(deployment)
+  def commit_deployment(deployment)
     
     # create the jobs that you need here!!
     self.members.each do |bc|
@@ -56,7 +59,7 @@ class BarclampCrowbar::Barclamp < Barclamp
       end
     end
 
-    super.transition snapshot, node, state, role_type_name
+    super snapshot, node, state, role_type_name
 
   end
 

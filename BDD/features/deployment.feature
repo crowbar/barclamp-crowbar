@@ -52,5 +52,5 @@ Feature: Deployments
     When I click on the "default" link
     Then I should see a heading "Crowbar default deployment"
       And I should see a heading "crowbar role"
-      And I should see {bdd:crowbar.i18n.deployment.show.deployment}
-      And I should see {bdd:crowbar.i18n.deployment.show.attributes}
+      And I should see {bdd:crowbar.i18n.deployments.show.deployment}
+      And I should see {bdd:crowbar.i18n.deployments.show.attributes}

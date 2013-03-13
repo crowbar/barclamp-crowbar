@@ -350,7 +350,7 @@ class Barclamp < ActiveRecord::Base
                                   :copyright   => bc['barclamp']['copyright'] || "Dell, Inc 2013",
                                   :source_path => source_path,
                                   :user_managed=> um || true,
-                                  :allow_multiple_proposals => amp || false,
+                                  :allow_multiple_deployments => amp || false,
                                   :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
                                   :layout      => bc['crowbar']['layout'] || 2,
                                   :order       => bc['crowbar']['order'] || 0,

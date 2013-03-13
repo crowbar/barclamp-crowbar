@@ -135,6 +135,17 @@ class Barclamp < ActiveRecord::Base
     true
   end
   
+
+  #
+  # This method can be used by barclamps that can only have 1 deployment to
+  # retrieve a handle to the lone deployment, creating it if necessary
+  def create_or_get_deployment(deployment_name=nil)
+    deployment = create_deployment(deployment_name)
+    deployment = deployments[0] if deployment.nil?
+    deployment
+  end
+
+
   #
   # Possible Override function
   #

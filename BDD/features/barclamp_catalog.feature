@@ -13,10 +13,20 @@ Feature: Barclamp Catalog
     Then key "api_version" should be "v2"
     And  key "name" should be "dns"
 
+  Scenario: Fetch NTP Barclamp Catalog
+    When REST requests the "/ntp/v2/barclamps/catalog" page
+    Then key "api_version" should be "v2"
+    And  key "name" should be "ntp"
+
   Scenario: Fetch Ipmi Barclamp Catalog
     When REST requests the "/ipmi/v2/barclamps/catalog" page
     Then key "api_version" should be "v2"
     And  key "name" should be "ipmi"
+
+  Scenario: Fetch test Barclamp Catalog
+    When REST requests the "/test/v2/barclamps/catalog" page
+    Then key "api_version" should be "v2"
+    And  key "name" should be "test"
 
   Scenario: %Fetch Chef Barclamp Catalog
     When REST requests the "/chef/v2/barclamps/catalog" page

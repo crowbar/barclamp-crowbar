@@ -37,7 +37,7 @@ case "$1" in
             # (outdated file can cause problems after any of the required
             # rubygems were updated)
             rm -f $GEMFILE_LOCK
-            (cd /opt/dell/crowbar_framework; bundle install --local --quiet)
+            (cd /opt/dell/crowbar_framework; su -s /bin/bash -c "bundle install --local --quiet" crowbar)
         fi
         bluepill load $BLUEPILL_CONFIG
         ;;

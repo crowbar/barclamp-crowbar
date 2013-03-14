@@ -32,7 +32,6 @@ class DocsController < ApplicationController
     end
     respond_to do |format|
       format.html # index.html.haml
-      format.xml  { render :xml => @root.children }
       format.json { render :json => @root.children }
     end
   end  

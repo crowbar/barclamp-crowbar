@@ -62,9 +62,9 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
   
   test "deployment is created if missing" do
     t = Barclamp.find_by_name 'test'
-    assert 0, t.deployments 
+    assert_equal 0, t.deployments.size
     attrib = @role.require_deployment 'test', 'foo'
-    assert 1, t.deployments
+    assert_equal 1, t.deployments.size
     assert_equal 'foo', t.deployments.first.name
   end
 
@@ -72,9 +72,9 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = false
     t.create_deployment 'bar'
-    assert 1, t.deployments 
+    assert_equal 1, t.deployments.size
     attrib = @role.require_deployment 'test'
-    assert 1, t.deployments(true)
+    assert_equal 1, t.deployments(true).size
     assert_equal Barclamp::DEFAULT_DEPLOYMENT_NAME, attrib.deployment.name
   end
 
@@ -82,18 +82,18 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = true
     t.create_deployment
-    assert 1, t.deployments 
+    assert_equal 1, t.deployments.size
     attrib = @role.require_deployment 'test', 'bar'
-    assert 2, t.deployments(true)
+    assert_equal 2, t.deployments(true).size
     assert_equal 'bar', attrib.deployment.name
   end
   
   test "deployment finds match if given" do
     t = Barclamp.find_by_name 'test'
     t.create_deployment 'bar'
-    assert 1, t.deployments 
+    assert_equal 1, t.deployments.size
     attrib = @role.require_deployment 'test', 'bar'
-    assert 1, t.deployments
+    assert_equal 1, t.deployments.size
     assert_equal 'bar', attrib.deployment.name
   end
 

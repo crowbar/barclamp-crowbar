@@ -13,9 +13,6 @@
 # limitations under the License. 
 # 
 
-require 'chef'
-require 'json'
-
 #
 # ServiceObject is the base object for all Barclamp service objects.
 # It provides the basic barclamp operations that can be overriden by

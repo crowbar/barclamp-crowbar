@@ -16,11 +16,12 @@
         %th= t '.deployment'
       %tr
         %td
-          - if role.prerequisites.count == 0 
+          - if role.attrib_has_deployments.count == 0 
             %p= t 'no_items'
           - else
-            - role.prerequisites.each do |a|
+            - role.attrib_has_deployments.each do |a|
               %p
+                = "#{a.deployment.barclamp.display}"
                 = "#{a.deployment.name}"
                 = ".#{a.role_type}" unless a.role_type.nil?              
         %td
@@ -28,7 +29,7 @@
             %p= t 'no_items'
           - else
             - role.role_attribs.each do |a|
-              %p= "#{a.name} = #{a.value}"          
+              %p= "#{a.name} = #{a.value}" unless a.is_a? BarclampCrowbar::AttribHasDeployment
         %td
           - if role.nodes.count == 0 
             %p= t 'no_items'

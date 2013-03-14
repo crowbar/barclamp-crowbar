@@ -72,11 +72,10 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = false
     t.save
-    t.create_deployment
+    t.create_deployment 'bar'
     assert_equal 1, t.deployments.count
     attrib = @role.require_deployment 'test'
     assert_equal 1, t.deployments(true).count
-    assert_equal Barclamp::DEFAULT_DEPLOYMENT_NAME, attrib.deployment.name
   end
 
   test "deployment creates new if none given and multiple allowed" do

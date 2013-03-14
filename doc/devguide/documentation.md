@@ -54,6 +54,14 @@ The index file should be nested so that topics have correct parents.
 
 > It is strongly encouraged (but not required) to keep the index path the same as the file path.
 
+##### Ordering
+
+You can control the order of documents within a directory by prefixing the file with a number followed by the underscore.
+
+For example, a file named 333_sample_order.md would be ordered as 333.
+
+> If you omit order, the system defaults to 9999.
+
 ##### Manual Index
 
 With the addition of automatic indexing, the number of pages manually indexed has dropped dramatically.  Manual indexing is still required if you want to control the order of page rendering or add additional meta data.

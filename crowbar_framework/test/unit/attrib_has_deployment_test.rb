@@ -64,18 +64,19 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
     t = Barclamp.find_by_name 'test'
     assert_equal 0, t.deployments.size
     attrib = @role.require_deployment 'test', 'foo'
-    assert_equal 1, t.deployments.size
+    assert_equal 1, t.deployments(true).size
     assert_equal 'foo', t.deployments.first.name
   end
 
   test "deployment finds first if none given and only 1 allowed" do
     t = Barclamp.find_by_name 'test'
     t.allow_multiple_deployments = false
+    t.save
     t.create_deployment 'bar'
     assert_equal 1, t.deployments.size
     attrib = @role.require_deployment 'test'
     assert_equal 1, t.deployments(true).size
-    assert_equal Barclamp::DEFAULT_DEPLOYMENT_NAME, attrib.deployment.name
+    assert_equal 'bar', attrib.deployment.name
   end
 
   test "deployment creates new if none given and multiple allowed" do

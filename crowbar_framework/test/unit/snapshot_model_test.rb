@@ -57,5 +57,12 @@ class SnapshotModelTest < ActiveSupport::TestCase
     assert_not_equal ri2.id, clone.roles.second.id
   end
   
+  test "method missing for roles" do
+    b = Barclamp.import 'test'
+    snap = b.template
+    assert_equal "test", snap.test_role.name
+    assert_equal "private", snap.private_role.name
+  end
+  
 end
 

@@ -18,15 +18,12 @@ class BarclampCrowbar::Barclamp < Barclamp
 
   def create_proposal(name=nil)
     
-    # create the jobs that you need heere!!
+    deployment = super name
     
-    # WIP by Rob H
-    #self.members.each do |bc|
-    #  if bc.deployments.count == 0
-    #    bc.create_proposal name
-    #  end
-    #end
-    super name
+    # add links for the dependenant barclamps
+    self.members.each do |bc|
+      deployment.crowbar_role.require_deployment bc.name, deployment.name
+    end
     
   end
 

@@ -24,7 +24,7 @@ Your barclamp should now appear in the Crowbar UI. You can also see it in Chef u
 
 While barclamps are generally safe to install multiple times, you can uninstall a barclamp using: 	
 	
-		“barclamp_uninstall.rb /path/to/barclamp”.
+		barclamp_uninstall.rb /path/to/barclamp.
 
 ###More Information###
 Information on how to develop your own barclamp is available in the Developers Guide. If you are interested in creating, extending or contributing barclamps, please use one of the following contact methods.

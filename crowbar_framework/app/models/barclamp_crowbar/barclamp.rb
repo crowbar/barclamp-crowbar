@@ -34,11 +34,6 @@ class BarclampCrowbar::Barclamp < Barclamp
   def commit_deployment(deployment)
     
     # create the jobs that you need here!!
-    self.members.each do |bc|
-      if bc.deployments.count == 0
-        bc.create_deployment Barclamp::DEFAULT_DEPLOYMENT_NAME
-      end
-    end
         
   end
   

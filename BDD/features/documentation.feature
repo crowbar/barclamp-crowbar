@@ -25,7 +25,7 @@ Feature: Documentation
   Scenario: Doc Sub Topic
     Given parameter "rebuild" is "false"
     Given I am on the "docs/topic/framework/userguide" page with parameter "rebuild"
-    When I click on the "Introduction#" link
+    When I click on the "Introduction" link
     Then I should see heading "Introduction"
       And I should see heading "Navigation"
       And I should see "Master Index"

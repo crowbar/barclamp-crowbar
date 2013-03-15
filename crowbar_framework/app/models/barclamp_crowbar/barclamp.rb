@@ -22,9 +22,10 @@ class BarclampCrowbar::Barclamp < Barclamp
     deployment ||= deployments.first
     
     # add links for the dependenant barclamps
-    self.members.each do |bc|
-      deployment.proposal.crowbar_role.require_deployment bc.name, deployment.name
-    end
+#    requires = ['deployer', 'provisioner', 'network', 'ipmi', 'dhcp', 'ntp']
+#    requires.each do |bc|
+#      deployment.proposal.crowbar_role.require_deployment bc, deployment.name
+#    end
     
   end
 

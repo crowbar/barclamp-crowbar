@@ -21,10 +21,8 @@ fi
 case $OS in
     ubuntu)
         dpkg -l crowbar-barclamp-crowbar &>/dev/null || \
-        apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim
-        gem install bundler;;
-    redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++
-        gem install tilt puma bundler;;
+        apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim;;
+    redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++;;
 esac
 
 if ! grep -q '^crowbar:' /etc/passwd; then
@@ -34,56 +32,13 @@ if ! grep -q '^crowbar:' /etc/passwd; then
         crowbar
 fi
 
-if ! grep -q crowbar /etc/sudoers; then
-    chmod u+w /etc/sudoers
-    echo 'crowbar ALL=(ALL:ALL) NOPASSWD: ALL' >>/etc/sudoers
-    chmod u-w /etc/sudoers
-fi
-    
-
-# FIXME: This should be part of the crowbar-barclamp-crowbar
-# package
-mkdir -p /var/run/crowbar/
-chmod 0700 /var/run/crowbar
-
-# Fix up /etc/environment
-if ! grep -q '/opt/dell/bin' /etc/environment; then
-    export PATH="$PATH:/opt/dell/bin"
-    sed -i -e "/^PATH/ s@\"\(.*\)\"@\"$PATH\"@" /etc/environment 
-fi
-
-# make sure RAILS_ENV is set to production
-if ! grep -q 'RAILS_ENV' /etc/environment; then
-    echo "export RAILS_ENV=production" >> /etc/environment
-fi
-
-# Make our /etc/profile/crowbar.sh
-if [[ ! -f /etc/profile.d/crowbar.sh ]]; then
-    mkdir -p /etc/profile.d
-    cat > /etc/profile.d/crowbar.sh <<EOF
-# Make sure that CROWBAR_KEY is in the environment
-if [ -f /etc/crowbar.install.key ] ; then
-    export CROWBAR_KEY=\$(cat /etc/crowbar.install.key)
-fi
-EOF
-fi
 cd /opt/dell/crowbar_framework
-
-for d in /var/run/crowbar /opt/dell/crowbar_framework; do
-    chown -R crowbar:crowbar "$d"
-done
-
-BUNDLE_INSTALL_ARGS="--path vendor/bundle"
-if [[ $OS = suse ]]; then
-    BUNDLE_INSTALL_ARGS="--local"
-fi
 export RAILS_ENV=production
 tasks=("rake assets:precompile"
     "rake railties:install:migrations"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
-bundle install $BUNDLE_INSTALL_ARGS
 for task in "${tasks[@]}"; do
     su -s /bin/bash -c "bundle exec $task" crowbar && continue
     echo "Task $task failed." >&2

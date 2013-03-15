@@ -1,0 +1,17 @@
+#!/bin/bash
+## only do this on real installs.
+[[  -d /tftpboot/ubuntu_dvd/dell/Version || \
+    -d /tftpboot/redhat_dvd/dell/Version || \
+    -d /opt/dell/barclamps/crowbar ]] || \
+    { echo "Not an admin node, not creating machine key"; exit 0; }
+
+if [[ ! -e /etc/crowbar.install.key ]]; then
+    read key rest < <(dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null)
+    echo "Creating machine-install user"
+    if ! /opt/dell/bin/crowbar users create machine-install \
+        "root@$(hostname --fqdn)" "$key" "$key" false false true; then
+        echo "Could not create machine-install user!"
+        exit 1
+    fi
+    echo "machine-install:$key" >/etc/crowbar.install.key
+fi

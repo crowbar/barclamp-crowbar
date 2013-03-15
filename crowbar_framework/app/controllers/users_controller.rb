@@ -145,6 +145,9 @@ class UsersController < ApplicationController
  add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
  def create
     respond_with(@user = populate_user)  do |format|
+     if params[:digest] && params[:digest] == true
+       @user.digest_password(params[:password])
+     end
       format.html do
         check_password
         if @user.save

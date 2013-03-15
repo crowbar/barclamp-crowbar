@@ -23,7 +23,7 @@ USERS_PATH = "api/v2/users"
 
 @commands["list"] = [ "list()", "list - Show a list of current users" ]
 @commands["show"] = [ "show(ARGV.shift)", "show <id_or_username> - Show a specific user" ]
-@commands["create"] = [ "create(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "create <username> <email> <password> <password_confirmation> <remember_me> <is_admin> - Create a user" ]
+@commands["create"] = [ "create(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "create <username> <email> <password> <password_confirmation> <remember_me> <is_admin> <digest> - Create a user" ]
 @commands["update"] = [ "update(ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift,ARGV.shift)", "update <id_or_username> <username> <email> <remember_me> <is_admin> - Update a user" ]
 @commands["delete"] = [ "delete(ARGV.shift)", "delete <id_or_username> - Delete a user" ]
 @commands["make_admin"] = [ "make_admin(ARGV.shift)", "make_admin <id_or_username> - Make user admin" ]
@@ -58,16 +58,15 @@ def show(id_or_username)
   end
 end
 
-def create(username,email,password,password_confirmation,remember_me,is_admin)
+def create(username,email,password,password_confirmation,remember_me="false",is_admin="false",digest=false)
   usage -1 if username.nil? or username == ""
   usage -1 if email.nil? or email == ""
   usage -1 if password.nil? or password == ""
   usage -1 if password_confirmation.nil? or password_confirmation == ""
-  usage -1 if remember_me.nil? or remember_me == ""
-  usage -1 if is_admin.nil? or is_admin == ""
   
   remember_me = (remember_me.nil?) ? false : remember_me
   is_admin = (is_admin.nil?) ? false : is_admin
+  digest = !!digest
  
   @data = {
       "username" => username,
@@ -75,7 +74,8 @@ def create(username,email,password,password_confirmation,remember_me,is_admin)
       "password" => password,
       "password_confirmation" => password_confirmation,
       "remember_me" => remember_me,
-      "is_admin" => is_admin
+      "is_admin" => is_admin,
+      "digest" => digest
     }.to_json
   struct = post_json2(USERS_PATH, @data)
 

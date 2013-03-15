@@ -107,6 +107,26 @@ class Barclamp < ActiveRecord::Base
     
   end
   
+  # this is a convenience method because we always seem to want to default proposals
+  def default_proposal
+    deploy = default_deployment(true)
+    deploy.proposal || deploy.create_proposal
+  end
+  
+  # this is a convenience method because we always seem to want to default deployment
+  def default_deployment(create_if_missing=true)
+    deploys = self.deployments
+    case deploys.size
+    when 0
+      self.create_proposal
+    when 1
+      deploys.first
+    else
+      d = deploys.select { |d| d.name.eql? DEFAULT_DEPLOYMENT_NAME }
+      (d.size>0 ? d.first : deploys.first)
+    end
+  end
+  
   # 
   # Barclamps are responsible to creating the attributes that they will manage
   # INPUTS: 

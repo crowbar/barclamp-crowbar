@@ -132,7 +132,7 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
       # create a JigEvent for each unique jig execution that needs to be performed
       # on each node. Events are tied in dependency list (to allow subsequent events)
       # to be fired when their dependencies complete.      
-      roles = new_deployment.proposal.role_order # nested array representing role ordering (to level array - order, inner - parallel)
+      roles = new_deployment.committed_snapshot.role_order # nested array representing role ordering (to level array - order, inner - parallel)
       logger.debug("Role elemenets, #{roles}")
       order = 1
       roles.each { |r_list|             

@@ -118,7 +118,8 @@ Crowbar::Application.routes.draw do
           get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
           get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
         end
-        scope ':version' do
+   scope ':version' do
+    get "nodes(/:id)/status", :controller => "nodes", :action=>"status"
 	  resources :nodes do
 	    resources :attribs
 	    resources :groups

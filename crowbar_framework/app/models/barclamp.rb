@@ -16,7 +16,7 @@
 class Barclamp < ActiveRecord::Base
 
   silence_warnings do
-    DEFAULT_DEPLOYMENT_NAME = I18n.t('default', :default=>'default')
+    DEFAULT_DEPLOYMENT_NAME = I18n.t('default', :default=>'Default')
   end
 
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path

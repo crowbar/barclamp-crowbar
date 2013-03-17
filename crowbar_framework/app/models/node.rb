@@ -119,7 +119,7 @@ class Node < ActiveRecord::Base
   # this mechanism requires that nodes are members of the Crowbar.crowbar role
   def state_attrib
     # TODO this needs to be optimized to eliminate all the lookups
-    cb_role = Barclamp.find_by_name('crowbar').deployments.first.proposal.private_roles.first
+    cb_role = Barclamp.find_by_name('crowbar').default_proposal.private_roles.first
     BarclampCrowbar::AttribHasNode.find_or_create_by_node_id_and_role_id self.id, cb_role.id
   end
   #

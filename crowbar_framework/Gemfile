@@ -48,7 +48,8 @@ gem 'simplecov', :platforms => :ruby_19, :group => :test, :require => false
 gem 'coveralls', :platforms => :ruby_19, :group => :test, :require => false
 
 #gem "chefspec", :group => [:development, :test]
-gem "rspec-rails", "~> 2.11.4", :group => [:development, :test]
+gem 'rspec-rails', :group => [:development, :test]
+
 # These to require Ruby 1.9.3
 gem "factory_girl", "<3.0" , :group => [:development, :test]
 gem "factory_girl_rails", "< 3.0" , :group => [:development, :test]

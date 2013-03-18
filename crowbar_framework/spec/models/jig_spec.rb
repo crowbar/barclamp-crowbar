@@ -41,6 +41,7 @@ describe "jig proposal manipulation" do
 
 
     it "should create event and runs" do
+      deployment.commit
       Jig.commit_proposal(deployment)
       JigEvent.all.count.should eql(1)
     end

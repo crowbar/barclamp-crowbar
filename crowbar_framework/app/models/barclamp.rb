@@ -16,7 +16,7 @@
 class Barclamp < ActiveRecord::Base
 
   silence_warnings do
-    DEFAULT_DEPLOYMENT_NAME = I18n.t('default', :default=>'default')
+    DEFAULT_DEPLOYMENT_NAME = I18n.t('default', :default=>'Default')
   end
 
   attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
@@ -105,6 +105,26 @@ class Barclamp < ActiveRecord::Base
       end
     end
     
+  end
+  
+  # this is a convenience method because we always seem to want to default proposals
+  def default_proposal
+    deploy = default_deployment(true)
+    deploy.proposal || deploy.create_proposal
+  end
+  
+  # this is a convenience method because we always seem to want to default deployment
+  def default_deployment(create_if_missing=true)
+    deploys = self.deployments
+    case deploys.size
+    when 0
+      self.create_proposal
+    when 1
+      deploys.first
+    else
+      d = deploys.select { |d| d.name.eql? DEFAULT_DEPLOYMENT_NAME }
+      (d.size>0 ? d.first : deploys.first)
+    end
   end
   
   # 

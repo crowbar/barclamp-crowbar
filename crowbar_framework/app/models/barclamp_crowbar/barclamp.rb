@@ -22,10 +22,16 @@ class BarclampCrowbar::Barclamp < Barclamp
     deployment ||= deployments.first
     
     # add links for the dependenant barclamps
-#    requires = ['deployer', 'provisioner', 'network', 'ipmi', 'dhcp', 'ntp']
-#    requires.each do |bc|
-#      deployment.proposal.crowbar_role.require_deployment bc, deployment.name
-#    end
+    requires = ['deployer', 'provisioner', 'ntp', 'network']
+    requires.each do |bc|
+      if Barclamp.find_by_name bc
+        deployment.proposal.crowbar_role.require_deployment bc, deployment.name
+      else
+        Rails.logger.error "#{self.name} requires barclamp #{bc} but it does not exist in the database"
+      end
+    end
+    
+    return deployment
     
   end
 

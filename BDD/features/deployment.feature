@@ -49,8 +49,8 @@ Feature: Deployments
 
   Scenario: The Deployment page renderse
     Given I am on the "barclamp" page
-    When I click on the "default" link
-    Then I should see a heading "Crowbar default deployment"
+    When I click on the "Default" link
+    Then I should see a heading "Crowbar Default deployment"
       And I should see a heading "crowbar role"
       And I should see {bdd:crowbar.i18n.deployments.show.deployment}
       And I should see {bdd:crowbar.i18n.deployments.show.attributes}

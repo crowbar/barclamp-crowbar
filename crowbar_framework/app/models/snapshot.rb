@@ -112,4 +112,13 @@ class Snapshot < ActiveRecord::Base
     new_snap
   end
 
+  def method_missing(m,*args,&block)
+    if m.to_s =~ /(.*)_role$/
+      role_type = RoleType.find_by_name $1
+      (role_type.nil? ? nil : Role.find_by_role_type_id_and_snapshot_id(role_type.id, self.id))
+    else
+      super m,*args,&block
+    end
+  end
+
 end

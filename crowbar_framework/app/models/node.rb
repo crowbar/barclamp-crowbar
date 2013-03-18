@@ -296,7 +296,7 @@ class Node < ActiveRecord::Base
     if method.starts_with? "attrib_"
       return get_attrib(method[7..100]).value
     else
-      super.method_missing(m,*args,&block)
+      super m,*args,&block
     end
   end
   

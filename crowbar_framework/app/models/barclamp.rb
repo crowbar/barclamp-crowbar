@@ -135,19 +135,26 @@ class Barclamp < ActiveRecord::Base
     true
   end
   
-
   #
   # This method can be used by barclamps that can only have 1 deployment to
   # retrieve a handle to the lone deployment, creating it if necessary
   def create_or_get_deployment(deployment_name=nil)
-    deployment = create_deployment(deployment_name)
-    deployment = deployments[0] if deployment.nil?
+    deployment = create_proposal deployment_name
+    deployment ||= deployments.first
     deployment
   end
 
 
+  # Expected Override function
+  # this processes the actions needed when a deployment is commited
+  def commit_deployment(deployment)
+    
+    # do nothing for now
+    
+  end
+    
   #
-  # Possible Override function
+  # Expected Override function
   #
   # Creates a new deploy from the template object.  
   # Barclamps can override this function to tweak config or add nodes

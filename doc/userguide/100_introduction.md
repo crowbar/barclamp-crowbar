@@ -1,4 +1,4 @@
-#Introduction#
+#Introduction
 This document provides instructions you for operating Crowbar.  Please refer to additional user guide for specific products that are deployed by Crowbar such as OpenStack™, Apache™, or Hadoop™.   
 
 ##Concepts##

@@ -17,6 +17,7 @@ class CreateRoles < ActiveRecord::Migration
     create_table :roles do |t|
       t.belongs_to  :role_type,         :null=>false
       t.belongs_to  :snapshot,          :null=>false
+      t.string      :name,              :null=>true   # TODO this should be false when role_type goes away
       t.string      :description,       :null=>true
       t.integer     :order,             :default => 9999, :null => false
       t.integer     :run_order,         :default => 9999, :null => false
@@ -24,6 +25,7 @@ class CreateRoles < ActiveRecord::Migration
       t.timestamps
     end
     #natural key
+    add_index(:roles, [:snapshot_id, :name], :unique => false) # TODO true when role_type goes away
     add_index(:roles, [:snapshot_id, :role_type_id], :unique => true)   
   end
 end

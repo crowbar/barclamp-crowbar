@@ -16,9 +16,45 @@
 # This class is the fall back class for barclamps that are missing Barclamp subclasses
 class BarclampCrowbar::Barclamp < Barclamp
 
+  def create_proposal(name=nil)
+    
+    deployment = super name
+    deployment ||= deployments.first
+    
+    # add links for the dependenant barclamps
+#    requires = ['deployer', 'provisioner', 'network', 'ipmi', 'dhcp', 'ntp']
+#    requires.each do |bc|
+#      deployment.proposal.crowbar_role.require_deployment bc, deployment.name
+#    end
+    
+  end
+
+  # called when a deployment is committed
+  # creates jobs needed for the commit
+  def commit_deployment(deployment)
+    
+    # create the jobs that you need here!!
+        
+  end
+  
+  # called by the jib when the node changes it's state
+  # creates jobs needed for the state
   def transition(snapshot, node, state, role_type_name=nil)
     Rails.logger.debug "Crowbar transition enter: #{name} to #{state}"
-    super.transition snapshot, node, state, role_type_name
+
+    # for all transitions
+    Snapshot.transaction do
+      case state
+      when 'discovering','testing' 
+        Rails.logger.debug "Crowbar transition: creating new node for #{name} to #{state}"
+        # not sure if this should do anything, place holder ofr now
+      else
+        # nothing
+      end
+    end
+
+    super snapshot, node, state, role_type_name
+
   end
 
 end

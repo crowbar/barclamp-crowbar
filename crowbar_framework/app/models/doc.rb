@@ -168,7 +168,7 @@ class Doc < ActiveRecord::Base
     title = if File.exist? file
       begin
         actual_title = File.open(file, 'r').readline
-        actual_title[/(#*)(.*)/,2].strip       
+        actual_title[/^#+(.*)#*$/,1].strip       
       rescue 
         # if that fails, use the name/path
         name.gsub("/"," ").titleize
@@ -176,9 +176,12 @@ class Doc < ActiveRecord::Base
     else
       name.gsub("/"," ").titleize
     end
+    order = name[/\/([0-9]+)_/,1]
+    order = (props["order"] || "9999") unless order =~ /^[0-9]+$/
+    
     t = Doc.find_or_initialize_by_name(name) 
     t.parent_name = parent
-    t.order = (props["order"] || "9999").to_s.rjust(6,'0') rescue "!error"
+    t.order = order.to_s.rjust(6,'0') rescue "!error"
     t.description = title
     t.author = props["author"]
     t.license = props["license"]

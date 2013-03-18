@@ -14,20 +14,18 @@
 % 
 % 
 -module(deployment).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3, path/1]).
+-export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
 -include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "crowbar/v2/deployments";
+    path -> "api/v2/deployments";
     resource -> "deployments";
     _ -> crowbar:g(Item)
   end.
   
-path(Barclamp) -> eurl:path([Barclamp, "v2", "deployments"]).
-
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) ->
@@ -61,7 +59,7 @@ json(Name, Description, Order) ->
 step(_C, _G, {step_given, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]})  -> step(_C, _G, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]});
 
 step(_, _, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]}) ->
-  Path = path(Barclamp),
+  Path = eurl:path(["api","v2","barclamps",Barclamp,"deployments"]),
   JSON = json(Deployment, g(description), g(order)),
   PutPostResult = eurl:put_post([], Path, JSON, post, all),
   {Code, Result} = PutPostResult,

@@ -84,11 +84,11 @@ Crowbar::Application.routes.draw do
       get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
       scope  'node' do
         get  'list' => "nodes#list"
-	get  'families' => "nodes#families"
-	get  ':id/edit' => "nodes#edit", :as => :edit_node
-	post ':id/edit' => "nodes#update", :as => :update_node
-	put  ':id/update' => 'nodes#update', :as => :update_node
-	get  ':id' => 'nodes#show', :as => 'node'
+        get  'families' => "nodes#families"
+        get  ':id/edit' => "nodes#edit", :as => :edit_node
+        post ':id/edit' => "nodes#update", :as => :update_node
+        put  ':id/update' => 'nodes#update', :as => :update_node
+        get  ':id' => 'nodes#show', :as => 'node'
       end
       scope 'nodes' do
         match 'list' => "nodes#list", :as => :nodes_list
@@ -109,40 +109,40 @@ Crowbar::Application.routes.draw do
   resources :users, :except => :new
 
   # API routes (must be json and must prefix v2)()
-  scope :defaults => {:format=> 'json'} do
+  scope :defaults => {:format => 'json'} do
 
-    constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/ ) do
+    constraints(:id => /([a-zA-Z0-9\-\.\_]*)/, :version => /v[1-9]/) do
 
       # framework resources pattern (not barclamps specific)
       scope 'api' do
         scope 'status' do
-          get "nodes(/:id)" => "nodes#status",  :as=>:nodes_status
-          get "deployments(/:id)" => "deployments#status", :as=>:deployments_status
+          get "nodes(/:id)" => "nodes#status", :as => :nodes_status
+          get "deployments(/:id)" => "deployments#status", :as => :deployments_status
         end
-   scope ':version' do
-    get "nodes(/:id)/status", :controller => "nodes", :action=>"status"
-	  resources :nodes do
-	    resources :attribs
-	    resources :groups
-	    match 'transition'   # these should be limited to put, but being more lax for now
-	    match 'allocate'   # these should be limited to put, but being more lax for now
-	  end
-	  resources :barclamps do
-	    resources :deployments
-	  end
-	  resources :deployments
-	  resources :snapshots
-	  resources :jigs
-	  resources :attrib_types
-	  resources :attribs
-	  resources :role_types
-	  resources :roles
-	  resources :groups do
-	    member do
-	      get 'nodes'
-	    end
-	  end
-	  resources :users do
+        scope ':version' do
+          get "nodes(/:id)/status", :controller => "nodes", :action=>"status"
+          resources :nodes do
+            resources :attribs
+            resources :groups
+            match 'transition' # these should be limited to put, but being more lax for now
+            match 'allocate' # these should be limited to put, but being more lax for now
+          end
+          resources :barclamps do
+            resources :deployments
+          end
+          resources :deployments
+          resources :snapshots
+          resources :jigs
+          resources :attrib_types
+          resources :attribs
+          resources :role_types
+          resources :roles
+          resources :groups do
+            member do
+              get 'nodes'
+            end
+          end
+          resources :users do
             post "admin", :controller => "users", :action => "make_admin"
             delete "admin", :controller => "users", :action => "remove_admin"
             post "lock", :controller => "users", :action => "lock"
@@ -151,10 +151,11 @@ Crowbar::Application.routes.draw do
           end
         end # version
       end # api
+
       # Barclamp resource v2 API Pattern
       scope ':barclamp' do
-	scope ':version' do
-          match "template"                => "barclamps#template"
+        scope ':version' do
+          match "template" => "barclamps#template"
           resources :deployments do
             member do
               put 'commit'
@@ -170,6 +171,7 @@ Crowbar::Application.routes.draw do
           resources :attribs
         end # version scope
       end # barclamp scope
+
     end # id constraints
   end
   root :to => "dashboard#index"

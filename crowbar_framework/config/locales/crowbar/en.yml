@@ -271,6 +271,7 @@ en:
       map_add: "Automatically added by %{name}"
     deployment:
       singlton: "This barclamp does not allow multiple proposals"
+      barclamp_context: "A barclamp context must be specified for deployment creation"
     role:
       added: "Added from #{name}"
       default_create_description: "%{name} Created Role"

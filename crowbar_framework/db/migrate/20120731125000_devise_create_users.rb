@@ -48,7 +48,7 @@ class DeviseCreateUsers < ActiveRecord::Migration
     add_index :users, :unlock_token,         :unique => true
     # add_index :users, :authentication_token, :unique => true
   
-    if Rails.env == 'development'
+    if Rails.env.development? or Rails.env.test?
       u = User.find_or_create_by_username!(:username=>'developer', :password=>'replace!me', :is_admin=>true)
       u.digest_password('Cr0wbar!')
       u.save!

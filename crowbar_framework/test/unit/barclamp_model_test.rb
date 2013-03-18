@@ -103,10 +103,14 @@ class BarclampModelTest < ActiveSupport::TestCase
 
   test "barclamp type from name works" do
     name = "test"
-    # we need to make sure that the barclamp is not in the DB
-    testclass = "Barclamp#{name.camelize}::Barclamp"
     # this will have to be fixed when we merge in the engines code!
-    if File.exist? File.join('app', 'models', "barclamp_#{name}", 'barclamp.rb')
+    namespace = "Barclamp#{name.camelize}"
+    # we need to make sure that the barclamp is not in the DB
+    testclass = "#{namespace}::Barclamp"
+    # these routines look for the namespace & class, 
+    m = Module::const_get(namespace) rescue nil
+    c = m.const_get("Barclamp") rescue nil 
+    if c
       bc = Barclamp.find_by_name name
       assert_not_nil bc
       assert_equal name, bc.name

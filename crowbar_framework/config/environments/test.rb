@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
 # 
-# Author: RobHirschfeld 
-# 
 # Settings specified here will take precedence over those in config/environment.rb
 
 Crowbar::Application.configure do
@@ -51,8 +49,6 @@ config.log_level = :debug
 # This is necessary if your schema can't be completely dumped by the schema dumper,
 # like if you have constraints or database-specific column types
 # config.active_record.schema_format = :sql
-
-DISABLE_CHEF=true
 
 Rails.logger = Logger.new("#{Rails.root}/log/test.log")
 

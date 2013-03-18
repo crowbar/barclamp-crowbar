@@ -1,0 +1,162 @@
+#!/usr/bin/env ruby
+# Copyright 2011, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
+@barclamp = "crowbar"
+
+NODES_PATH = "api/v2/nodes"
+
+@commands = {
+  "list" => [ "list", "list - show a list of nodes" ],
+  "list_status" => [ "list_status", "list_status - show a list of nodes and their status" ],
+  "show" => [ "show ARGV.shift, ARGV.shift", "show <name> [arg] - show a specific node" ],
+  "show_status" => [ "show_status ARGV.shift", "show_status <name> - show a specific node status" ],
+}
+
+=begin
+  "create" => [ "create ARGV.shift", "create <name> - create a specific node" ],
+  "edit" => [ "edit ARGV.shift", "edit <name> - edit a new node" ],
+  "delete" => [ "delete ARGV.shift", "delete <name> - delete a node" ],
+  "reboot" => [ "action \"reboot\", ARGV.shift", "reboot <name> - reboot a node" ],
+  "shutdown" => [ "action \"shutdown\", ARGV.shift", "shutdown <name> - shutdown a node" ],
+  "poweron" => [ "action \"poweron\", ARGV.shift", "poweron <name> - poweron a node" ],
+  "identify" => [ "action \"identify\", ARGV.shift", "identify <name> - identify a node" ],
+  "allocate" => [ "action \"allocate\", ARGV.shift", "allocate <name> - allocate a node" ],
+  "reset" => [ "action \"reset\", ARGV.shift", "reset <name> - reset a node" ],
+  "reinstall" => [ "action \"reinstall\", ARGV.shift", "reinstall <name> - reinstall a node" ],
+  "update" => [ "action \"update\", ARGV.shift", "update <name> - update a node (hardware only)" ] 
+=end
+
+def list
+  struct = get_json2(NODES_PATH)
+  if struct[1] != 200
+    [ "Failed to talk to service node list: #{struct[1]}: #{struct[0]}", 1 ]
+  elsif struct[0].nil? or struct[0].empty?
+    [ "No current nodes", 0 ]
+  else
+    [ JSON.pretty_generate(struct[0]), 0]
+  end
+end
+
+
+def list_status
+  struct = get_json2(NODES_PATH+"/status")
+
+  if struct[1] != 200
+    [ "Failed to talk to service node list_status: #{struct[1]}: #{struct[0]}", 1 ]
+  elsif struct[0].nil? or struct[0].empty?
+    [ "No current nodes to report status on", 0 ]
+  else
+    [ JSON.pretty_generate(struct[0]), 0]
+  end
+end
+
+def show(name_or_id, field = nil)
+  usage -1 if name_or_id.nil? or name_or_id == ""
+
+  struct = get_json2(NODES_PATH + "/" + name_or_id)
+
+  if struct[1] == 200
+    if field.nil?
+      [ "#{JSON.pretty_generate(struct[0])}", 0 ]
+    else
+      data = struct[0]
+      fields = field.split(".")
+      fields.each { |x| data = data[x] }
+
+      [ "#{JSON.pretty_generate(data)}", 0 ]
+    end
+  elsif struct[1] == 404
+    [ "No current configuration for #{name_or_id}", 1 ]
+  else
+    [ "Failed to talk to service show: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+
+def show_status(name_or_id)
+  usage -1 if name_or_id.nil? or name_or_id == ""
+  struct = get_json2(NODES_PATH + "/"+ name_or_id + "/status")
+
+  if struct[1] == 200
+      [ "#{JSON.pretty_generate(struct[0])}", 0 ]
+  elsif struct[1] == 404
+    [ "No current status for #{name_or_id}", 1 ]
+  else
+    [ "Failed to talk to service show_status: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+
+=begin
+def create(name)
+  usage -1 if name.nil? or name == ""
+
+  @data = "{\"name\":\"#{name}\"}" if @data.nil? or @data == ""
+
+  struct = put_json("/", @data)
+
+  if struct[1] == 200
+    [ "Created #{name}", 0 ]
+  else
+    [ "Failed to talk to service create: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+
+def edit(name)
+  usage -1 if name.nil? or name == ""
+
+  struct = post_json("/#{name}", @data)
+
+  if struct[1] == 200
+    [ "Edited #{name}", 0 ]
+  elsif struct[1] == 404
+    [ "Failed to edit: #{name} : Not Found", 1 ]
+  elsif struct[1] == 400
+    [ "Failed to edit: #{name} : Errors in data\n#{struct[0]}", 1 ]
+  else
+    [ "Failed to talk to service edit: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+
+def delete(name)
+  usage -1 if name.nil? or name == ""
+ 
+  struct = delete_json("?name=#{name}")
+
+  if struct[1] == 200
+    [ "Deleted #{name}", 0 ]
+  elsif struct[1] == 404
+    [ "Delete failed for #{name}: Not Found", 1 ] 
+  else
+    [ "Failed to talk to service delete: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+
+def action(aaa, name)
+  usage -1 if name.nil? or name == ""
+
+  @data = "{\"name\":\"#{name}\"}" if @data.nil? or @data == ""
+
+  struct = post_json("/#{aaa}/0", @data)
+
+  if struct[1] == 200
+    [ "#{aaa} #{name}", 0 ]
+  else
+    [ "Failed to talk to service #{aaa}: #{struct[1]}: #{struct[0]}", 1 ]
+  end
+end
+=end
+main
+

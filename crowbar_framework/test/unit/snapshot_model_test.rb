@@ -43,8 +43,8 @@ class SnapshotModelTest < ActiveSupport::TestCase
     bi = Snapshot.create :name=>"deep_clone", :status => Snapshot::STATUS_APPLIED, :barclamp_id => b.id 
     r1 = RoleType.create :name=>"something"
     r2 = RoleType.create :name=>"anotherthing"
-    ri1 = Role.create :role_type_id => r1.id, :snapshot_id=>bi.id, :order=>100
-    ri2 = Role.create :role_type_id => r2.id, :snapshot_id=>bi.id, :order=>200
+    ri1 = Role.create :name=>"something", :role_type_id => r1.id, :snapshot_id=>bi.id, :order=>100
+    ri2 = Role.create :name=>"anotherthing", :role_type_id => r2.id, :snapshot_id=>bi.id, :order=>200
     assert_equal 2, bi.roles(true).count
     clone = bi.deep_clone nil, 'new_me'
     assert_not_nil clone
@@ -58,7 +58,7 @@ class SnapshotModelTest < ActiveSupport::TestCase
   end
   
   test "method missing for roles" do
-    b = Barclamp.import 'test'
+    b = Barclamp.find_by_name 'test'
     snap = b.template
     assert_equal "test", snap.test_role.name
     assert_equal "private", snap.private_role.name

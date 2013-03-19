@@ -42,7 +42,7 @@ class CreateNavs < ActiveRecord::Migration
 
     # utils
     Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>6000
-      Nav.find_or_create_by_item :item=>'util_import', :parent_item=>'utils', :name=>'nav.util_import', :description=>'nav.util_import_description', :path=>"utils_import_path", :order=>100, :development=>true
+      Nav.find_or_create_by_item :item=>'util_import', :parent_item=>'utils', :name=>'nav.util_import', :description=>'nav.util_import_description', :path=>"utils_import_path", :order=>100
       Nav.find_or_create_by_item :item=>'util_index', :parent_item=>'utils', :name=>'nav.util_logs', :description=>'nav.util_logs_description', :path=>"utils_path", :order=>200
 
     # help

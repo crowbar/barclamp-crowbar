@@ -54,10 +54,13 @@ class Snapshot < ActiveRecord::Base
  
   # Add a role to a snapshot by creating the needed Role
   # Returns a Role (not a role_type)
-  def add_role(role_type)
-    role_type = RoleType.add role_type, self.name
-    ri = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id 
-    ri ||= Role.find_or_create_by_role_type_id_and_snapshot_id :role_type_id => role_type.id, :snapshot_id => self.id
+  def add_role(role_type_name)
+    ri = Role.find_by_name_and_snapshot_id role_type_name, self.id 
+    unless ri
+      role_type = RoleType.add role_type_name, self.name
+      ri = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id 
+    end
+    ri ||= Role.find_or_create_by_name_and_snapshot_id :name=>role_type_name, :role_type_id => role_type.id, :snapshot_id => self.id
     ri
   end
 
@@ -71,9 +74,10 @@ class Snapshot < ActiveRecord::Base
       role_type = RoleType.add role_type, self.name
     end
     desc = I18n.t 'added', :scope => 'model.role', :name=>self.name
-    ri = Role.find_or_create_by_role_type_id_and_snapshot_id :role_type_id=>role_type.id, 
-                                                                         :snapshot_id=>self.id,
-                                                                         :description=>desc
+    ri = Role.find_or_create_by_role_type_id_and_snapshot_id :name=>role_type.name, 
+                                                              :role_type_id=>role_type.id, 
+                                                              :snapshot_id=>self.id,
+                                                              :description=>desc
     ri.add_attrib attrib_type, nil, self.name
   end
 
@@ -114,8 +118,13 @@ class Snapshot < ActiveRecord::Base
 
   def method_missing(m,*args,&block)
     if m.to_s =~ /(.*)_role$/
-      role_type = RoleType.find_by_name $1
-      (role_type.nil? ? nil : Role.find_by_role_type_id_and_snapshot_id(role_type.id, self.id))
+      r = Role.find_by_name_and_snapshot_id $1, self.id
+      # temporary while we depricate the node role
+      if r.nil?
+        role_type = RoleType.find_by_name $1
+        r = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id
+      end
+      return r
     else
       super m,*args,&block
     end

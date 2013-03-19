@@ -24,6 +24,10 @@ barclamp:
   proposal_schema_version: 1
   member:
     - crowbar
+  os_support:
+    - redhat-6.2
+    - centos-6.2
+    - ubuntu-12.04
 
 crowbar:
   layout: 1

@@ -56,11 +56,14 @@ class Role < ActiveRecord::Base
   end
   
   def add_attrib(attrib_type, value=nil, map=nil)
-    a = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
+    at = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
     begin 
-      Attrib.find_by_attrib_type_id_and_role_id! a.id, self.id
+      a = Attrib.find_by_attrib_type_id_and_role_id! at.id, self.id
+      a.value = value
+      a.save
     rescue
-      Attrib::DEFAULT_CLASS.create :attrib_type_id => a.id, :role_id => self.id
+      v = Attrib.serial_in value
+      a = Attrib::DEFAULT_CLASS.create :attrib_type_id => at.id, :role_id => self.id, :value_actual => v
     end
   end
 

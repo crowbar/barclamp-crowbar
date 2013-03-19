@@ -22,7 +22,7 @@ class DeploymentsController < ApplicationController
   def show
     respond_to do |format|
       format.html { 
-                    @barclamp = Barclamp.find_key params[:barclamp]
+                    @barclamp = Barclamp.find_key params[:barclamp_id]
                     id = params[:id]
                     @deployment = if id =~ /^[0-9]+$/
                       Deployment.find id.to_i
@@ -35,9 +35,14 @@ class DeploymentsController < ApplicationController
   end
   
   def create
-    if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
-      deploy = barclamp.create_proposal params
-      render api_show :deployment, Deployment, nil, nil, deploy
+    bc = Barclamp.find_key (params[:barclamp_id] || params[:barclamp])
+    if bc.allow_multiple_deployments or bc.deployments.count==0
+      deploy = bc.create_proposal params
+      respond_to do |format|
+        format.html { redirect_to deployment_path(:barclamp_id=>bc.name, :id=>deploy.name) }
+        format.json { render api_show :deployment, Deployment, nil, nil, deploy
+  }
+      end 
     else
       render :status=>:not_acceptable, :text=>I18n.t('model.deployment.singleton')
     end

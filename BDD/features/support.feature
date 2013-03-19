@@ -10,6 +10,7 @@ Feature: Support UI
       And I should see "crowbar"
       And I should see "chef"
       And I should see "provisioner"
+      And there should be no translation errors
 
   Scenario: Localization AJAX CN
     When I18N checks "chuck_norris"

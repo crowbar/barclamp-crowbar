@@ -1,5 +1,5 @@
 %strong
-  = link_to deployment.name, deployment_path(:barclamp=>deployment.barclamp.name, :id=>deployment.name)
+  = link_to deployment.name, deployment_path(:barclamp_id=>deployment.barclamp.name, :id=>deployment.name)
   = ":"
   %em
     = deployment.description

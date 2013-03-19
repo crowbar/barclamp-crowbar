@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -36,7 +36,7 @@ en:
     util_logs: Exported Items
     util_logs_description: Download information complied for review
     util_import: Barclamp Versions
-    util_import_description: Show details about Crowbar modules
+    util_import_description: Show dDetails about Crowbar modules
 
     barclamps: Barclamps
     barclamps_description: Provisioning and Operations Modules 
@@ -103,6 +103,8 @@ en:
     
   # General Proposal components
   deployments:
+    "new":
+      propose: "Propose Deployment"
     show:
       title: "%{barclamp} %{deployment} deployment"
       prereqs: Prerequisites
@@ -133,7 +135,10 @@ en:
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
-
+    buttons:
+      commit: Commit
+      recall: Recall
+      deallocate: Deallocate
     node_selector:
       title: Node Deployment
       hint: Drag nodes for deployment from Available Nodes into the selected Role

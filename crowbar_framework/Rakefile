@@ -6,6 +6,7 @@ require File.expand_path('../config/application', __FILE__)
 
 Crowbar::Application.load_tasks
 
+
 desc "this task simulates the commands executed on the travis CI testing"
 task :travis => ["db:drop", "railties:install:migrations", "db:migrate", "db:fixtures:dump", "test:units", "spec"] do
 

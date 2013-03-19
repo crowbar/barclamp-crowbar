@@ -43,7 +43,7 @@ class DeploymentsController < ApplicationController
 
   def create
     bc_id = (params[:barclamp_id] || params[:barclamp])
-    bc = bc_id and Barclamp.find_key bc_id
+    bc = bc_id && Barclamp.find_key(bc_id)
     return render :status=>:not_acceptable, :text=>I18n.t('model.deployment.barclamp_context') unless bc
 
     if bc.allow_multiple_deployments or bc.deployments.count==0

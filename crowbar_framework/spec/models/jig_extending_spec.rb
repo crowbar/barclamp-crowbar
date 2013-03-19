@@ -46,7 +46,7 @@ describe Jig do
   it "should broadcast refresh to all jigs" do
     node = Node.create :name=>"test"
     set_expectation(:refresh_node,node)
-    Jig.refresh_node(node)
+    Jig.refresh_node("just a test", node)
   end
 
 

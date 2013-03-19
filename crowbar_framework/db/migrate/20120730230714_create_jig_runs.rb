@@ -21,7 +21,7 @@ class CreateJigRuns < ActiveRecord::Migration
       t.string :result
       t.string :status
 
-      t.references :node_role  
+      t.references :role
       t.references :jig_event      
       #t.references :jig   # add node references jig through proposal_config
 

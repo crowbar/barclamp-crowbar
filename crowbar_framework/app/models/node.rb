@@ -61,6 +61,7 @@ class Node < ActiveRecord::Base
   has_many :attrib_has_nodes,   :class_name => HAS_NODE_ROLE, :foreign_key => :node_id
   has_many :roles,              :through => :attrib_has_nodes
   has_many :snapshots,          :through => :roles
+  has_many :deployments,        :through => :snapshots
   
   belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
 

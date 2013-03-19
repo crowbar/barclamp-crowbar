@@ -55,15 +55,25 @@ class Jig < ActiveRecord::Base
   #     where different snapshots (probably of the same type) manage different 
   #     domains of nodes
   def self.find_jig_for_config(deployment)
-    Jig.find_by_name('admin_chef')
+    # When we support many, find a jig: Jig.find_by_name('admin_chef')
+    # for now, assume there's just one.
+    Jig.all[0]
   end
 
+  # For operations which require associating a node with a Jig (e.g. when a node transitions state)
+  # this method can be used to identify the right jig instances which currently care about this node.
+  # For initial implementation, this method is hardcoded to return only the admin chef server, but its
+  # intended to be a hook for expansion similar to the find_jig_for_config
+  # Return an array of jigs applicable to this node.
+  def self.find_jigs_for_node(node)
+    # For now, assume that there's just 1 jig [ Jig.find_by_name('admin_chef') ]
+    [ Jig.all[0] ]
+  end
 
 =begin 
 Allocate a node, and start the node install process
 =end
   def self.install_node(node)
-
   end
 
 =begin 
@@ -80,11 +90,27 @@ Delete a node from all jig. The exact actions depend on the jig.
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
   
-=begin
- Update node infomration from a Jig, and process node attributes 
-=end
-  def self.refresh_node(node)
-    broadcast_to_jigs { |jig| jig.refresh_node(node)  }        
+  #
+  # Update node infomration from a Jig, and process node attributes.
+  # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
+  def self.refresh_node(descr, node)    
+    jigs = find_jigs_for_node(node)
+    bcs = node.deployments.map { |d| d.barclamp }.uniq
+    jigs.each { |j| 
+      d = j.read_node_data(node)
+      next if  d.nil?
+      evt = j.create_event(nil)
+      evt.name="refesh:node:#{node.id}#{Time.now.to_i}"
+      barclamps={}
+      node.deployments.inject { | barclamps,dep|
+         barclamps[dep.barclamp] ||=[]
+         barclamps[dep.barclamp] << dep.name
+      }      
+      barclamps.each {|bc|
+        ### this should be per deployment... but many other updates required.
+        bc.process_inbound_data  d
+      }
+    }
   end
 
 =begin 
@@ -92,7 +118,8 @@ Start the process of instantiating a deployment into the environemt.
 Expecting the deployment to be "static" - i.e. not actively being modified.
 =end
   def self.commit_proposal(deployment)
-    deployment.commit
+    
+    prepare_proposal(deployment)
     # update the status of the deployment to committed 
 
      # function role - created during barclamp import.
@@ -130,37 +157,25 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   
       # create a JigEvent for each unique jig execution that needs to be performed
       # on each node. Events are tied in dependency list (to allow subsequent events)
-      # to be fired when their dependencies complete.
-      nrs = {}
-      new_deployment.proposed.roles.each { |nr| 
-        name = nr.role.name
-        nrs[name] =[] unless nrs[name]
-        nrs[name] << nr
-      }
-      logger.debug("Node roles, #{nrs.inspect}")
-      #node_roles = new_deployment.get_nodes_by_roles    # hash of role -> list of nodes     
-      ordered_roles = new_deployment.proposed.roles # array of: arry of role.
+      # to be fired when their dependencies complete.      
+      roles = new_deployment.committed_snapshot.role_order # nested array representing role ordering (to level array - order, inner - parallel)
+      logger.debug("Role elemenets, #{roles}")
       order = 1
-      ordered_roles.each { |r_list|             
+      roles.each { |r_list|             
         r_list.each { |r| 
-          logger.debug("handling #{r}, which has #{nrs[r.name].inspect} ")
-          nrs[r.name].each { |nr| 
+          logger.debug("handling #{r}, which has #{r.nodes.inspect} ")
+          r.nodes.each { |nr| 
             # create events for nodes that are not currently in the right state,
             # they won't be executed until the node does transition to the right place.
             # next unless  r.states.include?("all") or n.states.include?(n.state)
-            jig.create_run_for(evt,nr,order);
-          } if nrs[r.name]  ### barclamp might have roles that have no nodes...
+            jig.create_run_for(evt,node, r,order);
+          } unless r.nodes.nil? or r.nodes.empty? ### barclamp might have roles that have no nodes...
         }
         order +=1
       }
       evt.save!
       evt
     end
-  end
-
-  # compute event for execution by computing whatever the jig backend needs
-  def prepare_for_execution(evt,config)
-    # here for sub-classes to override.
   end
 
   # OVERRIDE with actual delete effort
@@ -171,6 +186,13 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   def create_node(node)
     Rails.logger.debug("jig.create_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
+
+  # Return a JSON representation of the information this jig knows about this node.
+  def read_node_data(node)
+    # to be over-ridden.    
+  end
+ 
+
 
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  
@@ -229,11 +251,9 @@ private
   others should not be impacted (hence no over arching transaction)
 =end
   def self.broadcast_to_jigs(desc="no description")
-
     raise "no block given" unless block_given?
     Jig.all.each { |x|  
-      begin
-        
+      begin        
         yield x
       rescue => exc
         Rails.logger.warn("failed to invoke #{desc} on jig: #{x.inspect}")

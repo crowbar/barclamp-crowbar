@@ -213,7 +213,9 @@ uri(Config, Path) ->
 
 path([Head, Tail])  -> path(Head, Tail);
 path([Head | Tail]) -> path(Head, path(Tail)).
-  
+
+path(Base, Path) when is_atom(Path) -> path(Base, atom_to_list(Path));  
+path(Base, Path) when is_atom(Base) -> path(atom_to_list(Base), Path); 
 path(Base, Path) ->
   case {string:right(Base,1),string:left(Path,1)} of
     {"/", "?"}-> string:substr(length(Base)-1) ++ Path;

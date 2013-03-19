@@ -31,7 +31,7 @@ class BarclampController < ApplicationController
       @barclamps = bc.members
       @title ||= "#{t 'barclamp.index.members'} #{t('barclamp.'+bc.name+'.index.title')}" 
     else
-      @barclamps = Barclamp.all
+      @barclamps = Barclamp.order("[order] ASC")
       @title ||= t 'barclamp.index.title'
     end
     respond_to do |format|

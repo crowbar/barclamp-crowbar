@@ -15,7 +15,10 @@
         %li{:title=>t('details', :scope=>'docs', :date=>p.date, :author=>p.author, :license=>p.license)}
           = link_to p.description, docs_topic_path(:id=>p.name)
     -if Rails.env.eql? 'development'
-      = "Source File: #{@file}"
+      %p= "Local File: #{@file}"
+      %p
+        = "Git Source: "
+        = link_to @topic.git_url, @topic.git_url
 -else
   %div{:style => 'right:20px; position:fixed; z-index:10'}
     = link_to t('.return'), docs_topic_path(:id=>@topic.name), :class => 'button', :id=>'expand_button'

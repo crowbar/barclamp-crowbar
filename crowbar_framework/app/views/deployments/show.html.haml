@@ -1,5 +1,5 @@
 %p{:style => 'float:right'}
-  = link_to t('cancel'), barclamp_path(:deployment_id=>@deployment.id), :class => 'button'
+  = link_to t('back'), barclamp_path(:deployment_id=>@deployment.id), :class => 'button'
 
 .led.unknown{:id => @deployment.id, :title=>t('deployment.status.unknown'), :style=>'float:left'} 
 %h1= t '.title', :barclamp=>@barclamp.display, :deployment=>@deployment.name

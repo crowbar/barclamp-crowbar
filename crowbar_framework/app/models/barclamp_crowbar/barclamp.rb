@@ -22,7 +22,7 @@ class BarclampCrowbar::Barclamp < Barclamp
     deployment ||= deployments.first
     
     # add links for the dependenant barclamps
-    requires = ['deployer', 'provisioner', 'ntp', 'network']
+    requires = ['deployer', 'provisioner', 'ntp', 'network', 'chef', 'dns', 'logging']
     requires.each do |bc|
       if Barclamp.find_by_name bc
         deployment.proposal.crowbar_role.require_deployment bc, deployment.name
@@ -38,7 +38,19 @@ class BarclampCrowbar::Barclamp < Barclamp
   # called when a deployment is committed
   # creates jobs needed for the commit
   def commit_deployment(deployment)
-    
+
+    # let's check all the roles in this deployment
+    deployment.proposed.roles.each do |role|
+      
+      # make sure that we have committed dependent barclamps
+      role.prerequisites.each do |prereq|
+        prereq.commit unless prereq.active? 
+      end
+      
+      # create the prereq jobs that you need here!!
+      
+    end
+
     # create the jobs that you need here!!
         
   end

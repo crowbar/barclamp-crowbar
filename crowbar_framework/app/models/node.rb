@@ -332,7 +332,7 @@ class Node < ActiveRecord::Base
 
   # make sure we do housekeeping before we remove the DB object
   def jig_delete
-    Jig.all.each { |c| c.delete_node(self) }
+    Jig.delete_node self
   end
 
   # make sure some safe values are set for the node

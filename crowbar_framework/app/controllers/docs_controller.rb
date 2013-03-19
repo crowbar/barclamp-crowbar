@@ -32,7 +32,7 @@ class DocsController < ApplicationController
     end
     respond_to do |format|
       format.html # index.html.haml
-      format.json { render :json => @root.children }
+      format.json { render :json => Doc.all }
     end
   end  
   

@@ -72,10 +72,6 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    n = find_node(params)    
-    run_in_prod_only do
-      Jig.delete_node(n)
-    end unless n.nil?
     render api_delete Node
   end
   
@@ -87,6 +83,7 @@ class NodesController < ApplicationController
     # All nodes need to have the deployer-client present.
     run_in_prod_only do
       Jig.create_node(n)
+      # this should move to the chef jig create_node
       system("knife node run_list add #{n.name} role[deployer-client]")
     end
     render api_show :node, Node, n.id.to_s, nil, n

@@ -121,7 +121,7 @@ step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) ->
 % ============================  WHEN STEPS =========================================
 
 step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
-  Path = eurl:path([Barclamp,g(version),apply(bdd_restrat:alias(Resource),g,[resource])]),
+  Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,apply(bdd_restrat:alias(Resource),g,[resource])]),
   bdd_utils:log(debug, crowbar, step, "REST get ~p list for ~p barclamp", [Resource, Barclamp]),
   {Code, JSON} = eurl:get_page(Config, Path, all),
   Wrapper = crowbar_rest:api_wrapper_raw(JSON),

@@ -61,6 +61,20 @@ module ApiHelper
       end
     end
 
+    # get id of object by id string or name string
+    def find_real_key(key)
+      begin
+        if db_id?(key)
+          key.to_i
+        elsif key.is_a? String
+          o = find_by_name key
+          o.id || nil
+        end
+      rescue ActiveRecord::RecordNotFound => e
+        nil
+      end
+    end
+
     # Helper to determine if a given key is an ActiveRecord DB ID
     def db_id?(key)
       key.is_a? Fixnum or key.is_a? Integer or key =~ /^[0-9]+$/

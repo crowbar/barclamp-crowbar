@@ -72,7 +72,8 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
-    n = find_node(params)    
+    n = Node.find_key(params[:id] || params[:name])
+    Rails.logger.info("Will delete #{n.name}")
     run_in_prod_only do
       Jig.delete_node(n)
     end unless n.nil?

@@ -16,7 +16,6 @@
         - else
           - barclamp.deployments.each do |deployments|
             .led{:id => deployments.id, :class =>'unknown', :style => "float:left", :title=>"#{deployments.name} - #{t(deployments.status, :scope=>'barclamp.status')}"}
-              = deployments.id
       %td= barclamp.description
 
     %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name}_details"}
@@ -28,4 +27,4 @@
                 - barclamp.deployments.each do |deployment|
                   = render :partial => "deployments/show", :locals=> { :deployment => deployment }
               - if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
-                = render :partial => "deployments/new"
+                = render :partial => "deployments/new", :locals=> { :barclamp => barclamp }

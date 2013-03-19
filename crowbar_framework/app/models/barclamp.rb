@@ -89,8 +89,9 @@ class Barclamp < ActiveRecord::Base
   def transition(snapshot, node, state, role_type_name=nil)
 
     if role_name
+      role = Role.find_by_snapshot_id_and_name snapshot.id, role_type_name
       role_type = RoleType.find_by_name role_type_name
-      role = Role.find_by_snapshot_id_and_role_type_id snapshot.id, role_type.id
+      role ||= Role.find_by_snapshot_id_and_role_type_id snapshot.id, role_type.id
     end
     
     unless committed?

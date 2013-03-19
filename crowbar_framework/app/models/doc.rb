@@ -191,5 +191,12 @@ class Doc < ActiveRecord::Base
     Rails.logger.debug "added doc #{name} to system based on file #{file}"
   end
   
-  
+  def git_url
+    path = self.name.split '/'
+    barclamp = path.first
+    repo = (barclamp.eql?('framework') ? 'crowbar' : "barclamp-#{barclamp}")
+    path[0] = "https://github.com/crowbar/#{repo}/tree/master/doc"
+    return path.join('/') + ".md"
+  end
+    
 end

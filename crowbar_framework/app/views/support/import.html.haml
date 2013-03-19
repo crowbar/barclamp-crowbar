@@ -4,130 +4,26 @@
 - else
   - crowbar_os = o.split("\n")[0]
 
--unless params[:all].nil?
-  %div{:style=>'float:right'}= link_to t('.pending'), utils_import_path, :class => 'button'
-  %h1= t '.title_all'
--else
-  %div{:style=>'float:right'}= link_to t('all'), utils_import_path(:all=>'yes'), :class => 'button'
-  %h1= t '.title'
+%h1= t '.title_all'
 
 .column_100
   %section.box#details
     %strong= t('.admin_os') + ": " + crowbar_os
     %div
-      %form{:action=>"upload",:method=>"post",:enctype=>"multipart/form-data"}
-        %strong= t '.select_files'
-        %input{:type=>"file",:name=>"file"}
-        %input{:type=>"submit",:value=>t('.upload')}
 
-= form_for :import, :url => utils_import_path, :html => { :'data-type' => 'html',  :id => 'import_barclamps', :class => "formtastic" } do |f|
-  %table.data.box
-    %thead
-      %tr
-        %th= t '.name'
-        %th= t '.installed'
-        %th= t '.order'
-        %th= t '.user'
-        %th= t '.version'
-        %th= t '.install'
-        %th= t '.notes'
-    %tbody
-      - if !params[:all].nil? and @installed.length==0
-        %tr
-          %td{:colspan=>6}= t('no_items')
-      - elsif params[:all].nil? and @imports.length==0
-        %tr
-          %td{:colspan=>6}= t('no_items')
-      - else
-        - @installed.sort_by{|k,v| (v['order'].to_i || 9999) }.each do |key, value|
-          -if params[:all] or (@imports[key] and !@imports[key][:commit].eql? value['commit'])
-            %tr{:id=>key, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
-              %td{:title=>(value['description'] || t('not_set'))}
-                %em= key.titlecase
-              %td= t (!value[:new] ? 'yes' : 'no')
-              %td= value['order'] || t('not_set')
-              %td= t (value['user_managed'] ? 'yes' : 'no')
-              %td{:title=>t('.commit')+': '+(value['commit'] || t('unknown'))}= (value['date'] || t('unknown')).split('-')[0]
-              -if @imports[key]
-                %td                  
-                  -if @imports[key][:commit].nil?
-                    = t('.error_yml')
-                  -else
-                    - different = (!@imports[key][:commit].eql? value['commit'])
-                    %div{:id=>"install_#{key}", :style=>"display:#{@imports[key][:prereq].length == 0 ? 'block' : 'block'}"}   
-                      - if @installed[key]['order'] and @installed[key]['order']>-1
-                        = check_box_tag "barclamp_#{key}", @imports[key][:tar], different, {:different=>different, :onChange=>"check_prereq('#{key}')"}
-                      %ul{:id=>key}
-                        -if @imports[key][:prereq].length > 0
-                          %li= t('.missing_prereq') + ': ' 
-                          - @imports[key][:prereq].each do |pr|
-                            %li.prereq{:id => pr}= pr.titlecase
-                %td{:title=>t('.commit')+': '+@imports[key][:commit]}
-                  = @imports[key][:date].split('-')[0]
-                  - if @imports[key][:help]
-                    = link_to image_tag('/images/icons/help.png'), @imports[key][:help], {:title=>t('help')}
-              -else
-                %td{:colspan=>2}
-                  = t 'na'
-    %tfooter
-      %tr.foot
-        %td{:colspan=>5}
-        %td{:colspan=>2}
-          - if !params[:all].nil? and @installed.length>0
-            %input.button{:type => "submit", :name => "submit", :value => t('.import')} 
-          - elsif params[:all].nil? and @imports.length>0
-            %input.button{:type => "submit", :name => "submit", :value => t('.import')} 
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.order'
+      %th= t '.user'
+      %th= t '.version'
+  %tbody
+    - @barclamps.each do |bc|
+      %tr{:id=>bc.id, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
+        %td{:title=>(bc.description || t('not_set'))}
+          %em= bc.name
+        %td= bc.order
+        %td= t (bc.user_managed ? 'yes' : 'no')
+        %td{:title=>t('.commit')+': '+(bc.commit || t('unknown'))}= (bc.build_on || t('unknown')).split('-')[0]
 
-.clear
-
-:javascript
-
-  // scan all the barclamps to be imported to see if they have their prerequisits met
-  $('input[id^=barclamp_]').each( function() { 
-    var bc = this.id.substr(9,100);
-    if ($(this).attr('different') == 'true') {
-      //console.debug("prep checks " + bc + " checked? " + this.checked);
-      check_check(bc);
-      //console.debug("prep pre-reqs " + bc + this.checked);
-      check_prereq(bc);
-    }
-  });
-  
-  // if all the prereqs are met (none are visiblie) then check the box
-  // and check to see if that enables/disables other barclamps
-  function check_check(barclamp) {
-    var pr = 0;
-    var bc = $('ul#'+barclamp);
-    bc.show();
-    // this block is how we determine if there are unmet prereqs - the visible count
-    try { pr = bc.children('li:visible').length-1; }
-    catch(err) { pr = 0; }
-    //console.debug(' check ' + barclamp + ' = ' + pr);
-    var checkbox = $('input#barclamp_'+barclamp);
-    if (pr<=0) {
-      checkbox.show();
-      checkbox.attr('checked', true);
-      bc.hide();
-    } else {
-      bc.show();
-      checkbox.hide();
-      checkbox.attr('checked', false);
-    }
-    check_prereq(barclamp);
-  }
-  
-  // if a barclamp is checked, then remove all the prereq flags from the other barclamps
-  function check_prereq(barclamp) {
-    var checkbox = $('input#barclamp_'+barclamp);
-    $('li#' + barclamp + '.prereq').each( function(index) { 
-      var bc = $(this).parent().get(0).id;
-      //console.debug('  ul ' + bc + ' prereq ' +  barclamp);
-      var item = $('li#' + this.id + '.prereq');
-      if (checkbox.attr('checked') == 'checked') { 
-        $(this).hide();
-      } else { 
-        $(this).show(); 
-      }
-      check_check(bc);
-    });
-  }

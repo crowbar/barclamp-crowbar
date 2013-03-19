@@ -22,7 +22,8 @@ class Role < ActiveRecord::Base
   HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
   HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
 
-  validates_uniqueness_of :role_type_id, :scope => :snapshot_id  
+  validates_uniqueness_of :role_type_id, :scope => :snapshot_id  # decricate
+  validates_uniqueness_of :name,         :scope => :snapshot_id  
   
   belongs_to      :role_type,         :inverse_of => :role
   belongs_to      :snapshot

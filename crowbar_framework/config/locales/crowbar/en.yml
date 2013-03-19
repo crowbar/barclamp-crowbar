@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -35,8 +35,8 @@ en:
     utils_description: Miscellaneous Tools and System Functions 
     util_logs: Exported Items
     util_logs_description: Download information complied for review
-    util_import: Import Barclamps
-    util_import_description: Add or Update Crowbar modules
+    util_import: Barclamp Versions
+    util_import_description: Show dDetails about Crowbar modules
 
     barclamps: Barclamps
     barclamps_description: Provisioning and Operations Modules 
@@ -103,6 +103,8 @@ en:
     
   # General Proposal components
   deployments:
+    "new":
+      propose: "Propose Deployment"
     show:
       title: "%{barclamp} %{deployment} deployment"
       prereqs: Prerequisites
@@ -133,7 +135,10 @@ en:
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
-
+    buttons:
+      commit: Commit
+      recall: Recall
+      deallocate: Deallocate
     node_selector:
       title: Node Deployment
       hint: Drag nodes for deployment from Available Nodes into the selected Role
@@ -358,9 +363,7 @@ en:
       succeed: Chef Objects Exported
       fail: Chef Export Failed
     import:
-      title: Barclamp Import
-      title_all: Barclamp Import (installed and pending)
-      pending: Pending Only
+      title_all: Installed Barclamps 
       admin_os: Crowbar Operating System
       installed: Installed
       user: User Managed
@@ -369,16 +372,6 @@ en:
       version: Date
       commit: Commit GUID
       notes: Notes
-      install: Install?
-      import: Import
-      error_file_missing: 'Error! Barclamp not found.'
-      error_import: 'Error! Import failed.'
-      error_yml: 'Error! Could not parse Crowbar.yml'
-      success: 'Success. Barclamp Imported!'
-      missing_prereq: Missing Prerequisits
-      select_files: Select Files to Upload
-      upload: Upload
-      delete_hint: Delete File from Import Directory
     upload:
       succeeded: Upload Succeeded
       failed: Upload Failed

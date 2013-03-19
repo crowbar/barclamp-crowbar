@@ -1,2 +1,5 @@
-%input.button{:type => "submit", :name => "submit", :value => "put buttons from partial here", :'data-confirm' => t('.destroy_changes')}
-
+%input.button{:type => "submit", :name => "commit", :value => t('.commit')}
+- if deployment.committed?
+  %input.button{:type => "submit", :name => "recall", :value => t('.recall'), :'data-confirm' => t('.recall_changes')}
+- if deployment.active? 
+  %input.button{:type => "submit", :name => "deallocate", :value => t('.deallocate'), :'data-confirm' => t('.deallocate')}

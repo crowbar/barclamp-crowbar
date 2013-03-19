@@ -185,6 +185,7 @@ class ApplicationController < ActionController::Base
   #return true if we digest signed in
   def crowbar_auth
     case
+    when current_user then authenticate_user!
     when request.headers["HTTP_AUTHORIZATION"] && request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=') then digest_auth!
     when ActionDispatch::Request::LOCALHOST.any?{|i| 
         if i.is_a?(Regexp)
@@ -195,7 +196,6 @@ class ApplicationController < ActionController::Base
       } && File.exists?("/tmp/.crowbar_in_bootstrap") && File.stat("/tmp/.crowbar_in_bootstrap").uid == 0
       current_user = User.find_by_id_or_username("crowbar")
       true
-    when current_user then authenticate_user!
     else
       respond_to do |format|
         format.html { authenticate_user!  }

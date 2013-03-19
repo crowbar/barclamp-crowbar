@@ -72,6 +72,8 @@ class NodesController < ApplicationController
 
   # RESTful DELETE of the node resource
   def destroy
+    n = Node.find_key(params[:id] || params[:name])
+    Rails.logger.info("Will delete #{n.name}")
     render api_delete Node
   end
   

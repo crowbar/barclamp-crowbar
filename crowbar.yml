@@ -24,6 +24,8 @@ barclamp:
   proposal_schema_version: 1
   member:
     - crowbar
+  os_support:
+    - ubuntu-12.04
 
 crowbar:
   layout: 1

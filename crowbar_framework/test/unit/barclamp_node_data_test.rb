@@ -73,7 +73,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal a1.role_id, an.role_id
     assert_equal a1.attrib_type_id, an.attrib_type_id
     assert_nil an.value
-    assert_equal :empty, @mynode.get_attrib(a1).state
+    assert_equal :ready, @mynode.get_attrib(a1).state
   end
   
   test "Barclamp Register creates & stores attributes" do
@@ -105,11 +105,11 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal Jig.count*3, @bc.jig_maps.count, "this is the jig mappings"
 
     assert_nil @mynode.get_attrib(a1.name).value
-    assert_equal :empty, @mynode.get_attrib(a1).state
+    assert_equal :ready, @mynode.get_attrib(a1).state
     assert_nil @mynode.get_attrib(a2.name).value
-    assert_equal :empty, @mynode.get_attrib(a2.name).state
+    assert_equal :ready, @mynode.get_attrib(a2.name).state
     assert_nil @mynode.get_attrib(a3.name).value
-    assert_equal :empty, @mynode.get_attrib(a3.name).state
+    assert_equal :ready, @mynode.get_attrib(a3.name).state
 
     assert_equal 6, @bc.template.roles.first.attribs.count, "this is the roles after nodes are assigned"
     

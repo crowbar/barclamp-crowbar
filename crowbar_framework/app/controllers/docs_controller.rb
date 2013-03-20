@@ -50,7 +50,8 @@ class DocsController < ApplicationController
       # navigation items
       if File.exist? @file
         if @file =~ /\.md$/
-          @text = (html ? %x[markdown #{@file}] : IO.read(@file))
+          raw = IO.read(@file)
+          @text = (html ? BlueCloth.new(raw).to_html : raw)
           @text += Doc.topic_expand(@topic.name, html) if params.has_key? :expand
         elsif @file =~ /\.(jpg|png)$/
           html = false

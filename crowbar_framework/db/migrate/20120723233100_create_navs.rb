@@ -47,7 +47,7 @@ class CreateNavs < ActiveRecord::Migration
 
     # help
     Nav.find_or_create_by_item :item=>'help', :parent_item=>'root', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>9999
-      Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"https://crowbar.github.com/", :order=>200
+      Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"http://crowbar.github.com/", :order=>200
 
     # users
     Nav.find_or_create_by_item :item=>'users', :parent_item=>'root', :name=>'nav.users', :description=>'nav.users_description', :path=>"manage_users_path", :order=>6000

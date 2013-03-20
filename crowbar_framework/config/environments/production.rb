@@ -20,43 +20,41 @@
 # The production environment is meant for finished, "live" apps.
 # Code is not reloaded between requests
 Crowbar::Application.configure do
+  config.cache_classes = true
+  # Full error reports are disabled and caching is turned on
+  #config.action_controller.consider_all_requests_local = false
+  config.action_controller.perform_caching             = true
+  config.action_view.cache_template_loading            = true
+  config.active_support.deprecation = :notify
 
-config.cache_classes = true
+  # Disable request forgery protection in test environment
+  config.action_controller.allow_forgery_protection    = true
 
-# Full error reports are disabled and caching is turned on
-#config.action_controller.consider_all_requests_local = false
-config.action_controller.perform_caching             = true
-config.action_view.cache_template_loading            = true
-config.active_support.deprecation = :notify
+  # See everything in the log (default is :info)
+  # config.log_level = :debug
 
-# Disable request forgery protection in test environment
-# GREG: HACK FOR NOW!
-config.action_controller.allow_forgery_protection    = false
+  # Use a different logger for distributed setups
+  require 'syslogger'
+  config.logger = Syslogger.new("crowbar_app", Syslog::LOG_PID, Syslog::LOG_LOCAL0)
+  config.logger.level = Logger::DEBUG
+  config.log_level = :debug
 
-# See everything in the log (default is :info)
-# config.log_level = :debug
+  # Use a different cache store in production
+  # config.cache_store = :mem_cache_store
 
-# Use a different logger for distributed setups
-require 'syslogger'
-config.logger = Syslogger.new("crowbar_app", Syslog::LOG_PID, Syslog::LOG_LOCAL0)
-config.logger.level = Logger::DEBUG
-config.log_level = :debug
-DISABLE_CHEF=false
+  # Enable serving of images, stylesheets, and javascripts from an asset server
+  # config.action_controller.asset_host = "http://assets.example.com"
 
-# Use a different cache store in production
-# config.cache_store = :mem_cache_store
+  # Disable delivery errors, bad email addresses will be ignored
+  # config.action_mailer.raise_delivery_errors = false
 
-# Enable serving of images, stylesheets, and javascripts from an asset server
-# config.action_controller.asset_host = "http://assets.example.com"
+  # Enable threaded mode
+  config.threadsafe! unless $rails_rake_task
 
-# Disable delivery errors, bad email addresses will be ignored
-# config.action_mailer.raise_delivery_errors = false
-
-# Enable threaded mode
-# config.threadsafe!
-
-  CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-  CHEF_NODE_NAME ="crowbar" 
-  CHEF_SERVER_URL = "http://192.168.124.10:4000"
-  CROWBAR_VERSION = "v1.2-openstack-dell-5318-g724c195-dev"
+  # Legacy vars, should not be needed on Crowbar 2.0
+  #DISABLE_CHEF=false
+  #CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
+  #CHEF_NODE_NAME ="crowbar" 
+  #CHEF_SERVER_URL = "http://192.168.124.10:4000"
+  CROWBAR_VERSION = "v2.0-dev"
  end 

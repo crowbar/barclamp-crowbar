@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -14,11 +14,17 @@
 # 
 # 
 
-# This initializer (re)builds the documentation set on startup 
+
+# This initializer makes sure we have a Crowbar Default deployment
+# it MUST be run after the migrations
 begin
-  Doc.delete_all
-  Doc.gen_doc_index File.join '..', 'doc' unless defined?(::Rake)
-rescue
-  # don't sweat it, we'll do it later
-  true
+  
+    # we cannot run the system w/o a crowbar deployment
+    # we are creating it here until there is a more logical place
+
+    if Barclamp.table_exists? and !defined?(::Rake)
+      bc = Barclamp.find_by_name 'crowbar'
+      template = bc.create_proposal
+    end
+
 end

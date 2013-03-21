@@ -89,7 +89,7 @@ Delete a node from all jig. The exact actions depend on the jig.
   def self.delete_node(node)
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
-  
+
   #
   # Update node infomration from a Jig, and process node attributes.
   # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in

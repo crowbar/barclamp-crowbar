@@ -24,7 +24,7 @@ class NodeModelTest < ActiveSupport::TestCase
   test "Unique Name" do
     Node.create! :name=>"foo.example.com"
     e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Node.create!(:name => "foo.example.com") }
-    assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
+    assert_equal "Validation failed: Name Name item must ...", e.message.truncate(42)
 
     assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "foo.example.com" }
   end

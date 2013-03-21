@@ -6,7 +6,7 @@
 - @root.children.each do |book|
   %h3{:title=>t('details', :scope=>'docs', :date=>book.date, :author=>book.author, :license=>book.license)}
     = link_to book.description, docs_topic_path(:id=>book.name)
-    = "(n=#{book.name} p=#{book.parent_name}, o=#{book.order})" if Rails.env == 'development'
+    = "(n=#{book.name} p=#{book.parent_name}, o=#{book.order})" if Settings.docs.debug
   %div.book_topic
     %ul
       - book.children.each do |topic|
@@ -14,13 +14,13 @@
           = link_to topic.description, docs_topic_path(:id=>topic.name)
           - if topic.children.size > 0 and topic.children.size < 4
             = "(#{topic.children.size})"
-          = "(n=#{topic.name} p=#{topic.parent_name}, o=#{topic.order})" if Rails.env == 'development'
+          = "(n=#{topic.name} p=#{topic.parent_name}, o=#{topic.order})" if Settings.docs.debug
           - if params.has_key? 'expand' and topic.children.size > 0 
             %div.book_section
               %ul
                 - topic.children.each do |section|
                   %li{:title=>t('details', :scope=>'docs', :date=>section.date, :author=>section.author, :license=>section.license)}
                     = link_to section.description, docs_topic_path(:id=>section.name)
-                    = "(n=#{section.name} p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
+                    = "(n=#{section.name} p=#{section.parent_name}, o=#{section.order})" if Settings.docs.debug
 
 .clear

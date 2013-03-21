@@ -14,7 +14,7 @@
         - p = stack.pop
         %li{:title=>t('details', :scope=>'docs', :date=>p.date, :author=>p.author, :license=>p.license)}
           = link_to p.description, docs_topic_path(:id=>p.name)
-    -if Rails.env.eql? 'development'
+    - if Settings.docs.debug
       %p= "Local File: #{@file}"
       %p
         = "Git Source: "
@@ -34,6 +34,6 @@
       - @topic.children.each do |section|
         %li{:title=>t('details', :scope=>'docs', :date=>section.date, :author=>section.author, :license=>section.license)}
           = link_to section.description, docs_topic_path(:id=>section.name)
-          = "(p=#{section.parent_name}, o=#{section.order})" if Rails.env == 'development'
+          = "(p=#{section.parent_name}, o=#{section.order})" if Settings.docs.debug
 
 .clear

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Author: aabes
 require 'spec_helper'
 
 describe "jig proposal manipulation" do
@@ -39,12 +40,22 @@ describe "jig proposal manipulation" do
       test_role2.add_node(node2)
     }
 
-
     it "should create event and runs" do
       deployment.commit
       Jig.commit_proposal(deployment)
       JigEvent.all.count.should eql(1)
+
+      ### check that the rigth jobs are created based on the role ordering:
+      #  "element_order": [
+      #  [ "test-multi-head" ],
+      #  [ "test-multi-rest", "test-single" ]],
+      #
+      # expecting:  test-multi-head <- (test-multi-rest, test-single) 
+
+
     end
+
+
   end
 end
 

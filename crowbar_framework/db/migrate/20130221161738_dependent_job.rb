@@ -22,6 +22,8 @@ class DependentJob < ActiveRecord::Migration
       t.string      :type
       # key that this job can be foud with.
       t.string      :key
+      # task type specific, JSON serialized data
+      t.string      :data
       t.timestamps
     end
 

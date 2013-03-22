@@ -45,13 +45,16 @@ class AttribType < ActiveRecord::Base
     elsif attrib_type.is_a? String or attrib_type.is_a? Symbol
       # we can make them from just a string
       a = AttribType.find_or_create_by_name :name => attrib_type.to_s, :description => I18n.t('model.attribs.barclamp.default_create_description', :barclamp=>source)
+      a.save!
     elsif attrib_type.is_a? Hash
       # we can make them from a hash if the creator wants to include more info
       raise "attrib_type.add requires attribute :name" if attrib_type.nil? or !attrib_type.has_key? :name
       a = AttribType.find_or_create_by_name attrib_type
+      a.save!
     else
       raise "attrib_type.add cannot use #{attrib_type.class} to create from attribute: #{attrib_type.inspect}"
     end 
+    Rails.logger.info("attrib add returning #{a.inspect}")
     a
   end
   

@@ -21,11 +21,10 @@ require 'json'
 class BarclampCrowbar::Jig < Jig
 
   def create_event(config)
-    evt = JigEvent.create(:type=>"JigEvent", :proposal_confing =>config, 
-      :jig => self, :status => JigEvent::EVT_PENDING, :name=>"apply_#{config.id}")
-    evt
+    JigEvent.create :type=>"JigEvent", :jig => self, :status => JigEvent::EVT_PENDING, :name=>"placeholder"
   end
-    def create_run_for(evt, nr,order)
+  
+  def create_run_for(evt, nr,order)
     run = JigRun.create(:type=> "JigRun", :jig_event => evt, 
       :role => nr, :order=>order, :status => JigRun::RUN_PENDING, 
       :name=>"run_#{evt.id}_#{nr.id}_#{order}")
@@ -42,6 +41,7 @@ class BarclampCrowbar::Jig < Jig
 
   def read_node_data(node)
     ## Return some dummy data to enable unit-tests, for now just safe default
+    puts "$$$$ testing from BarclampCrowbar::Jig.read_node_data"
     JSON.parse("{}")
   end   
 end

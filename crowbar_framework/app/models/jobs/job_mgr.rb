@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Author: aabes
 
 module Jobs
   class JobsManager
@@ -43,8 +44,30 @@ A job can be started if:
  Find all the current jobs that can possibly be started.
 =end
     def self.find_jobs_to_start
-      return Jobs::DependentJob.pending_jobs - Jobs::DependentJob.jobs_with_unready_deps
+      # This one is a bit wrong, since it performs an inner join (rather than an outer join)
+      Jobs::DependentJob.pending_jobs - Jobs::DependentJob.jobs_with_unready_deps
+
+      # The query below generates an invalid SQL... though it should probably work 
+      #Jobs::DependentJob.where(:done=>false).includes( [:dependency_records => :prereq])
+      #                  .where("prereqs_dependent_job_dependencies.done='t'",true)
+      
+      candidates = Jobs::DependentJob.where(:done=>false).includes( [:dependency_records => :prereq])
+      to_start = candidates.select { |c| 
+        can_job_start(c)
+      }
+      to_start
     end
+
+
+    def self.perform_ready_jobs
+      jobs = self.find_jobs_to_start
+      jobs.each { |j| 
+        Rails.logger.info("performing job: #{j.inspect}")
+        j.perform()
+        j.save!
+      }
+      jobs
+    end    
   end
 
   
@@ -54,6 +77,9 @@ A job in the system, that might have un-met dependencies
   class DependentJob < ActiveRecord::Base
     attr_accessible :name, :description
     attr_reader     :done   # is this job complete.
+    attr_accessible :type
+    attr_accessible :key
+
     has_many        :dependency_records, :class_name=> "Jobs::DependentJobDependency", :dependent=>:delete_all
     ## since dependency records are self referential, need to identify the relationship using :source
     has_many        :dependencies, :class_name => Jobs::DependentJob.name, :through=>:dependency_records, :source=>:prereq
@@ -84,6 +110,10 @@ Make this job dependent on the one passed in
       self.save!
     end
 
+    # No reasonable default action....calling this is probably an error
+    def perform()
+      raise "Base class has nothing to perform"
+    end
   end
 
 
@@ -97,9 +127,6 @@ This is an association class to hold connections between jobs and thier dependen
 
     attr_accessible :job
     attr_accessible :prereq
-    attr_accessible :type
-    attr_accessible :key
-
   end
 
 end

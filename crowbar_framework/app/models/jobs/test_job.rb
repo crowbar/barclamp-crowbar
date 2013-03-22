@@ -16,8 +16,7 @@
 class Jobs::TestJob < Jobs::BaseJob
 
   def perform
-    super
-    puts "DEBUG: Jobs was tested"
+    Rails.logger.warn "DEBUG: Jobs was tested"
   end
 
 end

@@ -35,18 +35,29 @@ Feature: Deployments
       And there should be a value "deploy_list"
     Finally REST removes the {object:deployment} "deploy_list"
 
-  Scenario: Deployment does not show up on wrong list
-    Skip Wayne is fixing this
-    Given I require a {object:barclamp} "test"
-      And I require a {object:barclamp} "logging"
-      And I propose a {object:deployment} "ghost_deploy" on the {object:barclamp} "test"
-      And I propose a {object:deployment} "solid" on the {object:barclamp} "logging"
+  Scenario: Cannot create dups of a singleton deployment
+    Given I require a {object:barclamp} "logging"
+      And I propose a {object:deployment} "logging_deploy_1" on the {object:barclamp} "logging"
+      And I propose a {object:deployment} "logging_deploy_2" on the {object:barclamp} "logging"
     When REST gets the {object:barclamp} "logging" {object:deployment} list
     Then the page returns {integer:200}
-      And there should not be a value "ghost_deploy"
-      And there should be a value "solid"
-    Finally REST removes the {object:deployment} "ghost_deploy"
-      And REST removes the {object:deployment} "solid"
+      And there should be a value "Default"
+      And there should not be a value "logging_deploy_1"
+      And there should not be a value "logging_deploy_2"
+    Finally REST removes the {object:deployment} "logging_deploy_1"
+      And REST removes the {object:deployment} "logging_deploy_2"
+
+  Scenario: Can create dups of a multiple, non-intrinsic deployment
+    Given I require a {object:barclamp} "test"
+      And I propose a {object:deployment} "test_deploy_1" on the {object:barclamp} "test"
+      And I propose a {object:deployment} "test_deploy_2" on the {object:barclamp} "test"
+    When REST gets the {object:barclamp} "test" {object:deployment} list
+    Then the page returns {integer:200}
+      And there should not be a value "default"
+      And there should be a value "test_deploy_1"
+      And there should be a value "test_deploy_2"
+    Finally REST removes the {object:deployment} "test_deploy_1"
+      And REST removes the {object:deployment} "test_deploy_2"
 
   Scenario: The Deployment page renderse
     Given I am on the "barclamp" page

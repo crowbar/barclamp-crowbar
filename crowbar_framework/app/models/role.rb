@@ -81,11 +81,9 @@ class Role < ActiveRecord::Base
         bc.deployments.first
       end
     end
-    if deployment
-      HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
+    HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
                                                              :id_actual   => deployment.read_attribute(:id),
                                                              :value_actual=> role_type
-    end
   end
   
   # Assignes a node to the role by creating a AttribInstanceHasRole

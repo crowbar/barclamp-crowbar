@@ -37,10 +37,16 @@ class NodesController < ApplicationController
     state = {}
     i18n = {}
     sum = Node.name_hash
+puts "here"
     begin
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
+puts "node #{node.inspect}"
+          # CB2 temporary polling
+          Jig.refresh_node "temporary polling from nodes_controller.status", node
+          
+          # CB1 approach
           state[node.id] = node.state
           status[node.id] = node.status
           i18n[node.state] = I18n.t node.state, :scope =>'state', :default=>node.state unless i18n.has_key? node.state

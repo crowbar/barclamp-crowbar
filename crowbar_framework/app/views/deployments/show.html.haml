@@ -21,9 +21,12 @@
           - else
             - role.attrib_has_deployments.each do |a|
               %p
-                = "#{a.deployment.barclamp.display}"
-                = "#{a.deployment.name}"
+                - d = a.deployment
+                .led.unknown{:id => d.id, :title=>t('deployments.status.unknown')} 
+                = "#{d.barclamp.display}"
+                = "#{d.name}"
                 = ".#{a.role_type}" unless a.role_type.nil?              
+                = "(#{d.status})"
         %td
           - if role.role_attribs.count == 0 
             %p= t 'no_items'

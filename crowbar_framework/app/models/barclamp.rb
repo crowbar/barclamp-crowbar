@@ -202,8 +202,8 @@ class Barclamp < ActiveRecord::Base
     deploy = nil
     if allow_multiple_deployments or deployments.count==0
       # setup required items
-      deployment[:barclamp_id]  = self.id
-      deployment[:description]  ||= "#{I18n.t 'created_on'} #{Time.now.strftime("%y%m%d_%H%M%S")}"
+      deployment[:barclamp_id] = self.id
+      deployment[:description] ||= I18n.t('created_on', :default=>"Created on %{date}", :date=>DateTime.new)
       Deployment.transaction do 
         # create a new deployment
         deploy = Deployment.create deployment

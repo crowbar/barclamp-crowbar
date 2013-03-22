@@ -45,7 +45,7 @@ A job can be started if:
 =end
     def self.find_jobs_to_start
       # This one is a bit wrong, since it performs an inner join (rather than an outer join)
-      Jobs::DependentJob.pending_jobs - Jobs::DependentJob.jobs_with_unready_deps
+      #Jobs::DependentJob.pending_jobs - Jobs::DependentJob.jobs_with_unready_deps
 
       # The query below generates an invalid SQL... though it should probably work 
       #Jobs::DependentJob.where(:done=>false).includes( [:dependency_records => :prereq])
@@ -79,6 +79,7 @@ A job in the system, that might have un-met dependencies
     attr_reader     :done   # is this job complete.
     attr_accessible :type
     attr_accessible :key
+    attr_accessible :data
 
     has_many        :dependency_records, :class_name=> "Jobs::DependentJobDependency", :dependent=>:delete_all
     ## since dependency records are self referential, need to identify the relationship using :source
@@ -88,10 +89,13 @@ A job in the system, that might have un-met dependencies
     scope :jobs_with_ready_deps, pending_jobs.joins(:dependencies).group(:id).having(:done=>true)
     scope :jobs_with_unready_deps, pending_jobs.joins(:dependencies).group(:id).having(:done=>false)
 
-    def initialize(args = {},options={})
-      super
-      self.done = false
-      self.type = self.class.name
+    # set defaults
+    before_save :default_values
+    def default_values
+      if new_record?
+        self.done ||= false
+        self.type ||= self.class.name
+      end
     end
 
 =begin 

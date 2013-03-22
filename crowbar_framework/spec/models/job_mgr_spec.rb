@@ -16,6 +16,7 @@ require 'spec_helper'
 require 'jobs/job_mgr'
 require 'jobs/job_synth_junction'
 
+
 describe "job manager" do
 
   context "4 jobs" do
@@ -67,7 +68,7 @@ describe "job manager" do
       to_start = Jobs::JobsManager.find_jobs_to_start
       test_set_membership(to_start, [d2,d4], [d1,d3])
       
-      d2.set_done
+      d2.set_done(true)
       ## d1 has met dependencies - should be startable
       ## d4 has no dependencies, and is not done.
       to_start = Jobs::JobsManager.find_jobs_to_start
@@ -114,6 +115,37 @@ describe "job manager" do
       test_set_membership(executed, [dj], [])
       dj.reload
       expect(dj.done?).to be_true
+    end
+  end
+
+  context "jobs and nodes" do
+    # bring in crowbar deployment, and 2 dummy nodes.
+    include_context "2 dummy nodes"
+    # bring in a committed test barclamp deployment, assigning roles to 2 nodes.
+    include_context "test barclamp with 2 nodes"
+
+    it "should save jig config" do
+      deployment.committed_snapshot.should_not be(nil)
+      j1 = Jobs::SnapshotJigConfig.create({:snapshot => deployment.committed_snapshot })
+      j1.save!
+
+      # check that we can load it back...
+      j1.reload
+    end
+
+    def find_attrib(config, name)
+      config.select { |a| a.attrib_type.name.eql?(name) }
+    end
+
+    it "should compute the config for test barclamp deployment" do      
+      Rails.logger.info "testing attrib config"
+      test_role1.add_attrib "test_role1_config", { "role1" => "test" }
+      test_role2.add_attrib "test_role2_config", { "role2" => "test"}
+      j1 = Jobs::SnapshotJigConfig.create({:snapshot => deployment.committed_snapshot })
+
+      attrs = j1.find_config
+      find_attrib(attrs,"test_role1_config").length.should  eq(1)
+      find_attrib(attrs,"test_role2_config").length.should  eq(1)
     end
 
 

@@ -37,6 +37,7 @@ class NodesController < ApplicationController
     state = {}
     i18n = {}
     sum = Node.name_hash
+puts "ZEHICLE nodes_controller"
     begin
       result = Node.find_keys params[:id]
       unless result.nil?

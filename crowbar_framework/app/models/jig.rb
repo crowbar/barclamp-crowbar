@@ -94,6 +94,7 @@ Delete a node from all jig. The exact actions depend on the jig.
   # Update node infomration from a Jig, and process node attributes.
   # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
   def self.refresh_node(descr, node)    
+puts "ZEHICLE refresh"
     jigs = find_jigs_for_node(node)
     bcs = node.deployments.map { |d| d.barclamp }.uniq
     jigs.each { |j| 
@@ -189,7 +190,7 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
 
   # Return a JSON representation of the information this jig knows about this node.
   def read_node_data(node)
-    # to be over-ridden.    
+    Rails.logger.debug("jig.read_node_data(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
  
 

@@ -37,12 +37,10 @@ class NodesController < ApplicationController
     state = {}
     i18n = {}
     sum = Node.name_hash
-puts "here"
     begin
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
-puts "node #{node.inspect}"
           # CB2 temporary polling
           Jig.refresh_node "temporary polling from nodes_controller.status", node
           

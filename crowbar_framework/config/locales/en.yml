@@ -42,8 +42,8 @@ en:
   raw: Raw
   custom: Custom
   clear_msg: clear
-  created_on: Created On
-  updated_on: Updated On
+  created_on: "Created on %{date}"
+  updated_on: "Updated on %{date}"
   no_items: No Items
   complete: Complete
   'yes': 'Yes'

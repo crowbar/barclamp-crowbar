@@ -25,7 +25,12 @@ class BarclampCrowbar::Barclamp < Barclamp
     requires = ['deployer', 'provisioner', 'ntp', 'network', 'chef', 'dns', 'logging']
     requires.each do |bc|
       if Barclamp.find_by_name bc
-        deployment.proposal.crowbar_role.require_deployment bc, deployment.name
+        begin 
+          attrib = deployment.proposal.crowbar_role.require_deployment bc, deployment.name
+          Rails.logger.info "#{self.name} added required barclamp #{bc} from attrib id #{attrib.id}"
+        rescue Exception => e
+          Rails.logger.error "#{self.name} could not add required barclamp #{bc} due to error #{e.message}"
+        end
       else
         Rails.logger.error "#{self.name} requires barclamp #{bc} but it does not exist in the database"
       end

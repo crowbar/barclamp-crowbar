@@ -15,16 +15,24 @@
 
 
 class SupportController < ApplicationController
-  
+
   skip_before_filter :crowbar_auth, :only => :digest
   before_filter :digest_auth!, :only => :digest
-  
+
   # used to pass a string into the debug logger to help find specificall calls  
   def marker
     Rails.logger.info "\nMARK >>>>> #{params[:id]} <<<<< KRAM\n"
     render :text=>params[:id]
   end
-  
+
+  def digest
+    if session[:digest_user]
+      render :text => t('user.digest_success', :default=>'success')
+    else
+      render :text => "digest", :status => :unauthorized
+    end
+  end
+
   # used to lookup localization values
   def i18n
     begin
@@ -33,15 +41,7 @@ class SupportController < ApplicationController
       render :text=>"No translation for #{params[:id]}", :status => 404
     end
   end
-  
-  def digest
-    if session[:digest_user]
-      render :text => t('user.digest_success', :default=>'success')
-    else
-      render :text => "digest", :status => :unauthorized
-    end
-  end
-  
+
   # Legacy Support (UI version moved to loggin barclamp)
   def logs
     @file = "crowbar-logs-#{ctime}.tar.bz2"
@@ -53,7 +53,11 @@ class SupportController < ApplicationController
     system("sudo -i /opt/dell/bin/gather_cli.sh #{request.env['SERVER_ADDR']} #{request.env['SERVER_PORT']}")
     redirect_to "/crowbar-cli.tar.gz"
   end
-  
+
+  def import
+    @barclamps = Barclamp.order("[order] ASC")
+  end
+
   def index
     @waiting = params['waiting'] == 'true'
     remove_file 'export', params[:id] if params[:id]
@@ -83,12 +87,7 @@ class SupportController < ApplicationController
       format.json { render :json => @exports }
     end
   end
-  
-  
-  def import
-    @barclamps = Barclamp.order("[order] ASC")
-  end  
-  
+
   def restart
     @init = false
     if params[:id].nil?
@@ -152,5 +151,12 @@ class SupportController < ApplicationController
     end
     return name
   end
-
+  
+  def do_auth!
+    case
+    when request.fullpath.index("/get_cli") || request.full_path.index("/logs") then digest_auth!
+    else
+      super
+    end
+  end
 end 

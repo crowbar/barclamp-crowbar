@@ -8,19 +8,19 @@ Feature: Authentication Works
     Then I should see "Sign In"
       And I should see "Username"
       And I should see "Password"
-          
+
   Scenario: API Login gives 401
     When I go to node status page
     Then I should get a "401" error
-    
+
   Scenario: digest login with wrong password
     When I login with "wronguser" and "badpassword"
     Then I should see "500 Error"
-    
+
   Scenario: digest login with good password
     When I login with "developer" and "Cr0wbar!"
     Then I should see "User Authenticated using Digest Authentication"
-    
+
   Scenario: Dashboard should redirect
     When I visit "dashboard" page without login
     Then I should not see "Node Dashboard"

@@ -181,26 +181,23 @@ class ApplicationController < ActionController::Base
     end
     warden.custom_failure! if performed?
   end
-  
+
+  def do_auth!
+    respond_to do |format|
+        format.html { authenticate_user!  }
+        format.json { digest_auth!  }
+      end
+  end
   #return true if we digest signed in
   def crowbar_auth
     case
     when current_user then authenticate_user!
     when request.headers["HTTP_AUTHORIZATION"] && request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=') then digest_auth!
-    when ActionDispatch::Request::LOCALHOST.any?{|i| 
-        if i.is_a?(Regexp)
-          i =~ request.ip
-        else
-          i == request.ip
-        end
-      } && File.exists?("/tmp/.crowbar_in_bootstrap") && File.stat("/tmp/.crowbar_in_bootstrap").uid == 0
+    when request.local? && File.exists?("/tmp/.crowbar_in_bootstrap") && File.stat("/tmp/.crowbar_in_bootstrap").uid == 0
       current_user = User.find_by_id_or_username("crowbar")
       true
     else
-      respond_to do |format|
-        format.html { authenticate_user!  }
-        format.json { digest_auth!  }
-      end
+      do_auth!
     end
   end
 end

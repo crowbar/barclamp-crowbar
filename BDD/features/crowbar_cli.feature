@@ -35,14 +35,12 @@ Feature: Crowbar CLI
     
   Scenario: Curl Digest Logs Test
     Unless Windows
-    When CURL calls "/support/log.json"
+    When CURL calls "/support/logs"
     Then the CLI should return "Content-Type: text/html"
       And the CLI should not return "my/users/sign_in"
 
   Scenario: Curl Digest CLI download
     Unless Windows
-    When CURL calls "/support/get_cli.json"
-    Then the CLI should return "% Total"
-      And the CLI should return "302 Found"
-      And the CLI should return "Content-Type: text/html"
+    When CURL calls "/support/get_cli"
+    Then the CLI should return "Content-Type: text/html"
       And the CLI should not return "my/users/sign_in"

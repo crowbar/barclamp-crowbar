@@ -37,11 +37,11 @@ class NodesController < ApplicationController
     state = {}
     i18n = {}
     sum = Node.name_hash
-puts "ZEHICLE nodes_controller"
     begin
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
+Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
           # CB2 temporary polling
           Jig.refresh_node "temporary polling from nodes_controller.status", node
           

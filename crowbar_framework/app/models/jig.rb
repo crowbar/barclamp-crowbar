@@ -26,7 +26,7 @@
 
 class Jig < ActiveRecord::Base
 
-  attr_accessible :name, :description, :type, :order
+  attr_accessible :name, :description, :type, :active, :order
 
   # 
   # Validate the name should unique 
@@ -94,7 +94,7 @@ Delete a node from all jig. The exact actions depend on the jig.
   # Update node infomration from a Jig, and process node attributes.
   # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
   def self.refresh_node(descr, node)    
-puts "ZEHICLE refresh"
+Rails.logger.debug "ZEHICLE #{node.name} Jig refresh"
     jigs = find_jigs_for_node(node)
     bcs = node.deployments.map { |d| d.barclamp }.uniq
     jigs.each { |j| 

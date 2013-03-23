@@ -26,3 +26,11 @@ Feature: Jigs API
     Given there is a jig "jig_delete_test"
     When REST deletes the jig "jig_delete_test"
     Then there is not a jig "jig_delete_test"
+
+  Scenario: Jigs UI Page
+    When I go to the home page
+    When I click on the {bdd:crowbar.i18n.nav.util_jigs} menu item
+    Then I should see a heading {bdd:crowbar.i18n.jigs.index.title}
+      And I should see "test"
+      And there should be no translation errors
+    

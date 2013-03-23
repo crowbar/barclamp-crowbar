@@ -1,0 +1,12 @@
+%h1= t '.title'
+
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.description'
+  %tbody
+    - @jigs.each do |j|
+      %tr    
+        %td= j.name
+        %td= j.description

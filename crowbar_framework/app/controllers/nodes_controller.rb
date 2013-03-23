@@ -41,9 +41,9 @@ class NodesController < ApplicationController
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
-Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
+#Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
           # CB2 temporary polling
-          Jig.refresh_node "temporary polling from nodes_controller.status", node
+#          Jig.refresh_node "temporary polling from nodes_controller.status", node
           
           # CB1 approach
           state[node.id] = node.state

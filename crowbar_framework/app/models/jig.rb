@@ -94,13 +94,13 @@ Delete a node from all jig. The exact actions depend on the jig.
   # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
   def self.refresh_node(descr, node)    
     jigs = find_jigs_for_node(node)
-Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.inspect} ??"
-Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.read_node_data(node)} ??"
-Rails.logger.debug "ZEHICLE #{node.name} Jig refresh #{jigs.join(',')}"
+#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.inspect} ??"
+#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.read_node_data(node)} ??"
+#Rails.logger.debug "ZEHICLE #{node.name} Jig refresh #{jigs.join(',')}"
  #   bcs = node.deployments.map { |d| d.barclamp }.uniq
     jigs.each do |j| 
       d = j.read_node_data(node)
-Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name} got #{d}"
+#Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name} got #{d}"
     end
   
 #      next if  d.nil?

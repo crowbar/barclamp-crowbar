@@ -36,7 +36,9 @@ en:
     util_logs: Exported Items
     util_logs_description: Download information complied for review
     util_import: Barclamp Versions
-    util_import_description: Show dDetails about Crowbar modules
+    util_jigs: Installed Jigs
+    util_description: "Configuration Manager Plug-ins"
+    util_import_description: Show details about Crowbar modules
 
     barclamps: Barclamps
     barclamps_description: Provisioning and Operations Modules 
@@ -279,6 +281,11 @@ en:
       user_defined_role_description: "User Defined Attributes"
 
   # Views
+  jigs:
+    index:
+      title: "Installed Configuration Managers - Jigs"
+      name: Name
+      description: Description
   dashboard:
     index:
       new_node: Add Node

@@ -45,9 +45,8 @@ describe Jig do
 
   it "should broadcast refresh to all jigs" do
     node = Node.create :name=>"test"
-    # only the matching jig should have it's read_node_data called
-    # at this point, it's only the first jig.
     jig1.should_receive(:read_node_data,node)
+    jig2.should_receive(:read_node_data,node)
     Jig.refresh_node("just a test", node)
   end
 

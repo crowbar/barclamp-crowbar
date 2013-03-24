@@ -24,6 +24,9 @@ Crowbar::Application.routes.draw do
     get '/', :controller=>'docs', :action=>'index', :as => "docs"
     get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic", :constraints => { :id => /.*/ }
   end
+  
+  # UI for jigs
+  resources :jigs
 
   # UI scope
   scope 'utils' do

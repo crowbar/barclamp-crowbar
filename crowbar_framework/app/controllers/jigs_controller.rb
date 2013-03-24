@@ -16,7 +16,10 @@
 class JigsController < ApplicationController
 
   def index
-    render api_index :jig, Jig.all
+    respond_to do |format|
+      format.html { @jigs = Jig.all } # show.html.erb
+      format.json { render api_index :jig, Jig.all }
+    end
   end
 
   def show

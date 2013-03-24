@@ -41,7 +41,7 @@ class BarclampCrowbar::Jig < Jig
 
   def read_node_data(node)
     ## Return some dummy data to enable unit-tests, for now just safe default
-    puts "$$$$ testing from BarclampCrowbar::Jig.read_node_data"
+Rails.logger.debug "ZEHICLE #{node.name} BarclampCrowbar::Jig.read_node_data"
     JSON.parse("{}")
   end   
 end

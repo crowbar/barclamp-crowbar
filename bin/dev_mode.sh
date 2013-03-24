@@ -23,15 +23,22 @@ pidof puma
 if [[ pwd = "/tmp/crowbar-dev-test/opt/dell/crowbar_framework" ]]; then
   ~/crowbar/dev reload-unit-tests
 else        
+
+  # create/update the database
   export RAILS_ENV=development
   export DEBUG=true 
   cd /opt/dell/crowbar_framework/
   chmod 777 -R .
   chown crowbar -R .
-  rake db:create
-  rake db:migrate
-  rake db:schema:dump
+  rake db:create rake db:migrate rake db:schema:dump
+
+  # inject the chef server from the local admin
+  KEYFILE="/home/crowbar/.chef/crowbar.pem"
+  EDITOR=/bin/true knife client create crowbar -a --file $KEYFILE -VV 
+  CHEF_SERVER_URL="http://$(hostname --fqdn):4000"
+  bundle exec rake crowbar:chef:inject_conn url="${CHEF_SERVER_URL}" name="crowbar" key_file=$KEYFILE
+  
+  # startup the web server
+  bundle exec rails s Puma
+  
 fi
-
-rails s Puma
-

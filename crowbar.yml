@@ -71,7 +71,6 @@ debs:
     - curl
     - sqlite3
     - libsqlite3-dev
-    - markdown
     - vim
   build_pkgs:
     - ruby1.9.1
@@ -122,8 +121,6 @@ debs:
     # openssh stuff
     - openssh-client
     - openssh-server
-    # markdown 2 html generation
-    - markdown
     # rabbitmq stuff
     - rabbitmq-server
     # ruby stuff
@@ -184,7 +181,6 @@ rpms:
     - curl
     - sqlite
     - sqlite-devel
-    - python-markdown
     - vim
   build_pkgs:
     - rubygems
@@ -222,8 +218,6 @@ rpms:
     - minicom
     # nscd stuff
     - nscd
-    # markdown to html stuff
-    - python-markdown
     # openldap stuff
     - nss
     - nss-tools

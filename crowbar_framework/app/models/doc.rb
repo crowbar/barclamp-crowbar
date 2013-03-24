@@ -58,7 +58,8 @@ class Doc < ActiveRecord::Base
       topic.children.each do |t|
         file = page_path File.join('..','doc'), t.name
         if File.exist? file
-          text += (html ? %x[markdown #{file}] : IO.read(file))
+          raw = IO.read(file)
+          text += (html ? BlueCloth.new(raw).to_html : raw)
           text += topic_expand(t.name, html)
         end
       end

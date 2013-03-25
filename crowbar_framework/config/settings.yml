@@ -1,0 +1,8 @@
+# Crowbar app config
+#
+# This file contains the default config values, which can be overridden
+# depending on the environment and by local files that are not tracked in git.
+# See https://github.com/railsjedi/rails_config#readme for details.
+
+docs:
+  debug: true

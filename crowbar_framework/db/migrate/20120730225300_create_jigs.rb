@@ -19,7 +19,7 @@ class CreateJigs < ActiveRecord::Migration
       t.string :description,  :null=>true
       t.string :type,         :null=>false
       t.boolean :active,      :default => false 
-      t.string :connection,   :null=>true
+      t.string :server,       :null=>true
       t.string :client_name,  :null=>true
       t.string :key,          :null=>true
       t.integer :order,       :default=>10000

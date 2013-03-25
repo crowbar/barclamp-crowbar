@@ -5,8 +5,14 @@
     %tr
       %th= t '.name'
       %th= t '.description'
+      %th= t '.active'
+      %th= t '.client'
+      %th= t '.conn'
   %tbody
     - @jigs.each do |j|
       %tr    
         %td= j.name
         %td= j.description
+        %td= j.active
+        %td= j.client_name
+        %td= j.server

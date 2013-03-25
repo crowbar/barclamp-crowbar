@@ -35,9 +35,13 @@ else
   # inject the chef server from the local admin
   KEYFILE="/home/crowbar/.chef/crowbar.pem"
   EDITOR=/bin/true knife client create crowbar -a --file $KEYFILE -VV 
-  CHEF_SERVER_URL="http://$(hostname --fqdn):4000"
-  bundle exec rake crowbar:chef:inject_conn url="${CHEF_SERVER_URL}" name="crowbar" key_file=$KEYFILE
+  FQDN=(hostname --fqdn)
+  CHEF_SERVER_URL="http://$FQDN:4000"
+  echo bundle exec rake crowbar:chef:inject_conn url="${CHEF_SERVER_URL}", name="crowbar", key_file=$KEYFILE
   
+  echo To install an admin node in dev mode, pleass use
+  echo curl --digest -u crowbar:crowbar -X POST http://localhost:3000/api/v2/nodes -d "name=$FQDN" -d 'admin=true'
+
   # startup the web server
   bundle exec rails s Puma
   

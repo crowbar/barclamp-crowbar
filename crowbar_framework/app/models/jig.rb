@@ -26,7 +26,8 @@
 
 class Jig < ActiveRecord::Base
 
-  attr_accessible :name, :description, :type, :active, :order
+  attr_accessible :name, :description, :type, :order
+  attr_accessible :server, :client_name, :key, :active
 
   # 
   # Validate the name should unique 

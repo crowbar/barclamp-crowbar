@@ -30,6 +30,7 @@ gem 'delayed_job_active_record'
 gem 'daemons'
 gem 'active_scaffold'
 gem 'devise'
+gem 'rails_config'
 
 gem 'jquery-rails'
 

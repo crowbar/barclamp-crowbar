@@ -286,6 +286,9 @@ en:
       title: "Installed Configuration Managers - Jigs"
       name: Name
       description: Description
+      active: Active
+      conn: Connection
+      client: Client
   dashboard:
     index:
       new_node: Add Node

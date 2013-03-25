@@ -44,6 +44,7 @@ class BarclampCrowbar::Jig < Jig
 Rails.logger.debug "ZEHICLE #{node.name} BarclampCrowbar::Jig.read_node_data"
     JSON.parse("{}")
   end   
+  
 end
 
 

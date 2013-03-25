@@ -247,33 +247,8 @@ config(Key, Default) when is_atom(Key) ->
   end;
   
 % DEPRICATING returns value for key from Config (error if not found)
-config([], Key)     -> config(Key, undefined);
-config(Config, Key) ->
-  case config(Config, Key, undefined) of
-    undefined -> throw("bdd_utils:config Could not find requested key '"++atom_to_list(Key)++"' in config file");
-    V -> V
-  end.
-
-% returns value for key from Config (returns default if missing)
-config([], Key, Default)     -> config(Key, Default);  
-config(Config, Key, Default) ->
-  % TODO - this should use the get first, but we're transitioning so NOT YET
-  case lists:keyfind(Key,1,Config) of
-    {Key, undefined} -> config(Key, Default);
-    {Key, Value} -> 
-          % this if helps find items that are not using config_set
-          case get(Key) of
-            undefined -> 
-                  put(Key, Default), 
-                  log(Config, depricate, "Depricating Config! Please use bdd_utils:config_set(Config, ~p, ~p) for Key ~p",[Key, Default, Key]);
-            _ -> all_good
-          end,
-          Value;
-    _ ->  case get(Key) of   	     
-  	        undefined -> put(Key, Default), Default;
-  	        V -> V
-  	      end
-	end.
+config(_, Key)     -> config(Key, undefined).
+config(_, Key, Default) -> config(Key, Default).
 
 config_set(Key, {ListKey, Value}) ->
   List = config(Key, []),
@@ -283,22 +258,11 @@ config_set(Key, {ListKey, Value}) ->
 config_set(Key, Value) ->
   put(Key, Value),
   {Key, Value}.
-config_set([], Key, Value)      -> config_set(Key, Value);
-config_set(Config, Key, Value)  ->
-  C = case lists:keyfind(Key,1,Config) of
-    undefined -> Config;
-    Item -> lists:delete(Item, Config)
-  end,
-  C ++ [config_set([], Key, Value)].
+  
+config_set(_, Key, Value)      -> config_set(Key, Value).
   
 config_unset(Key)     -> put(Key, undefined).
-config_unset([], Key) -> config_unset(Key); 
-config_unset(Config, Key) ->
-  config_unset([], Key),
-  case lists:keyfind(Key,1,Config) of
-    false -> Config;
-    Item  -> lists:delete(Item, Config)
-  end.
+config_unset(_, Key)  -> config_unset(Key).
 
 % stores values used inside a scenario
 scenario_store(ID, Key, Value) ->

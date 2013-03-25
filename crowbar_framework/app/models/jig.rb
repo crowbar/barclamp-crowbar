@@ -259,11 +259,13 @@ private
 =end
   def self.broadcast_to_jigs(desc="no description")
     raise "no block given" unless block_given?
-    Jig.all.each { |x|  
-      begin        
+    Jig.all.each { |x|
+      begin
         yield x
       rescue => exc
         Rails.logger.warn("failed to invoke #{desc} on jig: #{x.inspect}")
+        Rails.logger.warn("Exception: #{exc.inspect}")
+        Rails.logger.warn("Backtrace: #{exc.backtrace}")
       end
     }
   end

@@ -89,10 +89,3 @@ for d in /var/run/crowbar /opt/dell/crowbar_framework; do
 done
 
 /etc/init.d/crowbar start
-
-printf "Waiting for Crowbar web app to start"
-while ! grep -q crowbar <  <(/opt/dell/bin/crowbar users list); do
-    printf "."
-    sleep 1
-done
-printf " Done.\n"

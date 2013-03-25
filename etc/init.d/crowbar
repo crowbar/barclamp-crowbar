@@ -27,6 +27,11 @@ elif [[ -f /etc/SuSE-release ]]; then
     OS=suse
 fi
 
+if [[ -f /etc/crowbar.install.key ]]; then
+    read CROWBAR_KEY < /etc/crowbar.install.key
+    export CROWBAR_KEY
+fi
+
 mkdir -p /var/run/crowbar && chown crowbar:crowbar /var/run/crowbar
 
 case "$1" in
@@ -42,16 +47,15 @@ case "$1" in
         bluepill load $BLUEPILL_CONFIG
         bluepill crowbar-webserver start
         printf "Waiting for Crowbar web app to start"
-        while ! grep -q crowbar <  <(/opt/dell/bin/crowbar users list) &>/dev/null; do
+        while ! grep -q crowbar < <(/opt/dell/bin/crowbar users list 2>/dev/null); do
             printf "."
             sleep 1
         done
         printf " Done.\n"
         ;;
     stop)
-        echo -n "Stoppint Crowbar webserver"
+        echo -n "Stopping Crowbar webserver"
         bluepill crowbar-webserver stop
-        bluepill quit
         ;;
     status)
         bluepill crowbar-webserver status

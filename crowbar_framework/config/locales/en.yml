@@ -29,6 +29,7 @@ en:
   edit: Edit
   actions: Actions
   active: Active
+  inactive: Inactive
   are_you_sure: "Are you sure?"
   unknown: Unknown
   error: Error

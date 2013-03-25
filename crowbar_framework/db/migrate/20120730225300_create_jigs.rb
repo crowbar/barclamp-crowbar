@@ -28,7 +28,7 @@ class CreateJigs < ActiveRecord::Migration
     #natural key
     add_index(:jigs, :name, :unique => true)   
     # create test jig
-    Jig.find_or_create_by_name(:name =>'test', :order=>9999, :active=>true, :type=>'BarclampCrowbar::Jig') unless Rails.env.production? 
+    BarclampCrowbar::Jig.find_or_create_by_name(:name =>'test', :order=>9999, :active=>true, :description=>'development testing only - does not do anything') unless Rails.env.production? 
   end
 
   def self.down

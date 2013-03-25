@@ -17,7 +17,7 @@ class JigsController < ApplicationController
 
   def index
     respond_to do |format|
-      format.html { @jigs = Jig.all } # show.html.erb
+      format.html { @jigs = Jig.order("'order'") } # show.html.erb
       format.json { render api_index :jig, Jig.all }
     end
   end

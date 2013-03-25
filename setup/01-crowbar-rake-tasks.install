@@ -21,8 +21,8 @@ fi
 case $OS in
     ubuntu)
         dpkg -l crowbar-barclamp-crowbar &>/dev/null || \
-        apt-get -y install curl sqlite sqlite3 libsqlite3-dev markdown vim;;
-    redhat) yum -y install curl sqlite sqlite-devel python-markdown vim gcc-c++;;
+        apt-get -y install curl sqlite sqlite3 libsqlite3-dev vim;;
+    redhat) yum -y install curl sqlite sqlite-devel vim gcc-c++;;
 esac
 
 if ! grep -q '^crowbar:' /etc/passwd; then

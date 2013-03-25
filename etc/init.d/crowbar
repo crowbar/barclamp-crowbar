@@ -40,6 +40,13 @@ case "$1" in
             (cd /opt/dell/crowbar_framework; bundle install --local --quiet)
         fi
         bluepill load $BLUEPILL_CONFIG
+        bluepill crowbar-webserver start
+        printf "Waiting for Crowbar web app to start"
+        while ! grep -q crowbar <  <(/opt/dell/bin/crowbar users list) &>/dev/null; do
+            printf "."
+            sleep 1
+        done
+        printf " Done.\n"
         ;;
     stop)
         echo -n "Stoppint Crowbar webserver"

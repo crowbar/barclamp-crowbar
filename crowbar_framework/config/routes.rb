@@ -132,7 +132,9 @@ Crowbar::Application.routes.draw do
           resources :barclamps do
             resources :deployments
           end
-          resources :deployments
+          resources :deployments do
+            put "commit" => "deployments#commit"
+          end
           resources :snapshots
           resources :jigs
           resources :attrib_types

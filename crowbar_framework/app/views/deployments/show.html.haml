@@ -1,7 +1,7 @@
 %p{:style => 'float:right'}
   = link_to t('back'), barclamp_path(:deployment_id=>@deployment.id), :class => 'button'
 
-.led.unknown{:id => @deployment.id, :title=>t('deployment.status.unknown'), :style=>'float:left'} 
+= render :partial => 'led', :locals => { :deployment=>@deployment }
 %h1= t '.title', :barclamp=>@barclamp.display, :deployment=>@deployment.name
 
 = form_for :deployment, :url => deployment_path(:id => @deployment.id, :controller => 'deployment', :barclamp=>@barclamp.name), :html => { :method => :put, :'data-type' => 'html', :id => 'update_deployment_form', :class => "box" } do |f|

@@ -220,16 +220,38 @@ class Barclamp < ActiveRecord::Base
   # returns the node
   # WARNING - this has NOT been optimized!
   def process_inbound_data jig_run, node, data
+    return node if data == {}  # skip if nothing!
+    data = JSON.parse(data)
     jig = jig_run.jig
+
+    # this writes the date in dev mode for later inspection
+    if Rails.env.development?
+      fJson = File.open("tmp/#{node.name}-#{jig.name}.json","w")
+      fJson.write(data)
+      fJson.close
+    end
+    
     maps = JigMap.where :jig_id=>jig.id, :barclamp_id=>self.id
     maps.each do |map|
-      # there is only 1 map per barclamp/jig/attrib
-      a = map.attrib_type
+      # there is only 1 map per barclamp/jig/attrib_type
+      attrib_type = map.attrib_type
+      # find the role for this attrib, only 1 per node/barclamp (needed to find hte attrib)
+      role = nil
+      node.roles.each do |r|
+        if r.barclamp.id == self.id and r.deployment.active?
+          role = r
+          break
+        end
+      end
+      role ||= Barclamp.find_by_name('crowbar').active.crowbar_role rescue nil
+
       # there can be multiple Attribs per node/barclamp snapshot
       attribs = Attrib.where :attrib_type_id=>a.id, :node_id=>node.id
+      
       if attribs.empty?
+
         # create the AIs for the data using the unbound role attribes that are already there
-        unset_attribs = Attrib.where :attrib_type_id=>a.id, :node_id => nil
+        unset_attribs = Attrib.where :attrib_type_id=>attrib_type.id, :node_id => nil, :role_id => role.id
         unset_attribs.each do |na|
           # attach node to barclamp data (from role association)
           if na.barclamp.id == self.id
@@ -244,7 +266,7 @@ class Barclamp < ActiveRecord::Base
       attribs.each do |ai|
         # we only update the attribs linked to this barclamp 
         # performance note: this is an expensive thing to figure out!
-        if !ai.role_id.nil? and ai.barclamp.id == self.id 
+        if !ai.role_id.nil? and ai.barclamp.id == self.id and ai.snapshot.active?
           # get the value
           value = jig.find_attrib_in_data data, map.map
           # store the value
@@ -342,6 +364,21 @@ class Barclamp < ActiveRecord::Base
     end
   end
 
+  # TO not complete!
+  def import_map(jig)
+    
+    file = File.join(self.source_path, "config-template.yml")
+    import = YAML.load_file file
+    
+    import['roles'].each do |role, details|
+      self.template.add_role role
+      details['attributes'].each do |attrib, map|
+        a = AttribType.add attrib
+        #jm = JigMap.add a, self, map
+      end
+    end
+    
+  end
 
   # Import from existing Config data
   def self.import_1x(bc_name, bc=nil, source_path=nil)

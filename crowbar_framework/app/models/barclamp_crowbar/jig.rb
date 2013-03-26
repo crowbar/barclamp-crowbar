@@ -20,15 +20,15 @@ require 'json'
 
 class BarclampCrowbar::Jig < Jig
 
-  def create_event(config)
-    JigEvent.create :type=>"JigEvent", :jig => self, :status => JigEvent::EVT_PENDING, :name=>"placeholder"
+  def create_event(config=nil)
+    JigEvent.create :type=>"JigEvent", :jig_id => self.id, 
+          :status => JigEvent::EVT_PENDING, :name=>"placeholder"
   end
   
-  def create_run_for(evt, nr,order)
-    run = JigRun.create(:type=> "JigRun", :jig_event => evt, 
+  def create_run_for(evt, nr=nil, order=1000)
+    JigRun.create(:type=> "JigRun", :jig_event_id => evt.id, 
       :role => nr, :order=>order, :status => JigRun::RUN_PENDING, 
-      :name=>"run_#{evt.id}_#{nr.id}_#{order}")
-    run
+      :name=>"run_#{evt.id}_#{order}")
   end
 
   def create_node(node)
@@ -41,7 +41,6 @@ class BarclampCrowbar::Jig < Jig
 
   def read_node_data(node)
     ## Return some dummy data to enable unit-tests, for now just safe default
-Rails.logger.debug "ZEHICLE #{node.name} BarclampCrowbar::Jig.read_node_data"
     JSON.parse("{}")
   end   
   

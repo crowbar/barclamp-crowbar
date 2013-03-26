@@ -1,4 +1,6 @@
-%input.button{:type => "submit", :name => "commit", :value => t('.commit')}
+= form_for :deployment, :remote => false, :url => deployment_commit_path(:id=>deployment.id, :deployment_id=>deployment.id, :version=>'v2'), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'commit_deployment_form', :class => "formtastic"} do |f|
+  %input.button{:type => "submit", :value => t('.commit')}
+
 - if deployment.committed?
   %input.button{:type => "submit", :name => "recall", :value => t('.recall'), :'data-confirm' => t('.recall_changes')}
 - if deployment.active? 

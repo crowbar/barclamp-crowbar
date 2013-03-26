@@ -37,7 +37,7 @@ class JigRun < ActiveRecord::Base
 
   # grand-parent object (perhaps can be a belongs_to :through?)
   def jig
-    self.event.jig
+    self.event.jig rescue nil
   end
 
 end

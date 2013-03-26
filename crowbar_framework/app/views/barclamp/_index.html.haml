@@ -9,13 +9,13 @@
     - name = barclamp.name.parameterize
     %tr{:id=>name, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
       %td
-        %a.toggle.with_label{:href => "#", :id => "#{name}_details_toggle", :rel => "#{name}_details"}= name.titlecase
+        %a.toggle.with_label{:href => "#", :id => "#{name}_details_toggle", :rel => "#{name}_details"}= barclamp.display
       %td
-        - if barclamp.deployments.nil? 
-          .led{:id => "#{name}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+        - if barclamp.deployments.count == 0
+          = render :partial => 'deployments/led', :locals => { :deployment=>nil }
         - else
-          - barclamp.deployments.each do |deployments|
-            .led{:id => deployments.id, :class =>'unknown', :style => "float:left", :title=>"#{deployments.name} - #{t(deployments.status, :scope=>'barclamp.status')}"}
+          - barclamp.deployments.each do |deployment|
+            = render :partial => 'deployments/led', :locals => { :deployment=>deployment }
       %td= barclamp.description
 
     %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name ? 'float' : 'none'}", :id => "#{name}_details"}
@@ -25,6 +25,8 @@
             %tbody
               - if barclamp.deployments.count>0 
                 - barclamp.deployments.each do |deployment|
-                  = render :partial => "deployments/show", :locals=> { :deployment => deployment }
+                  %tr
+                    %td{:colspan=>3}= render :partial => "deployments/show", :locals=> { :deployment => deployment }
               - if barclamp.allow_multiple_deployments or barclamp.deployments.count==0
-                = render :partial => "deployments/new", :locals=> { :barclamp => barclamp }
+                %tr
+                  %td= render :partial => "deployments/new", :locals=> { :barclamp => barclamp }

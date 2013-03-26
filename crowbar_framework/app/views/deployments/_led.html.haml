@@ -1,0 +1,8 @@
+- if deployment.nil?
+  .led{:id =>-1, :class => 'none', :style => "float:left", :title=>t('deployments.status.none')}
+- elsif deployment.active?
+  .led.ready{:id => deployment.id, :title=>t('deployments.status.active'), :style=>'float:left'} 
+- elsif deployment.committed?
+  .led.pending{:id => deployment.id, :title=>t('deployments.status.committed'), :style=>'float:left'} 
+- else
+  .led.unknown{:id => deployment.id, :title=>t('deployments.status.proposed'), :style=>'float:left'} 

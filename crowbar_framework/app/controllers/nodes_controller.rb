@@ -79,6 +79,9 @@ class NodesController < ApplicationController
   def destroy
     n = Node.find_key(params[:id] || params[:name])
     Rails.logger.info("Will delete #{n.name}")
+    run_in_prod_only do
+      Jig.delete_node(n)
+    end
     render api_delete Node
   end
   

@@ -45,12 +45,7 @@ class BarclampModelTest < ActiveSupport::TestCase
 
     r = b.roles
 
-    r1 = RoleType.find_private
-    r2 = RoleType.find_by_name("crowbar")
-
     assert_equal 2, r.size
-    assert_equal r1.id, r.first.role_type_id
-    assert_equal r2.id, r.second.role_type_id
   end
 
   test "Template Relation" do

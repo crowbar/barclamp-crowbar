@@ -62,7 +62,7 @@ class BarclampCrowbar::Barclamp < Barclamp
   
   # called by the jib when the node changes it's state
   # creates jobs needed for the state
-  def transition(snapshot, node, state, role_type_name=nil)
+  def transition(snapshot, node, state, role_name=nil)
     Rails.logger.debug "Crowbar transition enter: #{name} to #{state}"
 
     # for all transitions
@@ -76,7 +76,7 @@ class BarclampCrowbar::Barclamp < Barclamp
       end
     end
 
-    super snapshot, node, state, role_type_name
+    super snapshot, node, state, role_name
 
   end
 

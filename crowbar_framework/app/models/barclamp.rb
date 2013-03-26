@@ -41,8 +41,7 @@ class Barclamp < ActiveRecord::Base
   # Template Data
   has_one  :template,                 :class_name => "Snapshot", :dependent => :destroy, :foreign_key=>:id, :primary_key=>:template_id
   has_many :attribs,                  :through => :template
-  has_many :roles,                    :through => :template
-  has_many :role_types,               :through => :roles, :order=>'"roles"."order"'
+  has_many :roles,                    :through => :template, :order => Snapshot::ROLE_ORDER
   
   # Deployment Chains (may not all be the same deployment!)
   has_many :deployments,              :dependent => :destroy
@@ -86,12 +85,10 @@ class Barclamp < ActiveRecord::Base
   end
   
   # this fall back routine just updates the state and does nothing else
-  def transition(snapshot, node, state, role_type_name=nil)
+  def transition(snapshot, node, state, role_name=nil)
 
     if role_name
-      role = Role.find_by_snapshot_id_and_name snapshot.id, role_type_name
-      role_type = RoleType.find_by_name role_type_name
-      role ||= Role.find_by_snapshot_id_and_role_type_id snapshot.id, role_type.id
+      role = Role.find_by_snapshot_id_and_name snapshot.id, role_name
     end
     
     unless committed?
@@ -138,14 +135,13 @@ class Barclamp < ActiveRecord::Base
   # attributes cannot be reassigned to a different barclamp
   # add_attrib attaches an attribute to the barclamp.  Assigns optional description & order values
   #
-  def add_attrib(attrib_type, map=nil, role_type=nil)
+  def add_attrib(attrib_type, map=nil, to_role=nil)
     # find the attrib
     a = AttribType.add attrib_type, self.name
-    r = role_type.nil? ? nil : RoleType.add(role_type, self.name)
     # map it
     JigMap.add a, self, map if map
     # add the attrib type to the barclamp snapshot
-    template.add_attrib a, r if template
+    template.add_attrib(a,to_role) if template
   end
 
 
@@ -435,7 +431,6 @@ class Barclamp < ActiveRecord::Base
 
   # make the our tempate
   def create_template(bc_file)
-
     if self.template_id.nil?
       t = Snapshot.create(
                 :name => I18n.t('template', :scope => "model.barclamp", :name=>self.name.humanize),
@@ -444,18 +439,19 @@ class Barclamp < ActiveRecord::Base
               )
       self.template_id = t.id
       # attach the default private role
-      ri = t.add_role RoleType.find_private
+      ri = t.add_role('private')
       ri.order = 1
       ri.run_order = -1   # this tells Crowbar NOT to give the information to the Jig
       ri.description = I18n.t('model.barclamp.private_role_description'),
-      ri.save
-      save
+      ri.save!
+      save!
+      t
     end
     
   end
   
-  private 
-  
+  private
+
   # This method ensures that we have a type defined for 
   def create_type_from_name
     raise "barclamps require a name" if self.name.nil?

@@ -33,7 +33,6 @@ class Snapshot < ActiveRecord::Base
   has_many        :nodes,             :through => :roles
   has_many        :private_roles,     :class_name => "Role", :conditions=>'run_order<0', :order => ROLE_ORDER
   has_many        :public_roles,      :class_name => "Role", :conditions=>'run_order>=0', :order => ROLE_ORDER
-  has_many        :role_types,        :through => :roles
 
   has_many        :attribs,           :through => :roles
   has_many        :attrib_types,      :through => :attribs
@@ -53,32 +52,29 @@ class Snapshot < ActiveRecord::Base
   end
  
   # Add a role to a snapshot by creating the needed Role
-  # Returns a Role (not a role_type)
-  def add_role(role_type_name)
-    ri = Role.find_by_name_and_snapshot_id role_type_name, self.id 
-    unless ri
-      role_type = RoleType.add role_type_name, self.name
-      ri = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id 
-    end
-    ri ||= Role.find_or_create_by_name_and_snapshot_id :name=>role_type_name, :role_type_id => role_type.id, :snapshot_id => self.id
-    ri
+  # Returns a Role
+  def add_role(role_name)
+    r = Role.find_or_create_by_name_and_snapshot_id :name=>role_name, :snapshot_id => self.id
+    r.save! unless r.id
+    r
+  end
+
+  def private_role
+    add_role('private')
   end
 
   # Add attrib to snapshot
   # assume first public role (fall back to private role) if none given
-  def add_attrib(attrib_type, role_type=nil)
-    if role_type.nil?
-      role_type = public_roles.first.role_type
-      role_type = private_roles.first.role_type if role_type.nil?
-    else
-      role_type = RoleType.add role_type, self.name
-    end
+  def add_attrib(attrib_type, role_name=nil)
     desc = I18n.t 'added', :scope => 'model.role', :name=>self.name
-    ri = Role.find_or_create_by_role_type_id_and_snapshot_id :name=>role_type.name, 
-                                                              :role_type_id=>role_type.id, 
-                                                              :snapshot_id=>self.id,
-                                                              :description=>desc
-    ri.add_attrib attrib_type, nil, self.name
+    unless role_name
+      role = public_roles.first || private_roles.first || private_role
+    else
+      role = Role.find_or_create_by_name_and_snapshot_id :name => role_name,
+                                                         :snapshot_id => self.id,
+                                                         :description => desc
+    end
+    role.add_attrib attrib_type, nil, self.name
   end
 
   # determines the role run order using the imported element_order
@@ -120,10 +116,6 @@ class Snapshot < ActiveRecord::Base
     if m.to_s =~ /(.*)_role$/
       r = Role.find_by_name_and_snapshot_id $1, self.id
       # temporary while we depricate the node role
-      if r.nil?
-        role_type = RoleType.find_by_name $1
-        r = Role.find_by_role_type_id_and_snapshot_id role_type.id, self.id
-      end
       return r
     else
       super m,*args,&block

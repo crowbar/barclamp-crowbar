@@ -29,18 +29,15 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     @mynode = Node.find_or_create_by_name :name=>@node
     assert_not_nil @node, "for the exected node"
     @bc = Barclamp.create :name=>"node_data"
-    @template = Snapshot.create :name=>'node template test', :barclamp_id=>@bc.id
-    assert_equal 0, @template.roles.count
+    @template = @bc.create_template("fake")
+    assert_equal 1, @template.roles.count
     @role = @template.add_role 'bndt'
-    assert_equal 1, @template.roles(true).count
-    @template.add_role 'private'
-    assert_equal 2, @template.roles(true).count
+    assert_equal 2, @template.roles.count
     @bc.template_id = @template.id
-    @bc.save    
-    assert_equal 2, @bc.template.role_types(true).count
+    @bc.save
     assert_equal 2, @bc.roles.count
-    assert_equal 'private', @bc.template.role_types(true).first.name
-    assert_equal 'bndt', @bc.template.role_types(true).second.name
+    assert_equal 'private', @bc.roles(true).first.name
+    assert_equal 'bndt', @bc.roles(true).second.name
   end
 
   test "we have the expected jigs" do
@@ -63,7 +60,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal "bndt", @bc.template.roles.second.name
     
     # add the attributes that we want to test
-    a1 = @bc.add_attrib "eth0", "crowbar_ohai/detected/network/eth0", @role  #expected "0000:00/0000:00:01.0/0000:01:00.0"
+    a1 = @bc.add_attrib "eth0", "crowbar_ohai/detected/network/eth0"  #expected "0000:00/0000:00:01.0/0000:01:00.0"
     assert_equal "eth0", a1.attrib_type.name
     assert_equal "bndt", a1.role.name
     assert_nil a1.node_id
@@ -100,7 +97,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_equal "dmi/base_board/serial_number", JigMap.get_map("chef","node_data", "serial_number").map
 
     assert_equal 2, @bc.template.roles(true).count
-    assert_equal 3, @bc.template.roles.first.attribs.count, "this is the roles before nodes are assigned"
+    assert_equal 3, @role.attribs.count, "this is the roles before nodes are assigned"
 
     assert_equal Jig.count*3, @bc.jig_maps.count, "this is the jig mappings"
 
@@ -111,7 +108,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
     assert_nil @mynode.get_attrib(a3.name).value
     assert_equal :ready, @mynode.get_attrib(a3.name).state
 
-    assert_equal 6, @bc.template.roles.first.attribs.count, "this is the roles after nodes are assigned"
+    assert_equal 6, @role.attribs.count, "this is the roles after nodes are assigned"
     
     assert_equal "private", @bc.template.roles.first.name
     assert_equal "bndt", @bc.template.roles.second.name

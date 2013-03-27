@@ -115,7 +115,7 @@ class NodeModelTest < ActiveSupport::TestCase
     a = n.get_attrib(name)
     assert_not_nil a
     assert_equal name, a.attrib_type.name
-    assert_equal "user_defined", a.role.name
+    assert_equal "private", a.role.name
     assert_equal n.id, a.node_id
     assert_equal @crowbar.id, a.barclamp.id
   end

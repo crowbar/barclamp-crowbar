@@ -5,4 +5,5 @@
 # See https://github.com/railsjedi/rails_config#readme for details.
 
 docs:
-  debug: true
+  debug:   true
+  rebuild: true

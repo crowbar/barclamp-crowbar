@@ -24,7 +24,7 @@ begin
 
     if Barclamp.table_exists? and !defined?(::Rake)
       bc = Barclamp.find_by_name 'crowbar'
-      template = bc.create_proposal
+      template = bc.create_proposal if bc
     end
 
 end

@@ -16,16 +16,14 @@
 
 class Role < ActiveRecord::Base
 
-  attr_accessible :id, :description, :order, :run_order, :states
-  attr_accessible :snapshot_id, :role_type_id
+  attr_accessible :id, :description, :order, :run_order, :states, :snapshot_id, :name
   
   HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
   HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
 
-  validates_uniqueness_of :role_type_id, :scope => :snapshot_id  # decricate
-  validates_uniqueness_of :name,         :scope => :snapshot_id  
-  
-  belongs_to      :role_type,         :inverse_of => :role
+  validates_uniqueness_of :name,         :scope => :snapshot_id
+  validates_format_of :name, :with=>/^[a-zA-Z][_\-a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
   belongs_to      :snapshot
   has_one         :barclamp,          :through => :snapshot
   has_one         :deployment,        :through => :snapshot
@@ -40,12 +38,7 @@ class Role < ActiveRecord::Base
 
   has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id
   has_many        :nodes,             :through => :attrib_has_nodes
-  
-  # alias helper
-  def name
-    role_type.name
-  end
-  
+
   def public?
     self.run_order>=0
   end
@@ -54,10 +47,10 @@ class Role < ActiveRecord::Base
     # use Array#<=> to compare the attributes
     [self.order, self.run_order, self.role.name] <=> [other.order, other.run_order, other.role.name]
   end
-  
+
   def add_attrib(attrib_type, value=nil, map=nil)
     at = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
-    begin 
+    begin
       a = Attrib.find_by_attrib_type_id_and_role_id! at.id, self.id
       a.value = value
       a.save
@@ -69,7 +62,7 @@ class Role < ActiveRecord::Base
 
   # links role to a barclamp it depends on
   # will create a default deployment if none exists
-  def require_deployment(barclamp_name, deployment_name=Barclamp::DEFAULT_DEPLOYMENT_NAME, role_type=nil)
+  def require_deployment(barclamp_name, deployment_name=Barclamp::DEFAULT_DEPLOYMENT_NAME, role_name=nil)
     bc = Barclamp.find_by_name barclamp_name
     deployment = Deployment.find_by_barclamp_id_and_name bc.id, deployment_name
     # if we did not find a deployment, then we have to create one
@@ -83,7 +76,7 @@ class Role < ActiveRecord::Base
     end
     HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
                                                              :id_actual   => deployment.read_attribute(:id),
-                                                             :value_actual=> role_type
+                                                             :value_actual=> role_name
   end
   
   # Assignes a node to the role by creating a AttribInstanceHasRole

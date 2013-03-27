@@ -23,7 +23,7 @@ class BarclampImportTest < ActiveSupport::TestCase
     end
     b = Barclamp.find_by_name "crowbar"
     assert_not_nil b.template_id
-    assert_equal "private", b.template.private_roles.first.role_type.name
+    assert_equal "private", b.template.private_roles.first.name
     @error_class = (RUBY_VERSION == '1.8.7') ? NameError : ArgumentError
   end
 
@@ -33,7 +33,7 @@ class BarclampImportTest < ActiveSupport::TestCase
     bc.import_template(json,"bc-foo.json")
     rmap = {}
     bc.template.roles.each do |r|
-      rmap [r.role_type.name] = r.run_order
+      rmap [r.name] = r.run_order
     end
     assert_equal 80, rmap['foo_mon_master']
     assert_equal 81, rmap['foo_mon']

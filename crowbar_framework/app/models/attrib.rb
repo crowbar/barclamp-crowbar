@@ -25,7 +25,6 @@ class Attrib < ActiveRecord::Base
   belongs_to      :node
   belongs_to      :role
 
-  has_one         :role_type,         :through=>:role
   has_one         :snapshot,          :through=>:role
   has_one         :deployment,        :through=>:snapshot
   has_one         :barclamp,          :through=>:snapshot
@@ -142,14 +141,12 @@ class Attrib < ActiveRecord::Base
     # we need to have a role!
     # if the relationship does not exist then assume it's user defined
     if self.role_id.nil?
-      role_type = RoleType.add :name=>"user_defined", :description=>I18n.t('model.role.user_defined_role_description'), :order=>999990
       crowbar = Barclamp.find_by_name 'crowbar'
       base_config = crowbar.template
       # use the proposed snapshot
       base_config = crowbar.deployments.first.proposed if crowbar.deployments.count>0
       # if no active snapshot, use the template
-      user = base_config.add_role role_type
-      self.role_id = user.id
+      self.role_id = base_config.add_role('private').id
     end
   end
   

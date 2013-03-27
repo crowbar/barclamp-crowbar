@@ -27,18 +27,14 @@
           = " (#{template.description})"
           %ul{:id=>"#{bc.id}_roles"}
             - template.roles.each do |ri|
-              - role = ri.role_type
-              - unless role.nil?              
-                %li
-                  = t ".roles"
-                  %strong= role.name
-                  = "(run_order: #{ri.run_order}," 
-                  = "#{t ".element_states"}: #{ri.states})"
-                  %ul
-                    - ri.attribs.each do |ai|
-                      %li{:id=>ai.id}= ai.name
-              - else
-                %li= "#{t ".roles"}: no role! Role = #{ri.inspect}" 
+              %li
+                = t ".roles"
+                %strong= ri.name
+                = "(run_order: #{ri.run_order}," 
+                = "#{t ".element_states"}: #{ri.states})"
+                %ul
+                  - ri.attribs.each do |ai|
+                    %li{:id=>ai.id}= ai.name
         %li
           = t ".deployments"
           %ul{:id=>"#{bc.id}_deployments"}

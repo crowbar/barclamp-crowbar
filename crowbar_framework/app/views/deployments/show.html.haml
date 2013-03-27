@@ -25,7 +25,6 @@
                 .led.unknown{:id => d.id, :title=>t('deployments.status.unknown')} 
                 = "#{d.barclamp.display}"
                 = "#{d.name}"
-                = ".#{a.role_type}" unless a.role_type.nil?              
                 = "(#{d.status})"
         %td
           - if role.role_attribs.count == 0 

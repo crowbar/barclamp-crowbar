@@ -101,27 +101,22 @@ class AttribHasDeploymentTest < ActiveSupport::TestCase
 
   test "role is set correct" do
     t = Barclamp.find_by_name 'test'
-    r = t.template.public_roles.first.role_type.name
-    attrib = @role.require_deployment 'test', 'foo'
-    attrib.role_type = r
+    r = t.template.public_roles.first.name
+    attrib = @role.require_deployment 'test', 'foo', r
     attrib.save
     assert_equal 'test', attrib.deployment.barclamp.name
     assert_equal 'foo', attrib.deployment.name
     assert_equal r, attrib.actual
-    assert_equal r, attrib.role_type.name
-    assert_equal r, attrib.role.role_type.name
+    assert_equal 'requires', attrib.name
   end
 
   test "role is set on create" do
     t = Barclamp.find_by_name 'test'
-    r = t.template.public_roles.first.role_type.name
+    r = t.template.public_roles.first.name
     attrib = @role.require_deployment 'test', 'foo', r
     assert_equal 'test', attrib.deployment.barclamp.name
     assert_equal 'foo', attrib.deployment.name
     assert_equal r, attrib.actual
-    assert_equal r, attrib.role_type.name
-    assert_equal r, attrib.role.role_type.name
   end
-  
 end
 

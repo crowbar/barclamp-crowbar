@@ -33,34 +33,6 @@ class BarclampCrowbar::AttribHasDeployment < Attrib
     self.state == 5
   end
 
-  # Set the desired role for the deployment to return (optional)
-  # must set the NAME not the actual role because the roles change
-  def role_type=(value)
-    self.value_actual = value
-  end
-
-  # return the role type object related to this deployment (optional)
-  def role_type
-    RoleType.find_by_name self.value_actual if value_actual
-  end
-  
-  # Returns the role referenced using the name to lookup the actual role
-  # states are :proposed, :committed, :active
-  def role(state=:proposed)
-    unless self.actual.nil?
-      snap = case state
-      when :active
-        self.deployment.active || self.deploymnent.proposed
-      when :committed
-        self.deployment.committed || self.deploymnent.active
-      else
-        self.deployment.proposed || self.deploymnent.active
-      end
-      role_type = self.role_type
-      Role.find_by_role_type_id_and_snapshot_id role_type.id, snap.id if role_type
-    end
-  end
-
   # internal use
   def actual=(value)
     self.value_actual = value

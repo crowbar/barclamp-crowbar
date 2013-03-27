@@ -55,7 +55,6 @@ Crowbar::Application.routes.draw do
       resources :nodes do as_routes end
       resources :os do as_routes end
       resources :os_packages do as_routes end
-      resources :role_types do as_routes end
       resources :roles do as_routes end
       resources :snapshots do as_routes end
     end
@@ -138,7 +137,6 @@ Crowbar::Application.routes.draw do
           resources :jigs
           resources :attrib_types
           resources :attribs
-          resources :role_types
           resources :roles
           resources :groups do
             member do

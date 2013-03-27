@@ -166,7 +166,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_equal 2, test.deployments(true).count
   end
   
-  test "create proposal clones roles" do    
+  test "create proposal clones roles" do
     test = Barclamp.import  'test'
     assert_not_nil test
     count = test.template.roles.count
@@ -176,14 +176,14 @@ class DeploymentModelTest < ActiveSupport::TestCase
     r.run_order = 1
     r.order = 1
     r.save
-    assert_equal "clone_me", r.role_type.name
-    assert_equal r.role_type_id, test.template.roles.second.role_type_id, "confirm that added role is second after private"
+    assert_equal "clone_me", r.name
+    assert_equal r.id, test.template.roles(true).second.id, "confirm that added role is second after private"
     # now make sure it shiows up in the cone
     config = test.create_proposal "cloned"
     assert_not_nil config
     assert_not_equal test.template_id, config.id
     assert_equal test.template.roles.count, config.proposed.roles.count
-    assert_equal test.template.roles.second.role_type_id, config.proposed.roles.second.role_type_id
+    assert_not_equal test.template.roles(true).second.id, config.proposed.roles(true).second.id
   end
   
   test "commit proposal clones" do

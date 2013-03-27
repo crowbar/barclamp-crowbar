@@ -15,7 +15,6 @@ Feature: Scaffolds
       And I should see "Jig run"
       And I should see "Node"
       And I should see "Role"
-      And I should see "Role_Type"
       And I should see "BarclampCrowbar::AttribDefault"
       And there should be no translation errors
 
@@ -65,18 +64,6 @@ Feature: Scaffolds
     When I go to the "utils/scaffolds/roles" page
     Then I should see heading "Roles"
       And I should see "Description"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors    
-            
-  Scenario: Role Types
-    While interactive
-    When I go to the "utils/scaffolds/role_types" page
-    Then I should see heading "RoleTypes"
-      And I should see "Name"
-      And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"

@@ -44,7 +44,7 @@ class SnapshotModelTest < ActiveSupport::TestCase
     clone = bi.deep_clone nil, 'new_me'
     assert_not_nil clone
     assert_equal 'new_me', clone.name
-    assert_equal clone.status, Snapshot::STATUS_NONE
+    assert_equal clone.status, Snapshot::STATUS_CREATED
     assert_equal 2, clone.roles(true).count
     assert_equal 'something', clone.roles.first.name
     assert_not_equal ri1.id, clone.roles.first.id

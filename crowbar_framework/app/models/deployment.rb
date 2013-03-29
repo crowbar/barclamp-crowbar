@@ -49,7 +49,7 @@ class Deployment < ActiveRecord::Base
 
   # active includes nothing being committed
   def active?
-    !committed and !active_snapshot_id.nil?
+    !committed && !active_snapshot_id.nil?
   end
 
   def committed?
@@ -117,7 +117,12 @@ class Deployment < ActiveRecord::Base
   # This is from the snapshot
   # TODO: good enough for now, but likely to change
   def state
-    (active_snapshot.nil? ? 999 : active_snapshot.status)
+    case
+    when self.active? then active_snapshot.status
+    when self.committed? then committed_snapshot.status
+    when !self.proposed_snapshot_id.nil? then proposed_snapshot.status
+    else 999
+    end
   end
   
   #
@@ -129,7 +134,7 @@ class Deployment < ActiveRecord::Base
     when 0 
       'missing'
     when 1 
-      'none'
+      'created'
     when 2 
       'pending'
     when 3 

@@ -17,12 +17,13 @@
 class Role < ActiveRecord::Base
 
   attr_accessible :id, :description, :order, :run_order, :states, :snapshot_id, :name
+  attr_accessible :implicit, :admin_implicit, :jig
   
   HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
   HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
 
   validates_uniqueness_of :name,         :scope => :snapshot_id
-  validates_format_of :name, :with=>/^[a-zA-Z][_\-a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of :name, :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to      :snapshot
   has_one         :barclamp,          :through => :snapshot

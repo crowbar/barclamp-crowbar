@@ -15,7 +15,7 @@
 
 class Snapshot < ActiveRecord::Base
 
-  STATUS_NONE        = 1  # Not applied, just created
+  STATUS_CREATED        = 1  # Not applied, just created
   STATUS_QUEUED      = 2  # Attempt at commit, but is queued
   STATUS_COMMITTING  = 3  # Attempt at commit is in progress
   STATUS_FAILED      = 4  # Attempted commit failed
@@ -102,7 +102,7 @@ class Snapshot < ActiveRecord::Base
     new_snap = self.dup
     new_snap.deployment_id = parent_deployment.id if parent_deployment
     new_snap.name = name || "#{self.name}_#{self.id}"
-    new_snap.status = STATUS_NONE
+    new_snap.status = STATUS_CREATED
     new_snap.failed_reason = nil
     new_snap.save
 

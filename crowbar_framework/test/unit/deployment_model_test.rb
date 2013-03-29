@@ -67,7 +67,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
   
   test "status check none" do
     config = Deployment.create :name=>"status", :barclamp_id=>@bc.id
-    snapshot = Snapshot.create :name=>"status2", :deployment_id=>config.id, :status =>Snapshot::STATUS_NONE, :barclamp_id => @bc.id
+    snapshot = Snapshot.create :name=>"status2", :deployment_id=>config.id, :status =>Snapshot::STATUS_CREATED, :barclamp_id => @bc.id
     config.active_snapshot = snapshot
     config.save!
     c = Deployment.find config.id

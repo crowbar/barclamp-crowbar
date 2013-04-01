@@ -80,30 +80,5 @@ class BarclampCrowbar::Barclamp < Barclamp
 
   end
 
-  # inject information into attibs
-  def process_inbound_data jig_run, node, data
-
-    # THIS IS A HACK FOR NOW SO WE CAN DEMO INBOUND DATA 
-    # THEN MAKE THIS MORE GENERIC!
-
-    return node if data == {}  # skip if nothing!
-    data = JSON.parse(data)
-    jig = jig_run.jig
-
-    # only works for CHEF!
-    if jig.name.eql? 'admin_chef'
-      attrib_types = { 
-        "product_info" => "dmi/system/product_info"
-      }
-      attrib_types.each do |a, map|
-        # TODO we'll have to be more consistent about which/all attribs!
-        attrib = node.get_attrib(a)
-        a.actual = jig.find_attrib_in_data data, map
-        a.jig_run_id = jig_run.id
-        a.save!
-  Rails.logger.debug "ZEHICLE #{node.name} #{jig.name} > #{a.inspect}"
-      end
-    end
-  end
 
 end

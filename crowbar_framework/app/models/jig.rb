@@ -98,22 +98,17 @@ Delete a node from all jig. The exact actions depend on the jig.
  #   bcs = node.deployments.map { |d| d.barclamp }.uniq
     jigs.each do |j| 
       d = j.read_node_data(node)
-Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name}"
       next if  d.nil?
-      evt = j.create_event nil
+      evt = j.create_event 
       evt.name="refesh:node:#{node.id}#{Time.now.to_i}"
-      run = j.create_run_for evt, nil, 100
-      cb = Barclamp.find_by_name 'crowbar'
-      barclamps=[ cb ]
-#      node.deployments.inject { | barclamps,dep|
-#         barclamps[dep.barclamp] ||=[]
-#         barclamps[dep.barclamp] << dep.name
-#      }      
-      barclamps.each {|bc|
-Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name} - #{bc.name} #{run.id} #{node.name} #{d.length}"
-        bc.process_inbound_data run, node, d
-      }
-Rails.logger.debug "ZEHICLE #{node.name} < jig #{j.name}"
+      run = j.create_run_for evt
+      Barclamp.all.each do |bc|
+        begin
+          bc.process_inbound_data run, node, d 
+        rescue
+          Rails.logger.warn "Barclamp #{bc.name} failed to process inbound data for Jig #{self.name} on Node #{node.name}"
+        end
+      end
     end
   end
 
@@ -196,7 +191,15 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
     Rails.logger.debug("jig.read_node_data(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
  
+  # TODO Placeholder for now
+  def create_event(config=nil)
+    JigEvent.create :name=>'placeholder', :jig_id=>self.id
+  end
 
+  # TODO Placeholder for now
+  def create_run_for(evt, nr=nil,order=1000)
+    JigRunChef.create :name=>'placeholder', :jig_event_id=>evt.id
+  end
 
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  
@@ -214,7 +217,7 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
     nav = path.split '/'
     # add some optimization to avoid looping down through the structure
     begin
-      case nav.length 
+      case nav.size 
         when 0
           data
         when 1 
@@ -233,7 +236,7 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
           nav.each { |key| data = data[key] }
       end
     rescue
-       "Error mapping #{path}"
+       "Error mapping #{path} inside of #{find_attrib_in_data(data, nav[0..(nav.size-2)].join('/'))}"
     end
   end
     

@@ -41,7 +41,6 @@ class NodesController < ApplicationController
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
-          #Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
           # CB2 temporary polling
           Jig.refresh_node "temporary nodes_controller.status", node
           

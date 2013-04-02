@@ -1,2 +1,3 @@
 docs:
-  debug: false
+  debug:   false
+  rebuild: false

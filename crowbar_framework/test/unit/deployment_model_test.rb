@@ -65,13 +65,13 @@ class DeploymentModelTest < ActiveSupport::TestCase
     assert_equal  'inactive', c.status
   end
   
-  test "status check none" do
+  test "status check created" do
     config = Deployment.create :name=>"status", :barclamp_id=>@bc.id
     snapshot = Snapshot.create :name=>"status2", :deployment_id=>config.id, :status =>Snapshot::STATUS_CREATED, :barclamp_id => @bc.id
     config.active_snapshot = snapshot
     config.save!
     c = Deployment.find config.id
-    assert_equal  'none', c.status
+    assert_equal  'created', c.status
   end
   
   test "status check pending" do    

@@ -401,7 +401,7 @@ en:
   barclamp:
     status:
       "0": "Missing"
-      "1": "None"
+      "1": "Created"
       "2": "Queued"
       "3": "Committing"
       "4": "Failed"
@@ -412,7 +412,7 @@ en:
       pending: Pending
       building: Building
       failed: Failed
-      none: No Proposal
+      created: Created
       unknown: Unknown, requesting status...
       inactive: Inactive
     status_description:

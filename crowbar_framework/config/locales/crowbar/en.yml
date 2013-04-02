@@ -327,6 +327,11 @@ en:
       nics: NICs
       cpu: CPU Type
       hardware: Platform
+    graph:
+      title: "Node Graph"
+      node: "Node %{name} (%{description})"
+      role: "%{name} role (%{description})"
+      attrib: "Attribute %{name} = %{value}"
   nodes:
     new:
       title: Add Node

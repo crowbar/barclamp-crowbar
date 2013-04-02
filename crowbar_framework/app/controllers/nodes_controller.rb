@@ -225,8 +225,6 @@ class NodesController < ApplicationController
 =end
   end
 
-private
-
 =begin 
 Find a node by name or ID based on the passed in params
 in: params from request

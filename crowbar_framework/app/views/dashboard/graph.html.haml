@@ -1,0 +1,14 @@
+%h1= t '.title'
+
+%ol
+  - @nodes.sort.each do |node|
+    %li
+      %h3= t ".node", :name=>node.name, :description=>node.description
+      %ul{:id=>node.id}
+        - node.roles.each do |role|
+          %li
+            = t ".role", :name=>role.name, :description=>role.description
+            %ol
+              - role.attribs.each do |attrib|
+                %li
+                  = t ".attrib", :name=>attrib.name, :value=>attrib.value

@@ -78,6 +78,7 @@ Crowbar::Application.routes.draw do
   # UI only routes
   scope 'dashboard' do
     get '/' => 'dashboard#index',           :as => :dashboard
+    get 'graph(/:id)' => 'dashboard#graph', :as => :dashboard_graph
     get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
     get 'families' => 'dashboard#families', :as => :dashboard_families
     get 'list' => 'dashboard#list',         :as => :dashboard_list

@@ -145,4 +145,9 @@ class DashboardController < ApplicationController
     end
   end
 
+  def graph
+    @nodes = Node.find_keys params[:id]
+    @nodes ||= Node.aa
+  end
+
 end

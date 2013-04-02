@@ -20,7 +20,7 @@ class CreateSnapshots < ActiveRecord::Migration
       t.integer     :order,                       :null=>false, :default=>10000
       t.belongs_to  :deployment,                  :null=>true
       t.belongs_to  :barclamp,                    :null=>false                    
-      t.integer     :status,                      :default => Snapshot::STATUS_NONE
+      t.integer     :status,                      :default => Snapshot::STATUS_CREATED
       t.string      :failed_reason,               :null=>true
       t.string      :element_order,               :null=>true
       t.timestamps      

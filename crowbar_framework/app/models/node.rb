@@ -65,18 +65,9 @@ class Node < ActiveRecord::Base
 
   #CB1 ?? 
   def reset_jig_access
-    if ["discovered","hardware-installed","hardware-updated","reset", "delete",
-        "hardware-installing","hardware-updating","reinstall",
-        "update","installing","installed"].member?(state) and !is_admin?
-      Rails.logger.info("Crowbar transition: should be deleting a client entry for #{name}")
-      client = ClientObject.find_client_by_name name
-      Rails.logger.info("Crowbar transition: found and trying to delete a client entry for #{name}") unless client.nil?
-      client.destroy unless client.nil?
-
-      # Make sure that the node can be accessed by knife ssh or ssh
-      if ["reset","reinstall","update","delete"].member?(state)
-        system("sudo rm /root/.ssh/known_hosts")
-      end
+    # Make sure that the node can be accessed by knife ssh or ssh
+    if ["reset","reinstall","update","delete"].member?(state)
+      system("sudo rm /root/.ssh/known_hosts")
     end
   end
 

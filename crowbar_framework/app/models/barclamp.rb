@@ -276,6 +276,21 @@ class Barclamp < ActiveRecord::Base
 
     create_template template_file
 
+    # Add the roles
+    json["roles"].each do |role_name, flags|
+      Role.transaction do
+        role = self.template.add_role role_name
+        flags.each do |k,v|
+          case k
+          when "jig" then role.jig = v
+          when "implicit" then role.implicit = v
+          when "admin_implicit" then role.admin_implicit = v
+          else Rails.logger.info("Unknown role flag #{k} = #{v}")
+          end
+        end
+        role.save!
+      end
+    end if json["roles"]
     # add the roles & attributes
     jdeploy = json["deployment"][name]
     ss = self.template

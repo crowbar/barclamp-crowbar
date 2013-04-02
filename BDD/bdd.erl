@@ -71,9 +71,9 @@ scenario(ConfigName, Feature, Name)    ->
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
-  FeatureConfig = run(Config, Feature, FileName, ID),
-  C = stop(FeatureConfig),
-  lists:keyfind(feature, 1, C).
+  Result = run(Config, Feature, FileName, ID),
+  stop(Config),
+  lists:keyfind(feature, 1, Result).
   
 % version of scenario with extra loggin turned on
 debug(Feature, ID)                -> debug(default, Feature, ID, debug).
@@ -155,8 +155,8 @@ start(Config) when is_atom(Config) ->
   
 % critical start method used by tests
 start(Config) ->
-  Started = bdd_utils:config(Config, started, false),
-  Global = bdd_utils:config(Config, global_setup, default),
+  Started = bdd_utils:config(started, false),
+  Global = bdd_utils:config(global_setup, default),
   case Started of
     false -> 
       bdd_utils:config_unset(auth_field),    % clear field to get new token
@@ -169,14 +169,15 @@ start(Config) ->
       file:write_file("../crowbar_framework/tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       bdd_utils:marker("BDD TEST STARTING"),
       bdd_utils:log(debug, bdd, start, "running global setup using `~p:step(...step_setup...)`",[Global]),
-      SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
-      bdd_utils:config_set(SetupConfig, started, true);
-    _ -> Config
-  end.
+      step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
+      bdd_utils:config_set(started, true);
+    _ -> nothing
+  end,
+  Config.
 
 stop(Config) ->
-  Started = bdd_utils:config(Config, started, false),
-  Global = bdd_utils:config(Config, global_setup, default),
+  Started = bdd_utils:config(started, false),
+  Global = bdd_utils:config(global_setup, default),
   case Started of
     true -> 
       TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),
@@ -184,9 +185,10 @@ stop(Config) ->
       application:stop(crypto),
       application:stop(inets),
       bdd_utils:config_unset(auth_field),
-      bdd_utils:config_set(TearDownConfig, started, false);
-    _ -> Config  
-  end.
+      bdd_utils:config_unset(started);
+    _ -> nothing  
+  end,
+  Config.
 
 % load the configuration file
 getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));

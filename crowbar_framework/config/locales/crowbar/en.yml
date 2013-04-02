@@ -36,6 +36,8 @@ en:
     util_logs: Exported Items
     util_logs_description: Download information complied for review
     util_import: Barclamp Versions
+    util_jigs: Installed Jigs
+    util_description: "Configuration Manager Plug-ins"
     util_import_description: Show dDetails about Crowbar modules
 
     barclamps: Barclamps
@@ -174,14 +176,10 @@ en:
       recall: Deactivate
       recall_success: Successfully deactivated proposal
     status:
-      hold: CB1 User Review
-      ready: CB1 Active
-      unready: CB1 In Progress
-      pending: CB1 Pending
-      building: CB1 Building
-      failed: CB1 Failed
-      none: CB1 No Proposal
-      unknown: CB1 Unknown, requesting status...
+      proposed: "Proposed"
+      active: "Active"
+      committed: "Committed"
+      none: "No Deployment"
     failures:
       show_active_failed: "Actived snapshot not found."
       Failed to apply the proposal to: Failed to apply proposal
@@ -279,6 +277,14 @@ en:
       user_defined_role_description: "User Defined Attributes"
 
   # Views
+  jigs:
+    index:
+      title: "Installed Configuration Managers - Jigs"
+      name: Name
+      description: Description
+      active: Active
+      conn: Connection
+      client: Client
   dashboard:
     index:
       new_node: Add Node

@@ -30,7 +30,7 @@
               %li
                 = t ".roles"
                 %strong= role.name
-                = "(order: #{role.older}, run_order: #{role.run_order}," 
+                = "(order: #{role.order}, run_order: #{role.run_order}," 
                 = "#{t ".element_states"}: #{role.states})"
                 %ul
                   - role.attribs.each do |ai|

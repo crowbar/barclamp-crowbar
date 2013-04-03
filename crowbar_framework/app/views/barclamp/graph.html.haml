@@ -26,21 +26,23 @@
           %strong= template.name
           = " (#{template.description})"
           %ul{:id=>"#{bc.id}_roles"}
-            - template.roles.each do |ri|
+            - template.roles.each do |role|
               %li
                 = t ".roles"
-                %strong= ri.name
-                = "(run_order: #{ri.run_order}," 
-                = "#{t ".element_states"}: #{ri.states})"
+                %strong= role.name
+                = "(order: #{role.order}, run_order: #{role.run_order}," 
+                = "#{t ".element_states"}: #{role.states})"
                 %ul
-                  - ri.attribs.each do |ai|
+                  - role.attribs.each do |ai|
                     %li{:id=>ai.id}= ai.name
         %li
           = t ".deployments"
           %ul{:id=>"#{bc.id}_deployments"}
             - bc.deployments.each do |c|
               %li
-                = "#{c.name}: #{(c.active?) ? t('active') : ''} #{c.description}"
+                = link_to c.name, deployment_path(:barclamp_id=>c.barclamp.id, :id=>c.id)
+                = render :partial => 'deployments/led', :locals => { :deployment=>c }
+                = ": #{(c.active?) ? t('active') : ''} #{c.description}"
                 - c.snapshots.each do |i|
                   %li
                     = "#{t '.snapshot'}: #{(i.active?) ? t('active') : ''} #{i.id} = #{t(i.status, :scope=>'barclamp.status')}"

@@ -215,43 +215,43 @@ class Barclamp < ActiveRecord::Base
     deploy
   end
 
-  
-  # take run data from the jig and process it into attributes
-  # returns the node
-  # WARNING - this has NOT been optimized!
+
+  # inject information into attibs
   def process_inbound_data jig_run, node, data
+
+    # THIS IS A HACK FOR NOW SO WE CAN DEMO INBOUND DATA 
+    # THEN MAKE THIS MORE GENERIC!
+
+    return node if data == {}  # skip if nothing!
+    #data = JSON.parse(data)
     jig = jig_run.jig
-    maps = JigMap.where :jig_id=>jig.id, :barclamp_id=>self.id
-    maps.each do |map|
-      # there is only 1 map per barclamp/jig/attrib
-      a = map.attrib_type
-      # there can be multiple Attribs per node/barclamp snapshot
-      attribs = Attrib.where :attrib_type_id=>a.id, :node_id=>node.id
-      if attribs.empty?
-        # create the AIs for the data using the unbound role attribes that are already there
-        unset_attribs = Attrib.where :attrib_type_id=>a.id, :node_id => nil
-        unset_attribs.each do |na|
-          # attach node to barclamp data (from role association)
-          if na.barclamp.id == self.id
-            # create a node specific version of it
-            node_attrib = na.dup
-            node_attrib.node_id = node.id
-            node_attrib.save
-          end
-        end
+    return node unless jig
+
+    # only works for CHEF! this will need to be changed!
+    if jig.name.eql? 'admin_chef'
+
+      # this writes the date in dev mode for later inspection (only if the file is deleted first!)
+      fdev = File.join "tmp", "#{node.name}-#{jig.name}.json"
+      if Rails.env.development? and !File.exist? fdev
+        File.open(fdev,"w").write(data) rescue true #nothing
       end
-      # THIS NEEDS TO BE UPDATED TO ONLY UPDATE THE ACTIVE SNAPSHOTS!
-      attribs.each do |ai|
-        # we only update the attribs linked to this barclamp 
-        # performance note: this is an expensive thing to figure out!
-        if !ai.role_id.nil? and ai.barclamp.id == self.id 
-          # get the value
-          value = jig.find_attrib_in_data data, map.map
-          # store the value
-          target = Attrib.find ai.id
-          target.actual = value
-          target.jig_run_id = jig_run.id
-          target.save!
+      
+      # temporary way to load the attribs : not efficient, but easy to manage and edit external to the server
+      file = File.join self.source_path, "config-template.yml"
+      if File.exist? file
+        attrib_source = YAML.load_file file
+        attrib_list = attrib_source["roles"]["crowbar"]["attributes"] || {} rescue {}
+        attrib_types = {}
+        attrib_list.each do |k, v|
+          map = v["chef"] rescue nil
+          attrib_types[k] = map unless map == :no_map or map.nil?
+        end
+        attrib_types.each do |a, map|
+          # TODO we'll have to be more consistent about which/all attribs!
+          attrib = node.get_attrib(a)
+          attrib.actual = jig.find_attrib_in_data data, map
+          attrib.jig_run_id = jig_run.id
+          attrib.save!
         end
       end
     end
@@ -342,6 +342,21 @@ class Barclamp < ActiveRecord::Base
     end
   end
 
+  # TO not complete!
+  def import_map(jig)
+    
+    file = File.join(self.source_path, "config-template.yml")
+    import = YAML.load_file file
+    
+    import['roles'].each do |role, details|
+      self.template.add_role role
+      details['attributes'].each do |attrib, map|
+        a = AttribType.add attrib
+        #jm = JigMap.add a, self, map
+      end
+    end
+    
+  end
 
   # Import from existing Config data
   def self.import_1x(bc_name, bc=nil, source_path=nil)

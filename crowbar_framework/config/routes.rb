@@ -78,6 +78,7 @@ Crowbar::Application.routes.draw do
   # UI only routes
   scope 'dashboard' do
     get '/' => 'dashboard#index',           :as => :dashboard
+    get 'graph(/:id)' => 'dashboard#graph', :as => :dashboard_graph
     get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
     get 'families' => 'dashboard#families', :as => :dashboard_families
     get 'list' => 'dashboard#list',         :as => :dashboard_list
@@ -132,7 +133,9 @@ Crowbar::Application.routes.draw do
           resources :barclamps do
             resources :deployments
           end
-          resources :deployments
+          resources :deployments do
+            put "commit" => "deployments#commit"
+          end
           resources :snapshots
           resources :jigs
           resources :attrib_types

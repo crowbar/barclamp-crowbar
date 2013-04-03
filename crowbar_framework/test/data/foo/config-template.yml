@@ -12,27 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-# This model is a stub for the Jig override system
-# It is NOT installed by default, but can be used for testing or as a model
 
-require 'json'
-
-class BarclampCrowbar::Jig < Jig
-
-  def create_node(node)
-    Rails.logger.info("TestJig Creating node: #{node.name}")
-  end
-
-  def delete_node(node)
-    Rails.logger.info("TestJig Deleting node: #{node.name}")    
-  end
-
-  def read_node_data(node)
-    ## Return some dummy data to enable unit-tests, for now just safe default
-    JSON.parse("{}")
-  end   
-  
-end
-
+roles:
+  "crowbar":
+    attributes:
+      "eth0":
+        chef: "crowbar_ohai/detected/network/eth0"  #expected "0000:00/0000:00:01.0/0000:01:00.0"
+      "eth0_switch_name":
+        chef: "crowbar_ohai/switch_config/eth1/switch_name" # expected "00:25:64:2e:61:f6"
+      "serial_number":
+        chef: "dmi/base_board/serial_number" # ".HR74KN1.CN7475106U0180.   "
 

@@ -70,8 +70,14 @@ class DeploymentsController < ApplicationController
   
   def commit
     deploy = Deployment.find_key params[:id]
+    # this should be moved into barclamp
     deploy.commit
-    render api_show :deployment, Deployment, nil, nil, deploy
+    # temporary to help w/ testing
+    deploy.activate_committed
+    respond_to do |format|
+      format.json { render api_show :deployment, Deployment, nil, nil, deploy }
+      format.html { redirect_to deployment_path(:barclamp_id=>deploy.barclamp.name, :id=>deploy.name) }
+    end
   end
 
   def recall

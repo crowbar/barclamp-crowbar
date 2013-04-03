@@ -24,7 +24,7 @@
 .column_50.last
   %dl
     = dl_item(t('description', :scope=>s), @node.description || (t :not_set))
-    = dl_item(t('hardware', :scope=>s), @node.attrib_hardware)
+    = dl_item(t('hardware', :scope=>s), @node.attrib_product_name)
     = dl_item(t('cpu', :scope=>s), @node.attrib_cpu)
     = dl_item(t('memory', :scope=>s), format_memory(@node.attrib_memory))
     = dl_item(t('number_of_drives', :scope=>s), "#{@node.attrib_number_of_drives}, #{t('.raid')}: #{t('raid.'+(@node.attrib_raid_set || 'not_set'))}")

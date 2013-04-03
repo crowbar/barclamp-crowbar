@@ -261,7 +261,7 @@ config_set(Key, Value) ->
   
 config_set(_, Key, Value)      -> config_set(Key, Value).
   
-config_unset(Key)     -> put(Key, undefined).
+config_unset(Key)     -> erase(Key).
 config_unset(_, Key)  -> config_unset(Key).
 
 % stores values used inside a scenario

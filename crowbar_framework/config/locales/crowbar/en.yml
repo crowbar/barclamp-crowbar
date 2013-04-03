@@ -38,7 +38,7 @@ en:
     util_import: Barclamp Versions
     util_jigs: Installed Jigs
     util_description: "Configuration Manager Plug-ins"
-    util_import_description: Show details about Crowbar modules
+    util_import_description: Show dDetails about Crowbar modules
 
     barclamps: Barclamps
     barclamps_description: Provisioning and Operations Modules 
@@ -176,14 +176,10 @@ en:
       recall: Deactivate
       recall_success: Successfully deactivated proposal
     status:
-      hold: CB1 User Review
-      ready: CB1 Active
-      unready: CB1 In Progress
-      pending: CB1 Pending
-      building: CB1 Building
-      failed: CB1 Failed
-      none: CB1 No Proposal
-      unknown: CB1 Unknown, requesting status...
+      proposed: "Proposed"
+      active: "Active"
+      committed: "Committed"
+      none: "No Deployment"
     failures:
       show_active_failed: "Actived snapshot not found."
       Failed to apply the proposal to: Failed to apply proposal
@@ -331,6 +327,11 @@ en:
       nics: NICs
       cpu: CPU Type
       hardware: Platform
+    graph:
+      title: "Node Graph"
+      node: "Node %{name} (%{description})"
+      role: "%{name} role (%{description})"
+      attrib: "Attribute %{name} = %{value}"
   nodes:
     new:
       title: Add Node

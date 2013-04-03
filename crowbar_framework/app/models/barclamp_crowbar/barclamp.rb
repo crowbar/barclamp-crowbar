@@ -80,4 +80,5 @@ class BarclampCrowbar::Barclamp < Barclamp
 
   end
 
+
 end

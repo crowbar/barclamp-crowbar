@@ -95,29 +95,21 @@ Delete a node from all jig. The exact actions depend on the jig.
   # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
   def self.refresh_node(descr, node)    
     jigs = find_jigs_for_node(node)
-#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.inspect} ??"
-#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.read_node_data(node)} ??"
-#Rails.logger.debug "ZEHICLE #{node.name} Jig refresh #{jigs.join(',')}"
  #   bcs = node.deployments.map { |d| d.barclamp }.uniq
     jigs.each do |j| 
       d = j.read_node_data(node)
-#Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name} got #{d}"
+      next if  d.nil?
+      evt = j.create_event 
+      evt.name="refesh:node:#{node.id}#{Time.now.to_i}"
+      run = j.create_run_for evt
+      Barclamp.all.each do |bc|
+        begin
+          bc.process_inbound_data run, node, d 
+        rescue
+          Rails.logger.warn "Barclamp #{bc.name} failed to process inbound data for Jig #{self.name} on Node #{node.name}"
+        end
+      end
     end
-  
-#      next if  d.nil?
-#      evt = j.create_event(nil)
-#      evt.name="refesh:node:#{node.id}#{Time.now.to_i}"
-#      barclamps={}
-#      node.deployments.inject { | barclamps,dep|
-#         barclamps[dep.barclamp] ||=[]
-#         barclamps[dep.barclamp] << dep.name
-#      }      
-#      barclamps.each {|bc|
-        ### this should be per deployment... but many other updates required.
-#        bc.process_inbound_data  d
-#      }
-
-
   end
 
 =begin 
@@ -199,7 +191,15 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
     Rails.logger.debug("jig.read_node_data(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
  
+  # TODO Placeholder for now
+  def create_event(config=nil)
+    JigEvent.create :name=>'placeholder', :jig_id=>self.id
+  end
 
+  # TODO Placeholder for now
+  def create_run_for(evt, nr=nil,order=1000)
+    JigRunChef.create :name=>'placeholder', :jig_event_id=>evt.id
+  end
 
   # setup the Jig event and ` events
   # RETURNS JigRun object approprate for the Jig  
@@ -216,21 +216,27 @@ Expecting the deployment to be "static" - i.e. not actively being modified.
   def find_attrib_in_data(data, path)
     nav = path.split '/'
     # add some optimization to avoid looping down through the structure
-    case nav.length 
-      when 1 
-        data[nav[0]]
-      when 2
-        data[nav[0]][nav[1]]
-      when 3
-        data[nav[0]][nav[1]][nav[2]]
-      when 4
-        data[nav[0]][nav[1]][nav[2]][nav[3]]
-      when 5
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
-      when 6
-        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
-      else 
-        nav.each { |key| data = data[key] }
+    begin
+      case nav.size 
+        when 0
+          data
+        when 1 
+          data[nav[0]]
+        when 2
+          data[nav[0]][nav[1]]
+        when 3
+          data[nav[0]][nav[1]][nav[2]] 
+        when 4
+          data[nav[0]][nav[1]][nav[2]][nav[3]]
+        when 5
+          data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
+        when 6
+          data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
+        else 
+          nav.each { |key| data = data[key] }
+      end
+    rescue
+       "Error mapping #{path} inside of #{find_attrib_in_data(data, nav[0..(nav.size-2)].join('/'))}"
     end
   end
     

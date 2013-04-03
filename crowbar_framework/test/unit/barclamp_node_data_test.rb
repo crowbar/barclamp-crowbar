@@ -19,7 +19,7 @@ require 'chef'
 class BarclampNodeDataTest < ActiveSupport::TestCase
 
   def setup
-    BarclampCrowbar::Jig.find_or_create_by_name :name=>'chef'
+    BarclampCrowbar::Jig.find_or_create_by_name :name=>'admin_chef'
     file = File.join 'test', 'data', 'barclamp_node_data_test.json'
     assert File.exist?(file), "source file #{file}"
     @sample = JSON::load File.open("#{file}", 'r')
@@ -42,7 +42,7 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
 
   test "we have the expected jigs" do
     assert_not_nil Jig.find_by_name('test'), "test jig exists"
-    assert_not_nil Jig.find_by_name 'chef', "chef jig exists"
+    assert_not_nil Jig.find_by_name 'admin_chef', "chef jig exists"
     count = 2
     assert_equal count, Jig.count, "we should have two chef (chef & admin_chef) and test jig"
   end
@@ -74,12 +74,21 @@ class BarclampNodeDataTest < ActiveSupport::TestCase
   end
   
   test "Barclamp Register creates & stores attributes" do
-    jig = BarclampCrowbar::Jig.find_or_create_by_name :name=>'test'
-    jig_run = jig.run
+    
+    return #we are not using JigMaps right now
+    
+    name = "admin_chef"
+    jig = BarclampCrowbar::Jig.find_or_create_by_name :name=>name
+    evt = jig.create_event 
+    evt.name="test"
+    jig_run = jig.create_run_for evt
     bc = @bc 
+    bc.source_path = File.join 'test', 'data', 'foo'
+    bc.save
     c = bc.template.roles.first.attribs(true).count
 
-    assert_equal "test", Jig.find(1).name
+    assert_equal 'test', Jig.find(1).name
+    assert_equal name, Jig.find(2).name
     assert_equal 2, BarclampCrowbar::Jig.count, "we should have the test and chef jig"
     assert_equal 0, @bc.jig_maps.count, "no jig mappings"
     

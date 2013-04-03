@@ -41,9 +41,8 @@ class NodesController < ApplicationController
       result = Node.find_keys params[:id]
       unless result.nil?
         result.each do |node|
-          #Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
           # CB2 temporary polling
-          # Jig.refresh_node "temporary polling from nodes_controller.status", node
+          Jig.refresh_node "temporary nodes_controller.status", node
           
           # CB1 approach
           state[node.id] = node.state
@@ -79,6 +78,7 @@ class NodesController < ApplicationController
   def destroy
     n = Node.find_key(params[:id] || params[:name])
     Rails.logger.info("Will delete #{n.name}")
+    # TODO MAKE THIS WORK FROM THE NODE OBJECT
     Jig.delete_node(n)
     render api_delete Node
   end
@@ -86,12 +86,11 @@ class NodesController < ApplicationController
   # RESTfule POST of the node resource
   def create
     n = Node.create params
-    
-    # DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
-    # All nodes need to have the deployer-client present.
+    # TODO MAKE THIS WORK FROM THE NODE OBJECT
     Jig.create_node(n)
     # this should move to the chef jig create_node
-  render api_show :node, Node, n.id.to_s, nil, n
+    system("knife node run_list add #{n.name} role[deployer-client]")
+    render api_show :node, Node, n.id.to_s, nil, n
   end
   
   def update
@@ -225,8 +224,6 @@ class NodesController < ApplicationController
     @network.sort
 =end
   end
-
-private
 
 =begin 
 Find a node by name or ID based on the passed in params

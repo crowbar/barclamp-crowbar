@@ -23,14 +23,14 @@ test()                   -> test("default").
 test(ConfigName)         -> 
   BaseConfig = getconfig(ConfigName),
   % start the test config & run the global tests
-  StartedConfig = start(BaseConfig),
+  start(BaseConfig),
   % get the list of features to test
-  Features = bdd_utils:features(StartedConfig),
+  Features = bdd_utils:features(BaseConfig),
   %run the tests
-  Complete = run(StartedConfig, [], Features),
+  Complete = run(BaseConfig, [], Features),
   % cleanup application services
-  EndConfig = stop(Complete),
-  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
+  stop(Complete),
+  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, Complete),
   File = bdd_print:file(),
   file:write_file(File,io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
   Final = [{Fatom, bdd_print:report(R)} || {feature, Fatom, _Feature, R} <-Results],
@@ -146,7 +146,7 @@ run(Config, Feature, FileName, ID) ->
   log(debug, "<<<<<<< Tests Complete, Running Tear Down for ~p <<<<<<<",[Feature]),
   step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
-  [Result | StartConfig].
+  [Result].
 	
 % manual start helper for debugging
 start(Config) when is_atom(Config) -> 
@@ -194,8 +194,10 @@ stop(Config) ->
 getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));
 getconfig(ConfigName)                  ->
   {ok, ConfigBase} = file:consult(ConfigName++".config"),
-  [put(K, V) || {K, V} <- ConfigBase ],
-  bdd_utils:config_set(get(), config, ConfigName).
+  % only update the info only if we have not defined if
+  [put(K, V) || {K, V} <- ConfigBase, get(K) == undefined ],
+  bdd_utils:config_set(config, ConfigName),
+  get().
   
 % read in the feature file
 feature_import(FileName) ->

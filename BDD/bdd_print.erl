@@ -15,21 +15,29 @@
 -module(bdd_print).
 -export([file/0, html/0, report/1, result/1, fail/1]).
 
-file() -> bdd_utils:config(results_out,"/tmp/bdd_results.out").
+file() -> 
+  case bdd_utils:os_type() of
+    windows -> bdd_utils:config(results_out,"c:\\temp\\bdd_results.out");
+    _       -> bdd_utils:config(results_out,"/tmp/bdd_results.out")
+  end.
 
 html() ->
   HTML = bdd_utils:config(coverage_out,"/tmp/bdd.html"),
-  {ok, [{test, Date, Time, Results} | _]} = file:consult(file()),
-  {ok, S} = file:open(HTML, write),
-  io:format(S, "<html>~n<header>BDD Test ~p at ~p</header>~n",[Date, Time]),
-  io:format(S, "<body>~n<h1>BDD Test ~p at ~p</h1>~n",[Date, Time]),
-  io:format(S, "<table border=1>~n",[]),
-  io:format(S, "<tr><th>Feature</th><th>Description</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Total</th><th>%</th></tr>~n",[]),
-  html_row(S, Results),  
-  io:format(S, "~n</body>", []),
-  io:format(S, "~n</html>", []),
-  file:close(S).
-  
+  try file:consult(file()) of
+     {ok, [{test, Date, Time, Results} | _]} ->
+        {ok, S} = file:open(HTML, write),
+        io:format(S, "<html>~n<header>BDD Test ~p at ~p</header>~n",[Date, Time]),
+        io:format(S, "<body>~n<h1>BDD Test ~p at ~p</h1>~n",[Date, Time]),
+        io:format(S, "<table border=1>~n",[]),
+        io:format(S, "<tr><th>Feature</th><th>Description</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Total</th><th>%</th></tr>~n",[]),
+        html_row(S, Results),  
+        io:format(S, "~n</body>", []),
+        io:format(S, "~n</html>", []),
+        file:close(S)
+  catch
+		_X: _Y -> bdd_utils:log(warn, bdd_print, html, "Did not print HTML output because ~p file not found", [file()])
+	end.
+
 html_row(File, [])                 -> io:format(File, "~n</table>", []);
 html_row(File, [Result | Results]) ->
   {feature, Fatom, Feature, R} = Result,

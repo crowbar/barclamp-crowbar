@@ -47,45 +47,6 @@ locale_additions:
 
 
 debs:
-  ubuntu-10.10:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu maverick partner
-      - deb-src http://archive.canonical.com/ubuntu maverick partner
-      - deb http://extras.ubuntu.com/ubuntu maverick main
-      - deb-src http://extras.ubuntu.com/ubuntu maverick main
-      - deb http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu maverick-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ maverick-0.10 main
-  ubuntu-11.04:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ natty-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu natty partner
-      - deb-src http://archive.canonical.com/ubuntu natty partner
-      - deb http://extras.ubuntu.com/ubuntu natty main
-      - deb-src http://extras.ubuntu.com/ubuntu natty main
-      - deb http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu natty-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ natty-0.10 main
-  ubuntu-11.10:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ oneiric-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu oneiric partner
-      - deb-src http://archive.canonical.com/ubuntu oneiric partner
-      - deb http://extras.ubuntu.com/ubuntu oneiric main
-      - deb-src http://extras.ubuntu.com/ubuntu oneiric main
-      - deb http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu oneiric-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ oneiric-0.10 main
   ubuntu-12.04:
     repos:
       - deb http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
@@ -177,48 +138,6 @@ debs:
 #    - expect
 
 rpms:
-  redhat-5.6:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - curl-devel
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
-  redhat-5.7:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - curl-devel
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
-  centos-5.7:
-    repos:
-      - rpm http://rbel.frameos.org/rbel5
-      - rpm http://ftp.cse.buffalo.edu/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-    build_pkgs:
-      - yum-downloadonly
-      - yum-priorities
-      - createrepo
-      - curl-devel
-      - libxml2-devel
-      - zlib-devel
-    pkgs:
-      - curl-devel
-      - nss_ldap
   redhat-6.2:
     repos:
       - rpm http://rbel.frameos.org/rbel6
@@ -307,20 +226,21 @@ gems:
     # bluepill stiff
     - i18n
     - state_machine-0.9.4
-    - bluepill-0.0.51
+    - bluepill
     # crowbar stuff
     - rake
     - json-1.5.2
     - syslogger
     - sass
     - simple-navigation
-    - haml
+    - haml-(~>3.1)
     - net-http-digest_auth
     - rails-2.3.14
     - activesupport-2.3.14
     - bundler
     - builder
     - activesupport
+    - eventmachine
     - rainbows
     - sendfile
     - sqlite3-ruby

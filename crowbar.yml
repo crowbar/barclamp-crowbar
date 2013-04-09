@@ -226,7 +226,7 @@ gems:
     # bluepill stiff
     - i18n
     - state_machine-0.9.4
-    - bluepill
+    - bluepill-0.0.51
     # crowbar stuff
     - rake
     - json-1.5.2

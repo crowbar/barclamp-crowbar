@@ -17,8 +17,14 @@
 # limitations under the License.
 #
 
-gem_package "i18n"
-gem_package "bluepill"
+gem_package "i18n" do
+  action :install
+end
+
+gem_package "bluepill" do
+  version node["bluepill"]["version"] if node["bluepill"]["version"]
+  action :install
+end
 
 [
   node["bluepill"]["conf_dir"],
@@ -26,11 +32,24 @@ gem_package "bluepill"
   node["bluepill"]["state_dir"]
 ].each do |dir|
   directory dir do
+    recursive true
     owner "root"
-    group "root"
+    group node["bluepill"]["group"]
   end
 end
 
-cookbook_file "/etc/init.d/bluepill" do
-  mode "755"
+file node["bluepill"]["logfile"] do
+  owner "root"
+  group node["bluepill"]["group"]
+  mode "0755"
+  action :create_if_missing
 end
+
+ENV['PATH'].split(':').each do |p|
+  bp=File.join(p,"bluepill")
+  next unless system("which #{bp}")
+  node["bluepill"]["bin"]=bp
+  break
+end
+
+include_recipe "bluepill::rsyslog" if node['bluepill']['use_rsyslog']

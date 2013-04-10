@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: bluepill
-# Resource:: service
+# Recipe:: rsyslog
 #
 # Copyright 2010, Opscode, Inc.
 #
@@ -17,12 +17,12 @@
 # limitations under the License.
 #
 
-actions :start, :stop, :enable, :disable, :load, :restart, :reload
-# Not supported on chef 0.10.6
-#default_action :start
+include_recipe "rsyslog"
 
-attribute :service_name, :name_attribute => true
-attribute :enabled, :default => false
-attribute :running, :default => false
-attribute :variables, :kind_of => Hash
-attribute :supports, :default => { :restart => true, :status => true }
+template "/etc/rsyslog.d/bluepill.conf" do
+  owner  "root"
+  group  "root"
+  mode   0644
+  source "bluepill_rsyslog.conf.erb"
+  notifies :restart, "service[rsyslog]"
+end

@@ -120,6 +120,13 @@ file "/opt/dell/crowbar_framework/tmp/ip.lock" do
   action :create
 end
 
+file "/var/run/crowbar-webserver.pid" do
+  owner "crowbar"
+  group "crowbar"
+  mode "0644"
+  action :create
+end
+
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
   web_port = node["crowbar"]["web_port"]
   realm = node["crowbar"]["realm"]
@@ -189,18 +196,12 @@ end
 
 cookbook_file "/etc/logrotate.d/chef-server"
 
+template "/etc/bluepill/crowbar-webserver.pill" do
+  source "crowbar-webserver.pill.erb"
+end
+
 bluepill_service "crowbar-webserver" do
-  variables(:processes => [ {
-                              "name" => "rainbows",
-                              "start_command" => "rainbows -E production -c rainbows.cfg",
-                              "stdout" => "/dev/null",
-                              "stderr" => "/dev/null",
-                              "working_dir" => "/opt/dell/crowbar_framework",
-                              "uid" => "crowbar",
-                              "gid" => "crowbar",
-                              "daemonize" => true
-                            } ] )
-  action [:create, :load]
+  action [:load, :start]
 end
 
 cookbook_file "/etc/init.d/crowbar" do

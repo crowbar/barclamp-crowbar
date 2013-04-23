@@ -32,7 +32,7 @@ class CreateBarclamps < ActiveRecord::Migration
       t.integer    :run_order,                 :default=>1000
       t.integer    :jig_order,                 :default=>1000
       t.string     :commit,                    :null=>true, :default=>'unknown'
-      t.date       :build_on,                  :null=>true, :default=>'unknown'
+      t.date       :build_on,                  :null=>true
       t.boolean    :user_managed,              :default=>true
       t.boolean    :allow_multiple_deployments,:default=>false
       t.string     :mode,                      :default=>"full"

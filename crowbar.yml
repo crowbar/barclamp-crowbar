@@ -25,8 +25,8 @@ barclamp:
   member:
     - crowbar
   os_support:
-    - redhat-6.2
-    - centos-6.2
+    - redhat-6.4
+    - centos-6.4
     - ubuntu-12.04
 
 crowbar:
@@ -138,7 +138,7 @@ debs:
 #    - expect
 
 rpms:
-  redhat-6.2:
+  redhat-6.4:
     repos:
       - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
@@ -148,7 +148,7 @@ rpms:
       - createrepo
       - libxml2-devel
       - zlib-devel
-  centos-6.2:
+  centos-6.4:
     repos:
       - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm

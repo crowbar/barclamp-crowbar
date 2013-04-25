@@ -1,4 +1,4 @@
-##  Dev tool development and build for Crowbar.ISO - for developers
+##  Building your own Crowbar.iso - (for developers)
 
 Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Deployment*
 

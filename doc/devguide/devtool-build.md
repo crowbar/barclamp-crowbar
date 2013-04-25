@@ -1,6 +1,6 @@
 ##  Building your own Crowbar.iso - (for developers)
 
-Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Deployment*
+Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Development*
 
 The Crowbar Dev Tool is a git overlay that helps manage Crowbar releases, barclamp integration, and gated checkins to the Crowbar source base.
 

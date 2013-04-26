@@ -16,7 +16,6 @@ SimpleNavigation::Configuration.run do |navigation|
       # insert here for :add  (this is legacy support)
     end
     primary.item :utils, t('nav.utils'), utils_path do |secondary| 
-      secondary.item :util_import, t('nav.util_import'), utils_import_path if RAILS_ENV == 'development'
       secondary.item :util_index, t('nav.util_logs'), utils_path 
       # insert here for :utils
     end

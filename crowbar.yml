@@ -155,7 +155,6 @@ rpms:
     build_pkgs:
       - libcurl-devel
       - yum-plugin-downloadonly
-      - yum-plugin-priorities
       - createrepo
       - libxml2-devel
       - zlib-devel

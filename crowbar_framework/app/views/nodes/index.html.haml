@@ -101,12 +101,21 @@
       var node = ev.originalEvent.dataTransfer.getData("Text");
       var group = $(this).attr('id');
       // console.debug(node + ' into ' + group );
-      if (group==='USE_AUTOMATIC!')
-        $.post('/nodes/groups/1.0/'+node+'/NONE?automatic=true');
-      else
-        $.post('/nodes/groups/1.0/'+node+'/'+group);
+      
+      url='/nodes/groups/1.0/'+node
+      
+      if (group==='USE_AUTOMATIC!'){
+        url += '/NONE?automatic=true';
+      } else {
+        url += '/'+group;
+      }
+      
+      $.post(url,
+        function(data){
+          location.href = '#{dashboard_path}/'+selected;
+        }
+      );
       $(this).animate({"opacity":"0"}, 5000);
-      location.href = '#{dashboard_path}/'+selected;
     });
   }
   

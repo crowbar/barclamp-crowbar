@@ -24,7 +24,7 @@
           %tr
             %th.status
               %a{:href=>"javascript:hide_group();", :title=>t('.hide')}
-                %img{:src=>"/images/icons/server_add.png"}
+                %img{:src=>"/images/icons/server_delete.png"}
             %th{ :id=> 'new_group', :droptarget=>'true' }
               = "THIS TEXT GETS REPLACED"
         %tbody
@@ -120,7 +120,7 @@
   }
   
   function hide_group() {
-  console.debug("foo");
+  // console.debug("foo"); 
     $('#add_group_div').attr('style','display:none');
   }
   

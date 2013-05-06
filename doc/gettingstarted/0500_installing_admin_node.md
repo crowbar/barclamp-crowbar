@@ -7,7 +7,7 @@ Once configured, Crowbar running on the admin node is used to configure and depl
 
 The initial admin node installation is performed by PXE booting the admin node from a bootstrap node, typically a laptop. To install the Crowbar admin node:
 
-1. Obtain a pre-built Crowbar ISO via [Downlaods](/download/).
+1. Obtain a pre-built Crowbar ISO via [Downloads](http://crowbar.github.com/download/).
 
 2. Power on the admin node, and ensure that:
 

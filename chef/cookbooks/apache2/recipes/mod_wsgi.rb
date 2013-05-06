@@ -22,6 +22,8 @@ when "debian","ubuntu"
   package "libapache2-mod-wsgi"
 when "redhat","centos","fedora", "arch"
   package "mod_wsgi"
+when "suse"
+  package "apache2-mod_wsgi"
 end
 
 apache_module "wsgi"

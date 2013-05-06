@@ -19,25 +19,33 @@
 
 define :apache_module, :enable => true, :conf => false do
   include_recipe "apache2"
- 
+
   if params[:conf]
     apache_conf params[:name]
   end
- 
+
   if params[:enable]
     execute "a2enmod #{params[:name]}" do
       command "/usr/sbin/a2enmod #{params[:name]}"
       notifies :reload, resources(:service => "apache2")
-      not_if do (::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.load") and
-            ((::File.exists?("#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"))?
-              (::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.conf")):(true)))
+      if node.platform == "suse"
+        not_if "/usr/sbin/a2enmod -q #{params[:name]}"
+      else
+        not_if do (::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.load") and
+              ((::File.exists?("#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"))?
+                (::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.conf")):(true)))
+        end
       end
-    end    
+    end
   else
     execute "a2dismod #{params[:name]}" do
       command "/usr/sbin/a2dismod #{params[:name]}"
       notifies :reload, resources(:service => "apache2")
-      only_if do ::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.load") end
+      if node.platform == "suse"
+        only_if "/usr/sbin/a2enmod -q #{params[:name]}"
+      else
+        only_if do ::File.symlink?("#{node[:apache][:dir]}/mods-enabled/#{params[:name]}.load") end
+      end
     end
   end
 end

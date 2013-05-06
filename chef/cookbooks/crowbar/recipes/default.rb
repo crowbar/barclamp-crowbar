@@ -17,7 +17,9 @@
 # limitations under the License.
 #
 
-include_recipe "bluepill"
+if node[:platform] != "suse"
+  include_recipe "bluepill"
+end
 
 pkglist=()
 rainbows_path=""
@@ -28,10 +30,12 @@ when "ubuntu","debian"
 when "redhat","centos"
   pkglist=%w{curl sqlite sqlite-devel python-markdown}
   rainbows_path=""
+when "suse"
+  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
+      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
+      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
+      rubygem-ruby-shadow }
 end
-
-gemlist=%w{rake json syslogger sass simple-navigation 
-   i18n haml net-http-digest_auth rails rainbows }
 
 pkglist.each {|p|
   package p do
@@ -39,11 +43,16 @@ pkglist.each {|p|
   end
 }
 
-gemlist.each {|g|
-  gem_package g do
-    action :install
-  end
-}
+if node[:platform] != "suse"
+  gemlist=%w{rake json syslogger sass simple-navigation 
+     i18n haml net-http-digest_auth rails rainbows }
+
+  gemlist.each {|g|
+    gem_package g do
+      action :install
+    end
+  }
+end
 
 group "crowbar"
 
@@ -53,6 +62,7 @@ user "crowbar" do
   home "/home/crowbar"
   password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
+  supports :manage_home=>true
   not_if "egrep -qi '^crowbar:' /etc/passwd"
 end
 
@@ -120,11 +130,20 @@ file "/opt/dell/crowbar_framework/tmp/ip.lock" do
   action :create
 end
 
-file "/var/run/crowbar-webserver.pid" do
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-  action :create
+if node[:platform] != "suse"
+  file "/var/run/crowbar-webserver.pid" do
+    owner "crowbar"
+    group "crowbar"
+    mode "0644"
+    action :create
+  end
+else
+  directory "/var/run/crowbar" do
+    owner "crowbar"
+    group "crowbar"
+    mode "0700"
+    action :create
+  end
 end
 
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
@@ -188,34 +207,55 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
-%w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
-  file "/etc/logrotate.d/#{f}" do
-    action :delete
+if node[:platform] != "suse"
+  %w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
+    file "/etc/logrotate.d/#{f}" do
+      action :delete
+    end
   end
-end
 
-cookbook_file "/etc/logrotate.d/chef-server"
+  cookbook_file "/etc/logrotate.d/chef-server"
 
-template "/etc/bluepill/crowbar-webserver.pill" do
-  source "crowbar-webserver.pill.erb"
-end
+  template "/etc/bluepill/crowbar-webserver.pill" do
+    source "crowbar-webserver.pill.erb"
+  end
 
-bluepill_service "crowbar-webserver" do
-  action [:load, :start]
-end
+  bluepill_service "crowbar-webserver" do
+    action [:load, :start]
+  end
 
-cookbook_file "/etc/init.d/crowbar" do
-  owner "root"
-  group "root"
-  mode "0755"
-  action :create
-  source "crowbar"
-end
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
+    action :create
+    source "crowbar"
+  end
 
-["3", "5", "2"].each do |i|
-  link "/etc/rc#{i}.d/S99xcrowbar" do
+  ["3", "5", "2"].each do |i|
+    link "/etc/rc#{i}.d/S99xcrowbar" do
+      action :create
+      to "/etc/init.d/crowbar"
+      not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    end
+  end
+else
+  cookbook_file "/etc/init.d/crowbar" do
+    owner "root"
+    group "root"
+    mode "0755"
+    action :create
+    source "crowbar.suse"
+  end
+
+  link "/usr/sbin/rccrowbar" do
     action :create
     to "/etc/init.d/crowbar"
-    not_if "test -L /etc/rc#{i}.d/S99xcrowbar"
+    not_if "test -L /usr/sbin/rccrowbar"
+  end
+
+  bash "Enable crowbar service" do
+    code "/sbin/chkconfig crowbar on"
+    not_if "/sbin/chkconfig crowbar | grep -q on"
   end
 end

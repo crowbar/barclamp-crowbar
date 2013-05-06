@@ -610,9 +610,9 @@ class ServiceObject
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
 
     prop = ProposalObject.find_proposal(@bc_name, base_id)
-    return [400, I18n.t('.name_exists', :scope=>'model.service')] unless prop.nil?
-    return [400, I18n.t('.too_short', :scope=>'model.service')] if base_id.length == 0
-    return [400, I18n.t('.illegal_chars', :scope=>'model.service')] if base_id =~ /[^A-Za-z0-9_]/
+    return [400, I18n.t('model.service.name_exists')] unless prop.nil?
+    return [400, I18n.t('model.service.too_short')] if base_id.length == 0
+    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
 
     base = create_proposal
     base["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"

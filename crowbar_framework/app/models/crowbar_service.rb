@@ -179,20 +179,26 @@ class CrowbarService < ServiceObject
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
               answer = service.proposal_create JSON.parse(data)
               if answer[0] != 200
-                @logger.error("Failed to create #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+                answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
+                            "(The error message was: #{answer[1].strip})"
+                break
               end
             end
- 
+
             @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
             answer = service.list_active
             if answer[0] != 200
-              @logger.error("Failed to list active #{k}: #{answer[0]} : #{answer[1]}")
+              answer[1] = "Failed to list active '#{k}' proposals " +
+                          "(The error message was: #{answer[1].strip})"
+              break
             else
               unless answer[1].include?(id)
                 @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
                 answer = service.proposal_commit id
                 if answer[0] != 200
-                  @logger.error("Failed to commit #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+                  answer[1] = "Failed to commit proposal '#{id}' for '#{k}' " +
+                              "(The error message was: #{answer[1].strip})"
+                  break
                 end
               end
             end
@@ -200,10 +206,17 @@ class CrowbarService < ServiceObject
 
           @logger.fatal("Crowbar apply_role: Done with creating: #{k}.#{id}")
         end
+        if answer[0] != 200
+          break
+        end
       end
     end
 
-    @logger.debug("Crowbar apply_role: leaving: #{answer}")
+    if answer[0] != 200
+      @logger.error("Crowbar apply_role: #{answer.inspect}")
+    else
+      @logger.debug("Crowbar apply_role: leaving: #{answer.inspect}")
+    end
     answer
   end
 

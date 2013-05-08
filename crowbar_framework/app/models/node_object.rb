@@ -821,8 +821,23 @@ class NodeObject < ChefObject
   end
 
   def bmc_cmd(cmd)
-    return nil unless bmc_address && get_bmc_user && get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")
+    if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
+        !system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")
+      case cmd
+      when "power cycle"
+        ssh_command="/sbin/reboot -f"
+      when "power off"
+        ssh_command="/sbin/poweroff -f"
+      else
+        Rails.logger.warn("ipmitool #{cmd} failed for #{@node.name}.")
+        return nil
+      end
+      Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
+      unless system("sudo -i -u root -- ssh root@#{@node.name} #{ssh_command}")
+        Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
+        return nil
+      end
+    end
   end
 
   def set_state(state)

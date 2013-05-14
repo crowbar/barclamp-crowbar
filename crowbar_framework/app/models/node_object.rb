@@ -357,7 +357,10 @@ class NodeObject < ChefObject
   def add_to_run_list(rolename, priority, states = nil)
     states = [ "all" ] unless states
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    crowbar["run_list_map"][rolename] = { "states" => states, "priority" => priority }
+    val = { "states" => states, "priority" => priority }
+    crowbar["run_list_map"][rolename] = val
+    Rails.logger.debug("crowbar[run_list_map][#{rolename}] = #{val.inspect}")
+    Rails.logger.debug("current state is #{self.crowbar['state']}")
 
     # only rebuild the run_list if it effects the current state.
     self.rebuild_run_list if states.include?("all") or states.include?(self.crowbar['state'])
@@ -376,6 +379,7 @@ class NodeObject < ChefObject
     map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
     # Sort map
     vals = map.sort { |a,b| a[1]["priority"] <=> b[1]["priority"] }
+    Rails.logger.debug("rebuilt run_list will be #{vals.inspect}")
 
     # Rebuild list
     crowbar_run_list.run_list_items.clear
@@ -833,7 +837,11 @@ class NodeObject < ChefObject
         return nil
       end
       Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
-      unless system("sudo -i -u root -- ssh root@#{@node.name} #{ssh_command}")
+      # Have to redirect stdin, stdout, stderr and background reboot
+      # command on the client else ssh never disconnects when client dies
+      # `timeout` and '-o ConnectTimeout=10' are there in case anything
+      # else goes wrong...
+      unless system("sudo -i -u root -- timeout -k 5s 15s ssh -o ConnectTimeout=10 root@#{@node.name} '#{ssh_command} </dev/null >/dev/null 2>&1 &'")
         Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
         return nil
       end

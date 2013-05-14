@@ -137,6 +137,7 @@ en:
         cpu: CPU
         number_of_drives: Disk Drives
         description: Description
+        description_not_set: Node description not set
         roles: Roles
         barclamps: Barclamps
         asset_tag: Service Tag

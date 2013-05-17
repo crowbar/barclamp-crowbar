@@ -31,8 +31,12 @@
     // Start the path processing
     var path_parts = path.split('/');
     var data = json;
-    while (path_parts.length > 1)
-      data = data[path_parts.shift()];
+    while (path_parts.length > 1) {
+      var path_part = path_parts.shift();
+      if (!(path_part in data))
+        data[path_part] = {};
+      data = data[path_part];
+    }
     data[path_parts.shift()] = value;
 
     input.value = JSON.stringify(json); 

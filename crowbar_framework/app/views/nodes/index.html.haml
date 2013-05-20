@@ -10,7 +10,7 @@
         = render :partial => 'show'
       - else
         %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
-        %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
+        %div{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
           =t '.drag_hint'
 
 #nodes
@@ -24,8 +24,8 @@
           %tr
             %th.status
               %a{:href=>"javascript:hide_group();", :title=>t('.hide')}
-                %img{:src=>"/images/icons/server_add.png"}
-            %th{ :id=> 'new_group', :droptarget=>'true' }
+                %img{:src=>"/images/icons/server_delete.png"}
+            %th{ :id=> 'new_group_th', :droptarget=>'true' }
               = "THIS TEXT GETS REPLACED"
         %tbody
           %tr
@@ -38,14 +38,13 @@
             %tr
               %th.status{:title => t('updating')}
                 .inline_piechart= [group[:status]["ready"], group[:status]["failed"], group[:status]["unknown"], group[:status]["unready"]+group[:status]["pending"]] * ","
-              %th
+              %th{ :droptarget=>"true", :id=>(group[:automatic] ? 'USE_AUTOMATIC!' : name)  }
+                %div{ :class=>'group'}
                 - unless group[:automatic]
-                  %div{ :class=>'group', :draggable=>'true', :id=>name }
-                    = truncate(name || t('unknown'), :length => 25)
+                  = truncate(name || t('unknown'), :length => 25)
                 - else
-                  %div{ :class=>'group', :draggable=>'true', :id=>'USE_AUTOMATIC!' }
-                    %i= truncate(name || t('unknown'), :length => 25)
-  
+                  %i= truncate(name || t('unknown'), :length => 25)
+                    
           %tbody
             - group[:nodes].sort.each do |order, handle|
               - node = @nodes[handle]
@@ -85,7 +84,7 @@
     });
 
   // set droppable attributes using bind_drop
-  $('div.group[draggable="true"]').each(function() { bind_drop($(this))} );
+  $('*[droptarget="true"]').each(function() { bind_drop($(this))} );
 
     
   function bind_drop(div) {
@@ -101,24 +100,33 @@
       var node = ev.originalEvent.dataTransfer.getData("Text");
       var group = $(this).attr('id');
       // console.debug(node + ' into ' + group );
-      if (group==='USE_AUTOMATIC!')
-        $.post('/nodes/groups/1.0/'+node+'/NONE?automatic=true');
-      else
-        $.post('/nodes/groups/1.0/'+node+'/'+group);
+      
+      url='/nodes/groups/1.0/'+node
+      
+      if (group==='USE_AUTOMATIC!'){
+        url += '/NONE?automatic=true';
+      } else {
+        url += '/'+group;
+      }
+      
+      $.post(url,
+        function(data){
+          location.href = '#{dashboard_path}/'+selected;
+        }
+      );
       $(this).animate({"opacity":"0"}, 5000);
-      location.href = '#{dashboard_path}/'+selected;
     });
   }
   
   function hide_group() {
-  console.debug("foo");
+  // console.debug("foo"); 
     $('#add_group_div').attr('style','display:none');
   }
   
   function add_group() {
     var group_div = $('#add_group_div');
     var new_group = $('#new_group').val();
-    var group = $('th[droptarget="true"]');
+    var group = $('#new_group_th');
     var valid_group_regex = /^[a-zA-Z][a-zA-Z0-9._:-]+$/;
     if (new_group.match(valid_group_regex)) {
       group.attr('id', new_group);

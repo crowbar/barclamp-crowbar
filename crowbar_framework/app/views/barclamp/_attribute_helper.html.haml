@@ -10,16 +10,33 @@
     // Do type conversions
     if (type == 'boolean') {
       value = (value == 'true' || value == 'True')
-    }
-    else if (type == 'integer') {
-      value = parseInt(value)
+    } else if (type == 'integer') {
+      value = parseInt(value);
+    } else if (type == 'float') {
+      value = parseFloat(value);
+    } else if (type == 'array-string') {
+      value = value.split(' ');
+    } else if (type == 'array-boolean') {
+      value = value.split(' ');
+      for (i in value) {
+        value[i] = (value[i] == 'true' || value[i] == 'True');
+      }
+    } else if (type == 'array-integer') {
+      value = value.split(' ');
+      for (i in value) {
+        value[i] = parseInt(value[i]);
+      }
     }
 
     // Start the path processing
     var path_parts = path.split('/');
     var data = json;
-    while (path_parts.length > 1)
-      data = data[path_parts.shift()];
+    while (path_parts.length > 1) {
+      var path_part = path_parts.shift();
+      if (!(path_part in data))
+        data[path_part] = {};
+      data = data[path_part];
+    }
     data[path_parts.shift()] = value;
 
     input.value = JSON.stringify(json); 

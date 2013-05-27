@@ -60,9 +60,6 @@ debs:
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb http://apt.opscode.com/ precise-0.10 main
-  #repos:
-    # Rabbit MQ repo
-    #- deb http://www.rabbitmq.com/debian/ testing main
   build_pkgs:
     - ruby1.8-dev
     - rubygems1.8
@@ -116,8 +113,6 @@ debs:
     - openssh-server
     # markdown 2 html generation
     - markdown
-    # rabbitmq stuff
-    - rabbitmq-server
     # ruby stuff
     - ruby1.8
     - ruby1.8-dev
@@ -208,8 +203,6 @@ rpms:
     - openssh-clients
     - openssh-server
     - openssh
-    # rabbitmq stuff
-    - rabbitmq-server
     # ruby stuff
     - ruby
     - ruby-devel

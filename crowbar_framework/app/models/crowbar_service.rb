@@ -44,6 +44,12 @@ class CrowbarService < ServiceObject
       node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
       node.crowbar["crowbar"]["network"] = {} if node.crowbar["crowbar"]["network"].nil?
 
+      if state == "discovering" and node.allocated.nil?
+        @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
+        node.allocated = false
+        save_it = true
+      end
+
       pop_it = false
       if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
         @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")

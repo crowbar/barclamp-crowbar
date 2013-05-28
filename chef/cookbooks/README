@@ -8,7 +8,6 @@ mysql - ubuntu-10.10 templates
 nscd - no changes
 openldap - potentially modified
 openssl - no changes 
-rabbitmq - no changes
 openssh - no changes
 glance -duh
 nova - duh
@@ -27,7 +26,6 @@ erlang -  no changes
 java -  no changes
 nginx - looks like no changs, old version here 
 ohai - no changes
-rabbitmq_chef - no changes
 ucspi-tcp - no changes
 xml - no changes
 zlib - no changes

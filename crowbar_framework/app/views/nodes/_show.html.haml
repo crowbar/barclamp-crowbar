@@ -38,10 +38,16 @@
   %dt
     = t('.links')
   %dd
-    = link_to t('.bmc'), "https://#{@node["crowbar_wall"]["ipmi"]["address"] rescue 'none'}", :target => '_blank'
+    - need_sep = false
+    - if @node.bmc_set?
+      = link_to t('.bmc'), "https://#{@node["crowbar_wall"]["ipmi"]["address"] rescue 'none'}", :target => '_blank'
+      - need_sep = true
     - unless @node["crowbar"]["links"].nil?
       - @node["crowbar"]["links"].each do |name,link|
-        , 
+        - if need_sep
+          , 
+        - else
+          - need_sep = true
         = link_to name, link, :target => '_blank'
   
 %dl.barclamps

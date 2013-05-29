@@ -23,6 +23,7 @@ require 'json'
 
 class ServiceObject
 
+  FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
   extend CrowbarOffline
 
   def initialize(thelogger)
@@ -610,6 +611,9 @@ class ServiceObject
   def proposal_create(params)
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
+    if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
+      return [403,I18n.t('model.service.illegal_name', :name => base_id)]
+    end
 
     prop = ProposalObject.find_proposal(@bc_name, base_id)
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?

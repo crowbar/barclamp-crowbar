@@ -16,7 +16,7 @@ source "file:///tftpboot/gemsite"
 
 gem 'rails', '~> 3.2.11'
 
-gem 'sqlite3'
+gem 'pg'
 gem 'haml'
 gem 'sass-rails',   '~> 3.2.3'
 gem 'simple-navigation'

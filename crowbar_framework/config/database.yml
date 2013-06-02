@@ -1,23 +1,42 @@
-development:
-  adapter: sqlite3
-  database: db/development.sqlite3
+# PostgreSQL. Versions 8.2 and up are supported.
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
   pool: 5
-  timeout: 5000
+
+  # Omitted by default as the client uses a domain socket with peer
+  # authentication. See README.md for the command to create the required
+  # PostgreSQL user, which must match the user running Rails.
+  #username: crowbar
+  #password: crowbar
+
+  # Connect on a TCP socket. Omitted by default since the client uses a
+  # domain socket that doesn't need configuration. Windows does not have
+  # domain sockets, so uncomment these lines.
+  #host: localhost
+  #port: 5432
+
+  # Schema search path. The server defaults to $user,public
+  #schema_search_path: myapp,sharedapp,public
+
+  # Minimum log levels, in increasing order:
+  #   debug5, debug4, debug3, debug2, debug1,
+  #   log, notice, warning, error, fatal, and panic
+  # The server defaults to notice.
+  #min_messages: warning
+
+development:
+  <<: *default
+  database: crowbar_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
-test: &test
-  adapter: sqlite3
-  database: db/test.sqlite3
-  pool: 5
-  timeout: 5000
+test:
+  <<: *default
+  database: crowbar_test
 
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
-
-cucumber:
-  <<: *test
+  <<: *default
+  database: crowbar_production

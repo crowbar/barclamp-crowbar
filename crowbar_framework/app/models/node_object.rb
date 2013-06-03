@@ -339,11 +339,13 @@ class NodeObject < ChefObject
   end
 
   def number_of_drives
-    self.crowbar['crowbar']['disks'].length rescue -1
+    @node[:block_device].find_all do |disk,data|
+      disk =~ /^[hsv]d/ && data[:removable] == "0"
+    end.length
   end
-  
+
   def physical_drives
-    self.crowbar['crowbar']['disks'].length rescue -1
+    number_of_drives
   end
   
   def [](attrib)

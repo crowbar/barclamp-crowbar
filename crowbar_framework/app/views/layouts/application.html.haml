@@ -23,7 +23,7 @@
       .notice#flash
         .container
           %p
-            = flash[:notice]
+            = flash[:notice].gsub("\n", "<br/>")
             = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
           - if !CHEF_ONLINE
             %p= t "offline"

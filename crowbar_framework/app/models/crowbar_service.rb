@@ -24,6 +24,9 @@ class CrowbarService < ServiceObject
   def transition(inst, name, state)
     save_it = false
 
+    return [404, "No state specified"] if state.nil?
+    # FIXME: validate state
+
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
     f = acquire_lock "BA-LOCK"
@@ -40,6 +43,12 @@ class CrowbarService < ServiceObject
 
       node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
       node.crowbar["crowbar"]["network"] = {} if node.crowbar["crowbar"]["network"].nil?
+
+      if state == "discovering" and node.allocated.nil?
+        @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
+        node.allocated = false
+        save_it = true
+      end
 
       pop_it = false
       if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
@@ -98,6 +107,17 @@ class CrowbarService < ServiceObject
             "state" => state
           }
           rname = role.name.gsub("#{bc}-config-","")
+          # Need a lock here, because if many nodes are discovered
+          # simultaneously, adding them to a proposal can race,
+          # leaving some nodes not present in proposals. e.g.:
+          # NtpService::transition uses find_proposal and
+          # later saves it with add_role_to_instance_and_node().
+          # If this runs for two nodes at the same time, they both
+          # find the proposal, then both modify it, then both save
+          # it in lockstep.  Naturally the second save clobbers
+          # the first, so the first node won't be present in that
+          # proposal.
+          bc_lock = acquire_lock "#{bc}:#{rname}"
           begin
             svc_name = "#{bc.camelize}Service"
             @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")            
@@ -115,6 +135,8 @@ class CrowbarService < ServiceObject
             @logger.fatal("json/transition for #{bc}:#{rname} failed: #{e.message}")
             @logger.fatal("#{e.backtrace.join("\n")}")
             return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace.join("\n")}"]
+          ensure
+            release_lock bc_lock
           end
         end
       end
@@ -179,20 +201,26 @@ class CrowbarService < ServiceObject
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
               answer = service.proposal_create JSON.parse(data)
               if answer[0] != 200
-                @logger.error("Failed to create #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+                answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
+                            "(The error message was: #{answer[1].strip})"
+                break
               end
             end
- 
+
             @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
             answer = service.list_active
             if answer[0] != 200
-              @logger.error("Failed to list active #{k}: #{answer[0]} : #{answer[1]}")
+              answer[1] = "Failed to list active '#{k}' proposals " +
+                          "(The error message was: #{answer[1].strip})"
+              break
             else
               unless answer[1].include?(id)
                 @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
                 answer = service.proposal_commit id
                 if answer[0] != 200
-                  @logger.error("Failed to commit #{k}.#{id}: #{answer[0]} : #{answer[1]}")
+                  answer[1] = "Failed to commit proposal '#{id}' for '#{k}' " +
+                              "(The error message was: #{answer[1].strip})"
+                  break
                 end
               end
             end
@@ -200,10 +228,17 @@ class CrowbarService < ServiceObject
 
           @logger.fatal("Crowbar apply_role: Done with creating: #{k}.#{id}")
         end
+        if answer[0] != 200
+          break
+        end
       end
     end
 
-    @logger.debug("Crowbar apply_role: leaving: #{answer}")
+    if answer[0] != 200
+      @logger.error("Crowbar apply_role: #{answer.inspect}")
+    else
+      @logger.debug("Crowbar apply_role: leaving: #{answer.inspect}")
+    end
     answer
   end
 

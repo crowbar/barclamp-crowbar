@@ -110,10 +110,10 @@ class BarclampController < ApplicationController
     ret = [500, "Server Problem"]
     begin
       ret = @service_object.destroy_active(params[:id])
-      flash[:notice] = (ret[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail') + ret[1].to_s)
+      set_flash(ret, 'proposal.actions.delete_%s')
     rescue Exception => e
       Rails.logger.error "Failed to deactivate proposal: #{e.message}\n#{e.backtrace.join("\n")}"
-      flash[:notice] = t('proposal.actions.delete_fail') + e.message
+      flash[:notice] = t('proposal.actions.delete_failure') + e.message
       ret = [500, flash[:notice] ]
     end
 
@@ -359,6 +359,7 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal @proposal.raw_data
           @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
+          @service_object.validate_proposal_after_save @proposal.raw_data
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue Exception => e
           flash[:notice] = e.message
@@ -372,15 +373,15 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal @proposal.raw_data
           @service_object.validate_proposal_elements @proposal.elements
           @proposal.save
+          @service_object.validate_proposal_after_save @proposal.raw_data
 
           answer = @service_object.proposal_commit(params[:name])
           flash[:notice] = answer[1] if answer[0] >= 300
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
           if answer[0] == 202
-            flash_msg = ""
-            answer[1].each {|node_dns|
-                flash_msg << NodeObject.find_node_by_name(node_dns).alias << ", "
-            }
+            flash_msg = answer[1].map { |node_dns|
+                 NodeObject.find_node_by_name(node_dns).alias
+            }.join ", "
             flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
           end
         rescue Exception => e
@@ -389,11 +390,7 @@ class BarclampController < ApplicationController
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
           answer = @service_object.proposal_delete(params[:name])
-          if answer[0] == 200
-            flash[:notice] = t('barclamp.proposal_show.delete_proposal_success')
-          else
-            flash[:notice] = t('barclamp.proposal_show.delete_proposal_failure') + ": " + answer[1].to_s
-          end
+          set_flash(answer, 'barclamp.proposal_show.delete_proposal_%s')
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -402,22 +399,14 @@ class BarclampController < ApplicationController
       elsif params[:submit] == t('barclamp.proposal_show.destroy_active')
         begin
           answer = @service_object.destroy_active(params[:name])
-          if answer[0] == 200 
-            flash[:notice] = t('barclamp.proposal_show.destroy_active_success') 
-          else
-            flash[:notice] = t('barclamp.proposal_show.destroy_active_failure') + ": " + answer[1].to_s
-          end
+          set_flash(answer, 'barclamp.proposal_show.destroy_active_%s')
         rescue Exception => e
           flash[:notice] = e.message
         end
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
           answer = @service_object.dequeue_proposal(params[:name])
-          if answer[0] == 200
-            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_success')
-          else
-            flash[:notice] = t('barclamp.proposal_show.dequeue_proposal_failure') + ": " + answer[1].to_s
-          end
+          set_flash(answer, 'barclamp.proposal_show.dequeue_proposal_%s')
         rescue Exception => e
           flash[:notice] = e.message
         end
@@ -436,7 +425,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_delete,[:id],[:delete])
   def proposal_delete
     answer = @service_object.proposal_delete params[:id]
-    flash[:notice] = (answer[0] == 200 ? t('proposal.actions.delete_success') : t('proposal.actions.delete_fail'))
+    set_flash(answer, 'proposal.actions.delete_%s')
     respond_to do |format|
       format.html {         
         return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
@@ -471,11 +460,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_dequeue,[:id],[:delete])
   def proposal_dequeue
     answer = @service_object.dequeue_proposal params[:id]
-    if answer[0] == 200
-      flash[:notice] = t('proposal.actions.dequeue.success')
-    else
-      flash[:notice] = t('proposal.actions.dequeue.fail') + ": " + answer[1].to_s
-    end
+    set_flash(answer, 'proposal.actions.dequeue_%s')
     if answer[0] == 200
       return render :json => {}, :status => answer[0]
     else
@@ -488,5 +473,14 @@ class BarclampController < ApplicationController
     #Empty method to override if your barclamp has a "nodes" view.
   end
 
+  private
+  def set_flash(answer, common, success='success', failure='failure')
+    if answer[0] == 200
+      flash[:notice] = t(common % success)
+    else
+      flash[:notice] = t(common % failure)
+      flash[:notice] += ": " + answer[1].to_s unless answer[1].to_s.empty?
+    end
+  end
 end
 

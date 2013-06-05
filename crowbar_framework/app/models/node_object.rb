@@ -14,6 +14,9 @@
 #
 # Author: RobHirschfeld
 #
+
+require 'chef/mixin/deep_merge'
+
 class NodeObject < ChefObject
   extend CrowbarOffline
 
@@ -357,7 +360,10 @@ class NodeObject < ChefObject
   def add_to_run_list(rolename, priority, states = nil)
     states = [ "all" ] unless states
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-    crowbar["run_list_map"][rolename] = { "states" => states, "priority" => priority }
+    val = { "states" => states, "priority" => priority }
+    crowbar["run_list_map"][rolename] = val
+    Rails.logger.debug("crowbar[run_list_map][#{rolename}] = #{val.inspect}")
+    Rails.logger.debug("current state is #{self.crowbar['state']}")
 
     # only rebuild the run_list if it effects the current state.
     self.rebuild_run_list if states.include?("all") or states.include?(self.crowbar['state'])
@@ -376,6 +382,7 @@ class NodeObject < ChefObject
     map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
     # Sort map
     vals = map.sort { |a,b| a[1]["priority"] <=> b[1]["priority"] }
+    Rails.logger.debug("rebuilt run_list will be #{vals.inspect}")
 
     # Rebuild list
     crowbar_run_list.run_list_items.clear
@@ -417,10 +424,6 @@ class NodeObject < ChefObject
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
 
-  def recursive_merge!(b, h)
-    b.merge!(h) {|key, _old, _new| if _old.class.kind_of? Hash.class then recursive_merge(_old, _new) else _new end  }
-  end
-
   def save
     if @role.default_attributes["crowbar-revision"].nil?
       @role.default_attributes["crowbar-revision"] = 0
@@ -431,7 +434,7 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
-    recursive_merge!(@node.normal_attrs, @role.default_attributes)
+    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, { :merge_debug => true })
 
     if CHEF_ONLINE
       @role.save
@@ -821,8 +824,27 @@ class NodeObject < ChefObject
   end
 
   def bmc_cmd(cmd)
-    return nil unless bmc_address && get_bmc_user && get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")
+    if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
+        !system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")
+      case cmd
+      when "power cycle"
+        ssh_command="/sbin/reboot -f"
+      when "power off"
+        ssh_command="/sbin/poweroff -f"
+      else
+        Rails.logger.warn("ipmitool #{cmd} failed for #{@node.name}.")
+        return nil
+      end
+      Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
+      # Have to redirect stdin, stdout, stderr and background reboot
+      # command on the client else ssh never disconnects when client dies
+      # `timeout` and '-o ConnectTimeout=10' are there in case anything
+      # else goes wrong...
+      unless system("sudo -i -u root -- timeout -k 5s 15s ssh -o ConnectTimeout=10 root@#{@node.name} '#{ssh_command} </dev/null >/dev/null 2>&1 &'")
+        Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
+        return nil
+      end
+    end
   end
 
   def set_state(state)

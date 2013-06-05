@@ -128,11 +128,14 @@ class ApplicationController < ActionController::Base
   
   def find_user(username) 
     puts "have username: #{username}"
-    puts "have @@users: #{@@users.nil? ? "nil" : @@users.inspect}"
+    users = Marshal.load(Marshal.dump(@@users)) # Make a deep copy
+    # Don't log passwords in production mode:
+    users.each {|user, values| values[:password] = "STRIPPED"} if Rails.env.production?
+    puts "have users: #{users.nil? ? "nil" : users.inspect}"
     return false if !@@users || !username
     user = @@users[username]
     return false unless user
-    puts "have user with password: #{user[:password]}"
+    puts "have user with password: #{user[:password]}" unless Rails.env.production?
     return user[:password] || false   
   end
   

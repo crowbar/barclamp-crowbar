@@ -29,6 +29,12 @@ if platform?("centos", "redhat", "fedora")
   end
 end
 
+if node.platform == "suse"
+  execute "/usr/sbin/a2enflag SSL" do
+    command "/usr/sbin/a2enflag SSL"
+  end
+end
+
 ports = node[:apache][:listen_ports].include?("443") ? node[:apache][:listen_ports] : [node[:apache][:listen_ports], "443"].flatten
 
 template "#{node[:apache][:dir]}/ports.conf" do

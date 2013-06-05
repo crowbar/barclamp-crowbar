@@ -17,7 +17,9 @@
 # limitations under the License.
 #
 
-actions :create, :start, :stop, :enable, :disable, :load, :restart
+actions :start, :stop, :enable, :disable, :load, :restart, :reload
+# Not supported on chef 0.10.6
+#default_action :start
 
 attribute :service_name, :name_attribute => true
 attribute :enabled, :default => false

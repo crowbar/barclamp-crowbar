@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: rabbitmq
-# Resource:: user
+# Cookbook Name:: bluepill
+# Recipe:: rsyslog
 #
-# Copyright 2011, Opscode, Inc.
+# Copyright 2010, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 # limitations under the License.
 #
 
-actions :add, :delete, :set_permissions, :clear_permissions
+include_recipe "rsyslog"
 
-attribute :user, :kind_of => String, :name_attribute => true
-attribute :password, :kind_of => String
-attribute :vhost, :kind_of => String
-attribute :permissions, :kind_of => String
+template "/etc/rsyslog.d/bluepill.conf" do
+  owner  "root"
+  group  "root"
+  mode   0644
+  source "bluepill_rsyslog.conf.erb"
+  notifies :restart, "service[rsyslog]"
+end

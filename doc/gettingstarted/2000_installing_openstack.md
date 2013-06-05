@@ -19,30 +19,37 @@ The examples below represent just a few of the possible combinations of OpenStac
 
 | Install Order | Barclamp |
 |-- | ----- |
-| 1 | MySQL |
+| 1 | Database |
 | 2 | Keystone |
-| 3 | Nova-dashboard |
-| 4 | Nova |
+| 3 | RabbitMQ |
+| 4 | Glance |
+| 5 | Cinder |
+| 6 | Quantum |
+| 7 | Nova |
+| 8 | Nova-Dashboard |
 
 ###Swift Storage Cluster###
  
 |  Install Order | Barclamp |
 |-- | ----- |
-| 1 | MySQL |
+| 1 | Database |
 | 2 | Keystone |
 | 3 | Swift |
-| 4 | Nova-dashboard |
-| 5 | Nova |
+| 4 | Nova |
+| 5 | Nova-dashboard |
 
 ###Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests###
 
 |  Install Order | Barclamp |
 |-- | ----- |
-| 1 | MySQL |
+| 1 | Database |
 | 2 | Keystone |
-| 3 | Swift |
-| 4 | Glance |
-| 5 | Nova-dashboard |
-| 6 | Nova |
-| 7 | Tempest |
+| 3 | RabbitMQ |
+| 4 | Swift |
+| 5 | Glance |
+| 6 | Cinder |
+| 7 | Quantum |
+| 8 | Nova |
+| 9 | Nova-dashboard |
+| 10 | Tempest |
 

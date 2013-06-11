@@ -823,6 +823,11 @@ class NodeObject < ChefObject
     @node["ipmi"]["bmc_password"] rescue nil
   end
 
+  # it allow set attributes of current node
+  def set
+    @node
+  end
+
   def bmc_cmd(cmd)
     if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
         !system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")

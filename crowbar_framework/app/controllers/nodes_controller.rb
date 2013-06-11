@@ -250,6 +250,18 @@ class NodesController < ApplicationController
     redirect_to nodes_path(:selected => @node.name)
   end
 
+  def attributes
+    @node = NodeObject.find_node_by_name(params[:name])
+    raise ActionController::RoutingError.new("Node #{params[:name]}: not found") if @node.nil?
+    @attribute = @node.to_hash
+    params[:keys].each do |key|
+      @attribute = @attribute[key]
+      raise ActionController::RoutingError.new("Node #{params[:name]}: unknown attribute #{params[:keys].join('/')}") if @attribute.nil?
+    end
+    puts @attribute
+    render :json => {:value => @attribute}
+  end
+
   private
 
   def save_node

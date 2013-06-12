@@ -438,7 +438,7 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
-    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, { :merge_debug => true })
+    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
 
     if CHEF_ONLINE
       @role.save

@@ -94,7 +94,7 @@ def usage (rc)
   @options.each do |options|
     puts "  #{options[1]}"
   end
-  print_commands(@commands)
+  print_commands(@commands.sort)
   exit rc
 end
 

@@ -262,7 +262,6 @@ class ServiceObject
         db = ProposalObject.new new_queue
       end
 
-      queue_me = false
       db["proposal_queue"].each do |item|
         # Am I already in the queue
         if item["barclamp"] == bc and item["inst"] == inst
@@ -278,19 +277,19 @@ class ServiceObject
       end
 
       # Make sure the deps if we aren't being queued.
-      unless queue_me
-        deps.each do |dep|
-          prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+      queue_me = false
 
-          # queue if prop doesn't exist
-          queue_me = true if prop.nil?
-          # queue if dep is queued
-          queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-          queue_me = true if queued
-          # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-          queue_me = true unless success
-        end
+      deps.each do |dep|
+        prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+
+        # queue if prop doesn't exist
+        queue_me = true if prop.nil?
+        # queue if dep is queued
+        queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+        queue_me = true if queued
+        # queue if dep has never run or failed
+        success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+        queue_me = true unless success
       end
 
       delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)

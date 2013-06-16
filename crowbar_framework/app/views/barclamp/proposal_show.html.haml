@@ -4,8 +4,6 @@
 - catalog = ServiceObject.barclamp_catalog
 - display_name = catalog['barclamps'][barclamp]['display']
 - display_name = barclamp.titlecase if display_name.nil? or display_name == ""
-%p{:style => 'float:right'}
-  = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
 
 .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'} 
 %h1= t '.title'

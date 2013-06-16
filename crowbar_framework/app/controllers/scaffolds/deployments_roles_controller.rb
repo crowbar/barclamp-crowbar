@@ -1,4 +1,4 @@
-# Copyright 2013, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
 # limitations under the License.
 #
 
-class Scaffolds::JigRunsController < ApplicationController
-  active_scaffold :jig_run do |conf|
+class Scaffolds::DeploymentsRolesController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
 end 

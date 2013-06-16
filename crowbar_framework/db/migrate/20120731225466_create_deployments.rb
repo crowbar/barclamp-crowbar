@@ -15,17 +15,16 @@
 class CreateDeployments < ActiveRecord::Migration
   def change
     create_table :deployments do |t|
-      t.belongs_to  :barclamp,                    :null=>false
       t.string      :name,                        :null=>false
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>10000
-      t.references  :active_snapshot,             :null=>true
-      t.references  :committed_snapshot,          :null=>true
       t.references  :proposed_snapshot,           :null=>true
+      t.references  :committed_snapshot,          :null=>true
+      t.references  :active_snapshot,             :null=>true
       t.timestamps      
     end
     #natural key
-    add_index(:deployments,    [:barclamp_id, :name],     :unique => true)   
+    add_index(:deployments,    :name,     :unique => true)   
   end
     
 end

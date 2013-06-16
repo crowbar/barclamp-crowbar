@@ -547,9 +547,12 @@ class ServiceObject
   end
 
   def destroy_active(inst)
-    inst = "#{@bc_name}-config-#{inst}"
-    @logger.debug "Trying to deactivate role #{inst}" 
-    role = RoleObject.find_role_by_name(inst)
+    # Always dequeue to make sure it won't become active by accident later on
+    dequeue_proposal(inst)
+
+    role_name = "#{@bc_name}-config-#{inst}"
+    @logger.debug "Trying to deactivate role #{role_name}"
+    role = RoleObject.find_role_by_name(role_name)
     if role.nil?
       [404, {}]
     else
@@ -635,6 +638,9 @@ class ServiceObject
   end
 
   def proposal_delete(inst)
+    # Deactivate the proposal first, in case it was in use
+    destroy_active(inst)
+
     prop = ProposalObject.find_proposal(@bc_name, inst)
     if prop.nil?
       [404, {}]

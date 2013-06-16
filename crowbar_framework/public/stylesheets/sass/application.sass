@@ -1,3 +1,12 @@
+/**
+ * Note: In Rails 3 one can use the Sprockets `//= require` directive to
+ * include stylesheets appear individually when in development mode. We don't
+ * have that here with Rails 2.
+ */
+
+// Use bootstrap. See https://github.com/thomas-mcdonald/bootstrap-sass#css.
+@import bootstrap
+
 // HTML5 elements, just in case
 header, section, article, footer, nav
   display: block
@@ -12,4 +21,3 @@ header, section, article, footer, nav
 @import jquery_ui
 @import formtastic
 @import errors
-

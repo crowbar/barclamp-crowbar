@@ -13,6 +13,14 @@ gem "app_config", "1.0.2"
 gem "syslogger"
 gem "kwalify"
 
+group :assets do
+  # Adds the Twitter bootstrap CSS and Javascript
+  gem "bootstrap-sass", "2.1.1.0"
+
+  # Since we're still on Rails 2, we need Compass for bootstrap-sass to work
+  gem "compass-rails", "1.0.3"
+end
+
 group :development do
   # bundler requires these gems in development
   # gem "rails-footnotes"

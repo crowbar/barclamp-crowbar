@@ -7,8 +7,6 @@ gem "simple-navigation"
 gem "i18n"
 gem "json"
 gem "chef"
-gem "thin"
-gem "formtastic"
 
 group :development do
   # bundler requires these gems in development

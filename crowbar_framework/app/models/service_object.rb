@@ -550,9 +550,9 @@ class ServiceObject
     # Always dequeue to make sure it won't become active by accident later on
     dequeue_proposal(inst)
 
-    inst = "#{@bc_name}-config-#{inst}"
-    @logger.debug "Trying to deactivate role #{inst}" 
-    role = RoleObject.find_role_by_name(inst)
+    role_name = "#{@bc_name}-config-#{inst}"
+    @logger.debug "Trying to deactivate role #{role_name}"
+    role = RoleObject.find_role_by_name(role_name)
     if role.nil?
       [404, {}]
     else

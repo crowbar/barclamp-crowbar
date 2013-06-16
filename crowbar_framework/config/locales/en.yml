@@ -300,7 +300,6 @@ en:
       confirm_delete: Are you sure you wish to delete this proposal?
       no_action: No Action for 
     proposal_show:
-      title: Edit Proposal
       apply_changes: Apply changes now?
       create_proposal_success: Successfully created the proposal
       commit_proposal: Apply

@@ -1,60 +1,70 @@
 %thead
   %tr
     %th{:style => "width:15%"}= t('.barclamp')
-    %th.status{:style => "width:10%"}= t('.status')
+    %th.status{:style => "width:5%"}= t('.status')
     %th{:style => "width:75%"}= t('.description')
+    %th{:style => "width:5%"}
 
 %tbody
+  - catalog = ServiceObject.barclamp_catalog
   - @modules.each do |name, barclamp|
+    - display_name = catalog['barclamps'][name]['display']
+    - display_name = name.titlecase if display_name.nil? or display_name == ""
     %tr{:id=>name, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
-      %td
-        %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
-      %td
-        - if barclamp[:proposals].length == 0 
-          .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
-        - else
-          - barclamp[:proposals].sort.each do |proposal_name, proposal|
-            .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
-      %td= "#{barclamp[:description].capitalize}"
+      - if not barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
+        %td
+          = display_name
+        %td
+          - if barclamp[:proposals].length == 0
+            .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+          - else
+            - barclamp[:proposals].sort.each do |proposal_name, proposal|
+              .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{t 'proposal.status.'+proposal[:status]}"}
+        %td= "#{barclamp[:description]}"
+        %td
+          - if barclamp[:proposals].length == 0
+            - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
+              = hidden_field_tag :barclamp, name
+              = hidden_field_tag :name, t('proposal.items.default')
+              = hidden_field_tag :description, "#{t 'created_on'} #{l(Time.now) }"
+              %input.button{:type => "submit", :value => t('proposal.actions.create')}
+          - else
+            - proposal_name, proposal = barclamp[:proposals].take(1)[0]
+            = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
+      - else
+        %td
+          = display_name
+        %td
+          - if barclamp[:proposals].length == 0
+            .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+          - else
+            - barclamp[:proposals].sort.each do |proposal_name, proposal|
+              .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
+        %td= "#{barclamp[:description]}"
+        %td
+          %a.toggle.with_label.button{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= t('proposal.actions.edit')
 
-    %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
-      %td.container{:colspan => "3"}
-        .box
-          %table.data
-            %tbody
-              - if barclamp[:proposals].length > 0
-                - barclamp[:proposals].sort.each do |proposal_name, proposal|
-                  - prop_id = "#{name}_#{proposal_name}"
-                  %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
-                    %td.status
-                      .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
-                    %td{:style => "width:10%"}
-                      - if proposal[:active]
-                        = link_to proposal_name.titlecase, show_barclamp_path(:controller=>name, :id=>proposal_name)
-                      -else
-                        = link_to proposal_name.titlecase, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
-                    %td
-                      - unless proposal[:status] === 'failed'
-                        = proposal[:description].capitalize
-                      - else
-                        = "#{t('.failed')} - #{proposal[:message]}"
-                    %td
-                      - if RAILS_ENV==='development'
-                        - button = case proposal[:status]
-                          - when 'hold' 
-                            = button_to t('proposal.actions.delete'), delete_proposal_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :id => "#{prop_id}_button", :class => 'button', :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_delete'), :on_click => "$('#'+barclamp[:id]).remove()"
-                          - when "ready" 
-                            = button_to t('proposal.actions.recall'), delete_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_recall')
-                          - when 'unready'
-                            = t '.in_process'
-                          - when 'failed'
-                            = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
-                          - when 'pending' 
-                            = button_to t('proposal.actions.dequeue'), dequeue_barclamp_path(:controller => name, :id => proposal_name, :return => true), :method => :delete, :class => 'button', :id => "#{prop_id}_button", :remote => true, :'data-confirm' => proposal_name.titlecase+": " + t('.confirm_dequeue')
-                          - else "#{t .no_action} #{t('proposal.status.'+proposal[:status])}"
-                      - else 
+    - if barclamp[:allow_multiple_proposals] and barclamp[:proposals].length != 0
+      %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
+        %td.container{:colspan => "3"}
+          .box
+            %table.data
+              %tbody
+                - if barclamp[:proposals].length > 0
+                  - barclamp[:proposals].sort.each do |proposal_name, proposal|
+                    - prop_id = "#{name}_#{proposal_name}"
+                    %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
+                      %td.status
+                        .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
+                      %td{:style => "width:10%"}
+                        = proposal_name.titlecase
+                      %td
+                        - unless proposal[:status] === 'failed'
+                          = proposal[:description].capitalize
+                        - else
+                          = "#{t('.failed')} - #{proposal[:message]}"
+                      %td
                         = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
-              - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
                 - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
                   %tr{:class => ["proposal", cycle(:odd, :even)]}
                     %td{:style => "text-align:center"} +

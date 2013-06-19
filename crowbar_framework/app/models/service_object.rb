@@ -262,41 +262,52 @@ class ServiceObject
         db = ProposalObject.new new_queue
       end
 
-      queue_me = false
+      preexisting_queued_item = nil
       db["proposal_queue"].each do |item|
         # Am I already in the queue
         if item["barclamp"] == bc and item["inst"] == inst
-          nodes = []
-          elements.each do |elem, inodes|
-            inodes.each do |node|
-              nodes << node unless nodes.include?(node)
-            end
-          end
-          @logger.debug("queue proposal: exit #{inst} #{bc}: already queued")
-          return [nodes, {}]
+          preexisting_queued_item = item
+          break
         end
       end
 
       # Make sure the deps if we aren't being queued.
-      unless queue_me
-        deps.each do |dep|
-          prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+      queue_me = false
 
-          # queue if prop doesn't exist
-          queue_me = true if prop.nil?
-          # queue if dep is queued
-          queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-          queue_me = true if queued
-          # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-          queue_me = true unless success
-        end
+      deps.each do |dep|
+        prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+
+        # queue if prop doesn't exist
+        queue_me = true if prop.nil?
+        # queue if dep is queued
+        queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+        queue_me = true if queued
+        # queue if dep has never run or failed
+        success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+        queue_me = true unless success
       end
 
       delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)
-      return [ delay, pre_cached_nodes ] if delay.empty?
+      if delay.empty?
+        # remove from queue if it was queued before; might not be in the queue
+        # because the proposal got changed since it got added to the queue
+        unless preexisting_queued_item.nil?
+          @logger.debug("queue proposal: dequeuing already queued #{inst} #{bc}")
+          dequeued = dequeue_proposal_no_lock(db["proposal_queue"], inst, bc)
+          db.save if dequeued
+        end
 
-      db["proposal_queue"] << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
+        return [ delay, pre_cached_nodes ]
+      end
+
+      if preexisting_queued_item.nil?
+        db["proposal_queue"] << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
+      else
+        # update item that is already in queue
+        preexisting_queued_item["elements"] = elements
+        preexisting_queued_item["deps"] = deps
+      end
+
       db.save
     rescue Exception => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")

@@ -215,8 +215,8 @@ en:
       confirm_forget: This will remove all records of the node from the Crowbar / Chef database.  It will be rediscovered if it reboots.  Proceed?
       hw_update_tooltip: Reboot the node in order to apply BIOS/RAID updates
       reinstall_tooltip: Rebuild the node to a pristine state using its current deployment profile
-      deallocate_tooltip: Remove the current allocation from the node
-      forget_tooltip: Remove all records of the node from the Crowbar / Chef database
+      delete_tooltip: Delete node from Crowbar
+      reset_tooltip: Reset node for reallocation
     form:
       allocate: Allocate
       save: Save

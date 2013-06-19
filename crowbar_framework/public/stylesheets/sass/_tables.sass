@@ -47,58 +47,7 @@ table.box
     td:first-child:last-child
       +rounded_corners(0,0,10px,10px)
 
-table
-  tr
-    // cell classes
-    th, td
-      &.number, &.percent, &.money
-        text-align: right
-      &.short
-        width: 18px
-      &.status
-        width: 17px
-      &[colspan]
-        // was center, but changed for IE formatting
-        text-align: left  
-      &.container
-        background: $page_bg
-        border: 1px solid $content_bg
-        .box
-          margin: 5px 0
-          background: $content_bg
-          +shadow(0,0,5px,#000)
-        table
-          th
-            background: $page_bg
-            border: solid $content_bg
-            border-width: 1px 1px 0 0
-            font-size: 90%
-            &:first-child
-              border-left-width: 1px
-    th.status
-      padding-left: 15px
-    &.odd
-      td
-        background: $odd
-        &.container
-          background: mix($page_bg, $odd)
-          border: 1px solid $odd
-          .box
-            background: $odd
-      &.selected
-        td
-          background: mix($odd, $selected)
-    &.even
-      td
-        background: $even
-        &.container
-          background: mix($page_bg, $even)
-          border: 1px solid $even
-          .box
-            background: $even
-      &.selected
-        td
-          background: mix($even, $selected)
+
 
 table.plain
   background: none

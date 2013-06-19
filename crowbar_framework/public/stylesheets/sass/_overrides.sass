@@ -1,0 +1,134 @@
+// New Stuff
+a.btn
+  cursor: pointer
+  &:link, &:visited
+    color: $text_color
+    text-decoration: none
+  &:hover, &:active
+    color: $link_color
+
+.navbar-static-top
+  margin-bottom: 30px
+
+.mainMenu 
+  margin-bottom: 5px
+  margin-top: 15px
+
+.navbar-inverse
+  .navbar-inner
+    background-color: #3a3e40 
+    background-image: none 
+
+.navbar-inverse
+  .brand
+    color: #ffffff
+    padding-top: 12px
+
+.page-header
+  padding-bottom: 1px
+  margin-bottom: 0px 
+  border-bottom: 1px solid $header_border
+.page-header-bottom
+  border-top: 1px solid #fff
+
+header
+  nav
+    ul
+      li
+        a:link, a:visited
+          text-decoration: none
+          color: #bebebe
+          padding-left: 20px
+          &.selected
+            color: $nav_selected
+        a:hover
+          color: #fff
+        ul
+          +border-radius(6px)
+          display: none
+          border: 1px solid rgba(0, 0, 0, 0.2)
+          background: #25282A 
+          position: absolute
+          top: 15px
+          li
+            display: inline
+            a
+              text-decoration: none
+              margin: 3px 4px 4px 3px
+            a:hover, a:focus
+              +border-radius(3px)
+              color: #7AC142 
+              background-color: #2e3235
+              box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) inset,  1px 1px 0 rgba(255, 255, 255, 0.1)
+        &:hover ul
+          display: block
+          +shadow
+
+.header-text
+  display: block
+  margin-top: 5px
+  font-size: 14px
+  font-weight: bold
+.text-center
+  text-align: center !important
+.div-center
+  margin-left: auto
+  margin-right: auto
+#nodes
+  margin-top: 10px
+
+.table
+  font-size: 12px
+  width: 100%
+  text-align: left
+  thead
+    background-color: #eee
+  tbody
+    background-color: #fff
+  label
+    font-size: 12px
+    font-weight: bold
+#nodes
+  .table-bordered 
+    thead 
+      tr 
+        th:first-child
+          width: 19px
+          text-align: right 
+    tbody 
+      tr 
+        td:first-child
+          width: 19px
+
+.page-header-bottom
+  border-top: 1px solid #fff
+  margin-bottom: 30px
+dl
+  dt
+    text-align: right
+    clear: left
+    width: 130px
+    font-weight: bold
+    margin-bottom: 5px
+  dd
+    margin-left: 140px
+    margin-bottom: 5px
+
+.control-text
+  padding-top: 5px
+
+.box1
+  background-color: #fff 
+  padding: 20px
+  border: 1px solid #ddd
+  +border-radius(3px)
+  margin-top: 10px
+
+#instructions
+  margin-bottom: 20px
+
+
+
+
+
+

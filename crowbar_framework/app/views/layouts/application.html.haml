@@ -11,23 +11,38 @@
     = csrf_meta_tag
   
   %body
-    %header
-      .container
-        %h1
-          %a{:href => "/"}
-            %span logo
-        %nav
-          = render_navigation :expand_all => true, :skip_if_empty => true
-    
-    - if flash[:notice] || !CHEF_ONLINE
-      .notice#flash
+    %header.navbar.navbar-static-top.navbar-inverse
+      .navbar-inner
         .container
-          %p
-            = flash[:notice].gsub("\n", "<br/>")
-            = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
-          - if !CHEF_ONLINE
-            %p= t "offline"
+          .row-fluid
+            .span4
+              %a.brand{:href => "/"}
+                SUSE Cloud: Crowbar
+            .span8
+              %nav.mainMenu
+                = render_navigation :expand_all => true, :skip_if_empty => true
+          
+  - if flash[:notice] || !CHEF_ONLINE
+    .notice#flash
+      .container
+        .alert
+          = flash[:notice].gsub("\n", "<br/>")
+          = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
+        - if !CHEF_ONLINE
+          %p= t "offline"
+    #main.container
+      = yield
 
+    %footer
+      %a{:href=>"https://www.suse.com/products/suse-cloud/", :target=>"_new", :alt=>"Dell, Inc."}
+        SUSE Cloud v2.0
+      &nbsp
+      =t '.provided_by'
+      %a{:href=>"https://www.suse.com", :target=>"_new"}
+        SUSE Linux GmbH
+      &nbsp
+      ="#{CROWBAR_VERSION} Version"
+  - else
     #main.container
       = yield
 

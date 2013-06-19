@@ -1,6 +1,6 @@
 .CodeMirror
   margin: 1em 0
-  background: #000
+  background: #3a3e40
   overflow: auto
   max-height: 300px
   line-height: 1em
@@ -11,20 +11,21 @@
   position: absolute
   left: 0
   top: 0
-  background-color: #444
+  background-color: #333
   border-right: 1px solid #555
   min-width: 2em
   height: 100%
   +rounded_corners(5px,0,5px,0)
 
 .CodeMirror-gutter-text
-  color: #aaa
   text-align: right
   padding: .4em .2em .4em .4em
+  pre
+    color: #777 !important
 
 .CodeMirror-lines
   padding: .4em
-  color: white
+  color: #fff
 
 .CodeMirror pre
   +rounded_corners(0,0,0,0)
@@ -33,6 +34,7 @@
   padding: 0
   background: transparent
   font-family: inherit
+  color: #fff
 
 .CodeMirror-cursor
   z-index: 10
@@ -68,4 +70,4 @@ span
   &.js-comment
     color: #8f8f8f
   &.js-string, &.cm-string
-    color: #91be77
+    color: #97d474

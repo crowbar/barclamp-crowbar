@@ -1,27 +1,29 @@
-%h1= t('.title')
-
+%h2.page-header
+  = t('.title')
+.page-header-bottom
 #proposals
   - i = -1
   - @groups.sort.each do |group_name, group|
-    .column_25{:class => column_class(i+=1,4)}
-      %table.data.box{:id => "group_#{(group_name || t('unknown')).parameterize}"}
-        %thead
-          %tr
-            %th
-            %th{:title=>group['description']}= group_name.camelize
-            %th
-        %tbody
-          - group['proposals'].sort.each do |proposal, member|
-            %tr{ :class => cycle(:odd, :even), :id => proposal }
-              %td.status{:raw=> 'unknown' }
-                .led{:class => 'unknown', :title=>t("state.unknown", :default=>'unknown'.titlecase)} 
-              %td.name
-                %a{:href => proposal_barclamp_path(:id=>member['proposal'], :controller=>member['barclamp']), :title=> (member['description'].nil? ? t(:not_set) : member['description']), :id => proposal.parameterize}
-                  = "#{member['barclamp'].camelize}: #{member['proposal'].camelize}"
-                %ul.nodes{:id=>proposal, :style=>'display:none' }
-                  %li= t 'updating'
-              %td.expand
-                %img{:id=>proposal, :src=>'/images/icons/toggle-off.png', :open=>'false', :onClick=>"get_nodes(\'#{member['barclamp']}\',\'#{member['proposal']}\');"}
+    .row
+      .span3
+        %table.table.table-bordered{:id => "group_#{(group_name || t('unknown')).parameterize}"}
+          %thead
+            %tr
+              %th
+              %th{:title=>group['description']}= group_name.camelize
+              %th
+          %tbody
+            - group['proposals'].sort.each do |proposal, member|
+              %tr{ :class => cycle(:odd, :even), :id => proposal }
+                %td.status{:raw=> 'unknown' }
+                  .led{:class => 'unknown', :title=>t("state.unknown", :default=>'unknown'.titlecase)} 
+                %td.name
+                  %a{:href => proposal_barclamp_path(:id=>member['proposal'], :controller=>member['barclamp']), :title=> (member['description'].nil? ? t(:not_set) : member['description']), :id => proposal.parameterize}
+                    = "#{member['barclamp'].camelize}: #{member['proposal'].camelize}"
+                  %ul.nodes{:id=>proposal, :style=>'display:none' }
+                    %li= t 'updating'
+                %td.expand
+                  %img{:id=>proposal, :src=>'/images/icons/toggle-off.png', :open=>'false', :onClick=>"get_nodes(\'#{member['barclamp']}\',\'#{member['proposal']}\');"}
 .clear
 
 :javascript

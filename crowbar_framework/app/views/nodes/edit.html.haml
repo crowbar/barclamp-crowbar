@@ -1,4 +1,4 @@
-%p{:style => 'float:right'}
-  = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'button'
-%h1= @node.name
+%h2.page-header
+  = @node.name
+.page-header-bottom
 = render 'form'

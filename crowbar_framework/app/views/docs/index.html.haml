@@ -1,5 +1,6 @@
-%h1= t '.title'
-
+%h2.page-header
+  = t '.title'
+.page-header-bottom
 %ol
   - root_children = @index.delete_if { |k, v| k=='topic_meta_data' }
   - root_children.sort_by { |k, v| v['topic_meta_data']['sort'] }.each do |book, book_details|

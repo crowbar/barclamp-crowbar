@@ -1,7 +1,9 @@
 - options = CrowbarService.read_options
-%h1= t('.title')
+%h2.page-header
+  = t('.title')
+.page-header-bottom
 
-%table.data.box
+%table.table.table-bordered
   %thead
     %tr
       %th= t('.name')

@@ -1,16 +1,17 @@
-%p{:style => 'float:right'}
-  - ServiceObject.barclamp_catalog['barclamps'].each do |bc, details|
-    - c = "#{bc.camelize}Controller"
-    - if (eval(c).new.methods.include?('export') rescue false)
-      = link_to t("nav.#{bc}_export"), utils_export_path(:controller=>bc), :class => 'button'
-  = link_to t('nav.util_chef'), export_chef_path, :class => 'button'
-
-%h1= t '.title'
+%h2.page-header
+  = t '.title'
+  .pull-right
+    - ServiceObject.barclamp_catalog['barclamps'].each do |bc, details|
+      - c = "#{bc.camelize}Controller"
+      - if (eval(c).new.methods.include?('export') rescue false)
+        = link_to t("nav.#{bc}_export"), utils_export_path(:controller=>bc), :class => 'btn'
+    = link_to t('nav.util_chef'), export_chef_path, :class => 'btn'
+.page-header-bottom
 -if @waiting
   %em= t '.wait'
   
 -if @exports[:count] == 0
-  %h3= t '.none_exported'
+  .lead= t '.none_exported'
 -else
   - @exports.each do |key, value|
     - if key != :count

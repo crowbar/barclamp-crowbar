@@ -1,25 +1,30 @@
-%p#add_button{:style => 'float:right'}
-  = text_field_tag 'new_group', nil, :placeholder => t('.default_new'), :size => 15
-  = link_to t('.add'), "javascript:add_group();", :class => 'button', :id=>'add_button'
-%h1= t('.title')
+%h2.page-header
+  = t('.title')
+  %form.form-inline.pull-right
+    = text_field_tag 'new_group', nil, :placeholder => t('.default_new'), :size => 15
+    = link_to t('.add'), "javascript:add_group();", :class => 'btn', :id=>'add_button'
+.page-header-bottom
 
-.column_100
+.row
   - unless @nodes.empty?
-    %section.box#details
+    .span12#details
       - if @node
         = render :partial => 'show'
       - else
-        %p= t(:status_empty, :scope => 'nodes.index', :count => @nodes.count)
+        %p
+          %small
+            = t(:status_empty, :scope => 'nodes.index', :count => @nodes.count)
+        %br
         %div{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
           =t '.drag_hint'
 
-#nodes
+.row#nodes
   - if @nodes.nil?
     = t('no_items')
   - else
     - i = -1
-    #add_group_div.column_25{:class => column_class(1,4), :style=>'display:none' }
-      %table.data.box{:id => "new_group_add"}
+    #add_group_div.span4{:style=>'display:none' }
+      %table.table.table-bordered{:id => "new_group_add"}
         %thead
           %tr
             %th.status
@@ -32,8 +37,8 @@
             %td 
             %td= t('.new_drag')
     - @groups.sort.each do |name, group|
-      .column_25{:class => column_class(i+=1,4)}
-        %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
+      .span4
+        %table.table.table-bordered{:id => "group_#{(name || t('unknown')).parameterize}"}
           %thead
             %tr
               %th.status{:title => t('updating')}
@@ -50,7 +55,7 @@
               - node = @nodes[handle]
               %tr{ :class => ["node", cycle(:odd, :even, :name => "nodes_#{i}")], :id => handle }
                 %td.status{:raw=> node[:state] }
-                  .led{:class => node[:status], :title=>t("state.#{node[:status]}", :default=>node[:status].titlecase)} 
+                  .led.pull-right{:class => node[:status], :title=>t("state.#{node[:status]}", :default=>node[:status].titlecase)} 
                 %td.name
                   %a{:href => node_path(handle), :draggable=>'true', :title=> (node[:description] || t('model.attributes.node.description_not_set')), :class => 'node_details', :id => handle.parameterize}
                     = truncate(node[:alias], :length => 25)
@@ -133,11 +138,11 @@
       group.text(new_group);
       bind_drop($('#'+new_group));
       group_div.attr('style', 'display:inline');
-      $('a#add_button').attr('class','button');
+      $('a#add_button').attr('class','btn');
     } 
     else {
       alert("#{t '.add_group_error'}");
-      $('a#add_button').attr('class','button');
+      $('a#add_button').attr('class','btn');
     }
   }
 
@@ -178,7 +183,7 @@
         var led = td.children('.led');
         if(!(td.attr('raw') === val['raw'])) {
           led.destroy();
-          led.attr('class', 'led '+val['status']);
+          led.attr('class', 'led pull-right '+val['status']);
           td.attr('raw', val['raw']);
           td.effect("highlight", {color: '#666666'}, 2000);
           led.attr('title', val['state']);

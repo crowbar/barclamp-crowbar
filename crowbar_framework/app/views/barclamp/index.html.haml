@@ -1,12 +1,11 @@
-- if @count>0
-  %p{:style => 'float:right'}
-    = "#{@count} #{t('.proposals')}"
-- else
-  %div#logo{:style => 'float:right', :width=>'25%', :border=>0, :visibility=>'hidden'}
-    %img#graphic{:alt=>@title, :width=>'100px'}
-%h1= @title
+%h2.page-header
+  = @title
+  - if @count>0
+    .pull-right
+      .header-text= "#{@count} #{t('.proposals')}"
+.page-header-bottom
 
-%table.data.box
+%table.table.table-bordered
   - if @bc_name === 'barclamp'
     = render :partial => 'barclamp/index'
   - else

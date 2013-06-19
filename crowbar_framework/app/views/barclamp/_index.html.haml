@@ -1,9 +1,9 @@
 %thead
   %tr
-    %th{:style => "width:15%"}= t('.barclamp')
-    %th.status{:style => "width:5%"}= t('.status')
-    %th{:style => "width:75%"}= t('.description')
-    %th{:style => "width:5%"}
+    %th= t('.barclamp')
+    %th.status= t('.status')
+    %th= t('.description')
+    %th
 
 - if @service_object.simple_proposal_ui?
   = render :partial => 'barclamp/show_simplified_index'

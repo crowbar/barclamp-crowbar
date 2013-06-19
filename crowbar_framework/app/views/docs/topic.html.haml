@@ -1,5 +1,7 @@
-%section.box#nav
-  %h2= t('.nav') + ": " + @meta['title']
+%section#nav
+  %h2.page-header
+    = t('.nav') + ": " + @meta['title']
+  .page-header-bottom
   %ul
     %li= link_to t('docs.root'), docs_path
     - unless @parent.nil?
@@ -12,7 +14,7 @@
   = @text
 
 - if @children and @children.length>0
-  %section.box#children
+  %section#children
     %h3= t '.children'
     %ol
       - @children.sort_by{ |k, v|  v['topic_meta_data']['sort'] }.each do |child, child_details|

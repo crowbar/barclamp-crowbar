@@ -6,22 +6,7 @@ body
   color: $text_color
 
 header
-  background: $header_bg
-  border-top: 1px solid $header_bg
-  border-bottom: 1px solid $header_border
-  height: 95px
-  h1
-    margin: 20px 0 0
-    width: 204px
-    height: 72px
-    float: left
-    a
-      display: block
-      background: url('/images/#{$theme}layout/crowbar.png') no-repeat
-      width: 279px
-      height: 72px
-      span
-        display: none
+  border-bottom: 4px solid $header_border
   nav
     float: right
     margin-top: 50px
@@ -45,7 +30,7 @@ header
           position: absolute
           right: 0
           top: 18px
-          width: 150px
+          min-width: 180px
           li
             display: inline
             a
@@ -53,31 +38,24 @@ header
               line-height: 18px
               text-align: right
               margin: 0
-              padding: 5px 10px !important
+              padding: 5px 10px 3px
         &:hover ul
           display: block
           +shadow
 
-.notice
-  text-align: center
-  color: $notice_fg
-  background: $notice_bg
-  border: solid $notice_border_color
-  border-width: 1px 0
-  font-size: 12px
-  clear: both
-  .container
-    padding: 0
-    p
-      margin: 0.5em 0
+// .notice
+//   text-align: center
+//   color: $notice_fg
+//   background: $notice_bg
+//   border: solid $notice_border_color
+//   border-width: 1px 0
+//   font-size: 12px
+//   clear: both
+//   .container
+//     padding: 0
+//     p
+//       margin: 0.5em 0
 
-#main
-  margin-top: 1em
-
-.container
-  margin: 0 auto
-  padding: 0 20px 2em
-  +columns(960px)
 
 footer
   clear: both

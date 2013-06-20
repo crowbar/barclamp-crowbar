@@ -18,7 +18,7 @@
 #
 
 package "sudo" do
-  action :upgrade
+  action :install
 end
 
 template "/etc/sudoers" do

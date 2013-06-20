@@ -1,5 +1,5 @@
 %p#add_button{:style => 'float:right'}
-  = text_field_tag "new_group", t('.default_new'), :size => 15
+  = text_field_tag 'new_group', nil, :placeholder => t('.default_new'), :size => 15
   = link_to t('.add'), "javascript:add_group();", :class => 'button', :id=>'add_button'
 %h1= t('.title')
 

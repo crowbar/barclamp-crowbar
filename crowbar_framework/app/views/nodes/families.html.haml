@@ -1,3 +1,4 @@
+- options = CrowbarService.read_options
 %h1= t('.title')
 
 %table.data.box
@@ -8,7 +9,8 @@
       %th= t('.ram')
       %th= t('.nics')
       %th= t('.drives')
-      %th= t('.raid')
+      -if options[:show].include? :raid
+        %th= t('.raid')
       %th= t('.hardware')
       %th= t('.cpu')
   %tbody
@@ -22,6 +24,7 @@
         %td= format_memory(f[:family][:ram])
         %td= f[:family][:nics]
         %td= f[:family][:drives]
-        %td= f[:family][:raid]
+        -if options[:show].include? :raid
+          %td= f[:family][:raid]
         %td= f[:family][:hw]
         %td= f[:family][:cpu]

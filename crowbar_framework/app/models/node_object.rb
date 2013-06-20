@@ -298,7 +298,7 @@ class NodeObject < ChefObject
   end
 
   def nics
-    @node["network"]["interfaces"].length rescue 0
+    @node["crowbar_ohai"]["detected"]["network"].length rescue 0
   end
   
   def memory

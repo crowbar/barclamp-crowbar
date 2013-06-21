@@ -18,7 +18,7 @@ The examples below represent just a few of the possible combinations of OpenStac
 ###Nova Compute Cluster###
 
 | Install Order | Barclamp |
-|-- | ----- |
+| :-- | :----- |
 | 1 | Database |
 | 2 | Keystone |
 | 3 | RabbitMQ |
@@ -31,7 +31,7 @@ The examples below represent just a few of the possible combinations of OpenStac
 ###Swift Storage Cluster###
  
 |  Install Order | Barclamp |
-|-- | ----- |
+| :-- | :----- |
 | 1 | Database |
 | 2 | Keystone |
 | 3 | Swift |
@@ -41,7 +41,7 @@ The examples below represent just a few of the possible combinations of OpenStac
 ###Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests###
 
 |  Install Order | Barclamp |
-|-- | ----- |
+| :-- | :----- |
 | 1 | Database |
 | 2 | Keystone |
 | 3 | RabbitMQ |

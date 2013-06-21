@@ -1,21 +1,21 @@
-%h2.page-header
-  = t '.title'
-.page-header-bottom
-%ol
-  - root_children = @index.delete_if { |k, v| k=='topic_meta_data' }
-  - root_children.sort_by { |k, v| v['topic_meta_data']['sort'] }.each do |book, book_details|
-    - book_meta = book_details['topic_meta_data']
-    - book_children = book_details.delete_if { |k, v| k=='topic_meta_data' }
-    %h3= render "docs/#{book_meta['barclamp']}/#{book}" rescue (render :partial => 'index', :locals=>{:id=>book, :parent=>'root', :children=>book_children.length, :meta=>book_meta, :show_children=>true, :prefix=>nil} )
-    %ol
-      - book_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |section, section_details|
-        - section_meta = section_details['topic_meta_data']
-        - section_children = section_details.delete_if { |k, v| k=='topic_meta_data' }
-        = render :partial => 'index', :locals=>{:id=>section, :parent=>"root+#{book}", :children=>section_children.length, :meta=>section_meta, :show_children=>true, :prefix=>nil} 
-        %ol
-          - section_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |topic, topic_details|
-            - topic_meta = topic_details['topic_meta_data']
-            - topic_children = topic_details.delete_if { |k, v| k=='topic_meta_data' }
-            = render :partial => 'index', :locals=>{:id=>topic, :parent=>"root+#{book}+#{section}", :children=>topic_children.length, :meta=>topic_meta, :show_children=>false, :prefix=>nil} 
-      
-.clear
+%h2.page-header= t '.title'
+%p
+%p= t('.deployment_guide')
+%p
+  %ul
+    %li
+      = link_to t('nav.crowbar_dg'), 'docs/html/book.cloud.deploy.html'
+      = surround '(', ')' do
+        = link_to t('.pdf'), 'docs/susecloud-deployment_en.pdf'
+%p= t('.susecloud_guides')
+%p
+  %ul
+    %li
+      = link_to t('nav.crowbar_ug'), 'docs/html/book.cloud.user.html'
+      = surround '(', ')' do
+        = link_to t('.pdf'), 'docs/susecloud-user_en.pdf'
+    %li
+      = link_to t('nav.crowbar_ag'), 'docs/html/book.cloud.admin.html'
+      = surround '(', ')' do
+        = link_to t('.pdf'), 'docs/susecloud-admin_en.pdf'
+%p= t('.online', :url => 'http://crowbar.github.io')

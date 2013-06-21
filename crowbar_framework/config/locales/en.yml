@@ -38,6 +38,7 @@ en:
     proposals: Proposals
     help: Help
     crowbar_wiki: Online Help
+    crowbar_ag: Admin Guide
     crowbar_ug: Users Guide
     crowbar_dg: Deployment Guide
     documentation: Documentation
@@ -88,18 +89,16 @@ en:
  
   # Documentation
   docs:
-    root: Master Index
     index:
-      title: System Documentation
-      details: Topic Updated
-      details_by: by
-    topic:
-      parent: Parent
-      children: Children
-      nav: Navigation
-      topic_missing: Error, generated HTML page for topic not found
-      details: Topic Updated
-      details_by: by
+      title: Documentation
+      pdf: PDF
+      deployment_guide: "Refer to the following deployment guide for details on
+        Crowbar:"
+      susecloud_guides: "Additional SUSE Cloud specific guides that may be
+        useful:"
+      online: You can find additional up-to-date information about Crowbar on
+        the <a href='%{url}' target='_blank'>project webpage</a>, but do note
+        that it may be for a different version.
       
   # Model Names / Attributes
   model:

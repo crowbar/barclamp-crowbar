@@ -12,15 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateOsPackages < ActiveRecord::Migration
-  def change
-    create_table :os_packages do |t|
-      t.string      :name,  :unique=>true
-      t.string      :description, :null=>true
-      t.integer     :order, :default=>10000
-      t.belongs_to  :os
-      t.timestamps
-    end
+
+class Scaffolds::DeploymentsRolesController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
-  
-end
+end 

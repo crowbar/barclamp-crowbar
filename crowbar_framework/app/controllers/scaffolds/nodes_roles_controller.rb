@@ -13,7 +13,8 @@
 # limitations under the License.
 #
 
-class Scaffolds::OsPackagesController < ApplicationController
-  active_scaffold :os_package do |conf|
+class Scaffolds::NodesRolesController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
 end 

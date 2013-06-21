@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateBarclampPackages < ActiveRecord::Migration
-  def change
-    create_table :barclamp_packages do |t|
-      t.belongs_to  :barclamp
-      t.belongs_to  :os_package
-      t.timestamps
-    end
+
+class Scaffolds::RolesRequiresController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
-  
-end
+end 

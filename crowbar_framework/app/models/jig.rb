@@ -35,40 +35,8 @@ class Jig < ActiveRecord::Base
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-
-  has_many        :jig_events,    :dependent => :destroy 
-  alias_attribute :events,        :jig_events
-  has_many        :jig_runs,      :through => :jig_events
-  alias_attribute :runs,          :jig_runs
   
-  has_many        :jig_maps,      :dependent => :destroy
-  alias_attribute :maps,          :jig_maps
-  has_many        :barclamps,     :through => :jig_maps
-  has_many        :attrib_types,  :through => :jig_maps
-
-  #####
-  #  Find the right snapshot to use for applying the given deployment.
-  # At this point, there's one - return it.
-  # Some future possible directions:
-  #   - Choose jig type by the barclamp being applied - allows different barclamps
-  #     to be implemented using different technologies
-  #   - Choose a jig snapshot, by node location. Could allow mixing jig domains
-  #     where different snapshots (probably of the same type) manage different 
-  #     domains of nodes
-  def self.find_jig_for_config(deployment)
-    # When we support many, find a jig: Jig.find_by_name('admin_chef')
-    # for now, assume there's just one.
-    Jig.all[0]
-  end
-
-  # For operations which require associating a node with a Jig (e.g. when a node transitions state)
-  # this method can be used to identify the right jig instances which currently care about this node.
-  # For initial implementation, this method is hardcoded to return only the admin chef server, but its
-  # intended to be a hook for expansion similar to the find_jig_for_config
-  # Return an array of jigs applicable to this node.
-  def self.find_jigs_for_node(node)
-    Jig.all  # TODO just return the active ones
-  end
+  has_many        :roles,      :dependent => :destroy
 
 =begin 
 Allocate a node, and start the node install process

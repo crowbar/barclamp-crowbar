@@ -36,42 +36,6 @@ Feature: Navigation, Check Core Navigation
     Then I should see "nodes available in the system"
       And there should be no translation errors
 
-  Scenario: Barclamps Nav
-    Given I am on the home page
-    When I click on the "Barclamps" menu item
-    Then I should see {bdd:crowbar.i18n.barclamp.index.title} in the body  
-      And I should see "crowbar" in the body
-      And I should see "deployer" in the body
-      And I should see "provisioner" in the body
-      And I should see "dns" in the body
-      And I should see "ntp" in the body
-      And there should be no translation errors
-
-  Scenario: All Barclamps Nav
-    Given I am on the home page
-    When I click on the "All Barclamps" menu item
-    Then I should see "All Barclamps" in the body
-      And I should see "crowbar" in the body 
-      And I should see "deployer" in the body
-      And I should see "provisioner" in the body
-      And I should see "dns" in the body
-      And I should see "ntp" in the body
-      And there should be no translation errors
-
-  Scenario: Crowbar Barclamps Nav
-    Skip until we have this page again
-    Given I am on the home page
-    When I click on the "Crowbar" menu item
-    Then I should see "Crowbar Members" in the body  
-      And I should see "crowbar" in the body
-      And I should see "deployer" in the body
-      And I should see "provisioner" in the body
-      And I should see "dns" in the body
-      And I should see "ntp" in the body
-      And I should not see "Nova" in the body
-      And I should not see "Hadoop" in the body
-      And there should be no translation errors
-
   Scenario: Help Guide 
     Given I am on the home page
     When I click on the "Help" menu item

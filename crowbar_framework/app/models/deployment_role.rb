@@ -15,7 +15,8 @@
 
 class DeploymentRole < ActiveRecord::Base
 
-  attr_accessible :data
+  attr_accessible :data, :wall
+  attr_accessible :role_id, :snapshot_id
 
   has_one :snapshot
   has_one :role

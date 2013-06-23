@@ -17,19 +17,21 @@ class Attrib < ActiveRecord::Base
 
   before_create :set_type_and_role
 
-  attr_accessible :role_id, :type     # core relationship
+  attr_accessible :role_id, :type, :name, :description, :order, :map     # core relationship
 
   belongs_to      :role
 
   DEFAULT_CLASS = BarclampCrowbar::AttribDefault rescue Attrib
   
-  MARSHAL_NIL   = "null"
-  MARSHAL_EMPTY = "empty"
-  
-  
   # for now, none of the proposed values are visible
   def value
-    raise "not implemented"
+    nr.value[map]
+  end
+
+  def node_values(node)
+    active = node.deployments.first.active_snapshot
+    nr = NodeRole.find :node_id=>node.id, :snapshot_id=>active.id, :role_id=>role_id
+    nr.value
   end
       
   def as_json options={}

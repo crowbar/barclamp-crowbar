@@ -15,35 +15,36 @@
 
 class NodeRole < ActiveRecord::Base
 
-  attr_accessible :state, :status, :data
+  attr_accessible :state, :status, :data, :wall
+  attr_accessible :role_id, :snapshot_id, :node_id
 
   has_one :node
   has_one :snapshot
   has_one :role
 
-  ERROR   = -1
-  READY   = 0
-  BLOCKED = 1
-  ACTIVE  = 2
-  UNKNOWN = nil
+  ERROR     = -1
+  ACTIVE    = 0
+  TODO      = 1
+  COMMITTED = 2
+  PROPOSED  = nil
 
   def error?
     state < 0
   end
 
-  def ready?
+  def active?
     state == 0
   end
 
-  def blocked?
+  def todo?
     state == 1
   end
 
-  def active?
+  def committed?
     state > 1
   end
 
-  def unknown?
+  def proposed?
     state.nil?
   end
   

@@ -18,9 +18,10 @@ class CreateNodesRoles < ActiveRecord::Migration
       t.belongs_to  :snapshot,          :null=>false
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
-      t.integer     :state,             :null=>true   # null = not set, 0 = ready, <0 = error, 1 = waiting, >1 = changing
-      t.string      :status,            :null=>true
-      t.string      :data
+      t.integer     :state,             :null=>true   # null = proposed, 0 = active, <0 = error, 1 = blocked, >1 = transitioning
+      t.string      :status,            :null=>true   # expected for error, blocked, transistioning
+      t.string      :data,              :null=>true
+      t.string      :wall,              :null=>true
       t.timestamps
     end
     #natural key -> none

@@ -19,7 +19,7 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :layout, :order
   attr_accessible :commit, :build_on, :mode
   attr_accessible :allow_multiple_deployments
-  attr_accessible :api_version, :api_version_accepts, :liscense, :copyright
+  attr_accessible :api_version, :api_version_accepts, :license, :copyright, :proposal_schema_version
   before_create :create_type_from_name
   # 
   # Validate the name should unique 
@@ -64,6 +64,10 @@ class Barclamp < ActiveRecord::Base
     true
   end
   
+  def self.import_1x(bc_name, bc=nil, source_path=nil)
+    puts "ALERT!! change to Barclamp.import for #{bc_name}!"
+  end
+
   def self.import(bc_name, bc=nil, source_path=nil)
     barclamp = Barclamp.find_or_create_by_name(bc_name)
     source_path ||= "../barclamps/#{bc_name}"    # would be nice to be smarter, but this is OK for now
@@ -99,24 +103,40 @@ class Barclamp < ActiveRecord::Base
                                   :layout      => bc['crowbar']['layout'] || 2,
                                   :order       => bc['crowbar']['order'] || 0,
                                   :mode        => "full",
-                                  :transitions => false,
                                   :build_on    => (gitdate || 'unknown'),
                                   :commit      => (gitcommit || 'unknown')   )
       barclamp.save
-      
-    barclamp.create_template bc_file
-      # all deployment details get imported into the template
-      barclamp.import_template
-    
-    end # transaction  
 
-    # roles data import
-    Role.transaction do
+    end
 
-      bc.roles.each do |role, values|
-        role.create :name=>role
+    if bc['jigs'] 
+
+      # iterate over the jigs in the YML file and load each role
+      bc['jigs'].each do |jig_name, role_list|
+
+        jig = Jig.find_by_name jig_name
+        # we only import if the jig exists, we assume that adding a jig will for a review!
+        if jig
+
+          # in each jig, inspect each role
+          role_list['roles'].each do |role_name, details|
+            # retrieve info from the role meta data
+            details ||= {}
+            role_template = File.join source_path, jig_name, 'roles', role_name, 'role_template.json'
+            node_template = File.join source_path, jig_name, 'roles', role_name, 'node_template.json'
+            requires = details['requires'] || []
+            flags = details['flags'] || []
+            description = details['descripion'] || "imported by #{barclamp.name}"
+            # roles data import
+            Role.transaction do
+              r = Role.create :name=>role_name, :jig_id=>jig.id, :description=>description, :barclamp_id=>barclamp.id, 
+                      :library=>flags.include?('library'), :implicit=>flags.include?('implicit'), 
+                      :bootstrap=>flags.include?('bootstrap'), :discovery=>flags.include?('discovery')
+              requires.each { |req| RolesRequire.create :role_id=>r.id, :require=>req }
+            end
+          end
+        end
       end
-
     end
 
     return barclamp

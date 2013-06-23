@@ -20,6 +20,7 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string     :type,                      :null=>false
       t.string     :display
       t.integer    :version
+      t.integer    :proposal_schema_version,   :default=>'2'
       t.string     :api_version,               :default=>"v2"
       t.string     :api_version_accepts,       :default=>"v2"
       t.string     :license,                   :default=>"apache2"

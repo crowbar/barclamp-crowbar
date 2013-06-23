@@ -18,7 +18,7 @@
 
 require 'json'
 
-class BarclampTest::Jig < Jig
+class BarclampCrowbar::Jig < Jig
 
 
   def create_node(node)

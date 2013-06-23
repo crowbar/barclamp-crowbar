@@ -49,8 +49,6 @@ Crowbar::Application.routes.draw do
       resources :jigs do as_routes end
       resources :navs do as_routes end
       resources :nodes do as_routes end
-      resources :os do as_routes end
-      resources :os_packages do as_routes end
       resources :roles do as_routes end
       resources :snapshots do as_routes end
     end

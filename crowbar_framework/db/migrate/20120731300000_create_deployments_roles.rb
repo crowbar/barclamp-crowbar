@@ -15,9 +15,10 @@
 class CreateDeploymentsRoles < ActiveRecord::Migration
   def change  
     create_table :deployments_roles do |t|
-      t.belongs_to  :snapshot,           :null=>false
-      t.belongs_to  :role,               :null=>false
-      t.string      :data,               :null=>true
+      t.belongs_to  :snapshot,          :null=>false
+      t.belongs_to  :role,              :null=>false
+      t.string      :data,              :null=>true
+      t.string      :wall,              :null=>true
       t.timestamps
     end
     #natural key -> none

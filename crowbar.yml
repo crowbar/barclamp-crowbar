@@ -46,7 +46,6 @@ nav:
   nodes:
     - [ dashboard, dashboard_path ]
     - [ list, "nodes_list_path(:allocated=>'yes')" ]
-    - [ families, nodes_families_path if RAILS_ENV == 'development' ]
   barclamps:
     - [ all_bc, barclamp_modules_path ]
     - [ crowbar_bc, "index_barclamp_path(:controller=>'crowbar')" ]

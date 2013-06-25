@@ -8,6 +8,10 @@ gem "i18n",  "0.4.2"
 gem "json",  "1.6.1"
 gem "chef",  "10.24.4"
 
+# Needed when running in production environment
+gem "syslogger"
+gem "kwalify"
+
 group :development do
   # bundler requires these gems in development
   # gem "rails-footnotes"
@@ -18,4 +22,3 @@ group :test do
   # gem "rspec"
   # gem "faker"
 end
-

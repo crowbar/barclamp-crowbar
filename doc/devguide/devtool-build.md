@@ -1,6 +1,6 @@
-##  Building your own Crowbar.iso - (for developers)
+##  Dev tool development and build for Crowbar.ISO - for developers
 
-Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Development*
+Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Deployment*
 
 The Crowbar Dev Tool is a git overlay that helps manage Crowbar releases, barclamp integration, and gated checkins to the Crowbar source base.
 
@@ -33,9 +33,15 @@ _note:_ use sudo as instructed.  Do not use the Dev tool as root!
 
 1. If you don't want to use HTTPS, then make sure that your build server's public key is registered with your Github account
 1. `sudo apt-get update`
-1. `sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap mkisofs binutils markdown erlang debhelper db-make python-pip`
-1. `sudo apt-get install build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev` 
-1. Do NOT change your ruby configuration (yet). Keep it 3.8.7 auto for now. [Ignore - `sudo update-alternatives --config ruby` (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)]
+1. the following packages are needed
+   1. `sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap'
+   1. `sudo apt-get install mkisofs binutils markdown erlang debhelper db-make python-pip`
+   1. `sudo apt-get install build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev` 
+1. For Trunk CB2 Dev on Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
+   1. `sudo update-alternatives --config ruby` (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)
+   1. `sudo update-alternatives --config gem` (to make Gem 1.9 the default, gem -v will report version 1.9)
+   1. `sudo gem install ruby1.9.1-dev builder bluecloth`
+   1. continue with steps below
 1. `sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec`
 1. `git clone https://github.com/crowbar/crowbar.git`
 1. `cd ~/crowbar` directory
@@ -81,6 +87,8 @@ Tips:
    * create a shared file location (e.g.: c:\temp\crowbar) mounted to "crowbar"
    * `vi ~/.build-crowbar.conf`
    * add a reference to `ISO_DEST=/mnt/hgfs/crowbar`
+* If you have several build VMs, you may want to share your crowbar cache from the host
+* If you have several active work areas, you can pull down your work-in-progress from github after a './dev backup' by using 'git checkout remotes/personal/[branch e.g. master]' from the impacted barclamp(s).
 
 ### Building Barclamp TARs only
 

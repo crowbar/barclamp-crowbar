@@ -116,7 +116,7 @@ class Barclamp < ActiveRecord::Base
 
         jig = Jig.find_by_name jig_name
         # we only import if the jig exists, we assume that adding a jig will for a review!
-        if jig
+        if jig and role_list
 
           # in each jig, inspect each role
           role_list['roles'].each do |role_name, details|

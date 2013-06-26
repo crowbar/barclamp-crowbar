@@ -188,7 +188,7 @@ class BarclampController < ApplicationController
         cat = ServiceObject.barclamp_catalog
         i = 0
         list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
-        @modules = get_proposals_from_barclamps(members).sort_by {|k,v| v[:order].to_i}
+        @modules = get_proposals_from_barclamps(members).sort_by { |k,v| "%05d%s" % [v[:order], k] }
         render 'barclamp/index' 
       }
       format.xml  { 
@@ -214,7 +214,7 @@ class BarclampController < ApplicationController
     @title = I18n.t('barclamp.modules.title')
     @count = 0
     barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
-    @modules = get_proposals_from_barclamps(barclamps).sort 
+    @modules = get_proposals_from_barclamps(barclamps).sort_by { |k,v| "%05d%s" % [v[:order], k] }
     respond_to do |format|
       format.html { render 'index'}
       format.xml  { render :xml => @modules }

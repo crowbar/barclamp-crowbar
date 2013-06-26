@@ -1,3 +1,4 @@
+- options = CrowbarService.read_options
 .led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
 %h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
 
@@ -26,7 +27,10 @@
     = dl_item(t('model.attributes.node.hardware'), @node.hardware)
     = dl_item(t('model.attributes.node.cpu'), @node.cpu)
     = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
-    = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
+    -if options[:show].include? :raid
+      = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
+    -else
+      = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}")
     = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
 
 .clear

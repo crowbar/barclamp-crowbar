@@ -30,21 +30,12 @@
           = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
         - if !CHEF_ONLINE
           %p= t "offline"
-    #main.container
-      = yield
 
-    %footer
-      %a{:href=>"https://www.suse.com/products/suse-cloud/", :target=>"_new", :alt=>"Dell, Inc."}
-        SUSE Cloud v2.0
-      &nbsp
-      =t '.provided_by'
-      %a{:href=>"https://www.suse.com", :target=>"_new"}
-        SUSE Linux GmbH
-      &nbsp
-      ="#{CROWBAR_VERSION} Version"
-  - else
-    #main.container
-      = yield
+  #main.container
+    = yield
 
-    %footer
-      ="Version #{CROWBAR_VERSION}"
+  %footer
+    = link_to 'SUSE Cloud v2.0', 'https://www.suse.com/products/suse-cloud/', :target => '_new'
+    &nbsp
+    = t '.provided_by'
+    = link_to 'SUSE', 'https://www.suse.com', :target => '_new'

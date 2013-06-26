@@ -1,7 +1,9 @@
 - d = JSON.pretty_generate JSON.parse(@proposal.raw_data['attributes'][@proposal.barclamp].to_json)
-  
-= link_to t('custom'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => @dep_raw, :attr_raw => false), :class => "pull-right"
-%label{:for => "proposal_attributes", :class =>"h3"} #{t('.title')}
+
+%h3.page-header
+  = t('.title')
+  = link_to t('custom'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => @dep_raw, :attr_raw => false), :class => "pull-right"
+.page-header-bottom
 
 = find_and_preserve do
   - unless request.env['HTTP_USER_AGENT'].downcase.index('msie 7')

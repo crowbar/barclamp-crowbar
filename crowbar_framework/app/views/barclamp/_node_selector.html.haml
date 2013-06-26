@@ -7,28 +7,31 @@
       = "DEBUG HTTP USER AGENT: #{request.env['HTTP_USER_AGENT']}"
 -else 
   %input#proposal_development{:type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_data['deployment'][@proposal.barclamp].to_json }
-  %h3= t('.title')
-  = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float:right;"
-  %div.container#deploy
-    %p
+  %h3.page-header
+    = t('.title')
+    = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :class => "pull-right"
+  .page-header-bottom
+  .row
+    .span12
       %em#hint= t('.hint')
-    .column_40.first
+  .row#deploy
+    .span4
       %div#nodes_div
         %table#node_tbl
           %thead
             %tr
               %th
-                #nodes_title= link_to( t('barclamp.proposal_show.available_nodes'), dashboard_path) + image_tag('/images/icons/magnifier.png', options= { :style=>"float:right", :title=>t('.filter')})
-          %tbody
+                #nodes_title= image_tag('/images/icons/magnifier.png', options= { :style => "margin-right:5px", :title=>t('.filter')}) + link_to( t('barclamp.proposal_show.available_nodes'), dashboard_path)  
+          %tbody{ :style => "border-top: 1px solid #eee; border-left: 1px solid #eee;"}
             - nodes_hash().sort_by{ |k, v| v[:alias]}.each do |n, detail|
               %tr
                 %td
                   %a.available{:href => 'javascript:void(0);', :class =>"draggable_a", :admin=>(detail[:admin] ? "true" : "false"),  :id =>n, :title =>(detail[:title] || t('not_set')), :draggable=>'true'  }= detail[:alias]
-                  = link_to image_tag('/images/icons/link.png'), nodes_path(:selected => detail[:handle]), :title=>detail[:alias], :style=>"float:right"
+                  = link_to image_tag('/images/icons/link.png'), nodes_path(:selected => detail[:handle]), :title=>detail[:alias]
             %tr
               %td
                 %a.available{:hidden=>"true", :admin=>"false", :id =>"-1", :title =>t('.node_deleted_title'), :draggable=>'false'  }= t('.node_deleted')
-    .column_50.last
+    .span4.offset1
       - @proposal.all_elements.each do |element|
         %div.droptarget{ :id=>element, :draggable=>'true'}
           %div
@@ -36,19 +39,18 @@
               %b= link_to element, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
             - else
               %b= element
-            %img{ :src=>'/images/icons/server_add.png', :title=>t('.add') }
+
           %ul.ddlist{ :id=>element }
 
 .clear
 
 :javascript
-  
+
 $(document).ready(function() {
-  var oTable = $('#node_tbl').dataTable({"sScrollY": 99999,"bScrollCollapse": true,"bPaginate": false, "LengthChange": false, "bFilter": true, "bSort": false, "bInfo": false, "bAutoWidth": false,
-    "oLanguage":{"sSearch":""}});
+  var oTable = $('#node_tbl').dataTable({"sScrollY": 300,  "bScrollCollapse": true,"bPaginate": false, "LengthChange": false, "bFilter": true, "bSort": false, "bInfo": false, "bAutoWidth": false, "oLanguage":{"sSearch":""}});
   var even_row = true;
   $("#nodes_title").append($("#node_tbl_filter"));
-  
+
   DragDropHelpers.fixVisualCues=true;
   var messages = {};
     messages['no_dup'] = "#{t('.no_dup')}";
@@ -251,7 +253,7 @@ $(document).ready(function() {
         var title = node.attr('title');
         var shortname = node.text(); 
         var ll = "<li class='allocated " + (even_row ? 'even' : 'odd') +"' id='"+ item + "' title='"+ title + "'>"+shortname;
-        ll = ll + "<img src='/images/icons/server_delete.png' style='float:right' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
+        ll = ll + "<img src='/images/icons/server_delete.png' style='margin-left:5px' title='#{t('.remove')}' onclick='remove_item(\""+item+"\",\""+list+"\");'>";
         ll = ll + "</li>";
         $list.append(ll);
         allocated.push(item);

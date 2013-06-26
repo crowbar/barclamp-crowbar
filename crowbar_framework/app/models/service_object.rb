@@ -558,8 +558,6 @@ class ServiceObject
   end
 
   def destroy_active(inst)
-    # Always dequeue to make sure it won't become active by accident later on
-    dequeue_proposal(inst)
 
     role_name = "#{@bc_name}-config-#{inst}"
     @logger.debug "Trying to deactivate role #{role_name}"
@@ -574,7 +572,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, inst, false)
+      answer = apply_role(role, role_name, false)
       role.destroy
       answer
     end
@@ -649,9 +647,6 @@ class ServiceObject
   end
 
   def proposal_delete(inst)
-    # Deactivate the proposal first, in case it was in use
-    destroy_active(inst)
-
     prop = ProposalObject.find_proposal(@bc_name, inst)
     if prop.nil?
       [404, {}]

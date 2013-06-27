@@ -35,7 +35,7 @@
             %th
               %label.checkbox.inline
                 = check_box_tag 'all', 'all', false, {:onChange=>"check_all()"}
-                Allocate?
+                Allocate
         %tbody
           - if @nodes.count > 0
             - @nodes.sort_by{|handle, n| n.name }.each do |handle, node|
@@ -80,12 +80,12 @@
                   %td.center= t 'na'
           - else
             %tr
-              %td{ :colspan=>8 }
+              %td{ :colspan=>6 }
                 = t 'no_items'
         - if @nodes.count > 0
           %tfoot
             %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-              %td.hint{:colspan => 7}
+              %td.hint{:colspan => 5}
                 = t('note')+": "+t('.hint')
               %td.action{:colspan => 1}
                 %input.btn.btn-success.pull-right{:type => "submit", :name => "submit", :value => 'Save'}

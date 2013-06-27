@@ -532,31 +532,6 @@ class NodeObject < ChefObject
     bus_order
   end
 
-  def bus_index(bus_order, path)
-    return 999 if bus_order.nil? or path.nil?
-
-    dpath = path.split(".")[0].split("/")
-
-    index = 0
-    bus_order.each do |b|
-      subindex = 0
-      bs = b.split(".")[0].split("/")
-
-      match = true
-      bs.each do |bp|
-        break if subindex >= dpath.size
-        match = false if bp != dpath[subindex]
-        break unless match
-        subindex = subindex + 1
-      end
-
-      return index if match
-      index = index + 1
-    end
-
-    999
-  end
-
   def sort_ifs
     bus_order = get_bus_order
     map = self.crowbar_ohai["detected"]["network"]

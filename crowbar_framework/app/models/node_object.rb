@@ -298,7 +298,7 @@ class NodeObject < ChefObject
   end
 
   def nics
-    @node["network"]["interfaces"].length rescue 0
+    @node["crowbar_ohai"]["detected"]["network"].length rescue 0
   end
   
   def memory
@@ -334,7 +334,7 @@ class NodeObject < ChefObject
   end
 
   def virtual?
-    virtual = [ "KVM", "VMware Virtual Platform", "VMWare Virtual Platform", "VirtualBox" ]
+    virtual = [ "KVM", "VMware Virtual Platform", "VMWare Virtual Platform", "VirtualBox", "Bochs" ]
     virtual.include? hardware
   end
 
@@ -438,7 +438,7 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
-    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, { :merge_debug => true })
+    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
 
     if CHEF_ONLINE
       @role.save

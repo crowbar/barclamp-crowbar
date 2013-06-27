@@ -18,8 +18,10 @@
         %th= t('.hw_description')
         %th= t('.description')
         %th= t('.group')
-        %th= t('.bios')
-        %th= t('.raid')
+        -if @options[:show].include? :bios
+          %th= t('.bios')
+        -if @options[:show].include? :raid
+          %th= t('.raid')
         %th.center 
           Allocate? 
           = check_box_tag 'all', 'all', false, {:onChange=>"check_all()"}
@@ -33,16 +35,10 @@
               %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :size => 15
-              %td
-                -if @options[:show].include? :bios
-                  = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
-                -else
-                  = t 'feature_na'
-              %td
-                -if @options[:show].include? :raid
-                  = select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
-                -else
-                  = t 'feature_na'
+              -if @options[:show].include? :bios
+                %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
+              -if @options[:show].include? :raid
+                %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
               %td.center
                 -unless node.allocated
                   = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
@@ -53,8 +49,10 @@
               %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description(true) || ""), :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :size => 15
-              %td= t 'na'
-              %td= t 'na'
+              -if @options[:show].include? :bios
+                %td= t 'na'
+              -if @options[:show].include? :raid
+                %td= t 'na'
               %td.center= t 'na'
       - else
         %tr

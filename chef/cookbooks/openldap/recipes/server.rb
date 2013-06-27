@@ -22,11 +22,11 @@ case node[:platform]
 when "ubuntu"
   if (node[:platform_version].to_f >= 10.04)
     package "db4.8-util" do
-      action :upgrade
+      action :install
     end
   else
     package "db4.2-util" do
-      action :upgrade
+      action :install
     end
   end
   cookbook_file "/var/cache/local/preseeding/slapd.seed" do
@@ -37,14 +37,14 @@ when "ubuntu"
   end
   package "slapd" do
     response_file "slapd.seed"
-    action :upgrade
+    action :install
   end
 else
   package "db4.2-util" do
-    action :upgrade
+    action :install
   end
   package "slapd" do
-    action :upgrade
+    action :install
   end
 end
 

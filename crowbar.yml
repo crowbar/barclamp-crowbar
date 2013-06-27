@@ -19,7 +19,7 @@ barclamp:
   name: crowbar
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
-  online_help: 'https://github.com/dellcloudedge/crowbar/wiki'
+  online_help: 'https://github.com/crowbar/crowbar/wiki'
   version: 0
   proposal_schema_version: 1
   member:
@@ -231,7 +231,7 @@ gems:
     - activesupport-2.3.14
     - bundler
     - builder
-    - activesupport
+    - activesupport-3.2.13
     - eventmachine
     - rainbows
     - sendfile

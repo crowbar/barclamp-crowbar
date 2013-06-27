@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 package "nscd" do
-  action :upgrade
+  action :install
 end
 
 service "nscd" do

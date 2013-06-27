@@ -20,7 +20,7 @@
     = t('no_items')
   - else
     - i = -1
-    #add_group_div.span4{:style=>'display:none' }
+    #add_group_div.span3{:style=>'display:none' }
       %table.table.table-bordered{:id => "new_group_add"}
         %thead
           %tr
@@ -31,10 +31,9 @@
               = "THIS TEXT GETS REPLACED"
         %tbody
           %tr
-            %td 
-            %td= t('.new_drag')
+            %td{:colspan => "2"}= t('.new_drag')
     - @groups.sort.each do |name, group|
-      .span4
+      .span3
         %table.table.table-bordered{:id => "group_#{(name || t('unknown')).parameterize}"}
           %thead
             %tr
@@ -42,10 +41,10 @@
                 .inline_piechart= [group[:status]["ready"], group[:status]["failed"], group[:status]["unknown"], group[:status]["unready"]+group[:status]["pending"]] * ","
               %th{ :droptarget=>"true", :id=>(group[:automatic] ? 'USE_AUTOMATIC!' : name)  }
                 %div{ :class=>'group'}
-                - unless group[:automatic]
-                  = truncate(name || t('unknown'), :length => 25)
-                - else
-                  %i= truncate(name || t('unknown'), :length => 25)
+                  - unless group[:automatic]
+                    = truncate(name || t('unknown'), :length => 25)
+                  - else
+                    %i= truncate(name || t('unknown'), :length => 25)
                     
           %tbody
             - group[:nodes].sort.each do |order, handle|

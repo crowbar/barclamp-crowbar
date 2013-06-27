@@ -1,7 +1,7 @@
-%h1= t '.title'
-
+%h2.page-header= t '.title'
+.page-header-bottom
 - if @init
-  %table
+  %table.table.table-bordered
     %tr
       %td
         .led{:class => 'off'}

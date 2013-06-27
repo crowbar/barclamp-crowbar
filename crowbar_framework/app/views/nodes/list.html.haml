@@ -80,12 +80,13 @@
                   %td.center= t 'na'
           - else
             %tr
-              %td{ :colspan=>6 }
+              %td{:colspan => @columns}
                 = t 'no_items'
+
         - if @nodes.count > 0
           %tfoot
             %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-              %td.hint{:colspan => 5}
+              %td.hint{:colspan => @columns-1}
                 = t('note')+": "+t('.hint')
               %td.action{:colspan => 1}
                 %input.btn.btn-success.pull-right{:type => "submit", :name => "submit", :value => 'Save'}

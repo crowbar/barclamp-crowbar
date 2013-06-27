@@ -150,7 +150,10 @@ class NodesController < ApplicationController
         flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
       end
     end
+
     @options = CrowbarService.read_options
+    @columns = @options[:show].count + 6
+
     @nodes = {}
 
     default_os = find_default_os

@@ -1,21 +1,24 @@
 %h2.page-header= t '.title'
-%p
+.page-header-bottom
 %p= t('.deployment_guide')
-%p
-  %ul
-    %li
-      = link_to t('nav.crowbar_dg'), 'docs/html/book.cloud.deploy.html'
-      = surround '(', ')' do
-        = link_to t('.pdf'), 'docs/susecloud-deployment_en.pdf'
+.row
+  .span12
+    %ul
+      %li
+        = link_to t('nav.crowbar_dg'), 'docs/html/book.cloud.deploy.html'
+        = surround '(', ')' do
+          = link_to t('.pdf'), 'docs/susecloud-deployment_en.pdf'
+
 %p= t('.susecloud_guides')
-%p
-  %ul
-    %li
-      = link_to t('nav.crowbar_ug'), 'docs/html/book.cloud.user.html'
-      = surround '(', ')' do
-        = link_to t('.pdf'), 'docs/susecloud-user_en.pdf'
-    %li
-      = link_to t('nav.crowbar_ag'), 'docs/html/book.cloud.admin.html'
-      = surround '(', ')' do
-        = link_to t('.pdf'), 'docs/susecloud-admin_en.pdf'
+.row
+  .span12
+    %ul
+      %li
+        = link_to t('nav.crowbar_ug'), 'docs/html/book.cloud.user.html'
+        = surround '(', ')' do
+          = link_to t('.pdf'), 'docs/susecloud-user_en.pdf'
+      %li
+        = link_to t('nav.crowbar_ag'), 'docs/html/book.cloud.admin.html'
+        = surround '(', ')' do
+          = link_to t('.pdf'), 'docs/susecloud-admin_en.pdf'
 %p= t('.online', :url => 'http://crowbar.github.io')

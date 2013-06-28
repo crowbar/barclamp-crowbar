@@ -75,11 +75,12 @@
             .controls
               = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'btn'
               %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.allocate')}
-          .control-group
-            %label.control-label
-            .controls
-              = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'btn'
-              %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.save')}
+              
+        .control-group
+          %label.control-label
+          .controls
+            = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'btn'
+            %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.save')}
 
 :javascript
 

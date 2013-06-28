@@ -185,9 +185,9 @@
           led.attr('title', val['state']);
         }
         // catch the case where we've expanded detail on a node
-        s = $('div.container dd.node_state');
+        s = $('div dd.node_state');
         h_key = "head_"+key;
-        h = $('div.container div.led[id="'+h_key+'"]');
+        h = $('div div.led[id="'+h_key+'"]');
         if (h.attr('id')==h_key && s.text()!=val['state']) {
           s.text(val['state']);
           s.effect("highlight", {color: '#666666'}, 2000);

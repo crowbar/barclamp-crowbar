@@ -1139,20 +1139,28 @@ class ServiceObject
       # end
 
       exit(1) unless system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
-      node_object = NodeObject.find_node_by_name(node)
-      if node_object[:reboot] == "require"
-        puts "going to reboot #{node} due to #{node_object[:reboot]}"
-        unless system("sudo -i -u root -- ssh root@#{node} \"reboot\"")
-          exit(1)
-        else
-          if RemoteNode.ready?(node, 600)
-            exit(1) unless system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
-            node_object.set[:reboot] = "complete"
-            node_object.save
-          else
-            exit(1)
+      nobj = NodeObject.find_node_by_name(node)
+      attempt=0
+      while nobj[:reboot] == "require" and attempt <= 3
+        attempt=attempt+1
+        puts "going to reboot #{node} due to #{nobj[:reboot]} attemp #{attempt}"
+        system("sudo -i -u root -- ssh root@#{node} \"reboot\"")        
+        if RemoteNode.ready?(node, 1200)
+          3.times do
+            if system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+              nobj = NodeObject.find_node_by_name(node)
+              break
+            else
+              puts "#{command} failed on node #{node}, going to wait 60s until next attempt"
+              sleep(60)
+            end
           end
+        else
+          exit(1)
         end
+      end
+      if attempt > 3 and nobj[:reboot] == "require"
+        puts "reboot failed #{attempt} times"
       end
     }
   end

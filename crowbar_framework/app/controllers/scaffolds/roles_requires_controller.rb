@@ -12,17 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateSnapshots < ActiveRecord::Migration
-  def change
-    create_table :snapshots do |t|
-      t.string      :name,                        :null=>false, :default=>I18n.t('not_set')
-      t.string      :description,                 :null=>true,  :default=>I18n.t('not_set')
-      t.integer     :order,                       :null=>false, :default=>1000
-      t.belongs_to  :deployment,                  :null=>false
-      t.timestamps      
-    end
-    #natural key 
-    add_index(:snapshots, [:deployment_id, :name], :unique => true)  
+
+class Scaffolds::RolesRequiresController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
-    
-end
+end 

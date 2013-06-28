@@ -16,14 +16,12 @@
 
 class Role < ActiveRecord::Base
 
-  attr_accessible :id, :description, :order, :run_order, :states, :snapshot_id, :name
-  attr_accessible :implicit, :admin_implicit, :jig
-  
-  HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
-  HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
+  attr_accessible :id, :description, :order, :name, :jig_id, :barclamp_id
+  attr_accessible :library, :implicit, :bootstrap, :discovery
 
-  validates_uniqueness_of :name,         :scope => :snapshot_id
-  validates_format_of :name, :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_uniqueness_of   :name,         :scope => :barclamp_id
+  validates_uniqueness_of   :name,         :scope => :jig_id
+  validates_format_of       :name, :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to      :snapshot
   has_one         :barclamp,          :through => :snapshot
@@ -34,64 +32,14 @@ class Role < ActiveRecord::Base
   has_many        :node_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NOT NULL'
   has_many        :attrib_types,      :through => :attribs
 
-  has_many        :attrib_has_deployments, :class_name => HAS_DEPLOYMENT, :foreign_key => :role_id
-  has_many        :prerequisites,     :source => :deployment, :through => :attrib_has_deployments, :foreign_key=>:id_actual
+  has_many        :roles_requires,    :class_name => "RolesRequire"
+  alias_attribute :requires,          :roles_requires
 
-  has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id
-  has_many        :nodes,             :through => :attrib_has_nodes
-
-  def public?
-    self.run_order>=0
-  end
-  
-  def <=>(other)
-    # use Array#<=> to compare the attributes
-    [self.order, self.run_order, self.role.name] <=> [other.order, other.run_order, other.role.name]
+  # determines if the requirements have been met for this barclamp
+  def deployable?
+    # TODO
   end
 
-  def add_attrib(attrib_type, value=nil, map=nil)
-    at = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
-    begin
-      a = Attrib.find_by_attrib_type_id_and_role_id! at.id, self.id
-      a.value = value
-      a.save
-    rescue
-      v = Attrib.serial_in value
-      a = Attrib::DEFAULT_CLASS.create :attrib_type_id => at.id, :role_id => self.id, :value_actual => v
-    end
-  end
-
-  # links role to a barclamp it depends on
-  # will create a default deployment if none exists
-  def require_deployment(barclamp_name, deployment_name=Barclamp::DEFAULT_DEPLOYMENT_NAME, role_name=nil)
-    bc = Barclamp.find_by_name barclamp_name
-    deployment = Deployment.find_by_barclamp_id_and_name bc.id, deployment_name
-    # if we did not find a deployment, then we have to create one
-    if deployment.nil?
-      # cannot create barclamps if we are a singleton and already have one
-      deployment = if bc.allow_multiple_deployments or bc.deployments.count == 0
-        bc.create_proposal deployment_name
-      else
-        bc.deployments.first
-      end
-    end
-    HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
-                                                             :id_actual   => deployment.read_attribute(:id),
-                                                             :value_actual=> role_name
-  end
-  
-  # Assignes a node to the role by creating a AttribInstanceHasRole
-  def add_node(node)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
-    HAS_NODE_ROLE.create :role_id => self.id, :node_id => node.id unless has_node
-  end
-
-  # Unassigns a node to the role by creating a AttribInstanceHasRole
-  def remove_node(node)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
-    HAS_NODE_ROLE.delete has_node
-  end
-  
   ##
   # Clone this role
   # optionally, change parent too
@@ -114,6 +62,48 @@ class Role < ActiveRecord::Base
 
     new_role
     
+  end
+  
+  # take run data from the jig and process it into attributes
+  # returns the node
+  # WARNING - this has NOT been optimized!
+  def process_inbound_data jig, node, data
+    jig = jig_run.jig
+    maps = JigMap.where :jig_id=>jig.id, :barclamp_id=>self.id
+    maps.each do |map|
+      # there is only 1 map per barclamp/jig/attrib
+      a = map.attrib_type
+      # there can be multiple Attribs per node/barclamp snapshot
+      attribs = Attrib.where :attrib_type_id=>a.id, :node_id=>node.id
+      if attribs.empty?
+        # create the AIs for the data using the unbound role attribes that are already there
+        unset_attribs = Attrib.where :attrib_type_id=>a.id, :node_id => nil
+        unset_attribs.each do |na|
+          # attach node to barclamp data (from role association)
+          if na.barclamp.id == self.id
+            # create a node specific version of it
+            node_attrib = na.dup
+            node_attrib.node_id = node.id
+            node_attrib.save
+          end
+        end
+      end
+      # THIS NEEDS TO BE UPDATED TO ONLY UPDATE THE ACTIVE SNAPSHOTS!
+      attribs.each do |ai|
+        # we only update the attribs linked to this barclamp 
+        # performance note: this is an expensive thing to figure out!
+        if !ai.role_id.nil? and ai.barclamp.id == self.id 
+          # get the value
+          value = jig.find_attrib_in_data data, map.map
+          # store the value
+          target = Attrib.find ai.id
+          target.actual = value
+          target.jig_run_id = jig_run.id
+          target.save!
+        end
+      end
+    end
+    node
   end
 
 end

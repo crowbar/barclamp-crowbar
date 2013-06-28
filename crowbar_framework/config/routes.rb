@@ -41,20 +41,14 @@ Crowbar::Application.routes.draw do
       get 'digest'        => "support#digest"
     end
     namespace :scaffolds do
-      resources :attrib_types do as_routes end
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
       resources :deployments do as_routes end
       resources :docs do as_routes end
       resources :groups do as_routes end
-      resources :jig_events do as_routes end
-      resources :jig_maps do as_routes end
-      resources :jig_runs do as_routes end
       resources :jigs do as_routes end
       resources :navs do as_routes end
       resources :nodes do as_routes end
-      resources :os do as_routes end
-      resources :os_packages do as_routes end
       resources :roles do as_routes end
       resources :snapshots do as_routes end
     end
@@ -135,7 +129,6 @@ Crowbar::Application.routes.draw do
           resources :deployments
           resources :snapshots
           resources :jigs
-          resources :attrib_types
           resources :attribs
           resources :roles
           resources :groups do

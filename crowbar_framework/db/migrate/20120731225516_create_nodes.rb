@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +15,12 @@
 class CreateNodes < ActiveRecord::Migration
   def change
     create_table :nodes do |t|
-      t.string      :name, :limit => 255, :null => false
-      t.string      :alias, :limit => 100, :null => false
-      t.string      :description, :null=>true
-      t.string      :state, :null=>true
-      t.integer     :order, :default=>10000
-      t.boolean     :admin, :default=>false
-      t.boolean     :allocated, :default=>false
-      t.belongs_to  :os
+      t.string      :name,          :limit => 255, :null => false
+      t.string      :alias,         :limit => 100, :null => false
+      t.string      :description,   :null=>true
+      t.integer     :order,         :default=>10000
+      t.boolean     :admin,         :default=>false
+      t.boolean     :allocated,     :default=>false
       t.timestamps
     end
     #natural key

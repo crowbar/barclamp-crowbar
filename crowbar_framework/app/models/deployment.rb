@@ -28,7 +28,7 @@ class Deployment < ActiveRecord::Base
   attr_accessible :name, :description, :order
   attr_accessible :barclamp_id, :active_snapshot_id, :proposed_snapshot_id, :committed_snapshot_id
 
-  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   validates_exclusion_of :name, :in => %w(template), :message => I18n.t("db.config_excludes", :default=>"Illegal config name")
   
@@ -44,8 +44,6 @@ class Deployment < ActiveRecord::Base
   alias_attribute :queued,              :committed_snapshot
 
   belongs_to :proposed_snapshot,        :class_name => "Snapshot", :foreign_key => "proposed_snapshot_id"
-  alias_attribute :proposed,            :proposed_snapshot
-  alias_attribute :proposal,            :proposed_snapshot
 
   # active includes nothing being committed
   def active?
@@ -74,6 +72,23 @@ class Deployment < ActiveRecord::Base
   # it is stubbed here because it was a CB1 method for the service object
   def delete
     raise "not implemented - this really should require a deallocate"
+  end
+
+  # return the relevant proposal for the deployment, if missing then create it
+  def proposal
+    if !proposed_snapshot_id.nil?
+      proposed_snapshot
+    else
+      ps = if committed_snapshot_id.nil?               # clone from commited
+          ps = committed_snapshot.deep_clone
+        elsif active_snapshot_id.nil?               # clone from active
+          ps = active_snapshot.deep_clone
+        else                                        # create new
+          ps = Snapshot.create
+        end
+      proposed_snapshot_id = ps.id
+      ps
+    end
   end
 
   # recall the committing proposal (simply deleted the committed proposal)
@@ -150,6 +165,34 @@ class Deployment < ActiveRecord::Base
     else 
       'hold'
     end
+  end
+
+
+# Assignes a node to the role by creating a NodeRole
+  def add_node(deployment, node)
+    raise "can only add roles to a proposal" unless proposed?
+    
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
+    HAS_NODE_ROLE.create :role_id => self.id, :node_id => node.id unless has_node
+  end
+
+  # Unassigns a node to the role by creating a AttribInstanceHasRole
+  def remove_node(node)
+    raise "can only add roles to a proposal" unless proposed?
+  
+    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
+    HAS_NODE_ROLE.delete has_node
+  end
+  
+  # Add a role to a snapshot by creating the needed DeploymentRole
+  # Returns a Role
+  def add_role(role_name)
+    raise "can only add roles to a proposal" unless proposed?
+    r = Role.find_by_name role_name
+
+    r = Role.find_or_create_by_name_and_snapshot_id :name=>role_name, :snapshot_id => self.id
+    r.save! unless r.id
+    r
   end
 
 end

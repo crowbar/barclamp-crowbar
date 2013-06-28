@@ -1,4 +1,4 @@
-# Copyright 2013, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateAttribs < ActiveRecord::Migration
-    
-  def change
-    create_table :attribs do |t|
-      t.string      :type,          :null => false, :default => Attrib::DEFAULT_CLASS.to_s
-      t.string      :name,          :null => false
-      t.belongs_to  :role,          :null => false
-      t.string      :map,           :null => true
-      t.timestamps      
-    end
 
-    # natural key
-    add_index :attribs,    [:role_id, :name], :unique => true
+class Scaffolds::DeploymentsRolesController < ApplicationController
+  active_scaffold :node do |conf|
+
   end
-end
+end 

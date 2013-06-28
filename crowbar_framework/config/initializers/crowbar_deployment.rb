@@ -19,12 +19,12 @@
 # it MUST be run after the migrations
 begin
   
-    # we cannot run the system w/o a crowbar deployment
+    # we cannot run the system w/o a deployment
     # we are creating it here until there is a more logical place
 
-    if Barclamp.table_exists? and !defined?(::Rake)
-      bc = Barclamp.find_by_name 'crowbar'
-      template = bc.create_proposal if bc
+    if Deployment.count == 0 and !defined?(::Rake)
+      d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+      # ZEHICLE TODO add the minimum required roles
     end
 
 end

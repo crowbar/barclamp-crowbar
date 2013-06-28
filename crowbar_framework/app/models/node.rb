@@ -28,16 +28,6 @@ class Node < ActiveRecord::Base
   API_ATTRIBUTES = ["id", "name", "description", "order", "state", "admin",
                     "allocated", "os_id", "created_at", "updated_at"]
 
-  READY = 0
-  UNREADY = 1
-  PENDING = 2
-  BUILDING = 69
-  ERROR = 666
-  UNKNOWN = 999
-
-  # for Node-Role relationship
-  HAS_NODE_ROLE = BarclampCrowbar::AttribHasNode
-
   # 
   # Validate the name should unique (no matter the case)
   # and that it starts with a valid FQDN
@@ -53,16 +43,11 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :attribs,            :dependent => :destroy
-  has_many :attrib_types,       :through => :attribs
-
-  has_many :attrib_has_nodes,   :class_name => HAS_NODE_ROLE, :foreign_key => :node_id
-  has_many :roles,              :through => :attrib_has_nodes
-  has_many :snapshots,          :through => :roles
+  has_many :nodes_roles
+  has_many :roles,              :through => :nodes_roles
+  has_many :snapshots,          :through => :nodes_roles
   has_many :deployments,        :through => :snapshots
   
-  belongs_to :os, :class_name => "Os" #, :foreign_key => "os_id"
-
   #CB1 ?? 
   def reset_jig_access
     # Make sure that the node can be accessed by knife ssh or ssh

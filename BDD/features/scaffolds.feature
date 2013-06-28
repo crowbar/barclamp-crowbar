@@ -18,17 +18,6 @@ Feature: Scaffolds
       And I should see "BarclampCrowbar::AttribDefault"
       And there should be no translation errors
 
-  Scenario: Attrib Type
-    While interactive
-    When I go to the "utils/scaffolds/attrib_types" page
-    Then I should see heading "AttribTypes"
-      And I should see "Name"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors    
-  
   Scenario: Barclamp
     While interactive
     When I go to the "utils/scaffolds/barclamps" page
@@ -36,7 +25,6 @@ Feature: Scaffolds
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "transition list"
       And I should see "Display"
       And I should see "Layout"
       And I should see "Search"
@@ -51,7 +39,6 @@ Feature: Scaffolds
       And I should see "Description"
       And I should see "Groups"
       And I should see "State"
-      And I should see "Os"
       And I should see "Order"
       And I should see "Created At"
       And I should see "Updated At"
@@ -113,42 +100,12 @@ Feature: Scaffolds
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors 
                   
-  Scenario: Os
-    While interactive
-    When I go to the "utils/scaffolds/os" page
-    Then I should see heading "Os"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Order"
-      And I should see "Nodes"
-      And I should see "Packages"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-
-  Scenario: OsPackages
-    While interactive
-    When I go to the "utils/scaffolds/os_packages" page
-    Then I should see heading "OsPackages"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Order"
-      And I should see "Os"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-
   Scenario: Jigs
     While interactive
     When I go to the "utils/scaffolds/jigs" page

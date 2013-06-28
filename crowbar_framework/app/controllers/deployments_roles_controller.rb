@@ -11,22 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 # See the License for the specific language governing permissions and 
 # limitations under the License. 
+# 
 
+class DeploymentsRolesController < ApplicationController
 
-
-# This context establsihes a base Crowbar deployment.
-# it should be included in all tests that manipulate node attributes
-shared_context "crowbar test deployment" do
-  
-  before(:all) do
-    # we need this to ensure that we have the crowbar barclamp
-    Barclamp.import 'crowbar'
-    BarclampTest::Jig.find_or_create_by_name :name=>'test'
-  end
-end  
-
-# Just 2 dummy nodes
-shared_context "2 dummy nodes" do
-  let(:node1) { Node.create :name=>"unit1.test.com" }
-  let(:node2) { Node.create :name=>"unit2.test.com" }
 end
+

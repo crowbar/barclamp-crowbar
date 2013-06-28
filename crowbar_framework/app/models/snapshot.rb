@@ -15,30 +15,27 @@
 
 class Snapshot < ActiveRecord::Base
 
-  STATUS_CREATED        = 1  # Not applied, just created
-  STATUS_QUEUED      = 2  # Attempt at commit, but is queued
-  STATUS_COMMITTING  = 3  # Attempt at commit is in progress
-  STATUS_FAILED      = 4  # Attempted commit failed
-  STATUS_APPLIED     = 5  # Attempted commit succeeded
+  before_create   :set_name
 
-  ROLE_ORDER         = "'roles'.'order', 'roles'.'run_order'"
-  
-  attr_accessible :id, :name, :description, :order, :status, :failed_reason, :element_order
-  attr_accessible :deployement_id, :barclamp_id, :jig_event_id
-  
-  belongs_to      :barclamp
-  belongs_to      :deployment,        :inverse_of => :snapshot
+  ERROR   = -1
+  READY   = 0
+  BLOCKED = 1
+  ACTIVE  = 2
+  UNKNOWN = nil
 
-  has_many        :roles,             :dependent => :destroy, :order => ROLE_ORDER
-  has_many        :nodes,             :through => :roles
-  has_many        :private_roles,     :class_name => "Role", :conditions=>'run_order<0', :order => ROLE_ORDER
-  has_many        :public_roles,      :class_name => "Role", :conditions=>'run_order>=0', :order => ROLE_ORDER
+  attr_accessible :id, :name, :description, :order, 
+  attr_accessible :deployement_id
+  
+  belongs_to      :deployment
 
-  has_many        :attribs,           :through => :roles
-  has_many        :attrib_types,      :through => :attribs
-  
-  has_many        :jig_events
-  
+  has_many        :deployments_roles, :dependent => :destroy
+  alias_attribute :my_roles,          :deployments_roles
+  has_many        :roles,             :through => :eployments_roles
+
+  has_many        :nodes_roles,       :dependent => :destroy
+  alias_attribute :my_nodes,          :nodes_roles
+  has_many        :nodes,             :through => :nodes_roles
+ 
   def active?
     deployment.active_snapshot_id == self.id
   end
@@ -51,75 +48,62 @@ class Snapshot < ActiveRecord::Base
     deployment.proposed_snapshot_id == self.id
   end
  
-  # Add a role to a snapshot by creating the needed Role
-  # Returns a Role
-  def add_role(role_name)
-    r = Role.find_or_create_by_name_and_snapshot_id :name=>role_name, :snapshot_id => self.id
-    r.save! unless r.id
-    r
-  end
-
-  def private_role
-    add_role('private')
-  end
-
-  # Add attrib to snapshot
-  # assume first public role (fall back to private role) if none given
-  def add_attrib(attrib_type, role_name=nil)
-    desc = I18n.t 'added', :scope => 'model.role', :name=>self.name
-    unless role_name
-      role = public_roles.first || private_roles.first || private_role
-    else
-      role = Role.find_or_create_by_name_and_snapshot_id :name => role_name,
-                                                         :snapshot_id => self.id,
-                                                         :description => desc
-    end
-    role.add_attrib attrib_type, nil, self.name
-  end
-
-  # determines the role run order using the imported element_order
-  # return is a nested array of roles
-  def role_order
-    ro = []
-    source = ActiveSupport::JSON.decode(self.element_order)
-    if source
-      source.each do |parent|
-        children = []
-        parent.each do |role|
-          children << self.add_role(role) if role
+  # review all the nodes for the nameshot and figure out an aggregated state
+  def state
+    active = 0
+    my_nodes.each do |n|
+      # any node that's error or unknown will cause the whole state to be in the other state
+      case n.state
+        when < 0 
+          return ERROR
+        when > 0 
+          active+=1
+        when nil
+          return UNKNOWN
         end
-        ro << children
-      end
     end
-    ro
+    # if all the nodes fall through the tests above then the snapshot is ready or active
+    return (active == 0 ? READY : ACTIVE)
   end
 
+  # returns a has with all the node status information (unready nodes only)
+  def status
+    s = {}
+    # TODO ZEHICLE pull together all the nodes and aggregate status
+    my_nodes.each do |n|
+      # any node that's error or unknown will cause the whole state to be in the other state
+      case n.state
+        when < 0 
+          s[n.id] = n.status
+        when > 0 
+          s[n.id] = n.status
+        end
+    end
+    return s
+  end
+  
   ##
   # Clone this snapshot
-  # optionally, change parent too (you do NOT have parents for templates)
+  # optionally, change parent too
   def deep_clone(parent_deployment=nil, name=nil, with_nodes=true)
 
     new_snap = self.dup
-    new_snap.deployment_id = parent_deployment.id if parent_deployment
-    new_snap.name = name || "#{self.name}_#{self.id}"
-    new_snap.status = STATUS_CREATED
-    new_snap.failed_reason = nil
-    new_snap.save
 
-    # clone the roles
-    roles.each { |ri| ri.deep_clone(new_snap, with_nodes) }
+    Snapshot.transaction begin    
+      new_snap.deployment_id = parent_deployment.id if parent_deployment
+      new_snap.name = name || "#{self.name}_#{self.id}"
+      new_snap.save      
+      # TODO ZEHICLE clone the roles
+      # TODO ZEHICLE clone the nodes
+    end
 
     new_snap
   end
 
-  def method_missing(m,*args,&block)
-    if m.to_s =~ /(.*)_role$/
-      r = Role.find_by_name_and_snapshot_id $1, self.id
-      # temporary while we depricate the node role
-      return r
-    else
-      super m,*args,&block
-    end
-  end
+  private
 
+  def set_name
+    name = Time.now.strftime("%Y-%M-%D %H:%M:%S")
+    description = "name automatically set"
+  end
 end

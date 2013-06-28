@@ -15,12 +15,14 @@
 
 class NodeRole < ActiveRecord::Base
 
+  before_create   :get_template
   attr_accessible :state, :status, :data, :wall
   attr_accessible :role_id, :snapshot_id, :node_id
 
-  has_one :node
-  has_one :snapshot
-  has_one :role
+  belongs_to      :node
+  belongs_to      :role
+  belongs_to      :snapshot
+  has_one         :deployment, :through => :snapshot
 
   ERROR     = -1
   ACTIVE    = 0
@@ -47,20 +49,11 @@ class NodeRole < ActiveRecord::Base
   def proposed?
     state.nil?
   end
-  
-  # helpers if you don't want to deal w/ raw data
-  def value=(v)
-     data = ActiveSupport::JSON.encode(v)
-  end
 
-  # helpers if you don't want to deal w/ raw data
-  def value
-    if data.eql? MARSHAL_EMPTY
-      nil
-    else
-      ActiveSupport::JSON.decode(data)
-    end
+  private
+
+  def get_template
+    data ||= role.node_template
   end
-  
 
 end

@@ -61,8 +61,9 @@ en:
   new: "New Item!"
   next: Next
   prev: Previous
-  export: Export
-  default: Default
+  export: "Export"
+  default: "Default"
+  automatic: "Created Automatically by System"
   version: "Version %{version}"
   
   test:

@@ -15,26 +15,26 @@
 
 class Snapshot < ActiveRecord::Base
 
-  before_create   :set_name
+  before_create    :sane_defaults
 
-  ERROR   = -1
-  READY   = 0
-  BLOCKED = 1
-  ACTIVE  = 2
-  UNKNOWN = nil
+  ERROR       = -1
+  ACTIVE      = 0
+  TODO        = 1
+  BLOCKED     = 2
+  TRANSITION  = 3
+  PROPOSED    = nil
 
-  attr_accessible :id, :name, :description, :order, 
-  attr_accessible :deployement_id
+  attr_accessible :id, :name, :description, :order, :deployment_id
   
   belongs_to      :deployment
 
-  has_many        :deployments_roles, :dependent => :destroy
-  alias_attribute :my_roles,          :deployments_roles
-  has_many        :roles,             :through => :eployments_roles
+  has_many        :deployment_roles,  :dependent => :destroy
+  alias_attribute :my_roles,          :deployment_roles
+  has_many        :roles,             :through => :deployment_roles
 
-  has_many        :nodes_roles,       :dependent => :destroy
-  alias_attribute :my_nodes,          :nodes_roles
-  has_many        :nodes,             :through => :nodes_roles
+  has_many        :node_roles,        :dependent => :destroy
+  alias_attribute :my_nodes,          :node_roles
+  has_many        :nodes,             :through => :node_roles
  
   def active?
     deployment.active_snapshot_id == self.id
@@ -53,32 +53,23 @@ class Snapshot < ActiveRecord::Base
     active = 0
     my_nodes.each do |n|
       # any node that's error or unknown will cause the whole state to be in the other state
-      case n.state
-        when < 0 
-          return ERROR
-        when > 0 
-          active+=1
-        when nil
-          return UNKNOWN
-        end
+      if n.state < 0 
+        return ERROR
+      elsif n.state > 0 
+        active+=1
+      elsif n.state == nil
+        return UNKNOWN
+      end
     end
     # if all the nodes fall through the tests above then the snapshot is ready or active
-    return (active == 0 ? READY : ACTIVE)
+    return (active == 0 ? ACTIVE : TRANSITION)
   end
 
   # returns a has with all the node status information (unready nodes only)
   def status
     s = {}
-    # TODO ZEHICLE pull together all the nodes and aggregate status
-    my_nodes.each do |n|
-      # any node that's error or unknown will cause the whole state to be in the other state
-      case n.state
-        when < 0 
-          s[n.id] = n.status
-        when > 0 
-          s[n.id] = n.status
-        end
-    end
+    # any node that's error or unknown will cause the whole state to be in the other state  
+    my_nodes.each { |n| s[n.id] = n.status unless n.state == 0 }
     return s
   end
   
@@ -102,8 +93,13 @@ class Snapshot < ActiveRecord::Base
 
   private
 
-  def set_name
-    name = Time.now.strftime("%Y-%M-%D %H:%M:%S")
-    description = "name automatically set"
+  def sane_defaults
+    # make sure we have sane defaults
+    self.name = "#{deployment.name} #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
+    self.description = deployment.description
+    # Create the implicit deployment roles 
+    Role.find(:all, :conditions=>['implicit = ?', true]) do |r|
+      deployment_roles.build(:snapshot_id=>self.id, :role_id=>r.id, :data=>r.role_template)
+    end
   end
 end

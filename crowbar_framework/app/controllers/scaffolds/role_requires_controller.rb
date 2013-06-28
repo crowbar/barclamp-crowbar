@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodesGroups < ActiveRecord::Migration
-  def change
-    create_table :node_groups, :id=>false do |t|
-      t.belongs_to  :node
-      t.belongs_to  :group
-    end
-    #natural key
-    add_index(:node_groups, [:node_id, :group_id], :unique => true)   
+
+class Scaffolds::RoleRequiresController < ApplicationController
+  active_scaffold :role_require do |conf|
+
   end
-end
+end 

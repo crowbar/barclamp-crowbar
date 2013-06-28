@@ -19,12 +19,12 @@
 # it MUST be run after the migrations
 begin
   
-    # we cannot run the system w/o a crowbar deployment
+    # we cannot run the system w/o a deployment
     # we are creating it here until there is a more logical place
 
-    if Barclamp.table_exists? and !defined?(::Rake)
-      bc = Barclamp.find_by_name 'crowbar'
-      template = bc.create_proposal if bc
+    if !defined?(::Rake) and Deployment.count == 0
+      # create the default deployment
+      d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
     end
 
 end

@@ -15,8 +15,8 @@
 
 class RoleRequire < ActiveRecord::Base
 
-  attr_accessible :requires
+  attr_accessible :id, :role_id, :requires
 
-  belongs_to :role
+  belongs_to 	:role
 
 end

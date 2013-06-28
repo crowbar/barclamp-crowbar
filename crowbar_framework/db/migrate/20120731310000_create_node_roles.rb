@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class CreateNodesRoles < ActiveRecord::Migration
+class CreateNodeRoles < ActiveRecord::Migration
   def change  
-    create_table :nodes_roles do |t|
+    create_table :node_roles do |t|
       t.belongs_to  :snapshot,          :null=>false
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
@@ -24,6 +24,7 @@ class CreateNodesRoles < ActiveRecord::Migration
       t.string      :wall,              :null=>true
       t.timestamps
     end
-    #natural key -> none
+    #natural key 
+    add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)   
   end
 end

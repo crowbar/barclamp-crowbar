@@ -13,7 +13,7 @@
 # limitations under the License. 
 # 
 
-class DeploymentsRolesController < ApplicationController
+class DeploymentRolesController < ApplicationController
 
 end
 

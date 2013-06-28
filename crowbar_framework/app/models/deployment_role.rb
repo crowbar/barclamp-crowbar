@@ -15,10 +15,22 @@
 
 class DeploymentRole < ActiveRecord::Base
 
-  attr_accessible :data, :wall
-  attr_accessible :role_id, :snapshot_id
+  before_create   :get_template
 
-  has_one :snapshot
-  has_one :role
+  attr_accessible :data, :wall
+  attr_accessible :id, :role_id, :snapshot_id
+
+  belongs_to 		:snapshot
+  has_one			:deployment, 	:through => :snapshot
+
+  belongs_to		:role
+  has_one 			:jig,			:through =>	:role
+  has_one 			:barclamp, 		:through => :role
+
+  private
+
+  def get_template
+    data ||= role.role_template
+  end
 
 end

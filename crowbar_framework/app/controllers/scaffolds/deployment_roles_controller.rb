@@ -1,4 +1,4 @@
-# Copyright 2013, Dell
+# Copyright 2012, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-class Scaffolds::RolesRequiresController < ApplicationController
-  active_scaffold :node do |conf|
+class Scaffolds::DeploymentRolesController < ApplicationController
+  active_scaffold :deployment_role do |conf|
 
   end
 end 

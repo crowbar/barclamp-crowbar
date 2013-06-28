@@ -15,8 +15,8 @@
 class CreateSnapshots < ActiveRecord::Migration
   def change
     create_table :snapshots do |t|
-      t.string      :name,                        :null=>false, :default=>I18n.t('not_set')
-      t.string      :description,                 :null=>true,  :default=>I18n.t('not_set')
+      t.string      :name,                        :null=>false
+      t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>1000
       t.belongs_to  :deployment,                  :null=>false
       t.timestamps      

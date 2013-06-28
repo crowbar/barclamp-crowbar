@@ -22,6 +22,7 @@ class Attrib < ActiveRecord::Base
   belongs_to      :role
 
   DEFAULT_CLASS = BarclampCrowbar::AttribDefault rescue Attrib
+  MARSHAL_EMPTY = "EMPTY"
   
   # for now, none of the proposed values are visible
   def value
@@ -46,6 +47,32 @@ class Attrib < ActiveRecord::Base
    }
   end
 
+  # SUBCLASS THIS METHOD if you want to change how data is found in the input data
+  # Called by the barclamp.process_inbound_data routine
+  # find a single attribute in a json data set
+  # / is used as a delimiter
+  # optimized to 6 levels without looping
+  def find_attrib(data, path)
+    nav = path.split '/'
+    # add some optimization to avoid looping down through the structure
+    case nav.length 
+      when 1 
+        data[nav[0]]
+      when 2
+        data[nav[0]][nav[1]]
+      when 3
+        data[nav[0]][nav[1]][nav[2]]
+      when 4
+        data[nav[0]][nav[1]][nav[2]][nav[3]]
+      when 5
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
+      when 6
+        data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
+      else 
+        nav.each { |key| data = data[key] }
+    end
+  end
+    
   private
   
   # make sure some safe values are set for the node

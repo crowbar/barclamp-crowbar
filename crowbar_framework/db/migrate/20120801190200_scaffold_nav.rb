@@ -15,7 +15,7 @@
 class ScaffoldNav < ActiveRecord::Migration
   def self.up
 
-    Nav.find_or_create_by_item :item=>'scaffold', :name=>'nav.scaffold.top', :path=>"scaffolds_nodes_path", :description=>'nav.scaffold.top_description', :order=>7000, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold', :name=>'nav.scaffold.top', :path=>"scaffolds_deployments_path", :description=>'nav.scaffold.top_description', :order=>7000, :development=>true
   
     Nav.find_or_create_by_item :item=>'scaffold_attribs',  :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1100, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_jigs',  :parent_item=>'scaffold', :name=>'nav.scaffold.jigs',  :path=>"scaffolds_jigs_path", :order=>1400, :development=>true

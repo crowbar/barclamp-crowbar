@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-class Scaffolds::DeploymentsRolesController < ApplicationController
-  active_scaffold :node do |conf|
+class Scaffolds::NodeRolesController < ApplicationController
+  active_scaffold :node_role do |conf|
 
   end
 end 

@@ -13,7 +13,7 @@
 # limitations under the License. 
 # 
 
-class NodesRolesController < ApplicationController
+class NodeRolesController < ApplicationController
 
 end
 

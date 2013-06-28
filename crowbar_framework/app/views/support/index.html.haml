@@ -11,7 +11,7 @@
   %em= t '.wait'
   
 -if @exports[:count] == 0
-  .lead= t '.none_exported'
+  %p= t '.none_exported'
 -else
   - @exports.each do |key, value|
     - if key != :count

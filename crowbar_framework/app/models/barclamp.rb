@@ -141,28 +141,7 @@ class Barclamp < ActiveRecord::Base
 
     return barclamp
   end
-
-  # make the our tempate
-  def create_template(bc_file)
-    if self.template_id.nil?
-      t = Snapshot.create(
-                :name => I18n.t('template', :scope => "model.barclamp", :name=>self.name.humanize),
-                :barclamp_id=>self.id,
-                :description=> I18n.t('imported', :scope => 'model.barclamp', :file=>bc_file)
-              )
-      self.template_id = t.id
-      # attach the default private role
-      ri = t.add_role('private')
-      ri.order = 1
-      ri.run_order = -1   # this tells Crowbar NOT to give the information to the Jig
-      ri.description = I18n.t('model.barclamp.private_role_description'),
-      ri.save!
-      save!
-      t
-    end
-    
-  end
-  
+      
   private
 
   # This method ensures that we have a type defined for 

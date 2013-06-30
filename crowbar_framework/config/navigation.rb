@@ -52,7 +52,7 @@ SimpleNavigation::Configuration.run do |navigation|
           end
         rescue Exception => e
           primary.item :menu_error, "#{t 'nav.error'}: #{item.item}", ''
-          puts "render error #{e.inspect}"
+          puts "render error #{e.inspect}" if Rails.e
         end
       end
     end

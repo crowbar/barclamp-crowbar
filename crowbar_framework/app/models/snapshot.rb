@@ -29,11 +29,9 @@ class Snapshot < ActiveRecord::Base
   belongs_to      :deployment
 
   has_many        :deployment_roles,  :dependent => :destroy
-  alias_attribute :my_roles,          :deployment_roles
   has_many        :roles,             :through => :deployment_roles
 
   has_many        :node_roles,        :dependent => :destroy
-  alias_attribute :my_nodes,          :node_roles
   has_many        :nodes,             :through => :node_roles
  
   def active?

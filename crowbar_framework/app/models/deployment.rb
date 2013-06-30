@@ -166,6 +166,13 @@ class Deployment < ActiveRecord::Base
     end
   end
 
+  # Lookup the deployment_roles available for the deployment, use the Proposal then Active 
+  def deployment_roles
+    return proposed_snapshot.deployment_roles if proposed? 
+    return active_snapshot.deployment_roles if active?
+    []
+  end
+
   # Lookup the roles available for the deployment, use the Proposal then Active 
   def roles
     return proposed_snapshot.roles if proposed? 

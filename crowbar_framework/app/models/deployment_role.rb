@@ -21,11 +21,18 @@ class DeploymentRole < ActiveRecord::Base
   attr_accessible :id, :role_id, :snapshot_id
 
   belongs_to 		:snapshot
-  has_one			:deployment, 	:through => :snapshot
+  has_one			  :deployment, 	:through => :snapshot
 
   belongs_to		:role
   has_one 			:jig,			:through =>	:role
   has_one 			:barclamp, 		:through => :role
+
+
+  # add a node to this deployment for this role
+  def add_node(node)
+    raise "you can only add node #{node.name} to a Proposed Deployment" unless snapshot.proposed?
+    NodeRole.create :node_id=>node.id, :snapshot_id=>snapshot_id, :role_id=>role_id
+  end
 
   private
 

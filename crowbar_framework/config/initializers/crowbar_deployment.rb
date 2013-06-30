@@ -24,7 +24,10 @@ begin
 
     if !defined?(::Rake) and Deployment.count == 0
       # create the default deployment
-      d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+      d = Deployment.find_or_create_by_name :name=>I18n.t('default', :default=>"Default"), :description=>I18n.t('automatic', :default=>"Created Automatically by System")
+      d.save!
+      p = d.proposal
+      p.save!
       Rails.logger.debug "ZEHICLE created default deployment #{d.inspect} in initializer"
     end
 

@@ -28,7 +28,6 @@ class Deployment < ActiveRecord::Base
 
   validates_uniqueness_of   :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of       :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_exclusion_of    :name, :in => %w(template), :message => I18n.t("db.config_excludes", :default=>"Illegal config name")
   
   has_many          :snapshots,           :inverse_of => :deployment, :dependent => :destroy
   
@@ -51,6 +50,10 @@ class Deployment < ActiveRecord::Base
   
   def proposed?
     !proposed_snapshot_id.nil?
+  end
+
+  def proposed
+    proposal
   end
 
   # return the relevant proposal for the deployment, if missing then create it

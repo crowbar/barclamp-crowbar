@@ -26,6 +26,7 @@ Crowbar::Application.routes.draw do
   resources :docs
   resources :nodes
   resources :roles
+  resources :groups
 
   # UI scope
   scope 'utils' do
@@ -48,6 +49,7 @@ Crowbar::Application.routes.draw do
       resources :navs do as_routes end
       resources :nodes do as_routes end
       resources :roles do as_routes end
+      resources :role_requires do as_routes end
       resources :deployments do as_routes end
       resources :snapshots do as_routes end
       resources :node_roles do as_routes end
@@ -86,6 +88,7 @@ Crowbar::Application.routes.draw do
         end
         scope ':version' do
           resources :nodes
+          resources :barclamps
           resources :deployments
           resources :snapshots
           resources :jigs

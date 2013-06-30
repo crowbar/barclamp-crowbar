@@ -18,15 +18,15 @@ class NodesController < ApplicationController
   # API GET /crowbar/v2/nodes
   # UI GET /dashboard
   def index
-    # EventQueue.publish(Events::WebEvent.new("nodes index page"))
-    # k = Delayed::Job.enqueue(Jobs::TestJob.new)
-    # puts "DEBUG: k = #{k.inspect}"
-
-    if params.has_key? :group_id
+    @list = if params.has_key? :group_id
       g = Group.find_key params[:group_id]
-      render api_index :group, g.nodes
+      g.nodes
     else
-      render api_index :node, Node.all
+      Node.all
+    end
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node, @list }
     end
   end
   

@@ -27,6 +27,14 @@ class DeploymentRole < ActiveRecord::Base
   has_one 			:jig,			:through =>	:role
   has_one 			:barclamp, 		:through => :role
 
+  # convenience methods
+  def name
+    role.name
+  end
+
+  def description
+    role.description
+  end
 
   # add a node to this deployment for this role
   def add_node(node)

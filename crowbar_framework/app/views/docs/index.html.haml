@@ -1,10 +1,8 @@
 %h1= t('.title')
 
-= scaffolds_navs_path
-
 %ul
   - Doc.all.each do |book|
     %li
-      = link_to book.description, book.name
+      = link_to book.description, doc_path(book.id)
 
 .clear

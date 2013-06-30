@@ -16,7 +16,11 @@
 class RolesController < ApplicationController
 
   def index
-    render api_index :role, Role.all
+    @list = Role.all
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node, @list }
+    end
   end
 
   def show

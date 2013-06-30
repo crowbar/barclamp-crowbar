@@ -14,8 +14,9 @@ Feature: Navigation, Check Core Navigation
           
   Scenario: Home Page Nav
     When I go to the home page
-    Then I should see a menu for {bdd:crowbar.i18n.nav.dashboard}
-      And I should see a menu for "Barclamps"
+    Then I should see a menu for "Barclamps"
+      And I should see a menu for "Deployments"
+      And I should see a menu for "Nodes"
       And I should see a menu for "Utilities"
       And I should see a menu for "Help"
       And I should see "CloudEdge Solutions Team"
@@ -25,20 +26,11 @@ Feature: Navigation, Check Core Navigation
   Scenario: Nodes Nav
     Given I am on the home page
     When I click on the "Nodes" menu item
-    Then I should see a menu for "Dashboard"
-      And I should see a menu for "Bulk&amp;Edit"
-      And I should see "nodes available in the system"
-      And there should be no translation errors
-
-  Scenario: Dashboard Nav
-    Given I am on the home page
-    When I click on the "Dashboard" menu item
-    Then I should see "nodes available in the system"
+    Then I should see a menu for {bdd:crowbar.i18n.nodes.index.title}
       And there should be no translation errors
 
   Scenario: Help Guide 
     Given I am on the home page
     When I click on the "Help" menu item
-    Then I should see "System Documentation" in the body
-      And I should see "(Master Index)" in the body
+    Then I should see a heading {bdd:crowbar.i18n.docs.index.title}
       And there should be no translation errors

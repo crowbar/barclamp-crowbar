@@ -69,6 +69,7 @@ module ApplicationHelper
   end
 
   def render_attributes(raw, proposal)
+    # POSSIBLE OBSOLETE IN 2.X
     if raw
       render :partial => 'barclamp/edit_attributes_raw'
     else
@@ -85,6 +86,7 @@ module ApplicationHelper
   end
 
   def render_deployment(raw, proposal)
+    # POSSIBLE OBSOLETE IN 2.X
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else

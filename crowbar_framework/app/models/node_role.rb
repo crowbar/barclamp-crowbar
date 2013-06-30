@@ -50,6 +50,15 @@ class NodeRole < ActiveRecord::Base
     state.nil?
   end
 
+  # convenience methods
+  def name
+    role.name
+  end
+
+  def description
+    role.description
+  end
+  
   private
 
   def get_template

@@ -20,6 +20,8 @@ en:
   nav:
     nodes: "Nodes"
     nodes_description: "Infrastructure Components"
+    groups: "Groups"
+    groups_description: "Node Collections"
 
     deployments: "Deployments"
     deployments_description: "Orchestration Management"
@@ -100,6 +102,45 @@ en:
   layouts:
     application:
       provided_by: Provided by
+  barclamps:
+    index:
+      title: "Installed Barclamps"
+  deployments:
+    index:
+      title: "Deployments"
+  docs:
+    index:
+      title: "Documentation"
+  groups:
+    index:
+      title: "Node Groups"
+  jigs:
+    index:
+      title: "Installed Configuration Managers - Jigs"
+      name: Name
+      description: Description
+      active: Active
+      conn: Connection
+      client: Client
+  nodes:
+    index:
+      title: "Nodes"
+  roles:
+    index:
+      title: "Roles"
+  support:
+    index:
+      title: Exported Files
+      none_exported: There are no exported files to download
+#      other: Other Files
+#      chef: Chef Objects
+#      bc_import: Barclamp Import Logs
+#      cli: Command Line Utilities
+#      logs: Log Files
+#      delete_hint: Delete File from Export Directory
+#      delete_succeeded: Delete Succeeded
+#      delete_failed: Delete Failed
+#      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
   users:
     common: &common
       email: Email
@@ -135,26 +176,3 @@ en:
     form_reset_password:
       set_password: Set Password
       <<: *common
-
-  jigs:
-    index:
-      title: "Installed Configuration Managers - Jigs"
-      name: Name
-      description: Description
-      active: Active
-      conn: Connection
-      client: Client
-
-  support:
-    index:
-      title: Exported Files
-      none_exported: There are no exported files to download
-#      other: Other Files
-#      chef: Chef Objects
-#      bc_import: Barclamp Import Logs
-#      cli: Command Line Utilities
-#      logs: Log Files
-#      delete_hint: Delete File from Export Directory
-#      delete_succeeded: Delete Succeeded
-#      delete_failed: Delete Failed
-#      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"

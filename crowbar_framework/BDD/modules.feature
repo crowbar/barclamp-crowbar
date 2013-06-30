@@ -48,7 +48,6 @@ Feature: Modules
     Given I am on the "crowbar/crowbar/1.0/default" page
     When I click on the "Edit Proposal" link
     Then I should see "Crowbar: Default"
-      And I should see "Edit Proposal"
       And I should see "Attributes"
       And I should see "Deployment"
       And I should see "Raw"

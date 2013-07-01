@@ -12,10 +12,9 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2]).
+-export([step/3, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2]).
 -import(bdd_utils).
 -import(json).
 -include("bdd.hrl").
@@ -57,10 +56,6 @@ json(Part, JSON)  ->
   Key = atom_to_list(Part),
   {Key, P} = lists:keyfind(Key,1,JSON), 
   P.
-
-% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
-validate(JSON) ->
-  bdd_utils:depricate({2013,4,1},crowbar,validate,crowbar_rest,validate,[JSON]).
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 

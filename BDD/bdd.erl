@@ -27,10 +27,10 @@ test(ConfigName)         ->
   % get the list of features to test
   Features = bdd_utils:features(StartedConfig),
   %run the tests
-  Complete = run(StartedConfig, [], Features),
+  Complete = run([], [], Features),
   % cleanup application services
-  EndConfig = stop(Complete),
-  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
+  stop([]),
+  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, Complete),
   File = bdd_print:file(),
   file:write_file(File,io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
   Final = [{Fatom, bdd_print:report(R)} || {feature, Fatom, _Feature, R} <-Results],
@@ -184,7 +184,7 @@ stop(Config) ->
       application:stop(crypto),
       application:stop(inets),
       bdd_utils:config_unset(auth_field),
-      bdd_utils:config_set(TearDownConfig, started, false);
+      bdd_utils:config_unset(started);
     _ -> Config  
   end.
 

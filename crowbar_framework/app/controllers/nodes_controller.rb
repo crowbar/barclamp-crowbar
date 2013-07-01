@@ -250,6 +250,22 @@ class NodesController < ApplicationController
     redirect_to nodes_path(:selected => @node.name)
   end
 
+
+  #this code allow us to perform some checks before deployment via chefs attributes
+  #for example:
+  #_edit_deployment.html.haml wich check if attribute node[cpu][0][flags] contain "smx" value
+  #%p
+  #= render :partial => "barclamp/node_selector"
+
+  #:javascript
+  #$(document).ready(function(){
+  #  var constraints = { 
+  #    "oat-server": { "unique": false, "count": 1, "admin":false }, 
+  #    "oat-client": { "unique": false, "count": -1, "admin":false,
+  #                    "attribute" : "cpu/0/flags", "include" : "smx" }
+  #  };
+  #  node_selector($('#drag_drop'), constraints);
+  #});
   def attributes
     @node = NodeObject.find_node_by_name(params[:name])
     raise ActionController::RoutingError.new("Node #{params[:name]}: not found") if @node.nil?

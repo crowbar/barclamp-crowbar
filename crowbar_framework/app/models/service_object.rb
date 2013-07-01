@@ -935,7 +935,16 @@ class ServiceObject
       node.save if save_it
     end
 
-    apply_role_pre_chef_call(old_role, role, all_nodes)
+    begin
+      apply_role_pre_chef_call(old_role, role, all_nodes)
+    rescue Exception => e
+      @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
+      message = "Failed to apply the proposal: exception before calling chef (#{e.message})"
+      update_proposal_status(inst, "failed", message)
+      restore_to_ready(all_nodes)
+      process_queue unless in_queue
+      return [ 405, message ]
+    end
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false

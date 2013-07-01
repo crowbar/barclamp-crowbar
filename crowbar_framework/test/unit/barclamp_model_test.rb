@@ -17,11 +17,7 @@ require 'test_helper'
 class BarclampModelTest < ActiveSupport::TestCase
 
   def setup
-    # we need to make sure that we have crowbar role
-    if Barclamp.find_by_name('crowbar').nil?
-      Barclamp.import_1x 'crowbar'
-    end
-    b = Barclamp.find_by_name "crowbar"
+    @bc = Barclamp.find_by_name "crowbar"
   end
   
   test "Unique Name" do
@@ -37,33 +33,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "users") }
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "support") }
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name => "application") }
-  end
-  
-  test "Roles Relation" do
-    b = Barclamp.find_by_name 'crowbar'
-    assert_not_nil b
-
-    r = b.roles
-
-    assert_equal 2, r.size
-  end
-
-  test "Template Relation" do
-    b = Barclamp.find_or_create_by_name(:name=>"crowbar")
-    assert_not_nil b
-    t = b.template
-    assert_equal "Crowbar template", t.name, "this comes from the model.barclamp.template localization"
-    assert_instance_of Snapshot, t
-    assert_equal "private", t.roles.first.name
-    assert_equal "crowbar", t.roles.second.name
-  end
-
-  test "Deployments empty" do
-    b = Barclamp.find_or_create_by_name(:name=>"test")
-    assert_not_nil b
-    t = b.deployments
-
-    assert_equal [], t
   end
 
   test "Versions" do
@@ -81,21 +50,6 @@ class BarclampModelTest < ActiveSupport::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Barclamp.create!(:name=>"nospacesatall ") }
   end
   
-  test "Get Roles by Order" do
-    b = Barclamp.find_or_create_by_name("crowbar")
-    assert_not_nil b
-    ro = b.roles
-    assert_not_nil ro
-    begin
-      assert_equal 2, ro.length
-      assert_equal 'private', ro.first.name
-      assert_equal 'crowbar', ro.second.name
-    rescue
-      
-      flunk("Exception inside get roles due to missing roles by order")
-    end
-  end
-
   test "barclamp type from name works" do
     name = "test"
     # this will have to be fixed when we merge in the engines code!
@@ -106,7 +60,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     m = Module::const_get(namespace) rescue nil
     c = m.const_get("Barclamp") rescue nil 
     if c
-      bc = Barclamp.find_by_name name
+      bc = Barclamp.import name
       assert_not_nil bc
       assert_equal name, bc.name
       assert_equal testclass, bc.type

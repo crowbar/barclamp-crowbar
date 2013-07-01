@@ -20,23 +20,13 @@ require 'json'
 
 class BarclampCrowbar::Jig < Jig
 
-  def create_event(config)
-    JigEvent.create :type=>"JigEvent", :jig => self, :status => JigEvent::EVT_PENDING, :name=>"placeholder"
-  end
-  
-  def create_run_for(evt, nr,order)
-    run = JigRun.create(:type=> "JigRun", :jig_event => evt, 
-      :role => nr, :order=>order, :status => JigRun::RUN_PENDING, 
-      :name=>"run_#{evt.id}_#{nr.id}_#{order}")
-    run
-  end
 
   def create_node(node)
-    Rails.logger.info("TestJig Creating node: #{node.name}")
+    Rails.logger.info("ScriptJig Creating node: #{node.name}")
   end
 
   def delete_node(node)
-    Rails.logger.info("TestJig Deleting node: #{node.name}")    
+    Rails.logger.info("ScriptJig Deleting node: #{node.name}")    
   end
 
   def read_node_data(node)

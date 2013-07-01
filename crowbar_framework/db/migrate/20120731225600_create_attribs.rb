@@ -17,19 +17,13 @@ class CreateAttribs < ActiveRecord::Migration
   def change
     create_table :attribs do |t|
       t.string      :type,          :null => false, :default => Attrib::DEFAULT_CLASS.to_s
-      t.belongs_to  :attrib_type,   :null=>false
-      t.belongs_to  :role,          :null=>false
-      t.belongs_to  :node,          :null=>true
-      t.belongs_to  :jig_run,       :null=>true
-      t.string      :value_actual,  :default=>"empty"
-      t.string      :value_request, :default=>"empty"
-      t.integer     :id_actual,     :default=>-1
-      t.integer     :id_request,    :default=>-1
+      t.string      :name,          :null => false
+      t.belongs_to  :role,          :null => false
+      t.string      :map,           :null => true
       t.timestamps      
     end
 
-    add_index :attribs,    [:attrib_type_id, :node_id, :role_id],      :unique => true
-    add_index :attribs,    [:attrib_type_id, :node_id],                :unique => false
-    add_index :attribs,    [:attrib_type_id, :role_id],                :unique => false   
+    # natural key
+    add_index :attribs,    [:role_id, :name], :unique => true
   end
 end

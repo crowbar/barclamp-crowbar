@@ -1,0 +1,23 @@
+%h1= t '.title'
+
+%ul
+  - @list.each do |i|
+    %li
+      = "#{i.name}: #{i.description}"
+      %ul
+        - if i.proposed?
+          - p = i.proposed
+          %li
+            = "#{p.name}: #{p.description}" 
+            %ul 
+              - p.deployment_roles.each do |r|
+                %li= "#{r.jig.name} jig: #{r.name} role"
+        - if i.committed?
+          %li "committed > need status!"
+        - if i.active?
+          - a = i.active
+          %li
+            = "#{a.name}: #{a.description}" 
+            %ul 
+              - a.deployment_roles.each do |r|
+                %li= "#{r.jig.name} jig: #{r.name} role"

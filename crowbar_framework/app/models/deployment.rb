@@ -14,9 +14,7 @@
 #
 
 ############
-# A 'deployment' of a barclamp represents a deployed (or deployable) cluster of the 
-# barclamp's technology (e.g. mySql, NTP, openstack Nova, etc)
-# It has a ""history"" of deployment snapshots that were created and applied.
+# A 'deployment' of a barclamp represents a deployed (or deployable) cluster of roles 
 #
 # 'snapshots' is the history relation. It contains all historical deployments.
 # active_snapshot is the currently active proposal snapshot (or queued or committing)
@@ -28,52 +26,71 @@ class Deployment < ActiveRecord::Base
   attr_accessible :name, :description, :order
   attr_accessible :barclamp_id, :active_snapshot_id, :proposed_snapshot_id, :committed_snapshot_id
 
-  validates_uniqueness_of :name, :scope => :barclamp_id, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-  validates_exclusion_of :name, :in => %w(template), :message => I18n.t("db.config_excludes", :default=>"Illegal config name")
+  validates_uniqueness_of   :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_format_of       :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-
-  belongs_to      :barclamp
-  has_many        :snapshots,           :inverse_of => :deployment, :dependent => :destroy
+  has_many          :snapshots,           :inverse_of => :deployment, :dependent => :destroy
   
-  belongs_to :active_snapshot,          :class_name => "Snapshot", :foreign_key => "active_snapshot_id"
-  alias_attribute :active,              :active_snapshot
+  has_one           :active_snapshot,     :class_name => "Snapshot", :primary_key => "active_snapshot_id", :foreign_key => 'id'
+  alias_attribute   :active,              :active_snapshot
 
-  belongs_to :committed_snapshot,       :class_name => "Snapshot", :foreign_key => "committed_snapshot_id"
-  alias_attribute :committed,           :committed_snapshot
-  alias_attribute :queued,              :committed_snapshot
-
-  belongs_to :proposed_snapshot,        :class_name => "Snapshot", :foreign_key => "proposed_snapshot_id"
-  alias_attribute :proposed,            :proposed_snapshot
-  alias_attribute :proposal,            :proposed_snapshot
+  has_one           :committed_snapshot,  :class_name => "Snapshot", :primary_key => "committed_snapshot_id", :foreign_key => 'id'
+  alias_attribute   :committed,           :committed_snapshot
+  
+  has_one           :proposed_snapshot,   :class_name => "Snapshot", :primary_key => "proposed_snapshot_id", :foreign_key => 'id'
 
   # active includes nothing being committed
   def active?
-    !committed && !active_snapshot_id.nil?
+    !committed? && !active_snapshot_id.nil?
   end
 
   def committed?
     !committed_snapshot_id.nil?
   end
   
+  def proposed?
+    !proposed_snapshot_id.nil?
+  end
+
+  def proposed
+    proposal
+  end
+
+  # return the relevant proposal for the deployment, if missing then create it
+  def proposal
+    if committed?
+      raise "cannot create proposal when Deployment is committed"
+    elsif proposed_snapshot_id.nil?
+      ps = Deployment.transaction do
+        if active?                               # clone from active
+          active_snapshot.deep_clone
+        else                                        # create new
+          # Create the snapshot 
+          snapshots.build(:deployment_id=>self.id)
+        end
+      end
+      ps.save!
+      self.proposed_snapshot_id = ps.id
+      self.save!
+    end
+    proposed_snapshot(true)     # use true to ensure we get the latest
+  end
+
   # commit the current proposal (cannot be done if there is a committed proposal)
   def commit
-    raise "cannot commit a proposal unless there is no other currently in process" if committed? 
-    raise "proposed deployment is not valid" unless self.barclamp.is_valid? self
+    raise I18n.t('deployment.commit.raise') if committed? 
     Deployment.transaction do
       new_c = self.proposal     # promote this one
-      new_p = new_c.deep_clone self, nil, true   # create a clone for the new proposal
       self.committed_snapshot_id = new_c.id
-      self.proposed_snapshot_id = new_p.id
+      self.proposed_snapshot_id = nil
+      new_c.node_roles.each do |nr|
+        nr.state = NodeRole::TODO
+        nr.status = I18n.t('deployment.commit.status')
+        nr.save
+      end
       self.save
     end
     self.committed
-  end
-
-  # this is pending functionality because multiple pre-reqs will be required
-  # it is stubbed here because it was a CB1 method for the service object
-  def delete
-    raise "not implemented - this really should require a deallocate"
   end
 
   # recall the committing proposal (simply deleted the committed proposal)
@@ -150,6 +167,28 @@ class Deployment < ActiveRecord::Base
     else 
       'hold'
     end
+  end
+
+  # Lookup the deployment_roles available for the deployment, use the Proposal then Active 
+  def deployment_roles
+    return proposed_snapshot.deployment_roles if proposed? 
+    return active_snapshot.deployment_roles if active?
+    []
+  end
+
+  # Lookup the roles available for the deployment, use the Proposal then Active 
+  def roles
+    return proposed_snapshot.roles if proposed? 
+    return active_snapshot.roles if active?
+    []
+  end
+
+  # Add a role to a snapshot by creating the needed DeploymentRole
+  # Returns a Role
+  def add_role(role_name)
+    p = proposal
+    r = Role.find_by_name role_name
+    DeploymentRole.create :role_id=>r.id, :snapshot_id=>p.id
   end
 
 end

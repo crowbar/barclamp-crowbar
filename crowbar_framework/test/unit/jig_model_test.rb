@@ -55,31 +55,5 @@ class JigModelTest < ActiveSupport::TestCase
     assert_kind_of Jig, c
   end
   
-  test "as_json routines returns correct items" do
-    name = "json_test"
-    type = "BarclampCrowbar::Jig"
-    description = "This is a unit test"
-    c = Jig.create! :name=>name, :type=>type, :description => description, :order => 100
-    j = JSON.parse(c.to_json)
-    assert_equal j['type'], type
-    assert_equal j['name'], name
-    assert_equal j['description'], description
-    assert_equal j['order'], 100
-    assert_not_nil j['created_at']
-    assert_not_nil j['updated_at']
-    assert_equal j.length, 7
-  end
-
-  test "create event for jig with run" do
-    j = BarclampCrowbar::Jig.find_or_create_by_name :name=>"test"
-    assert_not_nil j
-    r = j.run
-    assert_not_nil r
-    assert_not_nil r.event
-    assert_equal j, r.event.jig
-    assert_equal 1, r.event.runs.count
-  end
-
-  
 end
 

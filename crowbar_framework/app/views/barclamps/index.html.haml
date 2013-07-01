@@ -1,0 +1,9 @@
+%h1= t '.title'
+
+%ul
+  - @list.each do |bc|
+    %li
+      = "#{bc.name}: #{bc.description}"
+      %ul
+        - bc.roles.each do |r|
+          %li= "#{r.jig.name} jig: #{r.name} role"

@@ -5,38 +5,20 @@ Feature: Scaffolds
   
   Scenario: Attribs
     While interactive
-    When I go to the "utils/scaffolds/attribs" page
+    When I go to the "utils/scaffolds/attribs?limit=1" page
     Then I should see heading "Attribs"
+      And I should see "Name"
+      And I should see "Map"
       And I should see "Type"
-      And I should see "Value actual"
-      And I should see "Value request"
-      And I should see "Attrib"
-      And I should see "Barclamp"
-      And I should see "Jig run"
-      And I should see "Node"
-      And I should see "Role"
-      And I should see "BarclampCrowbar::AttribDefault"
       And there should be no translation errors
 
-  Scenario: Attrib Type
-    While interactive
-    When I go to the "utils/scaffolds/attrib_types" page
-    Then I should see heading "AttribTypes"
-      And I should see "Name"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors    
-  
   Scenario: Barclamp
     While interactive
-    When I go to the "utils/scaffolds/barclamps" page
+    When I go to the "utils/scaffolds/barclamps?limit=1" page
     Then I should see heading "Barclamps"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "transition list"
       And I should see "Display"
       And I should see "Layout"
       And I should see "Search"
@@ -45,13 +27,11 @@ Feature: Scaffolds
       
   Scenario: Nodes
     While interactive
-    When I go to the "utils/scaffolds/nodes" page
+    When I go to the "utils/scaffolds/nodes?limit=1" page
     Then I should see heading "Nodes"
       And I should see "Name"
       And I should see "Description"
       And I should see "Groups"
-      And I should see "State"
-      And I should see "Os"
       And I should see "Order"
       And I should see "Created At"
       And I should see "Updated At"
@@ -61,7 +41,7 @@ Feature: Scaffolds
 
   Scenario: Roles
     While interactive
-    When I go to the "utils/scaffolds/roles" page
+    When I go to the "utils/scaffolds/roles?limit=1" page
     Then I should see heading "Roles"
       And I should see "Description"
       And I should see "Created At"
@@ -72,7 +52,7 @@ Feature: Scaffolds
       
   Scenario: Navs
     While interactive
-    When I go to the "utils/scaffolds/navs/" page
+    When I go to the "utils/scaffolds/navs?limit=1" page
     Then I should see heading "Navs"
       And I should see "Name"
       And I should see "Description"
@@ -88,16 +68,11 @@ Feature: Scaffolds
       
   Scenario: Docs
     While interactive
-    When I go to the "utils/scaffolds/docs/" page
+    When I go to the "utils/scaffolds/docs?limit=1" page
     Then I should see heading "Docs"
-      And I should see "Author"
-      And I should see "Copyright"
-      And I should see "Date"
       And I should see "Description"
-      And I should see "License"
       And I should see "Order"
       And I should see "Parent name"
-      And I should see "Url"
       And I should see "Parent"
       And I should see "Children"
       And I should see "Created At"
@@ -108,50 +83,20 @@ Feature: Scaffolds
       
   Scenario: Deployments
     While interactive
-    When I go to the "utils/scaffolds/deployments" page
+    When I go to the "utils/scaffolds/deployments?limit=1" page
     Then I should see heading "Deployments"
       And I should see "Name"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Barclamp"
       And I should see "Created At"
       And I should see "Updated At"
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors 
                   
-  Scenario: Os
-    While interactive
-    When I go to the "utils/scaffolds/os" page
-    Then I should see heading "Os"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Order"
-      And I should see "Nodes"
-      And I should see "Packages"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-
-  Scenario: OsPackages
-    While interactive
-    When I go to the "utils/scaffolds/os_packages" page
-    Then I should see heading "OsPackages"
-      And I should see "Name"
-      And I should see "Description"
-      And I should see "Order"
-      And I should see "Os"
-      And I should see "Created At"
-      And I should see "Updated At"
-      And I should see "Search"
-      And I should see "Create New"
-      And there should be no translation errors  
-
   Scenario: Jigs
     While interactive
-    When I go to the "utils/scaffolds/jigs" page
+    When I go to the "utils/scaffolds/jigs?limit=1" page
     Then I should see heading "Jigs"
       And I should see "Name"
       And I should see "Description"
@@ -164,7 +109,7 @@ Feature: Scaffolds
             
   Scenario: Groups
     While interactive
-    When I go to the "utils/scaffolds/groups" page
+    When I go to the "utils/scaffolds/groups?limit=1" page
     Then I should see heading "Groups"
       And I should see "Name"
       And I should see "Description"

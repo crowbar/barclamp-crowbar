@@ -25,11 +25,12 @@ SimpleNavigation::Configuration.run do |navigation|
             title = "Dev Mode: "+title
           end
           primary.item item.item.to_sym, name, eval(item.path), {:title=>title} do |secondary|
-             if item.item.eql? 'help'
-              Doc.find_by_name('root').children.each do |doc|
-                secondary.item doc.name.to_sym, t(doc.name, :scope=>'nav.books'), docs_path(:id=>doc.name.html_safe), {:title=>doc.description }
-              end
-            end
+            # TODO ZEHICLE - put help listing back!
+            #if item.item.eql? 'help'
+             # Doc.find_by_name('root').children.each do |doc|
+             #   secondary.item doc.name.to_sym, t(doc.name, :scope=>'nav.books'), docs_path(:id=>doc.name.html_safe), {:title=>doc.description }
+             # end
+            #end
             
             if item.item.eql? 'scaffold'
               build_scaffold_nav(secondary, item)
@@ -49,8 +50,9 @@ SimpleNavigation::Configuration.run do |navigation|
             end
             end
           end
-        rescue Exception => e   
+        rescue Exception => e
           primary.item :menu_error, "#{t 'nav.error'}: #{item.item}", ''
+          puts "render error #{e.inspect}" if Rails.env.development?
         end
       end
     end

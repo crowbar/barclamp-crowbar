@@ -58,7 +58,9 @@ class ActiveSupport::TestCase
   
   # Add more helper methods to be used by all tests here...
   
-  # we also need to have the test jig
-  BarclampCrowbar::Jig.find_or_create_by_name :name=>'test'
-  
+  # base objects that are required!
+  BarclampTest::Jig.find_or_create_by_name :name=>'test'
+  Barclamp.import 'crowbar'
+  Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+
 end

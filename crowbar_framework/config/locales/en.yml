@@ -19,50 +19,51 @@ en:
 
   # DO NOT ADD BARCLAMP LOCALIZATIONS HERE!!  
   # they belong in a barclamp subdirectory!
-    
+
   # Global
-  show: View
-  all: All
-  destroy: Remove
-  back: Go Back
-  cancel: Cancel
-  edit: Edit
-  actions: Actions
-  active: Active
-  inactive: Inactive
+  show: "View"
+  all: "All"
+  destroy: "Remove"
+  back: "Go Back"
+  cancel: "Cancel"
+  edit: "Edit"
+  actions: "Actions"
+  active: "Active"
+  inactive: "Inactive"
   are_you_sure: "Are you sure?"
-  unknown: Unknown
-  error: Error
-  not_set: Not set
-  undetermined: Undetermined
+  unknown: "Unknown"
+  error: "Error"
+  not_set: "Not set"
+  undetermined: "Undetermined"
   na: "N/A"
   feature_na: "Feature Not Available"
-  name: Name
-  up: Up 
-  down: Down
-  raw: Raw
-  custom: Custom
-  clear_msg: clear
+  name: "Name"
+  up: "Up" 
+  down: "Down"
+  raw: "Raw"
+  custom: "Custom"
+  clear_msg: "clear"
   created_on: "Created on %{date}"
   updated_on: "Updated on %{date}"
-  no_items: No Items
-  complete: Complete
+  no_items: "No Items"
+  complete: "Complete"
   'yes': 'Yes'
   'no': 'No'
-  maybe: Maybe
-  chuck_norris: Die!!!
+  maybe: "Maybe"
+  chuck_norris: "Die!!!"
   depricated: "WARNING Depricated!"
   work_in_progress: "Work in progress notice: %{message}"
-  updating: Updating...
-  note: Note
-  hint: Hint
-  help: Help
-  virtual: Virtual
+  updating: "Updating..."
+  note: "Note"
+  hint: "Hint"
+  help: "Help"
+  virtual: "Virtual"
   new: "New Item!"
-  next: Next
-  prev: Previous
-  export: Export
-  default: Default
+  next: "Next"
+  prev: "Previous"
+  export: "Export"
+  default: "Default"
+  automatic: "Created Automatically by System"
   version: "Version %{version}"
   
   test:

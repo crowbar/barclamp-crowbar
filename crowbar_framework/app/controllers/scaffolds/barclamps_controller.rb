@@ -15,6 +15,5 @@
 
 class Scaffolds::BarclampsController < ApplicationController
   active_scaffold :barclamp do |conf|
-    conf.columns = [:name, :description, :order, :transition_list, :deployments]
   end
 end 

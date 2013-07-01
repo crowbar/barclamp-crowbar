@@ -15,19 +15,16 @@
 class CreateDocs < ActiveRecord::Migration
   def self.up
 
-    create_table(:docs, :primary_key=>'name', :id=>false) do |t|
-      t.string :name
-      t.string :parent_name, :default=>'root'
-      t.string :description
-      t.string :url, :null=>true
-      t.string :author, :null=>true
-      t.string :license, :null=>true
-      t.string :copyright, :null=>true
-      t.string :date, :null=>true, :length=>20
-      t.string :order, :length=>5, :default => '00999'
+    create_table :docs do |t|
+      t.string      :name
+      t.belongs_to  :barclamp, :null=>true
+      t.string      :description, :null=>true
+      t.string      :parent_name, :null=>true
+      t.string      :order, :length=>5, :default => '00999'
       t.timestamps
     end
     
+    add_index(:docs, :name, :unique => true)   
   end
 
   def self.down

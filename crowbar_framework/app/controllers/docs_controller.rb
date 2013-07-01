@@ -21,14 +21,10 @@ class DocsController < ApplicationController
       
   def index
     @id = params[:id].gsub("%2B",'+') rescue nil
-    @root = Doc.find_by_name(@id || 'root')
-    if @root.nil? or Settings.docs.rebuild or params.has_key?(:rebuild)
+    if Settings.docs.rebuild or params.has_key?(:rebuild)
       # for dev, we want to be able to turn off rebuilds
-      unless params[:rebuild].eql? "false"
-        Doc.delete_all
-        @root = Doc.gen_doc_index File.join '..', 'doc'
-        @root = Doc.find_by_name(@id) if @id
-      end
+      Doc.delete_all unless params[:rebuild].eql? "false"
+      Doc.gen_doc_index
     end
     respond_to do |format|
       format.html # index.html.haml

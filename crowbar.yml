@@ -18,14 +18,12 @@ barclamp:
   display: Crowbar
   description: Self-referential barclamp enabling other barclamps
   online_help: 'https://crowbar.github.com/'
-  version: 0
+  version: 2
   license: "apache2"
   copyright: "Dell, Inc 2013"
   api_version: "v2"
   api_version_accepts: "v2"
   proposal_schema_version: 2
-  member:
-    - crowbar
   os_support:
     - ubuntu-12.04
     - redhat-6.2
@@ -33,11 +31,14 @@ barclamp:
     - opensuse-12.2
     - fedora-18
 
+jigs:
+  script:
+    roles: 
+      - crowbar
+
 crowbar:
   layout: 2.0
   order: 0
-  run_order: 0
-  chef_order: 0
   proposal_schema_version: 2
     
 debs:
@@ -245,12 +246,14 @@ gems:
     - active_scaffold
     - amqp
     - bluepill
+    - bluecloth
     - builder
     - bundler
     - bunny-(<0.8.0)
     - cancan
     - chef-(~>10.16)
     - chefspec
+    - coveralls
     - database_cleaner
     - delayed_job_active_record
     - devise
@@ -270,6 +273,7 @@ gems:
     - puma
     - railroad
     - rails-(~>3.2.11)
+    - rails_config
     - rails-erd
     - rake
     - rcov
@@ -288,4 +292,3 @@ gems:
     - xml-simple
     - factory_girl_rails-(~>1.7.0)
     - foodcritic
-    - coveralls

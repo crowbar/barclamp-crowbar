@@ -20,12 +20,12 @@ shared_context "crowbar test deployment" do
   
   before(:all) do
     # we need this to ensure that we have the crowbar barclamp
-    Barclamp.import 'crowbar'
-    c = Barclamp.find_by_name('crowbar')
-    c.create_proposal :name=>'test'
-    # we also need to have the test jig
-    BarclampCrowbar::Jig.find_or_create_by_name :name=>'test'
+    bc = Barclamp.import 'crowbar' unless Barclamp.find_by_name 'crowbar'
+    d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
   end
+
+  let(:deployment) { Deployment.find_by_name I18n.t('default') }
+
 end  
 
 # Just 2 dummy nodes

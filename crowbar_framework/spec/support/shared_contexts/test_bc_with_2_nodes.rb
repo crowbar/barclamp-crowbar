@@ -19,18 +19,12 @@ shared_context "test barclamp with 2 nodes" do
     let(:deployment)  { 
       Barclamp.import 'test' unless Barclamp.find_by_name("test")
       barclamp = Barclamp.find_by_name("test")
-      dep = barclamp.create_deployment "foo" 
+      dep = Deployment.create_by_name"foo" 
       dep = barclamp.deployments.first if dep.nil?
       dep
     }
 
-    let(:test_role1) { deployment.proposal.roles.first}
-    let(:test_role2) { deployment.proposal.roles.second}
-
     before(:all) {            
       # add node
-      test_role1.add_node(node1)
-      test_role2.add_node(node2)
-      deployment.commit()
     }
 end

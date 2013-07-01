@@ -19,14 +19,14 @@ Crowbar::Application.routes.draw do
     eval(IO.read(routes_file), binding)
   end
 
-  # UI scope documentation / help
-  scope 'docs' do
-    get '/', :controller=>'docs', :action=>'index', :as => "docs"
-    get 'topic/:id', :controller=>'docs', :action=>'topic', :as => "docs_topic", :constraints => { :id => /.*/ }
-  end
-  
-  # UI for jigs
+  # UI 
   resources :jigs
+  resources :barclamps
+  resources :deployments
+  resources :docs
+  resources :nodes
+  resources :roles
+  resources :groups
 
   # UI scope
   scope 'utils' do
@@ -41,22 +41,19 @@ Crowbar::Application.routes.draw do
       get 'digest'        => "support#digest"
     end
     namespace :scaffolds do
-      resources :attrib_types do as_routes end
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
-      resources :deployments do as_routes end
       resources :docs do as_routes end
       resources :groups do as_routes end
-      resources :jig_events do as_routes end
-      resources :jig_maps do as_routes end
-      resources :jig_runs do as_routes end
       resources :jigs do as_routes end
       resources :navs do as_routes end
       resources :nodes do as_routes end
-      resources :os do as_routes end
-      resources :os_packages do as_routes end
       resources :roles do as_routes end
+      resources :role_requires do as_routes end
+      resources :deployments do as_routes end
       resources :snapshots do as_routes end
+      resources :node_roles do as_routes end
+      resources :deployment_roles do as_routes end
     end
   end
 
@@ -64,38 +61,6 @@ Crowbar::Application.routes.draw do
   scope 'support' do
     get 'logs', :controller => 'support', :action => 'logs'
     get 'get_cli', :controller => 'support', :action => 'get_cli'
-  end
-
-  # Barclamp UI routes (overlays that can be used generically by barclamps to create custom views)
-  # The pattern is /barclamp/[your barclamp]/[method]
-  scope 'barclamp' do
-    get "/:barclamp_id/deployment/:id" => "deployments#show", :as=>"deployment"
-    post "/:barclamp_id/deployment" => "deployments#create", :as=>"deployment_create"
-    get "graph", :controller=>'barclamp', :action=>"graph", :as=>"barclamp_graph"
-    get "(/:id)", :controller=>'barclamp', :action=>"index", :as=>"barclamp"
-  end
-
-  # UI only routes
-  scope 'dashboard' do
-    get '/' => 'dashboard#index',           :as => :dashboard
-    get 'node/:id' => 'nodes#show',         :as => :dashboard_detail
-    get 'families' => 'dashboard#families', :as => :dashboard_families
-    get 'list' => 'dashboard#list',         :as => :dashboard_list
-
-    constraints(:id=> /([a-zA-Z0-9\-\.\_]*)/) do
-      get "dashboard/:id" => 'nodes#index', :as => 'dashboard_detail'
-      scope  'node' do
-        get  'list' => "nodes#list"
-        get  'families' => "nodes#families"
-        get  ':id/edit' => "nodes#edit", :as => :edit_node
-        post ':id/edit' => "nodes#update", :as => :update_node
-        put  ':id/update' => 'nodes#update', :as => :update_node
-        get  ':id' => 'nodes#show', :as => 'node'
-      end
-      scope 'nodes' do
-        match 'list' => "nodes#list", :as => :nodes_list
-      end
-    end
   end
 
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
@@ -122,20 +87,11 @@ Crowbar::Application.routes.draw do
           get "deployments(/:id)" => "deployments#status", :as => :deployments_status
         end
         scope ':version' do
-          get "nodes(/:id)/status", :controller => "nodes", :action=>"status"
-          resources :nodes do
-            resources :attribs
-            resources :groups
-            match 'transition' # these should be limited to put, but being more lax for now
-            match 'allocate' # these should be limited to put, but being more lax for now
-          end
-          resources :barclamps do
-            resources :deployments
-          end
+          resources :nodes
+          resources :barclamps
           resources :deployments
           resources :snapshots
           resources :jigs
-          resources :attrib_types
           resources :attribs
           resources :roles
           resources :groups do
@@ -152,28 +108,8 @@ Crowbar::Application.routes.draw do
           end
         end # version
       end # api
-
-      # Barclamp resource v2 API Pattern
-      scope ':barclamp' do
-        scope ':version' do
-          match "template" => "barclamps#template"
-          resources :deployments do
-            member do
-              put 'commit'
-              put 'recall'
-            end
-          end
-          resources :snapshots
-          resources :roles do
-            resources :attribs
-            resources :nodes
-            resources :nodes
-          end
-          resources :attribs
-        end # version scope
-      end # barclamp scope
-
     end # id constraints
-  end
-  root :to => "dashboard#index"
+  end # json
+
+  root :to => "nodes#index"
 end

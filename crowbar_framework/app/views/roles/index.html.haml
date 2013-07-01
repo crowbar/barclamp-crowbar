@@ -1,0 +1,11 @@
+%h1= t '.title'
+
+%ul
+  - @list.each do |i|
+    %li
+      = "#{i.name}: #{i.description}"
+      %ul
+        %li= "jig: #{i.jig.name}"
+        %li= "barclamp: #{i.barclamp.name}"
+        - i.requires do |req|
+          %li= "requires: #{req.requires}"

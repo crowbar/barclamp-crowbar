@@ -22,7 +22,6 @@ require 'active_support/core_ext/string'
 class ApplicationController < ActionController::Base
   
   
-  CB_CONTENT_TYPE19 = "application/vnd.crowbar+json; version=1.9"
   CB_CONTENT_TYPE20 = "application/vnd.crowbar+json; version=2.0"
   
   helper_method :is_dev?
@@ -85,7 +84,7 @@ class ApplicationController < ActionController::Base
   def api_index(type, list, link=nil)
     if params[:version].eql?('v2') 
       link ||= eval("#{type.to_s.pluralize(0)}_path")   # figure out path from type
-      return {:json=>{:list=>list, :count=>list.count, :type=>type, :link=>link}, :content_type=>CB_CONTENT_TYPE19 }
+      return {:json=>{:list=>list, :count=>list.count, :type=>type, :link=>link}, :content_type=>CB_CONTENT_TYPE20 }
     else
       return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
     end
@@ -101,7 +100,7 @@ class ApplicationController < ActionController::Base
       link ||= request.path # figure out path from type
       o ||= type_class.find_key key
       if o
-        return {:json=>{:item=>o, :type=>type, :link=>link}, :content_type=>CB_CONTENT_TYPE19}
+        return {:json=>{:item=>o, :type=>type, :link=>link}, :content_type=>CB_CONTENT_TYPE20}
       else
         return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
       end
@@ -136,15 +135,7 @@ class ApplicationController < ActionController::Base
   def api_not_supported(verb, object)
     return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405}
   end
-  
-  # shared routine that finds the barclamp for other base calls (e.g.: barclampInstance, config & role)
-  def barclamp
-    name = params[:barclamp]    # fall through routes specify the barclamp
-    name ||= $1 if params[:controller] =~ /^barclamp_([a-z][_a-z0-9]*)/
-    @barclamp = Barclamp.find_by_name name if @barclamp.nil? or !@barclamp.name.eql? name
-    @barclamp
-  end
-  
+
   add_help(:help)
   def help
     render :json => { self.controller_name => self.help_contents.collect { |m|
@@ -168,9 +159,6 @@ class ApplicationController < ActionController::Base
   end
   set_layout
   
-  #########################
-  # private stuff below.
-  
   private  
 
   def digest_auth!
@@ -188,6 +176,7 @@ class ApplicationController < ActionController::Base
         format.json { digest_auth!  }
       end
   end
+
   #return true if we digest signed in
   def crowbar_auth
     case

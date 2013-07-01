@@ -88,8 +88,6 @@ _This is a temporary summary - API should be split down into subpages!_
     * /:role (CRUD)
       * /attribs
       * /nodes
-  * /attrib_types 
-    * /:attrib_type (CRUD)
   * /attribs
     * /:attrib
   * /groups

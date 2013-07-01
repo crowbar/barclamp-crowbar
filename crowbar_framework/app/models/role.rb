@@ -16,104 +16,26 @@
 
 class Role < ActiveRecord::Base
 
-  attr_accessible :id, :description, :order, :run_order, :states, :snapshot_id, :name
-  attr_accessible :implicit, :admin_implicit, :jig
-  
-  HAS_NODE_ROLE  = BarclampCrowbar::AttribHasNode
-  HAS_DEPLOYMENT = BarclampCrowbar::AttribHasDeployment
+  attr_accessible :id, :description, :order, :name, :jig_id, :barclamp_id
+  attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
+  attr_accessible :role_template, :node_template, :min_nodes      # template info
 
-  validates_uniqueness_of :name,         :scope => :snapshot_id
-  validates_format_of :name, :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
-  belongs_to      :snapshot
-  has_one         :barclamp,          :through => :snapshot
-  has_one         :deployment,        :through => :snapshot
+  validates_uniqueness_of   :name,  :scope => :barclamp_id
+  validates_uniqueness_of   :name,  :scope => :jig_id
+  validates_format_of       :name,  :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+
+  belongs_to      :barclamp
+  belongs_to      :jig
   
   has_many        :attribs,           :dependent => :destroy
-  has_many        :role_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NULL'
-  has_many        :node_attribs,      :class_name => "Attrib", :conditions=>'node_id IS NOT NULL'
-  has_many        :attrib_types,      :through => :attribs
 
-  has_many        :attrib_has_deployments, :class_name => HAS_DEPLOYMENT, :foreign_key => :role_id
-  has_many        :prerequisites,     :source => :deployment, :through => :attrib_has_deployments, :foreign_key=>:id_actual
+  has_many        :role_requires,     :dependent => :destroy
+  alias_attribute :requires,          :role_requires
 
-  has_many        :attrib_has_nodes,  :class_name => HAS_NODE_ROLE, :foreign_key => :role_id
-  has_many        :nodes,             :through => :attrib_has_nodes
-
-  def public?
-    self.run_order>=0
-  end
   
-  def <=>(other)
-    # use Array#<=> to compare the attributes
-    [self.order, self.run_order, self.role.name] <=> [other.order, other.run_order, other.role.name]
-  end
-
-  def add_attrib(attrib_type, value=nil, map=nil)
-    at = AttribType.add attrib_type, (barclamp.nil? ? nil : barclamp.name)
-    begin
-      a = Attrib.find_by_attrib_type_id_and_role_id! at.id, self.id
-      a.value = value
-      a.save
-    rescue
-      v = Attrib.serial_in value
-      a = Attrib::DEFAULT_CLASS.create :attrib_type_id => at.id, :role_id => self.id, :value_actual => v
-    end
-  end
-
-  # links role to a barclamp it depends on
-  # will create a default deployment if none exists
-  def require_deployment(barclamp_name, deployment_name=Barclamp::DEFAULT_DEPLOYMENT_NAME, role_name=nil)
-    bc = Barclamp.find_by_name barclamp_name
-    deployment = Deployment.find_by_barclamp_id_and_name bc.id, deployment_name
-    # if we did not find a deployment, then we have to create one
-    if deployment.nil?
-      # cannot create barclamps if we are a singleton and already have one
-      deployment = if bc.allow_multiple_deployments or bc.deployments.count == 0
-        bc.create_proposal deployment_name
-      else
-        bc.deployments.first
-      end
-    end
-    HAS_DEPLOYMENT.find_or_create_by_role_id_and_id_actual :role_id     => self.id, 
-                                                             :id_actual   => deployment.read_attribute(:id),
-                                                             :value_actual=> role_name
-  end
-  
-  # Assignes a node to the role by creating a AttribInstanceHasRole
-  def add_node(node)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
-    HAS_NODE_ROLE.create :role_id => self.id, :node_id => node.id unless has_node
-  end
-
-  # Unassigns a node to the role by creating a AttribInstanceHasRole
-  def remove_node(node)
-    has_node = HAS_NODE_ROLE.find_by_node_id_and_role_id node.id, self.id
-    HAS_NODE_ROLE.delete has_node
-  end
-  
-  ##
-  # Clone this role
-  # optionally, change parent too
-  # with_nodes allows for template copies that should have not nodes assigned yet
-  def deep_clone(snapshot=nil, clone_with_nodes=true)
-    new_role = self.dup
-    new_role.snapshot_id = snapshot.read_attribute(:id) if snapshot
-    new_role.save
-
-    # clone the attributes (includes node-roles)
-    attribs.each do |ai|
-      # if we are cloning a template then we need the option of no nodes
-      if clone_with_nodes or ai.node_id.nil?
-        new_ai = ai.dup
-        new_ai.role_id = new_role.id
-        new_ai.jig_run_id = nil
-        new_ai.save
-      end
-    end
-
-    new_role
-    
+  # take run data from the jig and process it into attributes
+  def process_inbound_data jig, node, data
   end
 
 end

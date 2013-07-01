@@ -15,17 +15,14 @@
 class CreateSnapshots < ActiveRecord::Migration
   def change
     create_table :snapshots do |t|
-      t.string      :name,                        :null=>false, :default=>I18n.t('not_set')
+      t.string      :name,                        :null=>false
       t.string      :description,                 :null=>true
-      t.integer     :order,                       :null=>false, :default=>10000
-      t.belongs_to  :deployment,                  :null=>true
-      t.belongs_to  :barclamp,                    :null=>false                    
-      t.integer     :status,                      :default => Snapshot::STATUS_CREATED
-      t.string      :failed_reason,               :null=>true
-      t.string      :element_order,               :null=>true
+      t.integer     :order,                       :null=>false, :default=>1000
+      t.belongs_to  :deployment,                  :null=>false
       t.timestamps      
     end
-    #natural key -> none
+    #natural key 
+    add_index(:snapshots, [:deployment_id, :name], :unique => true)  
   end
     
 end

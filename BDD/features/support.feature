@@ -3,15 +3,6 @@ Feature: Support UI
   The system operator, Oscar
   wants to be able to do administration like export
 
-  Scenario: Installed Barclamps
-    Given I am on the home page
-    When I click on the "Barclamp Versions" menu item
-    Then I should see {bdd:crowbar.i18n.support.import.title_all}
-      And I should see "crowbar"
-      And I should see "chef"
-      And I should see "provisioner"
-      And there should be no translation errors
-
   Scenario: Localization AJAX CN
     When I18N checks "chuck_norris"
     Then I should see "Die!!!"
@@ -29,8 +20,8 @@ Feature: Support UI
     Then I should see "foo"
     
   Scenario: Localization from Regular Step
-    When I go to the "barclamp/graph" page
-    Then I should see {bdd:crowbar.i18n.barclamp.graph.title}
+    When I go to the "barclamps" page
+    Then I should see {bdd:crowbar.i18n.barclamps.index.title}
     
   Scenario: Find Mark in Log
     While local or devtool

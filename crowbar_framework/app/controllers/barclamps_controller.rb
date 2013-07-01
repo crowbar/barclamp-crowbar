@@ -18,7 +18,11 @@ class BarclampsController < ApplicationController
   self.help_contents = Array.new(superclass.help_contents)
 
   def index
-    render api_index :barclamp, Barclamp.all
+    @list = Barclamp.all
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :barclamp, @list }
+    end
   end
 
   def show

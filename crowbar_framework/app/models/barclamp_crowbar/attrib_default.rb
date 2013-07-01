@@ -15,29 +15,6 @@
 
 class BarclampCrowbar::AttribDefault < Attrib
 
-  # Returns state of value of :empty, :unready or :ready
-  def state 
-    Attrib.calc_state value_actual, value_request, jig_run_id
-  end
-  
-  def request=(value)
-    self.jig_run_id = 0 if self.jig_run_id.nil?
-    self.value_request = Attrib.serial_in(value)
-  end
-  
-  def request
-    Attrib.serial_out value_request
-  end
-  
-  # used by the API when values are set outside of Jig runs
-  def actual=(value)
-    self.jig_run_id = 0 if self.jig_run_id.nil?
-    self.value_actual = Attrib.serial_in(value)
-  end
-  
-  def actual
-    Attrib.serial_out value_actual
-  end
+  # nothing
 
-    
 end

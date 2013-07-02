@@ -1165,7 +1165,7 @@ class ServiceObject
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
       while nobj[:reboot] == "require" and attempt <= 3
-        attempt=attempt+1
+        attempt += 1
         puts "going to reboot #{node} due to #{nobj[:reboot]} attempt #{attempt}"
         system("sudo -i -u root -- ssh root@#{node} \"reboot\"")        
         if RemoteNode.ready?(node, 1200)

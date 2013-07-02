@@ -10,12 +10,12 @@
 //
 function node(name) {
     return {
-        get: function(keys) {
+        get: function(path) {
             var result = null;
             $.ajax({
                 dataType: "json",
                 async: false,
-                url: "/nodes/"+name+"/attributes/"+keys,
+                url: "/nodes/"+name+"/attribute/"+path,
                 success: function (data){
                     result = data.value;
                 }

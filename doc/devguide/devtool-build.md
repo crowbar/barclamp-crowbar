@@ -34,8 +34,8 @@ _note:_ use sudo as instructed.  Do not use the Dev tool as root!
 1. If you don't want to use HTTPS, then make sure that your build server's public key is registered with your Github account
 1. `sudo apt-get update`
 1. the following packages are needed
-   1. `sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap'
-   1. `sudo apt-get install mkisofs binutils markdown erlang debhelper db-make python-pip`
+   1. `sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap`
+   1. `sudo apt-get install mkisofs binutils markdown erlang debhelper python-pip`
    1. `sudo apt-get install build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev` 
 1. For Trunk CB2 Dev on Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
    1. `sudo update-alternatives --config ruby` (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)
@@ -43,6 +43,7 @@ _note:_ use sudo as instructed.  Do not use the Dev tool as root!
    1. `sudo gem install ruby1.9.1-dev builder bluecloth`
    1. continue with steps below
 1. `sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec`
+  1. note: rcov does not work in ruby-1.8 - use 'simplecov' instead
 1. `git clone https://github.com/crowbar/crowbar.git`
 1. `cd ~/crowbar` directory
 1. `./dev setup`

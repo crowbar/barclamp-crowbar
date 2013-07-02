@@ -1,11 +1,8 @@
 
 :javascript
-  function update_value(path, part, type) {
+  function update_value_direct(path, value, type) {
     var input = document.getElementById('proposal_attributes');
     var json = JSON.parse(input.value);
-
-    var comp = document.getElementById(part);
-    var value = comp.value;
 
     // Do type conversions
     if (type == 'boolean') {
@@ -42,3 +39,7 @@
     input.value = JSON.stringify(json); 
   }
 
+  function update_value(path, part, type) {
+    var comp = document.getElementById(part);
+    update_value_direct(path, comp.value, type);
+  }

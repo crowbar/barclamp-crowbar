@@ -106,20 +106,27 @@ module Rails
   end
 end
 
-# Use Bundler to manage gems. See http://gembundler.com/v1.3/rails23.html for
-# details.
-# NOTE: According to the previous comment, this breaks on Redhat?
-class Rails::Boot
-  def run
-    load_initializer
+# We'd usually put things like this in config/initializers/app_config.rb, but
+# that's too late for Bundler configuration.
+require 'rubygems'
+require 'app_config'
+AppConfig.setup(:yaml => "#{RAILS_ROOT}/config/app_config.yml")
 
-    Rails::Initializer.class_eval do
-      def load_gems
-        @bundler_loaded ||= Bundler.require :default, Rails.env
+if AppConfig[:use_bundler]
+  # Use Bundler to manage gems. See http://gembundler.com/v1.3/rails23.html for
+  # details.
+  class Rails::Boot
+    def run
+      load_initializer
+
+      Rails::Initializer.class_eval do
+        def load_gems
+          @bundler_loaded ||= Bundler.require :default, Rails.env
+        end
       end
-    end
 
-    Rails::Initializer.run(:set_load_path)
+      Rails::Initializer.run(:set_load_path)
+    end
   end
 end
 

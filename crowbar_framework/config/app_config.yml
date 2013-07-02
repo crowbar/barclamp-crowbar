@@ -1,0 +1,9 @@
+# Application (Crowbar) configuration. Changes here require a restart of
+# Crowbar to take effect.
+
+# Disable the use of Bundler for managing Gems by default (for Crowbar 1.x), as
+# it has been deemed to be too risky at this point of the release. This means
+# Gemfile and Gemfile.lock are ignored by default.
+# Crowbar 2.x and above uses Rails 3, which forces the use of Bundler so we
+# don't have/need this option there.
+use_bundler: false

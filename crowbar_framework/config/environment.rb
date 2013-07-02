@@ -15,7 +15,13 @@ Rails::Initializer.run do |config|
   # Add additional load paths for your own custom dirs
   # config.load_paths += %W( #{RAILS_ROOT}/extras )
 
-  # Note: Gems are managed by Bundler.
+  unless AppConfig[:use_bundler]
+    config.gem 'haml'
+    config.gem 'sass'
+    config.gem 'simple-navigation'
+    config.gem 'i18n'
+    config.gem 'json'
+  end
   
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named

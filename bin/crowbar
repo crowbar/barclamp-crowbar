@@ -17,7 +17,7 @@
 loc=File.expand_path(File.dirname(__FILE__))
 def usage (rc)
   puts "Usage: crowbar <area> <subcommand>"
-  puts "  Areas: #{@areas.join(" ")}"
+  puts "  Areas: #{@areas.sort.join(" ")}"
   exit rc
 end
 

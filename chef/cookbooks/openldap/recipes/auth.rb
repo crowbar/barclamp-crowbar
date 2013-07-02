@@ -22,11 +22,11 @@ include_recipe "openssh"
 include_recipe "nscd"
 
 package "libnss-ldap" do
-  action :upgrade
+  action :install
 end
 
 package "libpam-ldap" do
-  action :upgrade
+  action :install
 end
 
 template "/etc/ldap.conf" do

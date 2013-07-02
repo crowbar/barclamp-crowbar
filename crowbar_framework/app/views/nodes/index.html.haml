@@ -1,5 +1,5 @@
 %p#add_button{:style => 'float:right'}
-  = text_field_tag "new_group", t('.default_new'), :size => 15
+  = text_field_tag 'new_group', nil, :placeholder => t('.default_new'), :size => 15
   = link_to t('.add'), "javascript:add_group();", :class => 'button', :id=>'add_button'
 %h1= t('.title')
 
@@ -9,7 +9,7 @@
       - if @node
         = render :partial => 'show'
       - else
-        %p= t("status_empty", :scope=>"nodes.index") % @nodes.count
+        %p= t(:status_empty, :scope => 'nodes.index', :count => @nodes.count)
         %div{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
           =t '.drag_hint'
 

@@ -94,7 +94,7 @@ def usage (rc)
   @options.each do |options|
     puts "  #{options[1]}"
   end
-  print_commands(@commands)
+  print_commands(@commands.sort)
   exit rc
 end
 
@@ -121,7 +121,7 @@ def authenticate(req,uri,data=nil)
       res.each_header { |h, v| puts "#{h}: #{v}" }
     end
 
-    if res['www-authenticate']
+    if res['www-authenticate'] and not @username.nil? and not @password.nil?
       digest_auth=Net::HTTP::DigestAuth.new
       auth=Net::HTTP::DigestAuth.new.auth_header(uri,
                                                  res['www-authenticate'],

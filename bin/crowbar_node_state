@@ -162,7 +162,7 @@ def opt_parse()
       when '--timeout'
         @timeout = arg
       when '--file'
-        data = File.read(arg, "r")
+        data = File.read(arg)
       else
         found = false
         lsub_options.each do |x|

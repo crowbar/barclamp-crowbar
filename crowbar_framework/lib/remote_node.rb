@@ -8,7 +8,7 @@ module RemoteNode
     while (Time.now.to_i - start) < timeout do
       begin
         TCPSocket.new(host, 22)
-        next unless system("sudo -i -u root -- ssh root@#{host} 'last | head -n1 | grep -vq down'")
+        raise "next" unless system("sudo -i -u root -- ssh root@#{host} 'last | head -n1 | grep -vq down'")
         return true
       rescue
         sleep(1)

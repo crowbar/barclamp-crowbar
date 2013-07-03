@@ -7,6 +7,10 @@
           = f.label :alias, t('.alias')
           = text_field_tag :alias, @node.alias(true), :size => 20
         %li.text
+          = f.label :public_name, t('.public_name')
+          = text_field_tag :public_name, @node.public_name(true), :size => 20
+          %p.inline-hints= t('.public_name_hint')
+        %li.text
           = f.label :description, t('.description')
           = text_field_tag :description, @node.description(true), :size => 40
         %li.text

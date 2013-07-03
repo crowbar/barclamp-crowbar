@@ -65,10 +65,25 @@ class NodeObject < ChefObject
     elsif nodes.length == 0
       nil
     else
-      raise "#{I18n.t('multiple_node', :scope=>'model.node')}: #{nodes.join(',')}"
+      raise "#{I18n.t('multiple_node_alias', :scope=>'model.node')}: #{nodes.join(',')}"
     end
   end
-  
+
+  def self.find_node_by_public_name(name)
+    nodes = if CHEF_ONLINE
+      self.find "crowbar_public_name:#{chef_escape(name)}"
+    else
+      nodes = self.find_all_nodes.keep_if { |n| n.public_name==name }
+    end
+    if nodes.length == 1
+      return nodes[0]
+    elsif nodes.length == 0
+      nil
+    else
+      raise "#{I18n.t('multiple_node_public_name', :scope=>'model.node')}: #{nodes.join(',')}"
+    end
+  end
+
   def self.find_node_by_name(name)
     val = if CHEF_ONLINE
       name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
@@ -169,10 +184,10 @@ class NodeObject < ChefObject
     # valid DNS Name
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
-      raise "#{I18n.t('model.node.invalid_dns')}: #{value}"
+      raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
     elsif value.length+ChefObject.cloud_domain.length>255  
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit"
-      raise "#{I18n.t('too_long_dns', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
+      raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
@@ -187,6 +202,39 @@ class NodeObject < ChefObject
       end
     end
     return value
+  end
+
+  def public_name(suggest=false)
+    if !crowbar["crowbar"]["public_name"].nil? && !crowbar["crowbar"]["public_name"].empty?
+      crowbar["crowbar"]["public_name"]
+    elsif suggest
+      default_loader['public_name']
+    else
+      nil
+    end
+  end
+
+  def public_name=(value)
+    value = value.strip.sub(/\s/,'-')
+    # valid DNS Name
+    if not (value.nil? or value.empty?)
+      if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
+        Rails.logger.warn "Public name #{value} not saved because it did not conform to valid DNS hostnames"
+        raise "#{I18n.t('invalid_dns_public_name', :scope=>'model.node')}: #{value}"
+      elsif value.length>255
+        Rails.logger.warn "Public name #{value} not saved because it exceeded the 255 character length limit"
+        raise "#{I18n.t('too_long_dns_public_name', :scope=>'model.node')}: #{value}"
+      else
+        # don't allow duplicate public names
+        node = NodeObject.find_node_by_public_name value
+        if node and !node.handle.eql?(handle)
+          Rails.logger.warn "Public name #{value} not saved because #{node.name} already has the same public name."
+          raise I18n.t('duplicate_public_name', :scope=>'model.node') + ": " + node.name
+        end
+      end
+    end
+
+    crowbar["crowbar"]["public_name"] = value
   end
 
   def description(suggest=false, use_name=false)

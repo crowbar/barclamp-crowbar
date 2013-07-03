@@ -15,6 +15,7 @@
       %tr
         %th= t('.name')
         %th= t('.alias')
+        %th= t('.public_name')
         %th= t('.hw_description')
         %th= t('.description')
         %th= t('.group')
@@ -32,6 +33,7 @@
             %td= link_to node.name.split('.')[0], node_path(node.handle), :title=> node.ip
             -unless node.admin?
               %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :size => 15
+              %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :size => 15
               %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :size => 15
@@ -46,6 +48,7 @@
                   = t 'complete'
             -else
               %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true) || t('.admin')}", :size => 15
+              %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :size => 15
               %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
               %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description(true) || ""), :size => 30
               %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :size => 15

@@ -8,8 +8,8 @@
   - @modules.each do |name, barclamp|
     %tr{:id=>name, :class => ["barclamp", cycle(:odd, :even, :name => "barclamps")]}
       %td
-        %a.toggle.with_label{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= name.titlecase
-      %td
+        %a{:href => "#", :id => "#{name.parameterize}_details_toggle", :class => "toggle with_label #{' on' if (params[:id]==name or barclamp[:expand])}" ,:rel => "#{name.parameterize}_details"}= name.titlecase
+      %td 
         - if barclamp[:proposals].length == 0 
           .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
         - else
@@ -17,13 +17,13 @@
             .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
       %td= "#{barclamp[:description].capitalize}"
 
-    %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
+    %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}",  :id => "#{name.parameterize}_details"}
       %td.container{:colspan => "3"}
         .box
           %table.data
             %tbody
               - if barclamp[:proposals].length > 0
-                - barclamp[:proposals].sort.each do |proposal_name, proposal|
+                - barclamp[:proposals].sort.each do |proposal_name, proposal| 
                   - prop_id = "#{name}_#{proposal_name}"
                   %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
                     %td.status

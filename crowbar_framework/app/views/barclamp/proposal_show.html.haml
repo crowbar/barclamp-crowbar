@@ -58,7 +58,7 @@
         if(el.hasClass("unknown")) {
           led_update(el, key, val, data['i18n'][key]['status']);
         } else {
-          led_update(el, key, val, data['i18n'][key]['status'], function(){ el.effect("highlight", {color: '#666666'}, 2000); });
+          led_update(el, key, val, data['i18n'][key]['status'], function(){ el.effect("highlight", {color: '#eeeeee'}, 2000); });
         }
       });
     });

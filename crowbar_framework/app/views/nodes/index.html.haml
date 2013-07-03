@@ -181,7 +181,7 @@
           led.destroy();
           led.attr('class', 'led pull-right '+val['status']);
           td.attr('raw', val['raw']);
-          td.effect("highlight", {color: '#666666'}, 2000);
+          td.effect("highlight", {color: '#eeeeee'}, 2000);
           led.attr('title', val['state']);
         }
         // catch the case where we've expanded detail on a node
@@ -190,7 +190,7 @@
         h = $('div div.led[id="'+h_key+'"]');
         if (h.attr('id')==h_key && s.text()!=val['state']) {
           s.text(val['state']);
-          s.effect("highlight", {color: '#666666'}, 2000);
+          s.effect("highlight", {color: '#eeeeee'}, 2000);
           s.attr('title','#{t('raw')}: '+val['raw']);
           var head = $('#head_'+key);
           if (head.length !=0 ) {

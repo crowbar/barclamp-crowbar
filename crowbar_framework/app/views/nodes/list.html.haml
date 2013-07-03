@@ -42,11 +42,11 @@
               %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.handle }
                 %td= link_to node.name.split('.')[0], node_path(node.handle), :title=> node.ip
                 -unless node.admin?
-                  %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :class => "span2"
-		  %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :size => 15
+                  %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true)}", :class => "spanner"
+		  %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :class => "spanner"
                   %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
-                  %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :class => "span3"
-                  %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :class => "span2"
+                  %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :class => "spanner"
+                  %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :class => "spanner"
                   -if @options[:show].include? :bios
                     %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
                   -if @options[:show].include? :raid
@@ -66,11 +66,11 @@
                     -else
                       = t 'complete'
                 -else
-                  %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true) || t('.admin')}", :class => "span2"
-		  %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :size => 15
+                  %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias(true) || t('.admin')}", :class => "spanner"
+		  %td= text_field_tag "node:#{node.name}:public_name".to_sym, "#{node.public_name(true)}", :class => "spanner"
                   %td= "#{node.hardware}<br/>#{node.memory}<br/>#{node.nics} Nics"
-                  %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description(true) || ""), :class => "span3"
-                  %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :class => "span2"
+                  %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description(true) || ""), :class => "spanner"
+                  %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :class => "spanner"
                   -if @options[:show].include? :bios
                     %td= t 'na'
                   -if @options[:show].include? :raid

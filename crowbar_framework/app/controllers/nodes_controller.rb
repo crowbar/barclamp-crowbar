@@ -97,6 +97,10 @@ class NodesController < ApplicationController
                 node.alias = values['alias']
                 dirty = true
             end
+            if !(node.public_name == values['public_name'])
+                node.public_name = values['public_name']
+                dirty = true
+            end
             if !(node.group == values['group'])
               if values['group'] and values['group'] != "" and !(values['group'] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
                 raise node.name + ": " + t('nodes.list.group_error')
@@ -261,6 +265,7 @@ class NodesController < ApplicationController
       @node.bios_set = params[:bios]
       @node.raid_set = params[:raid]
       @node.alias = params[:alias]
+      @node.public_name = params[:public_name]
       @node.group = params[:group]
       @node.description = params[:description]
       @node.save

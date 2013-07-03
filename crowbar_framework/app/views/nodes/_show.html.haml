@@ -12,6 +12,7 @@
 .column_50.first
   %dl
     = dl_item(t('model.attributes.node.name'), @node.name)
+    = dl_item(t('model.attributes.node.public_name'), (@node.public_name.nil? ? "-" : @node.public_name))
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
     - if @node.switch_unit.nil?

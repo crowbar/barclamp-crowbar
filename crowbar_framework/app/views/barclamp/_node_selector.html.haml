@@ -95,7 +95,7 @@ $(document).ready(function() {
     // Decide whether the thing dragged in is welcome.
     .bind('dragover', function(ev) {
       if (ev.preventDefault) ev.preventDefault(); // allows us to drop
-        return false;
+      return false;
     })
 
     // Handle the final drop...
@@ -151,7 +151,7 @@ $(document).ready(function() {
                 if (!(value <= param)) { valid = false; } break;
               case "le":
                 if (!(value >= param)) { valid = false; } break;
-              default:
+              default:x
                 console.error("*** Unknown validator "+validator+" for attribute "+attribute);
             }
             if (!valid) break;

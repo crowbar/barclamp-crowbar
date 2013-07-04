@@ -11,10 +11,9 @@
       - if @node
         = render :partial => 'show'
       - else
-        %br
-        %div{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
+        .regroup-target{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
           %p
-            %span{ :class=> "label label-info", :style => "padding: 4px 6px;"}
+            %span.regroup-target-label{ :class=> "label label-info"}
               =t '.drag_hint'
 .row#nodes
   - if @nodes.nil?

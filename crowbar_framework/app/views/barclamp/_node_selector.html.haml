@@ -127,39 +127,39 @@ $(document).ready(function() {
       //  "cpu/1/flags": { le: 2, eq: 3, ge: 4, ne: 6, expr: /^3$/ }
       // }
       if (limits[list].attributes) {
-        attributes = limits[list].attributes
-        valid = true
+        attributes = limits[list].attributes;
+        valid = true;
         for ( var attribute in attributes ) {
           validators = attributes[attribute];
-          value = node(name).get(attribute)
+          value = node(name).get(attribute);
           for ( validator in validators ) {
             param = validators[validator];
             switch ( validator ) {
               case "expr":
-                if (!(param.test(value.toString()))) { valid = false } break;
+                if (!(param.test(value.toString()))) { valid = false; } break;
               case "include":
-                if (!(value.indexOf(param) != -1)) { valid = false } break;
+                if (!(value.indexOf(param) != -1)) { valid = false; } break;
               case "eq":
-                if (!(value == param)) { valid = false } break;
+                if (!(value == param)) { valid = false; } break;
               case "gt":
-                if (!(value > param)) { valid = false } break;
+                if (!(value > param)) { valid = false; } break;
               case "lt":
-                if (!(value < param)) { valid = false } break;
+                if (!(value < param)) { valid = false; } break;
               case "ne":
-                if (!(value != param)) { valid = false } break;
+                if (!(value != param)) { valid = false; } break;
               case "ge":
-                if (!(value <= param)) { valid = false } break;
+                if (!(value <= param)) { valid = false; } break;
               case "le":
-                if (!(value >= param)) { valid = false } break;
+                if (!(value >= param)) { valid = false; } break;
               default:
-                console.error("*** Unknown validator "+validator+" for attribute "+attribute)
+                console.error("*** Unknown validator "+validator+" for attribute "+attribute);
             }
             if (!valid) break;
           }
           if (!valid) break;
         }
         if (!valid) { i18n_msg("constraint_attribute", name, list, "is not supported"); }
-        return valid
+        return valid;
       }
       // block admin from being used
       if (limits[list].admin==undefined || !limits[list].admin) {

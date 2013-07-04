@@ -18,6 +18,7 @@
 -export([storename/2]).  
 -import(bdd_utils).
 -import(digest_auth).
+-include("bdd.hrl").
 
 % create a base system
 pop()           -> pop(default).

@@ -15,6 +15,7 @@
 -module(bdd_clirat).
 -export([step/3]).
 -export([run_cli/2]).
+-include("bdd.hrl").
 
 run_cli(Scenario, Params) ->
   CLI = bdd_utils:scenario_retrieve(Scenario, cli, bdd_utils:config(cli)),

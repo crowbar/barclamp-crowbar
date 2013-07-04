@@ -14,7 +14,7 @@
 % 
 % 
 -module(group_cb).
--export([step/3, json/3, json/4, g/1, validate/1, inspector/1]).
+-export([step/2, json/3, json/4, g/1, validate/1, inspector/1]).
 -include("bdd.hrl").	
 	
 g(Item) ->
@@ -61,6 +61,10 @@ json(Name, Description, Order, Category) ->
   json:output([{"name",Name},{"description", Description}, {"category", Category}, {"order", Order}]).
 	
 % STEPS!
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
 
 step(Config, _Given, {step_given, _N, ["REST adds the node",Node,"to",Group]}) -> 
   step(Config, _Given, {step_when, _N, ["REST adds the node",Node,"to",Group]});

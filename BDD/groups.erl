@@ -14,8 +14,8 @@
 % 
 % 
 -module(groups).
--export([step/3, json/3, json/4, g/1, validate/1, inspector/1]).
-	
+-export([step/2, json/3, json/4, g/1, validate/1, inspector/1]).
+-include("bdd.hrl").	
 	
 g(Item) ->
   bdd_utils:depricate({2013,6,1}, groups, g, group_cb, g, [Item]).
@@ -37,6 +37,10 @@ json(Name, Description, Order, Category) ->
   bdd_utils:depricate({2013,6,1}, groups, json, group_cb, json, [Name, Description, Order, Category]).
   	
 % STEPS!
+% TEMPORARY REMAPPING
+% 
+step(In, Out) -> step([], In, Out).
+
 
 step(Config, Given, {Type, N, Action}) -> 
   bdd_utils:depricate({2013,6,1}, groups, step, group_cb, step, [Config, Given, {Type, N, Action}]).

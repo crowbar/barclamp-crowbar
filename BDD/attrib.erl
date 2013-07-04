@@ -14,7 +14,7 @@
 % 
 % 
 -module(attrib).
--export([step/3, json/3, path/2, node_add_attrib/3, node_add_attrib/4, validate/1, inspector/1, g/1, create/3]).
+-export([step/2, json/3, path/2, node_add_attrib/3, node_add_attrib/4, validate/1, inspector/1, g/1, create/3]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -66,6 +66,11 @@ node_add_attrib(Config, Node, Attribute, Value) ->
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
   crowbar_rest:inspector(Config, attrib).  % shared inspector works here, but may not always
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
 
 step(Config, _Global, {step_given, _N, ["there is an attribute",Attribute]}) -> 
   bdd:log(depricate, "Replace Attrib:'there is an attribute' step with generic from bdd_restrat for ~p", [Attribute]),

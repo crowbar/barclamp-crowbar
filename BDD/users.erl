@@ -14,7 +14,8 @@
 % 
 % 
 -module(users).
--export([step/3, json_update/4, json/6, validate/1, inspector/1, g/1]).
+-export([step/2, json_update/4, json/6, validate/1, inspector/1, g/1]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -78,6 +79,8 @@ fetch_user(Config, Result, N, Username) ->
 
 
 % GIVEN STEP =======================================================
+% TEMPORARY REMAPPING
+step(In, Out) -> step([], In, Out).
 
 step(Config, _Global, {step_given, _N, ["there is not a user", Username]}) -> 
   bdd_utils:log(trace, "users:step there is not a user: ~p", [Username]),

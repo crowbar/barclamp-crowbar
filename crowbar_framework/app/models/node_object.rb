@@ -148,6 +148,8 @@ class NodeObject < ChefObject
         NodeObject.offline_remove('node', node.name) if !CHEF_ONLINE
       end
     end
+    # deep clone of @role.default_attributes, used when saving node
+    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
     @node = node
   end
 
@@ -486,6 +488,20 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
+    # helper function to remove from node elements that were removed from the
+    # role attributes; this is something that
+    # Chef::Mixin::DeepMerge::deep_merge doesn't do
+    def _remove_elements_from_node(old, new, from_node)
+      old.each_key do |k|
+        if not new.has_key?(k)
+          from_node.delete(k) unless from_node[k].nil?
+        elsif old[k].is_a?(Hash) and new[k].is_a?(Hash) and from_node[k].is_a?(Hash)
+          _remove_elements_from_node(old[k], new[k], from_node[k])
+        end
+      end
+    end
+
+    _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
     Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
 
     if CHEF_ONLINE
@@ -495,6 +511,10 @@ class NodeObject < ChefObject
       NodeObject.offline_cache(@node, NodeObject.nfile('node', @node.name))
       NodeObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
     end
+
+    # update deep clone of @role.default_attributes
+    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+
     Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
   end
 

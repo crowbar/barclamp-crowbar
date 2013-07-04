@@ -589,10 +589,19 @@ class NodeObject < ChefObject
     999
   end
 
+  # IMPORTANT: This needs to be kept in sync with the get_bus_order method in
+  # BarclampLibrary::Barclamp::Inventory in the "barclamp" cookbook of the
+  # deployer barclamp.
   def get_bus_order
     bus_order = nil
     @node["network"]["interface_map"].each do |data|
-      bus_order = data["bus_order"] if @node[:dmi][:system][:product_name] =~ /#{data["pattern"]}/
+      if @node[:dmi][:system][:product_name] =~ /#{data["pattern"]}/
+        if data.has_key?("serial_number")
+          bus_order = data["bus_order"] if @node[:dmi][:system][:serial_number].strip == data["serial_number"].strip
+        else
+          bus_order = data["bus_order"]
+        end
+      end
       break if bus_order
     end rescue nil
     bus_order

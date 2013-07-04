@@ -36,6 +36,28 @@ crowbar:
   chef_order: 0
   proposal_schema_version: 2
 
+nav:
+  primary:
+    - [ nodes, root_path ]
+    - [ network, network_path ]
+    - [ barclamps, barclamp_modules_path ]
+    - [ utils, utils_path ]
+    - [ help, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
+  nodes:
+    - [ dashboard, dashboard_path ]
+    - [ list, "nodes_list_path(:allocated=>'yes')" ]
+    - [ families, nodes_families_path if RAILS_ENV == 'development' ]
+  barclamps:
+    - [ all_bc, barclamp_modules_path ]
+    - [ crowbar_bc, "index_barclamp_path(:controller=>'crowbar')" ]
+  utils:
+    - [ util_logs, utils_path ]
+  help:
+    - [ crowbar_wiki, '"https://github.com/crowbar/crowbar/wiki/", { :link => { :target => "_blank" } }' ]
+    - [ crowbar_ug, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
+    - [ crowbar_dg, '"/crowbar_deployment_guide.pdf", { :link => { :target => "_blank" } }' ]
+    - [ documentation, docs_path if RAILS_ENV == 'development' ]
+
 locale_additions:
   en:
     barclamp:

@@ -43,7 +43,7 @@ _note:_ use sudo as instructed.  Do not use the Dev tool as root!
    1. `sudo gem install ruby1.9.1-dev builder bluecloth`
    1. continue with steps below
 1. `sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec`
-  1. note: rcov does not work in ruby-1.8 - use 'simplecov' instead
+  1. note: rcov does not work in ruby-1.9 - use 'simplecov' instead
 1. `git clone https://github.com/crowbar/crowbar.git`
 1. `cd ~/crowbar` directory
 1. `./dev setup`

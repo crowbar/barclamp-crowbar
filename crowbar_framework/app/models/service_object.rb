@@ -1161,7 +1161,9 @@ class ServiceObject
       # if node[cpu][0][flags].include?("smx")
       #   node[:reboot] = "complete"
       # end
+
       exit(1) unless system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
       while nobj[:reboot] == "require" and attempt <= 3

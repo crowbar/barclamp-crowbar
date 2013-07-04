@@ -13,8 +13,9 @@
       - else
         %br
         %div{ :droptarget=>'true' , :id=>'USE_AUTOMATIC!' }
-          =t '.drag_hint'
-
+          %p
+            %span{ :class=> "label label-info", :style => "padding: 4px 6px;"}
+              =t '.drag_hint'
 .row#nodes
   - if @nodes.nil?
     = t('no_items')

@@ -31,7 +31,6 @@ Rails::Initializer.run do |config|
     config.gem "sprockets-helpers"
   end
 
-  config.frameworks -= [ :active_record ]
   config.time_zone = "UTC"
 
   CROWBAR_LOG_DIR = "/var/log/crowbar" unless defined? CROWBAR_LOG_DIR

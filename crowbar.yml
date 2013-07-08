@@ -283,7 +283,7 @@ gems:
     # Pinned to not interfere with chefspec.
     - rspec-rails-(=2.11.4)
     - sass
-    - sass-rails
+    - sass-rails-(~>3.2.3)
     - sendfile
     - simple-navigation
     - sqlite3

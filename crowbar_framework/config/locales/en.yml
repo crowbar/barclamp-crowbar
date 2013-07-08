@@ -209,7 +209,7 @@ en:
       active: Allocated
       inactive: Not Allocated
       raid: RAID
-      confirm_hw_update: WARNING!  This will reboot the node in order to apply BIOS/RAID updates.  Proceed?
+      confirm_hw_update: WARNING!  This will reboot the node in order to apply BIOS updates.  Proceed?
       confirm_reinstall: WARNING!  This will rebuild the node to a pristine state using its current deployment profile.  Any data on the node will be lost.  Proceed?
       confirm_deallocate: WARNING!  This will remove the current allocation from the node.  Any subsequent allocation will rebuild the node from scratch, causing any data to be lost.  Proceed?
       confirm_forget: This will remove all records of the node from the Crowbar / Chef database.  It will be rediscovered if it reboots.  Proceed?

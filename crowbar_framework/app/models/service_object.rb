@@ -21,6 +21,8 @@ require 'pp'
 require 'chef'
 require 'json'
 
+require 'hash_only_merge'
+
 class ServiceObject
 
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
@@ -632,9 +634,18 @@ class ServiceObject
     return [400, I18n.t('model.service.too_short')] if base_id.length == 0
     return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
 
-    base = create_proposal
-    base["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"
-    proposal = base.merge(params)
+    proposal = create_proposal
+    proposal["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"
+
+    # crowbar-deep-merge-template key should be removed in all cases, as it
+    # should not end in the proposal anyway; if the key is not here, we default
+    # to false (and therefore the old behavior)
+    if params.delete("crowbar-deep-merge-template") { |v| false }
+      HashOnlyMerge.hash_only_merge!(proposal, params)
+    else
+      proposal.merge!(params)
+    end
+
     clean_proposal(proposal)
     _proposal_update proposal
   end

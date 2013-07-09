@@ -17,14 +17,14 @@ class CreateDeployments < ActiveRecord::Migration
     create_table :deployments do |t|
       t.string      :name,                        :null=>false
       t.string      :description,                 :null=>true
-      t.integer     :order,                       :null=>false, :default=>10000
       t.references  :proposed_snapshot,           :null=>true
       t.references  :committed_snapshot,          :null=>true
       t.references  :active_snapshot,             :null=>true
-      t.timestamps      
+      t.references  :parent, :deployment
+      t.timestamps
     end
     #natural key
-    add_index(:deployments,    :name,     :unique => true)   
+    add_index(:deployments,    :name,     :unique => true)
   end
-    
+
 end

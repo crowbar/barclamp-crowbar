@@ -39,12 +39,6 @@ class Jig < ActiveRecord::Base
   has_many        :roles,      :dependent => :destroy
 
 =begin 
-Allocate a node, and start the node install process
-=end
-  def self.install_node(node)
-  end
-
-=begin 
 Create a node in all jig. The exact actions depend on the jig.
 =end
   def self.create_node(node)
@@ -58,37 +52,7 @@ Delete a node from all jig. The exact actions depend on the jig.
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
 
-  #
-  # Update node infomration from a Jig, and process node attributes.
-  # Attributes are tied to Runs and to Events, so a new Event is created, using description passed in
-  def self.refresh_node(descr, node)    
-    jigs = find_jigs_for_node(node)
-#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.inspect} ??"
-#Rails.logger.debug "ZEHICLE #{BarclampChef::Jig.all.first.read_node_data(node)} ??"
-#Rails.logger.debug "ZEHICLE #{node.name} Jig refresh #{jigs.join(',')}"
- #   bcs = node.deployments.map { |d| d.barclamp }.uniq
-    jigs.each do |j| 
-      d = j.read_node_data(node)
-#Rails.logger.debug "ZEHICLE #{node.name} > jig #{j.name} got #{d}"
-    end
-  
-#      next if  d.nil?
-#      evt = j.create_event(nil)
-#      evt.name="refesh:node:#{node.id}#{Time.now.to_i}"
-#      barclamps={}
-#      node.deployments.inject { | barclamps,dep|
-#         barclamps[dep.barclamp] ||=[]
-#         barclamps[dep.barclamp] << dep.name
-#      }      
-#      barclamps.each {|bc|
-        ### this should be per deployment... but many other updates required.
-#        bc.process_inbound_data  d
-#      }
-
-
-  end
-
-  # OVERRIDE with actual delete effort
+  # OVERRIDE with actual methods
   def delete_node(node)
     Rails.logger.debug("jig.delete_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
@@ -97,9 +61,8 @@ Delete a node from all jig. The exact actions depend on the jig.
     Rails.logger.debug("jig.create_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
 
-  # Return a JSON representation of the information this jig knows about this node.
-  def read_node_data(node)
-    Rails.logger.debug("jig.read_node_data(#{node.name}) not implemented for #{self.class}.  This may be OK")
+  def execute(turn)
+    Rails.logger.debug("jig.turn(#{turn.name}) not implemented for #{self.class}.  This may be OK")
   end
 
 private

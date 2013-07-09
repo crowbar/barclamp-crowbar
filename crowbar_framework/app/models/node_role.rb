@@ -16,18 +16,27 @@
 class NodeRole < ActiveRecord::Base
 
   before_create   :get_template
+  after_update    :cascade_state
   attr_accessible :state, :status, :data, :wall
-  attr_accessible :role_id, :snapshot_id, :node_id
+  attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
 
   belongs_to      :node
   belongs_to      :role
   belongs_to      :snapshot
-  has_one         :deployment, :through => :snapshot
+  belongs_to      :cycle
+  has_one         :deployment,        :through => :snapshot
+
+  # find other node-roles in this snapshot using their role or node
+  scope           :peers_by_role,     ->(r) { where(['snapshot_id=? AND role_id=?', snapshot.id, r.id]) }
+  scope           :peers_by_node,     ->(n) { where(['snapshot_id=? AND node_id=?', snapshot.id, n.id]) }
+
+  # make sure that new node-roles have require upstreams 
+  validate        :deployable,        :if => :deployable?
 
   ERROR     = -1
   ACTIVE    = 0
   TODO      = 1
-  COMMITTED = 2
+  TRANSISTION = 2
   PROPOSED  = nil
 
   def error?
@@ -42,7 +51,7 @@ class NodeRole < ActiveRecord::Base
     state == 1
   end
 
-  def committed?
+  def transistion?
     state > 1
   end
 
@@ -55,11 +64,46 @@ class NodeRole < ActiveRecord::Base
     role.name
   end
 
+  # convenience methods
   def description
     role.description
   end
-  
+
+  # are the upstream required node-roles included in this snapshot
+  def deployable?
+    role.upsteam.nil? or upsteam.count > 0
+  end
+
+  # unblocked? are the upstream required node-roles in a ready state
+  def executable?
+    upstream.all?{|p|p.ready?} and (committed? or todo?)
+  end
+
+  # return node roles (in same snapshot) who are dependent on this node-role
+  def downstream
+    roles = Role.downstream(role)
+    roles.flatten { |r| NodeRole.peers_by_role(snapshot, r) }
+  end
+
+  # return node roles (in same snapshot) that this node-role depends on 
+  def upstream
+    roles = role.upstream
+    roles.flatten { |r| NodeRole.peers_by_role(snapshot, r) }
+  end
+
   private
+
+  # on change
+  # if state is set to PROPOSED, then ALL downstream states are TODO
+  def cascade_state
+    if snapshot.proposed?
+      state = PROPOSED
+      # lookup all the down stream node-roles
+      role.children.each do |children|
+        r.state = TODO unless d.proposed?          
+      end
+    end
+  end
 
   def get_template
     data ||= role.node_template

@@ -21,5 +21,6 @@ class CreateRoleRequires < ActiveRecord::Migration
     end
     #natural key
     add_index(:role_requires, [:role_id, :requires], :unique => true)
+    add_index(:role_requires, [:requires], :unique => false)
   end
 end

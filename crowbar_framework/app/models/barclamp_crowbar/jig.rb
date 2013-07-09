@@ -20,6 +20,11 @@ require 'json'
 
 class BarclampCrowbar::Jig < Jig
 
+  def execute(turn)
+    Rails.logger.info("ScriptJig Turn #{turn.name}")
+    # retrieve the next turn for jig
+    # get all node-roles associated w/ turn
+  end
 
   def create_node(node)
     Rails.logger.info("ScriptJig Creating node: #{node.name}")
@@ -29,12 +34,6 @@ class BarclampCrowbar::Jig < Jig
     Rails.logger.info("ScriptJig Deleting node: #{node.name}")    
   end
 
-  def read_node_data(node)
-    ## Return some dummy data to enable unit-tests, for now just safe default
-Rails.logger.debug "ZEHICLE #{node.name} BarclampCrowbar::Jig.read_node_data"
-    JSON.parse("{}")
-  end   
-  
 end
 
 

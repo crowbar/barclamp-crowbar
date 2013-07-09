@@ -24,6 +24,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'scaffold_snapshots', :parent_item=>'scaffold', :name=>'nav.scaffold.snapshots',  :path=>"scaffolds_snapshots_path", :order=>1820, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nodes', :parent_item=>'scaffold', :name=>'nav.scaffold.nodes', :path=>"scaffolds_nodes_path", :order=>2000, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_roles', :parent_item=>'scaffold', :name=>'nav.scaffold.roles', :path=>"scaffolds_roles_path", :order=>2100, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_cycles', :parent_item=>'scaffold', :name=>'nav.scaffold.cycles', :path=>"scaffolds_cycles_path", :order=>2200, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_groups', :parent_item=>'scaffold', :name=>'nav.scaffold.groups', :path=>"scaffolds_groups_path", :order=>2300, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400, :development=>true
     Nav.find_or_create_by_item :item=>'scaffold_docs', :parent_item=>'scaffold', :name=>'nav.scaffold.docs', :path=>"scaffolds_docs_path", :order=>5500, :development=>true
@@ -35,6 +36,7 @@ class ScaffoldNav < ActiveRecord::Migration
     Nav.delete(Nav.find_by_item 'scaffold_nav')
     Nav.delete(Nav.find_by_item 'scaffold_groups')
     Nav.delete(Nav.find_by_item 'scaffold_roles')
+    Nav.delete(Nav.find_by_item 'scaffold_cycles')
     Nav.delete(Nav.find_by_item 'scaffold_nodes')
     Nav.delete(Nav.find_by_item 'scaffold_snapshots')
     Nav.delete(Nav.find_by_item 'scaffold_deployments')

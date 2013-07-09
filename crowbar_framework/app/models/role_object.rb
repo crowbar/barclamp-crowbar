@@ -70,8 +70,9 @@ class RoleObject < ChefObject
       begin
         chef_init
         return RoleObject.new Chef::Role.load(name)
-      rescue
-        return nil
+      rescue Net::HTTPServerException => e
+        return nil if e.response.code == "404"
+        raise e
       end
     else
       answer = self.recover_json(self.nfile('role',name))

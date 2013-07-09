@@ -66,7 +66,7 @@ def add_and_filter(file, add, filter_re)
 	lines << l
       end
     else 
-      lines << 1
+      lines << l
     end
   } 
   
@@ -74,7 +74,7 @@ def add_and_filter(file, add, filter_re)
   updated =  need_to_add or need_to_remove
   
   if need_to_remove
-    lines << add if need_to_add
+    lines << "#{add}\n" if need_to_add
     need_to_add = false
     open(file, "w+") {|f| f.write lines }
   end

@@ -35,7 +35,22 @@ class ServiceObject
   def self.allow_multiple_proposals?
     false
   end
-  
+
+  def edit_proposal_name?
+    proposals = ProposalObject.find_proposals("crowbar")
+    raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
+
+    unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
+        if not proposals[0]["attributes"]["crowbar"]["edit_proposal_name"].nil?
+          return proposals[0]["attributes"]["crowbar"]["edit_proposal_name"]
+        else
+          return false
+        end
+    else
+      raise "Can't find any crowbar attributes in the proposal?"
+    end
+  end
+
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end

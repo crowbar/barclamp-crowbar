@@ -25,7 +25,7 @@ class BarclampCrowbar::Jig < Jig
     # retrieve the next turn for jig
     # get all node-roles associated w/ turn
     queue = cycle.queue(self)
-    while queue.each do |nr|
+    queue.each do |nr|
       # get role from nr
       # tmpdir=%x{ssh $node mktemp -d /tmp/scriptjig-XXXXX}
       # scp \barclamp\script\role\*.sh $node:#{tmpdir}

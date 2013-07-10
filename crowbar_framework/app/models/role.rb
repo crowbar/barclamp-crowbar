@@ -33,8 +33,8 @@ class Role < ActiveRecord::Base
   has_many        :role_requires,     :dependent => :destroy
   alias_attribute :requires,          :role_requires
 
-  has_many        :upstreams,         :through => :role_requires
-  scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
+  #has_many        :upstreams,         :through => :role_requires
+  #scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
 
   def parents
     role_requires.map do |r|

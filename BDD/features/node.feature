@@ -5,7 +5,7 @@ Feature: Nodes
 
   Scenario: Nodes List
     When REST gets the {object:node} list
-    Then there should be a value {lookup:node.name}
+    Then the list should have an object with key "name" value {lookup:node.name}
 
   Scenario: REST JSON check
     When REST gets the {object:node} {lookup:node.name}
@@ -33,6 +33,7 @@ Feature: Nodes
       And key "[groups][0]" should contain "7" items
 
   Scenario: Status Non Nodes
+    Skip TODO ZEHICLE disable during refactoring
     When AJAX requests node status on "0"
     Then key "sum" should be a number
       And there should be a key "state"
@@ -46,20 +47,7 @@ Feature: Nodes
   Scenario: Node List
     Given there is a {object:node} "bdd-node-list.example.com"
     When REST gets the {object:node} list
-    Then there should be a value "bdd-node-list.example.com"
-      And there should be a value "bdd1.example.com"
-      And there should be a value "global-node.testing.com"
-    Finally REST removes the node "bdd-node-list.example.com"
-
-  Scenario: Node Detail REST
-    When REST gets the {object:node} "bdd1.example.com"
-    Then there should be a key "name"
-      And there should be a key "description"
-      And there should be a key "created_at"
-      And there should be a key "id"
-      And key "id" should be a number
-      And there should be a key "order"
-      And key "order" should be a number
-      And there should be a key "updated_at"
-      And the {object:node} is properly formatted
-
+    Then the list should have an object with key "name" value "bdd-node-list.example.com"
+      And the list should have an object with key "name" value "bdd1.example.com"
+      And the list should have an object with key "name" value "global-node.testing.com"
+    Finally REST removes the {object:node} "bdd-node-list.example.com"

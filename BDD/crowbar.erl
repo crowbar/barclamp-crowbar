@@ -74,24 +74,21 @@ json(Part, JSON)  ->
   {Key, P} = lists:keyfind(Key,1,JSON), 
   P.
 
-% TEMPORARY REMAPPING
-step(In, Out) -> step([], In, Out).
-
 % global setup
-step(Config, _Global, {step_setup, _N, Test}) -> 
+step(_Global, {step_setup, _N, Test}) -> 
   % setup the groups object override
   bdd_utils:config_set(alias_map,{group, group_cb}),
-  bdd_utils:config_set(api_map,{"application/vnd.crowbar+json", crowbar_rest}),
   bdd_utils:log(debug, "crowbar:step Global Setup running (creating node ~p)",[g(node_name)]),
-  Node = node:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, node:g(path), g(node_atom), name, Node),
-  Config;
+  Node = node:json(g(node_name), Test ++ g(description), 1000),
+  bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_utils:log(debug, "crowbar:step Global Teardown running",[]),
-  bdd_restrat:destroy(Config, node:g(path), g(node_atom)),
-  Config;
+step(_Global, {step_teardown, _N, _}) -> 
+  bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
+  bdd_crud:delete(g(node_atom));
+
+% TEMPORARY REMAPPING
+step(In, Out) -> step([], In, Out).
 
 % ============================  GIVEN STEPS =========================================
 

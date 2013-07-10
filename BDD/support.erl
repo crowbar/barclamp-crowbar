@@ -14,7 +14,8 @@
 % 
 % 
 -module(support).
--export([step/3, g/1]).
+-export([step/2, g/1]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -22,6 +23,10 @@ g(Item) ->
   case Item of
     _ -> crowbar:g(Item)
   end.
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
 
 step(_Config, _Given, {step_when, {_Scenario, _N}, ["I inspect the",Path,"for",Mark]}) -> 
   Lines = bdd_utils:config(tail_lines, 100),

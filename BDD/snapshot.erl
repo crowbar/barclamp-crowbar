@@ -14,7 +14,8 @@
 % 
 % 
 -module(snapshot).
--export([step/3, json/3, path/1, validate/1, inspector/1, g/1, create/3]).
+-export([step/2, json/3, path/1, validate/1, inspector/1, g/1, create/3]).
+-include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
@@ -50,6 +51,10 @@ inspector(Config) ->
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+% TEMPORARY REMAPPING
+% 
+step(In, Out) -> step([], In, Out).
 
                    
 step(Config, _Global, {step_setup, _N, _}) -> Config;

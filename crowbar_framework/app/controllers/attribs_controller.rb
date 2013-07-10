@@ -36,7 +36,7 @@ class AttribsController < ApplicationController
     if params.has_key? :node_id
       render api_not_supported 'put', 'nodes/:id/attribs/:id'
     else
-      a = Attrib.create params
+      a = Attrib.create! params
       render api_show :attrib, Attrib, nil, nil, a
     end
   end

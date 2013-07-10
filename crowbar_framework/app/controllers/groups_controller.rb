@@ -46,7 +46,7 @@ class GroupsController < ApplicationController
     if params.has_key? :node_id
       render api_not_supported 'put', 'nodes/:id/groups/:id'
     else
-      g = Group.create params
+      g = Group.create! params
       render api_show :group, Group, nil, nil, g
     end
   end

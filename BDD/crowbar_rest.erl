@@ -13,8 +13,8 @@
 % limitations under the License. 
 % 
 -module(crowbar_rest).
--export([step/3, g/1, validate_core/1, validate/1, api_wrapper/3, api_wrapper/1, api_wrapper_raw/1, api_wrapper/2, inspector/2]).
--export([get_id/2, get_id/3, create/3, create/4, create/5, create/6, destroy/3]).
+-export([step/2, g/1, validate_core/1, validate/1, inspector/1]).
+-export([step/3, inspector/2]).  % depricate!
 -import(bdd_utils).
 -import(json).
 -include("bdd.hrl").
@@ -23,7 +23,9 @@ g(Item) ->
   case Item of
     _ -> crowbar:g(Item)
   end.
+
 % validates JSON in a generic way common to all objects
+validate_core(JSON) when is_record(JSON, obj) -> validate_core(JSON#obj.data);
 validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
        bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
@@ -31,6 +33,7 @@ validate_core(JSON) ->
        bdd_utils:is_a(JSON, dbid, id)],
   bdd_utils:assert(R, debug). 
 
+validate(JSON) when is_record(JSON, obj) -> validate(JSON#obj.data);
 validate(JSON) ->
   R = [
        bdd_utils:is_a(JSON, str, description),
@@ -38,92 +41,35 @@ validate(JSON) ->
        validate_core(JSON)],
   bdd_utils:assert(R, debug). 
 
-api_wrapper(Data, "application/vnd.crowbar+json", "1.9") -> api_wrapper_raw(Data);
-api_wrapper(Data, "application/json", "0.0")             -> #item{data=Data};
-api_wrapper(Data, Type, Version) ->
-  bdd_utils:log(warn, crowbar_rest, api_wrapper, "Fall through API type ~p version ~p",[Type, Version]),
-  Data.
-  
-api_wrapper_raw(J) ->  
-  JSON = json:parse(J),
-  api_wrapper(JSON).
-api_wrapper(JSON) ->  
-  Type = json:keyfind(JSON, "type"),
-  api_wrapper(Type, JSON).
-api_wrapper(not_found, JSON) -> #item{data=JSON};
-api_wrapper(Type, JSON) when is_list(Type) 
-                             -> api_wrapper(list_to_atom(Type), JSON);
-api_wrapper(Type, JSON)      ->
-  Link = json:keyfind(JSON, "link"),
-  List = json:keyfind(JSON, "list"),
-  case List of
-    not_found -> #item{type=Type, data=json:keyfind(JSON, "item"), link=Link};
-    [[]]      -> #list{type=Type, data=[], link=Link, ids=[], count=0};
-    _         -> IDs = [{json:keyfind(R,"id"),json:keyfind(R,"name")} || R <- List],
-                % note: the ids field is for backward compatability against the legacy 2.0 api
-                 #list{type=Type, data=List, link=Link, count=json:keyfind(JSON, "count"), ids = IDs}
-  end.
-
 % Common Routine - returns a list of items from the system, used for house keeping
-inspector(Config, Feature) ->
-  Raw = eurl:get(Config, apply(Feature, g, [path])),
-  JSON = json:parse(Raw),
-  List = api_wrapper(JSON),
-  [{Feature, ID, Name} || {ID, Name} <- List#list.data].
-  
-% given a path + key, returns the ID of the object
-get_id(Config, Path, Key) -> 
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path, Key]).
-   
-% given a path, returns the ID of the object
-get_id(Config, Path) ->
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, get_id, bdd_restrat, get_id, [Config, Path]).
+inspector(_Config, F) -> bdd_utils:depricate({2013, 8, 1}, crowbar_rest, inspector, crowbar_rest, inspector, [F]).
+inspector(Feature) ->
+  R = eurl:get_http(crowbar_rest:alias(Feature, g, [path])),
+  List = eurl:get_object(R), 
+  [{Feature, proplist:get_value("id", O), proplist:get_value("name", O)} || O <- List#list.data].
 
-% helper common to all setups using REST
-create(Config, Path, JSON)         -> 
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON]).
-  
-create(Config, Path, JSON, Action) -> 
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, JSON, Action]).
-  
-create(Config, Path, Atom, Name, JSON) ->
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON]).
-
-create(Config, Path, Atom, Name, JSON, Action) ->
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, create, bdd_restrat, create, [Config, Path, Atom, Name, JSON, Action]).
-
-% helper common to all setups using REST
-destroy(Config, Path, Atom) when is_atom(Atom) ->
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Atom]);
-
-% helper common to all setups using REST
-destroy(Config, Path, Key) ->
-  bdd_utils:depricate({2013,4,1}, crowbar_rest, destroy, bdd_restrat, destroy, [Config, Path, Key]).
-
-% NODES 
-step(Config, _Global, {step_given, _N, ["there is a node",Node]}) -> 
-  JSON = node:json(Node, node:g(description), 200),
-  bdd_restrat:create(Config, node:g(path), JSON);
+% DEPRICATE!
+step(_Config, B, C) -> bdd_utils:depricate({2013, 8, 1}, bdd_restrat, step, bdd_restrat, step, [B, C]).
 
 % remove the node
-step(Config, _Given, {step_finally, _N, ["throw away node",Node]}) -> 
-  eurl:delete(Config, node:g(path), Node);
+step(_Given, {step_finally, _N, ["throw away node",Node]}) -> 
+  eurl:delete([], node:g(path), Node);
 
 % GROUPS
-step(Config, _Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
+step(_Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = group_cb:json(Group, group_cb:g(description), 200, Category),
-  bdd_restrat:create(Config, group_cb:g(path), JSON);
+  bdd_restrat:create(group_cb:g(path), JSON);
 
 % remove the group
-step(Config, _Given, {step_finally, _N, ["throw away group",Group]}) -> 
-  bdd_restrat:destroy(Config, group_cb:g(path), Group);
+step(_Given, {step_finally, _N, ["throw away group",Group]}) -> 
+  bdd_restrat:destroy(group_cb:g(path), Group);
 
 % ============================  WHEN STEPS =========================================
 
-step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
+step(_Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
   Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,apply(bdd_restrat:alias(Resource),g,[resource])]),
   bdd_utils:log(debug, crowbar, step, "REST get ~p list for ~p barclamp", [Resource, Barclamp]),
-  {Code, JSON} = eurl:get_page(Config, Path, all),
+  {Code, JSON} = eurl:get_http(Path),
   Wrapper = crowbar_rest:api_wrapper_raw(JSON),
   bdd_utils:log(trace, bdd_restrat, step, "REST get ~p list: ~p", [Resource, Wrapper]),
   bdd_restrat:ajax_return(Path, get, Code, Wrapper#list.ids);  
@@ -131,23 +77,23 @@ step(Config, _Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barc
 % ============================  THEN STEPS =========================================
 
 % validate object based on basic rules for Crowbar
-step(_Config, Result, {step_then, _N, ["the object is properly formatted"]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+step(Result, {step_then, _N, ["the object is properly formatted"]}) -> 
+  JSON = bdd_restrat:get_result(Result, obj),
   validate(JSON);
   
 % validate object based on it the validate method in it's ERL file (if any)
 % expects an ATOM for the file
-step(_Config, Result, {step_then, _N, ["the", Feature, "object is properly formatted"]}) -> 
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+step(Result, {step_then, _N, ["the", Feature, "object is properly formatted"]}) -> 
+  JSON = bdd_restrat:get_result(Result, obj), 
   apply(Feature, validate, [JSON]);
 
 % validates a list of object IDs
-step(_Config, Result, {step_then, _N, ["the object id list is properly formatted"]}) ->
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
+step(Result, {step_then, _N, ["the object id list is properly formatted"]}) ->
+  List = bdd_restrat:get_result(Result, list),
   NumberTester = fun(Value) -> bdd_utils:is_a(integer, Value) end,
-  lists:all(NumberTester, JSON);
+  lists:all(NumberTester, List#list.ids);
 
 % ============================  LAST RESORT =========================================
-step(_Config, _Given, {step_when, _N, ["I have a test that is not in Crowbar_Rest"]}) -> true;
+step(_Given, {step_when, _N, ["I have a test that is not in Crowbar_Rest"]}) -> true;
                                     
-step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.
+step(_Result, {step_then, _N, ["I should use my special step file"]}) -> true.

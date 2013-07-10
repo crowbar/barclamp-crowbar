@@ -28,7 +28,7 @@
 %%
 %% Exported Functions
 %%
--export([request/5, request/2, authenticate_session/2, header/2, test_calc_response/0]).
+-export([request/5, request/2, request/4, request/1, authenticate_session/2, header/2, test_calc_response/0]).
 -include("bdd.hrl").
 
 %% Does digest authentication. 
@@ -58,9 +58,8 @@
 %%   error, {send_failed, term}
 %%   error, term
 
-request(Config, URL) ->
-  request(Config, get, {URL, [], [], []}, [], []).
-
+% depricate this approach!  Use the one that returns the http record
+request(Config, URL) ->  request(Config, get, {URL, [], [], []}, [], []).
 request(Config, get, {URL, Headers}, HTTPOptions, Options) ->
   request(Config, get, {URL, Headers, [], []}, HTTPOptions, Options);
 
@@ -69,7 +68,10 @@ request(Config, delete, {URL}, HTTPOptions, Options) ->
   
 request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options) ->
   %% prepare information that's common
-  {http, _, _Host, Port, DigestURI, Params} = http_uri:parse(URL),
+  {http, _, _Host, Port, DigestURI, Params} = case http_uri:parse(URL) of
+    {error, no_scheme} -> bdd_utils:log(error, simple_auth, request, "incomplete URL (needs http): ~p",[URL]);
+    X -> X
+  end,
   User = bdd_utils:config(Config,user),
   MethodStr = string:to_upper(atom_to_list(Method)),
   Password = bdd_utils:config(Config,password),
@@ -91,11 +93,10 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
       Headers ++ [{"Authorization", HeaderInjection}];
     _ -> Headers ++ [{"Cookie", AuthField}]
   end,
-  bdd_utils:log(Config, dump, "simple_auth:request making http request Method ~p URL ~p Headers ~p Opts ~p", [Method, URL, TrialHeaders, HTTPOptions2]),
+  bdd_utils:log(dump, simple_auth, request, "making http request Method ~p URL ~p Headers ~p Opts ~p", [Method, URL, TrialHeaders, HTTPOptions2]),
 
   %% try request
-  {Status, Result} = 
-      request(Method, URL, TrialHeaders, ContentType, Body, HTTPOptions2, Options),
+  {Status, Result} = request(Method, URL, TrialHeaders, ContentType, Body, HTTPOptions2, Options),
   %% detect system error
   {{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody} = 
     case Status of
@@ -106,7 +107,7 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
     end,
 
   bdd_utils:log(trace, simple_auth, request, "User ~p Password ~p URL ~p StatusCode ~p",[User, Password, URL, StatusCode]),
-  Response = case StatusCode of
+  case StatusCode of
     401 -> 
       bdd_utils:log(trace,  simple_auth, request, "URL ~p session did not auth.  This may be OK.  Falling back to digest.",[URL]),
       DigestLine = proplists:get_value("www-authenticate", ResponseHeaders),
@@ -115,7 +116,7 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
           AuthHeader = buildAuthHeader(DigestURI++Params, MethodStr, User, Password, DigestLine),
           Headers ++ [{"Authorization", AuthHeader}];
         [$B, $a, $s, $i, $c, $ | _] -> Headers;
-	  S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
+	      S -> "ERROR, unexpected digest header (" ++ S ++ ") should be Digest or Basic."
       end,
       request(Method, URL, HeaderDigested, ContentType, Body, HTTPOptions2, Options);
 
@@ -130,22 +131,40 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
       {Status,Result};
 
     _ -> {Status,{{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody}}
-  end,
-  MediaType = proplists:get_value("content-type", ResponseHeaders),
-  Meta = case string:tokens(MediaType, ";=") of
-    [DataType, " version", Version | _ ] -> #meta_api{datatype=DataType, version=Version};
-    [DataType | _ ]                      -> #meta_api{datatype=DataType};
-    _                                    -> #meta_api{}
-  end,                
-  put(DigestURI, Meta),                    
-  Response.
-
+  end.
 request(Method, URL, Headers, ContentType, Body, HTTPOptions, Options) ->
   case Method of 
     get -> httpc:request(Method, {URL, Headers}, HTTPOptions, Options);
     delete -> httpc:request(Method, {URL, Headers}, HTTPOptions, Options);
     _ -> httpc:request(Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options) 
   end.
+
+% returns the HTTP record instead of just raw header information
+request(URL)   -> request(get, URL, [], []).
+request(Method, {URL, Headers, ContentType, Input}, HTTPOptions, Options) -> 
+  % use the old response that returns the HTTPC tuple
+  bdd_utils:log(trace, simple_auth, request, "~p to ~p", [Method, URL]),
+  Response = request([], Method, {URL, Headers, ContentType, Input}, HTTPOptions, Options),
+  {ok, {{"HTTP/1.1",Code,_State}, Header, Body}} = Response,
+  MediaType = proplists:get_value("content-type", Header),
+  {DataType, Version} = case string:tokens(MediaType, ";=") of
+    [D, " version", V | _ ] -> {D, V};
+    [D | _ ]                -> {D, "0.0"};
+    _                       -> {"unknown", "0.0"}
+  end,                
+  DT = string:tokens(DataType, ".+"),
+  {Namespace, Details} = case DT of
+    ["application/vnd", N | L]    -> {list_to_atom(N), L};
+    ["application/json"]          -> {bdd_restrat, []};    % use bdd_utils get_object for json
+    ["unknown"]                   -> {bdd_utils, []};      % default
+    _                             -> {bdd_utils, []}       % fall back (same as default)
+  end,
+  bdd_utils:log(trace, simple_auth, request, "~p returned ~p (~p)", [URL, Code, MediaType]),
+  bdd_utils:log(dump, simple_auth, request, "~p > ~p", [URL, Body]),
+  % componse the object back together
+  #http{data=Body, code=Code, url=URL, version=Version, datatype=DataType, namespace=Namespace, details=Details };
+
+request(Method, URL, HTTPOptions, Options) -> request(Method, {URL, [], [], []}, HTTPOptions, Options).
 
 
 assemble_url(Host,Port,Path) ->

@@ -150,7 +150,7 @@ class Barclamp < ActiveRecord::Base
 
     return barclamp
   end
-      
+
   private
 
   # This method ensures that we have a type defined for 

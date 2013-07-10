@@ -83,11 +83,6 @@ class Deployment < ActiveRecord::Base
       new_c = self.proposal     # promote this one
       self.committed_snapshot_id = new_c.id
       self.proposed_snapshot_id = nil
-      new_c.node_roles.each do |nr|
-        nr.state = NodeRole::TODO
-        nr.status = I18n.t('deployment.commit.status')
-        nr.save
-      end
       self.save
     end
     self.committed

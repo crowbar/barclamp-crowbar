@@ -34,18 +34,6 @@ class Attrib < ActiveRecord::Base
     nr = NodeRole.find :node_id=>node.id, :snapshot_id=>active.id, :role_id=>role_id
     nr.value
   end
-      
-  def as_json options={}
-   {
-     :id=> id,
-     :value=> value,
-     :created_at=> created_at,
-     :updated_at=> updated_at,
-     :name => name,
-     :order => order,
-     :description=> description
-   }
-  end
 
   # SUBCLASS THIS METHOD if you want to change how data is found in the input data
   # Called by the barclamp.process_inbound_data routine

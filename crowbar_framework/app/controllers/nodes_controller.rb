@@ -85,9 +85,9 @@ class NodesController < ApplicationController
   
   # RESTfule POST of the node resource
   def create
-    n = Node.create params
+    n = Node.create! params
     
-    # DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
+    # TODO ZEHICLE DIRTY HACK: Migrate when the Chef jig knows how to add roles to nodes.
     # All nodes need to have the deployer-client present.
     Jig.create_node(n)
     # this should move to the chef jig create_node

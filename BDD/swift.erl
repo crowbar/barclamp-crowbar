@@ -15,8 +15,13 @@
 % Author: RobHirschfeld 
 % 
 -module(swift).
--export([step/3]).
+-export([step/2]).
 -import(bdd_utils).
+-include("bdd.hrl").
+
+% TEMPORARY REMAPPING
+step(In, Out) -> step([], In, Out).
+
 
 step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
 

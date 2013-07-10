@@ -49,6 +49,7 @@ Crowbar::Application.routes.draw do
       resources :navs do as_routes end
       resources :nodes do as_routes end
       resources :roles do as_routes end
+      resources :cycles do as_routes end
       resources :role_requires do as_routes end
       resources :deployments do as_routes end
       resources :snapshots do as_routes end
@@ -94,6 +95,8 @@ Crowbar::Application.routes.draw do
           resources :jigs
           resources :attribs
           resources :roles
+          resources :cycles
+          resources :node_roles
           resources :groups do
             member do
               get 'nodes'

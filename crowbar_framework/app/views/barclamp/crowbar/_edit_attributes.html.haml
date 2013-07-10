@@ -3,5 +3,10 @@
 %p
   %label{:for => "proposal_attributes"}= t('.attributes')
   = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => @dep_raw, :attr_raw => true), :style => "float: right;"
+
+%p
+  %label{ :for => :edit_proposal_name }= t('.edit_proposal_name')
+  = select_tag :edit_proposal_name, options_for_select([['false', 'false'], ['true', 'true']], @proposal.raw_data['attributes'][@proposal.barclamp]["edit_proposal_name"].to_s), :onchange => "update_value('edit_proposal_name', 'edit_proposal_name', 'boolean')"
+
   %div.container
 

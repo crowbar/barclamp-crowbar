@@ -30,4 +30,9 @@ class CreateNodeRoles < ActiveRecord::Migration
     add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)   
     add_index(:node_roles, [:turn_id], :unique => false)   
   end
+
+  create_table :node_role_pcms, :id => false do |t|
+    t.integer :parent_id
+    t.integer :child_id
+  end
 end

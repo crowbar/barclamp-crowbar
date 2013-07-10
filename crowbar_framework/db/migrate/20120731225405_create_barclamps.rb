@@ -28,7 +28,8 @@ class CreateBarclamps < ActiveRecord::Migration
       t.string     :online_help,               :null=>true
       t.string     :source_path,               :null=>true
       t.integer    :layout,                    :default=>2
-      t.integer    :order,                     :default=>9999
+      t.string     :requirements,              :null=>true
+      t.string     :members,                   :null=>true
       t.string     :commit,                    :null=>true, :default=>'unknown'
       t.date       :build_on,                  :null=>true, :default=>'unknown'
       t.boolean    :user_managed,              :default=>true

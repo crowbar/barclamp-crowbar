@@ -12,10 +12,9 @@
 % See the License for the specific language governing permissions and 
 % limitations under the License. 
 % 
-% Author: RobHirschfeld 
 % 
 -module(crowbar).
--export([step/3, validate/1, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2]).
+-export([step/2, step/3, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2, parse_object/1]).
 -import(bdd_utils).
 -import(json).
 -include("bdd.hrl").
@@ -34,23 +33,40 @@ g(Item) ->
     _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
 
-i18n(Config, T1, T2, T3, T4, T5) -> i18n_lookup(Config, [T1, T2, T3, T4, T5]).
-i18n(Config, T1, T2, T3, T4) -> i18n_lookup(Config, [T1, T2, T3, T4]).
-i18n(Config, T1, T2, T3) -> i18n_lookup(Config, [T1, T2, T3]).
-i18n(Config, T1, T2) -> i18n_lookup(Config, [T1, T2]).
-i18n(Config, T) -> i18n_lookup(Config, [T]).
-i18n_lookup(Config, T) -> 
+i18n(_Config, T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
+i18n(_Config, T1, T2, T3, T4) -> i18n_lookup([T1, T2, T3, T4]).
+i18n(_Config, T1, T2, T3) -> i18n_lookup([T1, T2, T3]).
+i18n(_Config, T1, T2) -> i18n_lookup([T1, T2]).
+i18n(_Config, T) -> i18n_lookup([T]).
+i18n_lookup(T) -> 
   Path = string:tokens(T, "+:/"),
   KeyList = case length(Path) of
     1 -> lists:nth(1, Path);
     _ -> Path
   end,
   Key = string:join(KeyList, "."),
-  URI = eurl:path("utils/i18n",Key),
-  bdd_utils:log(Config, trace, "crowbar:i18n looking up ~p", [URI]),
-  case eurl:get(Config, URI, not_found) of
-    not_found -> bdd_utils:log(Config, warn, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!";
-    R -> R
+  URI = eurl:path(["utils/i18n",Key]),
+  bdd_utils:log(trace, crowbar, i18n, "looking up ~p", [URI]),
+  R = eurl:get_http(URI),
+  case R#http.code of
+    200 -> R#http.data;
+    _   -> bdd_utils:log(warn, crowbar, i18n, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!"
+  end.
+
+% rest response specific for crowbar API (only called when the vnd=crowbar)
+parse_object(Results) ->
+  [Type, Quantity | _] = Results#http.details,
+  case Quantity of 
+    "obj"   ->  JSON = json:parse(Results#http.data),
+                ID = proplists:get_value("id", JSON),
+                #obj{namespace = crowbar, data=JSON, type = Type, id = ID, url = Results#http.url};
+    "list"  ->  JSON = json:parse(Results#http.data),
+                IDs = [proplists:get_value("id", I) || I <- JSON],
+                #list{namespace = crowbar, data=JSON, type = Type, ids = IDs, url = Results#http.url, count = length(IDs) };
+    "empty" ->  #obj{namespace = crowbar, data=none, type = Type, id = -1, url = Results#http.url };
+    "error" ->  #obj{namespace = crowbar, data=error, type = Type, id = -1, url = Results#http.url };
+    _       ->  bdd_utils:log(warn, "Crowbar API returned unexpected quantity flag (expected obj or list).  Returned ~p", [Results]),
+                #item{namespace = crowbar, data=Results#http.data , url=Results#http.url}
   end.
 
 json(Part, JSON)  ->  
@@ -58,9 +74,8 @@ json(Part, JSON)  ->
   {Key, P} = lists:keyfind(Key,1,JSON), 
   P.
 
-% MOVED! DELETE AFTER 12/12/12 helper common to all setups using REST  
-validate(JSON) ->
-  bdd_utils:depricate({2013,4,1},crowbar,validate,crowbar_rest,validate,[JSON]).
+% TEMPORARY REMAPPING
+step(In, Out) -> step([], In, Out).
 
 % global setup
 step(Config, _Global, {step_setup, _N, Test}) -> 

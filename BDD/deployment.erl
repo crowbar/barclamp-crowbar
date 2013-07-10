@@ -14,7 +14,7 @@
 % 
 % 
 -module(deployment).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-export([step/2, json/3, validate/1, inspector/1, g/1, create/3]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -25,19 +25,21 @@ g(Item) ->
     resource -> "deployments";
     _ -> crowbar:g(Item)
   end.
-  
+
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(JSON) ->
-  Wrapper = crowbar_rest:api_wrapper(JSON),
-  J = Wrapper#item.data,
-  R =[Wrapper#item.type == deployment,
-      bdd_utils:is_a(J, length, 10),
+validate(JSON) when is_record(JSON, obj) ->
+  J = JSON#obj.data,
+  R =[JSON#obj.type == "deployment",
+      bdd_utils:is_a(J, length, 9),
       bdd_utils:is_a(J, dbid, committed_snapshot_id),
       bdd_utils:is_a(J, dbid, active_snapshot_id),
       bdd_utils:is_a(J, dbid, proposed_snapshot_id),
       crowbar_rest:validate(J)],
-  bdd_utils:assert(R).
+  bdd_utils:assert(R);
+validate(JSON) -> 
+  bdd_utils:log(error, deployment, validate, "requires #obj record. Got ~p", [JSON]), 
+  false.
 
 create(ID, Name, Extras) ->
   % for now, we are ignoring the extras
@@ -55,6 +57,11 @@ inspector(Deployment) ->
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
 
 step(_C, _G, {step_given, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]})  -> step(_C, _G, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]});
 

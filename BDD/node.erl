@@ -14,7 +14,7 @@
 % 
 % 
 -module(node).
--export([step/3, json/3, validate/1, inspector/1, g/1, create/3]).
+-export([step/2, json/3, validate/1, inspector/1, g/1, create/3]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -61,6 +61,11 @@ json(Name, Description, Order) ->
 % Common Routine
 % Validates the JSON returned by a test as part of general health tests
 % Uses Feature validate, but through central routine     
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
 
 step(Config, _Given, {step_when, {_Scenario, _N}, ["AJAX requests node status on",ID]}) ->
   Page = case ID of

@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -13,11 +13,42 @@
 # limitations under the License. 
 # 
 
-class CrowbarController < BarclampController
+class CrowbarController < ApplicationController
+
+  THROTTLE = 1
+
+  def turn(deployment)
   
-  def index
-    @title = I18n.t('title', :scope=>'barclamp.crowbar.index')
-    super
+    # ZEHICLE TODO - this is in develoment!!
+
+    count = 1
+    return unless deployment.committed?
+
+    candidates = deployment.node_roles
+    myturn = nil
+
+    # remove candidates that are not todo or proposed
+    # we'd like to have some randomization of which canidate get run next
+
+    if candidates.length == 0
+      deployment.activate 
+    else
+      NodeRole.transaction do 
+        return if candidates.any? { |c| c.error? }
+        # zehicle - we need to do turns per jig? yes
+        myturn = Turn.create 
+        candidates.each do |c| 
+          c.turn = myturn if c.excutable? 
+          count += 1
+          # we want a way to limit the number of canidates processed in each turn
+          break if count > THROTTLE
+        end
+      end
+
+      Jig.turn(myturn)  # background runner started w/ turn to each jig
+
+    end
+
   end
       
 end

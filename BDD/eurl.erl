@@ -13,12 +13,16 @@
 % limitations under the License. 
 % 
 -module(eurl).
--export([post/3, put/3, delete/2, delete/3, delete/4, post_params/1, post/5, put_post/4, put_post/5, uri/2, path/1, path/2]).
--export([get/2, get/3, get_page/3, get_ajax/2, peek/2, search/2, search/3]).
+-export([post/3, put/3, delete/1, delete/2, post_params/1, post/5, put_post/3, put_post/4, put_post/5, uri/1, path/1, path/2]).
+-export([get_http/1, get_result/2, get/1, get/2, get/3, get_page/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1, find_heading/2]).
 -export([form_submit/2, form_fields_merge/2]).
 -export([encode/1]).
+% depricate!
+-export([uri/2]).
+-include("bdd.hrl").
 
+search(Match, Result, Test) when is_record(Result, http) -> search(Match, [Result], Test);
 search(Match, Results, Test) ->
 	F = fun(X) -> case {X, Test} of 
 	  {true, true} -> true; 
@@ -26,8 +30,7 @@ search(Match, Results, Test) ->
 	  {_, false} -> true;
 	  {_, true} -> false end end,
 	lists:any(F, ([peek(Match,Result) || Result <- Results, Result =/= [no_op]])).
-search(Match, Results) ->
-	search(Match, Results, true).
+search(Match, Results)                             -> search(Match, Results, true).
 
 html_peek({Code, Input}, RegEx) ->
   bdd_utils:log(warn, "eurl:html_peek looking for RegEx ~p with code ~p did not get searchable input from ~p",[RegEx, Code, Input]),
@@ -49,10 +52,14 @@ html_head(Input) ->
   RegEx = "<(html|HTML)(.*)<(head|HEAD)>(.*)</(head|HEAD)>(.*)</(html|HTML)>",
   html_peek(Input, RegEx).
 
+% http record format
+peek(Match, Http) when is_record(Http, http) -> peek(Match, Http#http.data);
+% legacy format
 peek(Match, {ajax, 200, Input}) -> peek(Match, Input);  
 peek(Match, {Code, Input})      -> 
   bdd_utils:log(warn, "eurl:peek looking for RegEx ~p with code ~p did not get searchable input from ~p",[Match, Code, Input]),
   false;
+% actual search
 peek(Match, Input) ->
 	bdd_utils:log(trace, "eurl:peek compile looking for: ~p", [Match]),
 	try re:compile(Match, [caseless, multiline, dotall, {newline , anycrlf}]) of
@@ -207,12 +214,17 @@ find_block_helper(Test, RE) ->
 		_ -> false
 	end.
 
-uri(Config, Path) ->
-	Base = bdd_utils:config(Config, url),
-	path(Base,Path).
+uri(_Config, Path) -> bdd_utils:depricate({2013,10,1}, eurl, uri, eurl, uri, [Path]).
+uri(Path) ->
+	Base = bdd_utils:config(url),
+  case string:left(Path, length(Base)) of
+  	Base -> Path;
+    _    -> path([Base, Path])
+  end.
 
-path([Head, Tail])  -> path(Head, Tail);
-path([Head | Tail]) -> path(Head, path(Tail)).
+path([base, Head | Tail]) -> path([uri(Head) | Tail]);    % combines the uri call w/ path!  path([base, "foo", "bar"])
+path([Head, Tail])        -> path(Head, Tail);
+path([Head | Tail])       -> path(Head, path(Tail)).
 
 path(Base, Path) when is_atom(Path) -> path(Base, atom_to_list(Path));  
 path(Base, Path) when is_atom(Base) -> path(atom_to_list(Base), Path); 
@@ -225,35 +237,47 @@ path(Base, Path) ->
     {_, "?"}  -> Base ++ Path;
     {_, _}    -> Base ++ "/" ++ Path
   end.
+
+% Find records from the results
+get_result(Results, Type) ->
+  try lists:keyfind(Type, 1, Results) of
+     % for now, just remap rest into ajax
+     false  -> bdd_utils:log(warn, "bdd_restrat:get_result did not find expected ~p in result",[Type]),
+               bdd_utils:log(debug, "more.... in ~p",[Results]),
+               not_found;
+     R      -> R
+  catch
+    X -> bdd_utils:log(warn, bdd_restrat, get_result, "error ~p for ~p in result ~p",[X,Type, Results]),
+    not_found
+  end.
   
+% get a page from a server - return http record  
+get_http(Page)                -> simple_auth:request(uri(Page)).
 % get a page from a server - returns {Code, Body}
+% depricate!
+get(X) -> bdd_utils:log(error, eurl, get, "Use get_http instead! this is not a valid call", []), get_http(X).
 get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
 get(Config, URL, all) ->
-  bdd_utils:log(Config, debug, "eurl:get Getting ~p", [URL]),
+  bdd_utils:log(debug, "eurl:get Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(Config, dump, "eurl:get Result ~p: ~p", [Code, Body]),
+  bdd_utils:log(dump, "eurl:get Result ~p: ~p", [Code, Body]),
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
-get(Config, URL, OkReturnCodes) ->
-  bdd_utils:log(Config, trace, "eurl:get get(Config, URL, OkReturnCodes)"),
-  translateReturnCodes(get, get(Config, URL, all), OkReturnCodes, URL, get).
+get(_Config, URL, _OkReturnCodes) ->
+  bdd_utils:log(trace, "eurl:get get(Config, URL, OkReturnCodes)"),
+  R = get_http(URL),
+  {R#http.code, R#http.data}.
 
 % prevent trying to get invalid pages from previous steps
-get_page(Config, {error, Issue, URL}, _Codes) ->
-  bdd_utils:log(Config, warn, "eurl:get_page aborted request due to ~p from bad URL ~p", [Issue, URL]),
+get_page(_Config, {error, Issue, URI}, _Codes) ->
+  bdd_utils:log(warn, "eurl:get_page aborted request due to ~p from bad URL ~p", [Issue, URI]),
   {500, Issue};
 % page returns in the {CODE, BODY} format
-get_page(Config, Page, Codes) -> get(Config, uri(Config, Page), Codes).
-% ajax returns in the {ajax, BODY/CODE, {details}} format
-get_ajax(Config, URI) ->
-  case eurl:get_page(Config, URI, all) of
-    {200, JSON} -> {ajax, json:parse(JSON), {get, URI}};
-    {Code, _}   -> {ajax, Code, {get, URI}}
-  end.
- 
+get_page(Config, URI, Codes) -> get(Config, uri(Config, URI), Codes).
+
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;
 post_params([{K, V} | P], ParamsOrig) -> 
@@ -274,26 +298,27 @@ post(Config, URL, Parameters, ReturnCode, StateRegEx) ->
 	end. 
 
 % Post using JSON to convey the values
-post(Config, Path, JSON)    -> put_post(Config, Path, JSON, post).
-put(Config, Path, JSON)     -> put_post(Config, Path, JSON, put).
+post(_Config, Path, JSON)    -> put_post(Path, JSON, post).
+put(_Config, Path, JSON)     -> put_post(Path, JSON, put).
   
-% Put using JSON to convey the values
-put_post(Config, Path, JSON, Action)      -> put_post(Config, Path, JSON, Action, []).
-% handle empty JSON case
-put_post(Config, Path, [], Action, OkReturnCodes) -> 
-  JSON = "{}",
-  put_post(Config, Path, JSON, Action, OkReturnCodes);
+% DEPRICATE Put using JSON to convey the values
+put_post(_Config, Path, JSON, Action)               -> R = put_post(Path, JSON, Action), {R#http.code, R#http.data}.
+% DEPRICATE handle empty JSON case
+put_post(_Config, Path, [], Action, _OkReturnCodes)  -> R = put_post(Path, "{}", Action), {R#http.code, R#http.data}.
 % do the work (get all returns)
-put_post(Config, Path, JSON, Action, all) ->
-  URL = uri(Config, Path),
-  bdd_utils:log(Config, debug, "~pting to ~p", [atom_to_list(Action), URL]),
-  Result = simple_auth:request(Config, Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
-  {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:put_post Result ~p: ~p", [ReturnCode, Body]),
-  {ReturnCode, Body};
-% deal w/ different return code options
-put_post(Config, Path, JSON, Action, OkReturnCodes) ->
-  translateReturnCodes(put_post, put_post(Config, Path, JSON, Action, all), OkReturnCodes, Path, Action).
+put_post(Path, JSON, Action) ->
+  URL = uri(Path),
+  bdd_utils:log(debug, "~pting to ~p", [atom_to_list(Action), URL]),
+  Result = simple_auth:request(Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
+  Result.
+
+delete(Path, Id) -> delete(path([Path, Id])).
+delete(URI)  ->
+  URL = uri(URI),
+  bdd_utils:log(debug, eurl, delete, "url ~p", [URL]),
+  Result = simple_auth:request(delete, URL, [{timeout, 40000}], []), 
+  bdd_utils:log(trace, eurl, delete, "Result ~p", [Result]),
+  Result.
 
 form_submit(Config, Form) ->
   {fields, FormFields} = lists:keyfind(fields, 1, Form),
@@ -337,33 +362,3 @@ encode([H | T]) ->
     _   -> [H |encode(T)]
   end.
 
-delete(Config, URL)           -> delete(Config, URL, [], all).
-delete(Config, Path, [])      -> delete(Config, uri(Config, Path), [], all);
-delete(Config, Path, Id)      -> delete(Config, Path, Id, []).
-delete(Config, URL, [], all)  ->
-  bdd_utils:log(Config, debug, "eurl:Deleting ~p", [URL]),
-  Result = simple_auth:request(Config, delete, {URL}, [{timeout, 40000}], []),  
-  {ok, {{"HTTP/1.1",ReturnCode, _State}, _Head, Body}} = Result,
-  bdd_utils:log(Config, trace, "bdd_utils:delete Result ~p: ~p", [ReturnCode, Body]),
-  {ReturnCode, Body};
-delete(Config, Path, Id, all) ->
-  URL = uri(Config, Path) ++ "/" ++ Id,
-  delete(Config, URL, [], all);
-delete(Config, Path, Id, OkReturnCodes) -> 
-  translateReturnCodes(delete, delete(Config, Path, Id, all), OkReturnCodes, Path, delete).
-  
-% Used by get, post, put, delete to allow users to control response to return codes
-translateReturnCodes(_From, {200, _},        _OkReturnCodes, _Path, delete)  -> true;
-translateReturnCodes(_From, {200, Body},     _OkReturnCodes, _Path, _Action) -> Body;
-translateReturnCodes(_From, {Code, _Body},   all, _Path, _Action)            -> Code; 
-translateReturnCodes(_From, {_Code, _Body},  neg_one, _Path, _Action)        -> "-1";
-translateReturnCodes(_From, {_Code, _Body},  error, _Path, _Action)          -> "-1";
-translateReturnCodes(From,  {Code, Body},    OkReturnCodes, Path, Action)    -> 
-  Listed = lists:keyfind(Code, 1, OkReturnCodes),
-  case Listed of
-     false -> 
-        bdd_utils:log(error,"eurl:~p ~p attempt at ~p failed.  Return code: ~p in ~p", [From, Action, Path, Code, OkReturnCodes]),
-        bdd_utils:log(debug,"eurl:~p Body: ~p", [From, Body]),
-        throw({eURLerror, Code, Path});
-     {Code, ReturnAtom} -> ReturnAtom
-   end.

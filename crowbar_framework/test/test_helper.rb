@@ -14,9 +14,7 @@
 
 # SimpleCov supports only Ruby 1.9. It must be required and started before the
 # application code loads, so keep this block at the top.
-if RUBY_VERSION != '1.8.7'
-  require 'simplecov'
-end
+require 'simplecov'
 
 ENV["RAILS_ENV"] = "test"
 require File.expand_path("../../config/environment", __FILE__)
@@ -59,6 +57,7 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   
   # base objects that are required!
+  BarclampCrowbar::Jig.find_or_create_by_name :name=>'script'
   BarclampTest::Jig.find_or_create_by_name :name=>'test'
   Barclamp.import 'crowbar'
   Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')

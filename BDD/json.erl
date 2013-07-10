@@ -18,7 +18,6 @@
 -export([parse/1, value/2, output/1, pretty/1, keyfind/2]).
 -export([json_array/3, json_value/2, json_safe/3]).
 -import(bdd_utils).
-
 -record(json, {list=[], raw=[]}).
 -record(jsonkv, {value=[], raw=[]}).
 

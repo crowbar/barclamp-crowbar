@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-class RoleRequire < ActiveRecord::Base
-
-  attr_accessible :id, :role_id, :requires
-
-  belongs_to 	    :role
-  has_one         :upstream,    :class_name => Role, :foreign_key => "name", :primary_key => "requires"
-  alias_attribute :parent,      :upstream
-
+class CreateCycles < ActiveRecord::Migration
+  def change  
+    create_table :cycles do |t|
+      t.integer     :state,           :null=>true
+      t.string      :name,            :null=>true   # expected for error, blocked, transistioning
+      t.string      :description,     :null=>true
+      t.integer     :order,           :default=>1000
+      t.timestamps
+    end
+    #natural key 
+    # none
+  end
 end

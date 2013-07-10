@@ -255,7 +255,6 @@ gems:
     - chefspec
     - coveralls
     - database_cleaner
-    - delayed_job_active_record
     - devise
     - email_spec
     - formtastic
@@ -277,7 +276,6 @@ gems:
     - rails-erd
     - rake
     - rcov
-    - simplecov
     - rdoc
     - rest-client
     # Pinned to not interfere with chefspec.
@@ -285,6 +283,7 @@ gems:
     - sass
     - sass-rails-(~>3.2.3)
     - sendfile
+    - simplecov
     - simple-navigation
     - sqlite3
     - state_machine

@@ -33,9 +33,7 @@ class Role < ActiveRecord::Base
   has_many        :role_requires,     :dependent => :destroy
   alias_attribute :requires,          :role_requires
 
-  
-  # take run data from the jig and process it into attributes
-  def process_inbound_data jig, node, data
-  end
+  has_many        :upstreams,         :through => :role_requires
+  scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
 
 end

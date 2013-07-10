@@ -14,13 +14,12 @@
 % 
 
 % REST DEFINITIONS
--record(list, {type = unknown, data, link = unknown, count = -1, ids = [] }).
+-record(list, {namespace = not_set, type = unknown, data, url = unknown, ids = [], count = -1 }).
   % note: the ids field is for backward compatability against the legacy 2.0 api
 
--record(item, {type = unknown, data, link = unknown}).
+-record(obj,  {namespace = not_set, type = unknown, data, url = unknown, id = -1 }).
 
-% track URL data per API
--record(meta_api, {datatype = "unknown", version = "0.0"}).
+-record(item, {namespace = unknown, type = unknown, data, url = unknown}).
 
-% return rest data from a call
--record(rest, {data = "error", code = 500, url = "/", datatype = "unknown", version="0.0"}).
+% return generic data from a call
+-record(http, {data = "error", code = 500, url = "/", datatype = "unknown", version="0.0", namespace = bdd_restrat,  details = [] }).

@@ -14,7 +14,8 @@
 % 
 % 
 -module(dashboard).
--export([step/3, g/1, inspector/1]).
+-export([step/2, g/1, inspector/1]).
+-include("bdd.hrl").
 
 % Common Routine
 g(Item) ->
@@ -29,6 +30,11 @@ g(Item) ->
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(_Config) -> [].  % add items to check
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
   
 % ==== GIVEN   
 step(_Config, Given, {step_when, _N, ["I examine the dashboard fingerprint"]}) -> 

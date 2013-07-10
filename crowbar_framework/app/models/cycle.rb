@@ -12,27 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-class JigsController < ApplicationController
 
-  def index
-    respond_to do |format|
-      format.html { @jigs = Jig.order("'order'") } # show.html.erb
-      format.json { render api_index :jig, Jig.all }
-    end
-  end
 
-  def show
-    render api_show :jig, Jig
-  end
+class Cycle < ActiveRecord::Base
 
-  def create
-    j = Jig.create! params
-    render api_show :jig, Jig, nil, nil, j
-  end
-  
-  def destroy
-    render api_delete Jig
-  end
-      
+  attr_accessible :id, :description, :order, :name, :state
+
+  has_many        :node_roles
+
+  ERROR       = -1
+  ACTIVE      = 0
+  TODO        = 1
+  TRANSISTION = 2
+  PROPOSED    = nil
+
 end

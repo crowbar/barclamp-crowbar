@@ -5,16 +5,11 @@ Feature: Barclamp API
 
   Scenario: Barclamps List
     When REST gets the {object:barclamp} list
-    Then there should be a value "crowbar"
-      And there should be a value "provisioner"
-
-  Scenario: Barclamps List with Network
-    Skip remember to put the network back into the above test!!
-    When REST gets the {object:barclamp} list
-    Then there should be a value "network"
+    Then the list should have an object with key "name" value "crowbar"
+      And the list should have an object with key "name" value "provisioner"
+      And the list should have an object with key "name" value "network"
 
   Scenario: REST JSON check
-    Skip TODO ZEHICLE disable during refactoring
     When REST gets the {object:barclamp} "crowbar"
     Then the {object:barclamp} is properly formatted
     

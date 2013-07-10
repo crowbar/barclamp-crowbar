@@ -27,10 +27,10 @@ test(ConfigName)         ->
   % get the list of features to test
   Features = bdd_utils:features(StartedConfig),
   %run the tests
-  Complete = run(StartedConfig, [], Features),
+  Complete = run([], [], Features),
   % cleanup application services
-  EndConfig = stop(Complete),
-  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, EndConfig),
+  stop([]),
+  Results = lists:filter(fun(R) -> case R of {feature, _, _, _}->true; _ -> false end end, Complete),
   File = bdd_print:file(),
   file:write_file(File,io_lib:fwrite("{test, ~p, ~p, ~p}.\n",[date(), time(),Results])),
   Final = [{Fatom, bdd_print:report(R)} || {feature, Fatom, _Feature, R} <-Results],
@@ -71,9 +71,9 @@ scenario(ConfigName, Feature, Name)    ->
 scenario(ConfigName, Feature, ID, Log) ->
   Config = bdd_utils:config_set(getconfig(ConfigName), log, Log),
   FileName = bdd_utils:features(Config, Feature),
-  FeatureConfig = run(Config, Feature, FileName, ID),
-  C = stop(FeatureConfig),
-  lists:keyfind(feature, 1, C).
+  Result = run(Config, Feature, FileName, ID),
+  stop([]),
+  proplists:get_value(feature, Result).
   
 % version of scenario with extra loggin turned on
 debug(Feature, ID)                -> debug(default, Feature, ID, debug).
@@ -184,7 +184,7 @@ stop(Config) ->
       application:stop(crypto),
       application:stop(inets),
       bdd_utils:config_unset(auth_field),
-      bdd_utils:config_set(TearDownConfig, started, false);
+      bdd_utils:config_unset(started);
     _ -> Config  
   end.
 
@@ -243,16 +243,16 @@ test_scenario(Config, RawSteps, Name) ->
     
     	% execute all the given steps & put their result into GIVEN
     	bdd_utils:trace(Config, Name, N, RawSteps, ["No Given: pending next pass..."], ["No When: pending next pass..."]),
-    	Given = [step_run(Config, [], GS) || GS <- GivenSteps],
+    	Given = lists:flatten([step_run(Config, [], GS) || GS <- GivenSteps]),
     	% now, excute the when steps & put the result into RESULT
     	bdd_utils:trace(Config, Name, N, RawSteps, Given, ["No When: pending next pass..."]),
     	When = case length(WhenSteps) of
     	  0 -> Given;
-    	  _ -> [step_run(Config, Given, WS) || WS <- WhenSteps]
+    	  _ -> lists:flatten([step_run(Config, Given, WS) || WS <- WhenSteps])
     	end,
     	bdd_utils:trace(Config, Name, N, RawSteps, Given, When),
     	% now, check the results
-    	Result = [{step_run(Config, When, TS), TS} || TS <- ThenSteps],
+    	Result = lists:flatten([{step_run(Config, When, TS), TS} || TS <- ThenSteps]),
     	% safe to cleanup with the finally steps (we don't care about the result of those)
     	_Final = [{step_run(Config, Given, FS), FS} || FS <- FinalSteps],
     	% now, check the results of the then steps
@@ -268,7 +268,7 @@ test_scenario(Config, RawSteps, Name) ->
 
 % Inital request to run a step does not know where to look for the code, it will iterate until it finds the step match or fails
 step_run(Config, Input, Step) ->
-	StepFiles = [list_to_atom(bdd_utils:config(Config, feature)) | bdd_utils:config(Config, secondary_step_files, [bdd_webrat, bdd_catchall])],
+	StepFiles = [list_to_atom(bdd_utils:config(feature)) | bdd_utils:config(secondary_step_files, [bdd_webrat, bdd_catchall])],
   step_run(Config, Input, Step, StepFiles).
 	
 % recursive attempts to run steps
@@ -276,7 +276,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
   Alias = bdd_utils:config(alias_map, {Feature, Feature}),
   % now we need to try and run the feature
-	try apply(Alias, step, [Config, Input, Step]) of
+	try apply(Alias, step, [Input, Step]) of
 		error -> 
 		  {error, Step};
 		Result -> 
@@ -301,7 +301,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  bdd_utils:marker("BDD ERROR"),
 		  log(info,  "step run found ~p:~p", [X, Y]), 
       log(debug, "Stacktrace: ~p", [erlang:get_stacktrace()]),
-      log(error, "Attempted \"apply(~p, step, [[Config], [Input], ~p]).\"",[Feature, Step]),
+      log(error, "Attempted \"apply(~p, step, [[Input], ~p]).\"",[Feature, Step]),
 		  error 
 	end;
 
@@ -313,7 +313,7 @@ step_run(Config, _Input, {step_teardown, _, Feature}, [])
 	
 % no more places to try, fail and tell the user to create the missing step
 step_run(_Config, _Input, Step, []) ->
-	log(error, "Unable to resolve step ~p!", [Step]),
+	bdd_utils:log(error, bdd, step_run, "Unable to resolve step ~p!", [Step]),
 	throw("FAIL: no matching expression found for Step"), 
 	error.
 	
@@ -384,7 +384,7 @@ inspect(_Config, Result, []) -> Result;
 inspect(Config, Result, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
   Alias = bdd_utils:config(alias_map, {Feature, Feature}),
-  try apply(Alias, inspector, [Config]) of
+  try apply(Alias, inspector, []) of
 		R -> R ++ inspect(Config, Result, Features)
 	catch
 		_X: _Y -> inspect(Config, Result, Features) % do nothing, we just ignore lack of inspectors

@@ -14,7 +14,7 @@
 % 
 % 
 -module(jig).
--export([step/3, json/4, validate/1, inspector/1, g/1]).
+-export([step/2, json/4, validate/1, inspector/1, g/1]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -49,6 +49,11 @@ json(Name, Description, Type, Order) ->
 % Returns list of nodes in the system to check for bad housekeeping
 inspector(Config) -> 
   bdd_restrat:inspector(Config, jig).  % shared inspector works here, but may not always
+
+% TEMPORARY REMAPPING
+% -include("bdd.hrl").
+step(In, Out) -> step([], In, Out).
+
 
 step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", Type]}) -> 
   JSON = json(Jig, g(description), Type, 200),

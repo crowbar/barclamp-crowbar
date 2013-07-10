@@ -21,13 +21,14 @@
 -export([log/5, log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
 -export([features/1, features/2, feature_name/2, os_type/0]).
 -export([setup_create/5, setup_create/6, teardown_destroy/3]).
--export([is_site_up/1, is_a/2, is_a/3, marker/1]).
+-export([is_site_up/1, is_a/2, is_a/3, marker/1, parse_object/1]).
 -define(NORMAL_TOKEN, 1).
 -define(ESCAPED_TOKEN, 2).
 -define(SUBSTITUTE_TOKEN, 3).
 -define(LOG_LEVELS, [true, puts, dump, trace, debug, info, warn, error]).
 -define(LOG_DEFAULT, [true, puts, info, warn, error]).
 -define(LOG_TITLES, [pass, fail, skip, header, result, feature, step, step_pass, step_fail]).
+-include("bdd.hrl").
 
 assert(Bools) ->
 	assert(Bools, true).
@@ -128,12 +129,13 @@ features(Config) ->
   filelib:wildcard(features(Config, "*")).
 
 % return the path to a feature to test
-features(Config, Feature) ->
-  config(Config,feature_path,"features/") ++ Feature ++ "." ++ config(Config,extension,"feature").
+features(_Config, Feature) when is_atom(Feature) -> features(_Config, atom_to_list(Feature));
+features(_Config, Feature) ->
+  config(feature_path,"features/") ++ Feature ++ "." ++ config(extension,"feature").
   
 % helper that finds the feature from the FileName
-feature_name(Config, FileName) ->
-  RegEx = bdd_utils:config(Config,feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(Config,extension,"feature"),
+feature_name(_Config, FileName) ->
+  RegEx = bdd_utils:config(feature_path,"features/") ++ "(.*)." ++ bdd_utils:config(extension,"feature"),
 	{ok, RE} = re:compile(RegEx, [caseless]),
 	case re:run(FileName, RE) of 
 	  {match,[{0,_},{Start,Length}]} -> string:sub_string(FileName, Start+1, Start+Length);
@@ -170,7 +172,7 @@ marker(Notice) ->
   Safe = string:join(SafePre,"_"),
   case {Show, URL} of
     {_, undefined}-> false;
-    {true, _}     -> eurl:get([], eurl:path(URL, Safe));
+    {true, _}     -> eurl:get_http(eurl:path([URL, Safe]));
     _             -> false
   end.
   
@@ -231,6 +233,9 @@ is_site_up(Config) ->
       log(Config, error, "bdd_utils: Web site '~p' is not responding! Remediation: Check server.  Message: ~p", [URL, Reason]),
       Config
   end.
+
+% rest response specific for generic JSON parsing from http record
+parse_object(Results) -> #item{data=Results#http.data , url=Results#http.url}.
 
 % config using BIFs
 config(Key) -> config(Key, undefined).

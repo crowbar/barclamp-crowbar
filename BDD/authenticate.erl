@@ -14,41 +14,36 @@
 % 
 % 
 -module(authenticate).
--export([step/3, g/1]).
+-export([step/2, g/1]).
+-include("bdd.hrl").
 
 g(Item) ->
   case Item of
     _ -> crowbar:g(Item)
   end.
-  
-                                                              
-step(Config, _Global, {step_setup, _N, _}) -> 
+                                                            
+step(_Global, {step_setup, _N, _}) -> 
   % "hide" authentication credentials on config list in prep for testing 
-  AuthField = bdd_utils:config(Config, auth_field),
-  bdd_utils:log(Config, trace, "authenticate:setup auth - removing auth_field ~p",[AuthField]),
-  C = bdd_utils:config_unset(Config, auth_field),
+  AuthField = bdd_utils:config(auth_field),
+  bdd_utils:log(trace, "authenticate:setup auth - removing auth_field ~p",[AuthField]),
+  C = bdd_utils:config_unset(auth_field),
   bdd_utils:config(C, hidden_auth_field, AuthField);
 
-step(Config, _Global, {step_teardown, _N, _}) -> 
+step(_Global, {step_teardown, _N, _}) -> 
   % restore hidden authentication credentials on config list
-  AuthField = bdd_utils:config(Config, hidden_auth_field),
-  bdd_utils:log(Config, trace, "authenticate:teardown auth - restoring auth_field ~p",[AuthField]),
-  C = bdd_utils:config_unset(Config, hidden_auth_field),
+  AuthField = bdd_utils:config(hidden_auth_field),
+  bdd_utils:log(trace, "authenticate:teardown auth - restoring auth_field ~p",[AuthField]),
+  C = bdd_utils:config_unset(hidden_auth_field),
   bdd_utils:config(C, auth_field, AuthField);
 
 %----------------------
 
-step(Config, _Given, {step_when, _N, ["I go to home page"]}) ->
-  URL = eurl:uri(Config, []), 
-  {_Status,{{_Protocol,_Code,_Comment}, _Fields, Message}} = simple_auth:request(Config,URL),
-  Message;
-
-step(Config, _Given, {step_when, _N, ["I go to node status page"]}) ->
-  URL = eurl:uri(Config, node:g(status_path)),
+step(_Given, {step_when, _N, ["I go to node status page"]}) ->
+  URL = eurl:uri(node:g(status_path)),
   {_Status,{{_Protocol,Code,_Comment}, _Fields, _Message}} = httpc:request(URL),
   {digest, Code};
 
-step(_Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
+step(_Given, {step_when, _N, ["I login with",User,"and",Pass]}) -> 
   bdd_utils:config_unset(auth_field),
   U = bdd_utils:config(user),
   P = bdd_utils:config(password),
@@ -60,13 +55,13 @@ step(_Config, _Given, {step_when, _N, ["I login with",User,"and",Pass]}) ->
   bdd_utils:config_set(password, P),
   R;
 
-step(Config, _Given, {step_when, _N, ["I visit",Page,"page without login"]}) -> 
-  URL = eurl:uri(Config, Page),
+step(_Given, {step_when, _N, ["I visit",Page,"page without login"]}) -> 
+  URL = eurl:uri(Page),
   {_Status,{{_Protocol,Code,_Comment}, _Fields, Message}} = httpc:request(URL),
-  bdd_utils:log(Config, trace, "No Login Request ~p:~p", [Code, Message]),
+  bdd_utils:log(trace, "No Login Request ~p:~p", [Code, Message]),
   Message;
                                                
-step(_Config, Result, {step_then, _N, ["I should get a",Code,"error"]}) -> 
+step(Result, {step_then, _N, ["I should get a",Code,"error"]}) -> 
   {C, _} = string:to_integer(Code),
   {digest, R} = lists:keyfind(digest, 1, Result),
   R =:= C.

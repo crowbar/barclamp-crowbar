@@ -14,7 +14,7 @@
 % 
 % 
 -module(barclamp).
--export([step/3, json/3, validate/1, inspector/1, g/1]).
+-export([step/2, step/3, json/3, validate/1, inspector/1, g/1]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -29,25 +29,26 @@ g(Item) ->
   
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(JSON) ->
-  Wrapper = crowbar_rest:api_wrapper(JSON),
-  J = Wrapper#item.data,
-  R =[Wrapper#item.type == barclamp,
+validate(JSON) when is_record(JSON, obj) ->
+  J = JSON#obj.data,
+  R =[JSON#obj.type == "barclamp",
       bdd_utils:is_a(J, boolean, user_managed), 
       bdd_utils:is_a(J, number, layout), 
       bdd_utils:is_a(J, boolean, allow_multiple_deployments), 
       bdd_utils:is_a(J, number, proposal_schema_version), 
-      bdd_utils:is_a(J, number, jig_order), 
-      % invalid test bdd_utils:is_a(J, string, transitions), 
       bdd_utils:is_a(J, string, mode), 
-      % invalid test bdd_utils:is_a(J, string, transition_list), 
-      bdd_utils:is_a(J, number, run_order), 
       bdd_utils:is_a(J, string, display), 
       bdd_utils:is_a(J, string, commit), 
       bdd_utils:is_a(J, string, source_path), 
+      bdd_utils:is_a(J, string, api_version), 
+      bdd_utils:is_a(J, string, api_version_accepts), 
       bdd_utils:is_a(J, number, version), 
+      bdd_utils:is_a(J, length, 21),
       crowbar_rest:validate(J)],
-  bdd_utils:assert(R, debug). 
+  bdd_utils:assert(R, debug);
+validate(JSON) -> 
+  bdd_utils:log(error, barclamp, validate, "requires #obj record. Got ~p", [JSON]), 
+  false.
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
@@ -59,6 +60,9 @@ json(Name, Description, Order) ->
 inspector(Config) -> 
   crowbar_rest:inspector(Config, barclamp).  % shared inspector works here, but may not always
 
-step(Config, _Global, {step_setup, _N, _}) -> Config;
+% DEPRICATE!
+step(_Config, B, C) -> bdd_utils:depricate({2013, 8, 1}, barclamp, step, barclamp, step, [B, C]).
 
-step(Config, _Global, {step_teardown, _N, _}) -> Config.
+step(_Global, {step_setup, _N, _}) -> true;
+
+step(_Global, {step_teardown, _N, _}) -> true.

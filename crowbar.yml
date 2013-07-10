@@ -32,9 +32,9 @@ barclamp:
     - fedora-18
 
 jigs:
-  script:
-    roles: 
-      - crowbar
+  - name: script
+    roles:
+      - name: crowbar
 
 crowbar:
   layout: 2.0

@@ -63,6 +63,7 @@ parse_object(Results) ->
     "list"  ->  JSON = json:parse(Results#http.data),
                 IDs = [proplists:get_value("id", I) || I <- JSON],
                 #list{namespace = crowbar, data=JSON, type = Type, ids = IDs, url = Results#http.url, count = length(IDs) };
+    "empty" ->  #obj{namespace = crowbar, data=none, type = Type, id = -1, url = Results#http.url };
     "error" ->  #obj{namespace = crowbar, data=error, type = Type, id = -1, url = Results#http.url };
     _       ->  bdd_utils:log(warn, "Crowbar API returned unexpected quantity flag (expected obj or list).  Returned ~p", [Results]),
                 #item{namespace = crowbar, data=Results#http.data , url=Results#http.url}

@@ -14,7 +14,7 @@
 % 
 -module(bdd_restrat).
 -export([step/2]).
--export([get_id/1, get_id/2, create/2, create/3, create/4, create/5, destroy/2, update/4, validate/1]).
+-export([validate/1]).
 -export([get_object/1, get_result/2, parse_object/1, alias/1]).
 -export([step/3]).  % depricate
 -include("bdd.hrl").
@@ -48,75 +48,6 @@ parse_object(Results) ->
 
 % this should NOT be called here, only in the objects
 validate(_) -> bdd_utils:log(warn, "bdd_restrat:validate should not be called. Use your platform specific validator").
-
-% given a path + key, returns the ID of the object
-get_id(Path, Key) -> get_id(eurl:path(Path,Key)).
-get_id(Path) ->
-  R = eurl:get(Path),
-  O = get_object(R),
-  bdd_utils:log(trace, bdd_restrat, get_id, "path ~p Result: ~p", [Path, R]),
-  if 
-    is_record(O, obj) -> O#obj.id;
-    true -> "-1" 
-  end.
-
-% helper common to all setups using REST 
-
-%_Config, g(path),username, User
-create(Path, JSON)                  -> create(Path, name, JSON, post).
-create(Path, KeyName, JSON)         -> create(Path, KeyName, JSON, post).
-create(Path, Atom, KeyName, JSON)   when is_atom(Atom)   -> create(Path, Atom, KeyName, JSON, post);
-create(Path, KeyName, JSON, Action) when is_atom(Action) ->
-  % just in case - cleanup to prevent collision
-  Key = json:keyfind(JSON, KeyName),
-  bdd_utils:log(debug,"bdd_restrat create object key ~p=~p on Path ~p using ID from ~p",[KeyName,Key,Path,Action]),
-  destroy(Path, Key),
-  % create node(s) for tests
-  eurl:put_post(Path, JSON, Action).
-create(Scenario, Type, Path, Name, JSON) when is_number(Scenario), is_atom(Type) ->
-  bdd_utils:log(debug,"bdd_restrat create for Scenario ~p of ~p ~p with path ~p",[Scenario,Type,Name,Path]),
-  destroy(Path, Name),
-  Result = eurl:put_post(Path, JSON, post),
-  O = get_object(Result), 
-  bdd_utils:scenario_store(Scenario, Type, O#obj.id),
-  Result;
-create(Path, Atom, KeyName, JSON, Action) when is_atom(Atom) ->
-  bdd_utils:log(trace, "bdd_restrat:create Path: ~p, Atom: ~p, KeyName: ~p, Action: ~p", [Path, Atom, KeyName, Action]),
-  Result = json:parse(create(Path, KeyName, JSON, Action)),
-  % get the ID of the created object
-  Key = json:keyfind(Result, id),
-  % friendly message
-  bdd_utils:log(debug, "Created ~s (key=~s & id=~s) for testing.", [KeyName, Atom, Key]),
-  % add the new ID to the config list
-  bdd_utils:config_set(Atom, Key).
-
-update(Path, Atom, KeyName, JSON) ->
-  bdd_utils:log(trace, "bdd_restrat:update Path: ~p, Atom: ~p, KeyName: ~p, JSON: ~p", [Path, Atom, KeyName, JSON]),
-  PutResult = eurl:put_post(Path, JSON, put),
-  bdd_utils:log(debug, "Update done, result: ~p !!!",[PutResult]),
-  PutResult.
-
-% helper common to all setups using REST
-destroy(Path, Atom) when is_atom(Atom) ->
-  Item = bdd_utils:config(Atom, not_found),
-  bdd_utils:log(trace, "bdd_restrat:destroy(atom) deleting ~p with id ~p using path ~p",[Atom, Item, Path]),
-  case Item of
-    not_found -> 
-        bdd_utils:log(debug, "bdd_restrat:destroy(atom) could not find ID for atom ~p (likely OK)",[Atom]);
-    Key       -> 
-        destroy(Path, Key),
-        bdd_utils:unset(Item)
-  end;
-
-% helper common to all setups using REST
-destroy(Path, Key) ->
-  bdd_utils:log(trace, "Entering bdd_restrat:destroy Path: ~p, Key: ~p", [Path, Key]),
-  case get_id(Path, Key) of
-    "-1" -> bdd_utils:log(trace, "Removal of key ~s skipped: not found.", [Key]);
-    ID   -> eurl:delete(Path, ID),
-            bdd_utils:log(debug, "Removed key ~s & id ~s.", [Key, ID])
-  end,
-  done.
   
 % DEPRICATE!
 step(_Config, B, C) -> bdd_utils:depricate({2013, 10, 1}, bdd_restrat, step, bdd_restrat, step, [B, C]).
@@ -230,16 +161,16 @@ step(Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is
 step(Results, {step_then, _N, ["there should be a key",Key]}) -> 
   step(Results, {step_then, _N, ["there is a key",Key]});
 step(Results, {step_then, _N, ["there is a key",Key]}) -> 
-  Obj = get_result(Results, obj),
+  Obj = eurl:get_result(Results, obj),
   bdd_utils:log(debug, bdd_restrat, step, "There should be a Key ~p",[Key]),
-  bdd_utils:log(trace, bdd_restrat, step, "in ~p",[Obj#item.data]),
-  lists:keyfind(Key, 1, Obj#item.data) =/= false;
+  bdd_utils:log(trace, bdd_restrat, step, "in ~p",[Obj#obj.data]),
+  lists:keyfind(Key, 1, Obj#obj.data) =/= false;
                                                                 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
   Obj = get_object(eurl:get(Results)),
-  bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#item.data]),
-  Value =:= json:value(Obj#item.data, Key);
+  bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#obj.data]),
+  Value =:= json:value(Obj#obj.data, Key);
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
@@ -259,7 +190,7 @@ step(Results, {step_then, _N, ["key",Key,"should contain at least",Count,"items"
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 
   Obj = get_result(Results, obj),
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be a number",[Key]),
-  bdd_utils:is_a(number, json:value(Obj#item.data, Key));
+  bdd_utils:is_a(number, json:value(Obj#obj.data, Key));
                                                        
 step(Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(get_result(Results, obj), Key));

@@ -68,7 +68,10 @@ request(Config, delete, {URL}, HTTPOptions, Options) ->
   
 request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options) ->
   %% prepare information that's common
-  {http, _, _Host, Port, DigestURI, Params} = http_uri:parse(URL),
+  {http, _, _Host, Port, DigestURI, Params} = case http_uri:parse(URL) of
+    {error, no_scheme} -> bdd_utils:log(error, simple_auth, request, "incomplete URL (needs http): ~p",[URL]);
+    X -> X
+  end,
   User = bdd_utils:config(Config,user),
   MethodStr = string:to_upper(atom_to_list(Method)),
   Password = bdd_utils:config(Config,password),
@@ -129,7 +132,6 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
 
     _ -> {Status,{{HTTPVersion, StatusCode, ReasonPhrase}, ResponseHeaders, ResponseBody}}
   end.
-
 request(Method, URL, Headers, ContentType, Body, HTTPOptions, Options) ->
   case Method of 
     get -> httpc:request(Method, {URL, Headers}, HTTPOptions, Options);

@@ -217,7 +217,10 @@ find_block_helper(Test, RE) ->
 uri(_Config, Path) -> bdd_utils:depricate({2013,10,1}, eurl, uri, eurl, uri, [Path]).
 uri(Path) ->
 	Base = bdd_utils:config(url),
-	path([Base, Path]).
+  case string:left(Path, length(Base)) of
+  	Base -> Path;
+    _    -> path([Base, Path])
+  end.
 
 path([base, Head | Tail]) -> path([uri(Head) | Tail]);    % combines the uri call w/ path!  path([base, "foo", "bar"])
 path([Head, Tail])        -> path(Head, Tail);
@@ -309,6 +312,14 @@ put_post(Path, JSON, Action) ->
   Result = simple_auth:request(Action, {URL, [], "application/json", JSON}, [{timeout, 10000}], []),  
   Result.
 
+delete(Path, Id) -> delete(path([Path, Id])).
+delete(URI)  ->
+  URL = uri(URI),
+  bdd_utils:log(debug, eurl, delete, "url ~p", [URL]),
+  Result = simple_auth:request(delete, URL, [{timeout, 40000}], []), 
+  bdd_utils:log(trace, eurl, delete, "Result ~p", [Result]),
+  Result.
+
 form_submit(Config, Form) ->
   {fields, FormFields} = lists:keyfind(fields, 1, Form),
   {target, Target} = lists:keyfind(target, 1, Form),
@@ -350,13 +361,4 @@ encode([H | T]) ->
     $~  ->  "%7E" ++ encode(T);
     _   -> [H |encode(T)]
   end.
-
-delete(URL)  ->
-  bdd_utils:log(debug, "eurl:Deleting ~p", [URL]),
-  Result = simple_auth:request(delete, URL, [{timeout, 40000}], []), 
-  bdd_utils:log(trace, "bdd_utils:delete Result ~p", [Result]),
-  Result.
-delete(Path, Id) ->
-  URL = path([base, Path, Id]),
-  delete(URL).
 

@@ -69,7 +69,7 @@ en:
       nodes: "Nodes"
       groups: "Groups"
       roles: "Roles"
-      cycle: "Cycles"
+      cycles: "Cycles"
       deployments: "Deployments"
       snapshots: "Snapshots"
       menus: "Menu Items"

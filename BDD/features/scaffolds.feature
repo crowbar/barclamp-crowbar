@@ -49,7 +49,19 @@ Feature: Scaffolds
       And I should see "Search"
       And I should see "Create New"
       And there should be no translation errors    
-      
+
+  Scenario: Cycles
+    While interactive
+    When I go to the "utils/scaffolds/cycles?limit=1" page
+    Then I should see heading "Cycles"
+      And I should see "Description"
+      And I should see "Node roles"
+      And I should see "Created At"
+      And I should see "Updated At"
+      And I should see "Search"
+      And I should see "Create New"
+      And there should be no translation errors    
+            
   Scenario: Navs
     While interactive
     When I go to the "utils/scaffolds/navs?limit=1" page

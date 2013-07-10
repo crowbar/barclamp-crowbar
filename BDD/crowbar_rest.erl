@@ -58,11 +58,11 @@ step(_Given, {step_finally, _N, ["throw away node",Node]}) ->
 % GROUPS
 step(_Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
   JSON = group_cb:json(Group, group_cb:g(description), 200, Category),
-  bdd_restrat:create([], group_cb:g(path), JSON);
+  bdd_restrat:create(group_cb:g(path), JSON);
 
 % remove the group
 step(_Given, {step_finally, _N, ["throw away group",Group]}) -> 
-  bdd_restrat:destroy([], group_cb:g(path), Group);
+  bdd_restrat:destroy(group_cb:g(path), Group);
 
 % ============================  WHEN STEPS =========================================
 

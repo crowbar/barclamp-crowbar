@@ -21,7 +21,8 @@
       "users": {
         "machine-install": { "password": "machine_password" },
         "crowbar": { "password": "crowbar" }
-      }
+      },
+      "allow_named_proposals": true
     },
     "rails": {
       "max_pool_size": 256,

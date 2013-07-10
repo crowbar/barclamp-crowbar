@@ -23,8 +23,9 @@
 
 class Deployment < ActiveRecord::Base
   
-  attr_accessible :name, :description, :order
-  attr_accessible :barclamp_id, :active_snapshot_id, :proposed_snapshot_id, :committed_snapshot_id
+
+  attr_accessible :name, :description, :barclamp_id, :active_snapshot_id
+  attr_accessible :proposed_snapshot_id, :committed_snapshot_id
 
   validates_uniqueness_of   :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of       :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
@@ -39,6 +40,8 @@ class Deployment < ActiveRecord::Base
   
   has_one           :proposed_snapshot,   :class_name => "Snapshot", :primary_key => "proposed_snapshot_id", :foreign_key => 'id'
 
+  belongs_to        :parent, :class_name => "Deployment", :primary_key => "parent_id"
+
   # active includes nothing being committed
   def active?
     !committed? && !active_snapshot_id.nil?
@@ -47,7 +50,7 @@ class Deployment < ActiveRecord::Base
   def committed?
     !committed_snapshot_id.nil?
   end
-  
+
   def proposed?
     !proposed_snapshot_id.nil?
   end

@@ -16,7 +16,7 @@
 
 class Role < ActiveRecord::Base
 
-  attr_accessible :id, :description, :order, :name, :jig_id, :barclamp_id
+  attr_accessible :id, :description, :name, :jig_id, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
   attr_accessible :role_template, :node_template, :min_nodes      # template info
 
@@ -36,4 +36,27 @@ class Role < ActiveRecord::Base
   has_many        :upstreams,         :through => :role_requires
   scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
 
+  def parents
+    role_requires.map do |r|
+      Role.find.by_name!(r.requires)
+    end
+  end
+
+  def depends_on?(other)
+    return false if self.id == other.id
+    p = parents
+    return false if p.empty?
+    return true if p.any?{|i|i.id == other.id}
+    p.each do |i|
+      return true if i.depends_on?(other)
+    end
+    false
+  end
+
+  def <=>(other)
+    return 0  if self.id == other.id
+    return 1  if self.depends_on?(other)
+    return -1 if other.depends_on?(self)
+    0
+  end
 end

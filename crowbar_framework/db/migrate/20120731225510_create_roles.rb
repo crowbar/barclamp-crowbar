@@ -17,7 +17,6 @@ class CreateRoles < ActiveRecord::Migration
     create_table :roles do |t|
       t.string      :name,              :null=>false
       t.string      :description,       :null=>true
-      t.integer     :order,             :default => 9999, :null => false
       t.string      :role_template,     :null=>true
       t.string      :node_template,     :null=>true
       t.boolean     :library,           :null=>false, :default=>false  # brings in library code thats used to access another role (sql client)

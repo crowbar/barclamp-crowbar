@@ -15,10 +15,10 @@
 
 class Barclamp < ActiveRecord::Base
 
-  attr_accessible :id, :name, :description, :display, :version, :online_help, :user_managed, :type, :source_path
-  attr_accessible :layout, :order
-  attr_accessible :commit, :build_on, :mode
-  attr_accessible :allow_multiple_deployments
+  attr_accessible :id, :name, :description, :display, :version, :online_help
+  attr_accessible :user_managed, :type, :source_path, :layout, :commit
+  attr_accessible :requirements, :members
+  attr_accessible :build_on, :mode, :allow_multiple_deployments
   attr_accessible :api_version, :api_version_accepts, :license, :copyright, :proposal_schema_version
   before_create :create_type_from_name
   # 
@@ -34,11 +34,10 @@ class Barclamp < ActiveRecord::Base
   has_many :roles,              :dependent => :destroy
   
   #
-  # Order barclamps by their order value and then their name
+  # Order barclamps by their dependency trees and then their name
   #
   def <=>(other)
-    # use Array#<=> to compare the attributes
-    [self.order, self.name] <=> [other.order, other.name]
+    [parents.length,name] <=> [other.parents.length,other.name]
   end
   
   #
@@ -55,13 +54,33 @@ class Barclamp < ActiveRecord::Base
     chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(o 0 O i 1 l)
     (1..size).collect{|a| chars[rand(chars.size)] }.join
   end
-  
 
   # indended to be OVERRIDEN for barclamps that want to validate deployments
   # called before the proposal is committed
   # was validate deployment in CB1
   def is_valid?(deployment)
     true
+  end
+
+  # The barclamp groups of which I am a member.
+  def groups
+    members.split(",")
+  end
+
+  # The names of all the barclamps that are my parents.
+  def parents(bcs = Barclamp.all)
+    pnames,grps = requirements.split(',').partition{|i|i[0] != '@'}
+    immediate_parents= bcs.select{|bc|pnames.member?(bc.name)}
+    grps.each do |g|
+      immediate_parents += bcs.select{|bc|bc.groups.include?(g)}
+    end
+    immediate_parents.uniq!
+    res = Array.new
+    immediate_parents.each do |p|
+      res += p.parents(bcs)
+    end
+    res += immediate_parents
+    res.uniq
   end
 
   # called by the jig when the node changes it's state
@@ -90,13 +109,23 @@ class Barclamp < ActiveRecord::Base
     
     # barclamp data import
     Barclamp.transaction do
-    
       # Can't do the || trick booleans because nil is false.
       amp = bc['barclamp']['allow_multiple_deployments'] rescue nil
       amp ||= bc['barclamp']['allow_multiple_proposals'] rescue false
       um = bc['barclamp']['user_managed'] rescue true
       gitcommit = "unknown" if bc['git'].nil? or bc['git']['commit'].nil?
       gitdate = "unknown" if bc['git'].nil? or bc['git']['date'].nil?
+      ## TODO: Add checking to validate that adding this barclamp will not
+      ## result in circular dependencies.
+      reqs = if bc['barclamp']['requires'] &&
+                 !bc['barclamp']['requires'].empty?
+               bc['barclamp']['requires'].join(",")
+             elsif bc_name == "crowbar"
+               ""
+             else
+               "crowbar"
+             end
+      Rails.logger.info("#{bc_name} requires #{reqs}")
       barclamp.update_attributes( :display     => bc['barclamp']['display'] || bc_name.humanize,
                                   :description => bc['barclamp']['description'] || bc_name.humanize,
                                   :online_help => bc['barclamp']['online_help'],
@@ -109,8 +138,9 @@ class Barclamp < ActiveRecord::Base
                                   :user_managed=> um || true,
                                   :allow_multiple_deployments => amp || false,
                                   :proposal_schema_version => bc['crowbar']['proposal_schema_version'] || 2,
+                                  :members     => (bc['barclamp']['members'] || []).join(","),
+                                  :requirements => reqs,
                                   :layout      => bc['crowbar']['layout'] || 2,
-                                  :order       => bc['crowbar']['order'] || 0,
                                   :mode        => "full",
                                   :build_on    => (gitdate || 'unknown'),
                                   :commit      => (gitcommit || 'unknown')   )
@@ -137,6 +167,7 @@ class Barclamp < ActiveRecord::Base
             flags = details['flags'] || []
             description = details['descripion'] || "imported by #{barclamp.name}"
             # roles data import
+            ## TODO: Verify that adding the roles will not result in circular role dependencies.
             Role.transaction do
               r = Role.create :name=>role_name, :jig_id=>jig.id, :description=>description, :barclamp_id=>barclamp.id, 
                       :library=>flags.include?('library'), :implicit=>flags.include?('implicit'), 

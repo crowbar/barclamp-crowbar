@@ -167,10 +167,10 @@ class NodeObject < ChefObject
     return value if self.alias==value
     value = value.strip.sub(/\s/,'-')
     # valid DNS Name
-    if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
+      if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
       raise "#{I18n.t('model.node.invalid_dns')}: #{value}"
-    elsif value.length+ChefObject.cloud_domain.length>255  
+    elsif value.length+ChefObject.cloud_domain.length>63  
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit"
       raise "#{I18n.t('too_long_dns', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     else

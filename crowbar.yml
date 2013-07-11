@@ -236,6 +236,7 @@ gems:
     - rainbows
     - sendfile
     - sqlite3-ruby
+    - app_config-1.0.2
     # rdoc
     - net-ssh-multi
     - formtastic-1.2.4

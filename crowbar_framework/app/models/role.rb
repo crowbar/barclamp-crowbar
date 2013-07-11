@@ -16,10 +16,11 @@
 
 class Role < ActiveRecord::Base
 
+  class Role::MISSING_DEP < Exception
+  end
   attr_accessible :id, :description, :name, :jig_id, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
   attr_accessible :role_template, :node_template, :min_nodes      # template info
-
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
   validates_uniqueness_of   :name,  :scope => :jig_id
@@ -51,6 +52,37 @@ class Role < ActiveRecord::Base
       return true if i.depends_on?(other)
     end
     false
+  end
+
+  # Bind a role to a node in a snapshot.
+  def add_to_node_in_snapshot(node,snap)
+    NodeRole.transaction do
+      # If we are already bound to this node in a snapshot, do nothing.
+      res = NodeRole.peers_by_node_and_role(snap,node,self).first
+      return res if res
+      # Check to make sure that all my parent roles are bound properly.
+      # If they are not, die unless it is an implicit role.
+      # This logic will need to change as we start allowing roles to classify
+      # nodes, but it will work for now.
+      parent_node_roles = Array.new
+      parents.each do |parent|
+        # This will need to grow more ornate once we start allowing multiple
+        # deployments.
+        pnr = NodeRole.peers_by_role(snap,role)
+        if pnr.nil? && !parent.implicit
+          raise MISSING_DEP.new("#{name} depends on #{parent.name}, but #{parent.name} does not exist in #{snap.deployment.name}")
+        end
+        pnr = parent.add_to_node_in_snapshot(node,snap)
+        parent_node_roles << pnr
+      end
+      # By the time we get here, all our parents are bound recursively.
+      # Bind ourselves the same way.
+      res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
+      parent_node_roles.each do |pnr|
+        res.parents << pnr
+      end
+      return res
+    end
   end
 
   def <=>(other)

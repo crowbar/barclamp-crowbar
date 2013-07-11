@@ -35,6 +35,8 @@ jigs:
   - name: script
     roles:
       - name: crowbar
+        flags:
+          - bootstrap
 
 crowbar:
   layout: 2.0

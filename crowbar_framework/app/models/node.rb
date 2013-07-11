@@ -16,6 +16,7 @@
 class Node < ActiveRecord::Base
 
   before_validation :default_population
+  after_create :add_default_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
 
@@ -188,4 +189,11 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def add_default_roles
+    proposal = Deployment.all.first.proposal
+    Role.all.select{|r|r.discovery || (self.admin && r.bootstrap)}.each do |role|
+      role.add_to_node_in_snapshot(self,proposal)
+    end
+  end
+  
 end

@@ -64,7 +64,7 @@ class NodeRole < ActiveRecord::Base
 
   # convenience methods
   def name
-    role.name
+    "#{deployment.name}: #{node.name}: #{role.name}"
   end
 
   # convenience methods

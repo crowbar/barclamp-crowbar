@@ -45,7 +45,7 @@
   
 $(document).ready(function() {
   var oTable = $('#node_tbl').dataTable({"sScrollY": 99999,"bScrollCollapse": true,"bPaginate": false, "LengthChange": false, "bFilter": true, "bSort": false, "bInfo": false, "bAutoWidth": false,
-                  "oLanguage":{"sSearch":""}});
+    "oLanguage":{"sSearch":""}});
   var even_row = true;
   $("#nodes_title").append($("#node_tbl_filter"));
   
@@ -58,9 +58,9 @@ $(document).ready(function() {
     messages['constraint_max']=  "#{t('.constraint_max')}";
     messages['constraint_unique']=  "#{t('.constraint_unique')}";
     messages['constraint_admin']=  "#{t('.constraint_admin')}";
+    messages['constraint_attribute']=  "#{t('.constraint_attribute')}";
   var json = "";
   json = (document.getElementById('proposal_development')) ? JSON.parse(document.getElementById('proposal_development').value) : json;
-  var limis;
   var allocated = [];
   try {
     limits = constraints;
@@ -94,8 +94,8 @@ $(document).ready(function() {
   $('#deploy div.droptarget[draggable="true"]')
     // Decide whether the thing dragged in is welcome.
     .bind('dragover', function(ev) {
-        if (ev.preventDefault) ev.preventDefault(); // allows us to drop
-        return false;
+      if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+      return false;
     })
 
     // Handle the final drop...
@@ -121,6 +121,46 @@ $(document).ready(function() {
   function drop_item(name, list) {
     var $node = $('li.allocated[id="'+name+'"]');
     if ($node) {
+      // example of validate attributes
+      // attributes: {
+      //  "cpu/0/flags": { include: "smx", expr: /^smx/i },
+      //  "cpu/1/flags": { le: 2, eq: 3, ge: 4, ne: 6, expr: /^3$/ }
+      // }
+      if (limits[list].attributes) {
+        attributes = limits[list].attributes;
+        valid = true;
+        for ( var attribute in attributes ) {
+          validators = attributes[attribute];
+          value = node(name).get(attribute);
+          for ( validator in validators ) {
+            param = validators[validator];
+            switch ( validator ) {
+              case "expr":
+                if (!(param.test(value.toString()))) { valid = false; } break;
+              case "include":
+                if (!(value.indexOf(param) != -1)) { valid = false; } break;
+              case "eq":
+                if (!(value == param)) { valid = false; } break;
+              case "gt":
+                if (!(value > param)) { valid = false; } break;
+              case "lt":
+                if (!(value < param)) { valid = false; } break;
+              case "ne":
+                if (!(value != param)) { valid = false; } break;
+              case "ge":
+                if (!(value <= param)) { valid = false; } break;
+              case "le":
+                if (!(value >= param)) { valid = false; } break;
+              default:x
+                console.error("*** Unknown validator "+validator+" for attribute "+attribute);
+            }
+            if (!valid) break;
+          }
+          if (!valid) break;
+        }
+        if (!valid) { i18n_msg("constraint_attribute", name, list, "is not supported"); }
+        return valid;
+      }
       // block admin from being used
       if (limits[list].admin==undefined || !limits[list].admin) {
         if ($('a.available[id="'+name+'"]').attr("admin")=="true") {

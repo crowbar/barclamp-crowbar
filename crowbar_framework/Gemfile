@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "rails", "2.3.17"
+gem "rails", "2.3.18"
 gem "haml",  "3.1.6"
 gem "sass",  "3.1.2"
 gem "simple-navigation", "3.7.0"

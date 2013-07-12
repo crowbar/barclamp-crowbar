@@ -39,7 +39,7 @@ class Role < ActiveRecord::Base
 
   def parents
     role_requires.map do |r|
-      Role.find.by_name!(r.requires)
+      Role.find_by_name!(r.requires)
     end
   end
 
@@ -68,12 +68,15 @@ class Role < ActiveRecord::Base
       parents.each do |parent|
         # This will need to grow more ornate once we start allowing multiple
         # deployments.
-        pnr = NodeRole.peers_by_role(snap,role)
-        if pnr.nil? && !parent.implicit
-          raise MISSING_DEP.new("#{name} depends on #{parent.name}, but #{parent.name} does not exist in #{snap.deployment.name}")
+        pnr = NodeRole.peers_by_role(snap,parent).first
+        if pnr.nil?
+          if parent.implicit
+            pnr = parent.add_to_node_in_snapshot(node,snap)
+          else
+            raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+          end
         end
-        pnr = parent.add_to_node_in_snapshot(node,snap)
-        parent_node_roles << pnr
+        parent_node_roles += pnr
       end
       # By the time we get here, all our parents are bound recursively.
       # Bind ourselves the same way.

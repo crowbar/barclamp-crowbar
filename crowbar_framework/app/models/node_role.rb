@@ -33,8 +33,8 @@ class NodeRole < ActiveRecord::Base
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?
-  has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcm", :foreign_key => "parent_id", :association_foreign_key => "child_id"
-    has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcm", :foreign_key => "child_id", :association_foreign_key => "parent_id"
+  has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
+    has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
 
   ERROR     = -1
   ACTIVE    = 0
@@ -64,7 +64,7 @@ class NodeRole < ActiveRecord::Base
 
   # convenience methods
   def name
-    role.name
+    "#{deployment.name}: #{node.name}: #{role.name}"
   end
 
   # convenience methods

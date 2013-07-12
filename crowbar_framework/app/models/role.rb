@@ -59,4 +59,18 @@ class Role < ActiveRecord::Base
     return -1 if other.depends_on?(self)
     0
   end
+
+  # allows role to have crowbar internal actions based on being executed
+  # if there is a problem, 
+  #   1) set the node-role state to error & status to a description of the error,
+  #   2) raise an error!
+  def on_commit(node_role)
+    case node_role.role.name
+      when "network-admin"
+        # allocate IP
+      else
+        # do nothing
+    end
+  end
+
 end

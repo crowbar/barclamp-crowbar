@@ -73,4 +73,11 @@ class Role < ActiveRecord::Base
     end
   end
 
+  # POSSIBLE OTHER EVENTS
+  # def on_change(node)         -> returns nil or raise
+  # def on_pre_execute(node_role)  -> returns nil or raise
+  # def on_post_execute(node_role) -> returns nil or raise
+  # def on_proposed(deployment) -> returns nodes w/ weights, # of required & desired nodes
+
+
 end

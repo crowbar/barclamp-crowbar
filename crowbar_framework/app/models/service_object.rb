@@ -987,15 +987,17 @@ class ServiceObject
           badones = status.select { |x| x[1].exitstatus != 0 }
 
           unless badones.empty?
-            badones.each do |baddie|
-              node = pids[baddie[0]]
-              @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "log/#{node}.chef_client.log"
-              pid = run_remote_chef_client(node, "chef-client", filename)
-              pids[pid] = node
+            unless oneshot?
+              badones.each do |baddie|
+                node = pids[baddie[0]]
+                @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
+                filename = "log/#{node}.chef_client.log"
+                pid = run_remote_chef_client(node, "chef-client", filename)
+                pids[pid] = node
+              end
+              status = Process.waitall
+              badones = status.select { |x| x[1].exitstatus != 0 }
             end
-            status = Process.waitall
-            badones = status.select { |x| x[1].exitstatus != 0 }
 
             unless badones.empty?
               message = "Failed to apply the proposal to: "
@@ -1020,15 +1022,17 @@ class ServiceObject
           badones = status.select { |x| x[1].exitstatus != 0 }
 
           unless badones.empty?
-            badones.each do |baddie|
-              node = pids[baddie[0]]
-              @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "log/#{node}.chef_client.log"
-              pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
-              pids[pid] = node
+            unless oneshot?
+              badones.each do |baddie|
+                node = pids[baddie[0]]
+                @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
+                filename = "log/#{node}.chef_client.log"
+                pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
+                pids[pid] = node
+              end
+              status = Process.waitall
+              badones = status.select { |x| x[1].exitstatus != 0 }
             end
-            status = Process.waitall
-            badones = status.select { |x| x[1].exitstatus != 0 }
 
             unless badones.empty?
               message = "Failed to apply the proposal to: "
@@ -1056,6 +1060,11 @@ class ServiceObject
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     # noop by default.
+  end
+
+  def oneshot?
+    # by default, allow running again in case of chef failures
+    return false
   end
 
   #

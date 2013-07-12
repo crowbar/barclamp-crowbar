@@ -25,6 +25,8 @@ ActionController::Routing::Routes.draw do |map|
 
   # nodes
   map.resources :nodes, :only => [:index, :new]
+  map.connect 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
+              :requirements => { :name => /.*/, :path => /.*/ }, :conditions => { :method => :get }
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
   map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
   map.nodes_families 'nodes/families', :controller=>'nodes', :action=>'families'

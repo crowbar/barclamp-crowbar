@@ -14,11 +14,8 @@
 % 
 % 
 -module(bdd_catchall).
--export([step/2, step/3]).
+-export([step/2]).
 -import(bdd_utils).
-
-% DEPRICATE!
-step(_Config, B, C) -> bdd_utils:depricate({2013, 10, 1}, bdd_restrat, step, bdd_restrat, step, [B, C]).
 
 step(_Global, {step_given, {Scenario, _N}, ["I mark the logs with",Mark]}) -> 
   URL = bdd_utils:config(marker_url, undefined),
@@ -54,6 +51,12 @@ step( _Global, {step_setup, _N, _}) ->
 
 step( _Global, {step_teardown, _N, _}) -> 
   bdd_utils:log(info, bdd_catchall, step, "No Feature Tear Down Step.", []);
+
+step(Input, {StepType, {Scenario, StepNumber}, ["I debug BDD"]}) ->
+  step(Input, {StepType, {Scenario, StepNumber}, ["I", puts, "BDD"]});
+step(Input, {StepType, {Scenario, StepNumber}, ["I", Level, "BDD"]}) ->
+  bdd_utils:log(Level, bdd_catchall, step, "INVESTIGATING ~s ~p:~p~n~p~n",[StepType, Scenario, StepNumber, Input]),
+  true;
 
 step(_Result, {step_given, _N, ["I do nothing to", Text]}) ->  Text;
 step(_Result, {step_when, _N, ["I do nothing to", Text]}) ->  Text;

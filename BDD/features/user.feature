@@ -92,13 +92,13 @@ Feature: User
     Then I should see {bdd:crowbar.i18n.nodes.edit.save_node_success}
     
   Scenario: REST get user list
-    When REST requests the {object:user} list
+    When REST gets the {object:user} list
     Then the list should have an object with key "username" value "crowbar"
       And the list should have an object with key "username" value "developer"
      
   Scenario: REST user
     Given there is not a {object:user} "test_user_1"
-    When REST adds the {object:user} "test_user_1"
+    When REST creates the {object:user} "test_user_1"
     Then the {object:user} is properly formatted
     Finally REST removes the {object:user} "test_user_1"
     

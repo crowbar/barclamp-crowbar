@@ -68,10 +68,10 @@ step(_Given, {step_finally, _N, ["throw away group",Group]}) ->
 % ============================  WHEN STEPS =========================================
 
 step(_Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
-  Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,apply(bdd_restrat:alias(Resource),g,[resource])]),
+  Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,bdd_restrat:alias(Resource,g,[resource])]),
   bdd_utils:log(debug, crowbar, step, "REST get ~p list for ~p barclamp", [Resource, Barclamp]),
   eurl:get_http(Path);
-  
+
 % ============================  THEN STEPS =========================================
 
 % validate object based on basic rules for Crowbar
@@ -83,7 +83,7 @@ step(Result, {step_then, _N, ["the object is properly formatted"]}) ->
 % expects an ATOM for the file
 step(Result, {step_then, _N, ["the", Feature, "object is properly formatted"]}) -> 
   JSON = eurl:get_result(Result, obj), 
-  apply(bdd_utils:alias(Feature), validate, [JSON]);
+  bdd_restrat:alias(Feature, validate, [JSON]);
 
 % validates a list of object IDs
 step(Result, {step_then, _N, ["the object id list is properly formatted"]}) ->

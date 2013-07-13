@@ -147,7 +147,7 @@ step(_Results, {step_then, _N, ["there is a", Object, Key]}) ->
 
 step(_Results, {step_then, _N, ["there is not a", Object, Key]}) ->
   URI = alias(Object, g, [path]),
-  R =eurl:get(eurl:path(URI, Key)),
+  R =eurl:get_http(eurl:path(URI, Key)),
   404 =:= R#http.code;
   
 step(Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->

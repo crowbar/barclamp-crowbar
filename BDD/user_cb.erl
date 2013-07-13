@@ -28,7 +28,8 @@ g(Item) ->
     name -> g(name);
     description -> g(email);
     order -> 100;
-    email -> "oscar@grouch.com";
+    email -> email();
+    domain -> "crowbar.bdd";
     test_email -> "test@test.com";
     password -> "password";
     password_confirmation -> "password";
@@ -74,6 +75,9 @@ fetch_user(Config, Result, N, Username) ->
   bdd_utils:log(Config, debug, "users:step Fetch User: ~p", [List]),
   List.
 
+email()               -> email(g(username)).
+email(User)           -> email(User, g(domain)).
+email(User, Domain)   -> User ++integer_to_list(random:uniform(100000)) ++ "@" ++ Domain.
 
 %setup, takes care of create               
 step(_Global, {step_setup, _N, _}) -> 
@@ -82,9 +86,9 @@ step(_Global, {step_setup, _N, _}) ->
 
 %teardown, takes care of delete test.
 step(_Global, {step_teardown, _N, _}) -> 
-  bdd_crud:delete(g(atom1));
+  bdd_crud:delete(g(atom1)).
 
-step(In, Out) -> step([], In, Out).
+% THE FOLLOWING STEPS WILL NOT RESPOND....!!!
 
 % GIVEN STEP =======================================================
 
@@ -167,7 +171,4 @@ step(Config, _Result, {step_then, _N, ["the user",Username, "is_admin should be"
    _Is_Admin = element(2,lists:keyfind("is_admin", 1, User_JSON)), 
    bdd_utils:log(Config, trace, "users:step Checking user _Is_Admin: ~p ", [_Is_Admin]), 
    bdd_utils:log(Config, trace, "users:step Checking user (_Is_Admin == Is_Admin): ~p ", [(_Is_Admin == Is_Admin)]), 
-   (_Is_Admin == Is_Admin);
-
-step(_, _, _) -> noop.
-
+   (_Is_Admin == Is_Admin).

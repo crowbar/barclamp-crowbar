@@ -274,7 +274,7 @@ step_run(Config, Input, Step) ->
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
-  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  Alias = bdd_utils:alias(Feature),
   % now we need to try and run the feature
 	try apply(Alias, step, [Input, Step]) of
 		error -> 
@@ -383,7 +383,7 @@ inspect(Config) ->
 inspect(_Config, Result, []) -> Result;
 inspect(Config, Result, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
-  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  Alias = bdd_utils:alias(Feature),
   try apply(Alias, inspector, []) of
 		R -> R ++ inspect(Config, Result, Features)
 	catch

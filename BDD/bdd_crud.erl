@@ -46,22 +46,21 @@ read_obj(Path) ->
     [_, O]  -> O
   end.
 
+create(Path, JSON) -> create(Path, JSON, 3).  % loop prevention
+
 % Creates object AND adds marker to session where marker is an atom
 create(Path, JSON, Marker) when is_atom(Marker) -> 
   [R | O] = create(Path, JSON),
   bdd_utils:config_set(Marker, O),
-  [R, O].
-
-% Creates object AND adds marker to session where marker is the scenario id
-create(Path, JSON, Marker, Key) when is_number(Marker) -> 
-  [R | O] = create(Path, JSON),
-  bdd_utils:scenario_store(Marker, Key, O), 
-  [R, O].
+  [R, O];
 
 % creates object based on path and json
 % if successful, returns list with http & obj records
 % if fails, returns list with http record
-create(Path, JSON) ->
+create(Path, JSON, 0) -> 
+  bdd_utils:log(error, bdd_crud, create, "422 loop on create for ~p", [Path]),
+  [eurl:put_post(Path, JSON, post)];
+create(Path, JSON, N) ->
   R = eurl:put_post(Path, JSON, post),
   bdd_utils:log(trace, bdd_crud, create, "Code: ~p, URL: ~p", [R#http.code, R#http.url]),
   case R#http.code of
@@ -69,9 +68,16 @@ create(Path, JSON) ->
     422 ->  Key = json:keyfind(JSON, "name"),
             bdd_utils:log(info, bdd_crud, create, "422 error. Delete object ~p and try again.",[Key]),
             delete(Path, Key),
-            create(Path, JSON);
+            create(Path, JSON, N-1);
     _   ->  [R]
   end.
+
+% Creates object AND adds marker to session where marker is the scenario id
+create(Path, JSON, Marker, Key) when is_number(Marker) -> 
+  [R | O] = create(Path, JSON),
+  bdd_utils:scenario_store(Marker, Key, O), 
+  [R, O].
+
 
 % updates object based on path and json
 % returns http object (and obj object if successful)

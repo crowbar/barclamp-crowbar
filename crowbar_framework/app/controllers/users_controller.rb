@@ -19,25 +19,45 @@ class UsersController < ApplicationController
 
   add_help(:index,[],[:get])
   def index
-    ret = fetch_users
-    respond_with(@users)  do |format|
-      format.html do
-        setup_users
-        render
-      end
-      format.json do
-        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
-        user_hash = Hash.new
-        @users.each do |user|
-          user_hash[user.id] = user.username
-        end
-        render :json => user_hash.to_json
-      end
+    @users = User.all
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :user, @users }
     end
   end
   
+ # RESTful DELETE of the node resource
+  def destroy
+    @user = User.find_key params[:id]
+    @user ||= User.find_by_username params[:id]
+    render api_delete User, @user.id
+  end
+  
+  add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
+  def create
+    u = User.create! params
+    render api_show :user, User, u.id.to_s, nil, u
+  end
+  
+  def update
+    @user = User.find_key params[:id]
+    @user ||= User.find_by_username params[:id]
+    render api_update :user, User, @user
+  end
+
+  add_help(:show,[:id],[:get])
+  def show
+    @user = User.find_key params[:id]
+    @user ||= User.find_by_username params[:id]
+    respond_to do |format|
+      format.html { } # show.html.erb
+      format.json { render api_show :user, User, @user }
+    end
+  end
+
   add_help(:unlock,[:id],[:delete]) 
   def unlock
+    # ZEHICLE TODO REFACTOR!
     ret = fetch_user
     respond_with(@user)  do |format|
       @user.unlock_access! if (!@user.nil? and @user.access_locked?)
@@ -53,6 +73,7 @@ class UsersController < ApplicationController
 
   add_help(:lock,[:id],[:post])
   def lock
+    # ZEHICLE TODO REFACTOR!
     ret = fetch_user
     respond_with(@user)  do |format|
       @user.lock_access! if (!@user.nil? and !@user.access_locked?)
@@ -68,6 +89,7 @@ class UsersController < ApplicationController
  
  add_help(:reset_password,[:id, :password, :password_confirmation],[:put])
  def reset_password
+    # ZEHICLE TODO REFACTOR!
    ret = fetch_user
   respond_with(@user)  do |format|
     Rails.logger.debug("Reset password for user #{@user}")
@@ -103,134 +125,8 @@ class UsersController < ApplicationController
    end
   end
 
-  add_help(:update,[:id, :username, :email,:remember_me, :is_admin],[:put])
-  def update
-    ret = fetch_user
-    respond_with(@user) do |format|
-      format.html do
-        if !params[:cancel].nil?
-          @user = nil
-          setup_users
-          return render :action => :index
-        end
-        if @user.update_attributes(params[:user])
-          redirect_to users_path, :notice => t("users.index.update_success")
-        else
-          setup_users
-          render :action => :index
-        end
-      end
-      format.json do
-        begin
-          User.transaction do 
-            hash = {:username => params[:username], :email => params[:email], :remember_me => params[:remember_me], :is_admin => params[:is_admin] }
-            @user.update_attributes!(hash)
-          end
-        rescue ActiveRecord::RecordNotFound, ArgumentError => ex
-          Rails.logger.warn(ex.message)
-          ret = [400, ex.message]
-        rescue ActiveRecord::RecordInvalid, ArgumentError => ex
-          Rails.logger.error(ex.message)
-          ret = [500, ex.message]
-        rescue RuntimeError => ex
-          Rails.logger.error(ex.message)
-          ret = [500, ex.message]
-        end if ret[0]==200
-        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
-        render :json => @user.to_json
-      end
-    end
-  end
-
- add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
- def create
-    respond_with(@user = populate_user)  do |format|
-     if params[:digest] && params[:digest] == true
-       @user.digest_password(params[:password])
-     end
-      format.html do
-        check_password
-        if @user.save
-          redirect_to users_path, :notice => t("users.index.create_success")
-        else
-          setup_users
-          render :action => :index
-        end
-      end
-      format.json do
-        begin
-          ret = [200, ""]
-          User.transaction do
-            @user.save!
-          end
-        rescue ActiveRecord::RecordNotFound, ActiveRecord::RecordInvalid, ArgumentError => ex
-          Rails.logger.warn(ex.message)
-          ret = [400, ex.message]
-        rescue ActiveRecord::RecordInvalid, ArgumentError => ex
-          Rails.logger.error(ex.message)
-          ret = [500, ex.message]
-        rescue RuntimeError => ex
-          Rails.logger.error(ex.message)
-          ret = [500, ex.message]
-        end
-        return render :text => ret[1], :status => ret[0] if ret[0] != 200
-        render :json => @user.to_json
-      end
-    end
-  end
-
-  def delete_users
-    if (params['users_to_delete'])
-      User.destroy(params['users_to_delete'])
-      notice = t("users.index.delete_success")
-    else
-      notice = t("users.index.none_selected")
-    end
-    redirect_to users_path, :notice => notice
-  end
-  
   def is_edit_mode?
     current_user.is_admin? && Rails.env.development?
-  end
-  
-  
-  add_help(:show,[:id],[:get])
-  def show
-    ret = fetch_user
-    respond_with(@user)  do |format|
-      format.html do
-        render
-      end
-      format.json do
-        return render :text => ret[1], :status => ret[0] if ret[0] != 200
-        render :json => @user.to_json
-      end
-    end
-  end
-  
-  add_help(:delete,[:id],[:delete])
-  def destroy
-    ret = fetch_user
-    respond_with(@user)  do |format|
-      Rails.logger.debug("Deleting user #{@user.id}/\"#{@user.username}\"") unless @user.nil?
-      format.html do
-        User.destroy @user
-        render
-      end
-      format.json do
-        begin
-          User.destroy @user
-        rescue ActiveRecord::RecordNotFound => ex
-          Rails.logger.warn(ex.message)
-          ret = [404, ex.message]
-        rescue RuntimeError => ex
-          Rails.logger.error(ex.message)
-          ret = [500, ex.message]
-        end if ret[0] == 200
-        return render :text => ret[1], :status => ret[0] unless ret[0] == 200
-        render :json => ret[1]
-      end
-    end
   end
   
   add_help(:make_admin,[:id],[:post])

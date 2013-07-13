@@ -262,14 +262,14 @@ get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
 get(Config, URL, all) ->
-  bdd_utils:log(debug, "eurl:get Getting ~p", [URL]),
+  bdd_utils:log(debug, eurl, get, "Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(dump, "eurl:get Result ~p: ~p", [Code, Body]),
+  bdd_utils:log(dump, eurl, get, "Result ~p: ~p", [Code, Body]),
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
 get(_Config, URL, _OkReturnCodes) ->
-  bdd_utils:log(trace, "eurl:get get(Config, URL, OkReturnCodes)"),
+  bdd_utils:log(trace, eurl, get, "get(Config, URL, OkReturnCodes)"),
   R = get_http(URL),
   {R#http.code, R#http.data}.
 
@@ -278,7 +278,7 @@ get_page(_Config, {error, Issue, URI}, _Codes) ->
   bdd_utils:log(warn, "eurl:get_page aborted request due to ~p from bad URL ~p", [Issue, URI]),
   {500, Issue};
 % page returns in the {CODE, BODY} format
-get_page(Config, URI, Codes) -> get(Config, uri(Config, URI), Codes).
+get_page(Config, URI, Codes) -> bdd_utils:depricate({2013, 10, 1}, eurl, get_page, eurl, get, [Config, uri(Config, URI), Codes]).
 
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;

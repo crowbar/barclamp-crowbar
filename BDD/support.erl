@@ -24,23 +24,16 @@ g(Item) ->
     _ -> crowbar:g(Item)
   end.
 
-% TEMPORARY REMAPPING
-% -include("bdd.hrl").
-step(In, Out) -> step([], In, Out).
-
-step(_Config, _Given, {step_when, {_Scenario, _N}, ["I inspect the",Path,"for",Mark]}) -> 
+step(_Given, {step_when, {_Scenario, _N}, ["I inspect the",Path,"for",Mark]}) -> 
   Lines = bdd_utils:config(tail_lines, 100),
   Cmd = "tail -n " ++ integer_to_list(Lines) ++ " '" ++ Path ++ "' | grep '" ++ Mark ++ "'",
   Out = os:cmd(Cmd),
   bdd_utils:log(trace, support, step, "~p output ~p",[Cmd, Out]),
-  {grep, string:tokens(Out,"\n")};
+  #grep{data = string:tokens(Out,"\n")};
 
-step(_Config, Result, {step_then, {_Scenario, _N}, ["I should grep",Grep]}) -> 
-  case lists:keyfind(grep, 1, Result) of
-    {grep, In} -> bdd_utils:log(debug, support, step, "~p looking at ~p",[Grep, In]),
-                  Eval = [re:run(R,Grep) || R <- In],
-                  Hits = [true || E <- Eval, E=/=nomatch ],
-                  length(Hits) > 0;
-    _          -> false
-  end.
-
+step(Result, {step_then, {_Scenario, _N}, ["I should grep",Grep]}) -> 
+  In = eurl:get_result(Result, grep),
+  bdd_utils:log(debug, support, step, "~p looking at ~p",[Grep, In]),
+  Eval = [re:run(R,Grep) || R <- In],
+  Hits = [true || E <- Eval, E=/=nomatch ],
+  length(Hits) > 0.

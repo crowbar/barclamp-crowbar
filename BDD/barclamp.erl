@@ -43,7 +43,7 @@ validate(JSON) when is_record(JSON, obj) ->
       bdd_utils:is_a(J, string, api_version), 
       bdd_utils:is_a(J, string, api_version_accepts), 
       bdd_utils:is_a(J, number, version), 
-      bdd_utils:is_a(J, length, 21),
+      bdd_utils:is_a(J, length, 22),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R, debug);
 validate(JSON) -> 

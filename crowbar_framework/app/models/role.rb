@@ -80,7 +80,7 @@ class Role < ActiveRecord::Base
             raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
           end
         end
-        parent_node_roles += pnr
+        parent_node_roles << pnr
       end
       # By the time we get here, all our parents are bound recursively.
       # Bind ourselves the same way.

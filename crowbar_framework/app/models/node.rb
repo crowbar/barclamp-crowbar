@@ -51,6 +51,8 @@ class Node < ActiveRecord::Base
   has_many :snapshots,          :through => :node_roles
   has_many :deployments,        :through => :snapshots
 
+  scope    :admin,              -> { where(:admin=>true) }
+
   def self.name_hash
     Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
   end
@@ -180,6 +182,7 @@ class Node < ActiveRecord::Base
 
   # make sure some safe values are set for the node
   def default_population
+    self.admin = true if Node.admin.count == 0    # first node, needs to be admin
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
     # the line belowrequires a crowbar deployment to which the status attribute is tied
@@ -192,8 +195,8 @@ class Node < ActiveRecord::Base
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     proposal = Deployment.all.first.proposal
-    Role.discovery.each {|r| role.add_to_node_in_snapshot(self,proposal) }
-    Role.bootstrap.each {|r| role.add_to_node_in_snapshot(self,proposal) } if self.admin
+    Role.bootstrap.each {|r| r.add_to_node_in_snapshot(self,proposal) } if self.admin
+    Role.discovery.each {|r| r.add_to_node_in_snapshot(self,proposal) }
   end
   
 end

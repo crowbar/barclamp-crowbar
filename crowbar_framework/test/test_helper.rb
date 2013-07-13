@@ -61,5 +61,6 @@ class ActiveSupport::TestCase
   BarclampTest::Jig.find_or_create_by_name :name=>'test'
   Barclamp.import 'crowbar'
   Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+  raise "you must have at least 1 deployment" unless Deployment.count > 0
 
 end

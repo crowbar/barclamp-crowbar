@@ -16,6 +16,7 @@
 class Node < ActiveRecord::Base
 
   before_validation :default_population
+  after_create :add_default_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
 
@@ -188,4 +189,11 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def add_default_roles
+    raise "you must have at least 1 deployment" unless Deployment.count > 0
+    proposal = Deployment.all.first.proposal
+    Role.discovery.each {|r| role.add_to_node_in_snapshot(self,proposal) }
+    Role.bootstrap.each {|r| role.add_to_node_in_snapshot(self,proposal) } if self.admin
+  end
+  
 end

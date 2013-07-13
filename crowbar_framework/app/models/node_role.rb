@@ -27,13 +27,14 @@ class NodeRole < ActiveRecord::Base
   has_one         :deployment,        :through => :snapshot
 
   # find other node-roles in this snapshot using their role or node
-  scope           :peers_by_role,     ->(r) { where(['snapshot_id=? AND role_id=?', self.snapshot.id, r.id]) }
-  scope           :peers_by_node,     ->(n) { where(['snapshot_id=? AND node_id=?', self.snapshot.id, n.id]) }
+  scope           :peers_by_role,     ->(s,r) { where(['snapshot_id=? AND role_id=?', s.id, r.id]) }
+  scope           :peers_by_node,     ->(s,n) { where(['snapshot_id=? AND node_id=?', s.id, n.id]) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { where(['snapshot_id=? AND role_id=? AND node_id=?', s.id, r.id, n.id]) }
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?
-  has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcm", :foreign_key => "parent_id", :association_foreign_key => "child_id"
-    has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcm", :foreign_key => "child_id", :association_foreign_key => "parent_id"
+  has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
+    has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
 
   ERROR     = -1
   ACTIVE    = 0
@@ -63,7 +64,7 @@ class NodeRole < ActiveRecord::Base
 
   # convenience methods
   def name
-    role.name
+    "#{deployment.name}: #{node.name}: #{role.name}"
   end
 
   # convenience methods
@@ -73,7 +74,7 @@ class NodeRole < ActiveRecord::Base
 
   # are the upstream required node-roles included in this snapshot
   def deployable?
-    role.upsteam.nil? or upsteam.count > 0
+    role.upstream.nil? or upstream.count > 0
   end
 
   # unblocked? are the upstream required node-roles in a ready state
@@ -108,7 +109,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def get_template
-    data ||= role.node_template
+    data ||= role.node_template || '{}'
   end
 
 end

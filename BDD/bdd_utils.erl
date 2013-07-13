@@ -16,6 +16,7 @@
 -module(bdd_utils).
 -export([assert/1, assert/2, assert_atoms/1, tokenize/2, tokenize/6, clean_line/1]).
 -export([config/1, config/2, config/3, config_set/2, config_set/3, config_unset/1, config_unset/2]).
+-export([alias/1, alias/2]).
 -export([scenario_store/3, scenario_retrieve/3]).
 -export([puts/0, puts/1, puts/2, debug/3, debug/2, debug/1, trace/6, untrace/3]).
 -export([log/5, log/4, log/3, log/2, log/1, log_level/1, depricate/4, depricate/6]).
@@ -250,7 +251,7 @@ config(Key, Default) when is_atom(Key) ->
     undefined -> put(Key, Default), Default;
     V         -> V
   end;
-  
+
 % DEPRICATING returns value for key from Config (error if not found)
 config(_, Key)     -> config(Key, undefined).
 config(_, Key, Default) -> config(Key, Default).
@@ -298,6 +299,10 @@ scenario_retrieve(ID, Key, Default) ->
   log(trace, "bdd_utils:scenario_retrieve for ~p retrieving ~p as ~p", [ID, Key, Return]),
   Return.
   
+% used to handle objects & features with names that conflict w/ internal names like user or group  
+alias(Class)        -> scenario_retrieve(alias_map, Class, Class).
+alias(Class, MapTo) -> scenario_store(alias_map, Class, MapTo).
+
 % removes whitespace 
 clean_line(Raw) ->
 	CleanLine0 = string:strip(Raw),

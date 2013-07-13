@@ -52,16 +52,22 @@ Delete a node from all jig. The exact actions depend on the jig.
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
 
+  def self.execute(cycle)
+    broadcast_to_jigs { |jig|  jig.execute(cycle) }    
+  end
+
   # OVERRIDE with actual methods
   def delete_node(node)
     Rails.logger.debug("jig.delete_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
   end
 
+  # expected to return JSON to be returned to the node
   def create_node(node)
     Rails.logger.debug("jig.create_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
+    {}
   end
 
-  def execute(turn)
+  def execute(cycle)
     Rails.logger.debug("jig.turn(#{turn.name}) not implemented for #{self.class}.  This may be OK")
   end
 

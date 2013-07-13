@@ -34,8 +34,12 @@ class Role < ActiveRecord::Base
   has_many        :role_requires,     :dependent => :destroy
   alias_attribute :requires,          :role_requires
 
-  has_many        :upstreams,         :through => :role_requires
-  scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
+  #has_many        :upstreams,         :through => :role_requires
+  #scope           :downstreams,       ->(r) { joins(:role_requires).where(['requires=?', r.name]) }
+  scope           :library,            -> { where(:library=>true) }
+  scope           :implicit,           -> { where(:implicit=>true) }
+  scope           :discovery,          -> { where(:discovery=>true) }
+  scope           :bootstrap,          -> { where(:bootstrap=>true) }
 
   def parents
     role_requires.map do |r|
@@ -76,7 +80,7 @@ class Role < ActiveRecord::Base
             raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
           end
         end
-        parent_node_roles += pnr
+        parent_node_roles << pnr
       end
       # By the time we get here, all our parents are bound recursively.
       # Bind ourselves the same way.
@@ -94,4 +98,25 @@ class Role < ActiveRecord::Base
     return -1 if other.depends_on?(self)
     0
   end
+
+  # allows role to have crowbar internal actions based on being executed
+  # if there is a problem, 
+  #   1) set the node-role state to error & status to a description of the error,
+  #   2) raise an error!
+  def on_commit(node_role)
+    case node_role.role.name
+      when "network-admin"
+        # allocate IP
+      else
+        # do nothing
+    end
+  end
+
+  # POSSIBLE OTHER EVENTS
+  # def on_change(node)         -> returns nil or raise
+  # def on_pre_execute(node_role)  -> returns nil or raise
+  # def on_post_execute(node_role) -> returns nil or raise
+  # def on_proposed(deployment) -> returns nodes w/ weights, # of required & desired nodes
+
+
 end

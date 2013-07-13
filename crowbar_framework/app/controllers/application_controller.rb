@@ -78,7 +78,7 @@ class ApplicationController < ActionController::Base
 
   # creates the content type for a consistent API  
   def cb_content_type(type, form="list")
-    "application/vnd.crowbar.#{ type.to_s }.#{form}+json; version=2.0"
+    "application/vnd.crowbar.#{ type.to_s.downcase }.#{form}+json; version=2.0"
   end
 
   # formats API json output 

@@ -14,7 +14,7 @@
 % 
 -module(eurl).
 -export([post/3, put/3, delete/1, delete/2, post_params/1, post/5, put_post/3, put_post/4, put_post/5, uri/1, path/1, path/2]).
--export([get_http/1, get_result/2, get/1, get/2, get/3, get_page/3, peek/2, search/2, search/3]).
+-export([get_http/1, get_result/1, get_result/2, get/1, get/2, get/3, get_page/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1, find_heading/2]).
 -export([form_submit/2, form_fields_merge/2]).
 -export([encode/1]).
@@ -93,6 +93,7 @@ find_button(Match, Input) ->
 find_link(Match, {Code, Info}) ->
   bdd_utils:log(warn, "eurl:find_link Attempting to find match ~p but input was ~p with ~p", [Match, Code, Info]),
   {error, Code, Info};
+find_link(Match, Input) when is_record(Input, http) -> find_link(Match, Input#http.data);
 find_link(Match, Input) ->
 	bdd_utils:log(debug, "eurl:find_link starting to look for ~p", [Match]),
 	RegEx = "(\\<(a|A)\\b(/?[^\\>]+)\\>"++Match++"\\<\\/(a|A)\\>)",
@@ -239,15 +240,16 @@ path(Base, Path) ->
   end.
 
 % Find records from the results
+get_result(Results) -> get_result(Results, http).   % safe default
 get_result(Results, Type) ->
   try lists:keyfind(Type, 1, Results) of
      % for now, just remap rest into ajax
-     false  -> bdd_utils:log(warn, "bdd_restrat:get_result did not find expected ~p in result",[Type]),
-               bdd_utils:log(debug, "more.... in ~p",[Results]),
+     false  -> bdd_utils:log(warn, eurl, get_result, "did not find expected ~p in result",[Type]),
+               bdd_utils:log(debug, eurl, get_result, "more.... in ~p",[Results]),
                not_found;
      R      -> R
   catch
-    X -> bdd_utils:log(warn, bdd_restrat, get_result, "error ~p for ~p in result ~p",[X,Type, Results]),
+    X -> bdd_utils:log(warn, eurl, get_result, "error ~p for ~p in result ~p",[X,Type, Results]),
     not_found
   end.
   
@@ -255,19 +257,19 @@ get_result(Results, Type) ->
 get_http(Page)                -> simple_auth:request(uri(Page)).
 % get a page from a server - returns {Code, Body}
 % depricate!
-get(X) -> bdd_utils:log(error, eurl, get, "Use get_http instead! this is not a valid call", []), get_http(X).
+get(X) -> bdd_utils:depricate({2013, 10, 1}, eurl, get, eurl, get_http, [X]).
 get(Config, Page)             -> get_page(Config, Page, []).
 get(Config, Page, ok)         -> get_page(Config, Page, []);
 get(Config, Page, not_found)  -> get_page(Config, Page, [{404, not_found}]);
 get(Config, URL, all) ->
-  bdd_utils:log(debug, "eurl:get Getting ~p", [URL]),
+  bdd_utils:log(debug, eurl, get, "Getting ~p", [URL]),
 	Result = simple_auth:request(Config, URL),
 	{_, {{_HTTP, Code, _CodeWord}, _Header, Body}} = Result,
-  bdd_utils:log(dump, "eurl:get Result ~p: ~p", [Code, Body]),
+  bdd_utils:log(dump, eurl, get, "Result ~p: ~p", [Code, Body]),
 	{ok, {{"HTTP/1.1",ReturnCode,_State}, _Head, Body}} = Result,
 	{ReturnCode, Body};
 get(_Config, URL, _OkReturnCodes) ->
-  bdd_utils:log(trace, "eurl:get get(Config, URL, OkReturnCodes)"),
+  bdd_utils:log(trace, eurl, get, "get(Config, URL, OkReturnCodes)"),
   R = get_http(URL),
   {R#http.code, R#http.data}.
 
@@ -276,7 +278,7 @@ get_page(_Config, {error, Issue, URI}, _Codes) ->
   bdd_utils:log(warn, "eurl:get_page aborted request due to ~p from bad URL ~p", [Issue, URI]),
   {500, Issue};
 % page returns in the {CODE, BODY} format
-get_page(Config, URI, Codes) -> get(Config, uri(Config, URI), Codes).
+get_page(Config, URI, Codes) -> bdd_utils:depricate({2013, 10, 1}, eurl, get_page, eurl, get, [Config, uri(Config, URI), Codes]).
 
 post_params(ParamsIn) -> post_params(ParamsIn, []).
 post_params([], Params) -> Params;

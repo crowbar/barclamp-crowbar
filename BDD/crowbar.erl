@@ -14,21 +14,22 @@
 % 
 % 
 -module(crowbar).
--export([step/2, step/3, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2, parse_object/1]).
+-export([step/2, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2, parse_object/1]).
 -import(bdd_utils).
 -import(json).
 -include("bdd.hrl").
 
 g(Item) ->
   case Item of
-    "cli" -> g(cli);
+    "cli"   -> g(cli);
+    i18n    -> "utils/i18n";
     version -> "v2";
-    cli -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
+    cli     -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "global-node.testing.com";
     node_atom -> global_node;
-    name -> "bddtest";
-    order -> 9999;
+    name    -> "bddtest";
+    order   -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
     _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
@@ -74,52 +75,39 @@ json(Part, JSON)  ->
   {Key, P} = lists:keyfind(Key,1,JSON), 
   P.
 
-% TEMPORARY REMAPPING
-step(In, Out) -> step([], In, Out).
-
 % global setup
-step(Config, _Global, {step_setup, _N, Test}) -> 
+step(_Global, {step_setup, _N, Test}) -> 
   % setup the groups object override
-  bdd_utils:config_set(alias_map,{group, group_cb}),
-  bdd_utils:config_set(api_map,{"application/vnd.crowbar+json", crowbar_rest}),
-  bdd_utils:log(debug, "crowbar:step Global Setup running (creating node ~p)",[g(node_name)]),
-  Node = node:json(g(node_name), Test ++ g(description), 100),
-  bdd_restrat:create(Config, node:g(path), g(node_atom), name, Node),
-  Config;
+  bdd_utils:alias(group, group_cb),
+  bdd_utils:alias(user, user_cb),
+  bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
+  bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
+  Node = node:json(g(node_name), Test ++ g(description), 1000),
+  bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_utils:log(debug, "crowbar:step Global Teardown running",[]),
-  bdd_restrat:destroy(Config, node:g(path), g(node_atom)),
-  Config;
+step(_Global, {step_teardown, _N, _}) -> 
+  bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
+  bdd_crud:delete(g(node_atom));
 
 % ============================  GIVEN STEPS =========================================
 
-step(Config, _Given, {step_when, _N, ["I18N checks",Key]}) ->
-  URI = eurl:path("utils/i18n",Key),
-  R = eurl:get_page(Config, URI, all),
-  bdd_utils:log(Config, trace, "crowbar:i18n get ~p gave ~p", [URI, R]),
-  {Code, Details} = R,
-  {ajax, Code, Details};
+step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
+  URI = eurl:path(g(i18n),Key),
+  eurl:get_http(URI);
 
 % ============================  THEN STEPS =========================================
 
-% helper for limiting checks to body
-step(_Config, Result, {step_then, _N, ["I should see", Text, "in the body"]}) -> 
-  bdd_webrat:step(_Config, Result, {step_then, _N, ["I should see", Text, "in section", "main_body"]});
 
 % helper for limiting checks to body
-step(_Config, Result, {step_then, _N, ["I should not see", Text, "in the body"]}) -> 
-  bdd_webrat:step(_Config, Result, {step_then, _N, ["I should not see", Text, "in section", "main_body"]});
+step(Result, {step_then, _N, ["I should see", Text, "in the body"]}) -> 
+  bdd_webrat:step(Result, {step_then, _N, ["I should see", Text, "in section", "main_body"]});
 
-
-% helper for checking to make sure the ID of the object your are using it the same as the one from setup
-step(Config, Results, {step_then, _N, ["key",ID,"should match",Atom,"from setup"]}) -> 
-  SetupID = bdd_utils:config(Config, list_to_atom(Atom)),
-  {ajax, JSON, _} = lists:keyfind(ajax, 1, Results),     % ASSUME, only 1 ajax result per feature
-  SetupID =:= json:value(JSON, ID);
+% helper for limiting checks to body
+step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) -> 
+  bdd_webrat:step(Result, {step_then, _N, ["I should not see", Text, "in section", "main_body"]});
 
 % ============================  LAST RESORT =========================================
-step(_Config, _Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
+step(_Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;
                                     
-step(_Config, _Result, {step_then, _N, ["I should use my special step file"]}) -> true.
+step(_Result, {step_then, _N, ["I should use my special step file"]}) -> true.

@@ -20,14 +20,34 @@ require 'json'
 
 class BarclampCrowbar::Jig < Jig
 
-  def execute(turn)
-    Rails.logger.info("ScriptJig Turn #{turn.name}")
+  def execute(cycle)
+    Rails.logger.info("ScriptJig Cycle #{cycle.name}")
     # retrieve the next turn for jig
     # get all node-roles associated w/ turn
+    queue = cycle.queue(self)
+    queue.each do |nr|
+      # get role from nr
+      # tmpdir=%x{ssh $node mktemp -d /tmp/scriptjig-XXXXX}
+      # scp \barclamp\script\role\*.sh $node:#{tmpdir}
+      # scripot.sort.each do |s|
+      #   res = %X{ssh $node #{tmpdir}/#{s}} $outbound
+      #   raise "O noes!" if $? != 0
+      # end
+      # ssh $node rm -rf #{tmpdir}
+      # run script(s) n directory  [node-role data merge]
+      # ssh to node
+      # run script from meta-data
+      # 
+    end
+
   end
 
   def create_node(node)
     Rails.logger.info("ScriptJig Creating node: #{node.name}")
+    # ? generate a SSH pub/private key pair
+    # ? put in node: /user/root authorized_keys file
+    # return JSON to be returned to the node
+    {}
   end
 
   def delete_node(node)

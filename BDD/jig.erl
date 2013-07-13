@@ -14,7 +14,7 @@
 % 
 % 
 -module(jig).
--export([step/2, json/4, validate/1, inspector/1, g/1]).
+-export([step/2, json/3, json/4, validate/1, inspector/0, g/1]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -24,84 +24,47 @@ g(Item) ->
     path -> "api/v2/jigs";
     name -> "bddjig";
     atom -> jig1;
-    type -> "BarclampCrowbar::Jig";
+    type -> "BarclampTest::Jig";
     node_atom -> "global-node.testing.com";
     _ -> crowbar:g(Item)
   end.
-  
+
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  Wrapper = crowbar_rest:api_wrapper(J),
-  JSON = Wrapper#item.data,
-  R =[Wrapper#item.type == jig,
-      bdd_utils:is_a(JSON, "^Barclamp[A-Z][A-Za-z0-9]*::Jig$", type), 
-      bdd_utils:is_a(JSON, length, 7),
-      crowbar_rest:validate(JSON)],
-  bdd_utils:assert(R). 
+validate(JSON) when is_record(JSON, obj) ->
+  J = JSON#obj.data,
+  R =[JSON#obj.type == "jig",
+      bdd_utils:is_a(J, length, 10),
+      bdd_utils:is_a(J, string, server),
+      bdd_utils:is_a(J, string, client_name),
+      bdd_utils:is_a(J, string, key),
+      bdd_utils:is_a(J, boolean, active),
+      crowbar_rest:validate(J)],
+  bdd_utils:assert(R, debug);
+validate(JSON) -> 
+  bdd_utils:log(error, barclamp, validate, "requires #obj record. Got ~p", [JSON]), 
+  false.
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
-json(Name, Description, Type, Order) ->
+json(Name, Description, Order)        -> json(Name, Description, g(type), Order).
+json(Name, Description, Type, Order)  ->
   json:output([{"name",Name},{"description", Description}, {"type", Type}, {"order", Order}]).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
-inspector(Config) -> 
-  bdd_restrat:inspector(Config, jig).  % shared inspector works here, but may not always
+inspector() -> 
+  bdd_restrat:inspector(jig).  % shared inspector works here, but may not always
 
-% TEMPORARY REMAPPING
-% -include("bdd.hrl").
-step(In, Out) -> step([], In, Out).
-
-
-step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", Type]}) -> 
+step(_Global, {step_given, {Scenario, _N}, ["there is a jig",Jig,"of type", Type]}) -> 
   JSON = json(Jig, g(description), Type, 200),
-  bdd_restrat:create(Config, g(path), JSON);
+  bdd_crud:create(g(path), JSON, Scenario, Jig);
 
-step(Config, _Global, {step_given, _N, ["there is a jig",Jig]}) -> 
-  step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]});
-  
-step(Config, _Global, {step_given, _N, ["there is not a jig",Jig]}) -> 
-  false =:= step(Config, _Global, {step_given, _N, ["there is a jig",Jig]});
-
-step(Config, _Global, {step_when, _N, ["REST adds the jig",Jig]}) -> 
-  step(Config, _Global, {step_given, _N, ["there is a jig",Jig,"of type", g(type)]});
-
-
-step(Config, _Given, {step_when, _N, ["REST gets the jig",Name]}) -> 
-  bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
-
-step(Config, _Given, {step_when, _N, ["REST deletes the jig",Jig]}) -> 
-  bdd_restrat:destroy(Config, g(path), Jig);
-
-step(Config, _Result, {step_then, _N, ["there is a jig",Jig]}) -> 
-  ID = bdd_restrat:get_id(Config, g(path), Jig),
-  bdd_utils:log(Config, debug, "jig:step IS a jig get id returned ~p for ~p.",[ID, Jig]),
-  bdd_utils:is_a(dbid, ID);
-
-step(Config, _Result, {step_then, _N, ["there is not a jig",Jig]}) -> 
-  false =:= step(Config, _Result, {step_then, _N, ["there is a jig",Jig]});
-       
-% Common Routine
-% Validates the JSON returned by a test as part of general health tests
-% Uses Feature validate, but through central routine     
-step(Config, Result, {step_then, _N, ["the jig is properly formatted"]}) ->  	
-  bdd_utils:log(Config, trace, "Jig properly formatted? ~p",[Result]),
-  crowbar_rest:step(Config, Result, {step_then, _N, ["the", jig, "object is properly formatted"]});
-
-% Common Routine
-% Cleans up nodes that are created during tests                         
-step(Config, _Given, {step_finally, _N, ["REST removes the jig",Jig]}) -> 
-  step(Config, _Given, {step_when, _N, ["REST deletes the jig",Jig]}); 
-                   
-step(Config, _Global, {step_setup, _N, _}) -> 
-  bdd_utils:log(debug, "jig:step Setup running",[]),
+step(_Global, {step_setup, _N, _}) -> 
   % create Jig entry
   Jig = json(g(name), g(description), g(type), 100),
-  bdd_restrat:create(Config, g(path), g(atom), name, Jig);
+  bdd_crud:create(g(path), Jig, g(atom));
 
-step(Config, _Global, {step_teardown, _N, _}) -> 
-  bdd_util:log(debug, "jig:step Teardown running",[]),
+step(_Global, {step_teardown, _N, _}) -> 
   % remove jig entry
-  bdd_restrat:destroy(Config, g(path), g(atom)).
+  bdd_crud:delete(g(atom)).

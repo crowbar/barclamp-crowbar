@@ -57,12 +57,14 @@ step(_Given, {step_when, _N, ["I go to the", Page, "page"]}) ->
 step(_Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	eurl:get_http(Page);
 
-step(Given, {step_when, _N, ["I click on the",Link,"link"]}) -> 
-	[URL | _] = [eurl:find_link(Link, HTML) || HTML <- (Given), HTML =/= []],
+step(Given, {step_when, _N, ["I click on the",Link,"link"]}) ->
+  G = eurl:get_result(Given),
+  URL = eurl:find_link(Link, G),
 	click_link(URL, Link);
 
 step(Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
-  [Block] = eurl:find_block("<li", "</li>", Given, ">"++Menu++"</a>", 250),
+  G = eurl:get_result(Given, http),
+  [Block] = eurl:find_block("<li", "</li>", G#http.data, ">"++Menu++"</a>", 250),
   URL = eurl:find_link(Menu, Block),
   click_link(URL, Menu);
 
@@ -151,16 +153,14 @@ step(Result, {step_then, _N, ["I should download text with", Text]}) ->
 	  _ -> false
 	end;
 
-step(_Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
-  bdd_utils:assert([eurl:find_block("<li", "</li>", R, Menu) =/= [] || R <- _Result]);
+step(Result, {step_then, _N, ["I should see a menu for", Menu]}) -> 
+  R = eurl:get_result(Result),
+  eurl:find_block("<li", "</li>", R#http.data, Menu) =/= [];
 
 step(Result, {step_then, _N, ["we should get a 404 return"]}) -> 
-  bdd_utils:log(puts, "404 return had ~p", Result),
-  Result =:= [not_found];
-
-                                                                
-step(_Given, {step_when, _N, ["AJAX requests the",Page,"page"]}) ->
-  bdd_utils:depricated({2013,6,1}, bdd_webrat, step, bdd_restrat, step, [_Given, {step_when, _N, ["REST requests the",Page,"page"]}]);
+  R = eurl:get_result(Result),
+  bdd_utils:log(debug, bdd_webrat, step, "404 return had ~p", R),
+  R#http.code =:= 404;
 
 step(_Result, {_Type, _N, ["END OF WEBRAT"]}) ->
   false.

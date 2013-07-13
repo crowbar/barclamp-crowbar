@@ -19,6 +19,8 @@ class NodeModelTest < ActiveSupport::TestCase
   def setup
     @crowbar = Barclamp.find_by_name("crowbar") 
     assert_not_nil @crowbar
+    d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+    assert_not_nil d, 'we need at least 1 Deployment'
   end
 
 

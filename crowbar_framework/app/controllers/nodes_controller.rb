@@ -78,15 +78,12 @@ class NodesController < ApplicationController
   # RESTful DELETE of the node resource
   def destroy
     n = Node.find_key(params[:id] || params[:name])
-    Rails.logger.info("Will delete #{n.name}")
-    Jig.delete_node(n)
     render api_delete Node
   end
   
   # RESTfule POST of the node resource
   def create
     n = Node.create! params
-    Jig.create_node(n)
     render api_show :node, Node, n.id.to_s, nil, n
   end
   

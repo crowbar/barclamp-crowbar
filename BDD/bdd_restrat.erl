@@ -14,9 +14,7 @@
 % 
 -module(bdd_restrat).
 -export([step/2]).
--export([validate/1]).
 -export([get_object/1, get_result/2, parse_object/1, alias/1]).
--export([step/3]).  % depricate
 -include("bdd.hrl").
 
 % HELPERS ============================
@@ -26,7 +24,13 @@ get_result(Results, Type) ->  bdd_utils:depricate({2014, 1, 1}, bdd_restrat, get
   
 % handles cases where objects use names that conflict w/ internal namespaces
 alias(Object)                 -> bdd_utils:alias(Object).
-alias(Object, Method, Params) -> apply(bdd_utils:alias(Object), Method, Params).
+alias(Object, Method, Params) -> 
+  try apply(bdd_utils:alias(Object), Method, Params) of
+    R -> R
+  catch
+    error: undef  -> bdd_utils:log(error, bdd_restrat, alias, "Missing ~p:~p([params]).  Object Abstraction fails.", [Object, Method]), false;
+    Cause: Reason -> bdd_utils:log(error, bdd_restrat, alias, "Unexpected ~p error due to ~p.  Object ~p:~p Abstraction fails.", [Cause, Reason, Object, Method]), false
+  end.
 
 % wrapper looks at header to see if there is meta data to help with override parsing
 % if it's json then use the parser from bdd_utils
@@ -45,13 +49,7 @@ parse_object(Results) ->
     D        -> bdd_utils:log(debug, "JSON API returned non-JSON result.  Returned ~p", [Results]),
                 #obj{namespace = rest, data=D, url=Results#http.url, id = -1 }
   end.
-
-% this should NOT be called here, only in the objects
-validate(_) -> bdd_utils:log(warn, "bdd_restrat:validate should not be called. Use your platform specific validator").
   
-% DEPRICATE!
-step(_Config, B, C) -> bdd_utils:depricate({2013, 10, 1}, bdd_restrat, step, bdd_restrat, step, [B, C]).
-
 % GIVEN STEPS ======================
 step(Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
   step(Global, {step_finally, _N, ["REST deletes the",Object, Name]});

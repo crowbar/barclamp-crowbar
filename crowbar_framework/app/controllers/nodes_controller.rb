@@ -116,6 +116,14 @@ class NodesController < ApplicationController
               node.raid_set = values['raid']
               dirty = true
             end
+            if !(node.target_platform == values['target_platform'])
+              node.target_platform = values['target_platform']
+              dirty = true
+            end
+            if !(node.license_key == values['license_key'])
+              node.license_key = values['license_key']
+              dirty = true
+            end
             if dirty
               begin
                 node.save
@@ -140,6 +148,9 @@ class NodesController < ApplicationController
     @options = CrowbarService.read_options
     @nodes = {}
     NodeObject.all.each do |node|
+      if node.target_platform == ''
+         node.target_platform = nil
+      end
       @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
   end
@@ -280,6 +291,8 @@ class NodesController < ApplicationController
       @node.public_name = params[:public_name]
       @node.group = params[:group]
       @node.description = params[:description]
+      @node.target_platform = params[:target_platform]
+      @node.license_key = params[:license_key]
       @node.save
       true
     rescue Exception=>e
@@ -292,6 +305,14 @@ class NodesController < ApplicationController
     @network = {}
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
+      if @node.target_platform == ''
+         @node.target_platform = nil
+       end
+      if !request.fullpath.include? "edit"
+        if @node.target_platform == "windows-6.2"
+             @node.target_platform = "Windows Server 2012"
+        end
+      end
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)
       @node.networks.each do |intf, data|

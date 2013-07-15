@@ -157,6 +157,22 @@ class NodeObject < ChefObject
     !@node.nil?
   end
 
+  def target_platform
+    @node[:target_platform]
+  end
+
+  def target_platform=(value)
+    @node.set[:target_platform] = value
+  end
+
+  def license_key
+    @node[:license_key]
+  end
+
+  def license_key=(value)
+    @node.set[:license_key] = value
+  end
+
   def shortname
     Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
     name.split('.')[0]

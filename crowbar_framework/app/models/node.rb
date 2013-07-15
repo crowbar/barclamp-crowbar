@@ -194,7 +194,8 @@ class Node < ActiveRecord::Base
 
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
-    proposal = Deployment.all.first.proposal
+    default_deployment = Deployment.find(:first)
+    proposal = default_deployment.committed || default_deployment.active.deep_clone
     Role.bootstrap.each {|r| r.add_to_node_in_snapshot(self,proposal) } if self.admin
     Role.discovery.each {|r| r.add_to_node_in_snapshot(self,proposal) }
   end

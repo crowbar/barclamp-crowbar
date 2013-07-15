@@ -72,21 +72,24 @@ class Snapshot < ActiveRecord::Base
   end
   
   ##
-  # Clone this snapshot
-  # optionally, change parent too
-  def deep_clone(parent_deployment=nil, name=nil, with_nodes=true)
-
-    new_snap = self.dup
-
-    Snapshot.transaction begin    
-      new_snap.deployment_id = parent_deployment.id if parent_deployment
-      new_snap.name = name || "#{self.name}_#{self.id}"
-      new_snap.save      
-      # TODO ZEHICLE clone the roles
-      # TODO ZEHICLE clone the nodes
+  # Clone this snapshot.  It will also clone any node roles specific to this snapshot,
+  # and take care of making sure that the node role dependency graph stays sane.
+  def deep_clone
+    Snapshot.transaction do
+      newsnap = self.dup
+      node_role_map = Hash.new
+      self.node_roles.each{|nr| node_role_map[nr.id] = [nr,nr.dup.save]}
+      node_role_map.each do |id,nr_array|
+        old_nr = nr_array[0]
+        new_nr = nr_array[1]
+        old_nr.children.each do |c_nr|
+          new_nr.children << (node_role_map[c_nr.id][1] || nil rescue nil) || c_nr
+        end
+        old_nr.parents.each do |p_nr|
+          new_nr.parents << (node_role_map[p_nr.id][1] || nil rescue nil) || p_nr
+        end
+      end
     end
-
-    new_snap
   end
 
   private

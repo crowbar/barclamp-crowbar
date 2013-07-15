@@ -18,7 +18,7 @@
 # This initializer makes sure we have a Crowbar Default deployment
 # it MUST be run after the migrations
 begin
-  
+
     # we cannot run the system w/o a deployment
     # we are creating it here until there is a more logical place
 
@@ -28,6 +28,8 @@ begin
       d.save!
       p = d.proposal
       p.save!
+      d.commit
+      d.activate_committed
       Rails.logger.debug "ZEHICLE created default deployment #{d.inspect} in initializer"
     end
 

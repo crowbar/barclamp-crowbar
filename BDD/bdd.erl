@@ -138,13 +138,13 @@ run(Config, Feature, FileName, ID) ->
   % setup UI
   log(feature, "~s (~s)", [Feature, FileName]),
   % setup the tests
-  SetupConfig = step_run(FeatureConfig, [], {step_setup, 0, Feature}, [Fatom]),  % setup
+  SetupConfig = step_run(FeatureConfig, [], {step_setup, {0, 0}, Feature}, [Fatom]),  % setup
   log(debug, ">>>>>>> Setup Complete, Running Tests for ~p >>>>>>>",[Feature]),
   % run the tests
   Result = {feature, Fatom, ScenarioName, [setup_scenario(SetupConfig, Scenario, ID) || Scenario <- Scenarios]},
   % tear down
   log(debug, "<<<<<<< Tests Complete, Running Tear Down for ~p <<<<<<<",[Feature]),
-  step_run(SetupConfig, [], {step_teardown, 0, Feature}, [Fatom]),  %teardown
+  step_run(SetupConfig, [], {step_teardown, {0, 9999}, Feature}, [Fatom]),  %teardown
   % return setup before we added feature stuff
   [Result | StartConfig].
 	
@@ -169,7 +169,7 @@ start(Config) ->
       file:write_file("../crowbar_framework/tmp/inspection.list",io_lib:fwrite("~p.\n",[inspect(AzConfig)])),
       bdd_utils:marker("BDD TEST STARTING"),
       bdd_utils:log(debug, bdd, start, "running global setup using `~p:step(...step_setup...)`",[Global]),
-      SetupConfig = step_run(AzConfig, [], {step_setup, 0, "Global"}, [Global]),  
+      SetupConfig = step_run(AzConfig, [], {step_setup, {-1, 0}, "Global"}, [Global]),  
       bdd_utils:config_set(SetupConfig, started, true);
     _ -> Config
   end.
@@ -179,7 +179,7 @@ stop(Config) ->
   Global = bdd_utils:config(Config, global_setup, default),
   case Started of
     true -> 
-      TearDownConfig = step_run(Config, [], {step_teardown, 0, "Global"}, [Global]),
+      TearDownConfig = step_run(Config, [], {step_teardown, {-1, 9999}, "Global"}, [Global]),
       is_clean(TearDownConfig),
       application:stop(crypto),
       application:stop(inets),
@@ -274,34 +274,35 @@ step_run(Config, Input, Step) ->
 % recursive attempts to run steps
 step_run(Config, Input, Step, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
-  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  Alias = bdd_utils:alias(Feature),
   % now we need to try and run the feature
 	try apply(Alias, step, [Input, Step]) of
 		error -> 
 		  {error, Step};
 		Result -> 
-		  {Type, _N, List} = Step,
+      {_, {Scenario, StepNum}, _} = Step, 
 		  bdd_utils:marker("STEP RESULT"),
-		  log(debug, "^^ Ran ~p:~p(~p)",[Feature,Type,List]),
-		  log(trace, "^^ Result -> ~p",[Result]),
+		  log(debug, "^^ ~p,~p Ran ~p:step(R, ~p).",[Scenario, StepNum, Alias,Step]),
+      log(trace, "^^ ~p,~p Input -> ~p",[Scenario, StepNum, Input]),
+		  log(trace, "^^ ~p,~p Result -> ~p",[Scenario, StepNum, Result]),
 		  Result
 	catch
 		error: undef -> step_run(Config, Input, Step, Features);
 		error: function_clause -> step_run(Config, Input, Step, Features);
 		exit: {noproc, {gen_server, call, Details}} -> 
-		  log(info,  "exit Did not find step: ~p", [Feature]),
+		  log(info,  "exit Did not find step: ~p", [Alias]),
       log(error, "web server not responding.  Details: ~p",[Details]), 
       throw("BDD ERROR: Could not connect to web server.");
     error: {badmatch, {error, no_scheme}} ->
 		  log(info,  "badmatch in code due to no_scheme.",[]), 
       log(debug, "Stacktrace: ~p~n", [erlang:get_stacktrace()]),
-      log(error, "Attempted \"feature ~p, step ~p.\"",[Feature, Step]),
+      log(error, "Attempted \"feature ~p, step ~p.\"",[Alias, Step]),
 		  error; 
 		X: Y -> 
 		  bdd_utils:marker("BDD ERROR"),
 		  log(info,  "step run found ~p:~p", [X, Y]), 
       log(debug, "Stacktrace: ~p", [erlang:get_stacktrace()]),
-      log(error, "Attempted \"apply(~p, step, [[Input], ~p]).\"",[Feature, Step]),
+      log(error, "Attempted \"apply(~p, step, [[Input], ~p]).\"",[Alias, Step]),
 		  error 
 	end;
 
@@ -383,7 +384,7 @@ inspect(Config) ->
 inspect(_Config, Result, []) -> Result;
 inspect(Config, Result, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
-  Alias = bdd_utils:config(alias_map, {Feature, Feature}),
+  Alias = bdd_utils:alias(Feature),
   try apply(Alias, inspector, []) of
 		R -> R ++ inspect(Config, Result, Features)
 	catch

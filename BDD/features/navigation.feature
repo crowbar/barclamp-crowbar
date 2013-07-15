@@ -8,7 +8,6 @@ Feature: Navigation, Check Core Navigation
     Then there should be no translation errors
 
   Scenario: Top Nav Renders
-    Skip until network menus are working again
     When I go to the home page
     Then I should not see "Render Error"
           

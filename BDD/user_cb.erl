@@ -13,8 +13,8 @@
 % limitations under the License. 
 % 
 % 
--module(users).
--export([step/2, json_update/4, json/6, validate/1, inspector/1, g/1]).
+-module(user_cb).
+-export([step/2, json_update/4, json/3, json/6, validate/1, inspector/0, g/1]).
 -include("bdd.hrl").
 
 % Commont Routine
@@ -22,9 +22,14 @@
 g(Item) ->
   case Item of
     path -> "/api/v2/users";
+    atom1 -> bdd_user1;
     natural_key -> username; % unlike most crowbar objects, this uses username as the natural key
     username -> "oscar";
-	email -> "oscar@grouch.com";
+    name -> g(name);
+    description -> g(email);
+    order -> 100;
+    email -> email();
+    domain -> "crowbar.bdd";
     test_email -> "test@test.com";
     password -> "password";
     password_confirmation -> "password";
@@ -34,33 +39,26 @@ g(Item) ->
   end.
 
 
-% validates List of objects in a generic way common to all objects.
-validate_list(List) ->
-  bdd_utils:assert([is_list(List)], debug).
-
-% Common Routine
-% Only need chck id, username and email are parseable for now
-% Should really have email validator
-
-validate(List) ->
-  Is_Valid = true,
-  try 
-    _Id = element(2,lists:keyfind("id", 1, List)),
-    _Username = element(2,lists:keyfind("username", 1, List)),
-    _Email = element(2,lists:keyfind("email", 1, List)),
-    bdd_utils:log(debug, "User validation: ID: ~p, Username: ~p, Email: ~p", [_Id, _Username,_Email]),
-    Is_Valid
-  catch
-    X: Y -> io:format("ERROR: cannot parse user: ~p:~p", [X, Y]),
-            io:format("Stacktrace: ~p", [erlang:get_stacktrace()]),
-    false
-  end.
+validate(JSON) when is_record(JSON, obj) ->
+  J = JSON#obj.data,
+  R = [ JSON#obj.type == "user",
+        bdd_utils:is_a(J, length, 6),
+        bdd_utils:is_a(J, string, created_at), 
+        bdd_utils:is_a(J, string, updated_at), 
+        bdd_utils:is_a(J, name, username),
+        bdd_utils:is_a(J, string, email),
+        bdd_utils:is_a(J, boolean, is_admin),
+        bdd_utils:is_a(J, dbid, id)],
+  bdd_utils:assert(R).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
-inspector(Config) -> 
-  crowbar_rest:inspector(Config, users).  % shared inspector works here, but may not always
-  
+inspector() -> 
+  crowbar_rest:inspector(user).  % shared inspector works here, but may not always
+
+json(Name, Description, _) ->
+  json(Name, Description, g(password), g(password_confirmation), g(remember_me), g(is_admin)).
+
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Username, Email, Password, Password_Confirmation, Remember_Me, Is_Admin) ->
@@ -77,10 +75,22 @@ fetch_user(Config, Result, N, Username) ->
   bdd_utils:log(Config, debug, "users:step Fetch User: ~p", [List]),
   List.
 
+email()               -> email(g(username)).
+email(User)           -> email(User, g(domain)).
+email(User, Domain)   -> User ++integer_to_list(random:uniform(100000)) ++ "@" ++ Domain.
+
+%setup, takes care of create               
+step(_Global, {step_setup, _N, _}) -> 
+  User = json(g(username), g(email), g(password), g(password_confirmation), g(remember_me), g(is_admin)),
+  bdd_crud:create(g(path), User, g(atom1));
+
+%teardown, takes care of delete test.
+step(_Global, {step_teardown, _N, _}) -> 
+  bdd_crud:delete(g(atom1)).
+
+% THE FOLLOWING STEPS WILL NOT RESPOND....!!!
 
 % GIVEN STEP =======================================================
-% TEMPORARY REMAPPING
-step(In, Out) -> step([], In, Out).
 
 step(Config, _Global, {step_given, _N, ["there is not a user", Username]}) -> 
   bdd_utils:log(trace, "users:step there is not a user: ~p", [Username]),
@@ -106,16 +116,6 @@ step(_Config, _Global, {step_given, _N, ["there is an admin user", Username]}) -
   R;
 
 % WHEN STEP =======================================================
-
-step(_Config, _Given, {step_when, _N, ["REST requests the list of users"]}) ->
-  bdd_restrat:step(_Config, _Given, {step_when, _N, ["REST requests the", g(path),"page"]});
-
-
-step(_Config, _Given, {step_when, _N, ["REST adds the user",  Username]}) -> 
-  User = json(Username,"blah@test.com", g(password), g(password_confirmation), g(remember_me), g(is_admin)),
-  bdd_utils:log(_Config, debug, "REST adds the user, adding user: ~p",[User]),
-  bdd_restrat:create(_Config, g(path), username, User),
-  _Config;
 
 step(_Config, _Given, {step_when, _N, ["REST elevates user", Username, "to administrator"]}) -> 
    bdd_utils:log(_Config, debug, "Elevating user: ~p, to administrator", [Username]),
@@ -157,18 +157,6 @@ step(_Config, _Given, {step_when, _N, ["REST unlocks user", Username]}) ->
 
 % THEN STEP  =======================================================
 
-% validate list based on basic rules for Crowbar
-step(_Config, Result, {step_then, _N, ["the list of objects is properly formatted"]}) -> 
-  {ajax, List, _} = lists:keyfind(ajax, 1, Result),     % ASSUME, only 1 ajax result per feature
-  validate_list(List);
-
-step(_Config, _Result, {step_then, _N, ["there should be a valid user", Username]}) -> 
-  bdd_utils:log(_Config, trace, "users:step Fetching user: ~p", [Username]),
-  User_JSON = fetch_user(_Config, _Result, _N, Username),
-  IsValid = validate(User_JSON),
-  IsValid;
-
-
 step(_Config, _Result, {step_then, _N, ["the user",Username, "email should be", Email]}) -> 
    bdd_utils:log(_Config, trace, "users:step Checking user: ~p email has been set to: ~p", [Username,Email]),
    User_JSON = fetch_user(_Config, _Result, _N, Username),
@@ -183,25 +171,4 @@ step(Config, _Result, {step_then, _N, ["the user",Username, "is_admin should be"
    _Is_Admin = element(2,lists:keyfind("is_admin", 1, User_JSON)), 
    bdd_utils:log(Config, trace, "users:step Checking user _Is_Admin: ~p ", [_Is_Admin]), 
    bdd_utils:log(Config, trace, "users:step Checking user (_Is_Admin == Is_Admin): ~p ", [(_Is_Admin == Is_Admin)]), 
-   (_Is_Admin == Is_Admin);
-
-
-% FINALLY STEP  =======================================================
-% ADD MISSING FINALLY STEP:
-step(Config, _Given, {step_finally, _N, ["REST removes the user", Username]}) -> 
-  bdd_utils:log(Config, trace, "users:step REST removes the user: ~p", [Username]),
-  bdd_restrat:destroy(Config, g(path), Username);
-
-% Setup/Teardown
-
-%setup, takes care of create               
-step(Config, _Global, {step_setup, _N, _}) -> 
-  User = json(g(username), g(email), g(password), g(password_confirmation), g(remember_me), g(is_admin)),
-  bdd_utils:log(Config, debug, "users:step Setup users tests, creating user: ~p",[User]),
-  bdd_restrat:create(Config, g(path), setup_user, username, User),
-  Config;
-
-%teardown, takes care of delete test.
-step(Config, _Global, {step_teardown, _N, _}) -> 
-   bdd_utils:log(Config, debug, "users:step step-teardown deleting: ~p",[g(username)] ),
-   bdd_restrat:destroy(Config, g(path), g(username)).
+   (_Is_Admin == Is_Admin).

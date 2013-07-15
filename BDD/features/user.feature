@@ -1,4 +1,4 @@
-Feature: Users
+Feature: User
   In order manage users
   The system operator, Oscar
   wants to be able to add, edit and delete users
@@ -15,26 +15,25 @@ Feature: Users
     Given I am on the "manage_users" page
     When I fill in {fields:username=test_user_1&password=password&password_confirmation=password} and submit using the "Add User" button
     Then I should see {bdd:crowbar.i18n.user.create_success}
-    Finally REST deletes the {object:users} "test_user_1"
+    Finally REST deletes the {object:user} "test_user_1"
     
   Scenario: %Sample Form to demo only - remove
     Given I am on the "node/bdd1.example.com/edit" page
     When I fill in {fields:alias=foo&description=bar} and submit using the "Save" button
     Then I should see {bdd:crowbar.i18n.nodes.edit.save_node_success}
       
-  Scenario: View Add User Form
+  Scenario: %View Add User Form
     Given I am on the "manage_users" page
     Then I should see "user_username"
       And I should see "user_password"
       And I should see "user_password_confirmation"
 
   Scenario: Create User via REST then see on UI
-    Given there is a user "seemore" with email "foo@bar.com"
+    Given REST creates a {object:user} "seemore" 
     When I go to the "users" page
     Then I should see "seemore"
-      And I should see "foo@bar.com"
-    Finally REST removes the user "seemore"
-        
+    Finally REST removes {object:user} "seemore"
+
   Scenario: %Update User
     While interactive
     Given I am on the "manage_users" page
@@ -93,45 +92,52 @@ Feature: Users
     Then I should see {bdd:crowbar.i18n.nodes.edit.save_node_success}
     
   Scenario: REST get user list
-    When REST requests the list of users
-    Then the list of objects is properly formatted
+    When REST gets the {object:user} list
+    Then the list should have an object with key "username" value "crowbar"
+      And the list should have an object with key "username" value "developer"
      
-  Scenario: REST Create, Read, and Delete a user
-    Given there is not a user "test_user_1"
-    When REST adds the user "test_user_1"
-    Then there should be a valid user "test_user_1"
-    Finally REST removes the user "test_user_1"
+  Scenario: REST user
+    Given there is not a {object:user} "test_user_1"
+    When REST creates the {object:user} "test_user_1"
+    Then the {object:user} is properly formatted
+    Finally REST removes the {object:user} "test_user_1"
     
   Scenario: REST Updates a user email
-    Given there is a user "test_user_1"
+    Skip ZEHICLE refactoring
+    Given there is a {object:user} "test_user_1"
     When REST modifies user "test_user_1" setting email to "test_user_zed@test.com" 
     Then the user "test_user_1" email should be "test_user_zed@test.com"
     Finally REST removes the user "test_user_1"
     
   Scenario: REST makes user admin
-    Given there is a user "test_user_1"
+    Skip ZEHICLE refactoring
+    Given there is a {object:user} "test_user_1"
     When REST elevates user "test_user_1" to administrator
     Then the user "test_user_1" is_admin should be "true"
-    Finally REST removes the user "test_user_1"
+    Finally REST removes the {object:user} "test_user_1"
     
   Scenario: REST remove user admin
-    Given there is an admin user "test_user_1"
+    Skip ZEHICLE refactoring
+    Given there is an admin {object:user} "test_user_1"
     When REST removes admin privilege for user "test_user_1"
-    Then the user "test_user_1" is_admin should be "false"
+    Then the {object:user} "test_user_1" is_admin should be "false"
     Finally REST removes the user "test_user_1"
     
   Scenario: REST resets a user password
-    Given there is a user "test_user_1"
-    When REST modifies user "test_user_1" setting password and password_confirmation to "password123" 
+    Skip ZEHICLE refactoring
+    Given there is a {object:user} "test_user_1"
+    When REST modifies {object:user} "test_user_1" setting password and password_confirmation to "password123" 
     Finally REST removes the user "test_user_1"
     
   Scenario: REST locks a user
-    Given there is a user "test_user_1"
-    When REST locks user "test_user_1"
-    Finally REST removes the user "test_user_1"
+    Skip ZEHICLE refactoring
+    Given there is a {object:user} "test_user_1"
+    When REST locks {object:user} "test_user_1"
+    Finally REST removes the {object:user} "test_user_1"
     
   Scenario: REST unlocks a user
-    Given there is a user "test_user_1"
-    When REST unlocks user "test_user_1"
-    Finally REST removes the user "test_user_1"
+    Skip ZEHICLE refactoring
+    Given there is a {object:user} "test_user_1"
+    When REST unlocks {object:user} "test_user_1"
+    Finally REST removes the {object:user} "test_user_1"
 

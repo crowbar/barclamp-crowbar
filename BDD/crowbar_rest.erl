@@ -56,39 +56,38 @@ step(_Given, {step_finally, _N, ["throw away node",Node]}) ->
 
 % GROUPS
 step(_Global, {step_given, _N, ["there is a",Category,"group",Group]}) -> 
+  step(_Global, {step_given, _N, ["there is a",Category,group,Group]});
+step(_Global, {step_given, {Scenario, _N}, ["there is a",Category,group,Group]}) -> 
   JSON = group_cb:json(Group, group_cb:g(description), 200, Category),
-  bdd_restrat:create(group_cb:g(path), JSON);
+  bdd_crud:create(group_cb:g(path), JSON, Scenario, Group);
 
 % remove the group
 step(_Given, {step_finally, _N, ["throw away group",Group]}) -> 
-  bdd_restrat:destroy(group_cb:g(path), Group);
+  bdd_crud:delete(group_cb:g(path), Group);
 
 % ============================  WHEN STEPS =========================================
 
 step(_Given, {step_when, {_Scenario, _N}, ["REST gets the",barclamp,Barclamp,Resource,"list"]}) -> 
-  Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,apply(bdd_restrat:alias(Resource),g,[resource])]),
+  Path = eurl:path([api,crowbar:g(version),barclamps,Barclamp,bdd_restrat:alias(Resource,g,[resource])]),
   bdd_utils:log(debug, crowbar, step, "REST get ~p list for ~p barclamp", [Resource, Barclamp]),
-  {Code, JSON} = eurl:get_http(Path),
-  Wrapper = crowbar_rest:api_wrapper_raw(JSON),
-  bdd_utils:log(trace, bdd_restrat, step, "REST get ~p list: ~p", [Resource, Wrapper]),
-  bdd_restrat:ajax_return(Path, get, Code, Wrapper#list.ids);  
+  eurl:get_http(Path);
 
 % ============================  THEN STEPS =========================================
 
 % validate object based on basic rules for Crowbar
 step(Result, {step_then, _N, ["the object is properly formatted"]}) -> 
-  JSON = bdd_restrat:get_result(Result, obj),
+  JSON = eurl:get_result(Result, obj),
   validate(JSON);
   
 % validate object based on it the validate method in it's ERL file (if any)
 % expects an ATOM for the file
 step(Result, {step_then, _N, ["the", Feature, "object is properly formatted"]}) -> 
-  JSON = bdd_restrat:get_result(Result, obj), 
-  apply(Feature, validate, [JSON]);
+  JSON = eurl:get_result(Result, obj), 
+  bdd_restrat:alias(Feature, validate, [JSON]);
 
 % validates a list of object IDs
 step(Result, {step_then, _N, ["the object id list is properly formatted"]}) ->
-  List = bdd_restrat:get_result(Result, list),
+  List = eurl:get_result(Result, list),
   NumberTester = fun(Value) -> bdd_utils:is_a(integer, Value) end,
   lists:all(NumberTester, List#list.ids);
 

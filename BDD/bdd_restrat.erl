@@ -25,8 +25,8 @@
 get_result(Results, Type) ->  bdd_utils:depricate({2014, 1, 1}, bdd_restrat, get_result, eurl, get_result, [Results, Type]).
   
 % handles cases where objects use names that conflict w/ internal namespaces
-alias(Object)                 -> bdd_utils:config(alias_map,{Object, Object}).
-alias(Object, Method, Params) -> apply(alias(Object), Method, Params).
+alias(Object)                 -> bdd_utils:alias(Object).
+alias(Object, Method, Params) -> apply(bdd_utils:alias(Object), Method, Params).
 
 % wrapper looks at header to see if there is meta data to help with override parsing
 % if it's json then use the parser from bdd_utils
@@ -77,7 +77,8 @@ step(_Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Obje
   % This relies on the pattern objects providing a g(path) value mapping to their root information
   URI = alias(Object, g, [path]),
   bdd_utils:log(debug, bdd_restrat, step, "REST get ~p list for ~p path", [Object, URI]),
-  step(_Given, {step_when, _N, ["REST requests the",URI,"page"]});
+  R = eurl:get_http(URI),
+  [R, bdd_restrat:get_object(R)];
 
 step(_Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
@@ -98,7 +99,7 @@ step(_Global, {step_given, _N, ["REST creates the",Object,Name]}) ->
   step(_Global, {step_when, _N, ["REST creates the",Object,Name]});
 
 step(_Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) -> 
-  bdd_utils:log(debug, "bdd_restrat: step REST creates the ~p ~p", [Object, Name]),
+  bdd_utils:log(debug, "bdd_restrat: step REST creates the ~p ~p", [alias(Object), Name]),
   JSON = alias(Object, json, [Name, alias(Object, g, [description]), alias(Object, g, [order])]),
   Path = alias(Object, g, [path]),
   Result = eurl:put_post(Path, JSON, post),
@@ -122,7 +123,7 @@ step(_Then, {step_finally, _N, ["REST deletes the", Object, Name]}) ->
 
 step(_Given, {step_when, _N, ["REST deletes the",Object, Name]}) when is_atom(Object)-> 
   Path = alias(Object, g, [path]),
-  R = eurl:delete(Path, Name),
+  R = bdd_crud:delete(Path, Name),
   bdd_utils:log(debug, bdd_restrat, step, "delete ~p ~p = ~p",[Object,Path, R]),
   R;
   
@@ -141,12 +142,12 @@ step(Results, {step_then, _N, ["REST call returned success"]}) ->
 
 step(_Results, {step_then, _N, ["there is a", Object, Key]}) ->
   URI = alias(Object, g, [path]),
-  R =eurl:get(eurl:path(URI, Key)),
+  R =eurl:get_http(eurl:path(URI, Key)),
   200 =:= R#http.code;
 
 step(_Results, {step_then, _N, ["there is not a", Object, Key]}) ->
   URI = alias(Object, g, [path]),
-  R =eurl:get(eurl:path(URI, Key)),
+  R =eurl:get_http(eurl:path(URI, Key)),
   404 =:= R#http.code;
   
 step(Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->

@@ -23,3 +23,6 @@
 
 % return generic data from a call
 -record(http, {data = "error", code = 500, url = "/", datatype = "unknown", version="0.0", namespace = bdd_restrat,  details = [] }).
+
+% return generic data from a call
+-record(grep, {data = "error"}).

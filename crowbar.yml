@@ -42,6 +42,7 @@ locale_additions:
       crowbar:
         edit_attributes:
           attributes: Attributes
+          allow_named_proposals: Allow Named Proposals
         edit_deployment:
           deployment: Deployment
 

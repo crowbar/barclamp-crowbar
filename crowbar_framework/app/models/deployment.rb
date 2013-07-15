@@ -69,7 +69,7 @@ class Deployment < ActiveRecord::Base
           active_snapshot.deep_clone
         else                                        # create new
           # Create the snapshot 
-          snapshots.build(:deployment_id=>self.id)
+          snapshots.build(:deployment_id=>self.id, :name => self.name, :description => self.description)
         end
       end
       ps.save!

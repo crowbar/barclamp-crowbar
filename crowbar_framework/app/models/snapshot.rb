@@ -15,8 +15,6 @@
 
 class Snapshot < ActiveRecord::Base
 
-  before_create    :sane_defaults
-
   ERROR       = -1
   ACTIVE      = 0
   TODO        = 1
@@ -78,7 +76,7 @@ class Snapshot < ActiveRecord::Base
     Snapshot.transaction do
       newsnap = self.dup
       node_role_map = Hash.new
-      self.node_roles.each{|nr| node_role_map[nr.id] = [nr,nr.dup.save]}
+      self.node_roles.each{|nr| node_role_map[nr.id] = [nr,nr.dup]}
       node_role_map.each do |id,nr_array|
         old_nr = nr_array[0]
         new_nr = nr_array[1]
@@ -88,19 +86,18 @@ class Snapshot < ActiveRecord::Base
         old_nr.parents.each do |p_nr|
           new_nr.parents << (node_role_map[p_nr.id][1] || nil rescue nil) || p_nr
         end
+        new_nr.snapshot = newsnap
+        new_nr.save!
+        newsnap.node_roles << new_nr
       end
-    end
-  end
-
-  private
-
-  def sane_defaults
-    # make sure we have sane defaults
-    self.name = "#{deployment.name} #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
-    self.description = deployment.description
-    # Create the implicit deployment roles 
-    Role.find(:all, :conditions=>['implicit = ?', true]) do |r|
-      deployment_roles.build(:snapshot_id=>self.id, :role_id=>r.id, :data=>r.role_template)
+      self.deployment_roles.each do |dr|
+        new_dr = dr.dup
+        new_dr.snapshot = newsnap
+        new_dr.save!
+        newsnap.deployment_roles << new_dr
+      end
+      newsnap.save!
+      newsnap
     end
   end
 end

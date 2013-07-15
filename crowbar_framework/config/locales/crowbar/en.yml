@@ -106,9 +106,15 @@ en:
   barclamps:
     index:
       title: "Installed Barclamps"
+  cycles:
+    index:
+      title: "Cycles"
   deployments:
     index:
       title: "Deployments"
+  deployment_roles:
+    index:
+      title: "Deployment Roles"
   docs:
     index:
       title: "Documentation"
@@ -126,9 +132,15 @@ en:
   nodes:
     index:
       title: "Nodes"
+  node_roles:
+    index:
+      title: "Node Roles"
   roles:
     index:
       title: "Roles"
+  snapshots:
+    index:
+      title: "Snapshots"
   support:
     index:
       title: Exported Files

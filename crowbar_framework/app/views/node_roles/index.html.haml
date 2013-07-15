@@ -1,0 +1,9 @@
+%h1= t '.title'
+
+- if @list.count == 0
+  = t('no_items')
+- else
+  %ul
+    - @list.each do |i|
+      %li
+        = "#{i.name} (#{i.state || NodeRole::UNKNOWN }): #{i.data}"

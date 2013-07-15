@@ -19,12 +19,40 @@ class RolesController < ApplicationController
     @list = Role.all
     respond_to do |format|
       format.html { }
-      format.json { render api_index :node, @list }
+      format.json { render api_index :role, @list }
     end
   end
 
   def show
-    render api_show :role, Role
+    respond_to do |format|
+      format.html { @role = Role.find_key params[:id] }
+      format.json { render api_show :role, Role }
+    end
   end
-      
+
+  def create
+    unless Rails.env.development?
+      render  api_not_supported("post", "role")
+    else
+      r = Role.create! params
+      render api_show :role, Role, nil, nil, r 
+    end
+  end
+
+  def update
+    unless Rails.env.development?
+      render  api_not_supported("delete", "role")
+    else
+      render api_update :role, Role
+    end
+  end
+
+  def destroy
+    unless Rails.env.development?
+      render  api_not_supported("delete", "role")
+    else
+      render api_delete Role
+    end
+  end  
+
 end

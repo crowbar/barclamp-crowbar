@@ -22,7 +22,7 @@
 g(Item) ->
   case Item of
     path  -> "/api/v2/snapshots";
-    atom  -> bdd_snapshot1;
+    atom  -> bddsnapshot1;
     name  -> "bdd_snapshot";
     _     -> crowbar:g(Item)
   end.

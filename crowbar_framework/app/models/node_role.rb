@@ -64,7 +64,7 @@ class NodeRole < ActiveRecord::Base
 
   # convenience methods
   def name
-    "#{deployment.name}: #{node.name}: #{role.name}"
+    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
   # convenience methods

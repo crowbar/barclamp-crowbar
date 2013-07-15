@@ -93,11 +93,9 @@ class Snapshot < ActiveRecord::Base
 
   def sane_defaults
     # make sure we have sane defaults
-    self.name = "#{deployment.name} #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
-    self.description = deployment.description
+    self.name ||= "#{deployment.name} #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
+    self.description ||= deployment.description
     # Create the implicit deployment roles 
-    Role.find(:all, :conditions=>['implicit = ?', true]) do |r|
-      deployment_roles.build(:snapshot_id=>self.id, :role_id=>r.id, :data=>r.role_template)
-    end
+    Role.implicit.each { |r| deployment_roles.build(:snapshot_id=>self.id, :role_id=>r.id, :data=>r.role_template) }
   end
 end

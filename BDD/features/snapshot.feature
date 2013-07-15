@@ -8,7 +8,7 @@ Feature: Snapshot
     Then the page returns {integer:200}
   
   Scenario: REST JSON check
-    When REST gets the {object:snapshot} "bdd-test"
+    When REST gets the {object:snapshot} "bddtest"
     Then the {object:snapshot} is properly formatted
     
   Scenario: The page renders

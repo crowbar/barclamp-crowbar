@@ -15,13 +15,6 @@
 
 class Snapshot < ActiveRecord::Base
 
-  ERROR       = -1
-  ACTIVE      = 0
-  TODO        = 1
-  BLOCKED     = 2
-  TRANSITION  = 3
-  PROPOSED    = nil
-
   attr_accessible :id, :name, :description, :order, :deployment_id
   
   belongs_to      :deployment
@@ -46,19 +39,19 @@ class Snapshot < ActiveRecord::Base
  
   # review all the nodes for the nameshot and figure out an aggregated state
   def state
-    active = 0
-    my_nodes.each do |n|
-      # any node that's error or unknown will cause the whole state to be in the other state
-      if n.state < 0 
-        return ERROR
-      elsif n.state > 0 
-        active+=1
-      elsif n.state == nil
-        return UNKNOWN
-      end
+    state_map = Hash.new
+    node_roles.each do |nr|
+      state_map[nr.state] = true
     end
-    # if all the nodes fall through the tests above then the snapshot is ready or active
-    return (active == 0 ? ACTIVE : TRANSITION)
+    case
+    when state_map[NodeRole::ERROR] then NodeRole::ERROR
+    when state_map[NodeRole::BLOCKED] ||
+        state_map[NodeRole::TODO] ||
+        state_map[NodeRole::TRANSITION]
+      NodeRole::TODO
+    when state_map[NodeRole::PROPOSED] then NodeRole::PROPOSED
+    else NodeRole::ACTIVE
+    end
   end
 
   # returns a has with all the node status information (unready nodes only)

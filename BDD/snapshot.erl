@@ -33,7 +33,7 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "snapshot",
-      bdd_utils:is_a(J, length, 6),
+      bdd_utils:is_a(J, length, 7),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
@@ -50,11 +50,11 @@ json(Name, Description, Order) ->
      
 % Common Routines
 
-step(_Global, {step_setup, _N, _}) -> 
+step(_Global, {step_setup, _N, _}) -> true;
   % create node(s) for tests
-  JSON = json(g(name), g(description), 100),
-  bdd_crud:create(g(path), JSON, g(atom));
+  %JSON = json(g(name), g(description), 100),
+  %bdd_crud:create(g(path), JSON, g(atom));
 
-step(_Global, {step_teardown, _N, _}) -> 
+step(_Global, {step_teardown, _N, _}) -> true.
   % find the node from setup and remove it
-  bdd_crud:delete(g(atom)).  
+  %bdd_crud:delete(g(atom)).  

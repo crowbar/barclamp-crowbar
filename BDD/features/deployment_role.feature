@@ -6,13 +6,8 @@ Feature: DeploymentRole
   Scenario: REST DeploymentRole List
     When REST gets the {object:deployment_role} list
     Then the page returns {integer:200}
-  
-  Scenario: REST JSON check
-    When REST gets the {object:deployment_role} "default:crowbar"
-    Then the {object:deployment_role} is properly formatted
-    
+      
   Scenario: The Deployment Role page renders
     Given I am on the "deployment_roles" page
     Then I should see a heading {bdd:crowbar.i18n.deployment_roles.index.title}
-      And I should see "Default"
       And there are no localization errors

@@ -8,7 +8,7 @@ Feature: Role
     Then the page returns {integer:200}
   
   Scenario: REST JSON check
-    When REST gets the {object:role} "Default"
+    When REST gets the {object:role} "crowbar"
     Then the {object:role} is properly formatted
     
   Scenario: The page renders

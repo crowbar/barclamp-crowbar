@@ -76,7 +76,7 @@ step(_Given, {step_when, _N, ["REST gets the",Object,"list"]}) when is_atom(Obje
   URI = alias(Object, g, [path]),
   bdd_utils:log(debug, bdd_restrat, step, "REST get ~p list for ~p path", [Object, URI]),
   R = eurl:get_http(URI),
-  [R, bdd_restrat:get_object(R)];
+  [R, get_object(R)];
 
 step(_Given, {step_when, _N, ["REST gets the",Object,Key]})  when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information
@@ -97,11 +97,11 @@ step(_Global, {step_given, _N, ["REST creates the",Object,Name]}) ->
   step(_Global, {step_when, _N, ["REST creates the",Object,Name]});
 
 step(_Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) -> 
-  bdd_utils:log(debug, "bdd_restrat: step REST creates the ~p ~p", [alias(Object), Name]),
+  bdd_utils:log(debug, bdd_restrat, step, "REST creates the ~p ~p", [alias(Object), Name]),
   JSON = alias(Object, json, [Name, alias(Object, g, [description]), alias(Object, g, [order])]),
   Path = alias(Object, g, [path]),
   Result = eurl:put_post(Path, JSON, post),
-  bdd_utils:log(trace, "bdd_restrat:REST creates the step: PutPostResult: ~p", [Result]),
+  bdd_utils:log(trace, bdd_restrat, step, "REST creates the step: PutPostResult: ~p", [Result]),
   O = get_object(Result),
   bdd_utils:scenario_store(ScenarioID, Object, O#obj.id),
   [Result, O];
@@ -131,7 +131,7 @@ step(Given, {step_finally, _N, ["REST removes",Object, Name]}) when is_atom(Obje
   step(Given, {step_when, _N, ["REST deletes the",Object, Name]});
 
 step(Results, {step_then, _N, ["REST call returned success"]}) ->
-  R = get_result(Results, http),
+  R = eurl:get_result(Results, http),
   case R#http.code of
     200 -> true;        % catches new format
     _   -> bdd_utils:log(debug,bdd_restrat, step, "REST call DID NOT return success! with ~p",[R]), 
@@ -150,9 +150,9 @@ step(_Results, {step_then, _N, ["there is not a", Object, Key]}) ->
   
 step(Results, {step_then, _N, ["the", Object, "is properly formatted"]}) when is_atom(Object) ->
   % This relies on the pattern objects providing a g(path) value mapping to their root information 
-  case get_result(Results, obj) of 
-    not_found ->  Http = get_result(Results, http),
-                  bdd_utils:log(warn, "bdd_restrat: code ~p from ~p", [Http#http.code, Http#http.url]), 
+  case eurl:get_result(Results, obj) of 
+    not_found ->  Http = eurl:get_result(Results, http),
+                  bdd_utils:log(warn, bdd_restrat, step, "code ~p from ~p", [Http#http.code, Http#http.url]), 
                   false;
     Obj       -> alias(Object, validate, [Obj])
   end;
@@ -176,43 +176,43 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -
 
 step(Results, {step_then, _N, ["key",Key, "should contain",Count,"items"]}) -> 
   {C, _} = string:to_integer(Count),
-  List = json:value(get_result(Results, obj), Key),
+  List = json:value(eurl:get_result(Results, obj), Key),
   Items = length(List),
   Items =:= C;
                                                                 
 step(Results, {step_then, _N, ["key",Key,"should contain at least",Count,"items"]}) ->
   {C, _} = string:to_integer(Count),
-  List = json:value(get_result(Results, obj), Key),
+  List = json:value(eurl:get_result(Results, obj), Key),
   Items = length(List),
   Items >= C;
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 
-  Obj = get_result(Results, obj),
+  Obj = eurl:get_result(Results, obj),
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be a number",[Key]),
   bdd_utils:is_a(number, json:value(Obj#obj.data, Key));
                                                        
 step(Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
-  bdd_utils:is_a(empty, json:value(get_result(Results, obj), Key));
+  bdd_utils:is_a(empty, json:value(eurl:get_result(Results, obj), Key));
                                                       
 step(R, {step_then, {S, N}, ["there should not be a value",Value]}) -> 
   step(R, {step_then, {S, N}, ["there should be a value",Value]}) =/= true;
 
 step(Result, {step_then, {_Scenario, _N}, ["there should be a value",Value]}) -> 
-  Obj = get_result(Result, obj),
+  Obj = eurl:get_result(Result, obj),
   J = Obj#obj.data,
   bdd_utils:log(debug, bdd_restrat, step, "there should be a value ~p got ~p", [Value, J]),
   Test = lists:keyfind(Value,2,J),
   Test =/= false;
 
 step(Result, {step_then, {_Scenario, _N}, ["the list should have an object with key", Key, "value", Value]}) ->
-  List = get_result(Result, list),
+  List = eurl:get_result(Result, list),
   Values = [proplists:get_value(Key, O) || O <- List#list.data],
   Matches = [V || V <- Values, V =:= Value],
   length(Matches) > 0;
    
 step(Results, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) -> 
   I = bdd_utils:scenario_retrieve(Scenario, ID, undefined),
-  Result = get_result(Results, obj),
+  Result = eurl:get_result(Results, obj),
   R = json:value(Result, I),
   bdd_utils:log(debug, "bdd_restrat Then ID ~p (~p) with expected value ~p should be match result ~p", [ID, I, Value, R]),
   R =:= Value;
@@ -227,7 +227,7 @@ step(Results, {step_then, _N, ["I get a",Number,"error"]}) when is_list(Number) 
   step(Results, {step_then, _N, ["I get a",Numb,"error"]});
   
 step(Results, {step_then, _N, ["I get a",Numb,"error"]}) -> 
-  Result = get_result(Results, http),
+  Result = eurl:get_result(Results, http),
   bdd_utils:log(debug, bdd_restrat, step, "I get a ~p error from ~p request", [Result#http.code, Result#http.url]),
   Result#http.code =:= Numb;
 

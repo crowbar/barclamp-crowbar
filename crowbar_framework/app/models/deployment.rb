@@ -61,6 +61,7 @@ class Deployment < ActiveRecord::Base
 
   # return the relevant proposal for the deployment, if missing then create it
   def proposal
+    raise "proposal should never be called for #{self.name}" if self.system?
     if committed?
       raise "cannot create proposal when Deployment is committed"
     elsif proposed_snapshot_id.nil?
@@ -69,7 +70,7 @@ class Deployment < ActiveRecord::Base
           active_snapshot.deep_clone
         else                                        # create new
           # Create the snapshot 
-          snapshots.build(:deployment_id=>self.id)
+          snapshots.build(:deployment_id=>self.id, :name => self.name, :description => self.description)
         end
       end
       ps.save!
@@ -79,56 +80,47 @@ class Deployment < ActiveRecord::Base
     proposed_snapshot(true)     # use true to ensure we get the latest
   end
 
+  # Helper to atomically recommit a currently active or committed snapshot.
+  def recommit(&block)
+    raise "Can only be called on a system deployment" unless system?
+    raise "Recommit must be passed a block that will take a snapshot!" unless block_given?
+    Deployment.transaction do
+      new_c = committed_snapshot || active_snapshot.deep_clone
+      block.call(new_c)
+      new_c.save!
+      self.committed_snapshot_id = new_c.id
+      new_c.roles.each do |nr|
+        nr.commit!
+      end
+      self.save!
+      return committed_snapshot(true)
+    end
+  end
+
   # commit the current proposal (cannot be done if there is a committed proposal)
   def commit
-    raise I18n.t('deployment.commit.raise') if committed? 
     Deployment.transaction do
-      new_c = self.proposal     # promote this one
-      self.committed_snapshot_id = new_c.id
-      self.proposed_snapshot_id = nil
-      self.save
+      raise I18n.t('deployment.commit.raise') if committed? 
+      new_c = proposal     # promote this one
+      committed_snapshot_id = new_c.id
+      proposed_snapshot_id = nil
+      save
+      new_c.node_roles.each do |nr|
+        nr.commit!
+      end
     end
-    self.committed
+    committed_snapshot(true)
   end
 
-  # recall the committing proposal (simply deleted the committed proposal)
-  def recall
-    Deployment.transaction do
-      old_c = self.committed     
-      self.committed_snapshot_id = nil
-      old_c.delete
-      self.save
-    end
-  end
-
-  # moves the commited proposal to the applied spot (deleted the old apply)
-  # this should only be called by a Jig!
   def activate_committed
     Deployment.transaction do
-      old_a = self.active
       self.active_snapshot_id = self.committed_snapshot_id
       self.committed_snapshot_id = nil
       self.save
-      old_a.delete unless old_a.nil?
     end
-    self.active
+    active_snapshot(true)
   end
-
-
-  # commits a clone of the APPLIED snapshot without nodes
-  # this can be used to effectively halt a deployment as a way of deleting it
-  def commit_deallocate_active
-    # commit_deallocated_active
-    raise "cannot deallocate active unless there is no other committed work" if committed?
-    Deployment.transaction do
-      old_a = self.active
-      new_c = old_a.deep_clone self, "Deallocating #{old_a.name}", false
-      self.committed_snapshot_id = new_c.id
-      self.save
-    end
-    self.committed
-  end
-  
+    
   # This is from the snapshot
   # TODO: good enough for now, but likely to change
   def state
@@ -167,6 +159,10 @@ class Deployment < ActiveRecord::Base
     end
   end
 
+  def system?
+    read_attribute("system")
+  end
+  
   # Lookup the deployment_roles available for the deployment, use the Proposal then Active 
   def deployment_roles
     return proposed_snapshot.deployment_roles if proposed? 

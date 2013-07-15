@@ -19,8 +19,15 @@ class NodeModelTest < ActiveSupport::TestCase
   def setup
     @crowbar = Barclamp.find_by_name("crowbar") 
     assert_not_nil @crowbar
-    d = Deployment.find_or_create_by_name :name=>I18n.t('default'), :description=>I18n.t('automatic')
+    d = Deployment.find_or_create_by_name :name=>'system', :description=>'automatic'
     assert_not_nil d, 'we need at least 1 Deployment'
+    #  We need a system deployment to create default proposals in.
+    d.send(:write_attribute,"system",true)
+    # We also need a snapshot.
+    snap = Snapshot.create(:deployment_id=>d.id, :name => d.name, :description => d.description)
+    snap.save!
+    d.active_snapshot_id = snap.id
+    d.save!
   end
 
 

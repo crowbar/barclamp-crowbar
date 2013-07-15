@@ -15,15 +15,6 @@
 
 class Snapshot < ActiveRecord::Base
 
-  before_create    :sane_defaults
-
-  ERROR       = -1
-  ACTIVE      = 0
-  TODO        = 1
-  BLOCKED     = 2
-  TRANSITION  = 3
-  PROPOSED    = nil
-
   attr_accessible :id, :name, :description, :order, :deployment_id
   
   belongs_to      :deployment
@@ -48,19 +39,19 @@ class Snapshot < ActiveRecord::Base
  
   # review all the nodes for the nameshot and figure out an aggregated state
   def state
-    active = 0
-    my_nodes.each do |n|
-      # any node that's error or unknown will cause the whole state to be in the other state
-      if n.state < 0 
-        return ERROR
-      elsif n.state > 0 
-        active+=1
-      elsif n.state == nil
-        return UNKNOWN
-      end
+    state_map = Hash.new
+    node_roles.each do |nr|
+      state_map[nr.state] = true
     end
-    # if all the nodes fall through the tests above then the snapshot is ready or active
-    return (active == 0 ? ACTIVE : TRANSITION)
+    case
+    when state_map[NodeRole::ERROR] then NodeRole::ERROR
+    when state_map[NodeRole::BLOCKED] ||
+        state_map[NodeRole::TODO] ||
+        state_map[NodeRole::TRANSITION]
+      NodeRole::TODO
+    when state_map[NodeRole::PROPOSED] then NodeRole::PROPOSED
+    else NodeRole::ACTIVE
+    end
   end
 
   # returns a has with all the node status information (unready nodes only)
@@ -72,32 +63,34 @@ class Snapshot < ActiveRecord::Base
   end
   
   ##
-  # Clone this snapshot
-  # optionally, change parent too
-  def deep_clone(parent_deployment=nil, name=nil, with_nodes=true)
-
-    new_snap = self.dup
-
-    Snapshot.transaction begin    
-      new_snap.deployment_id = parent_deployment.id if parent_deployment
-      new_snap.name = name || "#{self.name}_#{self.id}"
-      new_snap.save      
-      # TODO ZEHICLE clone the roles
-      # TODO ZEHICLE clone the nodes
-    end
-
-    new_snap
-  end
-
-  private
-
-  def sane_defaults
-    # make sure we have sane defaults
-    self.name = "#{deployment.name} #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
-    self.description = deployment.description
-    # Create the implicit deployment roles 
-    Role.find(:all, :conditions=>['implicit = ?', true]) do |r|
-      deployment_roles.build(:snapshot_id=>self.id, :role_id=>r.id, :data=>r.role_template)
+  # Clone this snapshot.  It will also clone any node roles specific to this snapshot,
+  # and take care of making sure that the node role dependency graph stays sane.
+  def deep_clone
+    Snapshot.transaction do
+      newsnap = self.dup
+      node_role_map = Hash.new
+      self.node_roles.each{|nr| node_role_map[nr.id] = [nr,nr.dup]}
+      node_role_map.each do |id,nr_array|
+        old_nr = nr_array[0]
+        new_nr = nr_array[1]
+        old_nr.children.each do |c_nr|
+          new_nr.children << (node_role_map[c_nr.id][1] || nil rescue nil) || c_nr
+        end
+        old_nr.parents.each do |p_nr|
+          new_nr.parents << (node_role_map[p_nr.id][1] || nil rescue nil) || p_nr
+        end
+        new_nr.snapshot = newsnap
+        new_nr.save!
+        newsnap.node_roles << new_nr
+      end
+      self.deployment_roles.each do |dr|
+        new_dr = dr.dup
+        new_dr.snapshot = newsnap
+        new_dr.save!
+        newsnap.deployment_roles << new_dr
+      end
+      newsnap.save!
+      newsnap
     end
   end
 end

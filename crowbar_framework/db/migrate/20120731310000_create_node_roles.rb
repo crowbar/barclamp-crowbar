@@ -19,7 +19,7 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
       t.belongs_to  :turn,              :null=>true
-      t.integer     :state,             :null=>true 
+      t.integer     :state,             :null=>false, :default => NodeRole::PROPOSED
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
       t.string      :data,              :null=>true
       t.string      :wall,              :null=>true

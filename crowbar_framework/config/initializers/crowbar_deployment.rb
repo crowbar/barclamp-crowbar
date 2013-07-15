@@ -19,16 +19,20 @@
 # it MUST be run after the migrations
 begin
   
-    # we cannot run the system w/o a deployment
-    # we are creating it here until there is a more logical place
-
-    if !defined?(::Rake) and Deployment.count == 0
-      # create the default deployment
-      d = Deployment.find_or_create_by_name :name=>I18n.t('default', :default=>"Default"), :description=>I18n.t('automatic', :default=>"Created Automatically by System")
-      d.save!
-      p = d.proposal
-      p.save!
-      Rails.logger.debug "ZEHICLE created default deployment #{d.inspect} in initializer"
-    end
-
+  # we cannot run the system w/o a deployment
+  # we are creating it here until there is a more logical place
+  
+  if !defined?(::Rake) and Deployment.count == 0
+    # create the default deployment
+    d = Deployment.find_or_create_by_name(:name=> "system",
+                                          :description=>I18n.t('automatic', :default=>"Created Automatically by System"))
+    # Make it a system deployment
+    d.send(:write_attribute,"system",true)
+    d.save!
+    snap = Snapshot.create(:deployment_id=>d.id, :name => d.name, :description => d.description)
+    snap.save!
+    d.active_snapshot_id = snap.id
+    d.save!
+    Rails.logger.debug "ZEHICLE created default deployment #{d.inspect} in initializer"
+  end
 end

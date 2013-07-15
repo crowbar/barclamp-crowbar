@@ -14,7 +14,7 @@
 % 
 -module(bdd_restrat).
 -export([step/2]).
--export([get_object/1, get_result/2, parse_object/1, alias/1]).
+-export([get_object/1, get_result/2, parse_object/1, alias/1, alias/3]).
 -include("bdd.hrl").
 
 % HELPERS ============================

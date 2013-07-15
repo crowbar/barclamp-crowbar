@@ -1,0 +1,14 @@
+%h1= @snapshot.name
+
+%table.data.box
+  %thead
+    %tr
+      %th= t '.nodes'
+      - @roles.each do |rid, role|
+        %th= link_to role.name, role_path(rid)
+  %tbody
+    - @nodes.each do |nid, node|
+      %tr
+        %td= link_to node.name, node_path(nid)
+        -@roles.each do |rid, role|
+          %td "x"

@@ -16,3 +16,13 @@ Feature: Role
     Then I should see a heading {bdd:crowbar.i18n.roles.index.title}
       And I should see "crowbar"
       And there are no localization errors
+
+  Scenario: Roles UI click to a snapshot
+    Given I am on the "roles" page
+    When I click on the "crowbar" link
+    Then I should see "crowbar"
+
+  Scenario: Role Page renders
+    When I go to the "roles/crowbar" page
+    Then I should see "crowbar"
+      And there are no localization errors

@@ -15,7 +15,8 @@
             "users": { "type": "map", "required": true, "mapping": {
                 = : { "type": "map", "required": true, "mapping": { 
                     "password": { "type": "str" },
-                    "digest": { "type": "str" }
+                    "digest": { "type": "str" },
+                    "disabled": { "type": "bool" }
                   }
                 }
               }

@@ -1,1 +1,5 @@
-= render :partial => 'show'
+%h1= @node.name
+
+= @node.inspect
+
+= render :partial => 'show' rescue "."

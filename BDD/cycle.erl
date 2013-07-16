@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 % 
--module(node).
+-module(cycle).
 -export([step/2, json/3, validate/1, inspector/0, g/1]).
 -include("bdd.hrl").
 
@@ -21,30 +21,26 @@
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    path -> "api/v2/nodes";
-    status_path -> "/api/status/nodes";
-    name -> "bdd1.example.com";
-    atom -> node1;
-    _ -> crowbar:g(Item)
+    path  -> "/api/v2/cycles";
+    atom  -> bdd_cycle1;
+    name  -> "bdd_cycle";
+    _     -> crowbar:g(Item)
   end.
   
+
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
-  R =[JSON#obj.type == "node",
-      bdd_utils:is_a(J, boolean, allocated), 
-      bdd_utils:is_a(J, boolean, admin), 
-      bdd_utils:is_a(J, string, alias), 
-      bdd_utils:is_a(J, length, 9),
-      bdd_utils:is_a(J, integer, order),
+  R =[JSON#obj.type == "cycle",
+      bdd_utils:is_a(J, length, 6),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
 inspector() -> 
-  bdd_restrat:inspector(node).  % shared inspector works here, but may not always
+  bdd_restrat:inspector(cycle).  % shared inspector works here, but may not always
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
@@ -56,8 +52,8 @@ json(Name, Description, Order) ->
 
 step(_Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
-  Node = json(g(name), g(description), 100),
-  bdd_crud:create(g(path), Node, g(atom));
+  JSON = json(g(name), g(description), 100),
+  bdd_crud:create(g(path), JSON, g(atom));
 
 step(_Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it

@@ -76,16 +76,14 @@ class NodeRole < ActiveRecord::Base
   class InvalidState < Exception
   end
 
-  def self.state_name(cstate)
-    case cstate
-    when ERROR then "ERROR"
-    when ACTIVE then "ACTIVE"
-    when TODO then "TODO"
-    when TRANSITION then "TRANSITION"
-    when BLOCKED then "BLOCKED"
-    when PROPOSED then "PROPOSED"
-    else raise InvalidState.new("#{state} is not a valid NodeRole state!")
-    end
+  # lookup i18n version of state
+  def state_name
+    NodeRole.state_name(state)
+  end
+
+  def self.state_name(state)
+    raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and state.between?(ERROR, PROPOSED)
+    I18n.t(state.to_s, :default=>'Unknown', :scope=>'node_role.state')
   end
 
   def state
@@ -95,7 +93,12 @@ class NodeRole < ActiveRecord::Base
   def error?
     state == ERROR
   end
-  
+
+  # convenience methods
+  def name
+    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
+  end
+
   def active?
     state == ACTIVE
   end
@@ -203,7 +206,7 @@ class NodeRole < ActiveRecord::Base
   
   # convenience methods
   def name
-    "#{deployment.name}: #{node.name}: #{role.name}"
+    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
   def commit!
@@ -228,7 +231,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def get_template
-    data ||= role.node_template || '{}'
+    data ||= (role.node_template || '{}') rescue data = '{}'
   end
 
 end

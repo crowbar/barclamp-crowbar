@@ -26,6 +26,10 @@ Crowbar::Application.routes.draw do
   resources :docs
   resources :nodes
   resources :roles
+  resources :deployment_roles
+  resources :node_roles
+  resources :snapshots
+  resources :cycles
   resources :groups
 
   # UI scope
@@ -97,6 +101,8 @@ Crowbar::Application.routes.draw do
           resources :roles
           resources :cycles
           resources :node_roles
+          resources :deployment_roles
+          resources :snapshots
           resources :groups do
             member do
               get 'nodes'

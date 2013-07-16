@@ -22,6 +22,7 @@
 g(Item) ->
   case Item of
     path -> "api/v2/deployments";
+    system -> "system";
     resource -> "deployments";
     _ -> crowbar:g(Item)
   end.
@@ -31,7 +32,8 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "deployment",
-      bdd_utils:is_a(J, length, 10),
+      bdd_utils:is_a(J, length, 11),
+      bdd_utils:is_a(J, boolean, system),
       bdd_utils:is_a(J, dbid, committed_snapshot_id),
       bdd_utils:is_a(J, dbid, active_snapshot_id),
       bdd_utils:is_a(J, dbid, proposed_snapshot_id),

@@ -109,7 +109,7 @@ log_level(warn)       -> put(log, [warn, error, puts]);
 log_level(all)        -> put(log, all).
 
 % helps to move code around
-depricate(From, To, Method, Params) -> depricate({2013, 03, 13}, From, Method, To, Method, Params).
+depricate(From, To, Method, Params) -> depricate({2014, 03, 13}, From, Method, To, Method, Params).
   
 % FailDate in {YYYY, MM, DD}
 depricate(FailDate, From, FMethod, To, TMethod, Params) ->

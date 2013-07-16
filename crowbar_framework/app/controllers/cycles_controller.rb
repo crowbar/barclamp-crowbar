@@ -15,5 +15,46 @@
 
 class CyclesController < ApplicationController
 
+
+  def index
+    @list = Cycle.all
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :cycle, @list }
+    end
+  end
+
+  def show
+    respond_to do |format|
+      format.html { @cycle = Cycle.find_key params[:id] }
+      format.json { render api_show :cycle, Cycle }
+    end
+  end
+
+  def create
+    unless Rails.env.development?
+      render  api_not_supported("post", "cycle")
+    else
+      r = Cycle.create! params
+      render api_show :cycle, Cycle, nil, nil, r 
+    end
+  end
+
+  def update
+    unless Rails.env.development?
+      render  api_not_supported("delete", "cycle")
+    else
+      render api_update :cycle, Cycle
+    end
+  end
+
+  def destroy
+    unless Rails.env.development?
+      render  api_not_supported("delete", "cycle")
+    else
+      render api_delete Cycle
+    end
+  end  
+  
 end
 

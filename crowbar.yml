@@ -31,12 +31,11 @@ barclamp:
     - opensuse-12.2
     - fedora-18
 
-jigs:
-  - name: script
-    roles:
-      - name: crowbar
-        flags:
-          - bootstrap
+roles:
+  - name: crowbar
+    jig: script
+    flags:
+      - bootstrap
 
 crowbar:
   layout: 2.0

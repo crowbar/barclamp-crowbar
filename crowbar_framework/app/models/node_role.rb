@@ -16,8 +16,7 @@
 class NodeRole < ActiveRecord::Base
 
   before_create   :get_template
-  after_update    :cascade_state
-  attr_accessible :state, :status, :data, :wall
+  attr_accessible :status, :data, :wall
   attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
 
   belongs_to      :node
@@ -36,76 +35,196 @@ class NodeRole < ActiveRecord::Base
   has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
     has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
 
-  ERROR     = -1
-  ACTIVE    = 0
-  TODO      = 1
-  TRANSISTION = 2
-  PROPOSED  = nil
+  # State transitions:
+  # All node roles start life in the PROPOSED state.
+  # At snapshot commit time, all node roles in PROPOSED that:
+  #  1. Have no parent node role, or 
+  #  2. Have a parent in ACTIVE state
+  # will be placed in TODO state, and all others will be placed in BLOCKED.
+  #
+  # The annealer will then find all node roles in the TODO state, set them
+  # to TRANSITION, and hand them over to their appropriate jigs.
+  #
+  # If the operation for the node role succeeds, the jig will set the
+  # node_role to ACTIVE, set all the node_role's BLOCKED children to TODO, and
+  # wake up the annealer for another pass.
+  #
+  # If the operation for the node role fails, the jig will set the node_role to
+  # ERROR, set all of its children (recursively) to BLOCKED, and no further
+  # processing for that node role dependency tree will happen.
 
-  def error?
-    state < 0
+  ERROR      = -1
+  ACTIVE     =  0
+  TODO       =  1
+  TRANSITION =  2
+  BLOCKED    =  3
+  PROPOSED   =  4
+
+  class InvalidTransition < Exception
+    def initialize(node_role,from,to,str=nil)
+      @errstr = "#{node_role.name}: Invalid state transition from #{NodeRole.state_name(from)} to #{NodeRole.state_name(to)}"
+      errstr += ": #{str}" if str
+    end
+    def to_s
+      @errstr
+    end
+    def to_str
+      to_s
+    end
   end
 
+  class InvalidState < Exception
+  end
+
+  def self.state_name(cstate)
+    case cstate
+    when ERROR then "ERROR"
+    when ACTIVE then "ACTIVE"
+    when TODO then "TODO"
+    when TRANSITION then "TRANSITION"
+    when BLOCKED then "BLOCKED"
+    when PROPOSED then "PROPOSED"
+    else raise InvalidState.new("#{state} is not a valid NodeRole state!")
+    end
+  end
+
+  def state
+    read_attribute("state")
+  end
+
+  def error?
+    state == ERROR
+  end
+  
   def active?
-    state == 0
+    state == ACTIVE
   end
 
   def todo?
-    state == 1
+    state == TODO
   end
 
   def transistion?
-    state > 1
+    state == TRANSITION
+  end
+
+  def blocked?
+    state == BLOCKED
   end
 
   def proposed?
-    state.nil?
+    state == PROPOSED
   end
 
+  def walk(&block)
+    raise "Must be passed a block" unless block_given?
+    block.call(self)
+    children.each do |c|
+      c.walk(block)
+    end
+  end
+
+  # Implement the node role state transition rules
+  # by guarding state assignment.
+  def state=(val)
+    cstate = state
+    return val if val == cstate
+
+    NodeRole.transaction do
+      case val
+      when ERROR
+        # We can only go to ERROR from TRANSITION
+        unless cstate == TRANSITION
+          raise InvalidTransition.new(self,cstate,val)
+        end
+        write_attribute("state",val)
+        save!
+        # All children of a node_role in ERROR go to BLOCKED.
+        children.each do |c|
+          c.walk{|n|n.state = BLOCKED}
+        end
+      when ACTIVE
+        # We can only go to ACTIVE from TRANSITION
+        unless cstate == TRANSITION
+          raise InvalidTransition.new(self,cstate,val)
+        end
+        write_attribute("state",val)
+        save!
+        # Immediate children of an ACTIVE node go to TODO
+        children.each do |c|
+          c.state = TODO
+        end
+      when TODO
+        # We can only go to TODO when:
+        # 1. We were in PROPOSED or BLOCKED
+        # 2. All our parents are in ACTIVE
+        unless ((cstate == PROPOSED) || (cstate == BLOCKED))
+          raise InvalidTransition.new(self,cstate,val)
+        end
+        unless parents.all?{|nr|nr.active?}
+          raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
+        end
+        write_attribute("state",val)
+        save!
+        # Going into TODO transitions all our children into BLOCKED.
+        children.each do |c|
+          c.walk{|n|n.state = BLOCKED}
+        end
+      when TRANSITION
+        # We can only go to TRANSITION from TODO
+        unless cstate == TODO
+          raise InvalidTransition.new(self,cstate,val)
+        end
+        write_attribute("state",val)
+        save!
+      when BLOCKED
+        # We can only go to BLOCKED from PROPOSED or TODO,
+        # or if any our parents are in BLOCKED or TODO or ERROR.
+        unless parents.any?{|nr|nr.blocked? || nr.todo? || nr.error?} ||
+            (cstate == PROPOSED || cstate == TODO)
+          raise InvalidTransition.new(self,cstate,val)
+        end
+        write_attribute("state",val)
+        save!
+        # If we are blocked, so are all our children.
+        children.each do |c|
+          c.walk{|n|n.state = BLOCKED}
+        end
+      when PROPOSED
+        # Only new node_roles can be in proposed
+        raise InvalidTransition.new(self,cstate,val)
+      else
+        # No idea what this is.  Just die.
+        raise InvalidState.new("Unknown state #{s.inspect}")
+      end
+    end
+    self
+  end
+  
   # convenience methods
   def name
     "#{deployment.name}: #{node.name}: #{role.name}"
   end
 
+  def commit!
+    cstate = state
+    # commit! is a no-op for ACTIVE, TRANSITION, or TODO
+    return if (cstate == ACTIVE) || (cstate == TRANSITION) || (cstate == TODO)
+    # You cannot commit your way out of an error state.
+    raise InvalidTransition(self,cstate,TODO) if cstate == ERROR
+    NodeRole.transaction do
+      rents = parents
+      if rents.empty? || rents.all?{|nr|nr.active?}
+        self.state = TODO
+      else
+        self.state = BLOCKED
+      end
+    end
+  end
+
   # convenience methods
   def description
     role.description
-  end
-
-  # are the upstream required node-roles included in this snapshot
-  def deployable?
-    role.upstream.nil? or upstream.count > 0
-  end
-
-  # unblocked? are the upstream required node-roles in a ready state
-  def executable?
-    upstream.all?{|p|p.ready?} and (committed? or todo?)
-  end
-
-  # return node roles (in same snapshot) who are dependent on this node-role
-  def downstream
-    roles = Role.downstream(role)
-    roles.flatten { |r| NodeRole.peers_by_role(snapshot, r) }
-  end
-
-  # return node roles (in same snapshot) that this node-role depends on 
-  def upstream
-    roles = role.upstream
-    roles.flatten { |r| NodeRole.peers_by_role(snapshot, r) }
-  end
-
-  private
-
-  # on change
-  # if state is set to PROPOSED, then ALL downstream states are TODO
-  def cascade_state
-    if snapshot.proposed?
-      state = PROPOSED
-      # lookup all the down stream node-roles
-      role.children.each do |children|
-        r.state = TODO unless d.proposed?          
-      end
-    end
   end
 
   def get_template

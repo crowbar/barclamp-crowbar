@@ -51,7 +51,7 @@ class BarclampCrowbar::Jig < Jig
   end
 
   def delete_node(node)
-    Rails.logger.info("ScriptJig Deleting node: #{node.name}")    
+    Rails.logger.info("ScriptJig Deleting node: #{node.name}")
   end
 
 end

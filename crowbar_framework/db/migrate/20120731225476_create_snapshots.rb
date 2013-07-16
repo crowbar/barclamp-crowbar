@@ -21,8 +21,6 @@ class CreateSnapshots < ActiveRecord::Migration
       t.belongs_to  :deployment,                  :null=>false
       t.timestamps      
     end
-    #natural key 
-    add_index(:snapshots, [:deployment_id, :name], :unique => true)  
   end
     
 end

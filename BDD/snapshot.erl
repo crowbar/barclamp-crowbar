@@ -14,50 +14,47 @@
 % 
 % 
 -module(snapshot).
--export([step/2, json/3, path/1, validate/1, inspector/1, g/1, create/3]).
+-export([step/2, json/3, validate/1, inspector/0, g/1]).
 -include("bdd.hrl").
 
 % Commont Routine
 % Provide Feature scoped strings to DRY the code
 g(Item) ->
   case Item of
-    resource_path -> "/v2/snapshots";
-    path -> "crowbar" ++ g(resource_path);
-    _ -> crowbar:g(Item)
+    path  -> "/api/v2/snapshots";
+    atom  -> bddsnapshot1;
+    name  -> "bdd_snapshot";
+    _     -> crowbar:g(Item)
   end.
   
-path(Barclamp) -> Barclamp ++ g(resource_path).
 
 % Common Routine
 % Makes sure that the JSON conforms to expectations (only tests deltas)
-validate(J) ->
-  R =[bdd_utils:is_a(J, length, 12),
+validate(JSON) when is_record(JSON, obj) ->
+  J = JSON#obj.data,
+  R =[JSON#obj.type == "snapshot",
+      bdd_utils:is_a(J, length, 7),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
 
-create(ID, Name, Extras) ->
-  % for now, we are ignoring the extras
-  JSON = json(Name, 
-              proplists:get_value(description, Extras, g(description)), 
-              proplists:get_value(order, Extras, g(order))),
-  bdd_restrat:create(ID, node, g(path), Name, JSON).
-  
 % Common Routine
 % Returns list of nodes in the system to check for bad housekeeping
-inspector(Config) -> 
-  bdd_restrat:inspector(Config, snapshot).  % shared inspector works here, but may not always
+inspector() -> 
+  bdd_restrat:inspector(snapshot).  % shared inspector works here, but may not always
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
   json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
-% TEMPORARY REMAPPING
-% 
-step(In, Out) -> step([], In, Out).
+     
+% Common Routines
 
-                   
-step(Config, _Global, {step_setup, _N, _}) -> Config;
+step(_Global, {step_setup, _N, _}) -> true;
+  % create node(s) for tests
+  %JSON = json(g(name), g(description), 100),
+  %bdd_crud:create(g(path), JSON, g(atom));
 
-step(_Config, _Global, {step_teardown, _N, _}) -> true.
-  
+step(_Global, {step_teardown, _N, _}) -> true.
+  % find the node from setup and remove it
+  %bdd_crud:delete(g(atom)).  

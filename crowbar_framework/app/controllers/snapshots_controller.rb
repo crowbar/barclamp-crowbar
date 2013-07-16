@@ -14,13 +14,45 @@
 #
 #
 class SnapshotsController < ApplicationController
-
+      
   def index
-    render api_index :snapshot, Snapshot.all
+    @list = Snapshot.all
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :snapshot, @list }
+    end
   end
 
   def show
-    render api_show :snapshot, Snapshot
+    respond_to do |format|
+      format.html { @snapshot = Snapshot.find_key params[:id] }
+      format.json { render api_show :snapshot, Snapshot }
+    end
   end
-      
+
+  def create
+    unless Rails.env.development?
+      render  api_not_supported("post", "snapshot")
+    else
+      r = Snapshot.create! params
+      render api_show :snapshot, Snapshot, nil, nil, r 
+    end
+  end
+
+  def update
+    unless Rails.env.development?
+      render  api_not_supported("delete", "snapshot")
+    else
+      render api_update :snapshot, Snapshot
+    end
+  end
+
+  def destroy
+    unless Rails.env.development?
+      render  api_not_supported("delete", "snapshot")
+    else
+      render api_delete Snapshot
+    end
+  end  
+
 end

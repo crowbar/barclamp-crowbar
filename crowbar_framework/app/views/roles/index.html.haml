@@ -5,7 +5,7 @@
     %li
       = "#{i.name}: #{i.description}"
       %ul
-        %li= "jig: #{i.jig.name}"
+        %li= "jig: #{i.jig_name}"
         %li= "barclamp: #{i.barclamp.name}"
         - i.requires do |req|
           %li= "requires: #{req.requires}"

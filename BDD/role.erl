@@ -38,7 +38,7 @@ validate(JSON) when is_record(JSON, obj) ->
       bdd_utils:is_a(J, boolean, implicit),
       bdd_utils:is_a(J, boolean, bootstrap),
       bdd_utils:is_a(J, boolean, discovery),
-      bdd_utils:is_a(J, dbid, jig_id),
+      bdd_utils:is_a(J, string, jig_name),
       bdd_utils:is_a(J, dbid, barclamp_id),
       bdd_utils:is_a(J, string, role_template),
       bdd_utils:is_a(J, string, node_template),

@@ -26,3 +26,21 @@ Feature: Role
     When I go to the "roles/crowbar" page
     Then I should see "crowbar"
       And there are no localization errors
+
+  Scenario: Roles Page Drill to Role
+    Given I am on the "roles" page
+    When I click on the "test-admin" link
+    Then I should see "test-admin"
+      And there are no localization errors
+
+  Scenario: Roles Page Drill to Jig
+    Given I am on the "roles" page
+    When I click on the "script" link
+    Then I should see "script"
+      And there are no localization errors
+
+  Scenario: Roles Page Drill to Barclamp
+    Given I am on the "roles" page
+    When I click on the "crowbar" link
+    Then I should see "crowbar"
+      And there are no localization errors

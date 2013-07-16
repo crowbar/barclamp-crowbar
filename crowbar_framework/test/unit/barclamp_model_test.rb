@@ -60,7 +60,7 @@ class BarclampModelTest < ActiveSupport::TestCase
     m = Module::const_get(namespace) rescue nil
     c = m.const_get("Barclamp") rescue nil 
     if c
-      bc = Barclamp.import name
+      bc = Barclamp.find_by_name(name) || Barclamp.import(name)
       assert_not_nil bc
       assert_equal name, bc.name
       assert_equal testclass, bc.type

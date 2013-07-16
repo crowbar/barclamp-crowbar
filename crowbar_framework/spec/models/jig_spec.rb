@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: aabes
+
 require 'spec_helper'
 
 describe "jig proposal manipulation" do
@@ -24,13 +24,11 @@ describe "jig proposal manipulation" do
 
   context "test deployment with 2 nodes" do
 
-    let(:test_role1) { deployment.deployment_roles.first}
-    let(:test_role2) { deployment.deployment_roles.second}
+    let(:active)   { deployment.active}
+    let(:proposal) { deployment.proposal}
 
     before(:all) {            
       # add node
-      test_role1.add_node(node1) if test_role1
-      test_role2.add_node(node2) if test_role2
     }
 
     it "we can commit the deployment" do

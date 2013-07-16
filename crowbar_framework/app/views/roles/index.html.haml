@@ -6,7 +6,13 @@
       = link_to i.name, role_path(:id=>i.id)
       = ": #{i.description}"
       %ul
-        %li= "jig: #{i.jig_name}"
-        %li= "barclamp: #{i.barclamp.name}"
+        %li
+          = "jig: "
+          = link_to i.jig_name, jig_path(i.jig_name)
+        %li
+          = "barclamp: "
+          = link_to i.barclamp.name, barclamp_path(i.barclamp.id)
         - i.requires do |req|
-          %li= "requires: #{req.requires}"
+          %li
+            = "requires: "
+            = link_to req.requires, role_path(req.requires)

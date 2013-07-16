@@ -137,7 +137,7 @@ gems:
   pkgs:
     # put your gems here.
     - i18n
-    - rails-2.3.12 # Will try and pull rails-2.3.12 exactly.
+    - rails-2.3.18 # Will try and pull rails-2.3.18 exactly.
 
 # extra_files downloads and saves a file to be slipstreamed on to the 
 # crowbar .iso in the extra/files directory (or a subdirectory thereof).

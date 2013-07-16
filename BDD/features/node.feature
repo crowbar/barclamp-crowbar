@@ -49,5 +49,5 @@ Feature: Nodes
     When REST gets the {object:node} list
     Then the list should have an object with key "name" value "bdd-node-list.example.com"
       And the list should have an object with key "name" value "bdd1.example.com"
-      And the list should have an object with key "name" value "global-node.testing.com"
+      And the list should have an object with key "name" value {lookup:crowbar.node_name}
     Finally REST removes the {object:node} "bdd-node-list.example.com"

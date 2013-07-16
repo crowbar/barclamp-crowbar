@@ -48,9 +48,7 @@ inspector() ->
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
-json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
-
+json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Description}, {order, Order}]).
      
 % Common Routines
 

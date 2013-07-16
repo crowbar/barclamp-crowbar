@@ -19,13 +19,19 @@
 -import(digest_auth).
 -include("bdd.hrl").
 
+g(Item)         -> crowbar:g(Item).
+
 % create a base system
 pop()           -> pop(default).
-pop(ConfigRaw) ->
+pop(ConfigRaw)  ->
   bdd:start(ConfigRaw),
   bdd_utils:config_set(global_setup, dev),
   bdd_utils:config_set(inspect, false),
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
+  % admin node
+  Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {admin, "true"}]),
+  bdd_crud:create(node:g(path), Admin, g(node_atom)),
+  % rest of the nodes
   [ add_node(N) || N <- buildlist(Build, nodes) ],
   bdd_utils:config_unset(global_setup),
   bdd_utils:config_set(inspect, true),
@@ -35,6 +41,7 @@ pop(ConfigRaw) ->
 unpop()       ->  
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
   [ remove(N) || {N, _, _, _, _} <- buildlist(Build, nodes) ], 
+  bdd_crud:delete(g(node_name)),
   bdd:stop([]). 
 
 buildlist(Source, Type) ->

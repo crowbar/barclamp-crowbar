@@ -142,6 +142,7 @@ en:
   nodes:
     index:
       title: "Nodes"
+      admin: "Admin!"
   node_roles:
     index:
       title: "Node Roles"

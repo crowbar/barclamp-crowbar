@@ -3,7 +3,10 @@
 %ul
   - @list.each do |i|
     %li
-      = "#{i.name}: #{i.description}"
+      = link_to i.name, node_path(i.id)
+      = ": #{i.description}"
+      - if i.admin
+        = "(admin)"
       %ul
         - i.node_roles do |r|
           %li

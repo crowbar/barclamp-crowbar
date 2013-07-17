@@ -22,9 +22,6 @@ describe "node_role annealer" do
 
   context "test deployment with 2 nodes" do
 
-    let(:test_role1) { deployment.deployment_roles.first}
-    %let(:test_role2) { deployment.deployment_roles.second}
-
     before(:all) {            
       # add node
       test_role1.add_node(node1) if test_role1
@@ -32,7 +29,7 @@ describe "node_role annealer" do
     }
 
     it "we can commit the deployment" do
-      #deployment.commit
+      pending deployment.commit
     end
 
   end

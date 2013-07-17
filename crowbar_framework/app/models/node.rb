@@ -138,7 +138,7 @@ class Node < ActiveRecord::Base
 
   # retrieves the Attrib from Attrib
   def get_attrib(attrib_name)
-
+    puts "temp: #{attrib_name}"
   end
 
   # get the attributes (adds if missing)    
@@ -151,7 +151,7 @@ class Node < ActiveRecord::Base
     if method.starts_with? "attrib_"
       return get_attrib(method[7..100]).value
     else
-      super m,*args,&block
+      super
     end
   end
   

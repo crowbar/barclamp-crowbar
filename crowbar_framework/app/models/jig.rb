@@ -65,6 +65,14 @@ Delete a node from all jig. The exact actions depend on the jig.
     {}
   end
 
+  # Run a single noderole.
+  # The noderole must be in TRANSITION state.
+  # This function is intended to be overridden by the jig subclasses,
+  # and only used for debugging purposes.
+  def run(nr)
+    raise "Cannot call run on the top-level Jig!"
+  end
+
   def execute(cycle)
     Rails.logger.debug("jig.turn(#{turn.name}) not implemented for #{self.class}.  This may be OK")
   end

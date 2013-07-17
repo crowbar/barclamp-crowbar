@@ -24,6 +24,7 @@ class NodeRole < ActiveRecord::Base
   belongs_to      :snapshot
   belongs_to      :cycle
   has_one         :deployment,        :through => :snapshot
+  has_one         :barclamp,          :through => :role
 
   # find other node-roles in this snapshot using their role or node
   scope           :peers_by_role,     ->(s,r) { where(['snapshot_id=? AND role_id=?', s.id, r.id]) }
@@ -175,6 +176,11 @@ class NodeRole < ActiveRecord::Base
         end
       when TRANSITION
         # We can only go to TRANSITION from TODO
+        # As an optimization, we may also want to allow a transition from
+        # BLOCKED to TRANSITION directly -- the goal would be to allow a jig
+        # to batch up noderole runs by noticing that a noderole it was handed
+        # in TRANSITION has children on the same node utilizing the same jig
+        # in BLOCKED, and preemptivly grabbing them to batch them up.
         unless cstate == TODO
           raise InvalidTransition.new(self,cstate,val)
         end

@@ -77,6 +77,18 @@ class NodeRole < ActiveRecord::Base
   class InvalidState < Exception
   end
 
+  class MissingJig < Exception
+    def initalize(nr)
+      @errstr = "NodeRole #{nr.name}: Missing jig #{nr.jig_name}"
+    end
+    def to_s
+      @errstr
+    end
+    def to_str
+      to_s
+    end
+  end
+
   # lookup i18n version of state
   def state_name
     NodeRole.state_name(state)
@@ -85,6 +97,33 @@ class NodeRole < ActiveRecord::Base
   def self.state_name(state)
     raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and state.between?(ERROR, PROPOSED)
     I18n.t(state.to_s, :default=>'Unknown', :scope=>'node_role.state')
+  end
+
+  def self.anneal!
+    # A very basic annealer.
+    queue = Hash.new
+    NodeRole.transaction do
+      # Check to see if we have all our jigs before we send everything off.
+      NodeRole.where(["state = ?",NodeRole::TODO]).each do |nr|
+        thisjig = nr.jig
+        raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
+        queue[thisjig] ||= []
+        queue[thisjig] << nr
+      end
+      # Only set the candidate states inside the transaction.
+      queue.each do |thisjig,candidates|
+        candidates.each do |c|
+          c.state = NodeRole::TRANSITION
+        end
+      end
+    end
+    # Actaully run the noderoles outside of the transaction.
+    queue.each do |thisjig,candidates|
+      candidates.each do |c|
+        thisjig.run(c)
+      end
+    end
+    nil
   end
 
   def state
@@ -234,6 +273,10 @@ class NodeRole < ActiveRecord::Base
   # convenience methods
   def description
     role.description
+  end
+
+  def jig
+    role.jig
   end
 
   def get_template

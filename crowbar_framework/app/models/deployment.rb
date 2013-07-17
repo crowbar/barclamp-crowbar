@@ -89,7 +89,7 @@ class Deployment < ActiveRecord::Base
       block.call(new_c)
       new_c.save!
       self.committed_snapshot_id = new_c.id
-      new_c.roles.each do |nr|
+      new_c.node_roles.each do |nr|
         nr.commit!
       end
       self.save!

@@ -62,8 +62,12 @@ _note:_ use sudo as instructed.  Do not use the Dev tool as root!
    1. note: This is required only if: You're building for 12.04 on a 11.04 or 11.10 machine, since those versions don't know how to build Precise
 1. Make sure you have the right ISOs in `~/.crowbar-build-cache/iso` directory
    1. For Ubuntu, you should have http://old-releases.ubuntu.com/releases/12.04.1/ubuntu-12.04.1-server-amd64.iso
+      1. Create the iso directory as it will not exist `mkdir ~/.crowbar-build-cache/iso`
       1. `cd ~/.crowbar-build-cache/iso`
       1. `wget http://old-releases.ubuntu.com/releases/12.04.1/ubuntu-12.04.1-server-amd64.iso`
+          1. NOTE: when running a the build command later it may look for the newer Ubuntu release in which case you can download it now to save time by running
+          2. `wget http://releases.ubuntu.com/releases/12.04.2/ubuntu-12.04.2-server-amd64.iso`
+      1. Set the directory back `cd ~/crowbar`
 1. `./dev switch development`
    1. you can see all the releases with ./dev releases
    1. choices trunk (default, trunk), 1.2 = fledermaus, 1.3 Cloudera = elefante

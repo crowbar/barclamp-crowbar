@@ -18,17 +18,15 @@ class Role < ActiveRecord::Base
 
   class Role::MISSING_DEP < Exception
   end
-  attr_accessible :id, :description, :name, :jig_id, :barclamp_id
+  attr_accessible :id, :description, :name, :jig_name, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
   attr_accessible :role_template, :node_template, :min_nodes      # template info
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
-  validates_uniqueness_of   :name,  :scope => :jig_id
   validates_format_of       :name,  :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to      :barclamp
-  belongs_to      :jig
-  
+
   has_many        :attribs,           :dependent => :destroy
 
   has_many        :role_requires,     :dependent => :destroy
@@ -90,6 +88,10 @@ class Role < ActiveRecord::Base
       end
       return res
     end
+  end
+
+  def jig
+    Jig.where(["name = ?",jig_name]).first
   end
 
   def <=>(other)

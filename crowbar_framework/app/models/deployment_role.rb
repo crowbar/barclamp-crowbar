@@ -20,12 +20,11 @@ class DeploymentRole < ActiveRecord::Base
   attr_accessible :data, :wall
   attr_accessible :id, :role_id, :snapshot_id
 
-  belongs_to 		:snapshot
-  has_one			  :deployment, 	:through => :snapshot
+  belongs_to :snapshot
+  has_one    :deployment, :through => :snapshot
 
-  belongs_to		:role
-  has_one 			:jig,			:through =>	:role
-  has_one 			:barclamp, 		:through => :role
+  belongs_to :role
+  has_one    :barclamp, :through => :role
 
   # convenience methods
   def name

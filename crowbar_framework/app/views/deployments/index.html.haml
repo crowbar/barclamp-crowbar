@@ -11,7 +11,7 @@
             = "#{p.name}: #{p.description}" 
             %ul 
               - p.deployment_roles.each do |r|
-                %li= "#{r.jig.name} jig: #{r.name} role"
+                %li= "#{r.jig_name} jig: #{r.name} role"
         - if i.committed?
           %li "committed > need status!"
         - if i.active?
@@ -20,4 +20,4 @@
             = "#{a.name}: #{a.description}" 
             %ul 
               - a.deployment_roles.each do |r|
-                %li= "#{r.jig.name} jig: #{r.name} role"
+                %li= "#{r.jig_name} jig: #{r.name} role"

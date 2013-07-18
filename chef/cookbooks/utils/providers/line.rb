@@ -70,7 +70,7 @@ def add_and_filter(file, add, filter_re)
     end
   } 
   
-  puts "need to add: #{need_to_add} remove: #{need_to_remove}"
+  Chef::Log.debug("need to add: #{need_to_add} remove: #{need_to_remove}")
   updated =  need_to_add or need_to_remove
   
   if need_to_remove

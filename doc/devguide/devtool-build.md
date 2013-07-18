@@ -31,84 +31,84 @@ If you intend on doing _development_ which might result in you submitting pull- 
 
 #### Setup password-less sudo
 During the build process the Dev Tool has to perform certain tasks which require root access (mounting ISOs, etc.). In order to avoid being prompted for your password every time we will setup password-less sudo. **Don't run your build as root.**
-```
-# run this command to add your 
-sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
-```
+
+    # run this command to add your 
+    sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
+
 
 #### Install needed packages and gems
-```
-# let's install some OS packages
-sudo apt-get update
-sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap \
-mkisofs binutils markdown erlang debhelper python-pip \
-build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev
 
-# let's install some needed gems next
-sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
-```
+    # let's install some OS packages
+    sudo apt-get update
+    sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap \
+    mkisofs binutils markdown erlang debhelper python-pip \
+    build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev
+
+    # let's install some needed gems next
+    sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
+
 
 #### Put the needed base ISOs in place
 As a starting point for the build process we will need the ISOs [mentioned above](#pre-requisites) placed where the Dev Toll can find them. The Dev Tool will then use them during the build process described below.
-```
-mkdir -p ~/.crowbar-build-cache/iso
-cd ~/.crowbar-build-cache/iso
-# now scp or wget the ISOs into this directory
-```
+
+    mkdir -p ~/.crowbar-build-cache/iso
+    cd ~/.crowbar-build-cache/iso
+    # now scp or wget the ISOs into this directory
+
 
 
 ### Building Our ISO
 
 #### Checking out code and setting up
 This next step will checkout the core Crowbar code, which includes the Dev Tool. Once the initial checkout is complete, we let the Dev Tool handle the checkout of the remaining repositories. As a result this next process will create personal forks of each Crowbar repository. If you have no interest of submitting pull requests append `--no-github`. **Note:** This next step will take some time.
-```
-cd ~
-git clone https://github.com/crowbar/crowbar.git
-cd ~/crowbar
-# append ./dev setup --no-github if you don't want to submit any pull-requests
-./dev setup
-# fetch updates from configured upstream repositories
-./dev fetch
-# synchronize fetched updates with the local repos
-./dev sync
-```
+
+    cd ~
+    git clone https://github.com/crowbar/crowbar.git
+    cd ~/crowbar
+    # append ./dev setup --no-github if you don't want to submit any pull-requests
+    ./dev setup
+    # fetch updates from configured upstream repositories
+    ./dev fetch
+    # synchronize fetched updates with the local repos
+    ./dev sync
+
 **Notes:** 
   * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you may need to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.  Interate these commands a few times until there is no further change.  This normally takes two or three cycles when first setting up a build environment.
   * Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
 
 #### Building the discovery image
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
-```
-cd ~/crowbar
-sudo ./build_sledgehammer.sh
-```
+
+    cd ~/crowbar
+    sudo ./build_sledgehammer.sh
+
 
 #### Picking our release and build
 Now that everything is setup and prepped, the last remaining step is to pick what we actually want to build. Several Crowbar versions and flavors (Hadoop and OpenStack) are available. Next we're picking which version/release and flavor/build we'd like to build. **It is extremely important to pick the right release and build combination.** Some of the releases will be under heavy development and others will be old. If you're unsure which one is the right one for you you should ask via [IRC or mailing list](http://crowbar.github.io/docs/getting-help.html).
-```
-cd ~/crowbar
 
-# working with releases
-# show all the available releases
-./dev releases
+    cd ~/crowbar
 
-# switch to a release
-./dev switch mesa-1.6
+    # working with releases
+    # show all the available releases
+    ./dev releases
 
-# display your current release
-./dev release
+    # switch to a release
+    ./dev switch mesa-1.6
+
+    # display your current release
+    ./dev release
 
 
-# working with builds
-# show all the builds
-./dev builds
+    # working with builds
+    # show all the builds
+    ./dev builds
 
-# choosing a certain build
-./dev build openstack-os-build
+    # choosing a certain build
+    ./dev build openstack-os-build
 
-# display which build your on
-./dev build
-```
+    # display which build your on
+    ./dev build
+
 The above results in the following viable combinations:
   * **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
   * **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
@@ -117,21 +117,21 @@ The above results in the following viable combinations:
 With the above knowledge we can now kick off our Hadoop or OpenStack build. 
 
 **Note:** The Dev Tool currently has a bug where it litters README.empty-branch files. Those will be problematic during `dev switch` operations. In order to **clean them up run the following commands** any time you run into this issue.
-```
-# clean up any .empty-branch files first
-cd ~/crowbar/barclamps
-for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
-```
-Now we can actually kick off the build.
-```
-# FOR HADOOP
-./dev switch hadoop-2.3/hadoop-os-build
-./dev build --os centos-6.4 --update-cache
 
-# FOR OPENSTACK
-./dev switch mesa-1.6/openstack-os-build
-./dev build --os ubuntu-12.04 --update-cache
-```
+    # clean up any .empty-branch files first
+    cd ~/crowbar/barclamps
+    for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
+
+Now we can actually kick off the build.
+
+    # FOR HADOOP
+    ./dev switch hadoop-2.3/hadoop-os-build
+    ./dev build --os centos-6.4 --update-cache
+
+    # FOR OPENSTACK
+    ./dev switch mesa-1.6/openstack-os-build
+    ./dev build --os ubuntu-12.04 --update-cache
+
 
 
 #TODO:

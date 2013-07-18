@@ -73,7 +73,7 @@ cd ~/crowbar
 ./dev sync
 ```
 **Notes:** 
-  * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you might havw to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.
+  * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you may need to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.  Interate these commands a few times until there is no further change.  This normally takes two or three cycles when first setting up a build environment.
   * Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
 
 #### Building the discovery image

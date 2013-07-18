@@ -8,16 +8,21 @@
         - if i.proposed?
           - p = i.proposed
           %li
-            = "#{p.name}: #{p.description}" 
+            = link_to "#{t '.proposed'} #{p.name}",snapshot_path(:id=>p.id) 
+            = ": #{p.description}" 
             %ul 
               - p.deployment_roles.each do |r|
                 %li= "#{r.jig_name} jig: #{r.name} role"
         - if i.committed?
-          %li "committed > need status!"
+          %li
+            - c = i.committed
+            = link_to "#{t '.committed'} #{c.name}", snapshot_path(:id=>c.id) 
+            = ": #{c.description}" 
         - if i.active?
           - a = i.active
           %li
-            = "#{a.name}: #{a.description}" 
+            = link_to "#{t '.active'} #{a.name}", snapshot_path(:id=>a.id)
+            = ": #{a.description}"
             %ul 
               - a.deployment_roles.each do |r|
                 %li= "#{r.jig_name} jig: #{r.name} role"

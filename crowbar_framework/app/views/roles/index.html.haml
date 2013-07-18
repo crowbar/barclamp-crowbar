@@ -3,7 +3,8 @@
 %ul
   - @list.each do |i|
     %li
-      = "#{i.name}: #{i.description}"
+      = link_to i.name, role_path(:id=>i.id)
+      = ": #{i.description}"
       %ul
         %li= "jig: #{i.jig_name}"
         %li= "barclamp: #{i.barclamp.name}"

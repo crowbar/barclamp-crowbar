@@ -25,7 +25,7 @@ class DeploymentsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html {       } # show.html.erb
+      format.html { @deployment = Deployment.find_key params[:id] } 
       format.json { render api_show :deployment, Deployment }
     end
   end

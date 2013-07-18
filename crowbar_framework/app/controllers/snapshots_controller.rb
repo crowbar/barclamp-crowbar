@@ -25,7 +25,22 @@ class SnapshotsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html { @snapshot = Snapshot.find_key params[:id] }
+      format.html { 
+        @snapshot = Snapshot.find_key params[:id] 
+        @nodes = {}
+        @roles = {}
+        @snapshot.node_roles.each do |nr|
+          n = nr.node
+          r = nr.role
+          @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
+          @roles[r.id] = r unless r.nil? or @roles.has_key? r.id
+        end
+        # make sure we have at least 1 role
+        if @roles.length == 0
+          r = Role.find_key 'crowbar'
+          @roles[r.id] = r
+        end
+        }
       format.json { render api_show :snapshot, Snapshot }
     end
   end

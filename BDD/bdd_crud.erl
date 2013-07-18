@@ -32,6 +32,9 @@ read(Path) ->
 
 % given a path + key, uses API to get the ID of the object 
 read_id(Path, Key) -> read_id(eurl:path([Path, Key])).
+read_id(Atom) when is_atom(Atom) ->
+  O = read_obj(Atom),
+  O#obj.id;
 read_id(Path) -> 
   case read(Path) of
     [_]     -> "-1";
@@ -40,6 +43,8 @@ read_id(Path) ->
 
 % given a path + key, uses API to get the record of the object 
 read_obj(Path, Key) -> read_obj(eurl:path([Path, Key])).
+read_obj(Atom) when is_atom(Atom) ->
+  bdd_utils:config(Atom);
 read_obj(Path) -> 
   case read(Path) of
     [_]     -> #obj{id = "-1"};

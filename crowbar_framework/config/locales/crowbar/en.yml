@@ -119,6 +119,9 @@ en:
   deployments:
     index:
       title: "Deployments"
+      proposed: "Proposed"
+      committed: "Committed"
+      active: "Active"
   deployment_roles:
     index:
       title: "Deployment Roles"
@@ -148,6 +151,8 @@ en:
   snapshots:
     index:
       title: "Snapshots"
+    show:
+      nodes: "Nodes"
   support:
     index:
       title: Exported Files

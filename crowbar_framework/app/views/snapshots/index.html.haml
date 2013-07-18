@@ -3,7 +3,7 @@
 %ul
   - @list.each do |i|
     %li
-      = "#{i.name}: #{i.description}"
+      = link_to "#{i.name}: #{i.description}", snapshot_path(:id=>i.id) 
       %ul
         %li= "deployment: #{i.deployment.name}"
         - i.node_roles do |nr|

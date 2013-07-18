@@ -65,19 +65,22 @@ This next step will checkout the core Crowbar code, which includes the Dev Tool.
 cd ~
 git clone https://github.com/crowbar/crowbar.git
 cd ~/crowbar
-# use ./dev setup --no-github if you don't want to submit any pull-requests
+# append ./dev setup --no-github if you don't want to submit any pull-requests
 ./dev setup
+# fetch updates from configured upstream repositories
 ./dev fetch
+# synchronize fetched updates with the local repos
+./dev sync
 ```
-Note: Ignore potential warnings like this:
-`"ulimit: open files: cannot modify limit: Invalid argument"
-
+**Notes:** 
+  * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you might havw to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.
+  * Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
 
 #### Building the discovery image
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
 ```
 cd ~/crowbar
- sudo ./build_sledgehammer.sh
+sudo ./build_sledgehammer.sh
 ```
 
 #### Picking our release and build

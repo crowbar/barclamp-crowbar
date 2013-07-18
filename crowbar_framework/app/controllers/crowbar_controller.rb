@@ -14,50 +14,6 @@
 # 
 
 class CrowbarController < ApplicationController
-
-  THROTTLE = 1
-
-  def cycle(deployment)
-  
-    # ZEHICLE TODO - this is in develoment!!
-
-    count = 1
-    return unless deployment.committed?
-
-    candidates = deployment.node_roles
-    mycycle = nil
-
-    # remove candidates that are not todo or proposed
-    # we'd like to have some randomization of which canidate get run next
-
-    # cycle can apply to muliple jigs 
-    # BUT a node in a cycle cannot be applied to multiple jigs 
-
-    # collect candidates 
-    # random order 
-    # partition by node to remove multiple jig actions
-    # restrict to throttle size
-
-    if candidates.length == 0
-      deployment.activate 
-    else
-      NodeRole.transaction do 
-        return if candidates.any? { |c| c.error? }
-        # zehicle - we need to do turns per jig? yes
-        mycycle = Cycle.create 
-        candidates.each do |c| 
-          c.cycle = mycycle if c.excutable? 
-          count += 1
-          # we want a way to limit the number of canidates processed in each turn
-          break if count > THROTTLE
-        end
-      end
-
-      Jig.execute(mycycle)  # background runner started w/ turn to each jig
-
-    end
-
-  end
       
 end
 

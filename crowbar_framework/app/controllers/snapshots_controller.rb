@@ -29,11 +29,14 @@ class SnapshotsController < ApplicationController
         @snapshot = Snapshot.find_key params[:id] 
         @nodes = {}
         @roles = {}
+        @node_roles = { }
         @snapshot.node_roles.each do |nr|
           n = nr.node
           r = nr.role
           @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
           @roles[r.id] = r unless r.nil? or @roles.has_key? r.id
+          @node_roles[n.id] ||= {}     unless n.nil? or r.nil?
+          @node_roles[n.id][r.id] = nr unless n.nil? or r.nil?
         end
         # make sure we have at least 1 role
         if @roles.length == 0
@@ -69,5 +72,14 @@ class SnapshotsController < ApplicationController
       render api_delete Snapshot
     end
   end  
+
+  def transition
+    @snapshot = Snapshot.find_key params[:snapshot_id]
+    @list = @snapshot.transition
+    respond_to do |format|
+      format.html { render :template => 'node_roles/index' }
+      format.json { render api_index :node_roles, @list }
+    end
+  end
 
 end

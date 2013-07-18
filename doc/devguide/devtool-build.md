@@ -73,8 +73,8 @@ This next step will checkout the core Crowbar code, which includes the Dev Tool.
     ./dev sync
 
 **Notes:** 
-  * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you may need to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.  Interate these commands a few times until there is no further change.  This normally takes two or three cycles when first setting up a build environment.
-  * Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
+* As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you may need to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.  Interate these commands a few times until there is no further change.  This normally takes two or three cycles when first setting up a build environment.
+* Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
 
 #### Building the discovery image
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
@@ -110,8 +110,8 @@ Now that everything is setup and prepped, the last remaining step is to pick wha
     ./dev build
 
 The above results in the following viable combinations:
-  * **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
-  * **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
+* **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
+* **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
 
 #### Building
 With the above knowledge we can now kick off our Hadoop or OpenStack build. 

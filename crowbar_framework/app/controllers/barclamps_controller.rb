@@ -26,17 +26,20 @@ class BarclampsController < ApplicationController
   end
 
   def show
-    render api_show :barclamp, Barclamp
+    respond_to do |format|
+      format.html { @barclamp = Barclamp.find_key params[:id] }
+      format.json { render api_show :barclamp, Barclamp }
+    end
+  end
+
+  def update
+    render api_not_supported("delete", "barclamp")
   end
 
   def destroy
     render api_not_supported 'delete', 'barclamp'
   end
-  
-  def update
-    render api_not_supported 'put', 'barclamp'
-  end
-  
+
   def create
     render api_not_supported 'post', 'barclamp'
   end

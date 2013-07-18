@@ -14,7 +14,8 @@
 % 
 % 
 -module(crowbar).
--export([step/2, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/2, parse_object/1]).
+-export([step/2, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
+-export([json_build/1]).
 -import(bdd_utils).
 -import(json).
 -include("bdd.hrl").
@@ -26,8 +27,8 @@ g(Item) ->
     version -> "v2";
     cli     -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
-    node_name -> "global-node.testing.com";
-    node_atom -> global_node;
+    node_name -> "admin.bddtesting.com";
+    node_atom -> admin_node;
     name    -> "bddtest";
     order   -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
@@ -70,10 +71,19 @@ parse_object(Results) ->
                 #item{namespace = crowbar, data=Results#http.data , url=Results#http.url}
   end.
 
-json(Part, JSON)  ->  
-  Key = atom_to_list(Part),
-  {Key, P} = lists:keyfind(Key,1,JSON), 
-  P.
+json(Name, Description, Order)          -> json([{name, Name}, {description, Description}, {order, Order}]).
+
+json(List) -> json:output(json_build(List)).
+
+json_build([])                               -> [];
+json_build({Key, Value}) when is_atom(Key)   -> json_build({atom_to_list(Key), Value});
+json_build({Key, Value})                     -> {Key, Value};
+json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
+
+%json(Part, JSON)  ->  
+%  Key = atom_to_list(Part),
+%  {Key, P} = lists:keyfind(Key,1,JSON), 
+%  P.
 
 % global setup
 step(_Global, {step_setup, _N, Test}) -> 
@@ -82,7 +92,7 @@ step(_Global, {step_setup, _N, Test}) ->
   bdd_utils:alias(user, user_cb),
   bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
   bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
-  Node = node:json(g(node_name), Test ++ g(description), 1000),
+  Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it

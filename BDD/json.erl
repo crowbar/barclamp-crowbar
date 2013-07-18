@@ -48,6 +48,10 @@ value(JSON, Key) ->
   List = string:tokens(Key, "]"),
   value_list(JSON, List).
   
+% handles \" escaped quotes
+json_value_quoted(Value, [$\\, $" | T]) ->
+  json_value_quoted(Value ++ "\\\"", T);
+
 % handles values that are quoted (this one ends the quote)
 json_value_quoted(Value, [$" | T]) ->
   #jsonkv{value=Value, raw=T};

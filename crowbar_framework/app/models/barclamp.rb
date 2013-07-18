@@ -152,22 +152,25 @@ class Barclamp < ActiveRecord::Base
     bc['roles'].each do |role|
       role_name = role["name"]
       role_jig = role["jig"]
-      role_template = File.join source_path, role_jig, 'roles', role_name, 'role_template.json'
-      node_template = File.join source_path, role_jig, 'roles', role_name, 'node_template.json'
+      role_template = File.join source_path, role_jig, 'roles', role_name, 'role-template.json'
+      node_template = File.join source_path, role_jig, 'roles', role_name, 'node-template.json'
       prerequisites = role['requires'] || []
       flags = role['flags'] || []
       description = role['descripion'] || "imported by #{barclamp.name}"
       # roles data import
       ## TODO: Verify that adding the roles will not result in circular role dependencies.
       Role.transaction do
-        r = Role.create(:name=>role_name,
-                        :jig_name=>role_jig,
+        r = Role.find_or_create_by_name(:name=>role_name, :jig_name=>role_jig, :barclamp_id=>barclamp.id)
+        r.update_attributes(:jig_name=>role_jig,
                         :description=>description,
                         :barclamp_id=>barclamp.id,
+                        :node_template=>(IO.read(node_template) rescue "{}"),
+                        :role_template=>(IO.read(role_template) rescue "{}"),
                         :library=>flags.include?('library'),
                         :implicit=>flags.include?('implicit'),
                         :bootstrap=>flags.include?('bootstrap'),
                         :discovery=>flags.include?('discovery'))
+        RoleRequire.where(:role_id=>r.id).delete_all
         r.save!
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
       end

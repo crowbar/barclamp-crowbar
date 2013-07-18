@@ -1,78 +1,139 @@
-##  Dev tool development and build for Crowbar.ISO - for developers
+##  Build your own Crowbar ISO for Hadoop or OpenStack
 
-Changes effective 9/14/2012: *Applies to Crowbar 1.5+ & Crowbar 2.x Deployment*
+Building Crowbar is not an activity intended for users. If you simply want to download an ISO to either deploy Hadoop or OpenStack, I suggest you get one of our [pre-compiled ISOs](http://crowbar.github.io/download/).
 
-The Crowbar Dev Tool is a git overlay that helps manage Crowbar releases, barclamp integration, and gated checkins to the Crowbar source base.
+Crowbar was originally designed to operate without any internet access, and since it includes everything needed to deploy a complete cluster, the below process will walk you through building an entire ISO which will contain all the bits in one package. 
 
-This page documents how to use the dev tool to build the Crowbar ISO.  For more detailed documentation specifically on how to use the tool for regular development, see [README.dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow) in the main crowbar git repository.
+Unlike many projects Crowbar spans many repositories, which almost all the time need to be managed simultaneously. This means that branches or pull requests often times impact multiple repositories at once. 
+In order to more easily manage this, we've created [a tool called the Dev Tool](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow), which makes some of these common tasks easier.
 
-If you are planning to write code for Crowbar core or develop a barclamp, we highly recommend you follow the following steps to create your build server.  If you are NOT planning to edit Crowbar then include the `--no-github` flag or follow the read-only [[Build-Crowbar.ISO]] instructions.
-
-Tip: Want to watch it on video? http://youtu.be/vIQLK4MXcqg
-
-### Pre-requisites:
-
-* A GitHub account (https://github.com/).  They are free for personal open source use.
-* A 40GB Ubuntu 12.04.1 server (VM is ok) is recommended for this process!  
-   * `sudo apt-get update` before taking any other steps (+ coffee break)
-   * You'll like want to `sudo apt-get install openssh-server` so you can access it
-* It is important to use the dev tool for managing branches & releases because it:
-   * takes care of synchronization with all the barclamps
-   * builds nested tags with the release information
-* A copy of your target Crowbar OS.  
-   * This page uses Ubuntu 12.04.1 server x64 iso as the example
-* `sudo sed -ie "s/%admin ALL=(ALL) ALL/%admin ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers`
-   * note: this will allow passwordless sudo for users in the admin group. The build process performs some high level kung-fu, some of which requires root access. if running as non-root, you'll be prompted for password unless you setup Passwordless SUDO permissions for your user. 
-   * if the above does not work, using your username instead of 'crowbar', try `echo 'crowbar ALL=(ALL) NOPASSWD: ALL' >/etc/sudoers.d/crowbar; chmod 400 /etc/sudoers.d/crowbar`
-   * Alternatively run the build as root.
+**Note:** This page documents how to use the Dev Tool to create a Crowbar ISO.  For more detailed documentation specifically on how to use the tool for regular development, how to submit pull-requests, how releases are defined, please refer to the [README.dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow).
 
 
-### Build Steps:
+### Pre-Requisites:
 
-_note:_ use sudo as instructed.  Do not use the Dev tool as root!
+* A physical or virtual Ubuntu 12.04.2 server (you will need root access)
+* An ISO of your target Crowbar OS (see instructions below on where they'll go)
+   * Use the [12.04.2 server ISO](http://releases.ubuntu.com/precise/ubuntu-12.04.2-server-amd64.iso) for **OpenStack** builds
+   * Use [CentOS 6.4 DVD ISO](http://mirrors.seas.harvard.edu/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-bin-DVD1.iso) for **Hadoop** builds
 
-1. If you don't want to use HTTPS, then make sure that your build server's public key is registered with your Github account
-1. `sudo apt-get update`
-1. the following packages are needed
-   1. `sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap`
-   1. `sudo apt-get install mkisofs binutils markdown erlang debhelper python-pip`
-   1. `sudo apt-get install build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev` 
-1. For Trunk CB2 Dev on Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
-   1. `sudo update-alternatives --config ruby` (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)
-   1. `sudo update-alternatives --config gem` (to make Gem 1.9 the default, gem -v will report version 1.9)
-   1. `sudo apt-get install ruby1.9.1-dev` 
-   1. `sudo gem install builder bluecloth`
-   1. continue with steps below
-1. `sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec`
-  1. note: rcov does not work in ruby-1.9 - use 'simplecov' instead
-1. `git clone https://github.com/crowbar/crowbar.git`
-1. `cd ~/crowbar` directory
-1. `./dev setup`
-   1. You can ignore warnings: "ulimit: open files: cannot modify limit: Invalid argument"
-   1. this will create personal github forks for you of all the Crowbar modules. If you don't have a Github login, or you don't care about pushing changes back upstream, you can run `./dev setup --no-github`
-1. optional, if this is a new system, set your user information as directed 
-   1. git config --global user.name "Your Name"
-   1. git config --global user.email you@example.com
-1. `./dev fetch`
-1. ` sudo ./build_sledgehammer.sh`
-   1. this builds the "discovery image" called Sledgehammer.  
-   1. this step take a long time.  It helps if you've pre-fetched the CentOS ISO (see [[Build-Crowbar.ISO]])
-   1. It does not change often and does not need to be repeated once it has been built.
-1. sudo ln -s /usr/share/debootstrap/scripts/gutsy /usr/share/debootstrap/scripts/precise
-   1. note: This is required only if: You're building for 12.04 on a 11.04 or 11.10 machine, since those versions don't know how to build Precise
-1. Make sure you have the right ISOs in `~/.crowbar-build-cache/iso` directory
-   1. For Ubuntu, you should have http://old-releases.ubuntu.com/releases/12.04.1/ubuntu-12.04.1-server-amd64.iso
-      1. Create the iso directory as it will not exist `mkdir ~/.crowbar-build-cache/iso`
-      1. `cd ~/.crowbar-build-cache/iso`
-      1. `wget http://old-releases.ubuntu.com/releases/12.04.1/ubuntu-12.04.1-server-amd64.iso`
-          1. NOTE: when running a the build command later it may look for the newer Ubuntu release in which case you can download it now to save time by running
-          2. `wget http://releases.ubuntu.com/releases/12.04.2/ubuntu-12.04.2-server-amd64.iso`
-      1. Set the directory back `cd ~/crowbar`
-1. `./dev switch development`
-   1. you can see all the releases with ./dev releases
-   1. choices trunk (default, trunk), 1.2 = fledermaus, 1.3 Cloudera = elefante
-1. `./dev checkout master` 
-   1. you can see all the branches with git branch -a
+
+### The Dev Tool and GitHub
+
+Since all the development on Crowbar takes place on GitHub, the Dev Tool is absolutely reliant on having a reliable connection to GitHub. If you ever see console output like this: `......!!!.....!!!!.` while Dev Tool is at work, it indicates connection problems. Also, if you don't want to use HTTPS, make sure that your build server's public key is registered with your GitHub account.
+
+If you intend on doing _development_ which might result in you submitting pull- requests, you will also need a GitHub account .  **Note:** Using your GitHub account will result in every needed Crowbar repo being forked to your account. During development it is important to use the Dev Tool for managing branches and releases.
+
+**If you don't have any intentions on submitting pull-requests, you can append any of the Dev Tool commands below with `--no-github`.**
+
+
+### Preparing Our Build Box
+
+#### Setup password-less sudo
+During the build process the Dev Tool has to perform certain tasks which require root access (mounting ISOs, etc.). In order to avoid being prompted for your password every time we will setup password-less sudo. **Don't run your build as root.**
+```
+# run this command to add your 
+sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
+```
+
+#### Install needed packages and gems
+```
+# let's install some OS packages
+sudo apt-get update
+sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap \
+mkisofs binutils markdown erlang debhelper python-pip \
+build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev
+
+# let's install some needed gems next
+sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
+```
+
+#### Put the needed base ISOs in place
+As a starting point for the build process we will need the ISOs [mentioned above](#pre-requisites) placed where the Dev Toll can find them. The Dev Tool will then use them during the build process described below.
+```
+mkdir -p ~/.crowbar-build-cache/iso
+cd ~/.crowbar-build-cache/iso
+# now scp or wget the ISOs into this directory
+```
+
+
+### Building Our ISO
+
+#### Checking out code and setting up
+This next step will checkout the core Crowbar code, which includes the Dev Tool. Once the initial checkout is complete, we let the Dev Tool handle the checkout of the remaining repositories. As a result this next process will create personal forks of each Crowbar repository. If you have no interest of submitting pull requests append `--no-github`. **Note:** This next step will take some time.
+```
+cd ~
+git clone https://github.com/crowbar/crowbar.git
+cd ~/crowbar
+# use ./dev setup --no-github if you don't want to submit any pull-requests
+./dev setup
+./dev fetch
+```
+Note: Ignore potential warnings like this:
+`"ulimit: open files: cannot modify limit: Invalid argument"
+
+
+#### Building the discovery image
+During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
+```
+cd ~/crowbar
+ sudo ./build_sledgehammer.sh
+```
+
+#### Picking our release and build
+Now that everything is setup and prepped, the last remaining step is to pick what we actually want to build. Several Crowbar versions and flavors (Hadoop and OpenStack) are available. Next we're picking which version/release and flavor/build we'd like to build. **It is extremely important to pick the right release and build combination.** Some of the releases will be under heavy development and others will be old. If you're unsure which one is the right one for you you should ask via [IRC or mailing list](http://crowbar.github.io/docs/getting-help.html).
+```
+cd ~/crowbar
+
+# working with releases
+# show all the available releases
+./dev releases
+
+# switch to a release
+./dev switch mesa-1.6
+
+# display your current release
+./dev release
+
+
+# working with builds
+# show all the builds
+./dev builds
+
+# choosing a certain build
+./dev build openstack-os-build
+
+# display which build your on
+./dev build
+```
+The above results in the following viable combinations:
+  * **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
+  * **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
+
+#### Building
+With the above knowledge we can now kick off our Hadoop or OpenStack build. 
+
+**Note:** The Dev Tool currently has a bug where it litters README.empty-branch files. Those will be problematic during `dev switch` operations. In order to **clean them up run the following commands** any time you run into this issue.
+```
+# clean up any .empty-branch files first
+cd ~/crowbar/barclamps
+for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
+```
+Now we can actually kick off the build.
+```
+# FOR HADOOP
+./dev switch hadoop-2.3/hadoop-os-build
+./dev build --os centos-6.4 --update-cache
+
+# FOR OPENSTACK
+./dev switch mesa-1.6/openstack-os-build
+./dev build --os ubuntu-12.04 --update-cache
+```
+
+
+#TODO:
+**Anything below this line should be ignored, since it hasn't been rewritten edited yet.**
+
    1. choices are `master` (default, trunk), `openstack-os-build` (OpenStack), `cloudera-os-build` (Hadoop)
    1. different branches represent different "distros" which combine different sets of barclamps (e.g. openstack, hadoop)
 1. `./dev build --os ubuntu-12.04 --update-cache` 

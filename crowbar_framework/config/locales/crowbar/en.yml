@@ -122,6 +122,7 @@ en:
       active: "Active"
       node: "Node"
       role: "Role"
+      jig: "Jig"
   barclamps:
     index:
       title: "Installed Barclamps"
@@ -164,6 +165,7 @@ en:
   node_roles:
     index:
       title: "Node Roles"
+      cycle: "Run Cycle"
       <<: *deployment_common
   roles:
     index:

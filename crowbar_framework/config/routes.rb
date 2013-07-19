@@ -39,6 +39,7 @@ Crowbar::Application.routes.draw do
   resources :snapshots do
     resources :node_roles
     get :transition
+    get :cycle
   end
 
   # UI scope
@@ -123,7 +124,8 @@ Crowbar::Application.routes.draw do
           resources :node_roles
           resources :roles
           resources :snapshots do
-            get :transition, :as => :snapshots_transition
+            get :transition
+            get :cycle
             resources :node_roles
           end
           resources :users do

@@ -31,7 +31,9 @@ Crowbar::Application.routes.draw do
   resources :docs
   resources :groups
   resources :jigs
-  resources :nodes
+  resources :nodes do
+    resources :node_roles
+  end
   resources :node_roles
   resources :roles
   resources :snapshots do
@@ -115,7 +117,9 @@ Crowbar::Application.routes.draw do
             end
           end
           resources :jigs
-          resources :nodes
+          resources :nodes do
+            resources :node_roles
+          end
           resources :node_roles
           resources :roles
           resources :snapshots do

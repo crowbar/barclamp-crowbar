@@ -135,7 +135,7 @@ find_link_part2(AnchorTag, HrefREX, Match)     ->
 	end.
 
 find_heading(Input, Text) ->
-  RegEx = "<h[1-9]>"++Text++"</h[1-9]>",
+  RegEx = "<h[1-9]>([\\s]*)"++Text++"([\\s]*)</h[1-9]>",
   case re:run(Input, RegEx) of
     nomatch    -> bdd_utils:log(debug, eurl, find_heading, "Did not find heading ~p using RegEx ~p", [Text, RegEx]), false;
     {match, _} -> true

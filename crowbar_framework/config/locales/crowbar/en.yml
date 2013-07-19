@@ -131,6 +131,11 @@ en:
     index:
       title: "Deployments"
       <<: *deployment_common
+    show:
+      <<: *deployment_common
+    buttons:
+      commit: "Commit"
+      recall: "Recall"
   deployment_roles:
     index:
       title: "Deployment Roles"
@@ -152,6 +157,8 @@ en:
     index:
       title: "Nodes"
       admin: "Admin!"
+    show:
+      node_roles: "Activity"
   node_roles:
     index:
       title: "Node Roles"

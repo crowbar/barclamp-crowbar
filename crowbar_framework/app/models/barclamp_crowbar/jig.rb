@@ -23,15 +23,18 @@ class BarclampCrowbar::Jig < Jig
 
   def run(nr)
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
-    # Hardcode this for now
-    login = "root@#{nr.node.name}"
-    local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/#{nr.role.name}"
-    remote_tmpdir = %x{ssh #{login} -- mktemp -d /tmp/scriptjig-XXXXXX}
-    Dir.glob(File.join(local_scripts,"*.sh")).sort.each do |scriptpath|
-      script = scriptpath.split("/")[-1]
-      system("scp",scriptpath,"#{login}:#{remote_tmpdir}/#{script}") &&
-        system("ssh",login,"--","/bin/bash","#{remote_tmpdir}/#{script}") && continue
-      nr.state = NodeRole::ERROR
+    # skip this if running test server
+    unless Rails.root.to_s.start_with? '/tmp/crowbar-dev-test/'
+      # Hardcode this for now
+      login = "root@#{nr.node.name}"
+      local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/#{nr.role.name}"
+      remote_tmpdir = %x{ssh #{login} -- mktemp -d /tmp/scriptjig-XXXXXX}
+      Dir.glob(File.join(local_scripts,"*.sh")).sort.each do |scriptpath|
+        script = scriptpath.split("/")[-1]
+        system("scp",scriptpath,"#{login}:#{remote_tmpdir}/#{script}") &&
+          system("ssh",login,"--","/bin/bash","#{remote_tmpdir}/#{script}") && continue
+        nr.state = NodeRole::ERROR
+      end
     end
     nr.state = NodeRole::ACTIVE
   end

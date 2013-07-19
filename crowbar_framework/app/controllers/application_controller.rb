@@ -114,7 +114,7 @@ class ApplicationController < ActionController::Base
   def api_delete(type, key=nil)
     if params[:version].eql?('v2') 
       key ||= params[:id]
-      type.delete type.find_key(key)
+      type.destroy type.find_key(key)
       return {:text=>I18n.t('api.deleted', :id=>key, :obj=>type), :content_type=>cb_content_type(type, "empty")}
     else
       return {:text=>I18n.t('api.wrong_version', :version=>params[:version]), :content_type=>cb_content_type(type, "error")}

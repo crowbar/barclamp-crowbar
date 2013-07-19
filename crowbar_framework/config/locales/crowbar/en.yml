@@ -113,6 +113,7 @@ en:
     common: &deployment_common
       deployment: "Deployment"
       snapshot: "Snapshot"
+      name: "Name"
       description: "Description"
       state: "State"
       status: "Status"
@@ -156,7 +157,8 @@ en:
   nodes:
     index:
       title: "Nodes"
-      admin: "Admin!"
+      admin: "Admin?"
+      <<: *deployment_common
     show:
       node_roles: "Activity"
   node_roles:

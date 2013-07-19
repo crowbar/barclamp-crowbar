@@ -53,6 +53,20 @@ class Node < ActiveRecord::Base
 
   scope    :admin,              -> { where(:admin=>true) }
 
+  # look at Node state by scanning all node roles.
+  def state
+    node_roles.each do |nr|
+      if nr.proposed? 
+        return NodeRole::PROPOSED 
+      elsif nr.error?
+        return NodeRole::ERROR
+      elsif [NodeRole::BLOCKED, NodeRole::TODO, NodeRole::TRANSITION].include? nr.state
+        return NodeRole::TODO
+      end
+    end
+    return NodeRole::ACTIVE
+  end
+
   def self.name_hash
     Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
   end

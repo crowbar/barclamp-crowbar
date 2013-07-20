@@ -20,19 +20,20 @@ describe "node_role annealer" do
   # just 2 nodes.
   include_context "2 dummy nodes"
 
-  context "test deployment with 2 nodes" do
+  # get a role from the deployment (ideally, active)
+  context "node_role states work correctly" do
 
-    let(:test_role1) { deployment.deployment_roles.first}
-    %let(:test_role2) { deployment.deployment_roles.second}
+    subject { node1.node_roles.first }
 
     before(:all) {            
-      # add node
-      test_role1.add_node(node1) if test_role1
-      test_role2.add_node(node2) if test_role2
+      # nothing
     }
 
-    it "we can commit the deployment" do
-      #deployment.commit
+    its(:state)   { should == NodeRole.TODO }
+    its(:node_id) { should == node1.id}
+
+    it "" do
+      pending deployment.commit
     end
 
   end

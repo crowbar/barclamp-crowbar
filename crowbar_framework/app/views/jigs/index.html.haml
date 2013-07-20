@@ -11,7 +11,7 @@
   %tbody
     - @jigs.each do |j|
       %tr    
-        %td= j.name
+        %td= link_to j.name, jig_path(j.id)
         %td
           - if j.active
             .led{:id => j.name, :class => 'ready', :style => "float:left", :title=>t('active')}

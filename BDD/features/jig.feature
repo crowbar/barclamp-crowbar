@@ -28,9 +28,21 @@ Feature: Jigs API
     Then there is not a {object:jig} "jig_delete_test"
 
   Scenario: Jigs UI Page
-    When I go to the "/jigs" page
+    When I go to the "jigs" page
     Then I should see a heading {bdd:crowbar.i18n.jigs.index.title}
       And I should see "test"
       And I should see "script"
+      And there should be no translation errors
+
+  Scenario: Jigs UI Drill Down Test
+    Given I am on the "jigs" page
+    When I click on the "test" link
+    Then I should see a heading "test"
+      And there should be no translation errors
+
+  Scenario: Jigs UI Drill Down Script
+    Given I am on the "jigs" page
+    When I click on the "script" link
+    Then I should see a heading "script"
       And there should be no translation errors
     

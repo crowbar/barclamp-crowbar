@@ -142,12 +142,22 @@ en:
   nodes:
     index:
       title: "Nodes"
+      admin: "Admin!"
   node_roles:
     index:
       title: "Node Roles"
   roles:
     index:
       title: "Roles"
+      jig: jig
+      role: "Role"
+      description: "Description"
+      barclamp: "Barclamp"
+      flags: "Flags"
+      library: "Library"
+      implicit: "Implicity"
+      bootstrap: "Bootstrap"
+      discovery: "Discovery"
   snapshots:
     index:
       title: "Snapshots"

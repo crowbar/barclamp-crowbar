@@ -24,6 +24,21 @@ shared_context "crowbar test deployment" do
   end
 
   let(:deployment) { Deployment.find_by_name 'system' }
+  let(:active)     { deployment.active }
+
+  describe Deployment do
+
+    it "has an active deployment" do
+      expect(deployment.active).to be_kind_of(Snapshot)
+      expect(active).to be_kind_of(Snapshot)
+    end
+
+    it "is not committed" do
+      expect(deployment.committed).to be_nil
+    end
+
+  end
+
 
 end  
 

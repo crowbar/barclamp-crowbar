@@ -270,7 +270,7 @@ gems:
     - net-ssh-multi
     - puma
     - railroad
-    - rails-(~>3.2.11)
+    - rails-3.2.13
     - rails_config
     - rails-erd
     - rake

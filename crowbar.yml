@@ -42,7 +42,7 @@ locale_additions:
       crowbar:
         edit_attributes:
           attributes: Attributes
-          edit_proposal_name: Streamlined interface for proposals
+          simple_proposal_ui: Streamlined interface for proposals
         edit_deployment:
           deployment: Deployment
 

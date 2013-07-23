@@ -21,6 +21,7 @@
                 }
               }
             },
+            "simple_proposal_ui": { "type": "bool", "required": false },
 	    "bios-settings": { "type": "map", "required": false, "mapping": {
 		    = : { "type": "str", "required": true }
 	        }

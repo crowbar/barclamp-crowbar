@@ -36,22 +36,23 @@ class Jig < ActiveRecord::Base
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of     :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
-=begin 
-Create a node in all jig. The exact actions depend on the jig.
-=end
+  # Create a node in all jig. The exact actions depend on the jig.
   def self.create_node(node)
     broadcast_to_jigs { |jig| jig.create_node(node) }    
   end
 
-=begin 
-Delete a node from all jig. The exact actions depend on the jig.
-=end
+  # Delete a node from all jig. The exact actions depend on the jig.
   def self.delete_node(node)
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
 
-  def self.execute(cycle)
-    broadcast_to_jigs { |jig|  jig.execute(cycle) }    
+  # execute all node roles in transition on all jigs
+  def self.run()
+    NodeRole.where(:state=>NodeRole::TRANSITION).each do |nr|
+      j = nr.role.jig
+      puts "ZEHICLE #{j.name} running #{nr.inspect}"
+      j.run(nr)
+    end
   end
 
   # OVERRIDE with actual methods

@@ -30,7 +30,7 @@ pop(ConfigRaw)  ->
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
   % admin node
   Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {admin, "true"}]),
-  bdd_crud:create(node:g(path), Admin, g(node_atom)),
+  R = bdd_crud:create(node:g(path), Admin, g(node_atom)),
   % rest of the nodes
   [ add_node(N) || N <- buildlist(Build, nodes) ],
   bdd_utils:config_unset(global_setup),
@@ -41,7 +41,7 @@ pop(ConfigRaw)  ->
 unpop()       ->  
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
   [ remove(N) || {N, _, _, _, _} <- buildlist(Build, nodes) ], 
-  bdd_crud:delete(g(node_name)),
+  bdd_crud:delete(node:g(path), g(node_name)),
   bdd:stop([]). 
 
 buildlist(Source, Type) ->

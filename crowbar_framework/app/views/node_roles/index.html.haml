@@ -1,5 +1,6 @@
 - if @snapshot
   %p{:style => 'float:right'}
+    = link_to t('.cycle'), snapshot_cycle_path(@snapshot.id), :class => 'button' if @snapshot.committed?
     = link_to t('.snapshot'), snapshot_path(@snapshot.id), :class => 'button'
 %h1
   = link_to @snapshot.name, snapshot_path(@snapshot.id) if @snapshot
@@ -11,6 +12,7 @@
       %th= t '.snapshot'
       %th= t '.node'
       %th= t '.role'
+      %th= t '.jig'
       %th
       %th= t '.state'
       %th= t '.status'
@@ -20,6 +22,7 @@
         %td= link_to nr.snapshot.name, snapshot_path(:id=>nr.snapshot.id) rescue t 'unknown'
         %td= link_to nr.node.name, node_path(:id=>nr.node.id) rescue t 'unknown'
         %td= link_to nr.role.name, role_path(:id=>nr.role.id) rescue t 'unknown'
+        %td= link_to nr.role.jig_name, jig_path(:id=>nr.role.jig_name) rescue t 'unknown'
         %td
           .led{:class => NodeRole::STATES[nr.state], :title=>nr.state_name}
         %td= link_to nr.state_name, node_role_path(nr.id)

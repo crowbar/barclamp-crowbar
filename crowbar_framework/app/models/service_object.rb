@@ -37,7 +37,20 @@ class ServiceObject
   def self.allow_multiple_proposals?
     false
   end
-  
+
+
+  def simple_proposal_ui?
+    proposals = ProposalObject.find_proposals("crowbar")
+
+    result = false
+    unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
+      if not proposals[0]["attributes"]["crowbar"]["simple_proposal_ui"].nil?
+        result = proposals[0]["attributes"]["crowbar"]["simple_proposal_ui"]
+      end
+    end
+    return result
+  end
+
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end

@@ -1,4 +1,11 @@
-%h1= @snapshot.name
+- if @snapshot.committed?
+  %p{:style => 'float:right'}
+    = link_to t('.todo'), snapshot_transition_path(@snapshot.id), :class => 'button'
+%h1
+  = @snapshot.name
+  = t '.proposed' if @snapshot.proposed?
+  = t '.committed' if @snapshot.committed?
+  = t '.active' if @snapshot.active?
 
 %table.data.box
   %thead
@@ -11,4 +18,8 @@
       %tr
         %td= link_to node.name, node_path(nid)
         -@roles.each do |rid, role|
-          %td "x"
+          %td
+            - nr = @node_roles[nid][rid]
+            - if nr
+              .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.state_name}
+                = link_to "[__]", node_role_path(nr.id)

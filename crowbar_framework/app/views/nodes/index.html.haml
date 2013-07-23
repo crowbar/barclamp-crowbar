@@ -1,13 +1,18 @@
 %h1= t '.title'
 
-%ul
-  - @list.each do |i|
-    %li
-      = link_to i.name, node_path(i.id)
-      = ": #{i.description}"
-      - if i.admin
-        = "(admin)"
-      %ul
-        - i.node_roles do |r|
-          %li
-            = "#{r.name}: #{r.description}" 
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.admin'
+      %th= t '.description'
+      %th= t '.status'
+  %tbody
+    -@list.each do |n|
+      %tr
+        %td= link_to n.name, node_path(n.id)
+        %td
+          = t 'yes' if n.admin
+        %td= n.description
+        %td
+          .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}

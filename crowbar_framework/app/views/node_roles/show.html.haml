@@ -1,0 +1,5 @@
+.led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
+
+%h1= @node_role.name
+
+= @node_role.inspect

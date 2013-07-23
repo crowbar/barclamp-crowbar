@@ -1,4 +1,9 @@
+%p{:style => 'float:right'}
+  = link_to t('.node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
+
 %h1= @node.name
+
+.led{:class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
 
 = @node.inspect
 

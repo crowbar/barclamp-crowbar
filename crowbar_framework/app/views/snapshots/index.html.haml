@@ -1,10 +1,21 @@
 %h1= t '.title'
 
-%ul
-  - @list.each do |i|
-    %li
-      = link_to "#{i.name}: #{i.description}", snapshot_path(:id=>i.id) 
-      %ul
-        %li= "deployment: #{i.deployment.name}"
-        - i.node_roles do |nr|
-          %li= "node_role: #{nr.name}"
+%table.data.box
+  %thead
+    %tr
+      %th= t '.state'
+      %th= t '.deployment'
+      %th= t '.state'
+      %th= t '.snapshot'
+      %th= t '.description'
+  %tbody
+    -@list.each do |i|
+      %tr
+        %td= i.state
+        %td= link_to i.deployment.name, deployment_path(i.deployment.id)
+        %td
+          = t '.proposed' if i.proposed?
+          = t '.committed' if i.committed?
+          = t '.active' if i.active?
+        %td= link_to i.name, snapshot_path(:id=>i.id) 
+        %td= i.description

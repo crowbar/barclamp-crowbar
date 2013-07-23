@@ -16,7 +16,12 @@
 class NodeRolesController < ApplicationController
 
   def index
-    @list = NodeRole.all
+    if params.key? :node_id
+      @node = Node.find_key params[:node_id]
+      @list = @node.node_roles
+    else
+      @list = NodeRole.all
+    end
     respond_to do |format|
       format.html { }
       format.json { render api_index :node_role, @list }

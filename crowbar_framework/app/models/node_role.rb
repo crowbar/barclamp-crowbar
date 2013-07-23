@@ -27,8 +27,9 @@ class NodeRole < ActiveRecord::Base
   has_one         :barclamp,          :through => :role
 
   # find other node-roles in this snapshot using their role or node
-  scope           :peers_by_role,     ->(s,r) { where(['snapshot_id=? AND role_id=?', s.id, r.id]) }
-  scope           :peers_by_node,     ->(s,n) { where(['snapshot_id=? AND node_id=?', s.id, n.id]) }
+  scope           :peers_by_state,    ->(ss,state) { where(['snapshot_id=? AND state=?', ss.id, state]) }
+  scope           :peers_by_role,     ->(ss,role)  { where(['snapshot_id=? AND role_id=?', ss.id, role.id]) }
+  scope           :peers_by_node,     ->(ss,node)  { where(['snapshot_id=? AND node_id=?', ss.id, node.id]) }
   scope           :peers_by_node_and_role,     ->(s,n,r) { where(['snapshot_id=? AND role_id=? AND node_id=?', s.id, r.id, n.id]) }
 
   # make sure that new node-roles have require upstreams 
@@ -60,6 +61,7 @@ class NodeRole < ActiveRecord::Base
   TRANSITION =  2
   BLOCKED    =  3
   PROPOSED   =  4
+  STATES     = { ERROR => 'error', ACTIVE => 'active', TODO => 'todo', TRANSITION => 'transition', BLOCKED => 'blocked', PROPOSED => 'proposed'  }
 
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
@@ -77,6 +79,7 @@ class NodeRole < ActiveRecord::Base
   class InvalidState < Exception
   end
 
+  # MOVE INTO SNAPSHOT
   class MissingJig < Exception
     def initalize(nr)
       @errstr = "NodeRole #{nr.name}: Missing jig #{nr.jig_name}"
@@ -95,11 +98,14 @@ class NodeRole < ActiveRecord::Base
   end
 
   def self.state_name(state)
-    raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and state.between?(ERROR, PROPOSED)
-    I18n.t(state.to_s, :default=>'Unknown', :scope=>'node_role.state')
+    raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and STATES.include? state
+    I18n.t(STATES[state], :default=>'Unknown', :scope=>'node_role.state')
   end
 
   def self.anneal!
+    
+    # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
+
     # A very basic annealer.
     queue = Hash.new
     NodeRole.transaction do

@@ -1,43 +1,15 @@
-%p{:style => 'float:right'}
-  = link_to t('back'), barclamp_path(:deployment_id=>@deployment.id), :class => 'button'
-
-.led.unknown{:id => @deployment.id, :title=>t('deployment.status.unknown'), :style=>'float:left'} 
-%h1= t '.title', :barclamp=>@barclamp.display, :deployment=>@deployment.name
-
-= form_for :deployment, :url => deployment_path(:id => @deployment.id, :controller => 'deployment', :barclamp=>@barclamp.name), :html => { :method => :put, :'data-type' => 'html', :id => 'update_deployment_form', :class => "box" } do |f|
-
-  - @deployment.proposal.roles.each do |role|
-    %h2= t '.role', :role=>role.name
-    %p= role.description
-    %table.data.box{:id=> role.id }
-      %tr
-        %th= t '.prereqs'
-        %th= t '.attributes'
-        %th= t '.deployment'
-      %tr
-        %td
-          - if role.attrib_has_deployments.count == 0 
-            %p= t 'no_items'
-          - else
-            - role.attrib_has_deployments.each do |a|
-              %p
-                - d = a.deployment
-                .led.unknown{:id => d.id, :title=>t('deployments.status.unknown')} 
-                = "#{d.barclamp.display}"
-                = "#{d.name}"
-                = "(#{d.status})"
-        %td
-          - if role.role_attribs.count == 0 
-            %p= t 'no_items'
-          - else
-            - role.role_attribs.each do |a|
-              %p= "#{a.name} = #{a.value}" unless a.is_a? BarclampCrowbar::AttribHasDeployment
-        %td
-          - if role.nodes.count == 0 
-            %p= t 'no_items'
-          - else
-            - role.nodes.each do |n|
-              %p= n.name
-
 %p{:style=>'float:right'}
-  = render :partial => 'buttons', :locals => { :deployment=>@deployment }
+  = render :partial => 'buttons', :locals => { :deployment=>@deployment } rescue 'buttons!'
+%h1
+  - if @deployment.committed?
+    = t '.committed'
+  - elsif @deployment.proposed?
+    = t '.proposed'
+  - elsif @deployment.active?
+    = t '.active'
+  - else
+    = t 'error'
+  = @deployment.name
+
+= @deployment.inspect
+

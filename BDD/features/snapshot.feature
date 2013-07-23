@@ -19,7 +19,7 @@ Feature: Snapshot
 
   Scenario: Snapshots UI click to a snapshot
     Given I am on the "snapshots" page
-    When I click on the "system: Created Automatically by System" link
+    When I click on the "system" link
     Then I should see "system"
 
   Scenario: Snapshot Page renders

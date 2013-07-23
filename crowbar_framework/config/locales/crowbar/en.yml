@@ -99,17 +99,29 @@ en:
       raise: "cannot commit a proposal unless there is no other currently in process"
       status: "deployment committed"
   node_role:
-    state:
-      "-1": "Error"
-      "0" : "Active"
-      "1" : "To Do"
-      "2" : "Transition"
-      "3" : "Blocked"
-      "4" : "Proposed"
+    state: &node_role_states
+      error:      "Error"
+      active:     "Active"
+      todo:       "To Do"
+      transition: "Transition"
+      blocked:    "Blocked"
+      proposed:   "Proposed"
   # Layout / Views
   layouts:
     application:
       provided_by: Provided by
+    common: &deployment_common
+      deployment: "Deployment"
+      snapshot: "Snapshot"
+      name: "Name"
+      description: "Description"
+      state: "State"
+      status: "Status"
+      proposed: "Proposed"
+      committed: "Committed"
+      active: "Active"
+      node: "Node"
+      role: "Role"
   barclamps:
     index:
       title: "Installed Barclamps"
@@ -119,9 +131,12 @@ en:
   deployments:
     index:
       title: "Deployments"
-      proposed: "Proposed"
-      committed: "Committed"
-      active: "Active"
+      <<: *deployment_common
+    show:
+      <<: *deployment_common
+    buttons:
+      commit: "Commit"
+      recall: "Recall"
   deployment_roles:
     index:
       title: "Deployment Roles"
@@ -142,10 +157,14 @@ en:
   nodes:
     index:
       title: "Nodes"
-      admin: "Admin!"
+      admin: "Admin?"
+      <<: *deployment_common
+    show:
+      node_roles: "Activity"
   node_roles:
     index:
       title: "Node Roles"
+      <<: *deployment_common
   roles:
     index:
       title: "Roles"
@@ -161,8 +180,11 @@ en:
   snapshots:
     index:
       title: "Snapshots"
+      <<: *deployment_common
     show:
       nodes: "Nodes"
+      todo: "To Do Actions"
+      <<: *deployment_common      
   support:
     index:
       title: Exported Files
@@ -177,7 +199,7 @@ en:
 #      delete_failed: Delete Failed
 #      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
   users:
-    common: &common
+    common: &user_common
       email: Email
       is_admin: Admin?
       password: Password
@@ -204,10 +226,10 @@ en:
       unlock: Unlock
       unlocked: User account unlocked.
       update_success: User was updated successfully.
-      <<: *common
+      <<: *user_common
     form:
       add: Add User
-      <<: *common
+      <<: *user_common
     form_reset_password:
       set_password: Set Password
-      <<: *common
+      <<: *user_common

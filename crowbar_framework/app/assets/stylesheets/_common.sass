@@ -81,28 +81,27 @@ pre.code
   background: yellow
   color: black
 
+// { ERROR => 'error', ACTIVE => 'active', TODO => 'todo', TRANSITION => 'transition', BLOCKED => 'blocked', PROPOSED => 'proposed'  } 
 .led
   display: block
   width: 17px
   height: 17px
   background: url('/images/icons/led/off.png')
-  &.ready, &.active, &.green
-    background: url('/images/icons/led/green.png')
-  &.yellow, &.building
-    background: url('/images/icons/led/yellow.png')
-  &.unknown, &.off
-    background: url('/images/icons/led/off.png')
-  &.none, &.diamond
-    background: url('/images/icons/led/none.png')
-  // blinking classes
-  &.pending, &.waiting
-    background: url('/images/icons/led/yellow.png')
-  &.failed, &.red, &.error
+  &.error
     background: url('/images/icons/led/red.png')
+  &.active
+    background: url('/images/icons/led/green.png')
+  &.todo
+    background: url('/images/icons/led/yellow.png')
+  // blinking classes
   &.blink
     +opacity(0.5)
-  &.unready, &.spin, &.in_process
+  &.transition
     background: url('/images/icons/led/yellow-green-spin.png')
+  &.blocked
+    background: url('/images/icons/led/off.png')
+  &.proposed
+    background: url('/images/icons/led/none.png')
 
 h1,h2,h3
   &.led

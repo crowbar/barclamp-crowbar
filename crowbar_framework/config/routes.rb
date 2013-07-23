@@ -20,17 +20,26 @@ Crowbar::Application.routes.draw do
   end
 
   # UI 
-  resources :jigs
   resources :barclamps
-  resources :deployments
-  resources :docs
-  resources :nodes
-  resources :roles
-  resources :deployment_roles
-  resources :node_roles
-  resources :snapshots
   resources :cycles
+  resources :deployments do
+    get :proposed
+    get :committed
+    get :active
+  end
+  resources :deployment_roles
+  resources :docs
   resources :groups
+  resources :jigs
+  resources :nodes do
+    resources :node_roles
+  end
+  resources :node_roles
+  resources :roles
+  resources :snapshots do
+    resources :node_roles
+    get :transition
+  end
 
   # UI scope
   scope 'utils' do
@@ -68,6 +77,7 @@ Crowbar::Application.routes.draw do
     get 'get_cli', :controller => 'support', :action => 'get_cli'
   end
 
+  # these are ok, but really should move to the user resource!
   put 'reset_password(/:id)', :controller => 'users', :action=>"reset_password", :as=>:reset_password
   get 'edit_password/:id', :controller => 'users', :action=>'edit_password', :constraints => { :id => /.*/ }, :as => :edit_password
   delete 'unlock/:id', :controller => 'users', :action=>'unlock', :constraints => { :id => /.*/ }, :as => :unlock
@@ -92,21 +102,29 @@ Crowbar::Application.routes.draw do
           get "deployments(/:id)" => "deployments#status", :as => :deployments_status
         end
         scope ':version' do
-          resources :nodes
-          resources :barclamps
-          resources :deployments
-          resources :snapshots
-          resources :jigs
           resources :attribs
-          resources :roles
+          resources :barclamps
           resources :cycles
-          resources :node_roles
+          resources :deployments do
+            get :proposed
+            get :committed
+            get :active
+          end
           resources :deployment_roles
-          resources :snapshots
           resources :groups do
             member do
               get 'nodes'
             end
+          end
+          resources :jigs
+          resources :nodes do
+            resources :node_roles
+          end
+          resources :node_roles
+          resources :roles
+          resources :snapshots do
+            get :transition, :as => :snapshots_transition
+            resources :node_roles
           end
           resources :users do
             post "admin", :controller => "users", :action => "make_admin"

@@ -125,9 +125,9 @@ class Snapshot < ActiveRecord::Base
       # Only set the candidate states inside the transaction (must be in TODO state.
       NodeRole.transaction do
         todo.each_with_index do |c, i| 
-          break if i>throttle
+          break if i>=throttle
           # while all the candates MUST be in TODO, we check again just to be safe
-          if c.status == NodeRole::TODO
+          if c.state == NodeRole::TODO
             c.state = NodeRole::TRANSITION
             transition << c
           end

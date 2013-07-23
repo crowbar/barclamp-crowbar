@@ -82,4 +82,9 @@ class SnapshotsController < ApplicationController
     end
   end
 
+  def cycle
+    Jig.run()
+    redirect_to snapshot_path(params[:snapshot_id])
+  end
+
 end

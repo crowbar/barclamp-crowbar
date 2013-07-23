@@ -572,37 +572,21 @@ class NodeObject < ChefObject
   def bus_index(bus_order, path)
     return 999 if bus_order.nil? or path.nil?
 
-    dpath = path.split("/")
     # For backwards compatibility with the old busid matching
     # which just stripped of everything after the first '.'
     # in the busid
-    dpath_old = path.split(".")[0].split("/")
+    path_old = path.split(".")[0]
 
     index = 0
     bus_order.each do |b|
-      subindex = 0
-      bs = b.split("/")
-
       # When there is no '.' in the busid from the bus_order assume
       # that we are using the old method of matching busids
       if b.include?('.')
-        dpath_used=dpath
-        if bs.size != dpath_used.size
-          next
-        end
+        path_used = path
       else
-        dpath_used=dpath_old
+        path_used = path_old
       end
-
-      match = true
-      bs.each do |bp|
-        break if subindex >= dpath_used.size
-        match = false if bp != dpath_used[subindex]
-        break unless match
-        subindex = subindex + 1
-      end
-
-      return index if match
+      return index if b == path_used
       index = index + 1
     end
 

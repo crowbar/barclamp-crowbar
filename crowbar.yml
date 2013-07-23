@@ -42,7 +42,7 @@ locale_additions:
       crowbar:
         edit_attributes:
           attributes: Attributes
-          edit_proposal_name: Edit Proposal Name
+          edit_proposal_name: Streamlined interface for proposals
         edit_deployment:
           deployment: Deployment
 
@@ -228,8 +228,8 @@ gems:
     - simple-navigation
     - haml-(~>3.1)
     - net-http-digest_auth
-    - rails-2.3.18
-    - activesupport-2.3.18
+    - rails-2.3.14
+    - activesupport-2.3.14
     - bundler
     - builder
     - activesupport-3.2.13

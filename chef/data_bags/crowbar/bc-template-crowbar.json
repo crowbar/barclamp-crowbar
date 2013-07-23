@@ -20,7 +20,7 @@
         "machine-install": { "password": "machine_password" },
         "crowbar": { "password": "crowbar" }
       },
-      "edit_proposal_name": true
+      "simple_proposal_ui": true
     },
     "rails": {
       "max_pool_size": 256,

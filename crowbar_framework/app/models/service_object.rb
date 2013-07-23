@@ -38,19 +38,17 @@ class ServiceObject
     false
   end
 
-  def edit_proposal_name?
-    proposals = ProposalObject.find_proposals("crowbar")
-    raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
 
+  def simple_proposal_ui?
+    proposals = ProposalObject.find_proposals("crowbar")
+
+    result = false
     unless proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
-        if not proposals[0]["attributes"]["crowbar"]["edit_proposal_name"].nil?
-          return proposals[0]["attributes"]["crowbar"]["edit_proposal_name"]
-        else
-          return false
-        end
-    else
-      raise "Can't find any crowbar attributes in the proposal?"
+      if not proposals[0]["attributes"]["crowbar"]["simple_proposal_ui"].nil?
+        result = proposals[0]["attributes"]["crowbar"]["simple_proposal_ui"]
+      end
     end
+    return result
   end
 
   def self.bc_name

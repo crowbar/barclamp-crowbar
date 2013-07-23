@@ -13,4 +13,4 @@
 # limitations under the License.
 #
 
-default[:crowbar][:edit_proposal_name] = true
+default[:crowbar][:simple_proposal_ui] = true

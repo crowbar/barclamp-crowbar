@@ -5,8 +5,7 @@
     %th{:style => "width:75%"}= t('.description')
     %th{:style => "width:5%"}
 
-- if @service_object.edit_proposal_name?
-  = render :partial => 'barclamp/show_index'
-
-- if not @service_object.edit_proposal_name?
+- if true
   = render :partial => 'barclamp/show_simplified_index'
+- else
+  = render :partial => 'barclamp/show_index'

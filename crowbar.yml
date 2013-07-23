@@ -228,8 +228,8 @@ gems:
     - simple-navigation
     - haml-(~>3.1)
     - net-http-digest_auth
-    - rails-2.3.14
-    - activesupport-2.3.14
+    - rails-2.3.18
+    - activesupport-2.3.18
     - bundler
     - builder
     - activesupport-3.2.13

@@ -1,6 +1,4 @@
-##  Build your own 2.0 Crowbar ISO for Hadoop or OpenStack
-
-NOTE: If you are seeing 1.x instructions, look here [[]]!
+##  Build your own Crowbar ISO for Hadoop or OpenStack
 
 Building Crowbar is not an activity intended for users. If you simply want to download an ISO to either deploy Hadoop or OpenStack, I suggest you get one of our [pre-compiled ISOs](http://crowbar.github.io/download/).
 
@@ -49,7 +47,7 @@ During the build process the Dev Tool has to perform certain tasks which require
     # let's install some needed gems next
     sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
 
-    # switch to Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
+    # For CROWBAR 2 ONLY!  switch to Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
     sudo update-alternatives --config ruby (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)
     sudo update-alternatives --config gem (to make Gem 1.9 the default, gem -v will report version 1.9)
     sudo gem install ruby1.9.1-dev builder bluecloth
@@ -99,7 +97,7 @@ Now that everything is setup and prepped, the last remaining step is to pick wha
     ./dev releases
 
     # switch to a release
-    ./dev switch master
+    ./dev switch mesa-1.6
 
     # display your current release
     ./dev release
@@ -110,11 +108,14 @@ Now that everything is setup and prepped, the last remaining step is to pick wha
     ./dev builds
 
     # choosing a certain build
-    ./dev build development
+    ./dev build openstack-os-build
 
     # display which build your on
     ./dev build
 
+The above results in the following viable combinations:
+* **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
+* **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
 
 #### Building
 With the above knowledge we can now kick off our Hadoop or OpenStack build. 
@@ -124,6 +125,17 @@ With the above knowledge we can now kick off our Hadoop or OpenStack build.
     # clean up any .empty-branch files first
     cd ~/crowbar/barclamps
     for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
+
+Now we can actually kick off the build.
+
+    # FOR HADOOP
+    ./dev switch hadoop-2.3/hadoop-os-build
+    ./dev build --os centos-6.4 --update-cache
+
+    # FOR OPENSTACK
+    ./dev switch mesa-1.6/openstack-os-build
+    ./dev build --os ubuntu-12.04 --update-cache
+
 
 
 #TODO:

@@ -32,7 +32,7 @@
       - @proposal.all_elements.each do |element|
         %div
           %div.droptarget{ :id=>element, :draggable=>'true'}
-            - if CONVERGED_ADMIN
+            - if CONVERGED_ADMIN && HAVE_CHEF_WEBUI
               %b= link_to element, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
             - else
               %b= element

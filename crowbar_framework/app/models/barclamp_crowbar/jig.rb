@@ -21,44 +21,59 @@ require 'fileutils'
 
 class BarclampCrowbar::Jig < Jig
 
+  SSH_OPTS = [
+              "-o 'UserKnownHostsFile /dev/null'", # The keys may change, so don't save them
+              "-o 'StrictHostKeyChecking no'",
+              "-o 'CheckHostIP no'",
+              "-o 'PasswordAuthentication no'", # Always use pubkey auth.
+              "-o 'ControlMaster auto'",  # Arrange to multiplex SSH connections
+              "-o 'ControlPath /root/.ssh/.control-%h-%p-%r'",
+              "-o 'ControlPersist 3'"  # Allow oppourtunistic master connections to live for 3 seconds.
+             ]
   def run(nr)
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
-    # skip this if running test server
-    unless Rails.root.to_s.start_with? '/tmp/crowbar-dev-test/'
-      # Hardcode this for now
-      login = "root@#{nr.node.name}"
-      local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/#{nr.role.name}"
-      remote_tmpdir = %x{ssh #{login} -- mktemp -d /tmp/scriptjig-XXXXXX}
-      Dir.glob(File.join(local_scripts,"*.sh")).sort.each do |scriptpath|
-        script = scriptpath.split("/")[-1]
-        system("scp",scriptpath,"#{login}:#{remote_tmpdir}/#{script}") &&
-          system("ssh",login,"--","/bin/bash","#{remote_tmpdir}/#{script}") && continue
+    sshopts = SSH_OPTS.join(" ")
+    Rails.logger.info("Using SSH opts: #{sshopts}")
+    # Hardcode this for now
+    login = "root@#{nr.node.name}"
+    local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
+    raise "No local scripts @ #{local_scripts}" unless File.exists?(local_scripts)
+    remote_tmpdir = %x{sudo -H ssh #{sshopts} #{login} -- mktemp -d /tmp/scriptjig-XXXXXX}.strip
+    if remote_tmpdir.empty? || $?.exitstatus != 0
+      raise "Did not create remote_tmpdir for some reason!"
+    else
+      Rails.logger.info("Using remote temp dir: #{remote_tmpdir}")
+    end
+    Dir.glob(File.join(local_scripts,"*.sh")).sort.each do |scriptpath|
+      script = scriptpath.split("/")[-1]
+      remote_script = "#{remote_tmpdir}/#{script}"
+      Rails.logger.info("Copying #{scriptpath} to #{remote_script} on #{nr.node.name}")
+      cp_log = %x{sudo -H scp #{sshopts} #{scriptpath} #{login}:#{remote_script}}
+      if $?.exitstatus != 0
+        Rails.logger.error("Copy of #{scriptpath} failed! (status = #{$?.exitstatus})")
+        Rails.logger.error("Output of copy process:")
+        Rails.logger.error(cp_log)
+        Rails.logger.error("End of output")
         nr.state = NodeRole::ERROR
+        return nr
+      end
+      Rails.logger.info("Executing #{remote_script} on #{nr.node.name}")
+      run_log = %x{sudo -H ssh #{sshopts} #{login} -- /bin/bash #{remote_script}}
+      if $?.exitstatus != 0
+        Rails.logger.error("Execution of #{remote_script} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
+        Rails.logger.error("Output from remote execution:")
+        Rails.logger.error(run_log)
+        Rails.logger.error("End of output")
+        nr.state = NodeRole::ERROR
+        return nr
+      else
+        Rails.logger.error("Output from remote execution of #{remote_script}")
+        Rails.logger.error(run_log)
+        Rails.logger.error("End of output")
       end
     end
     nr.state = NodeRole::ACTIVE
-  end
-  
-  def execute(cycle)
-    Rails.logger.info("ScriptJig Cycle #{cycle.name}")
-    # retrieve the next turn for jig
-    # get all node-roles associated w/ turn
-    queue = cycle.queue(self)
-    queue.each do |nr|
-      # get role from nr
-      # tmpdir=%x{ssh $node mktemp -d /tmp/scriptjig-XXXXX}
-      # scp \barclamp\script\role\*.sh $node:#{tmpdir}
-      # scripot.sort.each do |s|
-      #   res = %X{ssh $node #{tmpdir}/#{s}} $outbound
-      #   raise "O noes!" if $? != 0
-      # end
-      # ssh $node rm -rf #{tmpdir}
-      # run script(s) n directory  [node-role data merge]
-      # ssh to node
-      # run script from meta-data
-      # 
-    end
-
+    return nr
   end
 
   def create_node(node)
@@ -74,5 +89,3 @@ class BarclampCrowbar::Jig < Jig
   end
 
 end
-
-

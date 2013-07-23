@@ -69,7 +69,6 @@ en:
       nodes: "Nodes"
       groups: "Groups"
       roles: "Roles"
-      cycles: "Cycles"
       deployments: "Deployments"
       snapshots: "Snapshots"
       menus: "Menu Items"
@@ -126,9 +125,6 @@ en:
   barclamps:
     index:
       title: "Installed Barclamps"
-  cycles:
-    index:
-      title: "Cycles"
   deployments:
     index:
       title: "Deployments"

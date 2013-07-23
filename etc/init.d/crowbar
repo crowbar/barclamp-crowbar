@@ -46,12 +46,7 @@ case "$1" in
         fi
         bluepill load $BLUEPILL_CONFIG
         bluepill crowbar-webserver start
-        printf "Waiting for Crowbar web app to start"
-        while ! grep -q crowbar < <(/opt/dell/bin/crowbar users list 2>/dev/null); do
-            printf "."
-            sleep 1
-        done
-        printf " Done.\n"
+        sleep 5
         ;;
     stop)
         echo -n "Stopping Crowbar webserver"

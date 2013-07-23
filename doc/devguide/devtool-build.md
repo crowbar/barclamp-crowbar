@@ -71,6 +71,9 @@ This next step will checkout the core Crowbar code, which includes the Dev Tool.
     cd ~/crowbar
     # append ./dev setup --no-github if you don't want to submit any pull-requests
     ./dev setup
+    # If this is your first build on the server then you will need to register your github name and email 
+    git config --global user.name "user.name"
+    git config --global user.email "email.address"
     # fetch updates from configured upstream repositories
     ./dev fetch
     # synchronize fetched updates with the local repos
@@ -79,14 +82,14 @@ This next step will checkout the core Crowbar code, which includes the Dev Tool.
 **Notes:** 
 * As [mentioned above](#the-dev-tool-and-github) Dev Tool can be very taxing on GitHub and your connectivity. This means you may need to run the `./dev setup; ./dev fetch; ./dev sync` commands more than once to completely setup, fetch and sync all the repos needed.  Interate these commands a few times until there is no further change.  This normally takes two or three cycles when first setting up a build environment.
 * Ignore potential warnings like this: `ulimit: open files: cannot modify limit: Invalid argument` 
-* If you receive any messages stating "new file:   README.empty-branch" and the ./dev sync fails then run the following commands 
 
+If you receive any messages stating "new file:   README.empty-branch" and the ./dev sync fails then run the following commands 
 
     cd barclamps
     for bc in *; do (cd "$bc"; git checkout master; git reset HEAD README.empty-branch); done
     cd ..
     find / -name README.empty-branch -delete
-
+    
 
 #### Building the discovery image
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.

@@ -46,15 +46,6 @@ class Jig < ActiveRecord::Base
     broadcast_to_jigs { |jig|  jig.delete_node(node) }    
   end
 
-  # execute all node roles in transition on all jigs
-  def self.run()
-    NodeRole.where(:state=>NodeRole::TRANSITION).each do |nr|
-      j = nr.role.jig
-      puts "ZEHICLE #{j.name} running #{nr.inspect}"
-      j.run(nr)
-    end
-  end
-
   # OVERRIDE with actual methods
   def delete_node(node)
     Rails.logger.debug("jig.delete_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
@@ -72,10 +63,6 @@ class Jig < ActiveRecord::Base
   # and only used for debugging purposes.
   def run(nr)
     raise "Cannot call run on the top-level Jig!"
-  end
-
-  def execute(cycle)
-    Rails.logger.debug("jig.turn(#{turn.name}) not implemented for #{self.class}.  This may be OK")
   end
 
 private

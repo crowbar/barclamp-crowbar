@@ -14,7 +14,7 @@
 #
 #
 class SnapshotsController < ApplicationController
-      
+
   def index
     @list = Snapshot.all
     respond_to do |format|
@@ -25,8 +25,8 @@ class SnapshotsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html { 
-        @snapshot = Snapshot.find_key params[:id] 
+      format.html {
+        @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
         @roles = {}
         @node_roles = { }
@@ -53,7 +53,7 @@ class SnapshotsController < ApplicationController
       render  api_not_supported("post", "snapshot")
     else
       r = Snapshot.create! params
-      render api_show :snapshot, Snapshot, nil, nil, r 
+      render api_show :snapshot, Snapshot, nil, nil, r
     end
   end
 
@@ -71,7 +71,7 @@ class SnapshotsController < ApplicationController
     else
       render api_delete Snapshot
     end
-  end  
+  end
 
   def transition
     @snapshot = Snapshot.find_key params[:snapshot_id]
@@ -83,7 +83,7 @@ class SnapshotsController < ApplicationController
   end
 
   def cycle
-    Jig.run()
+    NodeRole.anneal!
     redirect_to snapshot_path(params[:snapshot_id])
   end
 

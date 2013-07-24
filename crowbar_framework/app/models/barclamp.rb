@@ -152,6 +152,10 @@ class Barclamp < ActiveRecord::Base
     bc['roles'].each do |role|
       role_name = role["name"]
       role_jig = role["jig"]
+      # Don't load test jig roles in production.
+      next if Rails.env == "production" && role_jig == "test"
+      # Only load test jig roles if not in production.
+      next if Rails.env != "production" && role_jig != "test"
       role_template = File.join source_path, role_jig, 'roles', role_name, 'role-template.json'
       node_template = File.join source_path, role_jig, 'roles', role_name, 'node-template.json'
       prerequisites = role['requires'] || []

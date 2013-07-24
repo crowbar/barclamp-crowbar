@@ -118,6 +118,9 @@ class NodesController < ApplicationController
             end
             if !(node.target_platform == values['target_platform'])
               node.target_platform = values['target_platform']
+              if node.target_platform != "windows-6.2"
+                 values['license_key'] = ""
+              end
               dirty = true
             end
             if !(node.license_key == values['license_key'])
@@ -147,12 +150,18 @@ class NodesController < ApplicationController
     end
     @options = CrowbarService.read_options
     @nodes = {}
+    default_os=""
     NodeObject.all.each do |node|
-      if node.target_platform == ''
-         node.target_platform = nil
+      if node[:crowbar][:admin_node]
+         default_os = "#{node[:platform]}-#{node[:platform_version]}"
+      end
+      if node.target_platform == nil || node.target_platform == ""
+         node.target_platform = default_os
+         node.save
       end
       @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
+    @options[:target] = {"Windows Server 2012" => "windows-6.2", default_os => default_os}
   end
 
   def families
@@ -293,6 +302,9 @@ class NodesController < ApplicationController
       @node.description = params[:description]
       @node.target_platform = params[:target_platform]
       @node.license_key = params[:license_key]
+      if @node.target_platform != "windows-6.2"
+         @node.license_key = ""
+      end
       @node.save
       true
     rescue Exception=>e
@@ -312,6 +324,19 @@ class NodesController < ApplicationController
         if @node.target_platform == "windows-6.2"
              @node.target_platform = "Windows Server 2012"
         end
+      elsif
+          default_os = ""
+          NodeObject.all.each do |n|
+             if n[:crowbar][:admin_node]
+                default_os = "#{n[:platform]}-#{n[:platform_version]}"
+                break
+             end
+          end
+          if @node.target_platform == nil || @node.target_platform == ""
+             @node.target_platform = default_os
+             @node.save
+          end
+          @options[:target] = {"Windows Server 2012" => "windows-6.2", default_os => default_os}
       end
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)

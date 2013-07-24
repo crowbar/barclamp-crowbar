@@ -203,6 +203,13 @@ class NodeRole < ActiveRecord::Base
         children.each do |c|
           c.state = TODO
         end
+        # if all the node-roles in the snapshot are active, then we are done!
+        if self.snapshot.node_roles.all? { |nr| nr.active? }
+          d = self.snapshot.deployment
+          d.committed_snapshot_id = nil
+          d.active_snapshot_id = self.snapshot_id
+          d.save!
+        end
       when TODO
         # We can only go to TODO when:
         # 1. We were in PROPOSED or BLOCKED

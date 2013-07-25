@@ -13,26 +13,26 @@
   %dl
     = dl_item(t('model.attributes.node.name'), @node.name)
     = dl_item(t('model.attributes.node.public_name'), (@node.public_name.nil? ? "-" : @node.public_name))
-    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
+    = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
-    - if @node.switch_unit.nil?
-      = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
-    - else
-      = dl_item(t('model.attributes.node.switch_name_unit_port'), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))    
-    = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
     = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
+    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
 
 .column_50.last
   %dl
-    = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
     = dl_item(t('model.attributes.node.hardware'), @node.hardware)
+    = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
     = dl_item(t('model.attributes.node.cpu'), @node.cpu)
     = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
     -if options[:show].include? :raid
       = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
     -else
       = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}")
-    = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
+    = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
+    - if @node.switch_unit.nil?
+      = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
+    - else
+      = dl_item(t('model.attributes.node.switch_name_unit_port'), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))
 
 .clear
 

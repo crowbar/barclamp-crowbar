@@ -110,32 +110,23 @@ class ApplicationController < ActionController::Base
   def need_to_auth?()
     return false unless File::exists? "htdigest"
     ip = session[:ip_address] rescue nil
-    puts "checking session saved: #{ip} remote #{request.remote_addr}"    
     return false if ip == request.remote_addr
     return true
   end
   
   def digest_authenticate
     load_users()    
-    ret = authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
-    puts "return is: #{ret}"
+    authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
     ## only create the session if we're authenticated
     if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
-      puts "authenticated user !!"
       session[:ip_address] = request.remote_addr
     end
   end
   
   def find_user(username) 
-    puts "have username: #{username}"
-    users = Marshal.load(Marshal.dump(@@users)) # Make a deep copy
-    # Don't log passwords in production mode:
-    users.each {|user, values| values[:password] = "STRIPPED"} if Rails.env.production?
-    puts "have users: #{users.nil? ? "nil" : users.inspect}"
     return false if !@@users || !username
     user = @@users[username]
     return false unless user
-    puts "have user with password: #{user[:password]}" unless Rails.env.production?
     return user[:password] || false   
   end
   
@@ -159,7 +150,6 @@ class ApplicationController < ActionController::Base
       $htdigest_reload = false if $htdigest_reload   
     end
 
-    puts "reloading htdigest"
     ret = {}
     data = IO.readlines("htdigest")
     data.each { |entry|

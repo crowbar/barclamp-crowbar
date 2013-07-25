@@ -289,13 +289,14 @@ class NodesController < ApplicationController
   end
 
   def get_node_and_network(node_name)
-    @network = {}
+    network = {}
+    @network = []
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)
       @node.networks.each do |intf, data|
-        @network[data["usage"]] = {} if @network[data["usage"]].nil?
+        network[data["usage"]] = {} if network[data["usage"]].nil?
         if data["usage"] == "bmc"
           ifname = "bmc"
           address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
@@ -308,10 +309,12 @@ class NodesController < ApplicationController
           end
           address = data["address"]
         end
-        @network[data["usage"]][ifname] = address || 'n/a'
+        network[data["usage"]][ifname] = address || 'n/a'
       end
-      @network['[not managed]'] = @node.unmanaged_interfaces
+      @network = network.sort
+      @network << ['[not managed]', @node.unmanaged_interfaces] unless @node.unmanaged_interfaces.empty?
     end
-    @network.sort
+
+    @network
   end
 end

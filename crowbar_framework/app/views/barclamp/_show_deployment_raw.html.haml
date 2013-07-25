@@ -11,7 +11,7 @@
         %td{:style => "white-space:nowrap; width: 20%;" }
           %em
             %b
-            - if CONVERGED_ADMIN
+            - if CONVERGED_ADMIN && HAVE_CHEF_WEBUI
               = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
             - else
               = key

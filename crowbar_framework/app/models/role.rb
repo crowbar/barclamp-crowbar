@@ -39,6 +39,10 @@ class Role < ActiveRecord::Base
   scope           :discovery,          -> { where(:discovery=>true) }
   scope           :bootstrap,          -> { where(:bootstrap=>true) }
 
+  # Magic to provide a mechanism for letting barclamps provide specific role behaviour.
+  # This will mostly be used to implement the on_* helpers in a not-totally-insane way.
+  after_initialize :mixin_specific_behaviour
+
   def parents
     role_requires.map do |r|
       Role.find_by_name!(r.requires)
@@ -101,24 +105,24 @@ class Role < ActiveRecord::Base
     0
   end
 
-  # allows role to have crowbar internal actions based on being executed
-  # if there is a problem, 
-  #   1) set the node-role state to error & status to a description of the error,
-  #   2) raise an error!
-  def on_commit(node_role)
-    case node_role.role.name
-      when "network-admin"
-        # allocate IP
-      else
-        # do nothing
+  private
+
+  # If there is a module in the form of BarclampName::Role::RoleName,
+  # extend this object with its methods.
+  def mixin_specific_behaviour
+    raise "Roles require a name" if self.name.nil?
+    Rails.logger.info("Seeing if #{self.name} has a mixin...")
+    mod = "barclamp_#{barclamp.name}".camelize.to_sym
+    return self unless Module::const_defined?(mod)
+    mod = Module::const_get(mod)
+    ["role",
+     self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
+      return self unless mod.const_defined?(m)
+      mod = mod.const_get(m)
+      return self unless mod.kind_of?(Module)
     end
+    Rails.logger.info("Extending #{self.name} with #{mod}")
+    self.extend(mod)
   end
-
-  # POSSIBLE OTHER EVENTS
-  # def on_change(node)         -> returns nil or raise
-  # def on_pre_execute(node_role)  -> returns nil or raise
-  # def on_post_execute(node_role) -> returns nil or raise
-  # def on_proposed(deployment) -> returns nodes w/ weights, # of required & desired nodes
-
 
 end

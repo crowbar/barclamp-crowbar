@@ -21,7 +21,6 @@ Crowbar::Application.routes.draw do
 
   # UI 
   resources :barclamps
-  resources :cycles
   resources :deployments do
     get :proposed
     get :committed
@@ -34,11 +33,14 @@ Crowbar::Application.routes.draw do
   resources :nodes do
     resources :node_roles
   end
-  resources :node_roles
+  resources :node_roles do
+    post :anneal
+  end
   resources :roles
   resources :snapshots do
     resources :node_roles
     get :transition
+    # This shouls really be a POST.
     get :cycle
   end
 
@@ -63,7 +65,6 @@ Crowbar::Application.routes.draw do
       resources :navs do as_routes end
       resources :nodes do as_routes end
       resources :roles do as_routes end
-      resources :cycles do as_routes end
       resources :role_requires do as_routes end
       resources :deployments do as_routes end
       resources :snapshots do as_routes end
@@ -105,7 +106,6 @@ Crowbar::Application.routes.draw do
         scope ':version' do
           resources :attribs
           resources :barclamps
-          resources :cycles
           resources :deployments do
             get :proposed
             get :committed
@@ -121,10 +121,13 @@ Crowbar::Application.routes.draw do
           resources :nodes do
             resources :node_roles
           end
-          resources :node_roles
+          resources :node_roles do
+            post :anneal
+          end
           resources :roles
           resources :snapshots do
             get :transition
+            # This should really be a POST.
             get :cycle
             resources :node_roles
           end

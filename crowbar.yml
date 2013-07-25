@@ -252,8 +252,6 @@ gems:
     - bundler
     - bunny-(<0.8.0)
     - cancan
-    - chef-(~>10.16)
-    - chefspec
     - coveralls
     - database_cleaner
     - devise
@@ -272,7 +270,7 @@ gems:
     - net-ssh-multi
     - puma
     - railroad
-    - rails-(~>3.2.11)
+    - rails-3.2.13
     - rails_config
     - rails-erd
     - rake
@@ -291,4 +289,3 @@ gems:
     - syslogger
     - xml-simple
     - factory_girl_rails-(~>1.7.0)
-    - foodcritic

@@ -41,8 +41,8 @@ end
 # pick the right one based on the Ruby version. Simplify once 1.8 support is
 # dropped.
 gem 'rcov',      :platforms => :ruby_18, :group => [:development, :test]
-gem 'simplecov', :platforms => :ruby_19, :group => :test, :require => false
-gem 'coveralls', :platforms => :ruby_19, :group => :test, :require => false
+gem 'simplecov', :platforms => [:ruby_19,:ruby_20], :group => :test, :require => false
+gem 'coveralls', :platforms => [:ruby_19,:ruby_20], :group => :test, :require => false
 
 gem 'rspec-rails', :group => [:development, :test]
 

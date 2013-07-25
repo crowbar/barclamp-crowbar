@@ -22,7 +22,6 @@ class NodeRole < ActiveRecord::Base
   belongs_to      :node
   belongs_to      :role
   belongs_to      :snapshot
-  belongs_to      :cycle
   has_one         :deployment,        :through => :snapshot
   has_one         :barclamp,          :through => :role
 
@@ -103,7 +102,6 @@ class NodeRole < ActiveRecord::Base
   end
 
   def self.anneal!
-    
     # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
 
     # A very basic annealer.
@@ -127,6 +125,11 @@ class NodeRole < ActiveRecord::Base
     queue.each do |thisjig,candidates|
       candidates.each do |c|
         thisjig.run(c)
+        # Call the appropriate on_ method depending on the state we transitioned to.
+        case c.state
+        when NodeRole::ACTIVE then c.role.on_active(c) if c.role.respond_to?(:on_active)
+        when NodeRole::ERROR then c.role.on_error(c) if c.role.respond_to?(:on_error)
+        end
       end
     end
     nil

@@ -58,7 +58,11 @@ class NodeRolesController < ApplicationController
     else
       render api_delete NodeRole
     end
-  end  
+  end
+
+  def anneal
+    NodeRole.anneal!
+  end
   
 end
 

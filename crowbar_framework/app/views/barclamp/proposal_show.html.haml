@@ -66,7 +66,7 @@
 
   function led_update(td, key, val, i18n, callback) {
     if(!td.hasClass(val)){
-      td.attr('class', val+' led').attr('title', i18n);
+      td.attr('class', val+' div-center led').attr('title', i18n);
       if(typeof callback == 'function'){
         callback.call();
       }

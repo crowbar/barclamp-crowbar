@@ -32,7 +32,7 @@
   function led_update(td, key, val, i18n) {
     if(!td.hasClass(val)){
       td.destroy();
-      td.attr('class', val+' led');
+      td.attr('class', val+' div-center led');
       td.attr('title', i18n);
       td.effect("highlight", {color: '#eeeeee'}, 2000);
       // remove the button since it does not reflect the state anymore

@@ -26,9 +26,6 @@ class Role < ActiveRecord::Base
   validates_format_of       :name,  :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
 
   belongs_to      :barclamp
-
-  has_many        :attribs,           :dependent => :destroy
-
   has_many        :role_requires,     :dependent => :destroy
   alias_attribute :requires,          :role_requires
 

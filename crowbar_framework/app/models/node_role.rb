@@ -13,10 +13,11 @@
 # limitations under the License.
 #
 
+require 'json'
+
 class NodeRole < ActiveRecord::Base
 
-  before_create   :get_template
-  attr_accessible :status, :data, :wall
+  attr_accessible :status
   attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
 
   belongs_to      :node
@@ -148,6 +149,22 @@ class NodeRole < ActiveRecord::Base
     "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
+  def data
+    JSON.parse(read_attribute("data"))
+  end
+
+  def data=(arg)
+    write_attribute("data",JSON.generate(arg))
+  end
+
+  def wall
+    JSON.parse(read_attribute("wall"))
+  end
+
+  def wall=(arg)
+    write_attribute("wall",JSON.generate(arg))
+  end
+
   def active?
     state == ACTIVE
   end
@@ -174,6 +191,30 @@ class NodeRole < ActiveRecord::Base
     children.each do |c|
       c.walk(block)
     end
+  end
+
+  def all_deployment_data
+    res = {}
+    parents.each {|parent| res.deep_merge!(parent.all_deployment_data)}
+    DeploymentRole.where(:snapshot_id => snapshot.id,:role_id => role.id).each do |dr|
+      res.deep_merge!(dr.data)
+      res.deep_merge!(dr.wall)
+    end
+    res
+  end
+
+  def all_parent_data
+    res = {}
+    parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
+    res.deep_merge!(data)
+    res.deep_merge!(wall)
+    res
+  end
+
+  def all_data
+    res = all_deployment_data
+    res.deep_merge!(all_parent_data)
+    res
   end
 
   # Implement the node role state transition rules
@@ -293,10 +334,6 @@ class NodeRole < ActiveRecord::Base
 
   def jig
     role.jig
-  end
-
-  def get_template
-    data ||= (role.node_template || '{}') rescue data = '{}'
   end
 
 end

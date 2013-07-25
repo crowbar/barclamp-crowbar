@@ -13,11 +13,10 @@
 # limitations under the License.
 #
 
+require 'json'
+
 class DeploymentRole < ActiveRecord::Base
 
-  before_create   :get_template
-
-  attr_accessible :data, :wall
   attr_accessible :id, :role_id, :snapshot_id
 
   belongs_to :snapshot
@@ -35,16 +34,33 @@ class DeploymentRole < ActiveRecord::Base
     role.description
   end
 
+  def data
+    d = read_attribute("data")
+    d = role.template_data unless data && !data.empty?
+    JSON.parse(d)
+  end
+
+  def data=(arg)
+    write_attribute("data",JSON.generate(arg))
+  end
+
+  def wall
+    JSON.parse(read_attribute("wall"))
+  end
+
+  def wall=(arg)
+    write_attribute("wall",JSON.generate(arg))
+  end
+
+  
   # add a node to this deployment for this role
   def add_node(node)
     raise "you can only add node #{node.name} to a Proposed Deployment" unless snapshot.proposed?
     NodeRole.create :node_id=>node.id, :snapshot_id=>snapshot_id, :role_id=>role_id
   end
 
-  private
-
-  def get_template
-    data ||= role.role_template
+  def all_data
+    JSON.parse(role.role_template).deep_merge(data)
   end
-
+  
 end

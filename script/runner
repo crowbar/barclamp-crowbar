@@ -1,0 +1,24 @@
+#!/bin/bash
+export TMPDIR=$1
+export ROLE=$2
+
+read_attribute() {
+    if [[ -f $TMPDIR/attrs/$1/attr ]]; then
+        cat "$TMPDIR/attrs/$1/attr"
+    else
+        echo ""
+    fi
+}
+
+write_attribute() {
+    local loc="$TMPDIR/attrs/$1"
+    mkdir -p "$loc"
+    printf "%s" "$2" > "$loc/wall"
+}
+
+mkdir -p "$TMPDIR/attrs"
+
+for script in "$TMPDIR/$ROLE/"*.sh; do
+    ( . "$script" ) || exit $?
+done
+exit 0

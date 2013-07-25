@@ -150,7 +150,9 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data
-    JSON.parse(read_attribute("data"))
+    d = read_attribute("data")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
   end
 
   def data=(arg)
@@ -158,7 +160,9 @@ class NodeRole < ActiveRecord::Base
   end
 
   def wall
-    JSON.parse(read_attribute("wall"))
+    d = read_attribute("wall")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
   end
 
   def wall=(arg)

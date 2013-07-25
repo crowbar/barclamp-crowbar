@@ -45,22 +45,19 @@ class DeploymentRole < ActiveRecord::Base
   end
 
   def wall
-    JSON.parse(read_attribute("wall"))
+    d = read_attribute("wall")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
   end
 
   def wall=(arg)
     write_attribute("wall",JSON.generate(arg))
   end
 
-  
   # add a node to this deployment for this role
   def add_node(node)
     raise "you can only add node #{node.name} to a Proposed Deployment" unless snapshot.proposed?
     NodeRole.create :node_id=>node.id, :snapshot_id=>snapshot_id, :role_id=>role_id
   end
 
-  def all_data
-    JSON.parse(role.role_template).deep_merge(data)
-  end
-  
 end

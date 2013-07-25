@@ -30,6 +30,7 @@ class BarclampCrowbar::Jig < Jig
               "-o 'ControlPath /root/.ssh/.control-%h-%p-%r'",
               "-o 'ControlPersist 3'"  # Allow oppourtunistic master connections to live for 3 seconds.
              ]
+
   def run(nr)
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
     sshopts = SSH_OPTS.join(" ")
@@ -38,41 +39,94 @@ class BarclampCrowbar::Jig < Jig
     login = "root@#{nr.node.name}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
     raise "No local scripts @ #{local_scripts}" unless File.exists?(local_scripts)
-    remote_tmpdir = %x{sudo -H ssh #{sshopts} #{login} -- mktemp -d /tmp/scriptjig-XXXXXX}.strip
-    if remote_tmpdir.empty? || $?.exitstatus != 0
-      raise "Did not create remote_tmpdir for some reason!"
-    else
-      Rails.logger.info("Using remote temp dir: #{remote_tmpdir}")
-    end
-    Dir.glob(File.join(local_scripts,"*.sh")).sort.each do |scriptpath|
-      script = scriptpath.split("/")[-1]
-      remote_script = "#{remote_tmpdir}/#{script}"
-      Rails.logger.info("Copying #{scriptpath} to #{remote_script} on #{nr.node.name}")
-      cp_log = %x{sudo -H scp #{sshopts} #{scriptpath} #{login}:#{remote_script}}
+    Dir.mktmpdir do |local_tmpdir|
+      Rails.logger.info("Using local temp dir: #{local_tmpdir}")
+      attr_to_shellish(nr.all_data).each do |k,v|
+        target = File.join(local_tmpdir,"attrs",k)
+        FileUtils.mkdir_p(target)
+        File.open(File.join(target,"attr"),"w") do |f|
+          f.printf("%s",v.to_s)
+        end
+      end
+      FileUtils.cp_r(local_scripts,local_tmpdir)
+      FileUtils.cp('/opt/dell/barclamps/crowbar/script/runner',local_tmpdir)
+      remote_tmpdir = %x{sudo -H ssh #{sshopts} '#{login}' -- mktemp -d /tmp/scriptjig-XXXXXX}.strip
+      if remote_tmpdir.empty? || $?.exitstatus != 0
+        raise "Did not create remote_tmpdir for some reason!"
+      else
+        Rails.logger.info("Using remote temp dir: #{remote_tmpdir}")
+      end
+      Rails.logger.info("Creat")
+      Rails.logger.info("Copying staged scriptjig information to #{nr.node.name}")
+      cp_log = %x{sudo -H scp -r #{sshopts} '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'}
       if $?.exitstatus != 0
-        Rails.logger.error("Copy of #{scriptpath} failed! (status = #{$?.exitstatus})")
+        Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
         Rails.logger.error("Output of copy process:")
         Rails.logger.error(cp_log)
         Rails.logger.error("End of output")
         nr.state = NodeRole::ERROR
         return nr
       end
-      Rails.logger.info("Executing #{remote_script} on #{nr.node.name}")
-      run_log = %x{sudo -H ssh #{sshopts} #{login} -- /bin/bash #{remote_script}}
+      Rails.logger.info("Executing scripts for on #{nr.node.name}")
+      run_log = %x{sudo -H ssh #{sshopts} '#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'}
       if $?.exitstatus != 0
-        Rails.logger.error("Execution of #{remote_script} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
+        Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
         Rails.logger.error("Output from remote execution:")
         Rails.logger.error(run_log)
         Rails.logger.error("End of output")
         nr.state = NodeRole::ERROR
         return nr
       else
-        Rails.logger.error("Output from remote execution of #{remote_script}")
+        Rails.logger.error("Output from remote execution:")
         Rails.logger.error(run_log)
         Rails.logger.error("End of output")
+        nr.state = NodeRole::ACTIVE
+      end
+      # Now, we need to suck any written attributes back out.
+      Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
+      new_wall = {}
+      Rails.logger.info("Copying attributes from #{nr.node.name} for analysis")
+      cp_log = %x{sudo -H scp #{sshopts} -r '#{login}:#{remote_tmpdir}/attrs' '#{local_tmpdir}'}
+      if $?.exitstatus != 0
+        Rails.logger.error("Copy of attrs back from #{nr.node.name} failed! (status = #{$?.exitstatus})")
+      end
+      FileUtils.cd(File.join(local_tmpdir,"attrs")) do
+        # All new attributes should be saved in wall files.
+        Dir.glob("**/wall") do |attrib|
+          k = attrib.split('/')[0..-2]
+          v = IO.read(attrib).strip
+          Rails.logger.info("Found attribute #{attrib} (value #{v})")
+          next if v.empty?
+          # Convert well-known strings and strings that look like numbers to JSON values
+          v = case
+              when v.downcase == "true" then true
+              when v.downcase == "false" then false
+              when v =~ /^[-+]?[0-9]+$/ then v.to_i
+              when v =~ /^[-+]?[0'9a-fA-f]+$/ then v.to_i(16)
+              when v =~ /^[-+]?0[bodx]?[0-9a-fA-F]+$/ then v.to_i(0)
+              else v
+              end
+          w = new_wall
+          # Build the appropriate hashing structure based on what were directory names.
+          k[0..-2].each do |key|
+            w[key] ||= Hash.new
+            w = w[key]
+          end
+          w[k[-1]] = v
+        end
+      end
+      Rails.logger.info("New wall values for #{nr.name} #{new_wall.inspect}")
+      # By now, we have new_wall populated. Save it if anything changed.
+      NodeRole.transaction do
+        old_wall = nr.wall
+        unless new_wall.empty? || (old_wall == new_wall)
+          nr.wall = old_wall.deep_merge!(new_wall)
+          nr.save!
+        end
       end
     end
-    nr.state = NodeRole::ACTIVE
+    # Clean up after ourselves.
+    # %x{sudo -H ssh #{sshopts} '#{login}' -- rm -rf '#{remote_tmpdir}'}
     return nr
   end
 
@@ -88,4 +142,30 @@ class BarclampCrowbar::Jig < Jig
     Rails.logger.info("ScriptJig Deleting node: #{node.name}")
   end
 
+  private
+
+  # Turn a nested hash table into an array of key/value pairs
+  # This is intended to be turned into a filesystem structure that the
+  # scripts being executed on the remote system can access.
+  def attr_to_shellish(values, prefix=[])
+    res = {}
+    if values.kind_of?(Array)
+      values.each_index do |i|
+        res[i.to_s]=values[i]
+      end
+      values = res
+      res = {}
+    end
+    values.each do |k,v|
+      key = prefix.dup << k.to_s
+      case
+      when v.nil? then next
+      when v.kind_of?(Hash) && !v.empty?
+        res.merge!(attr_to_shellish(v,key)) unless v.empty?
+      when v.respond_to?(:to_s) then res[key.join("/")] = v.to_s
+      end
+    end
+    res
+  end
+  
 end

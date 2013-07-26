@@ -8,23 +8,23 @@ Feature: Role
     Then the page returns {integer:200}
   
   Scenario: REST JSON check
-    When REST gets the {object:role} "crowbar"
+    When REST gets the {object:role} "test-admin"
     Then the {object:role} is properly formatted
     
   Scenario: The page renders
     Given I am on the "roles" page
     Then I should see a heading {bdd:crowbar.i18n.roles.index.title}
-      And I should see "crowbar"
+      And I should see "test-admin"
       And there are no localization errors
 
   Scenario: Roles UI click to a snapshot
     Given I am on the "roles" page
-    When I click on the "crowbar" link
-    Then I should see "crowbar"
+    When I click on the "test-admin" link
+    Then I should see "test-admin"
 
   Scenario: Role Page renders
-    When I go to the "roles/crowbar" page
-    Then I should see "crowbar"
+    When I go to the "roles/test-admin" page
+    Then I should see "test-admin"
       And there are no localization errors
 
   Scenario: Roles Page Drill to Role
@@ -35,12 +35,12 @@ Feature: Role
 
   Scenario: Roles Page Drill to Jig
     Given I am on the "roles" page
-    When I click on the "script" link
-    Then I should see "script"
+    When I click on the "test" link
+    Then I should see "test"
       And there are no localization errors
 
   Scenario: Roles Page Drill to Barclamp
     Given I am on the "roles" page
-    When I click on the "crowbar" link
-    Then I should see "crowbar"
+    When I click on the "test-admin" link
+    Then I should see "test-admin"
       And there are no localization errors

@@ -14,8 +14,13 @@
         %td= i.state
         %td= link_to i.deployment.name, deployment_path(i.deployment.id)
         %td
-          = t '.proposed' if i.proposed?
-          = t '.committed' if i.committed?
-          = t '.active' if i.active?
+          - if i.proposed?
+            = t '.proposed' 
+          - elsif t.committed?
+            = t '.committed'
+          - elsif i.active?
+            = t '.active'
+          - else
+            = t '.unlinked' 
         %td= link_to i.name, snapshot_path(:id=>i.id) 
         %td= i.description

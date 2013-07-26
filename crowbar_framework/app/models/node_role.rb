@@ -61,7 +61,14 @@ class NodeRole < ActiveRecord::Base
   TRANSITION =  2
   BLOCKED    =  3
   PROPOSED   =  4
-  STATES     = { ERROR => 'error', ACTIVE => 'active', TODO => 'todo', TRANSITION => 'transition', BLOCKED => 'blocked', PROPOSED => 'proposed'  }
+  STATES     = {
+    ERROR => 'error',
+    ACTIVE => 'active',
+    TODO => 'todo',
+    TRANSITION => 'transition',
+    BLOCKED => 'blocked',
+    PROPOSED => 'proposed'
+  }
 
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
@@ -126,11 +133,6 @@ class NodeRole < ActiveRecord::Base
     queue.each do |thisjig,candidates|
       candidates.each do |c|
         thisjig.run(c)
-        # Call the appropriate on_ method depending on the state we transitioned to.
-        case c.state
-        when NodeRole::ACTIVE then c.role.on_active(c) if c.role.respond_to?(:on_active)
-        when NodeRole::ERROR then c.role.on_error(c) if c.role.respond_to?(:on_error)
-        end
       end
     end
     nil
@@ -307,6 +309,9 @@ class NodeRole < ActiveRecord::Base
         raise InvalidState.new("Unknown state #{s.inspect}")
       end
     end
+    # Now that the state change has passed, call any hooks for the new state.
+    meth = "on_#{STATES[val]}".to_sym
+    role.send(meth,self) if role.respond_to?(meth)
     self
   end
   

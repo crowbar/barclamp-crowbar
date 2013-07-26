@@ -9,31 +9,31 @@
           = display_name
         %td
           - if barclamp[:proposals].length == 0
-            .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+            .led.div-center.none{:id => "#{name.parameterize}_none", :title => t('proposal.status.none')}
           - else
             - barclamp[:proposals].sort.each do |proposal_name, proposal|
-              .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{t 'proposal.status.'+proposal[:status]}"}
+              .led.div-center{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :title => "#{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description]}"
-        %td
+        %td.text-center
           - if barclamp[:proposals].length == 0
             - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
               = hidden_field_tag :barclamp, name
               -# Hard-coding "default" as name for unique proposals: it's the same name used for proposals during crowbar install process
               = hidden_field_tag :name, "default"
               = hidden_field_tag :description, "#{t 'created_on'} #{l(Time.now) }"
-              %input.button{:type => "submit", :value => t('proposal.actions.create')}
+              %input.btn{:type => "submit", :value => t('proposal.actions.create')}
           - else
             - proposal_name, proposal = barclamp[:proposals].take(1)[0]
-            = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
+            = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name)
       - else
         %td
           = display_name
         %td
           - if barclamp[:proposals].length == 0
-            .led{:id => "#{name.parameterize}_none", :class => 'none', :style => "float:left", :title=>t('proposal.status.none')}
+            .led.div-center.none{:id => "#{name.parameterize}_none", :title => t('proposal.status.none')}
           - else
             - barclamp[:proposals].sort.each do |proposal_name, proposal|
-              .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
+              .led.div-center{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :title => "#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
         %td= "#{barclamp[:description]}"
         %td
           %a.toggle.with_label.button{:href => "#", :id => "#{name.parameterize}_details_toggle", :rel => "#{name.parameterize}_details"}= t('proposal.actions.edit')

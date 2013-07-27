@@ -18,6 +18,10 @@ class Role < ActiveRecord::Base
 
   class Role::MISSING_DEP < Exception
   end
+
+  class Role::MISSING_JIG < Exception
+  end
+  
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
   attr_accessible :role_template, :node_template, :min_nodes      # template info
@@ -59,14 +63,22 @@ class Role < ActiveRecord::Base
 
   # Bind a role to a node in a snapshot.
   def add_to_node_in_snapshot(node,snap)
+    # Roles can only be added to a node of their backing jig is active.
+    unless active?
+      raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
+    end
     NodeRole.transaction do
       # If we are already bound to this node in a snapshot, do nothing.
-      res = NodeRole.peers_by_node_and_role(snap,node,self).first
+      res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
       return res if res
       # Check to make sure that all my parent roles are bound properly.
       # If they are not, die unless it is an implicit role.
       # This logic will need to change as we start allowing roles to classify
       # nodes, but it will work for now.
+      jig_role = jig.client_role
+      if jig_role
+        jig_node_role = jig_role.add_to_node_in_snapshot(node,snap)
+      end
       parent_node_roles = Array.new
       parents.each do |parent|
         # This will need to grow more ornate once we start allowing multiple
@@ -84,6 +96,8 @@ class Role < ActiveRecord::Base
       # By the time we get here, all our parents are bound recursively.
       # Bind ourselves the same way.
       res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
+      # Make sure our jig dependency is registered.
+      res.parents << jig_node_role if jig_role
       parent_node_roles.each do |pnr|
         res.parents << pnr
       end
@@ -93,6 +107,12 @@ class Role < ActiveRecord::Base
 
   def jig
     Jig.where(["name = ?",jig_name]).first
+  end
+
+  def active?
+    j = jig
+    return false unless j
+    j.active
   end
 
   def <=>(other)

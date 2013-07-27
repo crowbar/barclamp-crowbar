@@ -15,20 +15,19 @@
 class CreateJigs < ActiveRecord::Migration
   def self.up
     create_table :jigs do |t|
-      t.string  :name
-      t.string  :description,  :null=>true
-      t.integer :order,        :default=>10000
-      t.string  :type,         :null=>false
-      t.boolean :active,       :default => false 
-      t.string  :server,       :null=>true
-      t.string  :client_name,  :null=>true
-      t.string  :key,          :null=>true
+      t.string      :name
+      t.string      :description,         :null=>true
+      t.integer     :order,               :default=>10000
+      t.string      :type,                :null=>false
+      t.boolean     :active,              :default => false
+      t.string      :client_role_name,    :null => true
+      t.string      :server,              :null=>true
+      t.string      :client_name,         :null=>true
+      t.string      :key,                 :null=>true
       t.timestamps
     end
     #natural key
-    add_index(:jigs, :name, :unique => true)   
-    # create Script jig 
-    BarclampCrowbar::Jig.find_or_create_by_name(:name =>'script', :order=>100, :active=>true, :description=>'Direct actions on local server')
+    add_index(:jigs, :name, :unique => true)
   end
 
   def self.down

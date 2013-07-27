@@ -13,10 +13,11 @@
 # limitations under the License.
 #
 
+require 'json'
+
 class NodeRole < ActiveRecord::Base
 
-  before_create   :get_template
-  attr_accessible :status, :data, :wall
+  attr_accessible :status
   attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
 
   belongs_to      :node
@@ -60,7 +61,14 @@ class NodeRole < ActiveRecord::Base
   TRANSITION =  2
   BLOCKED    =  3
   PROPOSED   =  4
-  STATES     = { ERROR => 'error', ACTIVE => 'active', TODO => 'todo', TRANSITION => 'transition', BLOCKED => 'blocked', PROPOSED => 'proposed'  }
+  STATES     = {
+    ERROR => 'error',
+    ACTIVE => 'active',
+    TODO => 'todo',
+    TRANSITION => 'transition',
+    BLOCKED => 'blocked',
+    PROPOSED => 'proposed'
+  }
 
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
@@ -101,6 +109,20 @@ class NodeRole < ActiveRecord::Base
     I18n.t(STATES[state], :default=>'Unknown', :scope=>'node_role.state')
   end
 
+  def self.reset!
+    NodeRole.transaction do
+      NodeRole.all.each do |nr|
+        nr.send(:write_attribute,"state",NodeRole::PROPOSED)
+        nr.data = {}
+        nr.wall = {}
+        nr.save!
+      end
+      NodeRole.all.each do |nr|
+        nr.commit!
+      end
+    end
+  end
+  
   def self.anneal!
     # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
 
@@ -125,11 +147,6 @@ class NodeRole < ActiveRecord::Base
     queue.each do |thisjig,candidates|
       candidates.each do |c|
         thisjig.run(c)
-        # Call the appropriate on_ method depending on the state we transitioned to.
-        case c.state
-        when NodeRole::ACTIVE then c.role.on_active(c) if c.role.respond_to?(:on_active)
-        when NodeRole::ERROR then c.role.on_error(c) if c.role.respond_to?(:on_error)
-        end
       end
     end
     nil
@@ -146,6 +163,26 @@ class NodeRole < ActiveRecord::Base
   # convenience methods
   def name
     "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
+  end
+
+  def data
+    d = read_attribute("data")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
+  end
+
+  def data=(arg)
+    write_attribute("data",JSON.generate(arg))
+  end
+
+  def wall
+    d = read_attribute("wall")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
+  end
+
+  def wall=(arg)
+    write_attribute("wall",JSON.generate(arg))
   end
 
   def active?
@@ -174,6 +211,30 @@ class NodeRole < ActiveRecord::Base
     children.each do |c|
       c.walk(block)
     end
+  end
+
+  def all_deployment_data
+    res = {}
+    parents.each {|parent| res.deep_merge!(parent.all_deployment_data)}
+    DeploymentRole.where(:snapshot_id => snapshot.id,:role_id => role.id).each do |dr|
+      res.deep_merge!(dr.data)
+      res.deep_merge!(dr.wall)
+    end
+    res
+  end
+
+  def all_parent_data
+    res = {}
+    parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
+    res.deep_merge!(data)
+    res.deep_merge!(wall)
+    res
+  end
+
+  def all_data
+    res = all_deployment_data
+    res.deep_merge!(all_parent_data)
+    res
   end
 
   # Implement the node role state transition rules
@@ -262,6 +323,9 @@ class NodeRole < ActiveRecord::Base
         raise InvalidState.new("Unknown state #{s.inspect}")
       end
     end
+    # Now that the state change has passed, call any hooks for the new state.
+    meth = "on_#{STATES[val]}".to_sym
+    role.send(meth,self) if role.respond_to?(meth)
     self
   end
   
@@ -293,10 +357,6 @@ class NodeRole < ActiveRecord::Base
 
   def jig
     role.jig
-  end
-
-  def get_template
-    data ||= (role.node_template || '{}') rescue data = '{}'
   end
 
 end

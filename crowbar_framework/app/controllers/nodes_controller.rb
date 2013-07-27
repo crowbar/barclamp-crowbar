@@ -324,8 +324,7 @@ class NodesController < ApplicationController
         if @node.target_platform == "windows-6.2"
              @node.target_platform = "Windows Server 2012"
         end
-      elsif
-          default_os = ""
+      elsif default_os == ""
           NodeObject.all.each do |n|
              if n[:crowbar][:admin_node]
                 default_os = "#{n[:platform]}-#{n[:platform_version]}"

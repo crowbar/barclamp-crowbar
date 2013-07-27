@@ -109,6 +109,20 @@ class NodeRole < ActiveRecord::Base
     I18n.t(STATES[state], :default=>'Unknown', :scope=>'node_role.state')
   end
 
+  def self.reset!
+    NodeRole.transaction do
+      NodeRole.all.each do |nr|
+        nr.send(:write_attribute,"state",NodeRole::PROPOSED)
+        nr.data = {}
+        nr.wall = {}
+        nr.save!
+      end
+      NodeRole.all.each do |nr|
+        nr.commit!
+      end
+    end
+  end
+  
   def self.anneal!
     # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
 

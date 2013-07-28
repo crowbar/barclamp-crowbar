@@ -40,7 +40,7 @@ class SnapshotsController < ApplicationController
         end
         # make sure we have at least 1 role
         if @roles.length == 0
-          r = Role.find_key 'crowbar'
+          r = Role.find :first
           @roles[r.id] = r
         end
         }
@@ -82,7 +82,7 @@ class SnapshotsController < ApplicationController
     end
   end
 
-  def cycle
+  def anneal
     NodeRole.anneal!
     redirect_to snapshot_path(params[:snapshot_id])
   end

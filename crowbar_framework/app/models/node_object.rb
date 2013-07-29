@@ -862,6 +862,34 @@ class NodeObject < ChefObject
     self.crowbar["crowbar"]["hardware"]["bios_set"] = value unless value===NOT_SET
   end
 
+  def cisco_switch_ip
+    return "" if @role.nil?
+    return "" if self.crowbar["crowbar"].nil?
+    return "" if self.crowbar["crowbar"]["cisco_switch"].nil?
+    self.crowbar["crowbar"]["cisco_switch"]["ip"] || ""
+  end
+
+  def cisco_switch_ip=(value)
+    return nil if @role.nil?
+    return nil if self.crowbar["crowbar"].nil?
+    self.crowbar["crowbar"]["cisco_switch"] = {} if self.crowbar["crowbar"]["cisco_switch"].nil?
+    self.crowbar["crowbar"]["cisco_switch"]["ip"] = value unless value===""
+  end
+
+  def cisco_switch_port
+    return "" if @role.nil?
+    return "" if self.crowbar["crowbar"].nil?
+    return "" if self.crowbar["crowbar"]["cisco_switch"].nil?
+    self.crowbar["crowbar"]["cisco_switch"]["port"] || ""
+  end
+
+  def cisco_switch_port=(value)
+    return nil if @role.nil?
+    return nil if self.crowbar["crowbar"].nil?
+    self.crowbar["crowbar"]["cisco_switch"] = {} if self.crowbar["crowbar"]["cisco_switch"].nil?
+    self.crowbar["crowbar"]["cisco_switch"]["port"] = value unless value===""
+  end
+
   def to_hash
     return {} if @node.nil?
     nhash = @node.to_hash

@@ -152,12 +152,6 @@ class Barclamp < ActiveRecord::Base
     bc['roles'].each do |role|
       role_name = role["name"]
       role_jig = role["jig"]
-      # Don't load test jig roles in production.
-      next if Rails.env == "production" && role_jig == "test"
-      # Only load test jig roles if not in production.
-      next if Rails.env != "production" && role_jig != "test"
-      role_template = File.join source_path, role_jig, 'roles', role_name, 'role-template.json'
-      node_template = File.join source_path, role_jig, 'roles', role_name, 'node-template.json'
       prerequisites = role['requires'] || []
       flags = role['flags'] || []
       description = role['descripion'] || "imported by #{barclamp.name}"
@@ -179,6 +173,23 @@ class Barclamp < ActiveRecord::Base
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
       end
     end if bc['roles']
+    # Now that roles are loaded, load the jig information.
+    bc['jigs'].each do |jig|
+      raise "Jigs must have a name" unless jig['name'] && !jig['name'].empty?
+      raise "Jigs must have a type" unless jig['class'] && !jig["class"].empty?
+      jig_name = jig["name"]
+      jig_desc = jig['description'] || "Imported by #{barclamp.name}"
+      jig_type = jig['class']
+      jig_client_role = jig["implementor"]
+      jig_active = (Rails.env == "production") ^ (jig_name == "test")
+      jig = jig_type.constantize.find_or_create_by_name(:name => jig_name)
+      jig.update_attributes(:order => 100,
+                            :active => jig_active,
+                            :description => jig_desc,
+                            :type => jig_type,
+                            :client_role_name => jig_client_role)
+      jig.save!
+    end if bc["jigs"]
     barclamp
   end
 

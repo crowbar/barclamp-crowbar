@@ -27,7 +27,7 @@
 class Jig < ActiveRecord::Base
 
   attr_accessible :id, :name, :description, :type, :order
-  attr_accessible :server, :client_name, :key, :active
+  attr_accessible :server, :client_name, :client_role_name, :key, :active
 
   # 
   # Validate the name should unique 
@@ -55,6 +55,18 @@ class Jig < ActiveRecord::Base
   def create_node(node)
     Rails.logger.debug("jig.create_node(#{node.name}) not implemented for #{self.class}.  This may be OK")
     {}
+  end
+
+  def client_role
+    crn = client_role_name
+    return nil if crn.nil?
+    res = Role.where(:name => crn).first
+    # Jig client roles must be implicit roles.
+    raise "#{crn} is not an implicit role!" unless res.implicit
+    # Jig client roles cannot be implemented by the jig they implement
+    # client-side functionality for.
+    raise "#{crn} is implemented by and requires #{name}!" if res.jig_name == name
+    res
   end
 
   # Run a single noderole.

@@ -37,6 +37,11 @@ roles:
     flags:
       - bootstrap
 
+jigs:
+  - name: script
+    class: 'BarclampCrowbar::Jig'
+    description: 'Run arbitrary scripts on nodes via SSH'
+
 crowbar:
   layout: 2.0
   order: 0

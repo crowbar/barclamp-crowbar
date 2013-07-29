@@ -205,10 +205,11 @@ class NodeRole < ActiveRecord::Base
     state == PROPOSED
   end
 
-  def walk(&block)
-    raise "Must be passed a block" unless block_given?
+  def walk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
     block.call(self)
     children.each do |c|
+      Rails.logger.info("NodeRole: Walking from #{self.name} to #{c.name}")
       c.walk(block)
     end
   end
@@ -254,7 +255,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # All children of a node_role in ERROR go to BLOCKED.
         children.each do |c|
-          c.walk{|n|n.state = BLOCKED}
+          c.walk(lambda{|n|n.state = BLOCKED})
         end
       when ACTIVE
         # We can only go to ACTIVE from TRANSITION
@@ -288,7 +289,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # Going into TODO transitions all our children into BLOCKED.
         children.each do |c|
-          c.walk{|n|n.state = BLOCKED}
+          c.walk(lambda{|n|n.state = BLOCKED})
         end
       when TRANSITION
         # We can only go to TRANSITION from TODO
@@ -313,7 +314,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # If we are blocked, so are all our children.
         children.each do |c|
-          c.walk{|n|n.state = BLOCKED}
+          c.walk(lambda{|n|n.state = BLOCKED})
         end
       when PROPOSED
         # Only new node_roles can be in proposed

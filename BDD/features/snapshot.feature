@@ -30,6 +30,6 @@ Feature: Snapshot
 
   Scenario: Snapshot Page link to Roles 
     Given I am on the "snapshots/system" page
-    When I click on the "crowbar" link
-    Then I should see "crowbar"
+    When I click on the "test-admin" link
+    Then I should see "test-admin"
       And there are no localization errors

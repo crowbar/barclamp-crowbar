@@ -119,6 +119,7 @@ en:
       proposed: "Proposed"
       committed: "Committed"
       active: "Active"
+      unlinked: "Unlinked"
       node: "Node"
       role: "Role"
       jig: "Jig"

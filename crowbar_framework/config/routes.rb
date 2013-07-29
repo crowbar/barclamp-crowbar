@@ -46,6 +46,7 @@ ActionController::Routing::Routes.draw do |map|
   map.network 'network', :controller => 'network', :action=>'switch'
   map.switch 'network/switch/:id', :controller => 'network', :action=>'switch', :requirements => { :id => /.*/ }
   map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
+  map.topology 'network/topology/:id', :controller => 'network', :action=>'topology', :requirements => { :id => /.*/ }
   
   #support paths
   map.utils 'utils', :controller=>'support', :action=>'index'

@@ -20,6 +20,7 @@ class CreateNodes < ActiveRecord::Migration
       t.string      :description,   :null=>true
       t.integer     :order,         :default=>10000
       t.boolean     :admin,         :default=>false
+      t.text        :discovery,     :null=>false, :default=>'{}'
       t.boolean     :allocated,     :default=>false
       t.timestamps
     end

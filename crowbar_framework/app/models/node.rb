@@ -192,6 +192,17 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def discovery
+    d = read_attribute("discovery")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d)
+  end
+
+  def discovery=(arg)
+    write_attribute("discovery",JSON.generate(arg))
+    save!
+  end
+
   private
 
   # make sure some safe values are set for the node

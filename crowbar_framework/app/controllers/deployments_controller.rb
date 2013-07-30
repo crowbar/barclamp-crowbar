@@ -40,24 +40,33 @@ class DeploymentsController < ApplicationController
   def destroy
     render api_delete Deployment
   end
-  
-  def commit
-    # TODO ZEHICLE
-    deploy = Deployment.find_key params[:id]
-    deploy.commit
-    render api_show :deployment, Deployment, nil, nil, deploy
+
+  # return the committed snapshot  
+  def committed
+    deploy = Deployment.find_key params[:deployment_id]
+    render_snaps(deploy.committed)
   end
 
-  def recall
-    # TODO ZEHICLE
-    deploy = Deployment.find_key params[:id]
-    deploy.recall
-    render api_show :deployment, Deployment, nil, nil, deploy
+  # return the proposed snapshot  
+  def proposed
+    deploy = Deployment.find_key params[:deployment_id]
+    render_snaps(deploy.proposed)
   end
 
-  def status
-    # TODO ZEHICLE
-    render :status=>501, :text=>I18n.t('work_in_progress', :message=>'Status Action: refactoring by CloudEdge')
+  # return the committed snapshot  
+  def active
+    deploy = Deployment.find_key params[:deployment_id]
+    render_snaps(deploy.active)
   end
+
+  private 
+
+  def render_snaps(snap)
+    respond_to do |format|
+      format.html { redirect_to snapshot_path(snap.id) }
+      format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
+    end
+  end
+
 
 end

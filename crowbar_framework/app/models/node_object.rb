@@ -389,6 +389,7 @@ class NodeObject < ChefObject
   end
 
   def number_of_drives
+    return -1 if @node[:block_device].nil?
     # This needs to be kept in sync with the fixed method in
     # barclamp_library.rb in in the deployer barclamp.
     @node[:block_device].find_all do |disk,data|

@@ -1,5 +1,10 @@
+%h1
+  = link_to @node_role.snapshot.name, snapshot_path(@node_role.snapshot.id)
+  = link_to @node_role.node.name, snapshot_path(@node_role.node.id)
+  = link_to @node_role.role.name, snapshot_path(@node_role.role.id)
+
 .led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
 
-%h1= @node_role.name
+- p = "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}"
 
-= @node_role.inspect
+= render :partial => p rescue render :partial => 'raw'

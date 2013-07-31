@@ -35,8 +35,9 @@ validate(JSON) when is_record(JSON, obj) ->
   R =[JSON#obj.type == "node",
       bdd_utils:is_a(J, boolean, allocated), 
       bdd_utils:is_a(J, boolean, admin), 
+      bdd_utils:is_a(J, string, discovery), 
       bdd_utils:is_a(J, string, alias), 
-      bdd_utils:is_a(J, length, 9),
+      bdd_utils:is_a(J, length, 10),
       bdd_utils:is_a(J, integer, order),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).

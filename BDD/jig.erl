@@ -34,8 +34,9 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "jig",
-      bdd_utils:is_a(J, length, 10),
+      bdd_utils:is_a(J, length, 11),
       bdd_utils:is_a(J, string, server),
+      bdd_utils:is_a(J, string, client_role_name),
       bdd_utils:is_a(J, string, client_name),
       bdd_utils:is_a(J, string, key),
       bdd_utils:is_a(J, boolean, active),

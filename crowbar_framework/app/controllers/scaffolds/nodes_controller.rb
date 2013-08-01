@@ -15,6 +15,6 @@
 
 class Scaffolds::NodesController < ApplicationController
   active_scaffold :node do |conf|
-    list.columns.exclude :attribs
+    list.columns.exclude :discovery
   end
 end 

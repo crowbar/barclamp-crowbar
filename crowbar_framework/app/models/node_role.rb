@@ -18,7 +18,7 @@ require 'json'
 class NodeRole < ActiveRecord::Base
 
   attr_accessible :status
-  attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
+  attr_accessible :role_id, :snapshot_id, :node_id
 
   belongs_to      :node
   belongs_to      :role

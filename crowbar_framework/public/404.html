@@ -3,28 +3,45 @@
   <head>
     <title>Crowbar: 404 Error</title>
     <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" href="/images/favicon.gif">
   </head>
-  <body>
-    <header>
-      <div class='container'>
-        <h1>
-          <a href='/'>
-            <span>logo</span>
-          </a>
-        </h1>
+<body>
+    <header class='navbar navbar-static-top navbar-inverse'>
+      <div class='navbar-inner'>
+        <div class='container'>
+          <div class='row-fluid'>
+            <div class='span4'>
+              <a class='brand' href='/'>
+                <span style='font-weight: bold'>
+                  SUSE Cloud
+                </span>
+                <span>
+                  Crowbar
+                </span>
+              </a>
+            </div>
+            <div class='span8'>
+              <nav class='mainMenu'>
+                <ul><li class="selected simple-navigation-active-leaf" id="nodes"><a href="/" class="selected">Nodes</a><ul><li id="dashboard"><a href="/dashboard">Dashboard</a></li><li id="bulkedit"><a href="/nodes/list?allocated=yes">Bulk Edit</a></li></ul></li><li id="network"><a href="/network">Network</a><ul><li id="switch"><a href="/network/switch">Switches</a></li><li id="vlan"><a href="/network/vlan">VLANs</a></li></ul></li><li id="barclamps"><a href="/crowbar/modules/1.0">Barclamps</a><ul><li id="barclamps"><a href="/crowbar/modules/1.0">All Barclamps</a></li><li id="crowbar"><a href="/crowbar/crowbar/1.0">Crowbar</a></li><li id="openstack"><a href="/crowbar/openstack/1.0">OpenStack</a></li></ul></li><li id="utils"><a href="/utils">Utilities</a><ul><li id="util_index"><a href="/utils">Exported Items</a></li><li id="swift"><a href="/swift/dashboard/">Swift Dispersion</a></li></ul></li><li id="help"><a href="/docs">Help</a></li></ul>
+              </nav>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
-    <div class='container'>
-      <div id="error_404" class="error box">
-      <div class="message">
-        <h2>We can't find the page you're looking for</h2>
-        <p>Please double check the URL you're trying to reach or consult your <a href="/utils">log files</a>.</p>
-        <p>If this is an application error, we encourage you to visit the <a href="http://www.suse.com/support/">SUSE support site</a> for more information.</p>
-        <p>Return to the <a href="/">dashboard</a>.</p> 
-      </div>
+  </body>
+  <div class='container' id='main'>
+    <div class='error404'>
+      <div class='lead'>We cannot find the page you requested anywhere!</div>
+        Sorry :-(
     </div>
-    <footer>
-    </footer>
+  </div>
+  <footer>
+    <a href="https://www.suse.com/products/suse-cloud/" target="_new">SUSE Cloud v2.0</a>
+    &nbsp
+    Provided by
+    <a href="https://www.suse.com" target="_new">SUSE</a>
+  </footer>
   </body>
 </html>
 

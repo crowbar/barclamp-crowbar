@@ -6,29 +6,50 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
   <title>The change you wanted was rejected (422)</title>
-	<style type="text/css">
-		body { background-color: #fff; color: #666; text-align: center; font-family: arial, sans-serif; }
-		div.dialog {
-			width: 25em;
-			padding: 0 4em;
-			margin: 4em auto 0 auto;
-			border: 1px solid #ccc;
-			border-right-color: #999;
-			border-bottom-color: #999;
-		}
-		h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
-	</style>
+  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+  <link rel="shortcut icon" href="/images/favicon.gif">
+
 </head>
 
 <body>
-  <!-- This file lives in public/422.html -->
-  <div class="dialog">
-    <h1>The change you wanted was rejected.</h1>
-    <p>Maybe you tried to change something you didn't have access to.</p>
+    <header class='navbar navbar-static-top navbar-inverse'>
+      <div class='navbar-inner'>
+        <div class='container'>
+          <div class='row-fluid'>
+            <div class='span4'>
+              <a class='brand' href='/'>
+                <span style='font-weight: bold'>
+                  SUSE Cloud
+                </span>
+                <span>
+                  Crowbar
+                </span>
+              </a>
+            </div>
+            <div class='span8'>
+              <nav class='mainMenu'>
+                <ul><li class="selected simple-navigation-active-leaf" id="nodes"><a href="/" class="selected">Nodes</a><ul><li id="dashboard"><a href="/dashboard">Dashboard</a></li><li id="bulkedit"><a href="/nodes/list?allocated=yes">Bulk Edit</a></li></ul></li><li id="network"><a href="/network">Network</a><ul><li id="switch"><a href="/network/switch">Switches</a></li><li id="vlan"><a href="/network/vlan">VLANs</a></li></ul></li><li id="barclamps"><a href="/crowbar/modules/1.0">Barclamps</a><ul><li id="barclamps"><a href="/crowbar/modules/1.0">All Barclamps</a></li><li id="crowbar"><a href="/crowbar/crowbar/1.0">Crowbar</a></li><li id="openstack"><a href="/crowbar/openstack/1.0">OpenStack</a></li></ul></li><li id="utils"><a href="/utils">Utilities</a><ul><li id="util_index"><a href="/utils">Exported Items</a></li><li id="swift"><a href="/swift/dashboard/">Swift Dispersion</a></li></ul></li><li id="help"><a href="/docs">Help</a></li></ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  </body>
+  <div class='container' id='main'>
+    <h2 class='page-header'>
+      The change you wanted was rejected.
+    </h2>
+    <div class='page-header-bottom'></div>
+    <div class="message">
+      <p>Maybe you tried to change something you didn't have access to.</p>
+    </div>
   </div>
   <footer>
-    Provided by <a href="http://dell.com/crowbar"><img src="/images/layout/dell.png" alt="Dell, Inc." title="Dell, Inc." style="vertical-align:middle;padding-bottom:2px" /></a>
-    <a href="http://dell.com/crowbar">CloudEdge Solutions team</a>
+    <a href="https://www.suse.com/products/suse-cloud/" target="_new">SUSE Cloud v2.0</a>
+    &nbsp
+    Provided by
+    <a href="https://www.suse.com" target="_new">SUSE</a>
   </footer>
-</body>
+  </body>
 </html>

@@ -97,6 +97,10 @@ class NodesController < ApplicationController
                 node.alias = values['alias']
                 dirty = true
             end
+            if !(node.public_name == values['public_name'])
+                node.public_name = values['public_name']
+                dirty = true
+            end
             if !(node.group == values['group'])
               if values['group'] and values['group'] != "" and !(values['group'] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
                 raise node.name + ": " + t('nodes.list.group_error')
@@ -250,6 +254,18 @@ class NodesController < ApplicationController
     redirect_to nodes_path(:selected => @node.name)
   end
 
+  #this code allow us to get values of attributes by path of node
+  def attribute
+    @node = NodeObject.find_node_by_name(params[:name])
+    raise ActionController::RoutingError.new("Node #{params[:name]}: not found") if @node.nil?
+    @attribute = @node.to_hash
+    params[:path].each do |element|
+      @attribute = @attribute[element]
+      raise ActionController::RoutingError.new("Node #{params[:name]}: unknown attribute #{params[:path].join('/')}") if @attribute.nil?
+    end
+    render :json => {:value => @attribute}
+  end
+
   private
 
   def save_node
@@ -261,6 +277,7 @@ class NodesController < ApplicationController
       @node.bios_set = params[:bios]
       @node.raid_set = params[:raid]
       @node.alias = params[:alias]
+      @node.public_name = params[:public_name]
       @node.group = params[:group]
       @node.description = params[:description]
       @node.save
@@ -272,13 +289,14 @@ class NodesController < ApplicationController
   end
 
   def get_node_and_network(node_name)
-    @network = {}
+    network = {}
+    @network = []
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)
       @node.networks.each do |intf, data|
-        @network[data["usage"]] = {} if @network[data["usage"]].nil?
+        network[data["usage"]] = {} if network[data["usage"]].nil?
         if data["usage"] == "bmc"
           ifname = "bmc"
           address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
@@ -291,10 +309,12 @@ class NodesController < ApplicationController
           end
           address = data["address"]
         end
-        @network[data["usage"]][ifname] = address || 'n/a'
+        network[data["usage"]][ifname] = address || 'n/a'
       end
-      @network['[not managed]'] = @node.unmanaged_interfaces
+      @network = network.sort
+      @network << ['[not managed]', @node.unmanaged_interfaces] unless @node.unmanaged_interfaces.empty?
     end
-    @network.sort
+
+    @network
   end
 end

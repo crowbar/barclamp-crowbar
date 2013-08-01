@@ -104,10 +104,14 @@ en:
   # Model Names / Attributes
   model:
     node:
-      multiple_node: Multiple nodes responded to alias request
-      invalid_dns: Alias not saved because it did not conform to valid DNS hostnames
-      too_long_dns: Alias not saved because it exceeds FQDN 63 character length
+      multiple_node_alias: Multiple nodes responded to alias request
+      multiple_node_public_name: Multiple nodes responded to public name request
+      invalid_dns_alias: Alias not saved because it did not conform to valid DNS hostnames
+      too_long_dns_alias: Alias not saved because it exceeds FQDN 63 character length
       duplicate_alias: Alias not saved because a node already has the same alias
+      invalid_dns_public_name: Public name not saved because it did not conform to valid DNS hostnames
+      too_long_dns_public_name: Public name not saved because it exceeds FQDN 255 character length
+      duplicate_public_name: Public name not saved because a node already has the same alias
     proposal: Proposal
     service:
       name_exists: Name already exists. Please choose another.
@@ -121,6 +125,7 @@ en:
     attributes:
       node:
         name: Full Name
+        public_name: Public Name
         mac: MAC Address
         allocated: Allocated
         ip: IP Address
@@ -176,6 +181,7 @@ en:
       name: Name
       group: Group
       alias: Alias  
+      public_name: Public Name
       hw_description: Hardware Information
       description: Description
       bios: BIOS
@@ -227,6 +233,8 @@ en:
       save_node_success: Node saved successfully
       allocate_node_success: Node allocated successfully
       alias: Alias
+      public_name: Public Name
+      public_name_hint: The public name is the hostname that users will use to access services on this node. Re-apply proposals on the node to have this setting taken into account immediately, or wait for an automatic update on the node.
       group: Group
       default: Using Default
       override: Override?
@@ -340,6 +348,7 @@ en:
       constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
       constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
       constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
+      constraint_attribute: "Cannot add Node [0] to Role [1]: Required feature is not available on node"
     edit_attributes_raw:
       title: Proposal Attributes
     edit_deployment_raw:

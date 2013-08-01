@@ -65,10 +65,25 @@ class NodeObject < ChefObject
     elsif nodes.length == 0
       nil
     else
-      raise "#{I18n.t('multiple_node', :scope=>'model.node')}: #{nodes.join(',')}"
+      raise "#{I18n.t('multiple_node_alias', :scope=>'model.node')}: #{nodes.join(',')}"
     end
   end
-  
+
+  def self.find_node_by_public_name(name)
+    nodes = if CHEF_ONLINE
+      self.find "crowbar_public_name:#{chef_escape(name)}"
+    else
+      nodes = self.find_all_nodes.keep_if { |n| n.public_name==name }
+    end
+    if nodes.length == 1
+      return nodes[0]
+    elsif nodes.length == 0
+      nil
+    else
+      raise "#{I18n.t('multiple_node_public_name', :scope=>'model.node')}: #{nodes.join(',')}"
+    end
+  end
+
   def self.find_node_by_name(name)
     val = if CHEF_ONLINE
       name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
@@ -133,6 +148,8 @@ class NodeObject < ChefObject
         NodeObject.offline_remove('node', node.name) if !CHEF_ONLINE
       end
     end
+    # deep clone of @role.default_attributes, used when saving node
+    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
     @node = node
   end
 
@@ -169,10 +186,10 @@ class NodeObject < ChefObject
     # valid DNS Name
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
-      raise "#{I18n.t('model.node.invalid_dns')}: #{value}"
+      raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
     elsif value.length+ChefObject.cloud_domain.length>255  
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit"
-      raise "#{I18n.t('too_long_dns', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
+      raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     else
       # don't allow duplicate alias
       node = NodeObject.find_node_by_alias value 
@@ -187,6 +204,39 @@ class NodeObject < ChefObject
       end
     end
     return value
+  end
+
+  def public_name(suggest=false)
+    if !crowbar["crowbar"]["public_name"].nil? && !crowbar["crowbar"]["public_name"].empty?
+      crowbar["crowbar"]["public_name"]
+    elsif suggest
+      default_loader['public_name']
+    else
+      nil
+    end
+  end
+
+  def public_name=(value)
+    value = value.strip.sub(/\s/,'-')
+    # valid DNS Name
+    if not (value.nil? or value.empty?)
+      if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
+        Rails.logger.warn "Public name #{value} not saved because it did not conform to valid DNS hostnames"
+        raise "#{I18n.t('invalid_dns_public_name', :scope=>'model.node')}: #{value}"
+      elsif value.length>255
+        Rails.logger.warn "Public name #{value} not saved because it exceeded the 255 character length limit"
+        raise "#{I18n.t('too_long_dns_public_name', :scope=>'model.node')}: #{value}"
+      else
+        # don't allow duplicate public names
+        node = NodeObject.find_node_by_public_name value
+        if node and !node.handle.eql?(handle)
+          Rails.logger.warn "Public name #{value} not saved because #{node.name} already has the same public name."
+          raise I18n.t('duplicate_public_name', :scope=>'model.node') + ": " + node.name
+        end
+      end
+    end
+
+    crowbar["crowbar"]["public_name"] = value
   end
 
   def description(suggest=false, use_name=false)
@@ -438,6 +488,20 @@ class NodeObject < ChefObject
     end
     Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
 
+    # helper function to remove from node elements that were removed from the
+    # role attributes; this is something that
+    # Chef::Mixin::DeepMerge::deep_merge doesn't do
+    def _remove_elements_from_node(old, new, from_node)
+      old.each_key do |k|
+        if not new.has_key?(k)
+          from_node.delete(k) unless from_node[k].nil?
+        elsif old[k].is_a?(Hash) and new[k].is_a?(Hash) and from_node[k].is_a?(Hash)
+          _remove_elements_from_node(old[k], new[k], from_node[k])
+        end
+      end
+    end
+
+    _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
     Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
 
     if CHEF_ONLINE
@@ -447,6 +511,10 @@ class NodeObject < ChefObject
       NodeObject.offline_cache(@node, NodeObject.nfile('node', @node.name))
       NodeObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
     end
+
+    # update deep clone of @role.default_attributes
+    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+
     Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
   end
 
@@ -504,47 +572,40 @@ class NodeObject < ChefObject
   def bus_index(bus_order, path)
     return 999 if bus_order.nil? or path.nil?
 
-    dpath = path.split("/")
     # For backwards compatibility with the old busid matching
     # which just stripped of everything after the first '.'
     # in the busid
-    dpath_old = path.split(".")[0].split("/")
+    path_old = path.split(".")[0]
 
     index = 0
     bus_order.each do |b|
-      subindex = 0
-      bs = b.split("/")
-
       # When there is no '.' in the busid from the bus_order assume
       # that we are using the old method of matching busids
       if b.include?('.')
-        dpath_used=dpath
-        if bs.size != dpath_used.size
-          next
-        end
+        path_used = path
       else
-        dpath_used=dpath_old
+        path_used = path_old
       end
-
-      match = true
-      bs.each do |bp|
-        break if subindex >= dpath_used.size
-        match = false if bp != dpath_used[subindex]
-        break unless match
-        subindex = subindex + 1
-      end
-
-      return index if match
+      return index if b == path_used
       index = index + 1
     end
 
     999
   end
 
+  # IMPORTANT: This needs to be kept in sync with the get_bus_order method in
+  # BarclampLibrary::Barclamp::Inventory in the "barclamp" cookbook of the
+  # deployer barclamp.
   def get_bus_order
     bus_order = nil
     @node["network"]["interface_map"].each do |data|
-      bus_order = data["bus_order"] if @node[:dmi][:system][:product_name] =~ /#{data["pattern"]}/
+      if @node[:dmi][:system][:product_name] =~ /#{data["pattern"]}/
+        if data.has_key?("serial_number")
+          bus_order = data["bus_order"] if @node[:dmi][:system][:serial_number].strip == data["serial_number"].strip
+        else
+          bus_order = data["bus_order"]
+        end
+      end
       break if bus_order
     end rescue nil
     bus_order

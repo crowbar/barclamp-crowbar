@@ -15,11 +15,13 @@
             "users": { "type": "map", "required": true, "mapping": {
                 = : { "type": "map", "required": true, "mapping": { 
                     "password": { "type": "str" },
-                    "digest": { "type": "str" }
+                    "digest": { "type": "str" },
+                    "disabled": { "type": "bool" }
                   }
                 }
               }
             },
+            "simple_proposal_ui": { "type": "bool", "required": false },
 	    "bios-settings": { "type": "map", "required": false, "mapping": {
 		    = : { "type": "str", "required": true }
 	        }

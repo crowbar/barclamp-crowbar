@@ -30,7 +30,7 @@ module NodesHelper
 
   def ip_addresses(ip_list)
     html = ""
-    ip_list.each_pair do |network, addresses|
+    ip_list.each do |network, addresses|
       unless network=='~notconnected' && addresses.nil?
         if network == '[not managed]'
           html += "<li><b>#{network}:</b> #{addresses.to_a.join(',')}</li>"

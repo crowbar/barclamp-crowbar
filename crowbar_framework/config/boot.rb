@@ -106,20 +106,29 @@ module Rails
   end
 end
 
-# For Redhat rails 2 - this must be completely gone.
-#class Rails::Boot
-#  def run
-#    load_initializer
-#
-#    Rails::Initializer.class_eval do
-#      def load_gems
-#        @bundler_loaded ||= Bundler.require :default, Rails.env if defined? RAILS_VERSION and RAILS_VERSION.starts_with? == '3.'
-#      end
-#    end
-#
-#    Rails::Initializer.run(:set_load_path)
-#  end
-#end
+# We'd usually put things like this in config/initializers/app_config.rb, but
+# that's too late for Bundler configuration.
+require 'rubygems'
+require 'app_config'
+AppConfig.setup(:yaml => "#{RAILS_ROOT}/config/app_config.yml")
+
+if AppConfig[:use_bundler]
+  # Use Bundler to manage gems. See http://gembundler.com/v1.3/rails23.html for
+  # details.
+  class Rails::Boot
+    def run
+      load_initializer
+
+      Rails::Initializer.class_eval do
+        def load_gems
+          @bundler_loaded ||= Bundler.require :default, Rails.env
+        end
+      end
+
+      Rails::Initializer.run(:set_load_path)
+    end
+  end
+end
 
 # All that for this:
 Rails.boot!

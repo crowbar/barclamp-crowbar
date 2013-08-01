@@ -6,8 +6,6 @@
       "instances": {
         "deployer": [ "default" ],
         "ipmi": [ "default" ],
-        "redhat_install": [ "default" ],
-        "ubuntu_install": [ "default" ],
         "provisioner": [ "default" ],
         "network": [ "default" ],
         "ntp": [ "default" ],
@@ -21,7 +19,8 @@
       "users": {
         "machine-install": { "password": "machine_password" },
         "crowbar": { "password": "crowbar" }
-      }
+      },
+      "simple_proposal_ui": true
     },
     "rails": {
       "max_pool_size": 256,

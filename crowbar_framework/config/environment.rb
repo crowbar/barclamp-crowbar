@@ -15,24 +15,17 @@ Rails::Initializer.run do |config|
   # Add additional load paths for your own custom dirs
   # config.load_paths += %W( #{RAILS_ROOT}/extras )
 
-  # Specify gems that this application depends on and have them installed with rake gems:install
-  # config.gem "bj"
-  # config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
-  # config.gem "sqlite3-ruby", :lib => "sqlite3"
-  # config.gem "aws-s3", :lib => "aws/s3"
-  
-  unless defined? RAILS_VERSION and RAILS_VERSION.starts_with? == '3.'
-    config.gem "haml"
-    config.gem "sass"
-    config.gem "simple-navigation"
-    config.gem "i18n"
-    config.gem "json"
+  unless AppConfig[:use_bundler]
+    config.gem 'haml'
+    config.gem 'sass'
+    config.gem 'simple-navigation'
+    config.gem 'i18n'
+    config.gem 'json'
   end
   
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named
   # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
-
   
   # Skip frameworks you're not going to use. To use Rails without a database,
   # you must remove the Active Record framework.
@@ -57,5 +50,6 @@ Rails::Initializer.run do |config|
   OFFLINE_FILES_DIR = 'db' unless defined? OFFLINE_FILES_DIR
   CROWBAR_VERSION = '0.0.1' unless defined? CROWBAR_VERSION
   CONVERGED_ADMIN = true   #flag indicating at we can assume all Crowbar services on a single server
+  HAVE_CHEF_WEBUI = true   #flag indicating whether it's okay to link to the chef webui
   SERVER_PID = %x[ps ax | grep "rainbows master" | grep -v grep].split(' ')[0]  # get a consistent number that changes when the server restarts
 end

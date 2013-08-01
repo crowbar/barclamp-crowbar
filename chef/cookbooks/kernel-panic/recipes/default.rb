@@ -5,23 +5,22 @@ if node["panic"] and node["panic"]["reboot"] == true
   else
     timeout = 15
   end
-  if ::File.exists?("/etc/sysctl.d") and ::File.directory?("/etc/sysctl.d")
-    bash "Save reboot on panic" do
-      code "echo 'kernel.panic = #{timeout}' >/etc/sysctl.d/80-reboot-on-panic.conf"
-    end
-  else
-    bash "Save reboot on panic" do
-      code <<-__EOC__
-if grep -q 'kernel.panic' /etc/sysctl.conf; then
-sed -i '/^kernel.panic/ s/(kernel.panic = ).*/\1#{timeout}/' /etc/sysctl.conf
-else
-echo 'kernel.panic = #{timeout}' >>/etc/sysctl.conf
-fi
-__EOC__
-    end
-  end 
-  bash "Reboot on panic" do
-    code "echo #{timeout} >/proc/sys/kernel/panic"
+
+  directory "create /etc/sysctl.d for reboot-on-panic" do
+    path "/etc/sysctl.d"
+    mode "755"
+  end
+
+  template "sysctl-reboot-on-panic.conf" do
+    path "/etc/sysctl.d/80-reboot-on-panic.conf"
+    mode "0644"
+    variables ( { :timeout => timeout } )
+  end
+
+  bash "reload reboot-on-panic-sysctl" do
+    code "/sbin/sysctl -e -q -p /etc/sysctl.d/80-reboot-on-panic.conf"
+    action :nothing
+    subscribes :run, resources(:template=> "sysctl-reboot-on-panic.conf"), :delayed
   end
 else
   bash "Stop rebooting on panic" do
@@ -29,7 +28,6 @@ else
 if [[ -f /etc/sysctl.d/80-reboot-on-panic.conf ]]; then
 rm -f /etc/sysctl.d/80-reboot-on-panic.conf
 fi
-sed -i '/kernel.panic/ s/.*//' /etc/sysctl.conf
 echo 0 >/proc/sys/kernel/panic
 __EOC__
   end

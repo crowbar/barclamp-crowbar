@@ -149,10 +149,13 @@ end
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
   web_port = node["crowbar"]["web_port"]
   realm = node["crowbar"]["realm"]
-  users = node["crowbar"]["users"]
-  # Fix passwords into digests.
-  users.each do |k,h|
+
+  users = {}
+  node["crowbar"]["users"].each do |k,h|
+    next if h["disabled"]
+    # Fix passwords into digests.
     h["digest"] = Digest::MD5.hexdigest("#{k}:#{realm}:#{h["password"]}") if h["digest"].nil?
+    users[k] = h
   end
 
   template "/opt/dell/crowbar_framework/htdigest" do

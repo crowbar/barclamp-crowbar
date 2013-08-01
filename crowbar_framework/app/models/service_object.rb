@@ -1195,7 +1195,7 @@ class ServiceObject
       #   node[:reboot] = "complete"
       # end
 
-      exit(1) unless system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+      exit(1) unless system("sudo -u root -- ssh root@#{node} \"#{command}\"")
 
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
@@ -1205,7 +1205,7 @@ class ServiceObject
         system("sudo -i -u root -- ssh root@#{node} \"reboot\"")        
         if RemoteNode.ready?(node, 1200)
           3.times do
-            if system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+            if system("sudo -u root -- ssh root@#{node} \"#{command}\"")
               nobj = NodeObject.find_node_by_name(node)
               break
             else

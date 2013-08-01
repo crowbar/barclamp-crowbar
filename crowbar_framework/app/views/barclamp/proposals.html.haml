@@ -13,7 +13,7 @@
       %tr{ :class => ["proposal", cycle(:odd, :even)], :id => "#{proposal.barclamp}_#{proposal.name}" }
         %td= link_to proposal.barclamp.titlecase, barclamp_path(proposal.barclamp)
         %td.status
-          .led{:class => proposal.status, :title => proposal.status}
+          .led.div-center{:class => proposal.status, :title => proposal.status}
         %td= link_to proposal.name, proposal_path(proposal.id)
         %td= proposal.description
         -# %td.action= link_to t('edit'), edit_proposal_path(proposal)

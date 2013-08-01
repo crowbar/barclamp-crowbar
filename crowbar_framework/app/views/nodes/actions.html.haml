@@ -13,7 +13,7 @@
         %thead
           %tr.state{:id=>state, :draggable=>'true' }
             %th.status
-              .led{:class => state_details[:status], :title=>t("state.#{state}", :default=>state.titlecase)} 
+              .led.div-center{:class => state_details[:status], :title=>t("state.#{state}", :default=>state.titlecase)}
             %th= t state, :scope => :state, :default=>state.titlecase
             %th
         %tbody

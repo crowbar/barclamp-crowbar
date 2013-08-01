@@ -1,7 +1,8 @@
-%table{ :class => "top" }
-  - @role.default_attributes[@role.barclamp].sort.each do |key, value|
-    %tr{:class => cycle("odd", "even")}
-      %td
-        %em= t ".#{key}", :default => key + ":&nbsp;&nbsp;&nbsp;"
-      %td= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value)
+.limit
+  %table.table
+    - @role.default_attributes[@role.barclamp].sort.each do |key, value|
+      %tr{:class => cycle("odd", "even")}
+        %td
+          %em.pull-right= t ".#{key}", :default => key + ":&nbsp;&nbsp;&nbsp;"
+        %td= ((value.is_a?(Enumerable) and !value.is_a?(String)) ? hash_to_ul(value) : value)
 .clear

@@ -40,8 +40,8 @@
 
     - if barclamp[:allow_multiple_proposals] and barclamp[:proposals].length != 0
       %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
-        %td.container{:colspan => "3"}
-          .box
+        %td{:colspan => "3"}
+          .box1
             %table.data
               %tbody
                 - if barclamp[:proposals].length > 0
@@ -49,8 +49,8 @@
                     - prop_id = "#{name}_#{proposal_name}"
                     %tr{:class => ["proposal", cycle(:odd, :even)], :id => barclamp[:id]}
                       %td.status
-                        .led{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
-                      %td{:style => "width:10%"}
+                        .led.div-center{:class => proposal[:status], :id => "#{prop_id}_details", :title=> t('proposal.status.'+proposal[:status])}
+                      %td
                         = proposal_name.titlecase
                       %td
                         - unless proposal[:status] === 'failed'
@@ -64,8 +64,8 @@
                     %td{:style => "text-align:center"} +
                     %td
                       = hidden_field_tag :barclamp, name
-                      = text_field_tag :name, t('proposal.items.default'), :size => 15
+                      = text_field_tag :name, t('proposal.items.default')
                     %td
-                      = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }", :size => 60
+                      = text_field_tag :description, "#{t 'created_on'} #{l(Time.now) }"
                     %td
                       %input.button{:type => "submit", :value => t('proposal.actions.create')}

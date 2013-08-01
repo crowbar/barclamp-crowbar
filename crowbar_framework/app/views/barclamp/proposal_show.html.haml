@@ -6,7 +6,7 @@
 - display_name = barclamp.titlecase if display_name.nil? or display_name == ""
 
 %h2.page-header
-  .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'}
+  .led.div-center.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'}
   = t '.title'
   .pull-right.control-text
     = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'btn'

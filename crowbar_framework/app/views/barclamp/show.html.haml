@@ -4,26 +4,28 @@
 - catalog = ServiceObject.barclamp_catalog
 - display_name = catalog['barclamps'][barclamp]['display']
 - display_name = barclamp.titlecase if display_name.nil? or display_name == ""
-.pull-right
-  = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'btn'
 
 .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left;'}
 - if @service_object.simple_proposal_ui? && !Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
-  %h2= link_to "#{display_name}", barclamp_modules_path(:id=>@role.barclamp)
+  %h2
+    = link_to "#{display_name}", barclamp_modules_path(:id=>@role.barclamp)
+    = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'btn pull-right'
 - else
-  %h2= link_to "#{display_name}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+  %h2
+    = link_to "#{display_name}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+    = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'btn pull-right'
 
 .box1
-  %h2= t '.attributes'
+  %h3= t '.attributes'
 
   =(@attr_raw ? (render :partial => 'barclamp/show_attributes_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_attributes" rescue (render :partial => 'barclamp/show_attributes_raw') end))
 
 .box1
-  %h2= t '.deployment'
+  %h3= t '.deployment'
   =(@attr_raw ? (render :partial => 'barclamp/show_deployment_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_deployment" rescue (render :partial => 'barclamp/show_deployment_raw') end))
-
-%p
-  =link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'btn'
+%br
+  .pull-right
+    =link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'btn'
 
 
 :javascript

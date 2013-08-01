@@ -16,7 +16,7 @@
             - group['proposals'].sort.each do |proposal, member|
               %tr{ :class => cycle(:odd, :even), :id => proposal }
                 %td.status{:raw=> 'unknown' }
-                  .led{:class => 'unknown', :title=>t("state.unknown", :default=>'unknown'.titlecase)} 
+                  .led.div-center{:class => 'unknown', :title=>t("state.unknown", :default=>'unknown'.titlecase)}
                 %td.name
                   %a{:href => proposal_barclamp_path(:id=>member['proposal'], :controller=>member['barclamp']), :title=> (member['description'].nil? ? t(:not_set) : member['description']), :id => proposal.parameterize}
                     = "#{member['barclamp'].camelize}: #{member['proposal'].camelize}"

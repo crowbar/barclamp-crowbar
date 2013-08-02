@@ -1,5 +1,10 @@
-%input.button{:type => "submit", :name => "commit", :value => t('.commit')}
-- if deployment.committed?
-  %input.button{:type => "submit", :name => "recall", :value => t('.recall'), :'data-confirm' => t('.recall_changes')}
-- if deployment.active? 
-  %input.button{:type => "submit", :name => "deallocate", :value => t('.deallocate'), :'data-confirm' => t('.deallocate')}
+- case state
+  - when NodeRole::PROPOSED
+    = link_to t('.commit'), snapshot_commit_path(snapshot.id, :version=>2), :class => 'button'
+  - when NodeRole::TODO
+    =  t('.recall')
+  - when NodeRole::ACTIVE
+    = link_to t('.propose'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button'
+  - else NodeRole::ERROR
+    = link_to t('.correct'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button'
+

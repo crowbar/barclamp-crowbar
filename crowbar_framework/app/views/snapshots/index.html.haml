@@ -1,27 +1,3 @@
 %h1= t '.title'
 
-%table.data.box
-  %thead
-    %tr
-      %th= t '.state'
-      %th= t '.deployment'
-      %th= t '.state'
-      %th= t '.snapshot'
-      %th= t '.description'
-  %tbody
-    -@list.each do |i|
-      - unless i.node_roles.length == 0   # sort of hacky, but hides the snap without node roles
-        %tr
-          %td= i.state
-          %td= link_to i.deployment.name, deployment_path(i.deployment.id)
-          %td
-            - if i.proposed?
-              = t '.proposed' 
-            - elsif i.committed?
-              = t '.committed'
-            - elsif i.active?
-              = t '.active'
-            - else
-              = t '.unlinked' 
-          %td= link_to i.name, snapshot_path(:id=>i.id) 
-          %td= i.description
+= render :partial=>'index', :locals => { :list => @list }

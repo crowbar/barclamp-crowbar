@@ -31,8 +31,7 @@ begin
     d.save!
     snap = Snapshot.create(:deployment_id=>d.id, :name => d.name, :description => d.description)
     snap.save!
-    d.active_snapshot_id = snap.id
+    d.snapshot_id = snap.id
     d.save!
-    Rails.logger.debug "ZEHICLE created default deployment #{d.inspect} in initializer"
   end
 end

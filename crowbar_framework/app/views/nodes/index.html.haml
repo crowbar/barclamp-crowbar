@@ -3,16 +3,17 @@
 %table.data.box
   %thead
     %tr
+      %th
       %th= t '.name'
       %th= t '.admin'
       %th= t '.description'
-      %th= t '.status'
   %tbody
     -@list.each do |n|
       %tr
-        %td= link_to n.name, node_path(n.id)
+        %td{ :width=>'10px'}
+          .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}
+        %td
+          = link_to n.name, node_path(n.id)
         %td
           = t 'yes' if n.admin
         %td= n.description
-        %td
-          .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}

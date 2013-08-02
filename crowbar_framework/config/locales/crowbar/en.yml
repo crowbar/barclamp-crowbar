@@ -96,7 +96,9 @@ en:
   deployment:
     commit:
       raise: "cannot commit a proposal unless there is no other currently in process"
-      status: "deployment committed"
+    propose: 
+      raise: "snapshot must be active or error to propose"
+
   node_role:
     state: &node_role_states
       error:      "Error"
@@ -128,15 +130,22 @@ en:
   barclamps:
     index:
       title: "Installed Barclamps"
+      barclamp: "Barclamp"
+      description: "Description"
+      roles: "Roles"
   deployments:
     index:
       title: "Deployments"
+      actions: "Actions"
       <<: *deployment_common
     show:
+      snapshots: "History"
       <<: *deployment_common
     buttons:
       commit: "Commit"
-      recall: "Recall"
+      recall: "NOT IMPLEMENTED Recall"
+      propose: "Propose"
+      correct: "Correct"
   deployment_roles:
     index:
       title: "Deployment Roles"
@@ -160,11 +169,13 @@ en:
       admin: "Admin?"
       <<: *deployment_common
     show:
-      node_roles: "Activity"
+      node_roles: "In Process Actions"
+      all_node_roles: "All Node Roles"
+      admin: "(admin)"
   node_roles:
     index:
       title: "Node Roles"
-      cycle: "Run Cycle"
+      anneal: "Run Annealer"
       <<: *deployment_common
     show:
       data: "User Configuration Data (outbound)"
@@ -193,8 +204,13 @@ en:
       <<: *deployment_common
     show:
       nodes: "Nodes"
-      todo: "To Do Actions"
+      anneal: "Run Annealer"
       <<: *deployment_common      
+    anneal:
+      title: "annealing activity"
+      anneal: "Run Annealer"
+      <<: *deployment_common      
+      <<: *node_role_states
   support:
     index:
       title: Exported Files

@@ -19,6 +19,7 @@ class CreateSnapshots < ActiveRecord::Migration
       t.string      :description,                 :null=>true
       t.integer     :order,                       :null=>false, :default=>1000
       t.belongs_to  :deployment,                  :null=>false
+      t.belongs_to  :snapshot,                    :null=>true
       t.timestamps      
     end
   end

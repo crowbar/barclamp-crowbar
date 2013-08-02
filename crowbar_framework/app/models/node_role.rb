@@ -27,6 +27,8 @@ class NodeRole < ActiveRecord::Base
   has_one         :barclamp,          :through => :role
 
   # find other node-roles in this snapshot using their role or node
+  scope           :all_by_state,      ->(state) { where(['state=?', state]) }
+  scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
   scope           :peers_by_state,    ->(ss,state) { where(['snapshot_id=? AND state=?', ss.id, state]) }
   scope           :peers_by_role,     ->(ss,role)  { where(['snapshot_id=? AND role_id=?', ss.id, role.id]) }
   scope           :peers_by_node,     ->(ss,node)  { where(['snapshot_id=? AND node_id=?', ss.id, node.id]) }
@@ -122,15 +124,13 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-  
-  def self.anneal!
-    # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
 
-    # A very basic annealer.
+  # The very basic annealer.
+  def self.anneal!
     queue = Hash.new
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
-      NodeRole.where(["state = ?",NodeRole::TODO]).each do |nr|
+      NodeRole.all_by_state(NodeRole::TODO).each do |nr|
         thisjig = nr.jig
         raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
         queue[thisjig] ||= []
@@ -267,13 +267,6 @@ class NodeRole < ActiveRecord::Base
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
           c.state = TODO
-        end
-        # if all the node-roles in the snapshot are active, then we are done!
-        if self.snapshot.node_roles.all? { |nr| nr.active? }
-          d = self.snapshot.deployment
-          d.committed_snapshot_id = nil
-          d.active_snapshot_id = self.snapshot_id
-          d.save!
         end
       when TODO
         # We can only go to TODO when:

@@ -1,10 +1,20 @@
 %p{:style => 'float:right'}
-  = link_to t('.node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
+  = link_to t('.all_node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
 
-%h1= @node.name
+%table
+  %tr
+    %td
+      .led{:valign=>'center', :class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
+    %td
+      %h1
+        = @node.name
+        = t '.admin' if @node.admin
+  %tr
+    %td
+    %td= @node.description || @node.alias
 
-.led{:class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
+= render :partial => 'show', :locals => { :node => @node } rescue @node.inspect
 
-= @node.inspect
-
-= render :partial => 'show' rescue "."
+%h3= t '.node_roles'
+- node_roles = NodeRole.committed_by_node(@node)
+= render :partial=>'node_roles/index', :locals => { :list => node_roles }

@@ -1,9 +1,8 @@
 - if @snapshot
   %p{:style => 'float:right'}
-    = link_to t('.cycle'), snapshot_cycle_path(@snapshot.id), :class => 'button' if @snapshot.committed?
-    = link_to t('.snapshot'), snapshot_path(@snapshot.id), :class => 'button'
+    = link_to t('.anneal'), snapshot_transition_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button' if @snapshot.committed?
 %h1
   = link_to @snapshot.name, snapshot_path(@snapshot.id) if @snapshot
   = t '.title'
 
-= render :partial=>'index', :locals => { :list => @list }
+= render :partial=>'node_roles/index', :locals => { :list => @list }

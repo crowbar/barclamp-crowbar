@@ -26,7 +26,7 @@ class NodeModelTest < ActiveSupport::TestCase
     # We also need a snapshot.
     snap = Snapshot.create(:deployment_id=>d.id, :name => d.name, :description => d.description)
     snap.save!
-    d.active_snapshot_id = snap.id
+    d.snapshot_id = snap.id
     d.save!
   end
 

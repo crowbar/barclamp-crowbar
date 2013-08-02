@@ -1,3 +1,24 @@
 %h1= @role.name
 
-= @role.inspect
+%dl
+  %dt= t '.description' 
+  %dd= @role.description
+  %dt= t '.jig' 
+  %dd= link_to @role.jig_name, jig_path(@role.jig_name)
+  %dt= t '.barclamp' 
+  %dd= link_to @role.barclamp.name, barclamp_path(@role.barclamp.id)
+  %dt= t '.flags'
+  %dd
+    = t '.library' if @role.library 
+    = t '.discovery' if @role.discovery
+    = t '.implicit' if @role.implicit
+    = t '.bootstrap' if @role.bootstrap
+  %dt= t '.template'
+  %dd
+    - d = JSON.pretty_generate JSON.parse(@role.template)
+    = find_and_preserve do
+      %textarea.editor{:name => "template"}= d
+
+%h3= t '.upstream'
+
+= render :partial => "index", :locals => { :list => @role.parents, :jig_name => nil }

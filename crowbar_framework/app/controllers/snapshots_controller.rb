@@ -73,18 +73,15 @@ class SnapshotsController < ApplicationController
     end
   end
 
-  def transition
+  def anneal
+    # run anneal (if stepping the skip when any nodes are in transistion)
     @snapshot = Snapshot.find_key params[:snapshot_id]
-    @list = @snapshot.transition
+    NodeRole.anneal! if (!params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0)
+    @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION)
     respond_to do |format|
-      format.html { render :template => 'node_roles/index' }
+      format.html {  }
       format.json { render api_index :node_roles, @list }
     end
-  end
-
-  def anneal
-    NodeRole.anneal!
-    redirect_to snapshot_path(params[:snapshot_id])
   end
 
 end

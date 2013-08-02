@@ -24,7 +24,7 @@ class Role < ActiveRecord::Base
   
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
-  attr_accessible :role_template, :node_template, :min_nodes      # template info
+  attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
   validates_format_of       :name,  :with=>/^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")

@@ -1,6 +1,6 @@
 - if @snapshot.committed?
   %p{:style => 'float:right'}
-    = link_to t('.todo'), snapshot_transition_path(@snapshot.id), :class => 'button'
+    = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button'
 %h1
   = @snapshot.name
   = t '.proposed' if @snapshot.proposed?

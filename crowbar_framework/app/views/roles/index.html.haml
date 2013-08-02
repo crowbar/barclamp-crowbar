@@ -4,22 +4,4 @@
   %h3 
     = link_to j.name, jig_path(j.name)
     = t '.jig'
-  %table.data.box
-    %thead
-      %tr
-        %th= t '.role'
-        %th= t '.barclamp'
-        %th= t '.description'
-        %th= t '.flags'
-    %tbody
-      -@list.each do |role|
-        - if role.jig_name.eql? j.name
-          %tr
-            %td= link_to role.name, role_path(:id=>role.id)
-            %td= link_to role.barclamp.name, barclamp_path(role.barclamp.id)
-            %td= role.description
-            %td
-              = t '.library' if role.library 
-              = t '.discovery' if role.discovery
-              = t '.implicit' if role.implicit
-              = t '.bootstrap' if role.bootstrap
+  = render :partial => 'index', :locals => { :list => @list, :jig_name => j.name }

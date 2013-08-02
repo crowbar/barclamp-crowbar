@@ -39,9 +39,7 @@ Crowbar::Application.routes.draw do
   resources :roles
   resources :snapshots do
     resources :node_roles
-    get :transition
-    # This shouls really be a POST.
-    get :cycle
+    get :anneal
   end
 
   # UI scope
@@ -126,9 +124,7 @@ Crowbar::Application.routes.draw do
           end
           resources :roles
           resources :snapshots do
-            get :transition
-            # This should really be a POST.
-            get :cycle
+            get :anneal
             resources :node_roles
           end
           resources :users do

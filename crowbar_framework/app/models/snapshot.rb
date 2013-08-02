@@ -106,38 +106,6 @@ class Snapshot < ActiveRecord::Base
     end
   end
 
-  # annealer stage 1: collect the candidates to anneal (put into transistion state)
-  def transition(throttle=1)
 
-    raise "must be called on committed snapshots only" unless committed?
-
-    # if there are node roles still in transistion, then just return those
-    transition = NodeRole.peers_by_state(self, NodeRole::TRANSITION)
-
-    # if there are none in transition, then find the next ones
-    if transition.length == 0
-      # collect node roles to anneal
-      todo = NodeRole.peers_by_state(self, NodeRole::TODO)
-
-      # Check to see if we have all our jigs before we send everything off.
-      todo.each { |nr| raise MissingJig.new(nr) unless nr.jig.kind_of?(Jig) }
-
-      # Only set the candidate states inside the transaction (must be in TODO state.
-      NodeRole.transaction do
-        todo.each_with_index do |c, i| 
-          break if i>=throttle
-          # while all the candates MUST be in TODO, we check again just to be safe
-          if c.state == NodeRole::TODO
-            c.state = NodeRole::TRANSITION
-            transition << c
-          end
-        end
-      end
-    
-    end
-
-    transition
-
-  end
 
 end

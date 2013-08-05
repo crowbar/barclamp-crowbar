@@ -70,17 +70,12 @@
               = select_tag :raid,  options_for_select(option_default(@options[:raid], @node.raid_set, 'raid'), @node.raid_set)
       .form-horizontal
         .control-group
-          -unless @node.allocated? or @node.admin?
-            %label.control-label
-            .controls
-              = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'btn'
-              %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.allocate')}
-              
-        .control-group
           %label.control-label
           .controls
             = link_to t('cancel'), nodes_path(:selected => @node.handle), :class => 'btn'
             %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.save')}
+            -unless @node.allocated? or @node.admin?
+              %input.btn.btn-success{:type => "submit", :name => "submit", :value => t('.allocate')}
 
 :javascript
 

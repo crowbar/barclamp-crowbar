@@ -162,6 +162,18 @@ class NodeObject < ChefObject
   end
 
   def target_platform=(value)
+    @role.run_list.each do |node_role_ext|
+      node_role=node_role_ext.to_s[node_role_ext.to_s.index('[')+1,node_role_ext.to_s.index(']')-node_role_ext.to_s.index('[')-1]
+      node_barclamp = node_role[0,node_role.index('-')]
+      bc_databag = ProposalObject.find_data_bag_item("barclamps/#{node_barclamp}")
+      if !bc_databag.nil?
+        if !bc_databag["unsupported_platform"].nil?
+          if bc_databag["unsupported_platform"].include?(value[0,value.index('-')])
+            @node.delete_from_run_list(node_role)
+          end
+        end
+      end
+    end
     @node.set[:target_platform] = value
   end
 

@@ -15,18 +15,17 @@
 class ScaffoldNav < ActiveRecord::Migration
   def self.up
 
-    Nav.find_or_create_by_item :item=>'scaffold', :name=>'nav.scaffold.top', :path=>"scaffolds_deployments_path", :description=>'nav.scaffold.top_description', :order=>7000, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold', :name=>'nav.scaffold.top', :path=>"scaffolds_deployments_path", :description=>'nav.scaffold.top_description', :order=>7000
   
-    Nav.find_or_create_by_item :item=>'scaffold_attribs',  :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1100, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_jigs',  :parent_item=>'scaffold', :name=>'nav.scaffold.jigs',  :path=>"scaffolds_jigs_path", :order=>1400, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_barclamps', :parent_item=>'scaffold', :name=>'nav.scaffold.barclamps',  :path=>"scaffolds_barclamps_path", :order=>1800, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_deployments', :parent_item=>'scaffold', :name=>'nav.scaffold.deployments',  :path=>"scaffolds_deployments_path", :order=>1810, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_snapshots', :parent_item=>'scaffold', :name=>'nav.scaffold.snapshots',  :path=>"scaffolds_snapshots_path", :order=>1820, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_nodes', :parent_item=>'scaffold', :name=>'nav.scaffold.nodes', :path=>"scaffolds_nodes_path", :order=>2000, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_roles', :parent_item=>'scaffold', :name=>'nav.scaffold.roles', :path=>"scaffolds_roles_path", :order=>2100, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_groups', :parent_item=>'scaffold', :name=>'nav.scaffold.groups', :path=>"scaffolds_groups_path", :order=>2300, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400, :development=>true
-    Nav.find_or_create_by_item :item=>'scaffold_docs', :parent_item=>'scaffold', :name=>'nav.scaffold.docs', :path=>"scaffolds_docs_path", :order=>5500, :development=>true
+    Nav.find_or_create_by_item :item=>'scaffold_attribs',  :parent_item=>'scaffold', :name=>'nav.scaffold.attribs',  :path=>"scaffolds_attribs_path", :order=>1100
+    Nav.find_or_create_by_item :item=>'scaffold_jigs',  :parent_item=>'scaffold', :name=>'nav.scaffold.jigs',  :path=>"scaffolds_jigs_path", :order=>1400
+    Nav.find_or_create_by_item :item=>'scaffold_barclamps', :parent_item=>'scaffold', :name=>'nav.scaffold.barclamps',  :path=>"scaffolds_barclamps_path", :order=>1800
+    Nav.find_or_create_by_item :item=>'scaffold_deployments', :parent_item=>'scaffold', :name=>'nav.scaffold.deployments',  :path=>"scaffolds_deployments_path", :order=>1810
+    Nav.find_or_create_by_item :item=>'scaffold_snapshots', :parent_item=>'scaffold', :name=>'nav.scaffold.snapshots',  :path=>"scaffolds_snapshots_path", :order=>1820
+    Nav.find_or_create_by_item :item=>'scaffold_nodes', :parent_item=>'scaffold', :name=>'nav.scaffold.nodes', :path=>"scaffolds_nodes_path", :order=>2000
+    Nav.find_or_create_by_item :item=>'scaffold_groups', :parent_item=>'scaffold', :name=>'nav.scaffold.groups', :path=>"scaffolds_groups_path", :order=>2300
+    Nav.find_or_create_by_item :item=>'scaffold_nav', :parent_item=>'scaffold', :name=>'nav.scaffold.menus', :path=>"scaffolds_navs_path", :order=>5400
+    Nav.find_or_create_by_item :item=>'scaffold_docs', :parent_item=>'scaffold', :name=>'nav.scaffold.docs', :path=>"scaffolds_docs_path", :order=>5500
 
   end
 

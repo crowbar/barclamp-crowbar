@@ -1,28 +1,20 @@
 %h1= t '.title'
 
-%ul
-  - @list.each do |i|
-    %li
-      = "#{i.name}: #{i.description}"
-      %ul
-        - if i.proposed?
-          - p = i.proposed
-          %li
-            = link_to "#{t '.proposed'} #{p.name}",snapshot_path(:id=>p.id) 
-            = ": #{p.description}" 
-            %ul 
-              - p.deployment_roles.each do |r|
-                %li= "#{r.jig_name} jig: #{r.name} role"
-        - if i.committed?
-          %li
-            - c = i.committed
-            = link_to "#{t '.committed'} #{c.name}", snapshot_path(:id=>c.id) 
-            = ": #{c.description}" 
-        - if i.active?
-          - a = i.active
-          %li
-            = link_to "#{t '.active'} #{a.name}", snapshot_path(:id=>a.id)
-            = ": #{a.description}"
-            %ul 
-              - a.deployment_roles.each do |r|
-                %li= "#{r.jig_name} jig: #{r.name} role"
+%table.data.box
+  %thead
+    %tr
+      %th= t '.deployment'
+      %th= t '.description'
+      %th= t '.status'
+      %th= t '.active'
+      %th= t '.actions'
+  %tbody
+    - @list.each do |d|
+      - state = d.state
+      %tr
+        %td= link_to d.name, deployment_path(d.id)
+        %td= d.description
+        %td
+          .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+        %td= link_to d.head.name, snapshot_path(d.head.id)
+        %td= render :partial => 'buttons', :locals => { :state=>state, :snapshot=>d.head } rescue 'buttons?'

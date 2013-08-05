@@ -1,0 +1,16 @@
+- if @snapshot
+  %p{:style => 'float:right'}
+    = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button' if @snapshot.committed?
+%h1
+  = link_to @snapshot.name, snapshot_path(@snapshot.id) if @snapshot
+  = t '.title'
+
+= render :partial=>'node_roles/index', :locals => { :list => @list }
+
+%h2= t '.todo'
+- todo = NodeRole.peers_by_state(@snapshot, NodeRole::TODO)
+= render :partial=>'node_roles/index', :locals => { :list => todo }
+
+%h2= t '.blocked'
+- blocked = NodeRole.peers_by_state(@snapshot, NodeRole::BLOCKED)
+= render :partial=>'node_roles/index', :locals => { :list => blocked }

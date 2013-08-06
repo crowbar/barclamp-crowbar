@@ -110,13 +110,6 @@ bash "Add crowbar chef client" do
   not_if "export HOME=/root;knife client list -u crowbar -k /opt/dell/crowbar_framework/config/client.pem"
 end
 
-file "/opt/dell/crowbar_framework/log/production.log" do
-  owner "crowbar"
-  group "crowbar"
-  mode "0666"
-  action :create
-end
-
 file "/opt/dell/crowbar_framework/tmp/queue.lock" do
   owner "crowbar"
   group "crowbar"
@@ -144,6 +137,13 @@ else
     mode "0700"
     action :create
   end
+end
+
+directory "/var/log/crowbar" do
+  owner "crowbar"
+  group "crowbar"
+  mode "0750"
+  action :create
 end
 
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?

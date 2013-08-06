@@ -10,6 +10,6 @@ user("<%= @user %>","<%= @group || nil %>")
 <% if node[:platform]=="suse" -%>
 pid("/var/run/crowbar/crowbar.pid")
 <% end -%>
-stderr_path "<%= "#{@app_location}/log/#{@logname}.err" %>"
-stdout_path "<%= "#{@app_location}/log/#{@logname}.out" %>"
+stderr_path "<%= "/var/log/crowbar/#{@logname}.out" %>"
+stdout_path "<%= "/var/log/crowbar/#{@logname}.out" %>"
 working_directory "<%= @app_location %>"

@@ -39,8 +39,8 @@ Rails::Initializer.run do |config|
   # Run "rake -D time" for a list of tasks for finding time zone names.
   config.time_zone = 'UTC'
 
-  # Log to the usual place, with a nice timestamp
-  config.logger = Logger.new(File.dirname(__FILE__) + "/../log/#{RAILS_ENV}.log")
+  # Log with a nice timestamp
+  config.logger = Logger.new("/var/log/crowbar/#{RAILS_ENV}.log")
   config.logger.formatter = Logger::Formatter.new
 
   # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.

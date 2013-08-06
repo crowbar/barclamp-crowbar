@@ -23,6 +23,8 @@ end
 
 pkglist=()
 rainbows_path=""
+logdir = "/var/log/crowbar"
+
 case node[:platform]
 when "ubuntu","debian"
   pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
@@ -139,14 +141,14 @@ else
   end
 end
 
-directory "/var/log/crowbar" do
+directory logdir do
   owner "crowbar"
   group "crowbar"
   mode "0750"
   action :create
 end
 
-directory "/var/log/crowbar/chef-client" do
+directory "#{logdir}/chef-client" do
   owner "crowbar"
   group "crowbar"
   mode "0750"
@@ -200,6 +202,7 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
+            :logdir => logdir,
             :logname => "production",
             :app_location => "/opt/dell/crowbar_framework")
 end
@@ -214,6 +217,7 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
+            :logdir => logdir,
             :logname => "development",
             :app_location => "/opt/dell/crowbar_framework")
 end
@@ -229,6 +233,7 @@ if node[:platform] != "suse"
 
   template "/etc/bluepill/crowbar-webserver.pill" do
     source "crowbar-webserver.pill.erb"
+    variables(:logdir => logdir)
   end
 
   bluepill_service "crowbar-webserver" do

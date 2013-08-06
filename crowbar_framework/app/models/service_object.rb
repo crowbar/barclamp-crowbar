@@ -1005,7 +1005,7 @@ class ServiceObject
           snodes.each do |node|
             nobj = NodeObject.find_node_by_name(node)
             unless nobj[:platform] == "windows"
-              filename = "log/#{node}.chef_client.log"
+              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node
             end
@@ -1018,7 +1018,7 @@ class ServiceObject
               badones.each do |baddie|
                 node = pids[baddie[0]]
                 @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-                filename = "log/#{node}.chef_client.log"
+                filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
                 pid = run_remote_chef_client(node, "chef-client", filename)
                 pids[pid] = node
               end
@@ -1041,7 +1041,7 @@ class ServiceObject
 
         unless admin_list.empty?
           admin_list.each do |node|
-            filename = "log/#{node}.chef_client.log"
+            filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
             pids[node] = pid
           end
@@ -1053,7 +1053,7 @@ class ServiceObject
               badones.each do |baddie|
                 node = pids[baddie[0]]
                 @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-                filename = "log/#{node}.chef_client.log"
+                filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
                 pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
                 pids[pid] = node
               end

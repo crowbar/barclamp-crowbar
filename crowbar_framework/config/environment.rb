@@ -40,6 +40,7 @@ Rails::Initializer.run do |config|
   config.time_zone = 'UTC'
 
   # Log with a nice timestamp
+  CROWBAR_LOG_DIR = "/var/log/crowbar" unless defined? CROWBAR_LOG_DIR
   config.logger = Logger.new("/var/log/crowbar/#{RAILS_ENV}.log")
   config.logger.formatter = Logger::Formatter.new
 

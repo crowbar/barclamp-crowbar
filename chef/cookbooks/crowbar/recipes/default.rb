@@ -146,6 +146,14 @@ directory "/var/log/crowbar" do
   action :create
 end
 
+directory "/var/log/crowbar/chef-client" do
+  owner "crowbar"
+  group "crowbar"
+  mode "0750"
+  action :create
+end
+
+
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
   web_port = node["crowbar"]["web_port"]
   realm = node["crowbar"]["realm"]

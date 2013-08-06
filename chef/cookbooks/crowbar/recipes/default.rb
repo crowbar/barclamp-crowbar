@@ -192,7 +192,7 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/production.log",
+            :logname => "production",
             :app_location => "/opt/dell/crowbar_framework")
 end
 
@@ -206,7 +206,7 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/development.log",
+            :logname => "development",
             :app_location => "/opt/dell/crowbar_framework")
 end
 

@@ -18,7 +18,7 @@ require 'json'
 class NodeRole < ActiveRecord::Base
 
   attr_accessible :status
-  attr_accessible :role_id, :snapshot_id, :node_id, :turn_id
+  attr_accessible :role_id, :snapshot_id, :node_id
 
   belongs_to      :node
   belongs_to      :role
@@ -27,6 +27,8 @@ class NodeRole < ActiveRecord::Base
   has_one         :barclamp,          :through => :role
 
   # find other node-roles in this snapshot using their role or node
+  scope           :all_by_state,      ->(state) { where(['state=?', state]) }
+  scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
   scope           :peers_by_state,    ->(ss,state) { where(['snapshot_id=? AND state=?', ss.id, state]) }
   scope           :peers_by_role,     ->(ss,role)  { where(['snapshot_id=? AND role_id=?', ss.id, role.id]) }
   scope           :peers_by_node,     ->(ss,node)  { where(['snapshot_id=? AND node_id=?', ss.id, node.id]) }
@@ -122,20 +124,21 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-  
-  def self.anneal!
-    # NOTE THIS CODE IS MOVING TO SNAPSHOT!!!
 
-    # A very basic annealer.
+  # The very basic annealer.
+  def self.anneal!
+
+puts "ZEHICLE ANNEAL"
     queue = Hash.new
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
-      NodeRole.where(["state = ?",NodeRole::TODO]).each do |nr|
+      NodeRole.all_by_state(NodeRole::TODO).each do |nr|
         thisjig = nr.jig
         raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
         queue[thisjig] ||= []
         queue[thisjig] << nr
       end
+puts "ZEHICLE QUEUE #{queue.inspect}"
       # Only set the candidate states inside the transaction.
       queue.each do |thisjig,candidates|
         candidates.each do |c|

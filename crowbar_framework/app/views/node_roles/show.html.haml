@@ -1,10 +1,33 @@
 %h1
   = link_to @node_role.snapshot.name, snapshot_path(@node_role.snapshot.id)
-  = link_to @node_role.node.name, snapshot_path(@node_role.node.id)
-  = link_to @node_role.role.name, snapshot_path(@node_role.role.id)
+  = link_to @node_role.node.name, node_path(@node_role.node.id)
+  = link_to @node_role.role.name, role_path(@node_role.role.id)
 
-.led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
+%table
+  %tr
+    %td
+      .led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
+    %td
+      = @node_role.state_name
 
-- p = "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}"
 
-= render :partial => p rescue render :partial => 'raw'
+%h3= t '.data'
+
+- begin
+  - if params.include? :raw
+    = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+  - else
+    = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", :locals => { :data => @node_role.data, :node_role => @node_role }
+- rescue Exception => e
+  - if Rails.env.development?
+    %p= "Error #{e.inspect}"
+  = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+
+%h3= t '.wall'
+= render :partial => 'raw', :locals => { :data => @node_role.wall, :node_role => nil } 
+
+%h3= t '.upstream'
+= render :partial=>'index', :locals => { :list => @node_role.parents }
+
+%h3= t '.downstream'
+= render :partial=>'index', :locals => { :list => @node_role.children }

@@ -17,14 +17,12 @@ class CreateRoles < ActiveRecord::Migration
     create_table :roles do |t|
       t.string      :name,              :null=>false
       t.string      :description,       :null=>true
-      t.string      :role_template,     :null=>true
-      t.string      :node_template,     :null=>true
+      t.string      :template,          :null=>false, :default=>"{}"
       t.string      :jig_name,          :null=>false
       t.boolean     :library,           :null=>false, :default=>false  # brings in library code thats used to access another role (sql client)
       t.boolean     :implicit,          :null=>false, :default=>false  # role is applied automatically to nodes after allocation
       t.boolean     :bootstrap,         :null=>false, :default=>false  # used for the admin node(s) during bring up
       t.boolean     :discovery,         :null=>false, :default=>false  # related to the node being discovered in the system (by deployer)
-      t.integer     :min_nodes,         :null=>false, :default=>1      # how many nodes must this role be applied to
       t.belongs_to  :barclamp,          :null=>false
       t.timestamps
     end

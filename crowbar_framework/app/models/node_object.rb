@@ -164,7 +164,11 @@ class NodeObject < ChefObject
   def target_platform=(value)
     @role.run_list.each do |node_role_ext|
       node_role=node_role_ext.to_s[node_role_ext.to_s.index('[')+1,node_role_ext.to_s.index(']')-node_role_ext.to_s.index('[')-1]
-      node_barclamp = node_role[0,node_role.index('-')]
+      if node_role.include? "-"
+        node_barclamp = node_role[0,node_role.index('-')]
+      else
+        node_barclamp = node_role
+      end
       bc_databag = ProposalObject.find_data_bag_item("barclamps/#{node_barclamp}")
       if !bc_databag.nil?
         if !bc_databag["unsupported_platform"].nil?
@@ -419,9 +423,14 @@ class NodeObject < ChefObject
   def number_of_drives
     # This needs to be kept in sync with the fixed method in
     # barclamp_library.rb in in the deployer barclamp.
-    @node[:block_device].find_all do |disk,data|
-      disk =~ /^[hsv]d/ && data[:removable] == "0"
-    end.length
+    # On windows platform there is no block_device chef entry.
+    if defined?(@node[:block_device]) and !@node[:block_device].nil?
+      @node[:block_device].find_all do |disk,data|
+        disk =~ /^[hsv]d/ && data[:removable] == "0"
+      end.length
+    else
+      -1
+    end
   end
 
   def physical_drives
@@ -859,7 +868,7 @@ class NodeObject < ChefObject
   end
 
   def hardware
-    @node["dmi"].nil? ? I18n.t('unknown') : @node["dmi"].system.product_name
+    @node["dmi"].nil? ? I18n.t('unknown') : (defined?(@node["dmi"].system) ? @node["dmi"].system.product_name : I18n.t('unknown'))
   end
 
   def raid_set

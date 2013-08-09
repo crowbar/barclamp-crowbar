@@ -24,3 +24,12 @@ group :test do
   # gem "rspec"
   # gem "faker"
 end
+
+# Install gems from each barclamp.  The crowbar_path variable is
+# needed by Gemfile.d/*.gemfile so that they can determine the correct
+# path at run-time rather than having to hard-code a path at
+# install-time which may be different and therefore incorrect.
+crowbar_path = File.dirname(__FILE__)
+Dir.glob(File.join(crowbar_path, 'Gemfile.d', '*.gemfile')) do |gemfile|
+    eval(IO.read(gemfile), binding)
+end

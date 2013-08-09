@@ -587,7 +587,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, role_name, false)
+      answer = apply_role(role, inst, false)
       role.destroy
       answer
     end
@@ -1195,17 +1195,17 @@ class ServiceObject
       #   node[:reboot] = "complete"
       # end
 
-      exit(1) unless system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+      exit(1) unless system("sudo -u root -- ssh root@#{node} \"#{command}\"")
 
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
       while nobj[:reboot] == "require" and attempt <= 3
         attempt += 1
         puts "going to reboot #{node} due to #{nobj[:reboot]} attempt #{attempt}"
-        system("sudo -i -u root -- ssh root@#{node} \"reboot\"")        
+        system("sudo -u root -- ssh root@#{node} \"reboot\"")        
         if RemoteNode.ready?(node, 1200)
           3.times do
-            if system("sudo -i -u root -- ssh root@#{node} \"#{command}\"")
+            if system("sudo -u root -- ssh root@#{node} \"#{command}\"")
               nobj = NodeObject.find_node_by_name(node)
               break
             else

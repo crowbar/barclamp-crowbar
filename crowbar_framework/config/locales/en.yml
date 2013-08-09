@@ -198,9 +198,9 @@ en:
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
-        license_key: License Key
-        target_platform: Target Platform
-        target_platform_not_set: Not set
+      license_key: License Key
+      target_platform: Target Platform
+      target_platform_not_set: Not set
       hint: <i>group italics</i> indicates group is set automatically by system
     families:
       title: Node Hardware Families

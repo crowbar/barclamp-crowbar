@@ -65,7 +65,7 @@
   - unless @node.admin?
     -if options[:show].include? :bios or options[:show].include? :raid
       %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_hw_update'), :title => t('.hw_update_tooltip')
-    %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
     - if @node.allocated?
+      %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
       %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
     %li= link_to "Forget", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_forget'), :title => t('.forget_tooltip')

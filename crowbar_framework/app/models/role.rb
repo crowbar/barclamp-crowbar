@@ -22,6 +22,8 @@ class Role < ActiveRecord::Base
   class Role::MISSING_JIG < Exception
   end
   
+  before_create :create_type_from_name
+
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
   attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
   attr_accessible :template
@@ -141,6 +143,26 @@ class Role < ActiveRecord::Base
     end
     Rails.logger.info("Extending #{self.name} with #{mod}")
     self.extend(mod)
+  end
+
+  # This method ensures that we have a type defined for 
+  def create_type_from_name
+    raise "roles require a name" if self.name.nil?
+    raise "roles require a barclamp" if self.barclamp_id.nil?
+    namespace = "Barclamp#{self.barclamp.name.camelize}"
+    # remove the redundant part of the name (if any)
+    name = self.name.sub("#{self.barclamp.name}-", '').camelize
+    # these routines look for the namespace & class
+    m = Module::const_get(namespace) rescue nil
+    test = m.const_get(name).superclass == Role rescue false
+    # if they dont' find it we fall back to BarclampFramework (this should go away!)
+    self.type = unless test
+      Rails.logger.warn "Role #{self.name} created with fallback Model!"
+      "Role"
+    else 
+      "#{namespace}::#{name}"
+    end
+    
   end
 
 end

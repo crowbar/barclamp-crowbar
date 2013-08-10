@@ -221,10 +221,10 @@ class Node < ActiveRecord::Base
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system.first.recommit do |snap|
       Role.bootstrap.each do |r|
-        r.add_to_node_in_snapshot(self,snap) if r.active?
+        r.add_to_snapshot(snap,self) if r.active?
       end if self.admin
       Role.discovery.each do |r|
-        r.add_to_node_in_snapshot(self,snap) if r.active?
+        r.add_to_snapshot(snap,self) if r.active?
       end
     end
   end

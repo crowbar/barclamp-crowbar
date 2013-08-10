@@ -25,6 +25,9 @@ class DeploymentRole < ActiveRecord::Base
   belongs_to :role
   has_one    :barclamp, :through => :role
 
+  scope      :snapshot_and_role,     ->(ss,role)  { where(['snapshot_id=? AND role_id=?', ss.id, role.id]) }
+
+
   # convenience methods
   def name
     role.name
@@ -36,12 +39,13 @@ class DeploymentRole < ActiveRecord::Base
 
   def data
     d = read_attribute("data")
-    d = role.template_data unless data && !data.empty?
     JSON.parse(d)
   end
 
   def data=(arg)
-    write_attribute("data",JSON.generate(arg))
+    arg = JSON.generate(arg) if arg.is_a? Hash
+    # TODO validate!
+    write_attribute("data",arg)
   end
 
   def wall
@@ -51,13 +55,8 @@ class DeploymentRole < ActiveRecord::Base
   end
 
   def wall=(arg)
-    write_attribute("wall",JSON.generate(arg))
-  end
-
-  # add a node to this deployment for this role
-  def add_node(node)
-    raise "you can only add node #{node.name} to a Proposed Deployment" unless snapshot.proposed?
-    NodeRole.create :node_id=>node.id, :snapshot_id=>snapshot_id, :role_id=>role_id
+    arg = JSON.generate(arg) if arg.is_a? Hash
+    write_attribute("wall",arg)
   end
 
 end

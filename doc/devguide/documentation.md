@@ -8,7 +8,7 @@ This information is available as a video! see http://youtu.be/eWHeEWiOEvo
 
 #### Composite Documentation
 
-It is vital to understand that the Crowbar documentation system is _composite documentation._  That means that the information is assembled from multiple barclamps on the fly.  This is required because the Crowbar framework is really a collection of barclamps and each barclamp has it's own capabilities and features.
+It is vital to understand that the Crowbar documentation system is _composite documentation._  That means that the information is assembled from multiple barclamps on the fly.  This is required because the Crowbar framework is really a collection of barclamps and each barclamp has its own capabilities and features.
 
 The design of the documentation system allows each barclamp to contribute parts to the overall whole _and also_ allows parts to cross reference each other.
 
@@ -46,7 +46,7 @@ There is a documentation tree index (`[barclamp].yml`) for each barclamp.  The i
 
 The index has an entry for each topic page that follows the following pattern: `barclamp/topic`.  The `/` is required!
 
-> You can comment out a page from being automatically index by prefixing it's name w/ `#`
+> You can comment out a page from being automatically index by prefixing its name with `#`
 
 It is acceptable for a barclamp to reference topics in another barclamp so that the correct parent topics are used to build an integrated set.
 

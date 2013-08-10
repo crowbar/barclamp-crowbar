@@ -98,7 +98,8 @@ class Role < ActiveRecord::Base
       end
       # By the time we get here, all our parents are bound recursively.
       # Bind ourselves the same way.
-      res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
+      res = NodeRole.create({:node => node, :role => self, :snapshot => snap, :data=>self.template}, :without_protection => true)
+
       # Make sure our jig dependency is registered.
       res.parents << jig_node_role if jig_role
       parent_node_roles.each do |pnr|

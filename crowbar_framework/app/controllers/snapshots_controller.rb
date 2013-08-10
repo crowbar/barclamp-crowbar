@@ -86,7 +86,7 @@ class SnapshotsController < ApplicationController
 
   def propose
     snap = Snapshot.find_key params[:snapshot_id]
-    new_snap = snap.propose
+    new_snap = snap.propose params[:name]
     respond_to do |format|
       format.html { redirect_to snapshot_path(new_snap.id) }
       format.json { render api_show :snapshot, Snapshot, nil, nil, new_snap }

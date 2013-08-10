@@ -1,20 +1,22 @@
 - state = @snapshot.state
-%p{:style => 'float:right'}
-  - if @snapshot.committed?
-    = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button'
-  = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
-
-%h1
-  = @snapshot.name
-  - case state
-    - when NodeRole::TODO 
-      = t '.committed'
-    - when NodeRole::PROPOSED
-      = t '.proposed'
-    - when NodeRole::ACTIVE
-      = t '.active'
-    - when NodeRole::ERROR
-      = t 'error'
+%table{:width=>'100%'}
+  %tr
+    %td
+      %h1
+      = @snapshot.name
+      - case state
+        - when NodeRole::TODO 
+          = t '.committed'
+        - when NodeRole::PROPOSED
+          = t '.proposed'
+        - when NodeRole::ACTIVE
+          = t '.active'
+        - when NodeRole::ERROR
+          = t 'error'
+    %td{:align => 'right'}
+      - if @snapshot.committed?
+        = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button'
+      = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
 %table.data.box
   %thead

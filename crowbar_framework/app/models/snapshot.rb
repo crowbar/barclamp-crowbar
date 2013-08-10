@@ -89,12 +89,12 @@ class Snapshot < ActiveRecord::Base
     self
   end
   
-  def propose
+  def propose(name=nil)
     raise I18n.t('deployment.propose.raise') unless [NodeRole::ACTIVE, NodeRole::ERROR].include? state
     proposal = nil
     Deployment.transaction do
       # create the new proposal
-      proposal = deep_clone
+      proposal = deep_clone(name)
       # move the pointer 
       deployment.snapshot_id = proposal.id
       deployment.save!
@@ -105,12 +105,13 @@ class Snapshot < ActiveRecord::Base
   ##
   # Clone this snapshot.  It will also clone any node roles specific to this snapshot,
   # and take care of making sure that the node role dependency graph stays sane.
-  def deep_clone
+  def deep_clone(name=nil)
     Snapshot.transaction do
       newsnap = self.dup
       # build the linked list
       newsnap.snapshot_id = self.id
       newsnap.order += 1
+      newsnap.name = name unless name.nil?
       newsnap.save!
       # collect the node roles
       node_role_map = Hash.new

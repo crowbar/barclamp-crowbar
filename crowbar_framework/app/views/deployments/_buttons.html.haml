@@ -4,7 +4,10 @@
   - when NodeRole::TODO
     =  t('.recall')
   - when NodeRole::ACTIVE
-    = link_to t('.propose'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button'
+    = form_for :snapshot, :'data-remote' => true, :url => snapshot_propose_path(:snapshot_id=>snapshot.id), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
+      -#= link_to t('.propose'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button'
+      = text_field_tag :name, snapshot.name, :size => 15
+      %input.button{:type => "submit", :name => "propose", :value => t('.propose')}
   - else NodeRole::ERROR
     = link_to t('.correct'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button'
 

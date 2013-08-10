@@ -124,17 +124,9 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-<<<<<<< HEAD
 
   # The very basic annealer.
   def self.anneal!
-=======
-
-  # The very basic annealer.
-  def self.anneal!
-
-puts "ZEHICLE ANNEAL"
->>>>>>> 0e17251d56b5eeaa018ffa004693c40e29d4a9aa
     queue = Hash.new
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
@@ -144,7 +136,6 @@ puts "ZEHICLE ANNEAL"
         queue[thisjig] ||= []
         queue[thisjig] << nr
       end
-puts "ZEHICLE QUEUE #{queue.inspect}"
       # Only set the candidate states inside the transaction.
       queue.each do |thisjig,candidates|
         candidates.each do |c|

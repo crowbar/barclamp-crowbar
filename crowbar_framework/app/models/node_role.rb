@@ -14,6 +14,7 @@
 #
 
 require 'json'
+require 'kwalify'
 
 class NodeRole < ActiveRecord::Base
 
@@ -168,11 +169,22 @@ class NodeRole < ActiveRecord::Base
   def data
     d = read_attribute("data")
     return {} if d.nil? || d.empty?
-    JSON.parse(d)
+    JSON.parse(d) 
   end
 
   def data=(arg)
-    write_attribute("data",JSON.generate(arg))
+    raise I18n.t('node_role.cannot_edit_data') unless state==PROPOSED
+    arg = JSON.generate(arg) if arg.is_a? Hash
+ 
+    ## TODO Validate the config file
+    raise I18n.t('node_role.data_parse_error') unless true
+
+    write_attribute("data",arg)
+
+  end
+
+  def data_schema
+    { :type=>:map, :required=>true, :mapping=>{ } }
   end
 
   def wall
@@ -183,6 +195,10 @@ class NodeRole < ActiveRecord::Base
 
   def wall=(arg)
     write_attribute("wall",JSON.generate(arg))
+  end
+
+  def wall_schema
+    { :type=>:map, :required=>true, :mapping=>{ } }
   end
 
   def active?

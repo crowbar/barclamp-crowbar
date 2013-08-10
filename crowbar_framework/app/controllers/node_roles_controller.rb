@@ -45,10 +45,15 @@ class NodeRolesController < ApplicationController
   end
 
   def update
-    unless Rails.env.development?
-      render  api_not_supported("delete", "node_role")
-    else
-      render api_update :node_role, NodeRole
+    @node_role = NodeRole.find_key params[:id]
+    unless params[:data].nil?
+      @node_role.data = params[:data]
+      @node_role.save!
+      flash[:notice] = I18n.t 'saved', :scope=>'layouts.node_roles.show'
+    end
+    respond_to do |format|
+      format.html { render 'show' }
+      format.json { render api_show :node_role, NodeRole, nil, nil, @node_role }
     end
   end
 

@@ -42,21 +42,15 @@ class DeploymentsController < ApplicationController
   end
 
   # return the committed snapshot  
-  def committed
+  def head
     deploy = Deployment.find_key params[:deployment_id]
-    render_snaps(deploy.committed)
+    render_snaps(deploy.head)
   end
 
   # return the proposed snapshot  
-  def proposed
+  def next
     deploy = Deployment.find_key params[:deployment_id]
-    render_snaps(deploy.proposed)
-  end
-
-  # return the committed snapshot  
-  def active
-    deploy = Deployment.find_key params[:deployment_id]
-    render_snaps(deploy.active)
+    render_snaps(deploy.head.next)
   end
 
   private 

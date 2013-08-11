@@ -22,9 +22,8 @@ Crowbar::Application.routes.draw do
   # UI 
   resources :barclamps
   resources :deployments do
-    get :proposed
-    get :committed
-    get :active
+    get :head
+    get :next
   end
   resources :deployment_roles
   resources :docs
@@ -40,6 +39,8 @@ Crowbar::Application.routes.draw do
   resources :snapshots do
     resources :node_roles
     get :anneal
+    get :propose
+    get :commit
   end
 
   # UI scope
@@ -99,15 +100,14 @@ Crowbar::Application.routes.draw do
       scope 'api' do
         scope 'status' do
           get "nodes(/:id)" => "nodes#status", :as => :nodes_status
-          get "deployments(/:id)" => "deployments#status", :as => :deployments_status
+          get "snapshots(/:id)" => "snapshots#status", :as => :snapshots_status
         end
         scope ':version' do
           resources :attribs
           resources :barclamps
           resources :deployments do
-            get :proposed
-            get :committed
-            get :active
+            get :head
+            get :next
           end
           resources :deployment_roles
           resources :groups do
@@ -126,6 +126,8 @@ Crowbar::Application.routes.draw do
           resources :snapshots do
             get :anneal
             resources :node_roles
+            get :propose
+            get :commit
           end
           resources :users do
             post "admin", :controller => "users", :action => "make_admin"

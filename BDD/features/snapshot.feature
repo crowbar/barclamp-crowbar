@@ -29,7 +29,7 @@ Feature: Snapshot
       And there are no localization errors
 
   Scenario: Snapshot Page link to Roles 
-    Given I am on the "deployments/system/committed" page
+    Given I am on the "deployments/system/head" page
     When I click on the "test-discovery" link
     Then I should see "test-discovery"
       And there are no localization errors

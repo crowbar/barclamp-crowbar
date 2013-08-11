@@ -84,4 +84,22 @@ class SnapshotsController < ApplicationController
     end
   end
 
+  def propose
+    snap = Snapshot.find_key params[:snapshot_id]
+    new_snap = snap.propose
+    respond_to do |format|
+      format.html { redirect_to snapshot_path(new_snap.id) }
+      format.json { render api_show :snapshot, Snapshot, nil, nil, new_snap }
+    end
+  end
+
+  def commit 
+    snap = Snapshot.find_key params[:snapshot_id]
+    snap.commit
+    respond_to do |format|
+      format.html { redirect_to snapshot_path(snap.id) }
+      format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
+    end
+  end
+
 end

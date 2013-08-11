@@ -15,7 +15,7 @@
 
 class Snapshot < ActiveRecord::Base
 
-  attr_accessible :id, :name, :description, :order, :deployment_id
+  attr_accessible :id, :name, :description, :order, :deployment_id, :snapshot_id
   
   belongs_to      :deployment
 
@@ -25,16 +25,24 @@ class Snapshot < ActiveRecord::Base
   has_many        :node_roles,        :dependent => :destroy
   has_many        :nodes,             :through => :node_roles
  
+  has_one         :snapshot
+  alias_attribute :next,              :snapshot
+
+
   def active?
-    deployment.active_snapshot_id == self.id
+    state == NodeRole::ACTIVE
   end
 
   def committed? 
-    deployment.committed_snapshot_id == self.id
+    state == NodeRole::TODO
   end
   
   def proposed?
-    deployment.proposed_snapshot_id == self.id
+    state == NodeRole::PROPOSED
+  end
+
+  def tail?
+    snapshot_id.nil?
   end
 
   class MissingJig < Exception
@@ -52,9 +60,7 @@ class Snapshot < ActiveRecord::Base
   # review all the nodes for the nameshot and figure out an aggregated state
   def state
     state_map = Hash.new
-    node_roles.each do |nr|
-      state_map[nr.state] = true
-    end
+    node_roles.each { |nr| state_map[nr.state] ||= true }
     case
     when state_map[NodeRole::ERROR] then NodeRole::ERROR
     when state_map[NodeRole::BLOCKED] ||
@@ -66,22 +72,52 @@ class Snapshot < ActiveRecord::Base
     end
   end
 
-  # returns a has with all the node status information (unready nodes only)
+  # returns a hash with all the node status information (unready nodes only)
   def status
     s = {}
     # any node that's error or unknown will cause the whole state to be in the other state  
-    my_nodes.each { |n| s[n.id] = n.status unless n.state == 0 }
+    my_nodes.each { |n| s[n.id] = n.status unless n.state == NodeRole::ACTIVE }
     return s
   end
   
+    # commit the current proposal (cannot be done if there is a committed proposal)
+  def commit
+    raise I18n.t('deployment.commit.raise') unless proposed?
+    NodeRole.transaction do
+      node_roles.each { |nr| nr.commit! }
+    end
+    self
+  end
+  
+  def propose
+    raise I18n.t('deployment.propose.raise') unless [NodeRole::ACTIVE, NodeRole::ERROR].include? state
+    proposal = nil
+    Deployment.transaction do
+      # create the new proposal
+      proposal = deep_clone
+      # move the pointer 
+      deployment.snapshot_id = proposal.id
+      deployment.save!
+    end
+    proposal
+  end
+
   ##
   # Clone this snapshot.  It will also clone any node roles specific to this snapshot,
   # and take care of making sure that the node role dependency graph stays sane.
   def deep_clone
     Snapshot.transaction do
       newsnap = self.dup
+      # build the linked list
+      newsnap.snapshot_id = self.id
+      newsnap.order += 1
+      newsnap.save!
+      # collect the node roles
       node_role_map = Hash.new
-      self.node_roles.each{|nr| node_role_map[nr.id] = [nr,nr.dup]}
+      self.node_roles.each do |nr| 
+        new_nr = NodeRole.create :node_id=>nr.node_id, :role_id=>nr.role_id, :snapshot_id=>newsnap.id, :state=>NodeRole::PROPOSED 
+        node_role_map[nr.id] = [nr,new_nr]
+      end
       node_role_map.each do |id,nr_array|
         old_nr = nr_array[0]
         new_nr = nr_array[1]
@@ -95,6 +131,7 @@ class Snapshot < ActiveRecord::Base
         new_nr.save!
         newsnap.node_roles << new_nr
       end
+      # collect the deployment roles
       self.deployment_roles.each do |dr|
         new_dr = dr.dup
         new_dr.snapshot = newsnap

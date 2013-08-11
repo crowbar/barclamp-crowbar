@@ -32,11 +32,9 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "deployment",
-      bdd_utils:is_a(J, length, 11),
+      bdd_utils:is_a(J, length, 9),
       bdd_utils:is_a(J, boolean, system),
-      bdd_utils:is_a(J, dbid, committed_snapshot_id),
-      bdd_utils:is_a(J, dbid, active_snapshot_id),
-      bdd_utils:is_a(J, dbid, proposed_snapshot_id),
+      bdd_utils:is_a(J, dbid, snapshot_id),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R);
 validate(JSON) -> 

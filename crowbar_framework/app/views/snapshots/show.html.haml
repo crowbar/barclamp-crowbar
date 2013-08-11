@@ -1,11 +1,20 @@
-- if @snapshot.committed?
-  %p{:style => 'float:right'}
+- state = @snapshot.state
+%p{:style => 'float:right'}
+  - if @snapshot.committed?
     = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button'
+  = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
+
 %h1
   = @snapshot.name
-  = t '.proposed' if @snapshot.proposed?
-  = t '.committed' if @snapshot.committed?
-  = t '.active' if @snapshot.active?
+  - case state
+    - when NodeRole::TODO 
+      = t '.committed'
+    - when NodeRole::PROPOSED
+      = t '.proposed'
+    - when NodeRole::ACTIVE
+      = t '.active'
+    - when NodeRole::ERROR
+      = t 'error'
 
 %table.data.box
   %thead
@@ -19,7 +28,7 @@
         %td= link_to node.name, node_path(nid)
         -@roles.each do |rid, role|
           %td
-            - nr = @node_roles[nid][rid]
-            - if nr
+            - nr = @node_roles[nid][rid] rescue nil
+            - unless nr.nil?
               .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.state_name}
                 = link_to "[__]", node_role_path(nr.id)

@@ -18,9 +18,7 @@ class CreateDeployments < ActiveRecord::Migration
       t.string      :name,                        :null=>false
       t.string      :description,                 :null=>true
       t.boolean     :system,                      :null=>false, :default=>false
-      t.references  :proposed_snapshot,           :null=>true
-      t.references  :committed_snapshot,          :null=>true
-      t.references  :active_snapshot,             :null=>true
+      t.references  :snapshot,                    :null=>true
       t.references  :parent, :deployment
       t.timestamps
     end

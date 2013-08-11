@@ -127,8 +127,6 @@ class NodeRole < ActiveRecord::Base
 
   # The very basic annealer.
   def self.anneal!
-
-puts "ZEHICLE ANNEAL"
     queue = Hash.new
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
@@ -138,7 +136,6 @@ puts "ZEHICLE ANNEAL"
         queue[thisjig] ||= []
         queue[thisjig] << nr
       end
-puts "ZEHICLE QUEUE #{queue.inspect}"
       # Only set the candidate states inside the transaction.
       queue.each do |thisjig,candidates|
         candidates.each do |c|
@@ -270,13 +267,6 @@ puts "ZEHICLE QUEUE #{queue.inspect}"
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
           c.state = TODO
-        end
-        # if all the node-roles in the snapshot are active, then we are done!
-        if self.snapshot.node_roles.all? { |nr| nr.active? }
-          d = self.snapshot.deployment
-          d.committed_snapshot_id = nil
-          d.active_snapshot_id = self.snapshot_id
-          d.save!
         end
       when TODO
         # We can only go to TODO when:

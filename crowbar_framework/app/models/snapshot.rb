@@ -63,9 +63,9 @@ class Snapshot < ActiveRecord::Base
     node_roles.each { |nr| state_map[nr.state] ||= true }
     case
     when state_map[NodeRole::ERROR] then NodeRole::ERROR
-    when state_map[NodeRole::BLOCKED] ||
-        state_map[NodeRole::TODO] ||
-        state_map[NodeRole::TRANSITION]
+    when state_map[NodeRole::BLOCKED],
+         state_map[NodeRole::TODO],
+         state_map[NodeRole::TRANSITION]
       NodeRole::TODO
     when state_map[NodeRole::PROPOSED] then NodeRole::PROPOSED
     else NodeRole::ACTIVE

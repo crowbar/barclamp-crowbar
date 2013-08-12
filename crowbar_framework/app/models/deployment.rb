@@ -34,6 +34,8 @@ class Deployment < ActiveRecord::Base
   
   belongs_to        :parent,              :class_name => "Deployment", :primary_key => "parent_id"
 
+  scope             :system,              -> { where(:system=>true) }
+
   # active includes nothing being committed
   def active?
     head.active?

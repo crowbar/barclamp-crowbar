@@ -107,6 +107,8 @@ en:
       transition: "Transition"
       blocked:    "Blocked"
       proposed:   "Proposed"
+    data_parse_error: "NodeRole data was not valid agaist schema"
+    cannot_edit_data: "NodeRole data can only be edited in the Proposed state"
   # Layout / Views
   layouts:
     application:
@@ -182,6 +184,8 @@ en:
       wall: "System Managed Data (inbound / wall)"
       upstream: "Upstream Node Roles (blocked by)"
       downstream: "Downstream Node Roles (blocking)"
+      save: "Save"
+      saved: "Node Role Data Saved"
   roles:
     common: &roles_common
       flags: "Flags"

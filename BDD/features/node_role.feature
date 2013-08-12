@@ -6,6 +6,13 @@ Feature: NodeRole
   Scenario: REST List
     When REST gets the {object:node_role} list
     Then the page returns {integer:200}
+
+  Scenario: %REST update data
+    Given I have a proposed {object:node_role}
+    When update the {object:node_role} data to "{ \"bdd\":0 }"
+    Then I should see a {object:node_role} with data
+      And I should see a {object:node_role} with data key "bdd" 
+      And I should see a {object:node_role} with data key "bdd" value {number:0}
       
   Scenario: The page renders
     When I go to the "node_roles" page

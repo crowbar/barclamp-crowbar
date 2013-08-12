@@ -11,17 +11,19 @@
       = @node_role.state_name
 
 
-%h3= t '.data'
-
-- begin
-  - if params.include? :raw
+= form_for :node_role, :'data-remote' => true, :url => node_role_path(:id=>@node_role), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
+  %p{:style => 'float:right'}
+    %input.button{:type => "submit", :name => "save", :value => t('.save')}
+  %h3= t '.data'
+  - begin
+    - if params.include? :raw
+      = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+    - else
+      = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", :locals => { :data => @node_role.data, :node_role => @node_role }
+  - rescue Exception => e
+    - if Rails.env.development?
+      %p= "Error #{e.inspect}"
     = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
-  - else
-    = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", :locals => { :data => @node_role.data, :node_role => @node_role }
-- rescue Exception => e
-  - if Rails.env.development?
-    %p= "Error #{e.inspect}"
-  = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
 
 %h3= t '.wall'
 = render :partial => 'raw', :locals => { :data => @node_role.wall, :node_role => nil } 

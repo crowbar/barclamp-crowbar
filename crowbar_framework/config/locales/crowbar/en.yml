@@ -142,6 +142,7 @@ en:
       <<: *deployment_common
     show:
       snapshots: "History"
+      roles: "Assigned Roles"
       <<: *deployment_common
     buttons:
       commit: "Commit"

@@ -116,7 +116,11 @@ class Snapshot < ActiveRecord::Base
       # collect the node roles
       node_role_map = Hash.new
       self.node_roles.each do |nr| 
-        new_nr = NodeRole.create :node_id=>nr.node_id, :role_id=>nr.role_id, :snapshot_id=>newsnap.id, :state=>NodeRole::PROPOSED 
+        # we must create (not duplicate) the NR because of the state machine controls on setting state
+        new_nr = NodeRole.create({:node_id=>nr.node_id, :role_id=>nr.role_id, :snapshot_id=>newsnap.id, :state=>NodeRole::PROPOSED, 
+                      :data=>nr.read_attribute("data"), :wall=>nr.read_attribute("wall")}, 
+                      :without_protection => true)
+        # store the new nr because we need it for relationships (it's automatically linked to the snapshot when created)
         node_role_map[nr.id] = [nr,new_nr]
       end
       node_role_map.each do |id,nr_array|
@@ -130,7 +134,6 @@ class Snapshot < ActiveRecord::Base
         end
         new_nr.snapshot = newsnap
         new_nr.save!
-        newsnap.node_roles << new_nr
       end
       # collect the deployment roles
       self.deployment_roles.each do |dr|

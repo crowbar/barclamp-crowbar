@@ -14,7 +14,6 @@
 #
 
 require 'json'
-require 'kwalify'
 
 class NodeRole < ActiveRecord::Base
 
@@ -89,7 +88,6 @@ class NodeRole < ActiveRecord::Base
   class InvalidState < Exception
   end
 
-  # MOVE INTO SNAPSHOT
   class MissingJig < Exception
     def initalize(nr)
       @errstr = "NodeRole #{nr.name}: Missing jig #{nr.jig_name}"
@@ -194,7 +192,8 @@ class NodeRole < ActiveRecord::Base
   end
 
   def wall=(arg)
-    write_attribute("wall",JSON.generate(arg))
+    arg = JSON.generate(arg) if arg.is_a? Hash
+    write_attribute("wall",arg)
   end
 
   def wall_schema

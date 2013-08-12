@@ -155,6 +155,7 @@ class Barclamp < ActiveRecord::Base
       prerequisites = role['requires'] || []
       flags = role['flags'] || []
       description = role['descripion'] || "imported by #{barclamp.name}"
+      template = File.join barclamp.source_path, role_jig, 'roles', role_name, 'role-template.json'
       # roles data import
       ## TODO: Verify that adding the roles will not result in circular role dependencies.
       Role.transaction do
@@ -162,8 +163,7 @@ class Barclamp < ActiveRecord::Base
         r.update_attributes(:jig_name=>role_jig,
                         :description=>description,
                         :barclamp_id=>barclamp.id,
-                        :node_template=>(IO.read(node_template) rescue "{}"),
-                        :role_template=>(IO.read(role_template) rescue "{}"),
+                        :template=>(IO.read(template) rescue "{\"template\":\"none\"}"),
                         :library=>flags.include?('library'),
                         :implicit=>flags.include?('implicit'),
                         :bootstrap=>flags.include?('bootstrap'),

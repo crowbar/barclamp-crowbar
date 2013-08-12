@@ -12,8 +12,9 @@
 
 
 = form_for :node_role, :'data-remote' => true, :url => node_role_path(:id=>@node_role), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
-  %p{:style => 'float:right'}
-    %input.button{:type => "submit", :name => "save", :value => t('.save')}
+  - if @node_role.proposed?
+    %p{:style => 'float:right'}
+      %input.button{:type => "submit", :name => "save", :value => t('.save')}
   %h3= t '.data'
   - begin
     - if params.include? :raw

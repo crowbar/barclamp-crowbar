@@ -187,6 +187,9 @@ en:
       downstream: "Downstream Node Roles (blocking)"
       save: "Save"
       saved: "Node Role Data Saved"
+    raw:
+      merged: "Merged with Template"
+      override: "Raw Data / Override"
   roles:
     common: &roles_common
       flags: "Flags"

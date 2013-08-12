@@ -1,4 +1,4 @@
-##  Build your own Crowbar ISO for Hadoop or OpenStack
+##  Build your own Crowbar ISO
 
 Building Crowbar is not an activity intended for users. If you simply want to download an ISO to either deploy Hadoop or OpenStack, I suggest you get one of our [pre-compiled ISOs](http://crowbar.github.io/download/).
 
@@ -8,7 +8,6 @@ Unlike many projects Crowbar spans many repositories, which almost all the time 
 In order to more easily manage this, we've created [a tool called the Dev Tool](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow), which makes some of these common tasks easier.
 
 **Note:** This page documents how to use the Dev Tool to create a Crowbar ISO.  For more detailed documentation specifically on how to use the tool for regular development, how to submit pull-requests, how releases are defined, please refer to the [README.dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow).
-
 
 ### Pre-Requisites:
 
@@ -45,7 +44,7 @@ During the build process the Dev Tool has to perform certain tasks which require
     build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev
 
     # let's install some needed gems next
-    sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
+    sudo gem install json net-http-digest_auth kwalify bundler delayed_job rake rcov rspec --no-ri --no-rdoc
 
     # For CROWBAR 2 ONLY!  switch to Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
     sudo update-alternatives --config ruby (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)

@@ -164,10 +164,14 @@ class NodeRole < ActiveRecord::Base
     "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
-  def data
-    d = read_attribute("data")
-    return {} if d.nil? || d.empty?
-    JSON.parse(d) 
+  def deployment_role
+    DeploymentRole.snapshot_and_role(snapshot,role).first
+  end
+
+  def data(merge=true)
+    raw = read_attribute("data") 
+    d = raw.nil? ? {} : JSON.parse(raw)  
+    merge ? deployment_role.data.deep_merge(d) : d
   end
 
   def data=(arg)

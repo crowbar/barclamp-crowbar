@@ -259,6 +259,7 @@ gems:
     - cancan
     - coveralls
     - database_cleaner
+    - delayed_job
     - devise
     - email_spec
     - formtastic

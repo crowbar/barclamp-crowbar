@@ -1026,7 +1026,7 @@ class ServiceObject
             unless badones.empty?
               message = "Failed to apply the proposal to: "
               badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
+                message = message + "#{pids[baddie[0]]} \n"+ get_log_lines("#{pids[baddie[0]]}", 15)
               end
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
@@ -1061,7 +1061,7 @@ class ServiceObject
             unless badones.empty?
               message = "Failed to apply the proposal to: "
               badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
+                message = message + "#{pids[baddie[0]]} \n "+ get_log_lines("#{pids[baddie[0]]}", 15)
               end
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
@@ -1223,6 +1223,14 @@ class ServiceObject
     }
   end
 
-
+  def get_log_lines(pid, lines)
+    logfile = "/var/log/crowbar/chef-client/#{pid}.log"
+    log_tail = `tail -n #{lines} #{logfile}`
+    if $?.success?
+      "Most recent logged lines from the Chef run: \n" + log_tail
+    else
+      "ERROR: Couldn't read #{logfile}"
+    end
+  end
 end
 

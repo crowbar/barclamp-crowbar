@@ -18,7 +18,6 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.belongs_to  :snapshot,          :null=>false
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
-      t.belongs_to  :turn,              :null=>true
       t.integer     :state,             :null=>false, :default => NodeRole::PROPOSED
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
       t.string      :data,              :null=>true
@@ -28,7 +27,6 @@ class CreateNodeRoles < ActiveRecord::Migration
     end
     #natural key 
     add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)   
-    add_index(:node_roles, [:turn_id], :unique => false)   
   end
 
   create_table :node_role_pcms, :id => false do |t|

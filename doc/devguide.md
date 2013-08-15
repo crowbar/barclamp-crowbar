@@ -12,6 +12,9 @@ will follow the outline below.
     * what is crowbar 
     * barclamps
     * jigs
+	* Jig: “writing and integrating upstream cookbooks & modules”
+    * Crowbar's state machine , the Annealer
+	* Deployments, Nodes, Roles & the Annealer
     * crowbar builds / releases
     * ui 
     * web framework / rails 
@@ -27,7 +30,7 @@ will follow the outline below.
     * build process overview
         * how to build an ISO from existing code
 
-    * development workflow 
+    * community development workflow 
         branches, pull requests, etc
     * devtool-build.md 
     * dev-vm-Fedora
@@ -39,7 +42,9 @@ will follow the outline below.
     * coding conventions 
     * how to write a new barclamp
     * packaging and installation
+    * “how to build packages” – I thought packages was our primary output for CB2.0, not ISOs – allowing continuous deployment of crowbar itself.
 
+* using crowbar for continuous deployment 
 * testing and continuous integration
 
 * documentation system

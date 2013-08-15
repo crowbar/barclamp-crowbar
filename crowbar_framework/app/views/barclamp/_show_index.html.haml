@@ -10,7 +10,7 @@
         - else
           - barclamp[:proposals].sort.each do |proposal_name, proposal|
             .led{:id => "#{name.parameterize}_#{proposal_name}", :class => proposal[:status], :style => "float:left", :title=>"#{proposal_name.titlecase} - #{t 'proposal.status.'+proposal[:status]}"}
-      %td= "#{barclamp[:description].capitalize}"
+      %td= "#{barclamp[:description]}"
 
       %tr{:class => current_cycle("barclamps"), :style => "display:#{params[:id]==name or barclamp[:expand] ? 'float' : 'none'}", :id => "#{name.parameterize}_details"}
         %td.container{:colspan => "3"}
@@ -30,7 +30,7 @@
                           = link_to proposal_name.titlecase, proposal_barclamp_path(:controller=>name, :id=>proposal_name)
                       %td
                         - unless proposal[:status] === 'failed'
-                          = proposal[:description].capitalize
+                          = proposal[:description]
                         - else
                           = "#{t('.failed')} - #{proposal[:message]}"
                       %td

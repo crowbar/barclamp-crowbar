@@ -183,6 +183,9 @@ class NodesController < ApplicationController
         count[node.status] = count[node.status] + 1
         groups[node.group || I18n.t('unknown') ] = count
         sum = sum + node.name.hash
+        Rails.logger.info "xxxxxxxxxxxxxxxxxX   groups[node.group || I18n.t('unknown') ]: #{groups[node.group || I18n.t('unknown') ].inspect}"
+        Rails.logger.info "xxxxxxxxxxxxxxxxxX   node.status: #{node.status}"
+        
       end
       render :inline => {:sum => sum, :nodes=>nodes, :groups=>groups, :count=>nodes.length}.to_json, :cache => false
     rescue Exception=>e

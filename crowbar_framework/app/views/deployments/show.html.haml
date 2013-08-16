@@ -14,12 +14,18 @@
       = t 'error'
   = @deployment.name
 
-%table
-  %td
-    .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
-  %td= @deployment.description
+%table.plain
+  %tr
+    %td
+      .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+    %td= @deployment.description
 
-%h2= t '.roles'
+= form_for :deployment, :'data-remote' => true, :url => deployment_roles_path(:deployment_id=>@deployment.id), :html => { :method=>:post, :'data-type' => 'html',  :class => "formtastic" } do |f|
+  %p{:style=>'float:right'}
+    = f.collection_select :roles, @deployment.available_roles, :id, :name
+    %input.button{:type => "submit", :name => "add", :value => t('.add_role')}
+  %h2= t '.roles'
+
 = render :partial => 'roles/index', :locals => { :list => @deployment.head.roles, :jig_name => nil }
 
 %h2= t '.snapshots'

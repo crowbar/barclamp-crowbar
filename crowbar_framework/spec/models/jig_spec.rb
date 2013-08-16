@@ -24,8 +24,7 @@ describe "jig proposal manipulation" do
 
   context "test deployment with 2 nodes" do
 
-    let(:active)   { deployment.active}
-    let(:proposal) { deployment.proposal}
+    let(:active)   { deployment.head}
 
     before(:all) {            
       # add node

@@ -1004,7 +1004,6 @@ class ServiceObject
         unless snodes.empty?
           snodes.each do |node|
             nobj = NodeObject.find_node_by_name(node)
-            @logger.debug("aaa: node platform: #{nobj[:platform]}")
             unless nobj[:platform] == "windows"
               filename = "log/#{node}.chef_client.log"
               pid = run_remote_chef_client(node, "chef-client", filename)

@@ -24,6 +24,7 @@ Crowbar::Application.routes.draw do
   resources :deployments do
     get :head
     get :next
+    resources :roles
   end
   resources :deployment_roles
   resources :docs

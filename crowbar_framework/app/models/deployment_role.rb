@@ -39,7 +39,7 @@ class DeploymentRole < ActiveRecord::Base
 
   def data
     d = read_attribute("data")
-    JSON.parse(d)
+    d.nil? ? {} : JSON.parse(d)
   end
 
   def data=(arg)

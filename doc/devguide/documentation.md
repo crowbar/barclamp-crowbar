@@ -62,34 +62,3 @@ For example, a file named 333_sample_order.md would be ordered as 333.
 
 > If you omit order, the system defaults to 9999.
 
-##### Manual Index
-
-With the addition of automatic indexing, the number of pages manually indexed has dropped dramatically.  Manual indexing is still required if you want to control the order of page rendering or add additional meta data.
-
-Each level of the index can have meta data overrides, the meta data values are:
-
-* order - defaults to alpha if omitted.  Range is 0 to 999999, default is 9999
-* author - who edited this document last
-* license - the license the document is distributed under
-* date - last edit date
-* copyright - copyright requirements for the document
-* url - link to part of Crowbar this information relates to
-
-An example index file looks like this:
-
-    # these are the default meta_data values
-    license: Apache 2
-    copyright: 2012 by Dell, Inc
-    author: Dell CloudEdge Team
-    date: July 29, 2012
-    crowbar/userguide:
-      order: 1000
-      crowbar/ui-general:
-        order: 10
-        - crowbar+ui-nodes
-      crowbar/ui-utilities:
-        order: 100
-        url: '/utils'
-        crowbar/utils-export:
-          url: '/utils/index'
-          

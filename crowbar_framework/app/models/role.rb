@@ -42,6 +42,7 @@ class Role < ActiveRecord::Base
   scope           :implicit,           -> { where(:implicit=>true) }
   scope           :discovery,          -> { where(:discovery=>true) }
   scope           :bootstrap,          -> { where(:bootstrap=>true) }
+  scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
   # Magic to provide a mechanism for letting barclamps provide specific role behaviour.
   # This will mostly be used to implement the on_* helpers in a not-totally-insane way.

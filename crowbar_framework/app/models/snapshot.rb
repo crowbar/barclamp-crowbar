@@ -58,6 +58,7 @@ class Snapshot < ActiveRecord::Base
   end
    
   # review all the nodes for the nameshot and figure out an aggregated state
+  # options for snapshots are ACTIVE, PROPOSED and TODO
   def state
     state_map = Hash.new
     node_roles.each { |nr| state_map[nr.state] ||= true }

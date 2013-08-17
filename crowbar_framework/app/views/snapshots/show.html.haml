@@ -3,19 +3,18 @@
   %tr
     %td
       %h1
-      = @snapshot.name
-      - case state
-        - when NodeRole::TODO 
-          = t '.committed'
-        - when NodeRole::PROPOSED
-          = t '.proposed'
-        - when NodeRole::ACTIVE
-          = t '.active'
-        - when NodeRole::ERROR
-          = t 'error'
+        = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
+        = @snapshot.name
+        - case state
+          - when NodeRole::TODO 
+            = t '.committed'
+          - when NodeRole::PROPOSED
+            = t '.proposed'
+          - when NodeRole::ACTIVE
+            = t '.active'
+          - when NodeRole::ERROR
+            = t 'error'
     %td{:align => 'right'}
-      - if @snapshot.committed?
-        = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button'
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
 %table.data.box
@@ -33,4 +32,4 @@
             - nr = @node_roles[nid][rid] rescue nil
             - unless nr.nil?
               .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.state_name}
-                = link_to "[__]", node_role_path(nr.id)
+                = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)

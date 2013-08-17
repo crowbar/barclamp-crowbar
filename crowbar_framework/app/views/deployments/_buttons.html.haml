@@ -2,6 +2,7 @@
   - when NodeRole::PROPOSED
     = link_to t('.commit'), snapshot_commit_path(snapshot.id, :version=>2), :class => 'button'
   - when NodeRole::TODO
+    = link_to t('.anneal'), snapshot_anneal_path(snapshot.id, :step=>Rails.env.development?), :class => 'button'
     =  t('.recall')
   - when NodeRole::ACTIVE
     = form_for :snapshot, :'data-remote' => true, :url => snapshot_propose_path(:snapshot_id=>snapshot.id), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|

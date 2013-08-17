@@ -36,12 +36,30 @@ class NodeRolesController < ApplicationController
   end
 
   def create
-    unless Rails.env.development?
-      render  api_not_supported("post", "node_role")
-    else
-      r = NodeRole.create! params
-      render api_show :node_role, NodeRole, nil, nil, r 
+    # helpers to allow create by names instead of IDs
+    param[:snapshot_id] = Snapshot.find(:name=>params[:snapshot]).id if params.key? :snapshot
+    param[:node_id] = Node.find(:name=>params[:node]).id if params.key? :node
+    param[:role_id] = Role.find(:name=>params[:role]).id if params.key? :role
+    
+    # the main body of the work
+    snap = Snapshot.find_key params[:snapshot_id] 
+    # it matters what state we are in when we add the node role (we store it because it can be expensive to compute)
+    snapstate = snap.state 
+    # we cant add to an active snap, so create proposal if there isn't
+    if snapstate == NodeRole::ACTIVE 
+      proposal = snap.propose
+      params[:snapshot_id] = proposal.id
     end
+    r = NodeRole.create! params
+
+    # if we are committed then we need to add the node roles as TODO
+    # this must be done AFTER the node role is created because of the NR state machine
+    if snapstate == NodeRole::TODO
+      r.state = NodeRole::TODO
+      r.save
+    end
+
+    render api_show :node_role, NodeRole, nil, nil, r 
   end
 
   def update

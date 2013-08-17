@@ -1,7 +1,5 @@
 - state = @deployment.state
 
-%p{:style=>'float:right'}
-  = render :partial => 'buttons', :locals => { :state=>state, :snapshot=>@deployment.head }
 %h1
   - case state
     - when NodeRole::TODO 
@@ -14,19 +12,86 @@
       = t 'error'
   = @deployment.name
 
-%table.plain
+%table.plain{:width=>'100%'}
   %tr
     %td
       .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
     %td= @deployment.description
+    %td{:align=>'right'}
+      = render :partial => 'buttons', :locals => { :state=>state, :snapshot=>@deployment.head }
 
 = form_for :deployment, :'data-remote' => true, :url => deployment_roles_path(:deployment_id=>@deployment.id), :html => { :method=>:post, :'data-type' => 'html',  :class => "formtastic" } do |f|
-  %p{:style=>'float:right'}
-    = f.collection_select :roles, @deployment.available_roles, :id, :name
-    %input.button{:type => "submit", :name => "add", :value => t('.add_role')}
-  %h2= t '.roles'
+  - aroles = @deployment.available_roles
+  - if aroles.length > 0 
+    %p{:style=>'float:right'}
+      = f.collection_select :roles, aroles, :id, :name
+      %input.button{:type => "submit", :name => "add", :value => t('.add_role')}
+  %h2= t '.assign'
 
-= render :partial => 'roles/index', :locals => { :list => @deployment.head.roles, :jig_name => nil }
+.box.column_25.first
+  %h3= t '.nodes'
+  %ul#nodes.plain
+    - @deployment.available_nodes.each do |node|
+      %li{ :id=>node.id, :draggable=>'true'}
+        = node.name
+        = link_to image_tag('/images/icons/link.png'), nodes_path(node.id), :title=>node.description
+
+.box.column_66.last
+  %h3= t '.roles'
+  %ul#roles.plain
+    - @deployment.head.roles.each do |role|
+      %table
+        %tr
+          %td
+            %li.droptarget{ :id=>role.id}
+              = link_to role.name, deployment_role_path(@deployment.id, role.id)
+          - NodeRole.peers_by_role(@deployment.head, role).each do |nr|
+            %td
+              .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>"#{nr.node.name}: #{nr.state_name}"}
+                = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
 
 %h2= t '.snapshots'
 = render :partial => 'snapshots/index', :locals => { :list=>@deployment.snapshots }
+
+
+.clear
+
+:javascript
+  
+$(document).ready(function() {
+  
+  DragDropHelpers.fixVisualCues=true;
+
+  // set draggable attributes
+  $('ul#nodes li[draggable="true"]')
+    .bind('dragend', function( ev ) {
+      false;
+    })
+    .bind('dragstart', function( ev ) {
+      // console.debug("dragging node id#" + ev.target.id);
+      var dt = ev.originalEvent.dataTransfer;
+      dt.setData("node_id", ev.target.id);
+    });
+
+  // set droppable attributes
+  $('ul#roles li')
+    // Decide whether the thing dragged in is welcome.
+    .bind('dragover', function(ev) {
+        if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+        return false;
+    })
+
+    // Handle the final drop...
+    .bind('drop', function(ev) {
+      if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+      var node = ev.originalEvent.dataTransfer.getData("node_id");      
+      var role = ev.currentTarget.id;
+      console.debug("deployment id #{@deployment.id} drop node id "+node+" into role id "+role);
+      var postdata = { "snapshot_id":#{@deployment.head.id}, "node_id": node, "role_id":role };
+      console.debug("posting: "+postdata);
+      $.ajax({url:'/api/v2/node_roles', dataType:'json', data:postdata, type:"POST", 
+        statusCode: { 200: function(data) { location.href = '/deployments/#{@deployment.id}' }}
+      });
+    });
+ 
+};

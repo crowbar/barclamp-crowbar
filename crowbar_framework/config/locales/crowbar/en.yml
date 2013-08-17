@@ -142,14 +142,17 @@ en:
       <<: *deployment_common
     show:
       snapshots: "History"
+      assign: "Assign Nodes to Roles"
       roles: "Assigned Roles"
+      nodes: "Available Nodes"
       <<: *deployment_common
       add_role: "Add"
     buttons:
       commit: "Commit"
-      recall: "NOT IMPLEMENTED Recall"
+      recall: ">Recall<"
       propose: "Propose"
       correct: "Correct"
+      anneal: "Run Annealer"
   deployment_roles:
     index:
       title: "Deployment Roles"
@@ -181,7 +184,6 @@ en:
   node_roles:
     index:
       title: "Node Roles"
-      anneal: "Run Annealer"
       <<: *deployment_common
     show:
       data: "User Configuration Data (outbound)"
@@ -209,6 +211,8 @@ en:
       <<: *deployment_common
       <<: *roles_common
       upstream: "Upstream (prerequisite roles)"
+    names:
+      role: "Roles"
   snapshots:
     index:
       title: "Snapshots"

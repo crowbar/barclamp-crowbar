@@ -113,6 +113,13 @@ class Snapshot < ActiveRecord::Base
       newsnap.order += 1
       newsnap.name = name unless name.nil?
       newsnap.save!
+      # collect the deployment roles
+      self.deployment_roles.each do |dr|
+        new_dr = dr.dup
+        new_dr.snapshot = newsnap
+        new_dr.save!
+        newsnap.deployment_roles << new_dr
+      end
       # collect the node roles
       node_role_map = Hash.new
       self.node_roles.each do |nr| 
@@ -134,13 +141,6 @@ class Snapshot < ActiveRecord::Base
         end
         new_nr.snapshot = newsnap
         new_nr.save!
-      end
-      # collect the deployment roles
-      self.deployment_roles.each do |dr|
-        new_dr = dr.dup
-        new_dr.snapshot = newsnap
-        new_dr.save!
-        newsnap.deployment_roles << new_dr
       end
       newsnap.save!
       newsnap

@@ -53,24 +53,6 @@ class Deployment < ActiveRecord::Base
     head.state
   end
 
-  # return the relevant proposal for the deployment, if missing then create it
-  def proposal(snap=nil)
-    snap ||= head
-    raise "proposal should never be called for #{self.name}" if self.system?
-    s = state
-    if s == NodeRole::TODO
-      raise "cannot create proposal when Deployment is committed"
-    elsif s == NodeRole::ACTIVE
-      Deployment.transaction do 
-        new_snap = snap.deep_clone
-        new_snap.save!
-        self.snapshot_id = new_snap.id
-        self.save!
-      end
-    end
-    head(true)     # use true to ensure we get the latest
-  end
-
   # Helper to atomically recommit a currently active or committed snapshot.
   def recommit(&block)
     raise "Can only be called on a system deployment" unless system?
@@ -94,10 +76,20 @@ class Deployment < ActiveRecord::Base
     head.commit
   end
   
+  # is this a system deployment?
   def system?
     read_attribute("system")
   end
-  
+
+  # available roles to be added to deployment
+  def available_roles
+    candidates = Role.active
+    # except, don't include roles that we've already got
+    in_use = head.roles
+    candidates - in_use
+  end
+
+
   # Lookup the deployment_roles available for the deployment, use the Proposal then Active 
   def deployment_roles
     return proposed_snapshot.deployment_roles if proposed? 

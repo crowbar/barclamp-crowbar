@@ -144,6 +144,7 @@ en:
       snapshots: "History"
       roles: "Assigned Roles"
       <<: *deployment_common
+      add_role: "Add"
     buttons:
       commit: "Commit"
       recall: "NOT IMPLEMENTED Recall"
@@ -166,6 +167,8 @@ en:
       active: Active
       conn: Connection
       client: Client
+    show:
+      roles: "Roles"
   nodes:
     index:
       title: "Nodes"
@@ -187,11 +190,14 @@ en:
       downstream: "Downstream Node Roles (blocking)"
       save: "Save"
       saved: "Node Role Data Saved"
+    raw:
+      merged: "Merged with Template"
+      override: "Raw Data / Override"
   roles:
     common: &roles_common
       flags: "Flags"
       library: "Library"
-      implicit: "Implicity"
+      implicit: "Implicit"
       bootstrap: "Bootstrap"
       discovery: "Discovery"
       description: "Description"

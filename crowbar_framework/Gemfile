@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,10 +37,6 @@ group :development do
   gem "rails-erd"
 end
 
-# rcov supports only Ruby 1.8, while simplecov supports only Ruby 1.9. So
-# pick the right one based on the Ruby version. Simplify once 1.8 support is
-# dropped.
-gem 'rcov',      :platforms => :ruby_18, :group => [:development, :test]
 gem 'simplecov', :platforms => [:ruby_19,:ruby_20], :group => :test, :require => false
 gem 'coveralls', :platforms => [:ruby_19,:ruby_20], :group => :test, :require => false
 

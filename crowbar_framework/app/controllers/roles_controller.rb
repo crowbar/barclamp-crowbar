@@ -16,7 +16,12 @@
 class RolesController < ApplicationController
 
   def index
-    @list = Role.all
+    if params.include? :deployment_id
+      deployment = Deployment.find_key params[:deployment_id]
+      @list = deployment.head.roles
+    else
+      @list = Role.all
+    end
     respond_to do |format|
       format.html { }
       format.json { render api_index :role, @list }
@@ -31,11 +36,21 @@ class RolesController < ApplicationController
   end
 
   def create
-    unless Rails.env.development?
-      render  api_not_supported("post", "role")
+    if params.include? :deployment_id
+      deployment = Deployment.find_key params[:deployment_id]
+      role = Role.find_key params[:deployment][:roles].to_i 
+      role.add_to_snapshot deployment.head
+      respond_to do |format|
+        format.html { redirect_to deployment_path(deployment.id) }
+        format.json { render api_show :deployment, Deployment, nil, nil, deployment }
+      end
     else
-      r = Role.create! params
-      render api_show :role, Role, nil, nil, r 
+      unless Rails.env.development?
+        render api_not_supported("post", "role")
+      else
+        r = Role.create! params
+        render api_show :role, Role, nil, nil, r 
+      end
     end
   end
 

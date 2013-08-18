@@ -45,7 +45,7 @@ inspector() ->
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+  json:output([{"name",Name},{"description", Description}, {"order", Order}, {"role","test-client"}, {"node",node:g(node_atom)}, {"snapshot", "system"}]).
 
      
 % Common Routines

@@ -1,25 +1,21 @@
-%table.data.box
-  %thead
-    %tr
-      %th= t '.state'
-      %th= t '.deployment'
-      %th= t '.state'
-      %th= t '.snapshot'
-      %th= t '.description'
-  %tbody
-    -list.each do |i|
+- if list.length == 0
+  = t 'no_items'
+- else
+  %table.data.box
+    %thead
       %tr
-        %td
-          .led{:class => NodeRole::STATES[i.state || NodeRole::ERROR], :title=>NodeRole.state_name(i.state)}
-        %td= link_to i.deployment.name, deployment_path(i.deployment.id)
-        %td
-          - if i.proposed?
-            = t '.proposed' 
-          - elsif i.committed?
-            = t '.committed'
-          - elsif i.active?
-            = t '.active'
-          - else
-            = t '.unlinked' 
-        %td= link_to i.name, snapshot_path(:id=>i.id) 
-        %td= i.description
+        %th= t '.state'
+        %th= t '.deployment'
+        %th= t '.state'
+        %th= t '.snapshot'
+        %th= t '.description'
+    %tbody
+      - list.each do |i|
+        - state = i.state 
+        %tr
+          %td
+            .led{:class => NodeRole::STATES[state|| NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+          %td= link_to i.deployment.name, deployment_path(i.deployment.id)
+          %td= NodeRole.state_name(state)
+          %td= link_to i.name, snapshot_path(:id=>i.id) 
+          %td= i.description

@@ -16,7 +16,7 @@
 class SnapshotsController < ApplicationController
 
   def index
-    @list = Snapshot.all
+    @list = Snapshot.order("id DESC").all
     respond_to do |format|
       format.html { }
       format.json { render api_index :snapshot, @list }
@@ -74,10 +74,16 @@ class SnapshotsController < ApplicationController
   end
 
   def anneal
-    # run anneal (if stepping the skip when any nodes are in transistion)
     @snapshot = Snapshot.find_key params[:snapshot_id]
-    NodeRole.anneal! if (!params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0)
+    # run anneal in the background (if stepping the skip when any nodes are in transistion)    
+    if !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
+      job1 = fork do
+        %x[rails r NodeRole.anneal!] 
+      end
+      Process.detach(job1)
+    end
     @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION)
+
     respond_to do |format|
       format.html {  }
       format.json { render api_index :node_roles, @list }
@@ -100,6 +106,15 @@ class SnapshotsController < ApplicationController
       format.html { redirect_to snapshot_path(snap.id) }
       format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
     end
+  end
+
+  def recall
+    snap = Snapshot.find_key params[:snapshot_id]
+    snap.recall
+    respond_to do |format|
+      format.html { redirect_to snapshot_path(snap.id) }
+      format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
+    end      
   end
 
 end

@@ -1,16 +1,11 @@
 - state = @deployment.state
 
 %h1
-  - case state
-    - when NodeRole::TODO 
-      = t '.committed'
-    - when NodeRole::PROPOSED
-      = t '.proposed'
-    - when NodeRole::ACTIVE
-      = t '.active'
-    - else
-      = t 'error'
+  = NodeRole.state_name(state)
   = @deployment.name
+  = "("
+  = link_to @deployment.head.name, snapshot_path(@deployment.head.id)
+  = ")"
 
 %table.plain{:width=>'100%'}
   %tr
@@ -51,7 +46,7 @@
                 = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
 
 %h2= t '.snapshots'
-= render :partial => 'snapshots/index', :locals => { :list=>@deployment.snapshots }
+= render :partial => 'snapshots/index', :locals => { :list=>@deployment.snapshots.order("id DESC") }
 
 
 .clear

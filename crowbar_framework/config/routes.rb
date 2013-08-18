@@ -39,9 +39,10 @@ Crowbar::Application.routes.draw do
   resources :roles
   resources :snapshots do
     resources :node_roles
-    get :anneal
+    put :anneal
     put :propose
-    get :commit
+    put :commit
+    put :recall
   end
 
   # UI scope
@@ -126,10 +127,11 @@ Crowbar::Application.routes.draw do
           end
           resources :roles
           resources :snapshots do
-            get :anneal
             resources :node_roles
+            put :anneal
             put :propose
-            get :commit
+            put :commit
+            put :recall
           end
           resources :users do
             post "admin", :controller => "users", :action => "make_admin"

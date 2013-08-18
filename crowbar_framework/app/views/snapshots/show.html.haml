@@ -5,15 +5,7 @@
       %h1
         = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
         = @snapshot.name
-        - case state
-          - when NodeRole::TODO 
-            = t '.committed'
-          - when NodeRole::PROPOSED
-            = t '.proposed'
-          - when NodeRole::ACTIVE
-            = t '.active'
-          - when NodeRole::ERROR
-            = t 'error'
+        = NodeRole.state_name(state)
     %td{:align => 'right'}
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 

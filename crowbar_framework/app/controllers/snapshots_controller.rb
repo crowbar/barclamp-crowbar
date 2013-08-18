@@ -16,7 +16,7 @@
 class SnapshotsController < ApplicationController
 
   def index
-    @list = Snapshot.all
+    @list = Snapshot.order("id DESC").all
     respond_to do |format|
       format.html { }
       format.json { render api_index :snapshot, @list }
@@ -106,6 +106,15 @@ class SnapshotsController < ApplicationController
       format.html { redirect_to snapshot_path(snap.id) }
       format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
     end
+  end
+
+  def recall
+    snap = Snapshot.find_key params[:snapshot_id]
+    snap.recall
+    respond_to do |format|
+      format.html { redirect_to snapshot_path(snap.id) }
+      format.json { render api_show :snapshot, Snapshot, nil, nil, snap }
+    end      
   end
 
 end

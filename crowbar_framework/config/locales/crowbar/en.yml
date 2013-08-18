@@ -98,6 +98,9 @@ en:
       raise: "cannot commit a proposal unless there is no other currently in process"
     propose: 
       raise: "snapshot must be active or error to propose"
+  snapshot:
+    recall: "Interrupted_%{name}"
+    recall_status: "Snapshot recalled by user action"
 
   node_role:
     state: &node_role_states
@@ -149,7 +152,7 @@ en:
       add_role: "Add"
     buttons:
       commit: "Commit"
-      recall: ">Recall<"
+      recall: "Interrupt"
       propose: "Propose"
       correct: "Correct"
       anneal: "Run Annealer"

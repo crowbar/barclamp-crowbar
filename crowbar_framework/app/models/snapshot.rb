@@ -67,7 +67,13 @@ class Snapshot < ActiveRecord::Base
     when state_map[NodeRole::BLOCKED],
          state_map[NodeRole::TODO],
          state_map[NodeRole::TRANSITION]
-      NodeRole::TODO
+      if state_map[NodeRole::TRANSITION]
+        NodeRole::TRANSITION
+      elsif !state_map[NodeRole::TODO]
+        NodeRole::BLOCKED
+      else
+        NodeRole::TODO
+      end
     when state_map[NodeRole::PROPOSED] then NodeRole::PROPOSED
     else NodeRole::ACTIVE
     end
@@ -90,6 +96,7 @@ class Snapshot < ActiveRecord::Base
     self
   end
   
+  # create a new proposal from the this one
   def propose(name=nil)
     raise I18n.t('deployment.propose.raise') unless [NodeRole::ACTIVE, NodeRole::ERROR].include? state
     proposal = nil
@@ -101,6 +108,27 @@ class Snapshot < ActiveRecord::Base
       deployment.save!
     end
     proposal
+  end
+
+  # attempt to stop a proposal that's in transistion by changing it's node_roles back to proposed
+  def recall
+    # first, we're going to create a new snapshot
+    newsnap = self.deep_clone
+    Snapshot.transaction do
+      # then we block all the TODO items to prevent the annealer from moving forward
+      self.node_roles.each do |nr|
+        if nr.state == NodeRole::TODO
+          nr.state = NodeRole::BLOCKED
+          nr.status = I18n.t('recall_status', :scope=>'snapshot') 
+          # we may need to remove all the node-role HABTM entries, but that seeems extreme right now
+        end
+      end
+      self.name = I18n.t('recall', :name=>self.name, :scope=>'snapshot')
+      self.save
+      self.deployment.snapshot_id = newsnap.id
+      self.deployment.save
+    end
+    newsnap
   end
 
   ##

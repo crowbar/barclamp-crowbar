@@ -34,7 +34,7 @@ class Snapshot < ActiveRecord::Base
   end
 
   def committed? 
-    state == NodeRole::TODO
+    [NodeRole::TODO, NodeRole::TRANSITION, NodeRole::BLOCKED].include? state
   end
   
   def proposed?

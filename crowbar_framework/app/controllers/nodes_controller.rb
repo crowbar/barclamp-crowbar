@@ -161,7 +161,7 @@ class NodesController < ApplicationController
       end
       @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
-    @options[:target] = {"Windows Server 2012" => "windows-6.2", default_os => default_os}
+    @options[:target] = {"Windows Server 2012" => "windows-6.2", "Hyper-V Server 2012" => "hyperv-6.2", default_os => default_os}
   end
 
   def families
@@ -324,6 +324,8 @@ class NodesController < ApplicationController
       if !request.fullpath.include? "edit"
         if @node.target_platform == "windows-6.2"
              @node.target_platform = "Windows Server 2012"
+        elsif @node.target_platform == "hyperv-6.2"
+             @node.target_platform = "Hyper-V Server 2012"
         end
       elsif !defined?(default_os) or default_os == ""
           default_os = ""
@@ -337,7 +339,7 @@ class NodesController < ApplicationController
              @node.target_platform = default_os
              @node.save
           end
-          @options[:target] = {"Windows Server 2012" => "windows-6.2", default_os => default_os}
+          @options[:target] = {"Windows Server 2012" => "windows-6.2", "Hyper-V Server 2012" => "hyperv-6.2", default_os => default_os}
       end
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)

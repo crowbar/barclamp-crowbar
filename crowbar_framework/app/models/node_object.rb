@@ -55,7 +55,7 @@ class NodeObject < ChefObject
   end
 
   def self.find_node_by_alias(name)
-    nodes = if CHEF_ONLINE 
+    nodes = if CHEF_ONLINE
       self.find "crowbar_display_alias:#{chef_escape(name)}"
     else
       nodes = self.find_all_nodes.keep_if { |n| n.alias==name }
@@ -185,8 +185,8 @@ class NodeObject < ChefObject
   def handle
     begin name.split('.')[0] rescue name end
   end
-  
-  def alias(suggest=false) 
+
+  def alias(suggest=false)
     if display_set? 'alias'
       display['alias']
     else
@@ -203,12 +203,12 @@ class NodeObject < ChefObject
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
       raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
-    elsif value.length+ChefObject.cloud_domain.length>255  
+    elsif value.length+ChefObject.cloud_domain.length>255
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit"
       raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     else
       # don't allow duplicate alias
-      node = NodeObject.find_node_by_alias value 
+      node = NodeObject.find_node_by_alias value
       if node and !node.handle.eql?(handle)
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('duplicate_alias', :scope=>'model.node') + ": " + node.name
@@ -270,7 +270,7 @@ class NodeObject < ChefObject
     set_display "description", value
     @role.description = chef_description
   end
-  
+
   def status
     # if you add new states then you MUST expand the PIE chart on the nodes index page
     subState = !state.nil? ? state.split[0].downcase : ""
@@ -366,7 +366,7 @@ class NodeObject < ChefObject
   def nics
     @node["crowbar_ohai"]["detected"]["network"].length rescue 0
   end
-  
+
   def memory
     @node['memory']['total'] rescue nil
   end
@@ -411,7 +411,7 @@ class NodeObject < ChefObject
     # On windows platform there is no block_device chef entry.
     if defined?(@node[:block_device]) and !@node[:block_device].nil?
       @node[:block_device].find_all do |disk,data|
-        disk =~ /^[hsv]d/ && data[:removable] == "0"
+        disk =~ /^([hsv]d|cciss)/ && data[:removable] == "0"
       end.length
     else
       -1
@@ -421,7 +421,7 @@ class NodeObject < ChefObject
   def physical_drives
     number_of_drives
   end
-  
+
   def [](attrib)
     return nil if @node.nil?
     @node[attrib]
@@ -489,7 +489,7 @@ class NodeObject < ChefObject
     return false if @role.nil?
     begin
       crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
-      return crowbar["run_list_map"][role_name]["priority"] != -1001 if crowbar["run_list_map"][role_name] 
+      return crowbar["run_list_map"][role_name]["priority"] != -1001 if crowbar["run_list_map"][role_name]
       @node.role?(role_name)
     rescue
       return false
@@ -811,7 +811,7 @@ class NodeObject < ChefObject
   def display_set?(type)
     !display[type].nil? and !display[type].empty?
   end
-  
+
   def switch
     if switch_name.nil?
       self.handle[0..8]
@@ -821,7 +821,7 @@ class NodeObject < ChefObject
       "#{switch_name}:#{switch_unit}"
     end
   end
-  
+
   # logical grouping for node to align with other nodes
   def group(suggest=false)
     g = if display_set? 'group'
@@ -834,7 +834,7 @@ class NodeObject < ChefObject
     # if not set, use calculated value
     (g.nil? ? "sw-#{switch}" : g)
   end
-  
+
   def group=(value)
     set_display "group", value
   end
@@ -848,7 +848,7 @@ class NodeObject < ChefObject
         switch_name + "%05d" % switch_unit.to_i + "%05d" % switch_port.to_i
       end
     rescue
-       self.alias 
+       self.alias
     end
   end
 
@@ -989,9 +989,9 @@ class NodeObject < ChefObject
   def export
     NodeObject.dump @node, 'node', name
   end
-  
-  private 
-  
+
+  private
+
   # this is used by the alias/description code split
   def chef_description
     "#{self.alias}: #{self.description}"
@@ -1004,13 +1004,13 @@ class NodeObject < ChefObject
       crowbar["crowbar"]["display"]
     end
   end
-  
+
   def set_display(attrib, value)
-    crowbar["crowbar"] = { "display"=>{} } if crowbar["crowbar"].nil? 
+    crowbar["crowbar"] = { "display"=>{} } if crowbar["crowbar"].nil?
     crowbar["crowbar"]["display"] = {} if crowbar["crowbar"]["display"].nil?
     crowbar["crowbar"]["display"][attrib] = (value || "").strip
   end
-  
+
   def default_loader
     f = File.join 'db','node_description.yml'
     begin

@@ -24,10 +24,12 @@
     = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
     = dl_item(t('model.attributes.node.cpu'), @node.cpu)
     = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
+    - number_of_drives = @node.number_of_drives
+    - number_of_drives = t('unknown') if number_of_drives < 0
     -if options[:show].include? :raid
-      = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
+      = dl_item(t('model.attributes.node.number_of_drives'), "#{number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
     -else
-      = dl_item(t('model.attributes.node.number_of_drives'), "#{@node.number_of_drives}")
+      = dl_item(t('model.attributes.node.number_of_drives'), "#{number_of_drives}")
     = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
     - if @node.switch_unit.nil?
       = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
@@ -65,7 +67,7 @@
   - unless @node.admin?
     -if options[:show].include? :bios or options[:show].include? :raid
       %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_hw_update'), :title => t('.hw_update_tooltip')
-    %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
     - if @node.allocated?
+      %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
       %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
     %li= link_to "Forget", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_forget'), :title => t('.forget_tooltip')

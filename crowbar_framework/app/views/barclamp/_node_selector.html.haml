@@ -158,8 +158,10 @@ $(document).ready(function() {
           }
           if (!valid) break;
         }
-        if (!valid) { i18n_msg("constraint_attribute", name, list, "is not supported"); }
-        return valid;
+        if (!valid) {
+          i18n_msg("constraint_attribute", name, list, "is not supported");
+          return false;
+        }
       }
       // block admin from being used
       if (limits[list].admin==undefined || !limits[list].admin) {

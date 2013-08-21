@@ -587,7 +587,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, role_name, false)
+      answer = apply_role(role, inst, false)
       role.destroy
       answer
     end

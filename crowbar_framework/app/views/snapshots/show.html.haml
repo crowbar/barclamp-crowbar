@@ -1,6 +1,8 @@
 - state = @snapshot.state
 %table{:width=>'100%'}
   %tr
+    %td 
+      .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
     %td
       %h1
         = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
@@ -25,3 +27,12 @@
             - unless nr.nil?
               .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.state_name}
                 = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
+
+.clear
+
+:javascript
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    location.reload();
+  }

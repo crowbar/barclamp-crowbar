@@ -29,7 +29,7 @@
     - @deployment.available_nodes.each do |node|
       %li{ :id=>node.id, :draggable=>'true'}
         = node.name
-        = link_to image_tag('/images/icons/link.png'), nodes_path(node.id), :title=>node.description
+        = link_to image_tag('/images/icons/link.png'), node_path(node.id), :title=>node.description
 
 .box.column_66.last
   %h3= t '.roles'

@@ -195,12 +195,14 @@ class Node < ActiveRecord::Base
   def discovery
     d = read_attribute("discovery")
     return {} if d.nil? || d.empty?
-    JSON.parse(d)
+    JSON.parse(d) rescue {}
   end
 
   def discovery=(arg)
-    write_attribute("discovery",JSON.generate(arg))
-    save!
+    arg = JSON.parse(arg) unless arg.is_a? Hash
+    data = discovery.merge arg
+    write_attribute("discovery",JSON.generate(data))
+    data
   end
 
   private

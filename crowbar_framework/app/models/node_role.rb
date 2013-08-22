@@ -267,7 +267,7 @@ class NodeRole < ActiveRecord::Base
       case val
       when ERROR
         # We can only go to ERROR from TRANSITION
-        unless cstate == TRANSITION
+        unless cstate == TRANSITION 
           raise InvalidTransition.new(self,cstate,val)
         end
         write_attribute("state",val)

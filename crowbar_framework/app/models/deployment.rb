@@ -31,7 +31,7 @@ class Deployment < ActiveRecord::Base
   has_many          :snapshots,           :inverse_of => :deployment, :dependent => :destroy
   has_one           :snapshot,            :class_name => "Snapshot", :primary_key => "snapshot_id", :foreign_key => 'id'
   alias_attribute   :head,                :snapshot
-  
+
   belongs_to        :parent,              :class_name => "Deployment", :primary_key => "parent_id"
 
   scope             :system,              -> { where(:system=>true) }
@@ -89,27 +89,16 @@ class Deployment < ActiveRecord::Base
     candidates - in_use
   end
 
-
-  # Lookup the deployment_roles available for the deployment, use the Proposal then Active 
-  def deployment_roles
-    return proposed_snapshot.deployment_roles if proposed? 
-    return active_snapshot.deployment_roles if active?
-    []
+  # available nodes that could be used in the deployment
+  def available_nodes
+    candidates = Node.all
+    # add some good logic here!
+    candidates
   end
 
   # Lookup the roles available for the deployment, use the Proposal then Active 
   def roles
-    return proposed_snapshot.roles if proposed? 
-    return active_snapshot.roles if active?
-    []
-  end
-
-  # Add a role to a snapshot by creating the needed DeploymentRole
-  # Returns a Role
-  def add_role(role_name)
-    p = proposal
-    r = Role.find_by_name role_name
-    DeploymentRole.create :role_id=>r.id, :snapshot_id=>p.id
+    head.roles
   end
 
 end

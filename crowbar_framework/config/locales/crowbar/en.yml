@@ -227,6 +227,7 @@ en:
     anneal:
       title: "annealing activity"
       anneal: "Run Annealer"
+      annealling: "Annealer Started by User Action"
       <<: *deployment_common      
       <<: *node_role_states
   support:

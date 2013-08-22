@@ -64,6 +64,17 @@ class NodeRolesController < ApplicationController
 
   def update
     @node_role = NodeRole.find_key params[:id]
+    # we can build the data from the input
+    if params.key? :dataprefix
+      params[:data] ||= {}
+      params.each do |k,v|
+        if k.start_with? params[:dataprefix]
+          key = k.sub(params[:dataprefix],"")
+          params[:data][key] = v
+        end
+      end
+    end
+    # if you've been passed data then save it
     unless params[:data].nil?
       @node_role.data = params[:data]
       @node_role.save!

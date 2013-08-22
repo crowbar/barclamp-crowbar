@@ -39,7 +39,7 @@ Crowbar::Application.routes.draw do
   resources :roles
   resources :snapshots do
     resources :node_roles
-    put :anneal
+    match :anneal
     put :propose
     put :commit
     put :recall

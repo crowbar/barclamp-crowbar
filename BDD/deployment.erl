@@ -32,9 +32,10 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "deployment",
-      bdd_utils:is_a(J, length, 9),
+      bdd_utils:is_a(J, length, 8),
       bdd_utils:is_a(J, boolean, system),
       bdd_utils:is_a(J, dbid, snapshot_id),
+      bdd_utils:is_a(J, dbid, parent_id),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R);
 validate(JSON) -> 
@@ -56,7 +57,7 @@ inspector(Deployment) ->
 % Common Routine
 % Creates JSON used for POST/PUT requests
 json(Name, Description, Order) ->
-  json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+  crowbar:json([{name, Name}, {description, Description}, {order, Order}]).
 
 % TEMPORARY REMAPPING
 % -include("bdd.hrl").

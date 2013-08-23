@@ -19,7 +19,7 @@ class CreateDeployments < ActiveRecord::Migration
       t.string      :description,                 :null=>true
       t.boolean     :system,                      :null=>false, :default=>false
       t.references  :snapshot,                    :null=>true
-      t.references  :parent, :deployment
+      t.references  :parent
       t.timestamps
     end
     #natural key

@@ -29,9 +29,5 @@ begin
     # Make it a system deployment
     d.send(:write_attribute,"system",true)
     d.save!
-    snap = Snapshot.create(:deployment_id=>d.id, :name => d.name, :description => d.description)
-    snap.save!
-    d.snapshot_id = snap.id
-    d.save!
   end
 end

@@ -31,9 +31,10 @@ class DeploymentsController < ApplicationController
   end
 
   def create
+    @deployment = Deployment.create! params
     respond_to do |format|
-      format.html {  }
-      format.json { render api_show :deployment, Deployment, nil, nil, deploy }
+      format.html { redirect_to deployment_path(@deployment.id)}
+      format.json { render api_show :deployment, Deployment, @deployment.id.to_s, nil, @deployment }
     end
   end
 

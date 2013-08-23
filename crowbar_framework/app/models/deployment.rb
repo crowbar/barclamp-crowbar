@@ -14,27 +14,27 @@
 #
 
 ############
-# A 'deployment' of a barclamp represents a deployed (or deployable) cluster of roles 
-#
 # 'snapshots' is the history relation. It contains all historical deployments.
 # snapshot (or head) is the currently active proposal snapshot (or queued or committing)
 #
 
 class Deployment < ActiveRecord::Base
   
+  after_create   :add_initial_snapshop
+  before_create  :set_parent
 
-  attr_accessible :name, :description, :barclamp_id, :snapshot_id
+  attr_accessible :name, :description, :parent_id
 
   validates_uniqueness_of   :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of       :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
   
-  has_many          :snapshots,           :inverse_of => :deployment, :dependent => :destroy
-  has_one           :snapshot,            :class_name => "Snapshot", :primary_key => "snapshot_id", :foreign_key => 'id'
+  has_many          :snapshots,           :dependent => :destroy
+  has_one           :snapshot,            :class_name => "Snapshot", :primary_key => "snapshot_id", :foreign_key => 'id', :dependent => :destroy
   alias_attribute   :head,                :snapshot
 
   belongs_to        :parent,              :class_name => "Deployment", :primary_key => "parent_id"
 
-  scope             :system,              -> { where(:system=>true) }
+  scope             :system_root,         -> { where(:system=>true) }   # cannot be named 'system' because of internal method name conflicts
 
   # active includes nothing being committed
   def active?
@@ -99,6 +99,19 @@ class Deployment < ActiveRecord::Base
   # Lookup the roles available for the deployment, use the Proposal then Active 
   def roles
     head.roles
+  end
+
+  private
+
+  def set_parent
+    self.parent_id ||= (Deployment.system_root.first.id rescue nil)
+  end
+
+  # all deployments must have a snapshot
+  def add_initial_snapshop
+    s = Snapshot.create! :name=>self.name, :deployment_id=>self.id
+    self.snapshot_id = s.id
+    self.save!
   end
 
 end

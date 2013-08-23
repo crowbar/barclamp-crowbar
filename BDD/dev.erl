@@ -39,6 +39,7 @@ pop(ConfigRaw)  ->
   Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Admin, g(node_atom)),
   % rest of the nodes
+  [ add_deployment(D) || D <- buildlist(Build, deployments) ],
   [ add_node(N) || N <- buildlist(Build, nodes) ],
   bdd_utils:config_unset(global_setup),
   bdd_utils:config_set(inspect, true),
@@ -59,8 +60,14 @@ remove(Atom) ->
   bdd_crud:delete(Atom).
 
 add_node({Atom, Name, Description, Order, Group}) ->
-  JSON = node:json(Name, Description, Order),
+  JSON = crowbar:json([{name, Name}, {description, Description}, {order, Order}, {group, Group}]),
   Path = bdd_restrat:alias(node, g, [path]),
   [_R, O] = bdd_crud:create(Path, JSON, Atom),
   bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, O#obj.id, Name, Group]).
+
+add_deployment({Atom, Name, Extras }) ->
+  JSON = crowbar:json([{name, Name} | Extras]),
+  Path = bdd_restrat:alias(deployment, g, [path]),
+  [_R, O] = bdd_crud:create(Path, JSON, Atom),
+  bdd_utils:log(info, "Created Deployment ~p=~p named ~p", [Atom, O#obj.id, Name]).
 

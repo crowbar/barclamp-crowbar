@@ -19,7 +19,12 @@
 -import(digest_auth).
 -include("bdd.hrl").
 
-g(Item)         -> crowbar:g(Item).
+g(Item)         -> 
+  case Item of
+    node_name -> "sim.cr0wbar.com";
+    node_atom -> "sim_admin";
+    _ -> crowbar:g(Item)
+  end.
 
 % create a base system
 pop()           -> pop(default).
@@ -27,10 +32,12 @@ pop(ConfigRaw)  ->
   bdd:start(ConfigRaw),
   bdd_utils:config_set(global_setup, dev),
   bdd_utils:config_set(inspect, false),
+  % safety setup 
+  bdd_crud:delete(node:g(path), crowbar:g(node_name)),
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
   % admin node
   Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {admin, "true"}]),
-  R = bdd_crud:create(node:g(path), Admin, g(node_atom)),
+  bdd_crud:create(node:g(path), Admin, g(node_atom)),
   % rest of the nodes
   [ add_node(N) || N <- buildlist(Build, nodes) ],
   bdd_utils:config_unset(global_setup),

@@ -167,7 +167,7 @@ step(Results, {step_then, _N, ["there is a key",Key]}) ->
                                                                 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
-  Obj = get_object(eurl:get(Results)),
+  Obj = eurl:get_result(Results, obj),
   bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#obj.data]),
   Value =:= json:value(Obj#obj.data, Key);
 

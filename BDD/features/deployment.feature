@@ -22,6 +22,12 @@ Feature: Deployments
     When I click on the {lookup:deployment.d_name} link
     Then I should see "bravo_delta Active"
 
+  Scenario: The system deployment has the system flag true
+    When REST gets the {object:deployment} "system"
+    Then key "system" should be "true"
+      And key "name" should be "system"
+      And key "parent_id" should be "null"
+
   Scenario: Can create new deployment from API
     Given there is not a {object:deployment} "bdd_deploy_test"
     When REST creates the {object:deployment} "bdd_deploy_test"

@@ -22,3 +22,9 @@ Feature: Deployments
     Given I am on the "deployments" page
     When I click on the "Active system" link
     Then I should see "system"
+
+  Scenario: Can create new deployment from API
+    Given there is not a {object:deployment} "bdd_deploy_test"
+    When REST creates the {object:deployment} "bdd_deploy_test"
+    Then there is a {object:deployment} "bdd_deploy_test"
+    Finally REST removes the {object:deployment} "bdd_deploy_test"

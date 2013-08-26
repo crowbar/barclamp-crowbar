@@ -20,6 +20,7 @@ Crowbar::Application.routes.draw do
   end
 
   # UI 
+  resources :attribs
   resources :barclamps
   resources :deployments do
     get :head
@@ -32,6 +33,7 @@ Crowbar::Application.routes.draw do
   resources :jigs
   resources :nodes do
     resources :node_roles
+    resources :attribs
   end
   resources :node_roles do
     post :anneal
@@ -121,6 +123,7 @@ Crowbar::Application.routes.draw do
           resources :jigs
           resources :nodes do
             resources :node_roles
+            resources :attribs
           end
           resources :node_roles do
             post :anneal

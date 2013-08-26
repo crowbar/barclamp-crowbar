@@ -18,12 +18,13 @@ class CreateAttribs < ActiveRecord::Migration
     create_table :attribs do |t|
       t.string      :type,          :null => false, :default => Attrib::DEFAULT_CLASS.to_s
       t.string      :name,          :null => false
-      t.belongs_to  :role,          :null => false
+      t.string      :description,   :null => true
+      t.integer     :order,         :default=>10000
       t.string      :map,           :null => true
       t.timestamps      
     end
 
     # natural key
-    add_index :attribs,    [:role_id, :name], :unique => true
+    add_index :attribs,    [:name], :unique => true
   end
 end

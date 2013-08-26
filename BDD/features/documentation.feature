@@ -9,13 +9,10 @@ Feature: Documentation
       And there should be no translation errors
 
   Scenario: Doc Topic
-    Skip TODO ZEHICLE disable during refactoring
     Given parameter "rebuild" is "false"
     Given I am on the "docs" page with parameter "rebuild"
     When I click on the "Crowbar User Guide" link
     Then I should see "Crowbar User Guide"
-      And I should see heading "Navigation"
-      And I should see heading "Children"
       And there should be no translation errors
 
   Scenario: Doc Sub Topic

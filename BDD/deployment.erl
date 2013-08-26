@@ -24,6 +24,8 @@ g(Item) ->
     path -> "api/v2/deployments";
     system -> "system";
     resource -> "deployments";
+    d_name -> "bravo_delta";
+    d_atom -> deployment_bdd;
     _ -> crowbar:g(Item)
   end.
 
@@ -59,14 +61,8 @@ inspector(Deployment) ->
 json(Name, Description, Order) ->
   crowbar:json([{name, Name}, {description, Description}, {order, Order}]).
 
-% TEMPORARY REMAPPING
-% -include("bdd.hrl").
-step(In, Out) -> step([], In, Out).
 
-
-step(_C, _G, {step_given, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]})  -> step(_C, _G, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]});
-
-step(_, _, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]}) ->
+step(_, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",barclamp,Barclamp]}) ->
   Path = eurl:path(["api","v2","barclamps",Barclamp,"deployments"]),
   JSON = json(Deployment, g(description), g(order)),
   PutPostResult = eurl:put_post([], Path, JSON, post, all),
@@ -74,5 +70,14 @@ step(_, _, {step_when, {_S, _N}, ["I propose a",deployment,Deployment,"on the",b
   bdd_utils:log(debug, deployment, step, "deploy from barclamp ~p named ~p got ~p", [Path, JSON, Code]),
   bdd_restrat:ajax_return(Path, post, Code, Result);
 
-step(_Deployment, _Result, {_Type, _N, ["END OF CONFIG"]}) ->
+step(_Global, {step_setup, _N, _}) -> 
+  % create DEPLOYMENTS(s) for tests
+  Deploy = json(g(d_name), g(description), 100),
+  bdd_crud:create(g(path), Deploy, g(d_atom));
+
+step(_Global, {step_teardown, _N, _}) -> 
+  % find the node from setup and remove it
+  bdd_crud:delete(g(d_atom));
+
+step(_Result, {_Type, _N, ["END OF CONFIG"]}) ->
   false.

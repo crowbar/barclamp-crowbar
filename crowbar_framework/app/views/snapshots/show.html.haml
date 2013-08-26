@@ -6,8 +6,7 @@
     %td
       %h1
         = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
-        = @snapshot.name
-        = NodeRole.state_name(state)
+        = "#{@snapshot.name} #{NodeRole.state_name(state)}"
     %td{:align => 'right'}
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 

@@ -1,0 +1,14 @@
+%h1= t '.title'
+
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.description'
+      %th= t '.map'
+  %tbody
+    - @list.each do |a|
+      %tr    
+        %td= link_to a.name, attrib_path(a.id)
+        %td= a.description
+        %td= a.map

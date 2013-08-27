@@ -15,6 +15,10 @@
 # Author: RobHirschfeld 
 # 
 ActionController::Routing::Routes.draw do |map|
+  # Install route from each barclamp
+  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
+      eval(IO.read(routes_file), binding)
+  end
 
   map.root :controller => "nodes", :action=>'index'
 

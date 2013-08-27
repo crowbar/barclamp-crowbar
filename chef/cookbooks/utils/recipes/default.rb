@@ -25,5 +25,8 @@ end
 
 @@is_admin = node["crowbar"]["admin_node"] rescue false
 
-log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware #{@@is_admin ? 'admin': ''}") { level :info} 
-
+if node[:platform] == "windows"
+  log("running on OS:[#{platform}] #{@@is_admin ? 'admin': ''}") { level :info} 
+else
+  log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware #{@@is_admin ? 'admin': ''}") { level :info} 
+end

@@ -23,6 +23,8 @@
           %th= t('.bios')
         -if @options[:show].include? :raid
           %th= t('.raid')
+        %th= t('.target_platform')
+        %th= t('.license_key')
         %th.center 
           Allocate? 
           = check_box_tag 'all', 'all', false, {:onChange=>"check_all()"}
@@ -41,6 +43,8 @@
                 %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
               -if @options[:show].include? :raid
                 %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
+              %td= select_tag "node:#{node.name}:target_platform".to_sym, options_for_select(option_default(@options[:target],node.target_platform,'target_platform'), node.target_platform), {:onchange => "showLicense(this)"}
+              %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :size => 15, :style => node.target_platform == "windows-6.2" ? "dispaly:block" : "display:none"
               %td.center
                 -unless node.allocated
                   = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
@@ -56,6 +60,8 @@
                 %td= t 'na'
               -if @options[:show].include? :raid
                 %td= t 'na'
+              %td= text_field_tag "node:#{node.name}:target_platform".to_sym, "#{node.target_platform}", :size=> 15
+              %td= text_field_tag "node:#{node.name}:license_key".to_sym, "#{node.license_key}", :size=> 15
               %td.center= t 'na'
       - else
         %tr
@@ -81,5 +87,18 @@
       if (/allocate$/.test($(this).attr('id')))
         $(this).attr('checked', (checkbox.attr('checked') != undefined) );
     });
+  }
+
+  function showLicense(obj)
+  {
+      var id = obj.id.replace("target_platform","license_key");
+      if(obj[obj.selectedIndex].value == 'windows-6.2')
+      {
+          document.getElementById(id).style.display = 'block';
+      }
+      else
+      {
+          document.getElementById(id).style.display = 'none';
+      }
   }
   

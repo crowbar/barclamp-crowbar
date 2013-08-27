@@ -157,6 +157,22 @@ class NodeObject < ChefObject
     !@node.nil?
   end
 
+  def target_platform
+    @node[:target_platform]
+  end
+
+  def target_platform=(value)
+    @node.set[:target_platform] = value
+  end
+
+  def license_key
+    @node[:license_key]
+  end
+
+  def license_key=(value)
+    @node.set[:license_key] = value
+  end
+
   def shortname
     Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
     name.split('.')[0]
@@ -392,9 +408,14 @@ class NodeObject < ChefObject
     return -1 if @node[:block_device].nil?
     # This needs to be kept in sync with the fixed method in
     # barclamp_library.rb in in the deployer barclamp.
-    @node[:block_device].find_all do |disk,data|
-      disk =~ /^[hsv]d/ && data[:removable] == "0"
-    end.length
+    # On windows platform there is no block_device chef entry.
+    if defined?(@node[:block_device]) and !@node[:block_device].nil?
+      @node[:block_device].find_all do |disk,data|
+        disk =~ /^[hsv]d/ && data[:removable] == "0"
+      end.length
+    else
+      -1
+    end
   end
 
   def physical_drives
@@ -832,7 +853,7 @@ class NodeObject < ChefObject
   end
 
   def hardware
-    @node["dmi"].nil? ? I18n.t('unknown') : @node["dmi"].system.product_name
+    @node["dmi"].nil? ? I18n.t('unknown') : (defined?(@node["dmi"].system) ? @node["dmi"].system.product_name : I18n.t('unknown'))
   end
 
   def raid_set

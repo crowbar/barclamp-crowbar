@@ -1003,9 +1003,12 @@ class ServiceObject
         pids = {}
         unless snodes.empty?
           snodes.each do |node|
-            filename = "log/#{node}.chef_client.log"
-            pid = run_remote_chef_client(node, "chef-client", filename)
-            pids[pid] = node
+            nobj = NodeObject.find_node_by_name(node)
+            unless nobj[:platform] == "windows"
+              filename = "log/#{node}.chef_client.log"
+              pid = run_remote_chef_client(node, "chef-client", filename)
+              pids[pid] = node
+            end
           end
           status = Process.waitall
           badones = status.select { |x| x[1].exitstatus != 0 }

@@ -54,7 +54,7 @@ end
 ENV['PATH'].split(':').each do |p|
   bp=File.join(p,"bluepill")
   next unless system("which #{bp}")
-  node["bluepill"]["bin"]=bp
+  node.set["bluepill"]["bin"]=bp
   break
 end
 

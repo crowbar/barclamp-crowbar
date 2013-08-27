@@ -147,6 +147,10 @@ en:
         roles: Roles
         barclamps: Barclamps
         asset_tag: Service Tag
+        license_key: License Key
+        license_key_not_set: Not set
+        target_platform: Target Platform
+        target_platform_not_set: Not set
       proposal:
         name: Proposal
         description: Description
@@ -194,6 +198,9 @@ en:
       unallocated: Show Unallocated
       all: Show All
       nochange: No Changes
+      license_key: License Key
+      target_platform: Target Platform
+      target_platform_not_set: Not set
       hint: <i>group italics</i> indicates group is set automatically by system
     families:
       title: Node Hardware Families
@@ -225,6 +232,9 @@ en:
       reinstall_tooltip: Rebuild the node to a pristine state using its current deployment profile
       deallocate_tooltip: Remove the current allocation from the node
       forget_tooltip: Remove all records of the node from the Crowbar / Chef database
+      license_key: License Key
+      target_platform: Target Platform
+      target_platform_not_set: Not set
     form:
       allocate: Allocate
       save: Save
@@ -239,6 +249,9 @@ en:
       default: Using Default
       override: Override?
       description: Description
+      license_key: License Key
+      target_platform: Target Platform
+      target_platform_not_set: Not set
   
   support:
     index:

@@ -3,6 +3,12 @@
   - form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
     %fieldset.inputs
       %ol
+        %li.select
+          = f.label :target_platform, t('.target_platform')
+          = select_tag :target_platform, options_for_select(option_default(@options[:target], @node.target_platform, 'target_platform'), @node.target_platform), {:onchange => "showLicense(this)"}
+        %li.text#licenseKey{:style => @node.target_platform == 'windows-6.2' ? 'display:block' : 'display:none'}
+          = f.label :license_key, t('.license_key')
+          = text_field_tag :license_key, @node.license_key, :size => 20
         %li.text
           = f.label :alias, t('.alias')
           = text_field_tag :alias, @node.alias(true), :size => 20
@@ -45,4 +51,18 @@
             %input.button{:type => "submit", :name => "submit", :value => t('.allocate')}
         %li
           %input.button{:type => "submit", :name => "submit", :value => t('.save')}
+
+:javascript
+
+  function showLicense(obj)
+  {
+      if(obj[obj.selectedIndex].value == 'windows-6.2')
+      {
+          document.getElementById('licenseKey').style.display = 'block';
+      }
+      else
+      {
+          document.getElementById('licenseKey').style.display = 'none';
+      }
+  }
 

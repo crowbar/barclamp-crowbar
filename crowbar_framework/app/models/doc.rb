@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 class Doc < ActiveRecord::Base
-  
+
   attr_accessible :id, :barclamp_id, :name, :parent_name, :description, :order
 
   belongs_to  :barclamp
@@ -21,16 +21,16 @@ class Doc < ActiveRecord::Base
   has_many    :children,  :class_name => "Doc", :foreign_key => "parent_name", :order => "[order]+[description] ASC"
 
   validates_uniqueness_of :name, :scope=>:barclamp_id, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
-  
+
   # creates the table of contents from the files
   def self.gen_doc_index
-    # load crowbar docs    
+    # load crowbar docs
     Doc.discover_docs 0, File.join('..','doc','framework')
     # load barclamp docs
     Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc') }
     Doc.all
-  end 
-  
+  end
+
   def self.topic_expand(name, html=true)
     text = "\n"
     topic = Doc.find_by_name name
@@ -46,7 +46,7 @@ class Doc < ActiveRecord::Base
     end
     return text
   end
-  
+
   # scan the directories and find files
   def self.discover_docs barclamp_id, doc_path
     files_list = %x[find #{doc_path} -iname *.md]
@@ -61,8 +61,8 @@ class Doc < ActiveRecord::Base
       title = if File.exist? f
           begin
             actual_title = File.open(f, 'r').readline
-            actual_title[/^#+(.*)#*$/,1].strip       
-          rescue 
+            actual_title[/^#+(.*)#*$/,1].strip
+          rescue
             # if that fails, use the name/path
             name.gsub("/"," ").titleize
           end
@@ -72,7 +72,7 @@ class Doc < ActiveRecord::Base
       Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title
     end
   end
-  
+
   def git_url
     path = self.name.split '/'
     barclamp = path.first
@@ -80,5 +80,5 @@ class Doc < ActiveRecord::Base
     path[0] = "https://github.com/crowbar/#{repo}/tree/master/doc"
     return path.join('/') + ".md"
   end
-    
+
 end

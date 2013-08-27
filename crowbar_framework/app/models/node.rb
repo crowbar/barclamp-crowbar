@@ -152,12 +152,8 @@ class Node < ActiveRecord::Base
 
   # retrieves the Attrib from Attrib
   def get_attrib(attrib_name)
-    puts "temp: #{attrib_name}"
-  end
-
-  # get the attributes (adds if missing)    
-  def get_attribs(attrib_name, use_class=Attrib::DEFAULT_CLASS)
-
+    a = Attrib.by_name attrib_name
+    a.value self.discovery
   end
   
   def method_missing(m,*args,&block)

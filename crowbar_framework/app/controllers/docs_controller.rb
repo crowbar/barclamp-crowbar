@@ -31,7 +31,12 @@ class DocsController < ApplicationController
       format.json { render :json => Doc.all }
     end
   end  
-  
+
+  def show
+    @doc = Doc.find_key params[:id]
+    @text = "put the text from the md file here!"
+  end
+
   def topic
     begin 
       @topic = Doc.find_by_name params[:id]

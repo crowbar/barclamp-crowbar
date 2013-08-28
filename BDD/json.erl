@@ -15,11 +15,17 @@
 % 
 
 -module(json).
--export([parse/1, value/2, output/1, pretty/1, keyfind/2]).
+-export([parse/1, value/2, output/1, pretty/1, keyfind/2, keyfind/3]).
 -export([json_array/3, json_value/2, json_safe/3]).
 -import(bdd_utils).
 -record(json, {list=[], raw=[]}).
 -record(jsonkv, {value=[], raw=[]}).
+
+% used for nested keys delimited by Token, resolved recursively
+keyfind(JSON, Key, Token)          -> keyfindtokens(JSON, string:tokens(Key, Token)).
+keyfindtokens(JSON, [Key | Keys])  -> keyfindtokens(keyfind(JSON, Key), Keys);
+keyfindtokens(JSON, [])            -> JSON.
+
 
 keyfind(JSON, Key) when is_atom(Key) -> keyfind(JSON, atom_to_list(Key));
 keyfind(JSON, Key)                   ->

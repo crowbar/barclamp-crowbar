@@ -238,13 +238,21 @@ class NodeRole < ActiveRecord::Base
     parents.all?{|p|p.active?}
   end
 
+  def __walk(meth,block)
+    block.call(self)
+    self.send(meth).each do |nr|
+      nr.__walk(meth,block)
+    end
+  end
+  
   def walk(block)
     raise "Must be passed a block" unless block.kind_of?(Proc)
-    block.call(self)
-    children.each do |c|
-      Rails.logger.info("NodeRole: Walking from #{self.name} to #{c.name}")
-      c.walk(block)
-    end
+    __walk(:children,block)
+  end
+  
+  def parentwalk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    __walk(:parents,block)
   end
 
   def all_deployment_data
@@ -386,5 +394,5 @@ class NodeRole < ActiveRecord::Base
   def jig
     role.jig
   end
-
+  
 end

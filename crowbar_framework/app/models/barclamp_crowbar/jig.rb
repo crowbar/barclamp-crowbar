@@ -47,7 +47,7 @@ class BarclampCrowbar::Jig < Jig
     login = "root@#{nr.node.name}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
     raise "No local scripts @ #{local_scripts}" unless File.exists?(local_scripts)
-    remote_tmpdir,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- mktemp -d /tmp/scriptjig-XXXXXX}")
+    remote_tmpdir,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- mktemp -d /tmp/scriptjig-XXXXXX")
     remote_tmpdir.strip!
     if remote_tmpdir.empty? || !ok
       raise "Did not create remote_tmpdir for some reason!"

@@ -132,6 +132,12 @@ en:
       jig: "Jig"
       barclamp: "Barclamp"
       template: "Template"
+  attribs:
+    index:
+      title: "Attributes from discovered properties"
+      name: Name
+      description: Description
+      map: Map
   barclamps:
     index:
       title: "Installed Barclamps"

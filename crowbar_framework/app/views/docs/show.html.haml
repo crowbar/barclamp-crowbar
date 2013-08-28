@@ -1,3 +1,5 @@
 %h1= @doc.description
 
-%topic= @text.html_safe
+%p= @doc.inspect
+
+%p.topic= @text.html_safe rescue "oops, render broken"

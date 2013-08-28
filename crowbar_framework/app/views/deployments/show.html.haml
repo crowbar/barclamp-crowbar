@@ -1,8 +1,7 @@
 - state = @deployment.state
 
 %h1
-  = NodeRole.state_name(state)
-  = @deployment.name
+  = "#{@deployment.name} #{NodeRole.state_name(state)}"
   = "("
   = link_to @deployment.head.name, snapshot_path(@deployment.head.id)
   = ")"

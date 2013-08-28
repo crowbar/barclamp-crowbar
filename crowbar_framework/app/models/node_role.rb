@@ -169,7 +169,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data(merge=true)
-    raw = read_attribute("data") 
+    raw = read_attribute("userdata") 
     d = raw.nil? ? {} : JSON.parse(raw)  
     merge ? deployment_role.data.deep_merge(d) : d
   end
@@ -181,8 +181,16 @@ class NodeRole < ActiveRecord::Base
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
 
-    write_attribute("data",arg)
+    write_attribute("userdata",arg)
 
+  end
+
+  def sysdata
+    raw = JSON.parse(read_attribute("sysdata"))
+  end
+
+  def sysdata=(arg)
+    write_attribute("userdata",JSON.generate(arg))
   end
 
   def data_schema
@@ -246,8 +254,9 @@ class NodeRole < ActiveRecord::Base
   def all_parent_data
     res = {}
     parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
-    res.deep_merge!(data)
     res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
     res
   end
 

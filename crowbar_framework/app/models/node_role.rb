@@ -75,7 +75,7 @@ class NodeRole < ActiveRecord::Base
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
       @errstr = "#{node_role.name}: Invalid state transition from #{NodeRole.state_name(from)} to #{NodeRole.state_name(to)}"
-      errstr += ": #{str}" if str
+      @errstr += ": #{str}" if str
     end
     def to_s
       @errstr
@@ -145,7 +145,9 @@ class NodeRole < ActiveRecord::Base
     # Actaully run the noderoles outside of the transaction.
     queue.each do |thisjig,candidates|
       candidates.each do |c|
+        Rails.logger.info("Annealer: #{thisjig.name} running #{c.role.name} on #{c.node.name} for #{c.deployment.name}")
         thisjig.run(c)
+        Rails.logger.info("Annealer: Run finished.")
       end
     end
     nil
@@ -186,7 +188,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def sysdata
-    raw = JSON.parse(read_attribute("sysdata"))
+    raw = JSON.parse(read_attribute("sysdata")||'{}')
   end
 
   def sysdata=(arg)
@@ -232,6 +234,10 @@ class NodeRole < ActiveRecord::Base
     state == PROPOSED
   end
 
+  def activatable?
+    parents.all?{|p|p.active?}
+  end
+
   def walk(block)
     raise "Must be passed a block" unless block.kind_of?(Proc)
     block.call(self)
@@ -271,7 +277,7 @@ class NodeRole < ActiveRecord::Base
   def state=(val)
     cstate = state
     return val if val == cstate
-
+    Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
     NodeRole.transaction do
       case val
       when ERROR
@@ -294,7 +300,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
-          c.state = TODO
+          c.state = TODO if c.activatable?
         end
       when TODO
         # We can only go to TODO when:
@@ -303,7 +309,7 @@ class NodeRole < ActiveRecord::Base
         unless ((cstate == PROPOSED) || (cstate == BLOCKED))
           raise InvalidTransition.new(self,cstate,val)
         end
-        unless parents.all?{|nr|nr.active?}
+        unless activatable?
           raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
         end
         write_attribute("state",val)

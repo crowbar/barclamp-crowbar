@@ -39,6 +39,10 @@ class Jig < ActiveRecord::Base
   has_many    :roles,     :primary_key=>:name, :foreign_key=>:jig_name
 
 
+  def self.active(jig)
+    Jig.where(:name=>jig, :active=>true).length > 0
+  end
+
   # Create a node in all jig. The exact actions depend on the jig.
   def self.create_node(node)
     broadcast_to_jigs { |jig| jig.create_node(node) }    

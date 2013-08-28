@@ -79,12 +79,9 @@ class Snapshot < ActiveRecord::Base
     end
   end
 
-  # returns a hash with all the node status information (unready nodes only)
+  # returns a hash with all the snapshot error status information 
   def status
-    s = {}
-    # any node that's error or unknown will cause the whole state to be in the other state  
-    my_nodes.each { |n| s[n.id] = n.status unless n.state == NodeRole::ACTIVE }
-    return s
+    node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
   end
   
     # commit the current proposal (cannot be done if there is a committed proposal)

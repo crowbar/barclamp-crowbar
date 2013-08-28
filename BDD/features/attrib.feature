@@ -58,3 +58,22 @@ Feature: Attrib(utes)
     Then key "discovery:bdd:easyway" should be "456"
     Finally REST removes the {object:attrib} "bdd_data_there"
       And REST removes the {object:node} "bdd-test-attribs.cr0wbar.com"
+
+  Scenario: attrib_ method missing works in UI pass without data
+    Given REST creates the {object:node} "bdd-attrib-missing.cr0wbar.com"
+    When I go to the "nodes/bdd-attrib-missing.cr0wbar.com" page
+    Then I should see {bdd:crowbar.i18n.nodes.show.bdd_marker}
+      And I should not see "foofoofoo"
+      And I should see {bdd:crowbar.i18n.ignore}
+    Finally REST removes the {object:node} "bdd-attrib-missing.cr0wbar.com"
+
+  Scenario: attrib_ method missing works in UI
+    Given REST creates the {object:node} "bdd-attrib-methodmissing.cr0wbar.com"
+      And REST creates the {object:attrib} "bdd_marker" with map "bdd/marker"
+      And REST sets the discovery on "bdd-attrib-methodmissing.cr0wbar.com" to "{ \"bdd\": { \"marker\": \"foofoofoo\" }}"
+    When I go to the "nodes/bdd-attrib-methodmissing.cr0wbar.com" page
+    Then I should see {bdd:crowbar.i18n.nodes.show.bdd_marker}
+      And I should see "foofoofoo"
+      And I should not see {bdd:crowbar.i18n.ignore}
+    Finally REST removes the {object:attrib} "bdd_marker"
+      And REST removes the {object:node} "bdd-attrib-methodmissing.cr0wbar.com"

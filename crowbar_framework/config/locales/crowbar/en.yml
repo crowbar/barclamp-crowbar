@@ -16,6 +16,48 @@
 # See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
 
 en:
+  common:
+    state: &node_role_states
+      error:      "Error"
+      active:     "Active"
+      todo:       "To Do"
+      transition: "Transition"
+      blocked:    "Blocked"
+      proposed:   "Proposed"
+    deployment: &deployment_common
+      deployment: "Deployment"
+      snapshot: "Snapshot"
+      name: "Name"
+      description: "Description"
+      state: "State"
+      status: "Status"
+      proposed: "Proposed"
+      committed: "Committed"
+      active: "Active"
+      unlinked: "Unlinked"
+      node: "Node"
+      role: "Role"
+      jig: "Jig"
+      barclamp: "Barclamp"
+      template: "Template"
+    raid: &raid_types
+      JBODOnly: JBOD
+      SingleRaid10: RAID 10
+      SingleRaid1: RAID 1 span
+      SingleRaid5: RAID 5
+      SingleRaid6: RAID 6
+      Raid0: RAID 0 span
+      Raid1: RAID 1 mirror
+      Raid5: RAID 5
+      Raid6: RAID 6
+      Raid10: Raid 10
+      not_set: Not Set
+    # node.bios_set
+    bios: &bios_types
+      Virtualization: Virtualization Flag Enabled
+      Storage: Storage (Virt Off)
+      not_set: Not Set
+
   # Layout
   nav:
     nodes: "Nodes"
@@ -103,35 +145,13 @@ en:
     recall_status: "Snapshot recalled by user action"
 
   node_role:
-    state: &node_role_states
-      error:      "Error"
-      active:     "Active"
-      todo:       "To Do"
-      transition: "Transition"
-      blocked:    "Blocked"
-      proposed:   "Proposed"
     data_parse_error: "NodeRole data was not valid agaist schema"
     cannot_edit_data: "NodeRole data can only be edited in the Proposed state"
+
   # Layout / Views
   layouts:
     application:
       provided_by: Provided by
-    common: &deployment_common
-      deployment: "Deployment"
-      snapshot: "Snapshot"
-      name: "Name"
-      description: "Description"
-      state: "State"
-      status: "Status"
-      proposed: "Proposed"
-      committed: "Committed"
-      active: "Active"
-      unlinked: "Unlinked"
-      node: "Node"
-      role: "Role"
-      jig: "Jig"
-      barclamp: "Barclamp"
-      template: "Template"
   attribs:
     index:
       title: "Attributes from discovered properties"
@@ -196,6 +216,30 @@ en:
       name: "Name"
       description: "Description"
       value: "Value"
+      name: Full Name
+      mac: MAC Address
+      allocated: Allocated
+      ip: IP Address
+      status: Status
+      state: State
+      hardware: Hardware
+      switch_name: Switch Name
+      switch_port: Switch Port
+      switch_unit: Switch Unit
+      switch_name_unit_port: Switch/Unit/Port
+      switch_name_port: Switch Name/Port
+      uptime: Uptime
+      memory: Memory
+      cpu: CPU
+      number_of_drives: Disk Drives
+      description: Description
+      roles: Roles
+      barclamps: Barclamps
+      asset_tag: Service Tag
+      raid: RAID
+      bdd_marker: BDD Marker
+      <<: *bios_types
+      <<: *raid_types
   node_roles:
     index:
       title: "Node Roles"

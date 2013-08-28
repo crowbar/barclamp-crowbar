@@ -75,7 +75,7 @@ class BarclampCrowbar::Jig < Jig
         nr.state = NodeRole::ERROR
         return nr
       end
-      Rails.logger.info("Executing scripts for on #{nr.node.name}")
+      Rails.logger.info("Executing scripts on #{nr.node.name}")
       run_log = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
       if $?.exitstatus != 0
         Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")

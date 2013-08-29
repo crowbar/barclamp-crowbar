@@ -60,9 +60,12 @@ class Role < ActiveRecord::Base
   end
 
   def parents
-    role_requires.map do |r|
-      Role.find_by_name!(r.requires)
+    res = []
+    res << jig.client_role if jig.client_role
+    role_requires.each do |r|
+      res << Role.find_by_name!(r.requires)
     end
+    res
   end
 
   def depends_on?(other)
@@ -76,64 +79,57 @@ class Role < ActiveRecord::Base
     false
   end
 
-  # add deployment role to snapshot
+  # Make sure there is a deployment role for ourself in the snapshot.
   def add_to_snapshot(snap)
-    # only do this if there is not one already
+    # make sure there's a deployment role before we add a node role
     if DeploymentRole.snapshot_and_role(snap, self).size == 0
       DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
     end
   end
 
   # Bind a role to a node in a snapshot.
-  def add_to_snapshot(snap,node=nil)
+  def add_to_node_in_snapshot(node,snap)
     # Roles can only be added to a node of their backing jig is active.
     unless active?
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
-    # make sure there's a deployment role before we add a node role
+    # make sure that we also have a deployment role
     add_to_snapshot(snap)
-
-    # add the specific node role
-    if node
-      NodeRole.transaction do
-        # If we are already bound to this node in a snapshot, do nothing.
-        res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
-        return res if res
-        # Check to make sure that all my parent roles are bound properly.
-        # If they are not, die unless it is an implicit role.
-        # This logic will need to change as we start allowing roles to classify
-        # nodes, but it will work for now.
-        jig_role = jig.client_role
-        if jig_role
-          jig_node_role = jig_role.add_to_snapshot(snap,node)
+    # If we are already bound to this node in a snapshot, do nothing.
+    res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
+    return res if res
+    Rails.logger.info("Trying to add #{name} to #{node.name}")
+    # Check to make sure that all my parent roles are bound properly.
+    # If they are not, die unless it is an implicit role.
+    # This logic will need to change as we start allowing roles to classify
+    # nodes, but it will work for now.
+    parent_node_roles = Array.new
+    parents.each do |parent|
+      # This will need to grow more ornate once we start allowing multiple
+      # deployments.
+      pnr = NodeRole.peers_by_role(snap,parent).first
+      if pnr.nil?
+        if parent.implicit
+          pnr = parent.add_to_node_in_snapshot(node,snap)
+        else
+          raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
         end
-        parent_node_roles = Array.new
-        parents.each do |parent|
-          # This will need to grow more ornate once we start allowing multiple
-          # deployments.
-          pnr = NodeRole.peers_by_role(snap,parent).first
-          if pnr.nil?
-            if parent.implicit
-              pnr = parent.add_to_snapshot(snap,node)
-            else
-              raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
-            end
-          end
-          parent_node_roles << pnr
-        end
-        # By the time we get here, all our parents are bound recursively.
-        # Bind ourselves the same way.
-        res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
-
-        # Make sure our jig dependency is registered.
-        res.parents << jig_node_role if jig_role
-        parent_node_roles.each do |pnr|
-          res.parents << pnr
-        end
-        return res
       end
+      parent_node_roles << pnr
     end
-    nil
+    # By the time we get here, all our parents are bound recursively.
+    # Bind ourselves the same way.
+    res = nil
+    NodeRole.transaction do
+      res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
+      parent_node_roles.each do |pnr|
+        res.parents << pnr
+      end
+      res.save!
+    end
+    # If there is an on_proposed hook for this role, call it now with our fresh node_role.
+    self.send(:on_proposed,res) if self.respond_to?(:on_proposed) && res
+    res
   end
 
   def jig

@@ -75,7 +75,7 @@ class NodeRole < ActiveRecord::Base
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
       @errstr = "#{node_role.name}: Invalid state transition from #{NodeRole.state_name(from)} to #{NodeRole.state_name(to)}"
-      errstr += ": #{str}" if str
+      @errstr += ": #{str}" if str
     end
     def to_s
       @errstr
@@ -145,7 +145,9 @@ class NodeRole < ActiveRecord::Base
     # Actaully run the noderoles outside of the transaction.
     queue.each do |thisjig,candidates|
       candidates.each do |c|
+        Rails.logger.info("Annealer: #{thisjig.name} running #{c.role.name} on #{c.node.name} for #{c.deployment.name}")
         thisjig.run(c)
+        Rails.logger.info("Annealer: Run finished.")
       end
     end
     nil
@@ -169,7 +171,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data(merge=true)
-    raw = read_attribute("data") 
+    raw = read_attribute("userdata") 
     d = raw.nil? ? {} : JSON.parse(raw)  
     merge ? deployment_role.data.deep_merge(d) : d
   end
@@ -181,8 +183,16 @@ class NodeRole < ActiveRecord::Base
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
 
-    write_attribute("data",arg)
+    write_attribute("userdata",arg)
 
+  end
+
+  def sysdata
+    raw = JSON.parse(read_attribute("sysdata")||'{}')
+  end
+
+  def sysdata=(arg)
+    write_attribute("userdata",JSON.generate(arg))
   end
 
   def data_schema
@@ -224,13 +234,25 @@ class NodeRole < ActiveRecord::Base
     state == PROPOSED
   end
 
+  def activatable?
+    parents.all?{|p|p.active?}
+  end
+
+  def __walk(meth,block)
+    block.call(self)
+    self.send(meth).each do |nr|
+      nr.__walk(meth,block)
+    end
+  end
+  
   def walk(block)
     raise "Must be passed a block" unless block.kind_of?(Proc)
-    block.call(self)
-    children.each do |c|
-      Rails.logger.info("NodeRole: Walking from #{self.name} to #{c.name}")
-      c.walk(block)
-    end
+    __walk(:children,block)
+  end
+  
+  def parentwalk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    __walk(:parents,block)
   end
 
   def all_deployment_data
@@ -246,8 +268,9 @@ class NodeRole < ActiveRecord::Base
   def all_parent_data
     res = {}
     parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
-    res.deep_merge!(data)
     res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
     res
   end
 
@@ -262,7 +285,7 @@ class NodeRole < ActiveRecord::Base
   def state=(val)
     cstate = state
     return val if val == cstate
-
+    Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
     NodeRole.transaction do
       case val
       when ERROR
@@ -285,7 +308,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
-          c.state = TODO
+          c.state = TODO if c.activatable?
         end
       when TODO
         # We can only go to TODO when:
@@ -294,7 +317,7 @@ class NodeRole < ActiveRecord::Base
         unless ((cstate == PROPOSED) || (cstate == BLOCKED))
           raise InvalidTransition.new(self,cstate,val)
         end
-        unless parents.all?{|nr|nr.active?}
+        unless activatable?
           raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
         end
         write_attribute("state",val)
@@ -371,5 +394,5 @@ class NodeRole < ActiveRecord::Base
   def jig
     role.jig
   end
-
+  
 end

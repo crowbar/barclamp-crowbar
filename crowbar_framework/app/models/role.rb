@@ -49,9 +49,12 @@ class Role < ActiveRecord::Base
   after_initialize :mixin_specific_behaviour
 
   def parents
-    role_requires.map do |r|
-      Role.find_by_name!(r.requires)
+    res = []
+    res << jig.client_role if jig.client_role
+    role_requires.each do |r|
+      res << Role.find_by_name!(r.requires)
     end
+    res
   end
 
   def depends_on?(other)
@@ -85,10 +88,6 @@ class Role < ActiveRecord::Base
     # If they are not, die unless it is an implicit role.
     # This logic will need to change as we start allowing roles to classify
     # nodes, but it will work for now.
-    jig_role = jig.client_role
-    if jig_role
-      jig_node_role = jig_role.add_to_snapshot(snap,node)
-    end
     parent_node_roles = Array.new
     parents.each do |parent|
       # This will need to grow more ornate once we start allowing multiple
@@ -108,8 +107,6 @@ class Role < ActiveRecord::Base
     res = nil
     NodeRole.transaction do
       res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
-      # Make sure our jig dependency is registered.
-      res.parents << jig_node_role if jig_role
       parent_node_roles.each do |pnr|
         res.parents << pnr
       end

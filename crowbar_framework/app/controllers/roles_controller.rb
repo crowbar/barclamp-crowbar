@@ -56,10 +56,17 @@ class RolesController < ApplicationController
 
   def update
     unless Rails.env.development?
-      render  api_not_supported("delete", "role")
+      render  api_not_supported("put", "role")
     else
       render api_update :role, Role
     end
+  end
+
+  # special function so API can set an single item in template
+  def template
+    role = Role.find_key params[:role_id]
+    role.update_template params[:key], params[:value]
+    render api_show :role, Role, nil, nil, role
   end
 
   def destroy

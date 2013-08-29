@@ -129,7 +129,9 @@ Crowbar::Application.routes.draw do
           resources :node_roles do
             post :anneal
           end
-          resources :roles
+          resources :roles do
+            put 'template/:key/:value' => "roles#template"
+          end
           resources :snapshots do
             resources :node_roles
             put :anneal

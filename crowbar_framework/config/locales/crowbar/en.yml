@@ -152,6 +152,9 @@ en:
   layouts:
     application:
       provided_by: Provided by
+    snapshot:
+      anneal:
+        annealling: "Annealing (initiated by user)"
   attribs:
     index:
       title: "Attributes from discovered properties"

@@ -1,5 +1,15 @@
 ### Barclamp/Role APIs
 
+#### Update key in template
+
+You can update a single key/value in the template using the following API
+
+<table border=1>
+  <tr><th> Verb </th><th> URL                       </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+  <tr><td> PUT  </td><td> /api/v2/roles/[role]/template/[key]/[value]</td><td> none   </td><td> Role Object </td><td> - </td></tr> 
+</table>
+
+
 #### General RoleActions
 
 <table border=1>

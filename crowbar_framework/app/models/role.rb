@@ -48,6 +48,17 @@ class Role < ActiveRecord::Base
   # This will mostly be used to implement the on_* helpers in a not-totally-insane way.
   after_initialize :mixin_specific_behaviour
 
+  # update just one value in the template (assumes just 1 level deep!)
+  # use via /api/v2/roles/[role]/template/[key]/[value] 
+  def update_template(key, value)
+    t = { key => value }
+    raw = read_attribute("template") 
+    d = raw.nil? ? {} : JSON.parse(raw)  
+    merged = d.deep_merge(t)
+    self.template = JSON.generate(merged)
+    self.save!
+  end
+
   def parents
     role_requires.map do |r|
       Role.find_by_name!(r.requires)
@@ -65,6 +76,14 @@ class Role < ActiveRecord::Base
     false
   end
 
+  # add deployment role to snapshot
+  def add_to_snapshot(snap)
+    # only do this if there is not one already
+    if DeploymentRole.snapshot_and_role(snap, self).size == 0
+      DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
+    end
+  end
+
   # Bind a role to a node in a snapshot.
   def add_to_snapshot(snap,node=nil)
     # Roles can only be added to a node of their backing jig is active.
@@ -72,11 +91,8 @@ class Role < ActiveRecord::Base
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
     # make sure there's a deployment role before we add a node role
-    if DeploymentRole.snapshot_and_role(snap, self).size == 0
-      DeploymentRole.transaction do
-        DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
-      end
-    end
+    add_to_snapshot(snap)
+
     # add the specific node role
     if node
       NodeRole.transaction do

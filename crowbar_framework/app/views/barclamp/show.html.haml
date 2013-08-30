@@ -5,7 +5,10 @@
   = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
 
 .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left;'}
-%h1= link_to "#{@role.barclamp.titlecase}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+- if @service_object.simple_proposal_ui? && !Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
+  %h1= link_to "#{@role.barclamp.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+- else
+  %h1= link_to "#{@role.barclamp.titlecase}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
 
 .box
   %h2= t '.attributes'

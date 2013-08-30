@@ -156,17 +156,21 @@ class Role < ActiveRecord::Base
   def mixin_specific_behaviour
     raise "Roles require a name" if self.name.nil?
     Rails.logger.info("Seeing if #{self.name} has a mixin...")
-    mod = "barclamp_#{barclamp.name}".camelize.to_sym
-    return self unless Module::const_defined?(mod)
-    mod = Module::const_get(mod)
-    ["role",
-     self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
-      return self unless mod.const_defined?(m)
-      mod = mod.const_get(m)
-      return self unless mod.kind_of?(Module)
+    begin
+      mod = "barclamp_#{barclamp.name}".camelize.to_sym
+      return self unless Module::const_defined?(mod)
+      mod = Module::const_get(mod)
+      ["role",
+       self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
+        return self unless mod.const_defined?(m)
+        mod = mod.const_get(m)
+        return self unless mod.kind_of?(Module)
+      end
+      Rails.logger.info("Extending #{self.name} with #{mod}")
+      self.extend(mod)
+    rescue
+      # nothing for now, this code is going away
     end
-    Rails.logger.info("Extending #{self.name} with #{mod}")
-    self.extend(mod)
   end
 
   # This method ensures that we have a type defined for 

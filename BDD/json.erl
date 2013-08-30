@@ -23,7 +23,10 @@
 
 % used for nested keys delimited by Token, resolved recursively
 keyfind(JSON, Key, Token)          -> keyfindtokens(JSON, string:tokens(Key, Token)).
-keyfindtokens(JSON, [Key | Keys])  -> keyfindtokens(keyfind(JSON, Key), Keys);
+keyfindtokens(JSON, [Key | Keys])  -> 
+  % protect from excessive delimiting
+  Data = string:join(string:tokens(JSON,"\\\""),""),
+  keyfindtokens(keyfind(Data, Key), Keys);
 keyfindtokens(JSON, [])            -> JSON.
 
 

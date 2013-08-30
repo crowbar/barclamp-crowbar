@@ -110,32 +110,6 @@ class NodeRole < ActiveRecord::Base
     I18n.t(STATES[state], :scope=>'node_role.state')
   end
 
-  # State Transistion Overrides
-  
-  def on_error(*args)
-    # do nothing
-  end
-
-  def on_active(*args)
-    # do nothing
-  end
-
-  def on_todo(*args)
-    # do nothing
-  end
-
-  def on_transition(*args)
-    # do nothing
-  end
-
-  def on_blocked(*args)
-    # do nothing
-  end
-
-  def on_proposed(*args)
-    # do nothing
-  end
-
   def self.reset!
     NodeRole.transaction do
       NodeRole.all.each do |nr|

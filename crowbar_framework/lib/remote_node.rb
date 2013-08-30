@@ -5,12 +5,15 @@ module RemoteNode
   # @param timeout [integer] timeout in seconds
   def self.ready? host, timeout=60
     sleep(10)
+    #workaround for similar issue
+    #http://projects.puppetlabs.com/issues/2776
+    ip = `dig +short #{host}`
     nobj = NodeObject.find_node_by_name(host)
     start = Time.now.to_i
     while (Time.now.to_i - start) < timeout do
       begin
         puts "checking socket"
-        TCPSocket.new(host, 22)
+        TCPSocket.new(ip, 22)
         if %w(redhat centos).include?(nobj[:platform])
           puts "checking runlevel"
           raise "next" unless system("sudo -i -u root -- ssh root@#{host} 'runlevel | grep \"N 3\"'")

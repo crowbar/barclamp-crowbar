@@ -125,8 +125,8 @@ en:
     sign_out: Sign Out
     sign_up: "Sign up"
     signed_in_as: "You are signed in as %{user}"
-#    digest_success: User Authenticated using Digest Authentication
-#    digested_as: "Digest [%{user}] Authenticated"
+    digest_success: User Authenticated using Digest Authentication
+    digested_as: "Digest [%{user}] Authenticated"
     forgot: "Forgot your password?"
 #    no_confirm: "Didn't receive confirmation instructions?"
 #    no_unlock: "Didn't receive unlock instructions?"
@@ -147,6 +147,8 @@ en:
   node_role:
     data_parse_error: "NodeRole data was not valid agaist schema"
     cannot_edit_data: "NodeRole data can only be edited in the Proposed state"
+    state:
+      <<: *node_role_states
 
   # Layout / Views
   layouts:

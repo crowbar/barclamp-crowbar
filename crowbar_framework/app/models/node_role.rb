@@ -107,7 +107,7 @@ class NodeRole < ActiveRecord::Base
 
   def self.state_name(state)
     raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and STATES.include? state
-    I18n.t(STATES[state], :default=>'Unknown', :scope=>'node_role.state')
+    I18n.t(STATES[state], :scope=>'node_role.state')
   end
 
   def self.reset!

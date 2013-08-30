@@ -20,46 +20,48 @@ Crowbar::Application.routes.draw do
   end
 
   # UI scope
-  constraints(:id => /.*/ ) do
 
-    # UI resources
-    resources :attribs
-    resources :barclamps
-    resources :deployments do
-      get :head
-      get :next
-      resources :roles
-    end
-    resources :deployment_roles
-    resources :docs
-    resources :groups
-    resources :jigs
+  # special case items that allow IDs to have .s 
+  constraints(:id => /.*/ ) do
     resources :nodes do
       resources :node_roles
       resources :attribs
     end
-    resources :node_roles do
-      post :anneal
-    end
-    resources :roles
-    resources :snapshots do
-      resources :node_roles
-      match :anneal
-      put :propose
-      put :commit
-      put :recall
-    end
+  end
 
-    scope 'utils' do
-      get '/'             => 'support#index', :as => :utils
-      get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n
-      get 'marker/:id'    => 'support#marker', :as => :utils_marker
-      get 'files/:id'     => 'support#index', :as => :utils_files
-      get 'import(/:id)'  => 'support#import', :as => :utils_import
-      get 'upload/:id'    => 'support#upload', :as => :utils_upload
-      get 'restart/:id'   => 'support#restart', :as => :restart
-      get 'digest'        => "support#digest"
-    end
+  # UI resources
+  resources :attribs
+  resources :barclamps
+  resources :deployments do
+    get :head
+    get :next
+    resources :roles
+  end
+  resources :deployment_roles
+  resources :docs
+  resources :groups
+  resources :jigs
+  resources :node_roles do
+    post :anneal
+  end
+  resources :roles
+  resources :snapshots do
+    resources :node_roles
+    match :anneal
+    put :propose
+    put :commit
+    put :recall
+  end
+
+  scope 'utils' do
+    get '/'             => 'support#index', :as => :utils
+    get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n, :constraints => { :id => /.*/ }
+    get 'marker/:id'    => 'support#marker', :as => :utils_marker
+    get 'files/:id'     => 'support#index', :as => :utils_files
+    get 'import(/:id)'  => 'support#import', :as => :utils_import
+    get 'upload/:id'    => 'support#upload', :as => :utils_upload
+    get 'restart/:id'   => 'support#restart', :as => :restart
+    get 'digest'        => "support#digest"
     namespace :scaffolds do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end

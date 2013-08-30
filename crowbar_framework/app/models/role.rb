@@ -59,6 +59,32 @@ class Role < ActiveRecord::Base
     self.save!
   end
 
+  # State Transistion Overrides
+  
+  def on_error(node_role, *args)
+    # do nothing
+  end
+
+  def on_active(node_role, *args)
+    # do nothing
+  end
+
+  def on_todo(node_role, *args)
+    # do nothing
+  end
+
+  def on_transition(node_role, *args)
+    # do nothing
+  end
+
+  def on_blocked(node_role, *args)
+    # do nothing
+  end
+
+  def on_proposed(node_role, *args)
+    # do nothing
+  end
+
   def parents
     res = []
     res << jig.client_role if jig.client_role

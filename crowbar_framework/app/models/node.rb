@@ -226,7 +226,7 @@ class Node < ActiveRecord::Base
         bootroles << r
       end
       bootroles.sort.uniq.each do |r|
-        r.add_to_snapshot(snap,self)
+        r.add_to_node_in_snapshot(self,snap)
       end
     end
   end

@@ -68,18 +68,22 @@ class Role < ActiveRecord::Base
     false
   end
 
+  # Make sure there is a deployment role for ourself in the snapshot.
+  def add_to_snapshot(snap)
+    # make sure there's a deployment role before we add a node role
+    return unless DeploymentRole.snapshot_and_role(snap, self).size == 0
+    DeploymentRole.transaction do
+      DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
+    end
+  end
+
   # Bind a role to a node in a snapshot.
-  def add_to_snapshot(snap,node)
+  def add_to_node_in_snapshot(node,snap)
     # Roles can only be added to a node of their backing jig is active.
     unless active?
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
-    # make sure there's a deployment role before we add a node role
-    if DeploymentRole.snapshot_and_role(snap, self).size == 0
-      DeploymentRole.transaction do
-        DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
-      end
-    end
+    add_to_snapshot(snap)
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
     return res if res
@@ -95,7 +99,7 @@ class Role < ActiveRecord::Base
       pnr = NodeRole.peers_by_role(snap,parent).first
       if pnr.nil?
         if parent.implicit
-          pnr = parent.add_to_snapshot(snap,node)
+          pnr = parent.add_to_node_in_snapshot(node,snap)
         else
           raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
         end

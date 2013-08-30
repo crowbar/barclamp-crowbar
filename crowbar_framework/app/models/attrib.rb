@@ -22,11 +22,9 @@ class Attrib < ActiveRecord::Base
   belongs_to      :role
 
   scope           :by_name,              ->(name) { where(:name=>name) }
-  
-
-  DEFAULT_CLASS = Attrib
-  
+    
   # this is designed to be over-ridden, but let's make the default useful
+  # expects the json data from node.discovery
   def value(data)
 
     begin
@@ -55,12 +53,39 @@ class Attrib < ActiveRecord::Base
     end
   end
 
+ 
+  # this is designed to be over-ridden, but let's make the default useful
+  # returns the json snippet that should be added to node.discovery
+  def discovery(arg)
+
+    # this code does a simple drill into the hash using / as a delimeter
+    nav = self.map.split '/'
+    # add some optimization to avoid looping down through the structure
+    data = case nav.length 
+      when 1 
+        {nav[0] => arg}
+      when 2
+        {nav[0] => {nav[1] => arg}}
+      when 3
+        {nav[0] => {nav[1] => {nav[2] => arg}}}
+      when 4
+        {nav[0] => {nav[1] => {nav[2] => {nav[3] => arg }}}}
+      when 5
+        {nav[0] => {nav[1] => {nav[2] => {nav[3] => {nav[4] => arg }}}}}
+      when 6
+        {nav[0] => {nav[1] => {nav[2] => {nav[3] => {nav[4] => {nav[5] => arg }}}}}}
+      else 
+        # we could use this without the optimized code, but it's not as fast
+        raise "too deep in attrib.value="
+    end
+  end
+
   private
   
   # make sure some safe values are set for the node
   def set_type_and_role
     # we need to have a type, cannot use the superclass!
-    self.type = DEFAULT_CLASS.to_s if self.type.nil?
+    self.type = Attrib.to_s if self.type.nil?
   end
   
 end

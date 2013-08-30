@@ -18,3 +18,23 @@
 %h3= t '.node_roles'
 - node_roles = NodeRole.committed_by_node(@node)
 = render :partial=>'node_roles/index', :locals => { :list => node_roles }
+
+%h3= t '.attribs'
+
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.value'
+      %th= t '.description'
+  %tbody
+    - Attrib.all.each do |a|
+      %tr    
+        %td= link_to a.name, attrib_path(a.id)
+        %td
+          - v = a.value(@node.discovery) rescue nil
+          - unless v.nil?
+            = v
+          - else
+            %em= t('not_set')
+        %td= a.description

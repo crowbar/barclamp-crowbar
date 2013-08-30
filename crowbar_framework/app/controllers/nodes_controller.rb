@@ -69,9 +69,10 @@ class NodesController < ApplicationController
   end
     
   def show
+    @node = Node.find_key params[:id]
     respond_to do |format|
-      format.html { @node = Node.find_key params[:id] } # show.html.erb
-      format.json { render api_show :node, Node }
+      format.html {  } # show.html.erb
+      format.json { render api_show :node, Node, nil, nil, @node }
     end
   end
 
@@ -88,7 +89,12 @@ class NodesController < ApplicationController
   end
   
   def update
-    render api_update :node, Node
+    @node = Node.find_key params[:id]
+    if params.key? :discovery
+      @node.discovery = params[:discovery]
+      @node.save
+    end
+    render api_update :node, Node, nil, @node
   end
 
   def attribs

@@ -192,6 +192,10 @@ en:
       node_roles: "In Process Actions"
       all_node_roles: "All Node Roles"
       admin: "(admin)"
+      attribs: "Attributes"
+      name: "Name"
+      description: "Description"
+      value: "Value"
   node_roles:
     index:
       title: "Node Roles"

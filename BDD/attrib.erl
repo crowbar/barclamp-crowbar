@@ -51,6 +51,30 @@ inspector() ->
 
 % Common Routine
 
+step(_Global, {step_given, {Scenario, _N}, ["REST creates the", attrib, Name, "with map",Map]}) -> 
+  JSON = crowbar:json([{name, Name}, {description, g(description)}, {order, g(order)}, {map, Map}]),
+  bdd_restrat:create(g(path), JSON, attrib, Scenario);
+
+step(_Given, {step_when, {_Scenario, _N}, ["REST sets the", Attrib, "on", Node, "to", Value]}) -> 
+  Path = eurl:path([node:g(path), Node, "attribs", Attrib]),
+  % this ASSUMES that the Value is valid JSON
+  JSON = crowbar:json([{value, Value}]),
+  bdd_utils:log(debug, attrib, step, "~p PUT ~p", [Path, JSON]),
+  % now update 
+  Result = eurl:put_post(Path, JSON, put),
+  O = bdd_restrat:get_object(Result),
+  [Result, O];
+
+step(_Global, {step_given, {_Scenario, _N}, ["REST sets the discovery on",Node, "to", JSON]}) -> 
+  Path = eurl:path([node:g(path), Node]),
+  % this ASSUMES that the Value is valid JSON
+  J = crowbar:json([{discovery, json:parse(JSON)}]),
+  bdd_utils:log(debug, attrib, step, "~p PUT ~p", [Path, J]),
+  % now update 
+  Result = eurl:put_post(Path, J, put),
+  O = bdd_restrat:get_object(Result),
+  [Result, O];
+
 step(_Global, {step_setup, _N, _}) -> true;
 
 step(_Global, {step_teardown, _N, _}) -> true.

@@ -52,9 +52,17 @@ class AttribsController < ApplicationController
   end
   
   def update
-    respond_to do |format|
-      format.html { }
-      format.json { render api_update :attrib, Attrib }
+    if params.key? :node_id and params.key? :value
+      node = Node.find_key params[:node_id]
+      attrib = Attrib.find_key params[:id]
+      node.discovery = attrib.discovery(params[:value])
+      node.save!
+      render api_show :node, Node, nil, nil, node
+    else
+      respond_to do |format|
+        format.html { render api_not_supported 'put', 'nodes/:id/attribs/:id' }
+        format.json { render api_update :attrib, Attrib }
+      end
     end
   end
 

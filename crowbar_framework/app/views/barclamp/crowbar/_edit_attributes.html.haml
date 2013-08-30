@@ -3,5 +3,6 @@
   = link_to t('raw'), proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => @dep_raw, :attr_raw => true), :class => "pull-right"
 .page-header-bottom
 
-= t('.simple_proposal_ui')
-= select_tag :simple_proposal_ui, options_for_select([['true', 'true'], ['false', 'false']], @proposal.raw_data['attributes'][@proposal.barclamp]["simple_proposal_ui"].to_s), :onchange => "update_value('simple_proposal_ui', 'simple_proposal_ui', 'boolean')"
+%p
+  %label{ :for => :simple_proposal_ui }= t('.simple_proposal_ui')
+  = select_tag :simple_proposal_ui, options_for_select([['true', 'true'], ['false', 'false']], @proposal.raw_data['attributes'][@proposal.barclamp]["simple_proposal_ui"].to_s), :onchange => "update_value('simple_proposal_ui', 'simple_proposal_ui', 'boolean')"

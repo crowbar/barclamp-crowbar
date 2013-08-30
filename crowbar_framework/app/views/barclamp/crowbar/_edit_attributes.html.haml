@@ -6,7 +6,7 @@
 
 %p
   %label{ :for => :simple_proposal_ui }= t('.simple_proposal_ui')
-  = select_tag :simple_proposal_ui, options_for_select([['false', 'false'], ['true', 'true']], @proposal.raw_data['attributes'][@proposal.barclamp]["simple_proposal_ui"].to_s), :onchange => "update_value('simple_proposal_ui', 'simple_proposal_ui', 'boolean')"
+  = select_tag :simple_proposal_ui, options_for_select([['true', 'true'], ['false', 'false']], @proposal.raw_data['attributes'][@proposal.barclamp]["simple_proposal_ui"].to_s), :onchange => "update_value('simple_proposal_ui', 'simple_proposal_ui', 'boolean')"
 
   %div.container
 

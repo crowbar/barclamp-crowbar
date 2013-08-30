@@ -249,7 +249,8 @@ en:
       <<: *deployment_common
     show:
       data: "User Configuration Data (outbound)"
-      wall: "System Managed Data (inbound / wall)"
+      wall: "System Managed Data (outbound)"
+      wall: "Jig Managed Data (inbound / wall)"
       upstream: "Upstream Node Roles (blocked by)"
       downstream: "Downstream Node Roles (blocking)"
       save: "Save"

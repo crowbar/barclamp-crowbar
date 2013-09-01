@@ -293,6 +293,7 @@ class NodeRole < ActiveRecord::Base
         unless cstate == TRANSITION 
           raise InvalidTransition.new(self,cstate,val)
         end
+        role.on_error self
         write_attribute("state",val)
         save!
         # All children of a node_role in ERROR go to BLOCKED.
@@ -320,6 +321,7 @@ class NodeRole < ActiveRecord::Base
         unless activatable?
           raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
         end
+        role.on_todo self
         write_attribute("state",val)
         save!
         # Going into TODO transitions all our children into BLOCKED.
@@ -336,6 +338,7 @@ class NodeRole < ActiveRecord::Base
         unless cstate == TODO
           raise InvalidTransition.new(self,cstate,val)
         end
+        role.on_transition self
         write_attribute("state",val)
         save!
       when BLOCKED
@@ -345,6 +348,7 @@ class NodeRole < ActiveRecord::Base
             (cstate == PROPOSED || cstate == TODO)
           raise InvalidTransition.new(self,cstate,val)
         end
+        role.on_blocked self
         write_attribute("state",val)
         save!
         # If we are blocked, so are all our children.
@@ -354,6 +358,7 @@ class NodeRole < ActiveRecord::Base
       when PROPOSED
         # Only new node_roles can be in proposed
         raise InvalidTransition.new(self,cstate,val)
+        role.on_proposed self
       else
         # No idea what this is.  Just die.
         raise InvalidState.new("Unknown state #{s.inspect}")

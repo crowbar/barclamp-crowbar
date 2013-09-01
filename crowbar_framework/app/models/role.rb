@@ -61,28 +61,28 @@ class Role < ActiveRecord::Base
 
   # State Transistion Overrides
   
-  def on_error(node_role, *args)
-    # do nothing
+  def self.on_error(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_error event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
-  def on_active(node_role, *args)
-    # do nothing
+  def self.on_active(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_active event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
-  def on_todo(node_role, *args)
-    # do nothing
+  def self.on_todo(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_todo event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
-  def on_transition(node_role, *args)
-    # do nothing
+  def self.on_transition(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_transition event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
-  def on_blocked(node_role, *args)
-    # do nothing
+  def self.on_blocked(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_blocked event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
-  def on_proposed(node_role, *args)
-    # do nothing
+  def self.on_proposed(node_role, *args)
+    Rails.logger.info "No override for #{self.class.to_s}.on_proposed event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
   def parents

@@ -45,12 +45,9 @@ class RolesController < ApplicationController
         format.json { render api_show :deployment, Deployment, nil, nil, deployment }
       end
     else
-      unless Rails.env.development?
-        render api_not_supported("post", "role")
-      else
-        r = Role.create! params
-        render api_show :role, Role, nil, nil, r 
-      end
+      params[:barclamp_id] = Barclamp.find_key(params[:barclamp]).id if params.include? :barclamp
+      r = Role.create! params
+      render api_show :role, Role, nil, nil, r 
     end
   end
 

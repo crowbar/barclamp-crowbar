@@ -29,13 +29,13 @@ validate_core(JSON) when is_record(JSON, obj) -> validate_core(JSON#obj.data);
 validate_core(JSON) ->
   R = [bdd_utils:is_a(JSON, string, created_at), % placeholder for createdat
        bdd_utils:is_a(JSON, string, updated_at), % placgit eholder for updatedat
-       bdd_utils:is_a(JSON, name, name),
        bdd_utils:is_a(JSON, dbid, id)],
   bdd_utils:assert(R, debug). 
 
 validate(JSON) when is_record(JSON, obj) -> validate(JSON#obj.data);
 validate(JSON) ->
   R = [
+       bdd_utils:is_a(JSON, name, name),
        bdd_utils:is_a(JSON, str, description),
        validate_core(JSON)],
   bdd_utils:assert(R, debug). 

@@ -51,6 +51,7 @@ en:
   'no': 'No'
   maybe: "Maybe"
   chuck_norris: "Die!!!"
+  ignore: "Ignore - used by testing"
   depricated: "WARNING Depricated!"
   work_in_progress: "Work in progress notice: %{message}"
   updating: "Updating..."

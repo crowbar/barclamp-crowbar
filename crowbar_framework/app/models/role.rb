@@ -48,6 +48,43 @@ class Role < ActiveRecord::Base
   # This will mostly be used to implement the on_* helpers in a not-totally-insane way.
   after_initialize :mixin_specific_behaviour
 
+  # update just one value in the template (assumes just 1 level deep!)
+  # use via /api/v2/roles/[role]/template/[key]/[value] 
+  def update_template(key, value)
+    t = { key => value }
+    raw = read_attribute("template") 
+    d = raw.nil? ? {} : JSON.parse(raw)  
+    merged = d.deep_merge(t)
+    self.template = JSON.generate(merged)
+    self.save!
+  end
+
+  # State Transistion Overrides
+  
+  def on_error(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_error event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_active(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_active event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_todo(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_todo event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_transition(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_transition event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_blocked(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_blocked event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_proposed(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_proposed event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
   def parents
     res = []
     res << jig.client_role if jig.client_role
@@ -71,8 +108,7 @@ class Role < ActiveRecord::Base
   # Make sure there is a deployment role for ourself in the snapshot.
   def add_to_snapshot(snap)
     # make sure there's a deployment role before we add a node role
-    return unless DeploymentRole.snapshot_and_role(snap, self).size == 0
-    DeploymentRole.transaction do
+    if DeploymentRole.snapshot_and_role(snap, self).size == 0
       DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
     end
   end
@@ -83,6 +119,7 @@ class Role < ActiveRecord::Base
     unless active?
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
+    # make sure that we also have a deployment role
     add_to_snapshot(snap)
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
@@ -121,7 +158,6 @@ class Role < ActiveRecord::Base
     res
   end
 
-
   def jig
     Jig.where(["name = ?",jig_name]).first
   end
@@ -146,17 +182,21 @@ class Role < ActiveRecord::Base
   def mixin_specific_behaviour
     raise "Roles require a name" if self.name.nil?
     Rails.logger.info("Seeing if #{self.name} has a mixin...")
-    mod = "barclamp_#{barclamp.name}".camelize.to_sym
-    return self unless Module::const_defined?(mod)
-    mod = Module::const_get(mod)
-    ["role",
-     self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
-      return self unless mod.const_defined?(m)
-      mod = mod.const_get(m)
-      return self unless mod.kind_of?(Module)
+    begin
+      mod = "barclamp_#{barclamp.name}".camelize.to_sym
+      return self unless Module::const_defined?(mod)
+      mod = Module::const_get(mod)
+      ["role",
+       self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
+        return self unless mod.const_defined?(m)
+        mod = mod.const_get(m)
+        return self unless mod.kind_of?(Module)
+      end
+      Rails.logger.info("Extending #{self.name} with #{mod}")
+      self.extend(mod)
+    rescue
+      # nothing for now, this code is going away
     end
-    Rails.logger.info("Extending #{self.name} with #{mod}")
-    self.extend(mod)
   end
 
   # This method ensures that we have a type defined for 

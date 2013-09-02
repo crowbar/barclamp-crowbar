@@ -67,6 +67,11 @@ class Node < ActiveRecord::Base
     return NodeRole::ACTIVE
   end
 
+  # returns a hash with all the node error status information 
+  def status
+    node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
+  end
+
   def self.name_hash
     Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
   end
@@ -122,18 +127,6 @@ class Node < ActiveRecord::Base
   def identify
     ipmi_cmd("chassis identify")
   end
-
-  # Associate the node to a barclamp via the role
-  # This will create a AttribHasRole object to the requested Role
-  def add_role(role)
-    # TODO ZEHICLE
-  end
-
-  # Deassociate the node to a barclamp via the role
-  # This will delete the AttribHasRole object to the requested Role
-  def remove_role(role)
-    # TODO ZEHICLE
-  end
   
   def virtual?
     # TODO ZEHICLE place holder
@@ -145,21 +138,18 @@ class Node < ActiveRecord::Base
     true
   end
   
-  def links
-    # TODO place holder for barclamp defined links
-    []
-  end
-
   # retrieves the Attrib from Attrib
   def get_attrib(attrib_name)
-    a = Attrib.by_name attrib_name
-    a.value self.discovery
+    a = Attrib.by_name(attrib_name).first
+    unless a.nil? 
+      a.value(self.discovery)
+    end
   end
   
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
-      return get_attrib(method[7..100]).value
+      return get_attrib method[7..100]
     else
       super
     end

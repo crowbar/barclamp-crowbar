@@ -26,6 +26,9 @@
       %p= "Error #{e.inspect}"
     = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
 
+%h3= t '.sysdata'
+= render :partial => 'raw', :locals => { :data => @node_role.sysdata, :node_role => nil } 
+
 %h3= t '.wall'
 = render :partial => 'raw', :locals => { :data => @node_role.wall, :node_role => nil } 
 

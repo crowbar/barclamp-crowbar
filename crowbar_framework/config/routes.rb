@@ -19,7 +19,17 @@ Crowbar::Application.routes.draw do
     eval(IO.read(routes_file), binding)
   end
 
-  # UI 
+  # UI scope
+
+  # special case items that allow IDs to have .s 
+  constraints(:id => /.*/ ) do
+    resources :nodes do
+      resources :node_roles
+      resources :attribs
+    end
+  end
+
+  # UI resources
   resources :attribs
   resources :barclamps
   resources :deployments do
@@ -31,10 +41,6 @@ Crowbar::Application.routes.draw do
   resources :docs
   resources :groups
   resources :jigs
-  resources :nodes do
-    resources :node_roles
-    resources :attribs
-  end
   resources :node_roles do
     post :anneal
   end
@@ -47,18 +53,15 @@ Crowbar::Application.routes.draw do
     put :recall
   end
 
-  # UI scope
   scope 'utils' do
-    constraints(:id => /.*/ ) do
-      get '/'             => 'support#index', :as => :utils
-      get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n
-      get 'marker/:id'    => 'support#marker', :as => :utils_marker
-      get 'files/:id'     => 'support#index', :as => :utils_files
-      get 'import(/:id)'  => 'support#import', :as => :utils_import
-      get 'upload/:id'    => 'support#upload', :as => :utils_upload
-      get 'restart/:id'   => 'support#restart', :as => :restart
-      get 'digest'        => "support#digest"
-    end
+    get '/'             => 'support#index', :as => :utils
+    get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n, :constraints => { :id => /.*/ }
+    get 'marker/:id'    => 'support#marker', :as => :utils_marker
+    get 'files/:id'     => 'support#index', :as => :utils_files
+    get 'import(/:id)'  => 'support#import', :as => :utils_import
+    get 'upload/:id'    => 'support#upload', :as => :utils_upload
+    get 'restart/:id'   => 'support#restart', :as => :restart
+    get 'digest'        => "support#digest"
     namespace :scaffolds do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
@@ -128,7 +131,9 @@ Crowbar::Application.routes.draw do
           resources :node_roles do
             post :anneal
           end
-          resources :roles
+          resources :roles do
+            put 'template/:key/:value' => "roles#template"
+          end
           resources :snapshots do
             resources :node_roles
             put :anneal

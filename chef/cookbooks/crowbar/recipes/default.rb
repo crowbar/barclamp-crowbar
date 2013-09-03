@@ -23,6 +23,8 @@ end
 
 pkglist=()
 rainbows_path=""
+logdir = "/var/log/crowbar"
+
 case node[:platform]
 when "ubuntu","debian"
   pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
@@ -110,13 +112,6 @@ bash "Add crowbar chef client" do
   not_if "export HOME=/root;knife client list -u crowbar -k /opt/dell/crowbar_framework/config/client.pem"
 end
 
-file "/opt/dell/crowbar_framework/log/production.log" do
-  owner "crowbar"
-  group "crowbar"
-  mode "0666"
-  action :create
-end
-
 file "/opt/dell/crowbar_framework/tmp/queue.lock" do
   owner "crowbar"
   group "crowbar"
@@ -145,6 +140,21 @@ else
     action :create
   end
 end
+
+directory logdir do
+  owner "crowbar"
+  group "crowbar"
+  mode "0750"
+  action :create
+end
+
+directory "#{logdir}/chef-client" do
+  owner "crowbar"
+  group "crowbar"
+  mode "0750"
+  action :create
+end
+
 
 unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"]["realm"].nil?
   web_port = node["crowbar"]["web_port"]
@@ -192,7 +202,8 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/production.log",
+            :logdir => logdir,
+            :logname => "production",
             :app_location => "/opt/dell/crowbar_framework")
 end
 
@@ -206,7 +217,8 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
             :user => "crowbar",
             :concurrency_model => "EventMachine",
             :group => "crowbar",
-            :logfile => "/opt/dell/crowbar_framework/log/development.log",
+            :logdir => logdir,
+            :logname => "development",
             :app_location => "/opt/dell/crowbar_framework")
 end
 
@@ -221,6 +233,7 @@ if node[:platform] != "suse"
 
   template "/etc/bluepill/crowbar-webserver.pill" do
     source "crowbar-webserver.pill.erb"
+    variables(:logdir => logdir)
   end
 
   bluepill_service "crowbar-webserver" do

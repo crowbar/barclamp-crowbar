@@ -161,6 +161,10 @@ class NodeObject < ChefObject
     @node[:target_platform]
   end
 
+  def pretty_target_platform
+    CrowbarService.pretty_target_platform(@node[:target_platform])
+  end
+
   def target_platform=(value)
     @node.set[:target_platform] = value
   end

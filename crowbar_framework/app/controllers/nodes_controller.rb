@@ -150,18 +150,18 @@ class NodesController < ApplicationController
     end
     @options = CrowbarService.read_options
     @nodes = {}
-    default_os=""
+
+    default_os = find_default_os
+
     NodeObject.all.each do |node|
-      if node[:crowbar][:admin_node]
-         default_os = "#{node[:platform]}-#{node[:platform_version]}"
-      end
-      if node.target_platform == nil || node.target_platform == ""
+      if node.target_platform.nil? || node.target_platform.empty?
          node.target_platform = default_os
          node.save
       end
       @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
-    @options[:target] = {"Windows Server 2012" => "windows-6.2", "Hyper-V Server 2012" => "hyperv-6.2", default_os => default_os}
+
+    @target_platforms = options_target_platform(default_os)
   end
 
   def families
@@ -252,6 +252,7 @@ class NodesController < ApplicationController
 
   def edit
     @options = CrowbarService.read_options
+    @target_platforms = options_target_platform(find_default_os)
     get_node_and_network(params[:id] || params[:name])
   end
 
@@ -318,28 +319,9 @@ class NodesController < ApplicationController
     @network = []
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
-      if @node.target_platform == ''
-         @node.target_platform = nil
-       end
-      if !request.fullpath.include? "edit"
-        if @node.target_platform == "windows-6.2"
-             @node.target_platform = "Windows Server 2012"
-        elsif @node.target_platform == "hyperv-6.2"
-             @node.target_platform = "Hyper-V Server 2012"
-        end
-      elsif !defined?(default_os) or default_os == ""
-          default_os = ""
-          NodeObject.all.each do |n|
-             if n[:crowbar][:admin_node]
-                default_os = "#{n[:platform]}-#{n[:platform_version]}"
-                break
-             end
-          end
-          if @node.target_platform == nil || @node.target_platform == ""
-             @node.target_platform = default_os
-             @node.save
-          end
-          @options[:target] = {"Windows Server 2012" => "windows-6.2", "Hyper-V Server 2012" => "hyperv-6.2", default_os => default_os}
+      if @node.target_platform.nil? || @node.target_platform.empty?
+        @node.target_platform = find_default_os
+        @node.save
       end
       intf_if_map = @node.build_node_map
       # build network information (this may need to move into the object)
@@ -364,5 +346,20 @@ class NodesController < ApplicationController
     end
 
     @network
+  end
+
+  def find_default_os
+    NodeObject.all.each do |node|
+      return "#{node[:platform]}-#{node[:platform_version]}" if node.admin?
+    end
+    return ""
+  end
+
+  def options_target_platform(default_os)
+    return {
+      CrowbarService.pretty_target_platform(default_os) => default_os,
+      CrowbarService.pretty_target_platform("windows-6.2") => "windows-6.2",
+      CrowbarService.pretty_target_platform("hyperv-6.2") => "hyperv-6.2"
+    }
   end
 end

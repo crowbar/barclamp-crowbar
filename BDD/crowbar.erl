@@ -86,7 +86,7 @@ json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 %  P.
 
 % global setup
-step(_Global, {step_setup, _N, Test}) -> 
+step(Global, {step_setup, {Scenario, _N}, Test}) -> 
   % setup the groups object override
   bdd_utils:alias(group, group_cb),
   bdd_utils:alias(user, user_cb),
@@ -103,7 +103,7 @@ step(_Global, {step_setup, _N, Test}) ->
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
-step(_Global, {step_teardown, _N, _}) -> 
+step(Global, {step_teardown, {Scenario, _N}, _}) -> 
   bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
   % turn on the delays in the test jig
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "true"]}), 
@@ -120,7 +120,7 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path(g(i18n),Key),
   eurl:get_http(URI);
 
-step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
   bdd_utils:log(debug, crowbar, step, "REST creates the ~p ~p", [role, Name]),
   JSON = json([{name, Name}, {description, role:g(description)}, {order, role:g(order)}, {barclamp, "crowbar"}, {jig_name, "test"}]),
   Path = role:g(path),

@@ -106,6 +106,20 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path(g(i18n),Key),
   eurl:get_http(URI);
 
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
+  bdd_utils:log(debug, crowbar, step, "REST creates the ~p ~p", [role, Name]),
+  JSON = json([{name, Name}, {description, role:g(description)}, {order, role:g(order)}, {barclamp, "crowbar"}, {jig_name, "test"}]),
+  Path = role:g(path),
+  bdd_restrat:create(Path, JSON, role, ScenarioID);
+
+% ============================  WHEN STEPS =========================================
+
+step(_Given, {step_when, {Scenario, _N}, ["I add",node, Node,"to",deployment, Deployment,"in",role,Role]}) -> 
+  Path = node_role:g(path), 
+  JSON = crowbar:json([{node, Node}, {role, Role}, {deployment, Deployment}]),
+  bdd_utils:log(debug, annealer, step, "Add node_role ~p POST ~p",[Path, JSON]),
+  bdd_restrat:create(Path, JSON, role, Scenario);
+
 % ============================  THEN STEPS =========================================
 
 

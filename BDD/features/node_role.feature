@@ -7,13 +7,18 @@ Feature: NodeRole
     When REST gets the {object:node_role} list
     Then the page returns {integer:200}
 
-  Scenario: %REST update data
-    Given I have a proposed {object:node_role}
-    When update the {object:node_role} data to "{ \"bdd\":0 }"
-    Then I should see a {object:node_role} with data
-      And I should see a {object:node_role} with data key "bdd" 
-      And I should see a {object:node_role} with data key "bdd" value {number:0}
-      
+  Scenario: REST can add a node to a role
+    Given there is a {object:deployment} "bdd_deploy_add_role"
+      And there is a {object:role} "bdd_role_add_node"
+      And there is a {object:node} "bdd-add-me-to-role.cr0wbar.com"
+    When I add {object:node} "bdd-add-me-to-role.cr0wbar.com" to {object:deployment} "bdd_deploy_add_role" in {object:role} "bdd_role_add_node"
+    Then I get a {integer:200} result
+      And key "state" should be "4"
+      And the {object:node_role} is properly formatted
+    Finally REST removes the {object:deployment} "bdd_deploy_add_role"
+      And REST removes the {object:role} "bdd_role_add_node"
+      And REST removes the {object:node} "bdd-add-me-to-role.cr0wbar.com"
+
   Scenario: The page renders
     When I go to the "node_roles" page
     Then I should see a heading {bdd:crowbar.i18n.node_roles.index.title}

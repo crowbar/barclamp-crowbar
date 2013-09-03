@@ -37,9 +37,13 @@ class NodeRolesController < ApplicationController
 
   def create
     # helpers to allow create by names instead of IDs
-    param[:snapshot_id] = Snapshot.find(:name=>params[:snapshot]).id if params.key? :snapshot
-    param[:node_id] = Node.find(:name=>params[:node]).id if params.key? :node
-    param[:role_id] = Role.find(:name=>params[:role]).id if params.key? :role
+    if params.key? :snapshot
+      params[:snapshot_id] = Snapshot.find_key(params[:snapshot]).id
+    elsif params.key? :deployment
+      params[:snapshot_id] = Deployment.find_key(params[:deployment]).head.id
+    end
+    params[:node_id] = Node.find_key(params[:node]).id if params.key? :node
+    params[:role_id] = Role.find_key(params[:role]).id if params.key? :role
     
     # the main body of the work
     snap = Snapshot.find_key params[:snapshot_id] 

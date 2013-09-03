@@ -16,7 +16,7 @@ class CreateAttribs < ActiveRecord::Migration
     
   def change
     create_table :attribs do |t|
-      t.string      :type,          :null => false, :default => Attrib::DEFAULT_CLASS.to_s
+      t.string      :type,          :null => false, :default => Attrib.to_s
       t.string      :name,          :null => false
       t.string      :description,   :null => true
       t.integer     :order,         :default=>10000

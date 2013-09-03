@@ -44,3 +44,8 @@ Feature: Role
     When I click on the "test-admin" link
     Then I should see "test-admin"
       And there are no localization errors
+
+  Scenario: BDD can turn off test delays
+    Given I set the {object:role} "test-admin" property "test" to "false"
+    When REST gets the {object:role} "test-admin"
+    Then key "template:test" should be "false"

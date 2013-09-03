@@ -7,13 +7,10 @@
       .led{:valign=>'center', :class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
     %td
       %h1
-        = @node.name
+        = @node.alias || @node.name
         = t '.admin' if @node.admin
-  %tr
-    %td
-    %td= @node.description || @node.alias
 
-= render :partial => 'show', :locals => { :node => @node } rescue @node.inspect
+= render :partial => 'show', :locals => { :node => @node }
 
 %h3= t '.node_roles'
 - node_roles = NodeRole.committed_by_node(@node)

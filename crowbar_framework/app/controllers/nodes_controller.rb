@@ -154,7 +154,7 @@ class NodesController < ApplicationController
     default_os = find_default_os
 
     NodeObject.all.each do |node|
-      if node.target_platform.nil? || node.target_platform.empty?
+      if node.target_platform.blank?
          node.target_platform = default_os
          node.save
       end
@@ -319,7 +319,7 @@ class NodesController < ApplicationController
     @network = []
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
-      if @node.target_platform.nil? || @node.target_platform.empty?
+      if @node.target_platform.blank?
         @node.target_platform = find_default_os
         @node.save
       end

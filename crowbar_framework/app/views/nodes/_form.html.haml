@@ -3,12 +3,21 @@
   - form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
     %fieldset.inputs
       %ol
-        %li.select
-          = f.label :target_platform, t('.target_platform')
-          = select_tag :target_platform, options_for_select(option_default(@target_platforms, @node.target_platform, 'target_platform'), @node.target_platform), {:onchange => "showLicense(this)"}
-        %li.text#licenseKey{:style => CrowbarService.require_license_key?(@node.target_platform) ? 'display:block' : 'display:none'}
-          = f.label :license_key, t('.license_key')
-          = text_field_tag :license_key, @node.license_key, :size => 20
+        -unless @node.allocated
+          %li.select
+            = f.label :target_platform, t('.target_platform')
+            = select_tag :target_platform, options_for_select(option_default(@target_platforms, @node.target_platform, 'target_platform'), @node.target_platform), {:onchange => "showLicense(this)"}
+          %li.text#licenseKey{:style => CrowbarService.require_license_key?(@node.target_platform) ? 'display:block' : 'display:none'}
+            = f.label :license_key, t('.license_key')
+            = text_field_tag :license_key, @node.license_key, :size => 20
+        -else
+          %li.text
+            = f.label :target_platform, t('.target_platform')
+            = @node.pretty_target_platform
+          -if CrowbarService.require_license_key?(@node.target_platform)
+            %li.text
+              = f.label :license_key, t('.license_key')
+              = @node.license_key
         %li.text
           = f.label :alias, t('.alias')
           = text_field_tag :alias, @node.alias(true), :size => 20

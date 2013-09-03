@@ -261,9 +261,9 @@ class NodesController < ApplicationController
       get_node_and_network(params[:id] || params[:name])
       if params[:submit] == t('nodes.form.allocate')
         @node.allocated = true
-        flash[:notice] = t('nodes.form.allocate_node_success') if save_node
+        flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
       elsif params[:submit] == t('nodes.form.save')
-        flash[:notice] = t('nodes.form.save_node_success') if save_node
+        flash[:notice] = t('nodes.form.save_node_success') if save_node(false)
       else
         Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
         flash[:notice] = "Unknown action: #{params[:submit]}"
@@ -289,7 +289,7 @@ class NodesController < ApplicationController
 
   private
 
-  def save_node
+  def save_node(change_target_platform)
     if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
       flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
       return false
@@ -301,10 +301,12 @@ class NodesController < ApplicationController
       @node.public_name = params[:public_name]
       @node.group = params[:group]
       @node.description = params[:description]
-      @node.target_platform = params[:target_platform]
-      @node.license_key = params[:license_key]
-      unless CrowbarService.require_license_key?(@node.target_platform)
-        @node.license_key = ""
+      if change_target_platform
+        @node.target_platform = params[:target_platform]
+        @node.license_key = params[:license_key]
+        unless CrowbarService.require_license_key?(@node.target_platform)
+          @node.license_key = ""
+        end
       end
       @node.save
       true

@@ -6,7 +6,7 @@ This is the developers guide for Crowbar.
 The guide is s currently under development, and changing rapidly.
 
 The table of contents for the documentation 
-will follow the outline below.  
+will follow the outline below.
 
 * crowbar concepts / architecture 
     * what is crowbar 
@@ -27,22 +27,24 @@ will follow the outline below.
     * UEFI 
 
 * crowbar development environment
+    * code organization
     * build process overview
-        * how to build an ISO from existing code
-
     * community development workflow 
-        branches, pull requests, etc
+        * branches, pull requests, etc
+    * setting up a build VM
+        * dev-vm-Fedora
+        * dev-vm-SUSE
+        * dev-vm-Ubuntu
+    * Judd's vagrant build setup
+
     * devtool-build.md 
-    * dev-vm-Fedora
-    * dev-vm-SUSE
-    * dev-vm-Ubuntu
     * dev-vm
     * devtool
-    * Judd's vagrant build setup
     * coding conventions 
     * how to write a new barclamp
     * packaging and installation
     * “how to build packages” – I thought packages was our primary output for CB2.0, not ISOs – allowing continuous deployment of crowbar itself.
+        * how to build an ISO from existing code
 
 * using crowbar for continuous deployment 
 * testing and continuous integration

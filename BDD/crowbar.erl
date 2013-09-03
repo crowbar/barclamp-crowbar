@@ -120,9 +120,12 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path(g(i18n),Key),
   eurl:get_http(URI);
 
-step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
+step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
+  step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
+
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, Barclamp, "for", jig, Jig]}) -> 
   bdd_utils:log(debug, crowbar, step, "REST creates the ~p ~p", [role, Name]),
-  JSON = json([{name, Name}, {description, role:g(description)}, {order, role:g(order)}, {barclamp, "crowbar"}, {jig_name, "test"}]),
+  JSON = json([{name, Name}, {description, role:g(description)}, {order, role:g(order)}, {barclamp, Barclamp}, {jig_name, Jig}]),
   Path = role:g(path),
   bdd_restrat:create(Path, JSON, role, ScenarioID);
 

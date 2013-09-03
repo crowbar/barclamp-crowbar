@@ -43,8 +43,15 @@
                 %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
               -if @options[:show].include? :raid
                 %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
-              %td= select_tag "node:#{node.name}:target_platform".to_sym, options_for_select(option_default(@options[:target],node.target_platform,'target_platform'), node.target_platform), {:onchange => "showLicense(this)"}
-              %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :size => 15, :style => node.target_platform == "windows-6.2" ? "dispaly:block" : "display:none"
+              -unless node.allocated
+                %td= select_tag "node:#{node.name}:target_platform".to_sym, options_for_select(option_default(@options[:target],node.target_platform,'target_platform'), node.target_platform), {:onchange => "showLicense(this)"}
+                %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :size => 15, :style => node.target_platform == "windows-6.2" ? "display:block" : "display:none"
+              -else
+                %td= node.target_platform
+                -if node.target_platform == "windows-6.2"
+                  %td= node.license_key
+                -else
+                  %td.center= t 'na'
               %td.center
                 -unless node.allocated
                   = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
@@ -60,8 +67,8 @@
                 %td= t 'na'
               -if @options[:show].include? :raid
                 %td= t 'na'
-              %td= text_field_tag "node:#{node.name}:target_platform".to_sym, "#{node.target_platform}", :size=> 15
-              %td= text_field_tag "node:#{node.name}:license_key".to_sym, "#{node.license_key}", :size=> 15
+              %td= node.target_platform
+              %td.center= t 'na'
               %td.center= t 'na'
       - else
         %tr

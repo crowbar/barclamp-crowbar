@@ -15,7 +15,7 @@
     = dl_item(t('model.attributes.node.public_name'), (@node.public_name.nil? ? "-" : @node.public_name))
     = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
     = dl_item(t('model.attributes.node.target_platform'), @node.target_platform ? @node.pretty_target_platform : t('model.attributes.node.target_platform_not_set'))
-    -if @node.target_platform == "windows-6.2"
+    -if CrowbarService.require_license_key?(@node.target_platform)
       = dl_item(t('model.attributes.node.license_key'), @node.license_key ? @node.license_key : t('model.attributes.node.license_key_not_set'))
     = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
     = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))

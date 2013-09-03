@@ -6,7 +6,7 @@
         %li.select
           = f.label :target_platform, t('.target_platform')
           = select_tag :target_platform, options_for_select(option_default(@target_platforms, @node.target_platform, 'target_platform'), @node.target_platform), {:onchange => "showLicense(this)"}
-        %li.text#licenseKey{:style => @node.target_platform == 'windows-6.2' ? 'display:block' : 'display:none'}
+        %li.text#licenseKey{:style => CrowbarService.require_license_key?(@node.target_platform) ? 'display:block' : 'display:none'}
           = f.label :license_key, t('.license_key')
           = text_field_tag :license_key, @node.license_key, :size => 20
         %li.text

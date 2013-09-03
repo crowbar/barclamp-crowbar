@@ -45,10 +45,10 @@
                 %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
               -unless node.allocated
                 %td= select_tag "node:#{node.name}:target_platform".to_sym, options_for_select(option_default(@target_platforms, node.target_platform, 'target_platform'), node.target_platform), {:onchange => "showLicense(this)"}
-                %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :size => 15, :style => node.target_platform == "windows-6.2" ? "display:block" : "display:none"
+                %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :size => 15, :style => CrowbarService.require_license_key?(node.target_platform) ? "display:block" : "display:none"
               -else
                 %td= node.pretty_target_platform
-                -if node.target_platform == "windows-6.2"
+                -if CrowbarService.require_license_key?(node.target_platform)
                   %td= node.license_key
                 -else
                   %td.center= t 'na'

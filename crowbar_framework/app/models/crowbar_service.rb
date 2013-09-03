@@ -280,5 +280,9 @@ class CrowbarService < ServiceObject
     return "Hyper-V Server 2012" if target_platform == "hyperv-6.2"
     return target_platform
   end
+
+  def self.require_license_key?(target_platform)
+    target_platform == "windows-6.2"
+  end
 end
 

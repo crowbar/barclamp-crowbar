@@ -118,7 +118,7 @@ class NodesController < ApplicationController
             end
             if !(node.target_platform == values['target_platform'])
               node.target_platform = values['target_platform']
-              if node.target_platform != "windows-6.2"
+              unless CrowbarService.require_license_key?(node.target_platform)
                  values['license_key'] = ""
               end
               dirty = true
@@ -303,8 +303,8 @@ class NodesController < ApplicationController
       @node.description = params[:description]
       @node.target_platform = params[:target_platform]
       @node.license_key = params[:license_key]
-      if @node.target_platform != "windows-6.2"
-         @node.license_key = ""
+      unless CrowbarService.require_license_key?(@node.target_platform)
+        @node.license_key = ""
       end
       @node.save
       true

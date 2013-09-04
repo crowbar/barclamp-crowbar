@@ -96,13 +96,21 @@ class Role < ActiveRecord::Base
 
   def depends_on?(other)
     return false if self.id == other.id
-    p = parents
-    return false if p.empty?
-    return true if p.any?{|i|i.id == other.id}
-    p.each do |i|
-      return true if i.depends_on?(other)
+    rents = parents
+    tested = Hash.new
+    loop do
+      return false if rents.empty?
+      new_parents = []
+      rents.each do |parent|
+        next if tested[parent.id] == true
+        raise "Role dependency graph for #{self.barclamp.name}:#{name} is circular!" if parent.id == self.id
+        return true if parent.id == other.id
+        tested[parent.id] = true
+        new_parents << parent.parents
+      end
+      rents = new_parents.flatten.reject{|i|tested[i.id]}
     end
-    false
+    raise "Cannot happen examining dependencies for #{name} -> #{other.name}"
   end
 
   # Make sure there is a deployment role for ourself in the snapshot.

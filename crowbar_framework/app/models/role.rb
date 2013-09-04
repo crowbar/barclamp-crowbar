@@ -59,6 +59,19 @@ class Role < ActiveRecord::Base
     self.save!
   end
 
+  # Given a list of roles, find any implicits and add them to the list.
+  # Overall list order will be preserved.
+  def self.expand(roles)
+    res = []
+    roles.each do |r|
+      r.parents.each do |rent|
+        res << rent if rent.implicit
+      end
+      res << r
+    end
+    res.uniq
+  end
+
   # State Transistion Overrides
   
   def on_error(node_role, *args)

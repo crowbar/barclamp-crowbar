@@ -7,6 +7,9 @@
   %dd= link_to @role.jig_name, jig_path(@role.jig_name)
   %dt= t '.barclamp' 
   %dd= link_to @role.barclamp.name, barclamp_path(@role.barclamp.id)
+  - if Rails.env.development?
+    %dt= t '.type'
+    %dd= "[#{@role.class.to_s}]"
   %dt= t '.flags'
   %dd
     = t '.library' if @role.library 

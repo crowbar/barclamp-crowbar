@@ -208,15 +208,19 @@ class Role < ActiveRecord::Base
     name = self.name.sub("#{self.barclamp.name}-", '').camelize
     # these routines look for the namespace & class
     m = Module::const_get(namespace) rescue nil
-    test = m.const_get(name).superclass == Role rescue false
-    # if they dont' find it we fall back to BarclampFramework (this should go away!)
-    self.type = unless test
-      Rails.logger.warn "Role #{self.name} created with fallback Model!"
-      "Role"
-    else 
+    # barclamps can override specific roles
+    test_specific = m.const_get(name).superclass == Role rescue false
+    # barclamps can provide a generic fallback  "BarclampName::Role"
+    test_generic = m.const_get("Role").superclass == Role rescue false
+    # if they dont' find it we fall back to the core Role
+    self.type = if test_specific
       "#{namespace}::#{name}"
+    elsif test_generic
+      "#{namespace}::Role"
+    else
+      Rails.logger.info "Role #{self.name} created with fallback Model!"
+      "Role"
     end
-    
   end
 
 end

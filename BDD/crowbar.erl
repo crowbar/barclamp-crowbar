@@ -136,6 +136,12 @@ step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", bar
   Path = role:g(path),
   bdd_restrat:create(Path, JSON, role, ScenarioID);
 
+step(_Given, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]}) -> 
+  bdd_utils:log(debug, crowbar, step, "REST addes role ~p to deployment ~p", [Role, Deployment]),
+  JSON = json([{role, Role}, {deployment, Deployment}]),
+  Path = deployment_role:g(path),
+  bdd_restrat:create(Path, JSON, deployment_role, ScenarioID);
+
  
 % ============================  WHEN STEPS =========================================
 

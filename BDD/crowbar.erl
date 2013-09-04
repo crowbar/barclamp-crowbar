@@ -14,7 +14,7 @@
 % 
 % 
 -module(crowbar).
--export([step/2, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
+-export([step/2, g/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
 -export([json_build/1]).
 -import(bdd_utils).
 -import(json).
@@ -32,14 +32,21 @@ g(Item) ->
     name    -> "bddtest";
     order   -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
+    error   -> -1;
+    active  -> 0;
+    todo    -> 1;
+    transition -> 2;
+    blocked -> 3;
+    proposed -> 4;
     _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
 
-i18n(_Config, T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
-i18n(_Config, T1, T2, T3, T4) -> i18n_lookup([T1, T2, T3, T4]).
-i18n(_Config, T1, T2, T3) -> i18n_lookup([T1, T2, T3]).
-i18n(_Config, T1, T2) -> i18n_lookup([T1, T2]).
-i18n(_Config, T) -> i18n_lookup([T]).
+i18n(T1, T2, T3, T4, T5, T6) -> i18n_lookup([T1, T2, T3, T4, T5, T6]).
+i18n(T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
+i18n(T1, T2, T3, T4) -> i18n_lookup([T1, T2, T3, T4]).
+i18n(T1, T2, T3) -> i18n_lookup([T1, T2, T3]).
+i18n(T1, T2) -> i18n_lookup([T1, T2]).
+i18n(T) -> i18n_lookup([T]).
 i18n_lookup(T) -> 
   Path = string:tokens(T, "+:/"),
   KeyList = case length(Path) of
@@ -52,7 +59,7 @@ i18n_lookup(T) ->
   R = eurl:get_http(URI),
   case R#http.code of
     200 -> R#http.data;
-    _   -> bdd_utils:log(warn, crowbar, i18n, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!"
+    _   -> bdd_utils:log(warn, crowbar, i18n, "Translation for ~p not found", [URI]), "!TRANSLATION MISSING!"
   end.
 
 % rest response specific for crowbar API (only called when the vnd=crowbar)

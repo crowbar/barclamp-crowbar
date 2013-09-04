@@ -14,7 +14,7 @@
 % 
 % 
 -module(crowbar).
--export([step/2, g/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
+-export([step/2, g/1, state/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
 -export([json_build/1]).
 -import(bdd_utils).
 -import(json).
@@ -40,6 +40,9 @@ g(Item) ->
     proposed -> 4;
     _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
+
+state(Item) when is_atom(Item)  -> integer_to_list(g(Item));
+state(Item)                     -> state(list_to_atom(Item)).
 
 i18n(T1, T2, T3, T4, T5, T6) -> i18n_lookup([T1, T2, T3, T4, T5, T6]).
 i18n(T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
@@ -136,6 +139,8 @@ step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", bar
   Path = role:g(path),
   bdd_restrat:create(Path, JSON, role, ScenarioID);
 
+step(_Global, {step_given, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]}) -> 
+  step(_Global, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]});
 step(_Given, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]}) -> 
   bdd_utils:log(debug, crowbar, step, "REST addes role ~p to deployment ~p", [Role, Deployment]),
   JSON = json([{role, Role}, {deployment, Deployment}]),

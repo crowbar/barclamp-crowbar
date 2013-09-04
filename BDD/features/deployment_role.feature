@@ -16,3 +16,4 @@ Feature: DeploymentRole
     Given there is a {o:deployment} "bdd_deployment_role"
     When {o:deployment} "bdd_deployment_role" includes {o:role} "test-event"
     Then the {o:deployment_role} is properly formatted
+    Finally REST deletes the {o:deployment} "bdd_deployment_role"

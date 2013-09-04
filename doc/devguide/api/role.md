@@ -1,5 +1,17 @@
 ### Barclamp/Role APIs
 
+#### Role Types
+
+Crowbar allows Barclamp creators to override the default Role behavior.  This is a very import extension point for Crowbar because custom Role beaviors are essential to many orchestration situations.
+
+If no override is provided, Crowbar will use the Crowbar::Role class.
+
+A role specific override can be created using the name of the barclamp-role to create the class in the Barclamp model name space.  For example, a role called test-admin should be created as BarclampTest::Admin (or app/models/barclamp_test/admin.rb).  When the role is imported, Crowbar will automatically use this type if it has been defined.
+
+A barclamp specific override can be created using the name of the barclamp and the class role.  If present, this class will be used if no specific role class has been provided.  This is very useful for barclamps that create roles dynamically like the network barclamp.  For example, Crowbar will use the BarclampNetwork::Role (or app/models/barclamp_network/role.rb) class when new Network roles are added.  This allows Barclamp creators to add custom event handling without knowing the name of the roles in advance.
+
+> This is also related to how Role Events are handled
+
 #### Update key in template
 
 You can update a single key/value in the template using the following API

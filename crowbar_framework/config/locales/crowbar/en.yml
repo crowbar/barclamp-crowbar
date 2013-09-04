@@ -275,6 +275,7 @@ en:
     show:
       <<: *deployment_common
       <<: *roles_common
+      type: Type
       upstream: "Upstream (prerequisite roles)"
     names:
       role: "Roles"

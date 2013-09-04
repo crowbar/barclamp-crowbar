@@ -209,7 +209,7 @@ class Node < ActiveRecord::Base
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
       bootroles = []
-      (( self.admin ? Role.bootstrap : []) + Role.discovery).select{|r|r.active?}.each do |r|
+      (self.admin ? Role.bootstrap : Role.discovery).select{|r|r.active?}.each do |r|
         r.parents.each do |rent|
           bootroles << rent if rent.implicit
         end
@@ -221,4 +221,3 @@ class Node < ActiveRecord::Base
     end
   end
 end
-

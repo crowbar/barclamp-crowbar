@@ -56,7 +56,7 @@ class BarclampCrowbar::Jig < Jig
     end
     Dir.mktmpdir do |local_tmpdir|
       Rails.logger.info("Using local temp dir: #{local_tmpdir}")
-      attr_to_shellish(nr.all_data).each do |k,v|
+      attr_to_shellish(nr.all_transition_data).each do |k,v|
         target = File.join(local_tmpdir,"attrs",k)
         FileUtils.mkdir_p(target)
         File.open(File.join(target,"attr"),"w") do |f|

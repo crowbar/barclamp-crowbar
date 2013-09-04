@@ -280,6 +280,16 @@ class NodeRole < ActiveRecord::Base
     res
   end
 
+  def all_transition_data
+    res = all_deployment_data
+    res.deep_merge!(self.node.all_active_data)
+    res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
+    res
+  end
+    
+
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)

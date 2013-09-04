@@ -145,6 +145,13 @@ class Node < ActiveRecord::Base
       a.value(self.discovery)
     end
   end
+
+  def all_active_data
+    NodeRole.where(:state => NodeRole::ACTIVE, :node_id => self.id).select do |nr|
+      c = nr.children
+      c.empty? || c.all?{|child| child.state != NodeRole::ACTIVE}
+    end.inject(Hash.new){|memo,nr|memo.deep_merge!(nr.all_data)}
+  end
   
   def method_missing(m,*args,&block)
     method = m.to_s

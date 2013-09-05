@@ -142,6 +142,7 @@ class NodeRole < ActiveRecord::Base
         end
       end
     end
+    return nil if queue.empty?
     # Actaully run the noderoles outside of the transaction.
     queue.each do |thisjig,candidates|
       candidates.each do |c|
@@ -150,7 +151,13 @@ class NodeRole < ActiveRecord::Base
         Rails.logger.info("Annealer: Run finished.")
       end
     end
-    nil
+    true
+  end
+
+  def self.converge!
+    loop do
+      break unless anneal!
+    end
   end
 
   def state

@@ -168,10 +168,13 @@ class Role < ActiveRecord::Base
     # Bind ourselves the same way.
     res = nil
     NodeRole.transaction do
+      cohort = 0
       res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
       parent_node_roles.each do |pnr|
+        cohort = pnr.cohort + 1 if pnr.cohort >= cohort
         res.parents << pnr
       end
+      res.cohort = cohort
       res.save!
     end
     # If there is an on_proposed hook for this role, call it now with our fresh node_role.

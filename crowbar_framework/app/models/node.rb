@@ -153,11 +153,19 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def active_node_roles
+    NodeRole.where(:state => NodeRole::ACTIVE, :node_id => self.id).order("cohort")
+  end
+
   def all_active_data
-    NodeRole.where(:state => NodeRole::ACTIVE, :node_id => self.id).select do |nr|
-      c = nr.children
-      c.empty? || c.all?{|child| child.state != NodeRole::ACTIVE}
-    end.inject(Hash.new){|memo,nr|memo.deep_merge!(nr.all_data)}
+    dres = {}
+    res = {}
+    active_node_roles.each do |nr|
+      dres.deep_merge!(nr.deployment_data)
+      res.deep_merge!(nr.all_my_data)
+    end
+    dres.deep_merge!(res)
+    dres
   end
   
   def method_missing(m,*args,&block)

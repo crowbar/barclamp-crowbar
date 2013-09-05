@@ -37,3 +37,6 @@
 
 %h3= t '.downstream'
 = render :partial=>'index', :locals => { :list => @node_role.children }
+
+%h3= t '.runlog'
+%pre= @node_role.runlog

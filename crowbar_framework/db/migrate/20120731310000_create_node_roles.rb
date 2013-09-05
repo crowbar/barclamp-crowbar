@@ -23,6 +23,7 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.string      :userdata,          :null=>false, :default => '{}'
       t.string      :systemdata,        :null=>false, :default => '{}'
       t.string      :wall,              :null=>true
+      t.string      :runlog,            :null=>false, :default => ""
       t.integer     :order,             :default=>Random.rand(1000000)
       t.timestamps
     end

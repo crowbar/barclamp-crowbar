@@ -315,11 +315,11 @@ clean_line(Raw) ->
 % converts quoted text into a list
 tokenize(Config, Step) -> tokenize(Config, Step, false, ?NORMAL_TOKEN, [], "").
 
-tokenize(Config, [], _IgnoreNext, TokenType, TokenList, Token ) ->
+tokenize(_Config, [], _IgnoreNext, TokenType, TokenList, Token ) ->
   FinalTokenList = if
     Token /= [] ->
       FinalToken = if
-        TokenType == ?SUBSTITUTE_TOKEN -> token_substitute(Config, string:strip(Token));
+        TokenType == ?SUBSTITUTE_TOKEN -> token_substitute(string:strip(Token));
         true -> string:strip(Token)
       end,
       [FinalToken|TokenList];
@@ -350,7 +350,7 @@ tokenize(Config, Step, IgnoreNext, TokenType, TokenList, Token ) ->
     Char == "{", TokenType /= ?ESCAPED_TOKEN, Token /= "" ->
       tokenize(Config, string:substr(Step,2), false, ?SUBSTITUTE_TOKEN, add_token(Token, TokenList), "");
     Char == "}", TokenType == ?SUBSTITUTE_TOKEN ->
-      SubToken = token_substitute(Config, string:strip(Token)),
+      SubToken = token_substitute(string:strip(Token)),
       tokenize(Config, string:substr(Step,2), false, ?NORMAL_TOKEN, [SubToken|TokenList], "");
     % Default action is to add to the current token
     true -> tokenize(Config, string:substr(Step,2), false, TokenType, TokenList, Token ++ Char)
@@ -372,23 +372,24 @@ os_type() ->
   end.
   
 % This routine is used for special subtitutions in steps that run functions or turn strings into atoms
-token_substitute(_Config, [$a, $p, $p, $l, $y, $: | Apply]) -> [File, Method | Params] = string:tokens(Apply, "."),
+token_substitute([$a, $p, $p, $l, $y, $: | Apply])  -> [File, Method | Params] = string:tokens(Apply, "."),
                                                               apply(list_to_atom(File), list_to_atom(Method), Params);
-token_substitute(Config,  [$b, $d, $d, $: | Apply])          -> [File, Method | Params] = string:tokens(Apply, "."),
-                                                              apply(list_to_atom(File), list_to_atom(Method), [Config | Params]);
-token_substitute(_Config,  [$l, $o, $o, $k, $u, $p, $: | Apply]) -> [File | Params] = string:tokens(Apply, "."),
+token_substitute([$b, $d, $d, $: | Apply])          -> token_substitute([$a, $p, $p, $l, $y, $: | Apply]);
+token_substitute([$l, $o, $o, $k, $u, $p, $: | Apply]) -> [File | Params] = string:tokens(Apply, "."),
                                                               apply(list_to_atom(File), g, [list_to_atom(P) || P <- Params]);
-token_substitute(_Config, [$a, $t, $o, $m, $: | Apply])     -> list_to_atom(Apply);
-token_substitute(_Config, [$f, $i, $e, $l, $d, $s, $: | Apply]) 
+token_substitute([$a, $t, $o, $m, $: | Apply])      -> list_to_atom(Apply);
+token_substitute([$f, $i, $e, $l, $d, $s, $: | Apply]) 
                                                             -> Pairs = string:tokens(Apply, "&"),
                                                                Params = [ string:tokens(KV,"=") || KV <- Pairs],
                                                                [ {K, V} || [K, V | _] <- Params];
-token_substitute(_Config, [$o, $b, $j, $e, $c, $t, $: | Apply])  
+token_substitute([$o, $b, $j, $e, $c, $t, $: | Apply])  
                                                            -> list_to_atom(Apply);
-token_substitute(_Config, [$i, $n, $t, $e, $g, $e, $r, $: | Apply])
+token_substitute([$o, $: | Apply])                -> token_substitute([$o, $b, $j, $e, $c, $t, $: | Apply]);
+token_substitute([$i, $n, $t, $e, $g, $e, $r, $: | Apply])
                                                            -> {Num, []} = string:to_integer(Apply),
                                                               Num;
-token_substitute(_Config, Token)                           -> Token.
+token_substitute([$i, $n, $t, $: | Apply])        -> token_substitute([$i, $n, $t, $e, $g, $e, $r, $: | Apply]);                                                            
+token_substitute(Token)                           -> Token.
 
 
 setup_create(Config, Path, Atom, Name, JSON) ->

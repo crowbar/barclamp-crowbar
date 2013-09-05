@@ -34,6 +34,8 @@ class DeploymentRolesController < ApplicationController
     unless Rails.env.development?
       render  api_not_supported("post", "deployment_role")
     else
+      params[:role_id] = Role.find_key(params[:role]).id
+      params[:snapshot_id] = Deployment.find_key(params[:deployment]).head.id
       r = DeploymentRole.create! params
       render api_show :deployment_role, DeploymentRole, nil, nil, r 
     end

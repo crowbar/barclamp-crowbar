@@ -13,7 +13,7 @@ Feature: NodeRole
       And there is a {object:node} "bdd-add-me-to-role.cr0wbar.com"
     When I add {object:node} "bdd-add-me-to-role.cr0wbar.com" to {object:deployment} "bdd_deploy_add_role" in {object:role} "bdd_role_add_node"
     Then I get a {integer:200} result
-      And key "state" should be "4"
+      And key "state" should be {apply:crowbar.state.proposed}
       And the {object:node_role} is properly formatted
     Finally REST removes the {object:deployment} "bdd_deploy_add_role"
       And REST removes the {object:role} "bdd_role_add_node"

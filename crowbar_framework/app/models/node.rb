@@ -76,6 +76,13 @@ class Node < ActiveRecord::Base
     Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
   end
 
+  def self.make_admin!
+    transaction do
+      raise "Already have an admin node" unless where(:admin => true).empty?
+      create(:name => %x{hostname -f}.strip, :admin => true)
+    end
+  end
+
   #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines

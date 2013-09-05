@@ -174,6 +174,7 @@ step(Results, {step_then, _N, ["there is a key",Key]}) ->
   lists:keyfind(Key, 1, Obj#obj.data) =/= false;
                        
 % you can use keys delimited by : for nesting!                                         
+step(Results, {step_then, {_Scenario, _N}, ["key",Key,"is",Value]}) -> step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
   Obj = eurl:get_result(Results, obj),

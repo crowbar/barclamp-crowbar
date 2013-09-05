@@ -296,7 +296,11 @@ class NodeRole < ActiveRecord::Base
     res
   end
     
-
+  def rerun
+    raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
+    state = TODO
+  end
+  
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)
@@ -329,9 +333,9 @@ class NodeRole < ActiveRecord::Base
         end
       when TODO
         # We can only go to TODO when:
-        # 1. We were in PROPOSED or BLOCKED
+        # 1. We were in PROPOSED or BLOCKED or ERROR
         # 2. All our parents are in ACTIVE
-        unless ((cstate == PROPOSED) || (cstate == BLOCKED))
+        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) || (cstate == ERROR)
           raise InvalidTransition.new(self,cstate,val)
         end
         unless activatable?

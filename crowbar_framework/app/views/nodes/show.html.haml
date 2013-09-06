@@ -13,7 +13,7 @@
 = render :partial => 'show', :locals => { :node => @node }
 
 %h3= t '.node_roles'
-- node_roles = NodeRole.committed_by_node(@node)
+- node_roles = NodeRole.committed_by_node(@node).order("cohort, id")
 = render :partial=>'node_roles/index', :locals => { :list => node_roles }
 
 %h3= t '.attribs'

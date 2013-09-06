@@ -86,7 +86,7 @@ class SnapshotsController < ApplicationController
         flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
       end
     end
-    @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION)
+    @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION).order("cohort,id")
 
     respond_to do |format|
       format.html {  }

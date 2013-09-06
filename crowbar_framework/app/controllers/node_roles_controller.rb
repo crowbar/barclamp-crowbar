@@ -18,9 +18,9 @@ class NodeRolesController < ApplicationController
   def index
     if params.key? :node_id
       @node = Node.find_key params[:node_id]
-      @list = @node.node_roles
+      @list = @node.node_roles.sort{|a,b|[a.cohort,a.id] <=> [b.cohort,b.id]}
     else
-      @list = NodeRole.all
+      @list = NodeRole.order("cohort asc, id asc")
     end
     respond_to do |format|
       format.html { }
@@ -100,10 +100,20 @@ class NodeRolesController < ApplicationController
 
   def anneal
     NodeRole.anneal!
+    @list = NodeRole.order("cohort asc, id asc")
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node_role, @list }
+    end
   end
 
   def converge
     NodeRole.converge!
+    @list = NodeRole.order("cohort asc, id asc")
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node_role, @list }
+    end
   end
 
 end

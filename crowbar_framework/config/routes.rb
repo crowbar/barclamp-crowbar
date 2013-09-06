@@ -111,6 +111,9 @@ Crowbar::Application.routes.draw do
           get "snapshots(/:id)" => "snapshots#status", :as => :snapshots_status
         end
         scope ':version' do
+          # These are not restful.  They poke the annealer and wait.
+          post "converge", :to => "node_roles#converge", :as => :converge
+          post "anneal", :to => "node_roles#anneal", :as => :anneal
           resources :attribs
           resources :barclamps
           resources :deployments do
@@ -129,10 +132,7 @@ Crowbar::Application.routes.draw do
             resources :node_roles
             resources :attribs
           end
-          resources :node_roles do
-            post :anneal
-            post :converge
-          end
+          resources :node_roles
           resources :roles do
             put 'template/:key/:value' => "roles#template"
           end

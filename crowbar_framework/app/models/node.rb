@@ -76,6 +76,13 @@ class Node < ActiveRecord::Base
     Digest::SHA1.hexdigest(Node.select(:name).order("name ASC").map{|n|n.name}.join).to_i(16)
   end
 
+  def self.make_admin!
+    transaction do
+      raise "Already have an admin node" unless where(:admin => true).empty?
+      create(:name => %x{hostname -f}.strip, :admin => true)
+    end
+  end
+
   #
   # This is an hack for now.
   # XXX: Once networking is better defined, we should use those routines
@@ -145,6 +152,21 @@ class Node < ActiveRecord::Base
       a.value(self.discovery)
     end
   end
+
+  def active_node_roles
+    NodeRole.where(:state => NodeRole::ACTIVE, :node_id => self.id).order("cohort")
+  end
+
+  def all_active_data
+    dres = {}
+    res = {}
+    active_node_roles.each do |nr|
+      dres.deep_merge!(nr.deployment_data)
+      res.deep_merge!(nr.all_my_data)
+    end
+    dres.deep_merge!(res)
+    dres
+  end
   
   def method_missing(m,*args,&block)
     method = m.to_s
@@ -208,17 +230,9 @@ class Node < ActiveRecord::Base
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
-      bootroles = []
-      (( self.admin ? Role.bootstrap : []) + Role.discovery).select{|r|r.active?}.each do |r|
-        r.parents.each do |rent|
-          bootroles << rent if rent.implicit
-        end
-        bootroles << r
-      end
-      bootroles.sort.uniq.each do |r|
+      Role.expand(self.admin ? Role.bootstrap : Role.discovery).select{|r|r.active?}.sort.each do |r|
         r.add_to_node_in_snapshot(self,snap)
       end
     end
   end
 end
-

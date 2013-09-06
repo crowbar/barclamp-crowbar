@@ -43,6 +43,7 @@ Crowbar::Application.routes.draw do
   resources :jigs
   resources :node_roles do
     post :anneal
+    post :converge
   end
   resources :roles
   resources :snapshots do
@@ -130,6 +131,7 @@ Crowbar::Application.routes.draw do
           end
           resources :node_roles do
             post :anneal
+            post :converge
           end
           resources :roles do
             put 'template/:key/:value' => "roles#template"

@@ -101,6 +101,10 @@ class NodeRolesController < ApplicationController
   def anneal
     NodeRole.anneal!
   end
-  
+
+  def converge
+    NodeRole.converge!
+  end
+
 end
 

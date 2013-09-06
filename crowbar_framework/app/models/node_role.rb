@@ -345,8 +345,11 @@ class NodeRole < ActiveRecord::Base
   end
     
   def rerun
-    raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
-    state = TODO
+    NodeRole.transaction do
+      raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
+      write_attribute("state",TODO)
+      save!
+    end
   end
   
   # Implement the node role state transition rules

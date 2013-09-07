@@ -108,6 +108,10 @@ class NodeRolesController < ApplicationController
   end
 
   def converge
+    # Start convergence by transitioning any noderoles in ERROR back to TODO
+    NodeRole.transaction do
+      NodeRole.where(:state => NodeRole::ERROR).each do |nr| nr.rerun; nr.save! end
+    end
     NodeRole.converge!
     @list = NodeRole.order("cohort asc, id asc")
     respond_to do |format|

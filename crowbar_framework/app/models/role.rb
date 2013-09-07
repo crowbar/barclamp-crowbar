@@ -59,6 +59,19 @@ class Role < ActiveRecord::Base
     self.save!
   end
 
+  # Given a list of roles, find any implicits and add them to the list.
+  # Overall list order will be preserved.
+  def self.expand(roles)
+    res = []
+    roles.each do |r|
+      r.parents.each do |rent|
+        res << rent if rent.implicit
+      end
+      res << r
+    end
+    res.uniq
+  end
+
   # State Transistion Overrides
   
   def on_error(node_role, *args)
@@ -96,13 +109,21 @@ class Role < ActiveRecord::Base
 
   def depends_on?(other)
     return false if self.id == other.id
-    p = parents
-    return false if p.empty?
-    return true if p.any?{|i|i.id == other.id}
-    p.each do |i|
-      return true if i.depends_on?(other)
+    rents = parents
+    tested = Hash.new
+    loop do
+      return false if rents.empty?
+      new_parents = []
+      rents.each do |parent|
+        next if tested[parent.id] == true
+        raise "Role dependency graph for #{self.barclamp.name}:#{name} is circular!" if parent.id == self.id
+        return true if parent.id == other.id
+        tested[parent.id] = true
+        new_parents << parent.parents
+      end
+      rents = new_parents.flatten.reject{|i|tested[i.id]}
     end
-    false
+    raise "Cannot happen examining dependencies for #{name} -> #{other.name}"
   end
 
   # Make sure there is a deployment role for ourself in the snapshot.
@@ -147,10 +168,13 @@ class Role < ActiveRecord::Base
     # Bind ourselves the same way.
     res = nil
     NodeRole.transaction do
+      cohort = 0
       res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
       parent_node_roles.each do |pnr|
+        cohort = pnr.cohort + 1 if pnr.cohort >= cohort
         res.parents << pnr
       end
+      res.cohort = cohort
       res.save!
     end
     # If there is an on_proposed hook for this role, call it now with our fresh node_role.

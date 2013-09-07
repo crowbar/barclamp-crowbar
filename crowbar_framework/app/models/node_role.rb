@@ -142,6 +142,7 @@ class NodeRole < ActiveRecord::Base
         end
       end
     end
+    return nil if queue.empty?
     # Actaully run the noderoles outside of the transaction.
     queue.each do |thisjig,candidates|
       candidates.each do |c|
@@ -150,7 +151,13 @@ class NodeRole < ActiveRecord::Base
         Rails.logger.info("Annealer: Run finished.")
       end
     end
-    nil
+    true
+  end
+
+  def self.converge!
+    loop do
+      break unless anneal!
+    end
   end
 
   def state
@@ -238,39 +245,87 @@ class NodeRole < ActiveRecord::Base
     parents.all?{|p|p.active?}
   end
 
-  def __walk(meth,block)
-    block.call(self)
-    self.send(meth).each do |nr|
-      nr.__walk(meth,block)
+  # Walk returns all of the NodeRole graph (including self) reachable from
+  # the current node as parents or children, depending on which method is passed
+  # Found noderoles are returned in cohort order.
+  def __walk(meth)
+    tracked = Hash.new
+    NodeRole.transaction do
+      curr = [ self ]
+      until curr.empty? do
+        next_curr = Array.new
+        curr.each do |nr|
+          tracked[nr] = nr.cohort
+          nr.send(meth).each do |cnr|
+            next if tracked[cnr]
+            tracked[cnr] = cnr.cohort
+            next_curr << cnr
+          end
+        end
+        curr = next_curr
+      end
     end
-  end
-  
-  def walk(block)
-    raise "Must be passed a block" unless block.kind_of?(Proc)
-    __walk(:children,block)
-  end
-  
-  def parentwalk(block)
-    raise "Must be passed a block" unless block.kind_of?(Proc)
-    __walk(:parents,block)
+    res = Array.new
+    tracked.each do |k,v|
+      res[v] ||= Array.new
+      res[v] << k
+    end
+    res.compact!
+    res.sort!
+    res.flatten!
+    res
   end
 
-  def all_deployment_data
+  # Return all parents and ourself in cohort order.
+  def all_parents
+    __walk(:parents)
+  end
+
+  # Return ourself and all our children in cohort order.
+  def all_children
+    __walk(:children)
+  end
+
+  # Find all the direct and indirect children, then call the block
+  # on them along with the current block in cohort order.
+  def walk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    all_children.map do |nr| block.call(nr) end
+  end
+
+  # Find all the direct and indirect parents, and then call the block
+  # on them in reverse cohort order.
+  def parentwalk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    all_parents.reverse.map do |nr| block.call(nr) end
+  end
+
+  def deployment_data
     res = {}
-    parents.each {|parent| res.deep_merge!(parent.all_deployment_data)}
     DeploymentRole.where(:snapshot_id => snapshot.id,:role_id => role.id).each do |dr|
       res.deep_merge!(dr.data)
       res.deep_merge!(dr.wall)
     end
     res
   end
-
-  def all_parent_data
+  
+  def all_my_data
     res = {}
-    parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
     res.deep_merge!(wall)
     res.deep_merge!(sysdata)
     res.deep_merge!(data)
+    res
+  end
+
+  def all_deployment_data
+    res = {}
+    all_parents.each {|parent| res.deep_merge!(parent.deployment_data)}
+    res
+  end
+
+  def all_parent_data
+    res = {}
+    all_parents.each do |parent| res.deep_merge!(parent.all_my_data) end
     res
   end
 
@@ -280,6 +335,20 @@ class NodeRole < ActiveRecord::Base
     res
   end
 
+  def all_transition_data
+    res = all_deployment_data
+    res.deep_merge!(self.node.all_active_data)
+    res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
+    res
+  end
+    
+  def rerun
+    raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
+    state = TODO
+  end
+  
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)
@@ -312,9 +381,9 @@ class NodeRole < ActiveRecord::Base
         end
       when TODO
         # We can only go to TODO when:
-        # 1. We were in PROPOSED or BLOCKED
+        # 1. We were in PROPOSED or BLOCKED or ERROR
         # 2. All our parents are in ACTIVE
-        unless ((cstate == PROPOSED) || (cstate == BLOCKED))
+        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) || (cstate == ERROR)
           raise InvalidTransition.new(self,cstate,val)
         end
         unless activatable?

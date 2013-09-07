@@ -56,7 +56,7 @@ class BarclampCrowbar::Jig < Jig
     end
     Dir.mktmpdir do |local_tmpdir|
       Rails.logger.info("Using local temp dir: #{local_tmpdir}")
-      attr_to_shellish(nr.all_data).each do |k,v|
+      attr_to_shellish(nr.all_transition_data).each do |k,v|
         target = File.join(local_tmpdir,"attrs",k)
         FileUtils.mkdir_p(target)
         File.open(File.join(target,"attr"),"w") do |f|
@@ -69,25 +69,17 @@ class BarclampCrowbar::Jig < Jig
       cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
       unless ok
         Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
-        Rails.logger.error("Output of copy process:")
-        Rails.logger.error(cp_log)
-        Rails.logger.error("End of output")
         nr.state = NodeRole::ERROR
+        nr.runlog = cp_log
         return nr
       end
       Rails.logger.info("Executing scripts on #{nr.node.name}")
-      run_log = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
-      if $?.exitstatus != 0
+      nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
+      unless ok
         Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
-        Rails.logger.error("Output from remote execution:")
-        Rails.logger.error(run_log)
-        Rails.logger.error("End of output")
         nr.state = NodeRole::ERROR
         return nr
       else
-        Rails.logger.error("Output from remote execution:")
-        Rails.logger.error(run_log)
-        Rails.logger.error("End of output")
         nr.state = NodeRole::ACTIVE
       end
       # Now, we need to suck any written attributes back out.

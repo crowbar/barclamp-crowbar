@@ -33,9 +33,13 @@ class UsersController < ApplicationController
     render api_delete User, @user.id
   end
   
-  add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin],[:post])
+  add_help(:create,[:username, :email, :password, :password_confirmation, :remember_me, :is_admin, :digest],[:post])
   def create
     u = User.create! params
+    if params[:digest] && params[:digest] == true
+      u.digest_password(params[:password])
+      u.save!
+    end
     render api_show :user, User, u.id.to_s, nil, u
   end
   

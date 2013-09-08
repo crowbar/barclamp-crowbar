@@ -31,5 +31,5 @@ Feature: Snapshot
   Scenario: Snapshot Page link to Roles 
     Given I am on the "deployments/system/head" page
     When I click on the "test-discovery" link
-    Then I should see "test-discovery"
+    Then I should see heading "test-discovery"
       And there are no localization errors

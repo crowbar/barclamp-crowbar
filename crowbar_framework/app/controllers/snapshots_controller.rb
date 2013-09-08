@@ -101,7 +101,7 @@ class SnapshotsController < ApplicationController
       format.json { 
         graph = []
         @snapshot.node_roles.each do |nr|
-          vertex = { "id"=> nr.id, "name"=> "#{nr.node.alias}:#{nr.role.name}", "data"=> {"$color"=>"#83548B"}, "$type"=>"square", "$dim"=>15, "adjacencies" =>[] }
+          vertex = { "id"=> nr.id, "name"=> "#{nr.node.alias}: #{nr.role.name}", "data"=> {"$color"=>"#83548B"}, "$type"=>"square", "$dim"=>15, "adjacencies" =>[] }
           nr.children.each do |c|
             vertex["adjacencies"] << { "nodeTo"=> c.id, "nodeFrom"=> nr.id, "data"=> { "$color" => "#557EAA" } }
           end

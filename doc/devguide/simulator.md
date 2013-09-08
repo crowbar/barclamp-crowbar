@@ -15,6 +15,7 @@ In a new window, start erlang
   'cd ~/crowbar/barclamps/crowbar/BDD'
   cp example.config default.config
   [review default.config and update if needed]
+  cp dev.sample dev.config
   ./linux_compile.sh
   ./linux_sim.sh
 
@@ -25,4 +26,4 @@ You can then explore and even run the Annealer!
 
 You can also run the simulate interactively from 'erl' using 'dev:pop().' to create machines and 'dev:unpop().' to remove them.
 
-You can change the nodes and other information created by the simulator by editing your copy of 'dev.config'.  Please do not check in that file!
+You can change the nodes and other information created by the simulator by editing your copy of 'dev.config'.

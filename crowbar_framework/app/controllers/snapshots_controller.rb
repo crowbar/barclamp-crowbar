@@ -94,6 +94,24 @@ class SnapshotsController < ApplicationController
     end
   end
 
+  def graph
+    @snapshot = Snapshot.find_key params[:snapshot_id]
+    respond_to do |format|
+      format.html {  }
+      format.json { 
+        graph = []
+        @snapshot.node_roles.each do |nr|
+          vertex = { "id"=> nr.id, "name"=> "#{nr.role.name}@#{nr.node.name}", "data"=> {"$color"=>"#83548B"}, "$type"=>"square", "$dim"=>15, "adjacencies" =>[] }
+          nr.children.each do |c|
+            vertex["adjacencies"] << { "nodeTo"=> c.id, "nodeFrom"=> nr.id, "data"=> { "$color" => "#557EAA" } }
+          end
+          graph << vertex
+        end
+        render :json=>graph.to_json, :content_type=>cb_content_type(:list) 
+      }
+    end    
+  end
+
   def propose
     snap = Snapshot.find_key params[:snapshot_id]
     new_snap = snap.propose params[:name]

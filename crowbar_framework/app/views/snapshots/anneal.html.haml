@@ -2,7 +2,7 @@
 - if @snapshot and state == NodeRole::TODO
   %p{:style => 'float:right'}
     = link_to t('.anneal'), snapshot_anneal_path(@snapshot.id, :step=>Rails.env.development?), :class => 'button', :"data-method"=>:put
-%table
+%table.plane
   %tr
     %td
       .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}

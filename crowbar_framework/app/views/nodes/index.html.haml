@@ -1,22 +1,25 @@
 %h1= t '.title'
 
-%table.data.box
-  %thead
-    %tr
-      %th
-      %th= t '.name'
-      %th= t '.admin'
-      %th= t '.description'
-  %tbody
-    -@list.each do |n|
+- if @list.length == 0
+  = link_to t('.make_admin'), make_admin_path(:version=>'v2'), :method => :post, :class=>'button'
+- else
+  %table.data.box
+    %thead
       %tr
-        %td{ :width=>'10px'}
-          .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}
-        %td
-          = link_to n.name, node_path(n.id)
-        %td
-          = t 'yes' if n.admin
-        %td= n.description
+        %th
+        %th= t '.name'
+        %th= t '.admin'
+        %th= t '.description'
+    %tbody
+      -@list.each do |n|
+        %tr
+          %td{ :width=>'10px'}
+            .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}
+          %td
+            = link_to n.name, node_path(n.id)
+          %td
+            = t 'yes' if n.admin
+          %td= n.description
 
 .clear
 

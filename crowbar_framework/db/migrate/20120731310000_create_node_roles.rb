@@ -19,14 +19,17 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
       t.integer     :state,             :null=>false, :default => NodeRole::PROPOSED
+      t.integer     :cohort,            :null=>false, :default => 0
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
-      t.string      :data,              :null=>true
+      t.string      :userdata,          :null=>false, :default => '{}'
+      t.string      :systemdata,        :null=>false, :default => '{}'
       t.string      :wall,              :null=>true
+      t.string      :runlog,            :null=>false, :default => ""
       t.integer     :order,             :default=>Random.rand(1000000)
       t.timestamps
     end
     #natural key 
-    add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)   
+    add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)
   end
 
   create_table :node_role_pcms, :id => false do |t|

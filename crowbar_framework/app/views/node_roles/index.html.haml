@@ -6,3 +6,12 @@
   = t '.title'
 
 = render :partial=>'node_roles/index', :locals => { :list => @list }
+
+.clear
+
+:javascript
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    location.reload();
+  }

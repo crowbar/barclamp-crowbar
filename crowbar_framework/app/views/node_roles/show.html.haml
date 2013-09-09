@@ -3,12 +3,15 @@
   = link_to @node_role.node.name, node_path(@node_role.node.id)
   = link_to @node_role.role.name, role_path(@node_role.role.id)
 
-%table
+%table.plane
   %tr
     %td
       .led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
     %td
       = @node_role.state_name
+    - if @node_role.error?
+      %td{:width=>'100%', :align=>'right'}
+        = link_to t('.retry'), node_role_retry_path(@node_role.id), :class => 'button', :method=>:put
 
 
 = form_for :node_role, :'data-remote' => true, :url => node_role_path(:id=>@node_role), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
@@ -20,11 +23,15 @@
     - if params.include? :raw
       = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
     - else
-      = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", :locals => { :data => @node_role.data, :node_role => @node_role }
+      = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", 
+               :locals  => { :data => @node_role.data, :node_role => @node_role }
   - rescue Exception => e
     - if Rails.env.development?
-      %p= "Error #{e.inspect}"
+      %p= t '.no_overlay'
     = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+
+%h3= t '.sysdata'
+= render :partial => 'raw', :locals => { :data => @node_role.sysdata, :node_role => nil } 
 
 %h3= t '.wall'
 = render :partial => 'raw', :locals => { :data => @node_role.wall, :node_role => nil } 
@@ -34,3 +41,6 @@
 
 %h3= t '.downstream'
 = render :partial=>'index', :locals => { :list => @node_role.children }
+
+%h3= t '.runlog'
+%pre= @node_role.runlog

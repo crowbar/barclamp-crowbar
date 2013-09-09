@@ -79,12 +79,9 @@ class Snapshot < ActiveRecord::Base
     end
   end
 
-  # returns a hash with all the node status information (unready nodes only)
+  # returns a hash with all the snapshot error status information 
   def status
-    s = {}
-    # any node that's error or unknown will cause the whole state to be in the other state  
-    my_nodes.each { |n| s[n.id] = n.status unless n.state == NodeRole::ACTIVE }
-    return s
+    node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
   end
   
     # commit the current proposal (cannot be done if there is a committed proposal)
@@ -154,7 +151,7 @@ class Snapshot < ActiveRecord::Base
       self.node_roles.each do |nr| 
         # we must create (not duplicate) the NR because of the state machine controls on setting state
         new_nr = NodeRole.create({:node_id=>nr.node_id, :role_id=>nr.role_id, :snapshot_id=>newsnap.id, :state=>NodeRole::PROPOSED, 
-                      :data=>nr.read_attribute("data"), :wall=>nr.read_attribute("wall")}, 
+                      :userdata=>(nr.read_attribute("userdata") || "{}"), :wall=>nr.read_attribute("wall"), :systemdata=>(nr.read_attribute("systemdata") || "{}")},
                       :without_protection => true)
         # store the new nr because we need it for relationships (it's automatically linked to the snapshot when created)
         node_role_map[nr.id] = [nr,new_nr]

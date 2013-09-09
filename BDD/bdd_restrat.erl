@@ -14,7 +14,7 @@
 % 
 -module(bdd_restrat).
 -export([step/2]).
--export([get_object/1, get_result/2, parse_object/1, alias/1, alias/3]).
+-export([get_object/1, get_result/2, parse_object/1, alias/1, alias/3, create/4]).
 -include("bdd.hrl").
 
 % HELPERS ============================
@@ -49,6 +49,18 @@ parse_object(Results) ->
     D        -> bdd_utils:log(debug, "JSON API returned non-JSON result.  Returned ~p", [Results]),
                 #obj{namespace = rest, data=D, url=Results#http.url, id = -1 }
   end.
+
+% helper for create (so that other modules can use same process)
+% path = URL
+% JSON = json to post
+% Object = object type atom
+% Scenario = step Scenario ID
+create(Path, JSON, Object, ScenarioID) ->
+  Result = eurl:put_post(Path, JSON, post),
+  bdd_utils:log(trace, bdd_restrat, step, "REST creates the step: PutPostResult: ~p", [Result]),
+  O = get_object(Result),
+  bdd_utils:scenario_store(ScenarioID, Object, O#obj.id),
+  [Result, O].
   
 % GIVEN STEPS ======================
 step(Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
@@ -100,11 +112,7 @@ step(_Given, {step_when, {ScenarioID, _N}, ["REST creates the",Object,Name]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "REST creates the ~p ~p", [alias(Object), Name]),
   JSON = alias(Object, json, [Name, alias(Object, g, [description]), alias(Object, g, [order])]),
   Path = alias(Object, g, [path]),
-  Result = eurl:put_post(Path, JSON, post),
-  bdd_utils:log(trace, bdd_restrat, step, "REST creates the step: PutPostResult: ~p", [Result]),
-  O = get_object(Result),
-  bdd_utils:scenario_store(ScenarioID, Object, O#obj.id),
-  [Result, O];
+  create(Path, JSON, Object, ScenarioID);
 
 step(_Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Object) -> 
   JSON = alias(Object, json, [Name, alias(Object, g, [description]), alias(Object, g, [order])]),
@@ -164,12 +172,18 @@ step(Results, {step_then, _N, ["there is a key",Key]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "There should be a Key ~p",[Key]),
   bdd_utils:log(trace, bdd_restrat, step, "in ~p",[Obj#obj.data]),
   lists:keyfind(Key, 1, Obj#obj.data) =/= false;
-                                                                
+                       
+% you can use keys delimited by : for nesting!                                         
+step(Results, {step_then, {_Scenario, _N}, ["key",Key,"is",Value]}) -> step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be ~p",[Key, Value]),
   Obj = eurl:get_result(Results, obj),
   bdd_utils:log(trace, bdd_restrat, step, "...with data ~p",[Obj#obj.data]),
-  Value =:= json:value(Obj#obj.data, Key);
+  Test = json:keyfind(Obj#obj.data, Key, ":"),
+  case Value =:= Test of
+     true  -> true;
+     false -> bdd_utils:log(warn, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
+  end;
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});

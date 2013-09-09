@@ -1,4 +1,6 @@
-##  Build your own Crowbar ISO
+##  Build your own Crowbar ISO for 2.x
+
+**Note:** Crowbar 2.x is currently not fully functional. As a result the instructions below are only to be used by developers intending to contribute to the effort.
 
 Building Crowbar is not an activity intended for users. If you simply want to download an ISO to either deploy Hadoop or OpenStack, I suggest you get one of our [pre-compiled ISOs](http://crowbar.github.io/download/).
 

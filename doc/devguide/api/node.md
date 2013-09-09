@@ -2,7 +2,22 @@
 
 Node APIs are used to manage nodes (servers) within the Crowbar system
 
+
+#### Node Attribute Set
+
+> Note: You _must_ create the Attrib with the correct maps to use this method!
+
+This is a friendly way to update the node.discovery json data without having to know the schema.
+
+<table border=1>
+<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><td> PUT  </td><td> /api/v2/nodes/[node]/attribs/[attrib] </td><td> Takes json {'data':[value] } </td><td> Node Json </td></tr>
+</table>
+
+## REVIEW THESE, SUSPECT!!!
+
 #### Node Show (all)
+
 
 **Input:**
 

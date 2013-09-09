@@ -121,11 +121,11 @@ class ApplicationController < ActionController::Base
     end
   end
   
-  def api_update(type, type_class, key=nil)
+  def api_update(type, type_class, key=nil, o=nil)
     key ||= params[:id]
-    o = type_class.find_key key
+    o ||= type_class.find_key key
     if o
-      o.update_attribs params
+      o.update_attributes params
       return api_show type, type_class, nil, nil, o
     else
       return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found, :content_type=>cb_content_type(type, "error")}

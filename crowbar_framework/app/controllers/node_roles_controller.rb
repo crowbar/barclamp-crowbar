@@ -18,9 +18,9 @@ class NodeRolesController < ApplicationController
   def index
     if params.key? :node_id
       @node = Node.find_key params[:node_id]
-      @list = @node.node_roles
+      @list = @node.node_roles.sort{|a,b|[a.cohort,a.id] <=> [b.cohort,b.id]}
     else
-      @list = NodeRole.all
+      @list = NodeRole.order("cohort asc, id asc")
     end
     respond_to do |format|
       format.html { }
@@ -37,9 +37,13 @@ class NodeRolesController < ApplicationController
 
   def create
     # helpers to allow create by names instead of IDs
-    param[:snapshot_id] = Snapshot.find(:name=>params[:snapshot]).id if params.key? :snapshot
-    param[:node_id] = Node.find(:name=>params[:node]).id if params.key? :node
-    param[:role_id] = Role.find(:name=>params[:role]).id if params.key? :role
+    if params.key? :snapshot
+      params[:snapshot_id] = Snapshot.find_key(params[:snapshot]).id
+    elsif params.key? :deployment
+      params[:snapshot_id] = Deployment.find_key(params[:deployment]).head.id
+    end
+    params[:node_id] = Node.find_key(params[:node]).id if params.key? :node
+    params[:role_id] = Role.find_key(params[:role]).id if params.key? :role
     
     # the main body of the work
     snap = Snapshot.find_key params[:snapshot_id] 
@@ -94,9 +98,38 @@ class NodeRolesController < ApplicationController
     end
   end
 
+  def retry
+    @node_role = NodeRole.find_key params[:node_role_id]
+    @node_role.state = NodeRole::TODO
+    @node_role.save!
+    respond_to do |format|
+      format.html { render :action => :show }
+      format.json { render api_show :node_role, NodeRole, nil, nil, @node_role }
+    end
+
+  end
+
   def anneal
     NodeRole.anneal!
+    @list = NodeRole.order("cohort asc, id asc")
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node_role, @list }
+    end
   end
-  
+
+  def converge
+    # Start convergence by transitioning any noderoles in ERROR back to TODO
+    NodeRole.transaction do
+      NodeRole.where(:state => NodeRole::ERROR).each do |nr| nr.rerun; nr.save! end
+    end
+    NodeRole.converge!
+    @list = NodeRole.order("cohort asc, id asc")
+    respond_to do |format|
+      format.html { }
+      format.json { render api_index :node_role, @list }
+    end
+  end
+
 end
 

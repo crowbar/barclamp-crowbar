@@ -75,7 +75,7 @@ class NodeRole < ActiveRecord::Base
   class InvalidTransition < Exception
     def initialize(node_role,from,to,str=nil)
       @errstr = "#{node_role.name}: Invalid state transition from #{NodeRole.state_name(from)} to #{NodeRole.state_name(to)}"
-      errstr += ": #{str}" if str
+      @errstr += ": #{str}" if str
     end
     def to_s
       @errstr
@@ -107,7 +107,7 @@ class NodeRole < ActiveRecord::Base
 
   def self.state_name(state)
     raise InvalidState.new("#{state || 'nil'} is not a valid NodeRole state!") unless state and STATES.include? state
-    I18n.t(STATES[state], :default=>'Unknown', :scope=>'node_role.state')
+    I18n.t(STATES[state], :scope=>'node_role.state')
   end
 
   def self.reset!
@@ -142,13 +142,22 @@ class NodeRole < ActiveRecord::Base
         end
       end
     end
+    return nil if queue.empty?
     # Actaully run the noderoles outside of the transaction.
     queue.each do |thisjig,candidates|
       candidates.each do |c|
+        Rails.logger.info("Annealer: #{thisjig.name} running #{c.role.name} on #{c.node.name} for #{c.deployment.name}")
         thisjig.run(c)
+        Rails.logger.info("Annealer: Run finished.")
       end
     end
-    nil
+    true
+  end
+
+  def self.converge!
+    loop do
+      break unless anneal!
+    end
   end
 
   def state
@@ -169,7 +178,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data(merge=true)
-    raw = read_attribute("data") 
+    raw = read_attribute("userdata") 
     d = raw.nil? ? {} : JSON.parse(raw)  
     merge ? deployment_role.data.deep_merge(d) : d
   end
@@ -181,8 +190,16 @@ class NodeRole < ActiveRecord::Base
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
 
-    write_attribute("data",arg)
+    write_attribute("userdata",arg)
 
+  end
+
+  def sysdata
+    raw = JSON.parse(read_attribute("sysdata")||'{}')
+  end
+
+  def sysdata=(arg)
+    write_attribute("userdata",JSON.generate(arg))
   end
 
   def data_schema
@@ -224,30 +241,91 @@ class NodeRole < ActiveRecord::Base
     state == PROPOSED
   end
 
-  def walk(block)
-    raise "Must be passed a block" unless block.kind_of?(Proc)
-    block.call(self)
-    children.each do |c|
-      Rails.logger.info("NodeRole: Walking from #{self.name} to #{c.name}")
-      c.walk(block)
-    end
+  def activatable?
+    parents.all?{|p|p.active?}
   end
 
-  def all_deployment_data
+  # Walk returns all of the NodeRole graph (including self) reachable from
+  # the current node as parents or children, depending on which method is passed
+  # Found noderoles are returned in cohort order.
+  def __walk(meth)
+    tracked = Hash.new
+    NodeRole.transaction do
+      curr = [ self ]
+      until curr.empty? do
+        next_curr = Array.new
+        curr.each do |nr|
+          tracked[nr] = nr.cohort
+          nr.send(meth).each do |cnr|
+            next if tracked[cnr]
+            tracked[cnr] = cnr.cohort
+            next_curr << cnr
+          end
+        end
+        curr = next_curr
+      end
+    end
+    res = Array.new
+    tracked.each do |k,v|
+      res[v] ||= Array.new
+      res[v] << k
+    end
+    res.compact!
+    res.sort!
+    res.flatten!
+    res
+  end
+
+  # Return all parents and ourself in cohort order.
+  def all_parents
+    __walk(:parents)
+  end
+
+  # Return ourself and all our children in cohort order.
+  def all_children
+    __walk(:children)
+  end
+
+  # Find all the direct and indirect children, then call the block
+  # on them along with the current block in cohort order.
+  def walk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    all_children.map do |nr| block.call(nr) end
+  end
+
+  # Find all the direct and indirect parents, and then call the block
+  # on them in reverse cohort order.
+  def parentwalk(block)
+    raise "Must be passed a block" unless block.kind_of?(Proc)
+    all_parents.reverse.map do |nr| block.call(nr) end
+  end
+
+  def deployment_data
     res = {}
-    parents.each {|parent| res.deep_merge!(parent.all_deployment_data)}
     DeploymentRole.where(:snapshot_id => snapshot.id,:role_id => role.id).each do |dr|
       res.deep_merge!(dr.data)
       res.deep_merge!(dr.wall)
     end
     res
   end
+  
+  def all_my_data
+    res = {}
+    res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
+    res
+  end
+
+  def all_deployment_data
+    res = {}
+    all_parents.each {|parent| res.deep_merge!(parent.deployment_data)}
+    res
+  end
 
   def all_parent_data
     res = {}
-    parents.each {|parent| res.deep_merge!(parent.all_parent_data)}
-    res.deep_merge!(data)
-    res.deep_merge!(wall)
+    all_parents.each do |parent| res.deep_merge!(parent.all_my_data) end
     res
   end
 
@@ -257,12 +335,29 @@ class NodeRole < ActiveRecord::Base
     res
   end
 
+  def all_transition_data
+    res = all_deployment_data
+    res.deep_merge!(self.node.all_active_data)
+    res.deep_merge!(wall)
+    res.deep_merge!(sysdata)
+    res.deep_merge!(data)
+    res
+  end
+    
+  def rerun
+    NodeRole.transaction do
+      raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
+      write_attribute("state",TODO)
+      save!
+    end
+  end
+  
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)
     cstate = state
     return val if val == cstate
-
+    Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
     NodeRole.transaction do
       case val
       when ERROR
@@ -285,16 +380,16 @@ class NodeRole < ActiveRecord::Base
         save!
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
-          c.state = TODO
+          c.state = TODO if c.activatable?
         end
       when TODO
         # We can only go to TODO when:
-        # 1. We were in PROPOSED or BLOCKED
+        # 1. We were in PROPOSED or BLOCKED or ERROR
         # 2. All our parents are in ACTIVE
-        unless ((cstate == PROPOSED) || (cstate == BLOCKED))
+        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) || (cstate == ERROR)
           raise InvalidTransition.new(self,cstate,val)
         end
-        unless parents.all?{|nr|nr.active?}
+        unless activatable?
           raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
         end
         write_attribute("state",val)
@@ -335,10 +430,10 @@ class NodeRole < ActiveRecord::Base
         # No idea what this is.  Just die.
         raise InvalidState.new("Unknown state #{s.inspect}")
       end
+      # Now that the state change has passed, call any hooks for the new state.
+      meth = "on_#{STATES[val]}".to_sym
+      role.send(meth,self)
     end
-    # Now that the state change has passed, call any hooks for the new state.
-    meth = "on_#{STATES[val]}".to_sym
-    role.send(meth,self) if role.respond_to?(meth)
     self
   end
   
@@ -371,5 +466,5 @@ class NodeRole < ActiveRecord::Base
   def jig
     role.jig
   end
-
+  
 end

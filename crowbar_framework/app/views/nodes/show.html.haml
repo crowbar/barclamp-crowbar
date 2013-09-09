@@ -1,20 +1,38 @@
+- s = @node.state
 %p{:style => 'float:right'}
   = link_to t('.all_node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
 
 %table
   %tr
     %td
-      .led{:valign=>'center', :class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
+      .led{:valign=>'center', :class => NodeRole::STATES[s], :title=>NodeRole.state_name(s)}
     %td
       %h1
-        = @node.name
+        = @node.alias || @node.name
         = t '.admin' if @node.admin
-  %tr
-    %td
-    %td= @node.description || @node.alias
 
-= render :partial => 'show', :locals => { :node => @node } rescue @node.inspect
+= render :partial => 'show', :locals => { :node => @node }
 
 %h3= t '.node_roles'
-- node_roles = NodeRole.committed_by_node(@node)
+- node_roles = NodeRole.committed_by_node(@node).order("cohort, id")
 = render :partial=>'node_roles/index', :locals => { :list => node_roles }
+
+%h3= t '.attribs'
+
+%table.data.box
+  %thead
+    %tr
+      %th= t '.name'
+      %th= t '.value'
+      %th= t '.description'
+  %tbody
+    - Attrib.all.each do |a|
+      %tr    
+        %td= link_to a.name, attrib_path(a.id)
+        %td
+          - v = a.value(@node.discovery) rescue nil
+          - unless v.nil?
+            = v
+          - else
+            %em= t('not_set')
+        %td= a.description

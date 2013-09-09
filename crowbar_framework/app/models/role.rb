@@ -48,76 +48,138 @@ class Role < ActiveRecord::Base
   # This will mostly be used to implement the on_* helpers in a not-totally-insane way.
   after_initialize :mixin_specific_behaviour
 
-  def parents
-    role_requires.map do |r|
-      Role.find_by_name!(r.requires)
+  # update just one value in the template (assumes just 1 level deep!)
+  # use via /api/v2/roles/[role]/template/[key]/[value] 
+  def update_template(key, value)
+    t = { key => value }
+    raw = read_attribute("template") 
+    d = raw.nil? ? {} : JSON.parse(raw)  
+    merged = d.deep_merge(t)
+    self.template = JSON.generate(merged)
+    self.save!
+  end
+
+  # Given a list of roles, find any implicits and add them to the list.
+  # Overall list order will be preserved.
+  def self.expand(roles)
+    res = []
+    roles.each do |r|
+      r.parents.each do |rent|
+        res << rent if rent.implicit
+      end
+      res << r
     end
+    res.uniq
+  end
+
+  # State Transistion Overrides
+  
+  def on_error(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_error event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_active(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_active event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_todo(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_todo event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_transition(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_transition event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_blocked(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_blocked event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def on_proposed(node_role, *args)
+    Rails.logger.debug "No override for #{self.class.to_s}.on_proposed event: #{node_role.role.name} on #{node_role.node.name}"
+  end
+
+  def parents
+    res = []
+    res << jig.client_role if jig.client_role
+    role_requires.each do |r|
+      res << Role.find_by_name!(r.requires)
+    end
+    res
   end
 
   def depends_on?(other)
     return false if self.id == other.id
-    p = parents
-    return false if p.empty?
-    return true if p.any?{|i|i.id == other.id}
-    p.each do |i|
-      return true if i.depends_on?(other)
+    rents = parents
+    tested = Hash.new
+    loop do
+      return false if rents.empty?
+      new_parents = []
+      rents.each do |parent|
+        next if tested[parent.id] == true
+        raise "Role dependency graph for #{self.barclamp.name}:#{name} is circular!" if parent.id == self.id
+        return true if parent.id == other.id
+        tested[parent.id] = true
+        new_parents << parent.parents
+      end
+      rents = new_parents.flatten.reject{|i|tested[i.id]}
     end
-    false
+    raise "Cannot happen examining dependencies for #{name} -> #{other.name}"
+  end
+
+  # Make sure there is a deployment role for ourself in the snapshot.
+  def add_to_snapshot(snap)
+    # make sure there's a deployment role before we add a node role
+    if DeploymentRole.snapshot_and_role(snap, self).size == 0
+      DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
+    end
   end
 
   # Bind a role to a node in a snapshot.
-  def add_to_snapshot(snap,node=nil)
+  def add_to_node_in_snapshot(node,snap)
     # Roles can only be added to a node of their backing jig is active.
     unless active?
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
-    # make sure there's a deployment role before we add a node role
-    if DeploymentRole.snapshot_and_role(snap, self).size == 0
-      DeploymentRole.transaction do
-        DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
+    # make sure that we also have a deployment role
+    add_to_snapshot(snap)
+    # If we are already bound to this node in a snapshot, do nothing.
+    res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
+    return res if res
+    Rails.logger.info("Trying to add #{name} to #{node.name}")
+    # Check to make sure that all my parent roles are bound properly.
+    # If they are not, die unless it is an implicit role.
+    # This logic will need to change as we start allowing roles to classify
+    # nodes, but it will work for now.
+    parent_node_roles = Array.new
+    parents.each do |parent|
+      # This will need to grow more ornate once we start allowing multiple
+      # deployments.
+      pnr = NodeRole.peers_by_role(snap,parent).first
+      if pnr.nil?
+        if parent.implicit
+          pnr = parent.add_to_node_in_snapshot(node,snap)
+        else
+          raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+        end
       end
+      parent_node_roles << pnr
     end
-    # add the specific node role
-    if node
-      NodeRole.transaction do
-        # If we are already bound to this node in a snapshot, do nothing.
-        res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
-        return res if res
-        # Check to make sure that all my parent roles are bound properly.
-        # If they are not, die unless it is an implicit role.
-        # This logic will need to change as we start allowing roles to classify
-        # nodes, but it will work for now.
-        jig_role = jig.client_role
-        if jig_role
-          jig_node_role = jig_role.add_to_snapshot(snap,node)
-        end
-        parent_node_roles = Array.new
-        parents.each do |parent|
-          # This will need to grow more ornate once we start allowing multiple
-          # deployments.
-          pnr = NodeRole.peers_by_role(snap,parent).first
-          if pnr.nil?
-            if parent.implicit
-              pnr = parent.add_to_snapshot(snap,node)
-            else
-              raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
-            end
-          end
-          parent_node_roles << pnr
-        end
-        # By the time we get here, all our parents are bound recursively.
-        # Bind ourselves the same way.
-        res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
-
-        # Make sure our jig dependency is registered.
-        res.parents << jig_node_role if jig_role
-        parent_node_roles.each do |pnr|
-          res.parents << pnr
-        end
-        return res
+    # By the time we get here, all our parents are bound recursively.
+    # Bind ourselves the same way.
+    res = nil
+    NodeRole.transaction do
+      cohort = 0
+      res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
+      parent_node_roles.each do |pnr|
+        cohort = pnr.cohort + 1 if pnr.cohort >= cohort
+        res.parents << pnr
       end
+      res.cohort = cohort
+      res.save!
     end
-    nil
+    # If there is an on_proposed hook for this role, call it now with our fresh node_role.
+    self.send(:on_proposed,res) if self.respond_to?(:on_proposed) && res
+    res
   end
 
   def jig
@@ -144,17 +206,21 @@ class Role < ActiveRecord::Base
   def mixin_specific_behaviour
     raise "Roles require a name" if self.name.nil?
     Rails.logger.info("Seeing if #{self.name} has a mixin...")
-    mod = "barclamp_#{barclamp.name}".camelize.to_sym
-    return self unless Module::const_defined?(mod)
-    mod = Module::const_get(mod)
-    ["role",
-     self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
-      return self unless mod.const_defined?(m)
-      mod = mod.const_get(m)
-      return self unless mod.kind_of?(Module)
+    begin
+      mod = "barclamp_#{barclamp.name}".camelize.to_sym
+      return self unless Module::const_defined?(mod)
+      mod = Module::const_get(mod)
+      ["role",
+       self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
+        return self unless mod.const_defined?(m)
+        mod = mod.const_get(m)
+        return self unless mod.kind_of?(Module)
+      end
+      Rails.logger.info("Extending #{self.name} with #{mod}")
+      self.extend(mod)
+    rescue
+      # nothing for now, this code is going away
     end
-    Rails.logger.info("Extending #{self.name} with #{mod}")
-    self.extend(mod)
   end
 
   # This method ensures that we have a type defined for 
@@ -166,15 +232,19 @@ class Role < ActiveRecord::Base
     name = self.name.sub("#{self.barclamp.name}-", '').camelize
     # these routines look for the namespace & class
     m = Module::const_get(namespace) rescue nil
-    test = m.const_get(name).superclass == Role rescue false
-    # if they dont' find it we fall back to BarclampFramework (this should go away!)
-    self.type = unless test
-      Rails.logger.warn "Role #{self.name} created with fallback Model!"
-      "Role"
-    else 
+    # barclamps can override specific roles
+    test_specific = m.const_get(name).superclass == Role rescue false
+    # barclamps can provide a generic fallback  "BarclampName::Role"
+    test_generic = m.const_get("Role").superclass == Role rescue false
+    # if they dont' find it we fall back to the core Role
+    self.type = if test_specific
       "#{namespace}::#{name}"
+    elsif test_generic
+      "#{namespace}::Role"
+    else
+      Rails.logger.info "Role #{self.name} created with fallback Model!"
+      "Role"
     end
-    
   end
 
 end

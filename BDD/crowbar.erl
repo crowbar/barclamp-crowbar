@@ -14,7 +14,7 @@
 % 
 % 
 -module(crowbar).
--export([step/2, g/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
+-export([step/2, g/1, state/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
 -export([json_build/1]).
 -import(bdd_utils).
 -import(json).
@@ -32,14 +32,24 @@ g(Item) ->
     name    -> "bddtest";
     order   -> 9999;
     description -> "BDD Testing Only - should be automatically removed";
+    error   -> -1;
+    active  -> 0;
+    todo    -> 1;
+    transition -> 2;
+    blocked -> 3;
+    proposed -> 4;
     _ -> bdd_utils:log(warn, crowbar, g, "Could not resolve g request for ~p (fall through catch)", [Item]), false
   end.
 
-i18n(_Config, T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
-i18n(_Config, T1, T2, T3, T4) -> i18n_lookup([T1, T2, T3, T4]).
-i18n(_Config, T1, T2, T3) -> i18n_lookup([T1, T2, T3]).
-i18n(_Config, T1, T2) -> i18n_lookup([T1, T2]).
-i18n(_Config, T) -> i18n_lookup([T]).
+state(Item) when is_atom(Item)  -> integer_to_list(g(Item));
+state(Item)                     -> state(list_to_atom(Item)).
+
+i18n(T1, T2, T3, T4, T5, T6) -> i18n_lookup([T1, T2, T3, T4, T5, T6]).
+i18n(T1, T2, T3, T4, T5) -> i18n_lookup([T1, T2, T3, T4, T5]).
+i18n(T1, T2, T3, T4) -> i18n_lookup([T1, T2, T3, T4]).
+i18n(T1, T2, T3) -> i18n_lookup([T1, T2, T3]).
+i18n(T1, T2) -> i18n_lookup([T1, T2]).
+i18n(T) -> i18n_lookup([T]).
 i18n_lookup(T) -> 
   Path = string:tokens(T, "+:/"),
   KeyList = case length(Path) of
@@ -52,7 +62,7 @@ i18n_lookup(T) ->
   R = eurl:get_http(URI),
   case R#http.code of
     200 -> R#http.data;
-    _   -> bdd_utils:log(warn, crowbar, i18n, "Translation for ~p not found", [URI]), "!TRANSLATON MISSING!"
+    _   -> bdd_utils:log(warn, crowbar, i18n, "Translation for ~p not found", [URI]), "!TRANSLATION MISSING!"
   end.
 
 % rest response specific for crowbar API (only called when the vnd=crowbar)
@@ -86,18 +96,32 @@ json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 %  P.
 
 % global setup
-step(_Global, {step_setup, _N, Test}) -> 
+step(Global, {step_setup, {Scenario, _N}, Test}) -> 
   % setup the groups object override
   bdd_utils:alias(group, group_cb),
   bdd_utils:alias(user, user_cb),
   bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
   bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
+  % turn off the delays in the test jig
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "false"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "false"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-client", "property", "test", "to", "false"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-library", "property", "test", "to", "false"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-discovery", "property", "test", "to", "false"]}), 
+  % create node for testing
   Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
-step(_Global, {step_teardown, _N, _}) -> 
+step(Global, {step_teardown, {Scenario, _N}, _}) -> 
   bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
+  % turn on the delays in the test jig
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "true"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "true"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-client", "property", "test", "to", "true"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-library", "property", "test", "to", "true"]}), 
+  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-discovery", "property", "test", "to", "true"]}), 
+  % remove node for testing
   bdd_crud:delete(g(node_atom));
 
 % ============================  GIVEN STEPS =========================================
@@ -105,6 +129,32 @@ step(_Global, {step_teardown, _N, _}) ->
 step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path(g(i18n),Key),
   eurl:get_http(URI);
+
+step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
+  step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
+
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, Barclamp, "for", jig, Jig]}) -> 
+  bdd_utils:log(debug, crowbar, step, "REST creates the ~p ~p", [role, Name]),
+  JSON = json([{name, Name}, {description, role:g(description)}, {order, role:g(order)}, {barclamp, Barclamp}, {jig_name, Jig}]),
+  Path = role:g(path),
+  bdd_restrat:create(Path, JSON, role, ScenarioID);
+
+step(_Global, {step_given, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]}) -> 
+  step(_Global, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]});
+step(_Given, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",role,Role]}) -> 
+  bdd_utils:log(debug, crowbar, step, "REST addes role ~p to deployment ~p", [Role, Deployment]),
+  JSON = json([{role, Role}, {deployment, Deployment}]),
+  Path = deployment_role:g(path),
+  bdd_restrat:create(Path, JSON, deployment_role, ScenarioID);
+
+ 
+% ============================  WHEN STEPS =========================================
+
+step(_Given, {step_when, {Scenario, _N}, ["I add",node, Node,"to",deployment, Deployment,"in",role,Role]}) -> 
+  Path = node_role:g(path), 
+  JSON = crowbar:json([{node, Node}, {role, Role}, {deployment, Deployment}]),
+  bdd_utils:log(debug, annealer, step, "Add node_role ~p POST ~p",[Path, JSON]),
+  bdd_restrat:create(Path, JSON, role, Scenario);
 
 % ============================  THEN STEPS =========================================
 

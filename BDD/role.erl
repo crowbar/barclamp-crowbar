@@ -56,6 +56,14 @@ json(Name, Description, Order) ->
 
      
 % Common Routines
+step(_Global, {step_given, {_Scenario, _N}, ["I set the",role, Role, "property", Property, "to", Value]}) -> 
+  Path = eurl:path([g(path), Role, "template", Property, Value]),
+  J = "{}",
+  bdd_utils:log(debug, role, step, "~p PUT ~p", [Path, J]),
+  % now update 
+  Result = eurl:put_post(Path, J, put),
+  O = bdd_restrat:get_object(Result),
+  [Result, O];
 
 step(_Global, {step_setup, _N, _}) -> 
   % create node(s) for tests

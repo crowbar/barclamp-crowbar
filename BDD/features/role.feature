@@ -44,3 +44,28 @@ Feature: Role
     When I click on the "test-admin" link
     Then I should see "test-admin"
       And there are no localization errors
+
+  Scenario: BDD can turn off test delays
+    Given I set the {object:role} "test-admin" property "test" to "false"
+    When REST gets the {object:role} "test-admin"
+    Then key "template:test" should be "false"
+
+  Scenario: Role class override specific works
+    When I go to the "/roles/test-admin" page
+    Then I should see "[BarclampTest::Admin]"
+
+  Scenario: Role class override specific works for test
+    When I go to the "/roles/test-client" page
+    Then I should see "[BarclampTest::Role]"
+
+  Scenario: Role class override generic works
+    Given there is a {object:role} "BDD_generic" in {object:barclamp} "test" for {object:jig} "test"
+    When I go to the "/roles/BDD_generic" page
+    Then I should see "[BarclampTest::Role]"
+    Finally REST removes the {object:role} "BDD_generic"
+
+  Scenario: Role class no-override works
+    Given there is a {object:role} "BDD_no_override" in {object:barclamp} "crowbar" for {object:jig} "test"
+    When I go to the "/roles/BDD_no_override" page
+    Then I should see "[Role]"
+    Finally REST removes the {object:role} "BDD_no_override"

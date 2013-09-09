@@ -24,10 +24,12 @@ class Doc < ActiveRecord::Base
 
   # creates the table of contents from the files
   def self.gen_doc_index
+    roots=[]
+    found={}
     # load crowbar docs
-    Doc.discover_docs 0, File.join('..','doc','framework')
+    Doc.discover_docs 0, File.join('..','doc','framework'), roots, found
     # load barclamp docs
-    Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc') }
+    Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc'), roots, found }
     Doc.all
   end
 
@@ -48,7 +50,7 @@ class Doc < ActiveRecord::Base
   end
 
   # scan the directories and find files
-  def self.discover_docs barclamp_id, doc_path
+  def self.discover_docs barclamp_id, doc_path, roots, found
     files_list = %x[find #{doc_path} -iname *.md]
     files = files_list.split "\n"
     files.each do |f|
@@ -69,7 +71,23 @@ class Doc < ActiveRecord::Base
         else
           name.gsub("/"," ").titleize
         end
-      Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title
+
+      parent_name = f.match(/^(.*)\/[^\/]*$/)[1] + ".md"
+      parent = nil
+      parent = found[parent_name]
+      parent = Doc.find_by_name parent_name unless parent or parent_name.nil?
+
+      x = nil
+      if parent.nil?
+        x = Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title
+        roots << x
+      else
+        x = Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title, :parent_name=>parent_name, :parent=>parent
+        parent.children << x
+        parent.save
+      end
+      found[f]=x
+      x.save
     end
   end
 
@@ -81,4 +99,9 @@ class Doc < ActiveRecord::Base
     return path.join('/') + ".md"
   end
 
+  def self.roots
+    return Doc.where(:parent_name=>nil)
+  end
+
 end
+

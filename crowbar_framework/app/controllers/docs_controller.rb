@@ -33,11 +33,6 @@ class DocsController < ApplicationController
   end
 
   def show
-    # @doc = Doc.find_key params[:id]
-    # html = !params.has_key?(:source)
-    # @text = (html ? BlueCloth.new(raw).to_html : raw)
-    # raw = IO.read(@file)
-    # @text = BlueCloth.new(raw).to_html
     begin
       id = params[:id]
       @doc = Doc.find_key id
@@ -67,15 +62,15 @@ class DocsController < ApplicationController
       @text = I18n.t('.topic_error', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
     end
-    # if image
-    #    render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
-    # elsif params.has_key? :expand
-    #   if html
-    #      render :layout => 'doc_export'
-    #   else
-    #      render :text=>@text, :content_type => :text
-    #   end
-    # end
+     if image
+        render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
+     elsif params.has_key? :expand
+       if html
+          render :layout => 'doc_export'
+       else
+          render :text=>@text, :content_type => :text
+       end
+     end
   end
 
   def topic

@@ -1,8 +1,6 @@
 %h1= t('.title')
 
 %ul
-  - Doc.all.each do |book|
-    %li
-      = link_to book.description, doc_path(book.id)
+  = render partial: 'tree', collection: Doc.roots
 
 .clear

@@ -220,6 +220,7 @@ en:
       bmc: IP Mgmt Interface
       chef: Chef
       links: Links
+      no_links: No links available
       active: Allocated
       inactive: Not Allocated
       raid: RAID

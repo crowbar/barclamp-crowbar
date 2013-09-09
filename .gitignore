@@ -6,6 +6,7 @@ erl_crash.dump
 trace_*.txt
 /BDD/*.beam
 /BDD/default.config
+/BDD/dev.config
 /crowbar_framework/log/test.*
 /crowbar_framework/db/node_description.yml
 *.dia.autosave

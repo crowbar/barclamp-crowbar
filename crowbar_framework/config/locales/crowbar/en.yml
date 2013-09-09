@@ -286,6 +286,7 @@ en:
     show:
       nodes: "Nodes"
       anneal: "Anneal"
+      graph: "Graph"
       <<: *deployment_common      
     anneal:
       title: "annealing activity"
@@ -293,6 +294,8 @@ en:
       annealling: "Annealer Started by User Action"
       <<: *deployment_common      
       <<: *node_role_states
+    graph:
+      title: "%{snapshot} Graph"
   support:
     index:
       title: Exported Files

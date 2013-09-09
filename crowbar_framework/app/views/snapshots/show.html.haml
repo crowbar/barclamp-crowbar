@@ -8,6 +8,7 @@
         = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
         = "#{@snapshot.name} #{NodeRole.state_name(state)}"
     %td{:align => 'right'}
+      = link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
 %table.data.box

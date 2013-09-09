@@ -49,6 +49,7 @@ Crowbar::Application.routes.draw do
   resources :snapshots do
     resources :node_roles
     match :anneal
+    get :graph
     put :propose
     put :commit
     put :recall
@@ -139,6 +140,7 @@ Crowbar::Application.routes.draw do
           resources :snapshots do
             resources :node_roles
             put :anneal
+            get :graph
             put :propose
             put :commit
             put :recall

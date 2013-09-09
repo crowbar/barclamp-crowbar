@@ -17,7 +17,7 @@
     = hidden_field_tag "allocated", 'yes'
   .row
     .span12
-      %table.table.table-bordered
+      %table.table.table-bordered.table-condensed
         %thead
           %tr
             %th= t('.name')
@@ -48,9 +48,9 @@
                   %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description(true)|| ""}", :class => "spanner"
                   %td= text_field_tag "node:#{node.name}:group".to_sym, node.group(true), :class => "spanner"
                   -if @options[:show].include? :bios
-                    %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
+                    %td= select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set), { :class => "spanner"}
                   -if @options[:show].include? :raid
-                    %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
+                    %td= select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set), { :class => "spanner"}
                   -unless node.allocated
                     %td= select_tag "node:#{node.name}:target_platform".to_sym, options_for_select(option_default(@target_platforms,node.target_platform,'target_platform'), node.target_platform), {:onchange => "showLicense(this)", :class => "spanner"}
                     %td= text_field_tag "node:#{node.name}:license_key".to_sym, node.license_key, :class => "spanner", :style => CrowbarService.require_license_key?(node.target_platform) ? "display:block" : "display:none"
@@ -80,7 +80,7 @@
                   %td.text-center= t 'na'
           - else
             %tr
-              %td{:colspan => @columns}
+              %td{:colspan => @columns + 1}
                 = t 'no_items'
 
         - if @nodes.count > 0

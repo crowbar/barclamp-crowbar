@@ -24,6 +24,7 @@ end
 pkglist=()
 rainbows_path=""
 logdir = "/var/log/crowbar"
+crowbar_home = "/home/crowbar"
 
 case node[:platform]
 when "ubuntu","debian"
@@ -61,7 +62,7 @@ group "crowbar"
 user "crowbar" do
   comment "Crowbar User"
   gid "crowbar"
-  home "/home/crowbar"
+  home crowbar_home
   password "$6$afAL.34B$T2WR6zycEe2q3DktVtbH2orOroblhR6uCdo5n3jxLsm47PBm9lwygTbv3AjcmGDnvlh0y83u2yprET8g9/mve."
   shell "/bin/bash"
   supports :manage_home=>true
@@ -91,14 +92,14 @@ cookbook_file "/root/.chef/knife.rb" do
   source "knife.rb"
 end
 
-directory "/home/crowbar/.chef" do
+directory "#{crowbar_home}/.chef" do
   owner "crowbar"
   group "crowbar"
   mode "0700"
   action :create
 end
 
-cookbook_file "/home/crowbar/.chef/knife.rb" do
+cookbook_file "#{crowbar_home}/.chef/knife.rb" do
   owner "crowbar"
   group "crowbar"
   mode "0600"
@@ -233,7 +234,7 @@ if node[:platform] != "suse"
 
   template "/etc/bluepill/crowbar-webserver.pill" do
     source "crowbar-webserver.pill.erb"
-    variables(:logdir => logdir)
+    variables(:logdir => logdir, :crowbar_home => crowbar_home)
   end
 
   bluepill_service "crowbar-webserver" do

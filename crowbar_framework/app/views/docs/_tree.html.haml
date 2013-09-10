@@ -1,4 +1,4 @@
-%li= link_to tree.description, doc_path(tree.id)
+%li= link_to tree.description, Doc.doc_path(tree.name)
 - if tree.children.length > 0
   %ul
-    = render partial: 'tree', collection: tree.children
+    = render partial: 'tree', collection: tree.children.sort

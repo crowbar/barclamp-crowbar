@@ -38,10 +38,10 @@ class DocsController < ApplicationController
       @doc = Doc.find_key id
       @doc = Doc.find_key id.gsub("/","+") unless @doc
       if @doc
-        # @file = Doc.page_path File.join('..','doc'), @doc.name
-        @file = File.join '..','doc', @doc.name
+        @file = File.join Doc.root_directory, @doc.name
       else
-        @file = File.join '..','doc', id
+        raise "doc not found: #{id}"
+        # @file = File.join Doc.root_directory, id
       end
       html = !params.has_key?(:source)
       image = false
@@ -62,15 +62,15 @@ class DocsController < ApplicationController
       @text = I18n.t('.topic_error', :scope=>'docs.topic')  + ": " + @file
       flash[:notice] = @text
     end
-     if image
-        render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
-     elsif params.has_key? :expand
-       if html
-          render :layout => 'doc_export'
-       else
-          render :text=>@text, :content_type => :text
-       end
-     end
+    if image
+      render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
+    elsif params.has_key? :expand
+      if html
+        render :layout => 'doc_export'
+      else
+        render :text=>@text, :content_type => :text
+      end
+    end
   end
 
   def topic

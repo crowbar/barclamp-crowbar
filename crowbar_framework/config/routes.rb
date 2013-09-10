@@ -38,7 +38,9 @@ Crowbar::Application.routes.draw do
     resources :roles
   end
   resources :deployment_roles
-  resources :docs
+  get 'docs', to: 'docs#index'
+  get 'docs/:id', to: 'docs#show', constraints: {id: /[^\?]*/}
+#  resources :docs
   resources :groups
   resources :jigs
   resources :node_roles  do

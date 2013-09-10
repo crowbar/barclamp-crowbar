@@ -22,16 +22,44 @@ class Doc < ActiveRecord::Base
 
   validates_uniqueness_of :name, :scope=>:barclamp_id, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
 
+  def <=>(b)
+    x = order <=> b.order if order and b.order
+    x = description <=> b.description if x == 0
+    return x
+  end
+
+  def self.root_directory
+    File.join('..')
+  end
+
+  def self.doc_path(x)
+    File.join '/docs', x
+  end
+
   # creates the table of contents from the files
   def self.gen_doc_index
     roots=[]
     found={}
     # load crowbar docs
-    Doc.discover_docs 0, File.join('..','doc','framework'), roots, found
+    Doc.discover_docs 0, Doc.root_directory, roots, found
     # load barclamp docs
     Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc'), roots, found }
+    found.each do |k,v|
+      v.save
+    end
+    #roots.each do |root|
+    #  root.recursive_save
+    #end
     Doc.all
   end
+
+  #def recursive_save
+  #  x = children
+  #  save
+  #  x.each do |child|
+  #    child.recursive_save
+  #  end
+  #end
 
   def self.topic_expand(name, html=true)
     text = "\n"
@@ -53,17 +81,24 @@ class Doc < ActiveRecord::Base
   def self.discover_docs barclamp_id, doc_path, roots, found
     files_list = %x[find #{doc_path} -iname *.md]
     files = files_list.split "\n"
+    files = files.sort_by {|x| x.length} # to ensure that parents come before their children
     files.each do |f|
-      # TODO ZEHICLE - figure out order by inspecting name
-      #  order = name[/\/([0-9]+)_/,1]
-      #  order = (props["order"] || "9999") unless order =~ /^[0-9]+$/
-      #    t.order = order.to_s.rjust(6,'0') rescue "!error"
-      # TODO ZEHICLE - figure out parent by stripping file
+      name = f[/^\.\.\/(.*)$/,1] rescue File.join('crowbar_framework', f)
+      if name =~ /^..\//
+        raise "BLAAARG: file with more than one set of double dots: #{f}"
+      end
+
+      # figure out order by inspecting name
+      order = name[/\/([0-9]+)_[^\/]*$/,1]
+      order = "999999" unless order
+      #order = (props["order"] || "9999") unless order
+      order = order.to_s.rjust(6,'0') rescue "!error"
+
       # figure out description by looking in file
       title = if File.exist? f
           begin
             actual_title = File.open(f, 'r').readline
-            actual_title[/^#+(.*)#*$/,1].strip
+            actual_title.strip[/^#+(.*?)#*$/,1].strip
           rescue
             # if that fails, use the name/path
             name.gsub("/"," ").titleize
@@ -72,22 +107,22 @@ class Doc < ActiveRecord::Base
           name.gsub("/"," ").titleize
         end
 
-      parent_name = f.match(/^(.*)\/[^\/]*$/)[1] + ".md"
-      parent = nil
-      parent = found[parent_name]
-      parent = Doc.find_by_name parent_name unless parent or parent_name.nil?
+      # figure out parent by stripping file
+      m = name.match(/^(.*)\/[^\/]*$/)
+      parent_name = m[1] + ".md" if m
+      parent = found[parent_name] if parent_name
+      parent = Doc.find_by_name parent_name if parent_name and not parent
 
-      x = nil
       if parent.nil?
-        x = Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title
+        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :order=>order
         roots << x
       else
-        x = Doc.find_or_create_by_name :name=>f, :barclamp_id=>barclamp_id, :description=>title, :parent_name=>parent_name, :parent=>parent
+        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :parent_name=>parent_name, :parent=>parent
         parent.children << x
-        parent.save
+        #parent.save
       end
-      found[f]=x
-      x.save
+      found[name]=x
+      #x.save
     end
   end
 

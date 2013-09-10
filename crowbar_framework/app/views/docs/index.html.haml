@@ -1,6 +1,6 @@
 %h1= t('.title')
 
 %ul
-  = render partial: 'tree', collection: Doc.roots
+  = render partial: 'tree', collection: Doc.roots.sort
 
 .clear

@@ -975,6 +975,7 @@ class NodeObject < ChefObject
   def allocate
     return if @node.nil?
     return if @role.nil?
+    return if self.allocated?
     self.allocated = true
     save
   end

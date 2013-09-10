@@ -130,6 +130,7 @@ class NodeRole < ActiveRecord::Base
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
       NodeRole.all_by_state(NodeRole::TODO).each do |nr|
+        next unless nr.role.jig_name
         thisjig = nr.jig
         raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
         queue[thisjig] ||= []

@@ -231,7 +231,7 @@ class Node < ActiveRecord::Base
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
-      Role.expand(self.admin ? Role.bootstrap : Role.discovery).select{|r|r.active?}.sort.each do |r|
+      Role.expand(self.admin ? Role.bootstrap.active : Role.discovery.active).sort.each do |r|
         r.add_to_node_in_snapshot(self,snap)
       end
     end

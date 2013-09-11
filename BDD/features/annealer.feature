@@ -4,12 +4,12 @@ Feature: Crowbar Engine
   wants step through deployment runs
 
   Scenario: Annealer Page Renders
-    When I go to the 'annealer' page
-    Then I should see a heading {bdd:crowbar.i18n.node_roles.annealer.title}
-      And I should see a headling {bdd:crowbar.i18n.common.state.todo}
-      And I should see a headling {bdd:crowbar.i18n.common.state.error}
-      And I should see a headling {bdd:crowbar.i18n.common.state.transition}
-      And I should see a headling {bdd:crowbar.i18n.common.state.blocked}
+    When I go to the "annealer" page
+    Then I should see a heading {bdd:crowbar.i18n.node_roles.anneal.title}
+      And I should see {bdd:crowbar.i18n.common.state.todo}
+      And I should see {bdd:crowbar.i18n.common.state.error}
+      And I should see {bdd:crowbar.i18n.common.state.transition}
+      And I should see {bdd:crowbar.i18n.common.state.blocked}
       And there should be no translation errors
 
   Scenario: Deployment Run Step

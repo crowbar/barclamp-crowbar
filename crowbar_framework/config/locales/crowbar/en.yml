@@ -40,6 +40,7 @@ en:
       jig: "Jig"
       barclamp: "Barclamp"
       template: "Template"
+      cohort: "Cohort"
     raid: &raid_types
       JBODOnly: JBOD
       SingleRaid10: RAID 10
@@ -69,6 +70,8 @@ en:
     deployments_description: "Orchestration Management"
     roles: "Roles"
     roles_description: "Services Provided by Deployment"
+    annealer: "Annealer"
+    annealer_description: "Crowbar Orchestration Engine"
 
     utils: Utilities
     utils_description: "Tools and System Functions "

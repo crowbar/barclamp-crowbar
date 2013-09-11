@@ -253,6 +253,7 @@ en:
       data: "User Configuration Data (outbound)"
       sysdata: "System Configuration Data (outbound)"
       no_overlay: "No Override using views/node_role/_raw template"
+      retry: "Retry"
       wall: "System Managed Data (outbound)"
       wall: "Jig Managed Data (inbound / wall)"
       upstream: "Upstream Node Roles (blocked by)"

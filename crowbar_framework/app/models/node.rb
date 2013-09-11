@@ -69,6 +69,7 @@ class Node < ActiveRecord::Base
 
   # returns a hash with all the node error status information 
   def status
+    s = []
     node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
   end
 

@@ -61,6 +61,11 @@ class NodesController < ApplicationController
 
   end
   
+  def make_admin
+    Node.make_admin!
+    redirect_to :index
+  end
+
   # CB1 move to IMPI
   def hit
     action = params[:req]

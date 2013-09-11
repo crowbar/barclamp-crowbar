@@ -212,6 +212,7 @@ en:
     index:
       title: "Nodes"
       admin: "Admin?"
+      make_admin: "Create Admin Server"
       <<: *deployment_common
     show:
       node_roles: "In Process Actions"

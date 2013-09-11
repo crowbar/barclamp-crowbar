@@ -116,6 +116,7 @@ Crowbar::Application.routes.draw do
           # These are not restful.  They poke the annealer and wait.
           post "converge", :to => "node_roles#converge", :as => :converge
           post "anneal", :to => "node_roles#anneal", :as => :anneal
+          post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs
           resources :barclamps
           resources :deployments do

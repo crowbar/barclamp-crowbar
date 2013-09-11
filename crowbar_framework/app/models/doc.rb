@@ -14,13 +14,15 @@
 #
 class Doc < ActiveRecord::Base
 
-  attr_accessible :id, :barclamp_id, :name, :parent_name, :description, :order
+  attr_accessible :id, :barclamp_id, :name, :description, :order
 
-  belongs_to  :barclamp
-  belongs_to  :parent,    :class_name => "Doc", :foreign_key => "parent_name"
-  has_many    :children,  :class_name => "Doc", :foreign_key => "parent_name", :order => "[order]+[description] ASC"
+  belongs_to :barclamp
+  belongs_to :parent, :class_name => "Doc"
+  has_many :children, :class_name => "Doc", :foreign_key => "parent_id", :order => "[order]+[description] ASC"
 
   validates_uniqueness_of :name, :scope=>:barclamp_id, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
+
+  scope :roots, where(:parent_id=>nil)
 
   def <=>(b)
     x = order <=> b.order if order and b.order
@@ -44,12 +46,6 @@ class Doc < ActiveRecord::Base
     Doc.discover_docs 0, Doc.root_directory, roots, found
     # load barclamp docs
     Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc'), roots, found }
-    found.each do |k,v|
-      v.save
-    end
-    #roots.each do |root|
-    #  root.recursive_save
-    #end
     Doc.all
   end
 
@@ -90,7 +86,7 @@ class Doc < ActiveRecord::Base
 
       # figure out order by inspecting name
       order = name[/\/([0-9]+)_[^\/]*$/,1]
-      order = "999999" unless order
+      order = "9999" unless order
       #order = (props["order"] || "9999") unless order
       order = order.to_s.rjust(6,'0') rescue "!error"
 
@@ -117,12 +113,11 @@ class Doc < ActiveRecord::Base
         x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :order=>order
         roots << x
       else
-        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :parent_name=>parent_name, :parent=>parent
-        parent.children << x
-        #parent.save
+        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :order=>order
+        x.parent = parent
       end
       found[name]=x
-      #x.save
+      x.save
     end
   end
 
@@ -132,10 +127,6 @@ class Doc < ActiveRecord::Base
     repo = (barclamp.eql?('framework') ? 'crowbar' : "barclamp-#{barclamp}")
     path[0] = "https://github.com/crowbar/#{repo}/tree/master/doc"
     return path.join('/') + ".md"
-  end
-
-  def self.roots
-    return Doc.where(:parent_name=>nil)
   end
 
 end

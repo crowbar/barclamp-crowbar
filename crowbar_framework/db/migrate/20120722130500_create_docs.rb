@@ -19,8 +19,8 @@ class CreateDocs < ActiveRecord::Migration
       t.string      :name
       t.belongs_to  :barclamp, :null=>true
       t.string      :description, :null=>true
-      t.string      :parent_name, :null=>true
-      t.string      :order, :length=>5, :default => '00999'
+      t.belongs_to  :parent, :null=>true
+      t.string      :order, :length=>5, :default => '009999'
       t.timestamps
     end
     

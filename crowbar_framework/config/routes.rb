@@ -30,6 +30,7 @@ Crowbar::Application.routes.draw do
   end
 
   # UI resources
+  get "annealer", :to => "node_roles#anneal", :as => :annealer
   resources :attribs
   resources :barclamps
   resources :deployments do
@@ -44,14 +45,11 @@ Crowbar::Application.routes.draw do
   resources :groups
   resources :jigs
   resources :node_roles  do
-    post :anneal
-    post :converge
     put :retry
   end
   resources :roles
   resources :snapshots do
     resources :node_roles
-    match :anneal
     get :graph
     put :propose
     put :commit
@@ -115,9 +113,9 @@ Crowbar::Application.routes.draw do
           get "snapshots(/:id)" => "snapshots#status", :as => :snapshots_status
         end
         scope ':version' do
-          # These are not restful.  They poke the annealer and wait.
-          post "converge", :to => "node_roles#converge", :as => :converge
-          post "anneal", :to => "node_roles#anneal", :as => :anneal
+          # These are not restful.  They poke the annealer and wait if you pass "sync=true".
+          put "converge", :to => "node_roles#converge", :as => :converge
+          put "anneal", :to => "node_roles#anneal", :as => :anneal
           post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs
           resources :barclamps
@@ -138,8 +136,6 @@ Crowbar::Application.routes.draw do
             resources :attribs
           end
           resources :node_roles do
-            post :anneal
-            post :converge
             put :retry
           end
           resources :roles do
@@ -147,7 +143,6 @@ Crowbar::Application.routes.draw do
           end
           resources :snapshots do
             resources :node_roles
-            put :anneal
             get :graph
             put :propose
             put :commit

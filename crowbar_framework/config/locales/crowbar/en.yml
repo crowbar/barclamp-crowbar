@@ -250,6 +250,11 @@ en:
     index:
       title: "Node Roles"
       <<: *deployment_common
+    anneal:
+      title: "Crowbar Annealer Activity Monitor"
+      converge: "Run All"
+      anneal: "Next Step"
+      <<: *node_role_states
     show:
       data: "User Configuration Data (outbound)"
       sysdata: "System Configuration Data (outbound)"

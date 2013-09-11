@@ -75,19 +75,7 @@ class SnapshotsController < ApplicationController
 
   def anneal
     @snapshot = Snapshot.find_key params[:snapshot_id]
-    # anneal requires PUT to run
-    if request.put?
-      # run anneal in the background (if stepping the skip when any nodes are in transistion)    
-      if !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
-        job1 = fork do
-          %x[rails r NodeRole.anneal!] 
-        end
-        Process.detach(job1)
-        flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
-      end
-    end
     @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION).order("cohort,id")
-
     respond_to do |format|
       format.html {  }
       format.json { render api_index :node_roles, @list }

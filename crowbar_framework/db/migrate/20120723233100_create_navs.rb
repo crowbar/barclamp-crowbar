@@ -36,6 +36,7 @@ class CreateNavs < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'deploy', :parent_item=>'root', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"deployments_path", :order=>2000
       Nav.find_or_create_by_item :item=>'deploy', :parent_item=>'deploy', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"deployments_path", :order=>1000
       Nav.find_or_create_by_item :item=>'roles', :parent_item=>'deploy', :name=>'nav.roles', :description=>'nav.roles_description', :path=>"roles_path", :order=>2000
+      Nav.find_or_create_by_item :item=>'annealer', :parent_item=>'deploy', :name=>'nav.annealer', :description=>'nav.annealer_description', :path=>"annealer_path", :order=>2000
 
     # utils
     Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>6000

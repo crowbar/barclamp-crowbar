@@ -9,7 +9,7 @@
 .column_50.first
   %dl
     = dl_item(t('.name'), @node.name)
-    = dl_item(t('.status'), (state == NodeRole::ERROR ? @node.status : NodeRole.state_name(state))) 
+    = dl_item(t('.status'), NodeRole.state_name(state))
     = dl_item(t('.uptime'), (state == NodeRole::ACTIVE ? @node.attrib_uptime : t('na')))
     - if @node.attrib_switch_unit.nil?
       = dl_item(t('.switch_name_port'), "#{@node.attrib_switch_name || t('unknown') } / #{@node.attrib_switch_port || t('unknown')}")

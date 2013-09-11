@@ -20,10 +20,11 @@
     - if params.include? :raw
       = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
     - else
-      = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", :locals => { :data => @node_role.data, :node_role => @node_role }
+      = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", 
+               :locals  => { :data => @node_role.data, :node_role => @node_role }
   - rescue Exception => e
     - if Rails.env.development?
-      %p= "Error #{e.inspect}"
+      %p= t '.no_overlay'
     = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
 
 %h3= t '.sysdata'

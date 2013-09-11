@@ -251,10 +251,13 @@ en:
       <<: *deployment_common
     show:
       data: "User Configuration Data (outbound)"
+      sysdata: "System Configuration Data (outbound)"
+      no_overlay: "No Override using views/node_role/_raw template"
       wall: "System Managed Data (outbound)"
       wall: "Jig Managed Data (inbound / wall)"
       upstream: "Upstream Node Roles (blocked by)"
       downstream: "Downstream Node Roles (blocking)"
+      runlog: "Log Capture (from last run)"
       save: "Save"
       saved: "Node Role Data Saved"
     raw:

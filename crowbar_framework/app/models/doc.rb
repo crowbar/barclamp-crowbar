@@ -92,16 +92,16 @@ class Doc < ActiveRecord::Base
 
       # figure out description by looking in file
       title = if File.exist? f
-          begin
-            actual_title = File.open(f, 'r').readline
-            actual_title.strip[/^#+(.*?)#*$/,1].strip
-          rescue
-            # if that fails, use the name/path
-            name.gsub("/"," ").titleize
-          end
-        else
-          name.gsub("/"," ").titleize
-        end
+                begin
+                  actual_title = File.open(f, 'r').readline
+                  actual_title.strip[/^#+(.*?)#*$/,1].strip
+                rescue
+                  # if that fails, use the name/path
+                  name.gsub("/"," ").titleize
+                end
+              else
+                name.gsub("/"," ").titleize
+              end
 
       # figure out parent by stripping file
       m = name.match(/^(.*)\/[^\/]*$/)

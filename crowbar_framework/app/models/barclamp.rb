@@ -146,6 +146,23 @@ class Barclamp < ActiveRecord::Base
                                   :commit      => (gitcommit || 'unknown')   )
       barclamp.save
     end
+    # load the jig information.
+    bc['jigs'].each do |jig|
+      raise "Jigs must have a name" unless jig['name'] && !jig['name'].empty?
+      raise "Jigs must have a type" unless jig['class'] && !jig["class"].empty?
+      jig_name = jig["name"]
+      jig_desc = jig['description'] || "Imported by #{barclamp.name}"
+      jig_type = jig['class']
+      jig_client_role = jig["implementor"]
+      jig_active = (Rails.env == "production") ^ (jig_name == "test")
+      jig = jig_type.constantize.find_or_create_by_name(:name => jig_name)
+      jig.update_attributes(:order => 100,
+                            :active => jig_active,
+                            :description => jig_desc,
+                            :type => jig_type,
+                            :client_role_name => jig_client_role)
+      jig.save!
+    end if bc["jigs"]
 
     # iterate over the roles in the yml file and load them all.
     # Jigs are now late-bound, so we just load everything.
@@ -172,23 +189,6 @@ class Barclamp < ActiveRecord::Base
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
       end
     end if bc['roles']
-    # Now that roles are loaded, load the jig information.
-    bc['jigs'].each do |jig|
-      raise "Jigs must have a name" unless jig['name'] && !jig['name'].empty?
-      raise "Jigs must have a type" unless jig['class'] && !jig["class"].empty?
-      jig_name = jig["name"]
-      jig_desc = jig['description'] || "Imported by #{barclamp.name}"
-      jig_type = jig['class']
-      jig_client_role = jig["implementor"]
-      jig_active = (Rails.env == "production") ^ (jig_name == "test")
-      jig = jig_type.constantize.find_or_create_by_name(:name => jig_name)
-      jig.update_attributes(:order => 100,
-                            :active => jig_active,
-                            :description => jig_desc,
-                            :type => jig_type,
-                            :client_role_name => jig_client_role)
-      jig.save!
-    end if bc["jigs"]
     barclamp
   end
 

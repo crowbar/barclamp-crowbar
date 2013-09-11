@@ -25,6 +25,7 @@ class CreateRoles < ActiveRecord::Migration
       t.boolean     :bootstrap,         :null=>false, :default=>false  # used for the admin node(s) during bring up
       t.boolean     :discovery,         :null=>false, :default=>false  # related to the node being discovered in the system (by deployer)
       t.belongs_to  :barclamp,          :null=>false
+      t.integer     :cohort
       t.timestamps
     end
     #natural key

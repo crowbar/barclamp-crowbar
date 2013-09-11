@@ -103,6 +103,29 @@ class Role < ActiveRecord::Base
     res
   end
 
+  def reset_cohort
+    Role.transaction do
+      cohort = nil
+      save!
+      RoleRequire.where(:requires => name).each do |rr|
+        rr.role.reset_cohort
+      end
+    end
+  end
+
+  def cohort
+    c = read_attribute("cohort")
+    if c.nil?
+      c = 0
+      parents.each do |parent|
+        p_c = parent.cohort
+        c = p_c + 1 if p_c >= c
+      end
+      write_attribute("cohort",c)
+    end
+    return c
+  end
+
   def depends_on?(other)
     return false if self.id == other.id
     rents = parents
@@ -189,10 +212,8 @@ class Role < ActiveRecord::Base
   end
 
   def <=>(other)
-    return 0  if self.id == other.id
-    return 1  if self.depends_on?(other)
-    return -1 if other.depends_on?(self)
-    0
+    return 0 if self.id == other.id
+    self.cohort <=> other.cohort
   end
 
   private

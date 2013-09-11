@@ -1,10 +1,11 @@
+- s = @node.state
 %p{:style => 'float:right'}
   = link_to t('.all_node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
 
 %table
   %tr
     %td
-      .led{:valign=>'center', :class => NodeRole::STATES[@node.state], :title=>NodeRole.state_name(@node.state)}
+      .led{:valign=>'center', :class => NodeRole::STATES[s], :title=>NodeRole.state_name(s)}
     %td
       %h1
         = @node.alias || @node.name

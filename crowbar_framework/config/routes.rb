@@ -41,9 +41,10 @@ Crowbar::Application.routes.draw do
   resources :docs
   resources :groups
   resources :jigs
-  resources :node_roles do
+  resources :node_roles  do
     post :anneal
     post :converge
+    put :retry
   end
   resources :roles
   resources :snapshots do
@@ -115,6 +116,7 @@ Crowbar::Application.routes.draw do
           # These are not restful.  They poke the annealer and wait.
           post "converge", :to => "node_roles#converge", :as => :converge
           post "anneal", :to => "node_roles#anneal", :as => :anneal
+          post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs
           resources :barclamps
           resources :deployments do
@@ -133,7 +135,11 @@ Crowbar::Application.routes.draw do
             resources :node_roles
             resources :attribs
           end
-          resources :node_roles
+          resources :node_roles do
+            post :anneal
+            post :converge
+            put :retry
+          end
           resources :roles do
             put 'template/:key/:value' => "roles#template"
           end

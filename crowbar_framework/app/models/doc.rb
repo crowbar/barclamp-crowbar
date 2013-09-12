@@ -72,14 +72,13 @@ class Doc < ActiveRecord::Base
     files = files_list.split "\n"
     files = files.sort_by {|x| x.length} # to ensure that parents come before their children
     files.each do |f|
-      name = f[/^\.\.\/(.*)$/,1] rescue File.join('crowbar_framework', f)
+      name = f[/^\.\.\/(.*)$/,1] or File.join('crowbar_framework', f)
       if name =~ /^..\//
-        raise "BLAAARG: file with more than one set of double dots: #{f}"
+        raise "ERROR: file with more than one set of double dots: #{f}"
       end
 
       # figure out order by inspecting name
-      order = name[/\/([0-9]+)_[^\/]*$/,1]
-      order = "9999" unless order
+      order = name[/\/([0-9]+)_[^\/]*$/,1] or "9999"
       #order = (props["order"] || "9999") unless order
       order = order.to_s.rjust(6,'0') rescue "!error"
 

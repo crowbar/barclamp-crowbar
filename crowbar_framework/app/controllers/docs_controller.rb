@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
 
 class DocsController < ApplicationController
 
@@ -69,45 +68,6 @@ class DocsController < ApplicationController
         render :layout => 'doc_export'
       else
         render :text=>@text, :content_type => :text
-      end
-    end
-  end
-
-  def topic
-    begin
-      @topic = Doc.find_by_name params[:id]
-      @topic = Doc.find_by_name params[:id].gsub("/","+") unless @topic
-      if @topic
-        @file = Doc.page_path File.join('..','doc'), @topic.name
-      else
-        @file = File.join '..','doc', params[:id]
-      end
-      html = !params.has_key?(:source)
-      image = false
-      # navigation items
-      if File.exist? @file
-        if @file =~ /\.md$/
-          raw = IO.read(@file)
-          @text = (html ? BlueCloth.new(raw).to_html : raw)
-          @text += Doc.topic_expand(@topic.name, html) if params.has_key? :expand
-        elsif @file =~ /\.(jpg|png)$/
-          html = false
-          image = true
-        end
-      else
-        @text = I18n.t('.topic_missing', :scope=>'docs.topic') + ": " + @file
-      end
-    rescue
-      @text = I18n.t('.topic_error', :scope=>'docs.topic')  + ": " + @file
-      flash[:notice] = @text
-    end
-    if image
-       render :text=>open(@file, "rb").read, :content_type => :image, :content_disposition => "inline"
-    elsif params.has_key? :expand
-      if html
-         render :layout => 'doc_export'
-      else
-         render :text=>@text, :content_type => :text
       end
     end
   end

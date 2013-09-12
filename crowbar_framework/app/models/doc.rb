@@ -12,6 +12,7 @@
 # See the License for the specific language governnig permissions and
 # limitations under the License.
 #
+
 class Doc < ActiveRecord::Base
 
   attr_accessible :id, :barclamp_id, :name, :description, :order
@@ -48,14 +49,6 @@ class Doc < ActiveRecord::Base
     Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc'), roots, found }
     Doc.all
   end
-
-  #def recursive_save
-  #  x = children
-  #  save
-  #  x.each do |child|
-  #    child.recursive_save
-  #  end
-  #end
 
   def self.topic_expand(name, html=true)
     text = "\n"
@@ -130,4 +123,3 @@ class Doc < ActiveRecord::Base
   end
 
 end
-

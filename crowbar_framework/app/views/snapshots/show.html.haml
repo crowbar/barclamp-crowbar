@@ -21,7 +21,7 @@
     - @nodes.each do |nid, node|
       %tr
         %td= link_to node.name, node_path(nid)
-        -@roles.each do |rid, role|
+        -@barclamps.each do |rid, role|
           %td
             - nr = @node_roles[nid][rid] rescue nil
             - unless nr.nil?

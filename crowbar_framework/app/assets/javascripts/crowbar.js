@@ -103,7 +103,7 @@ jQuery(document).ready(function($) {
 
   // Animate spinning LEDs
   function animate() {
-    $('.led.unready, .led.in_process, .led.spin').sprite({fps: 6, no_of_frames: 8});
+    $('.led.transition, .led.spin').sprite({fps: 6, no_of_frames: 8});
   }
 
   animate(); // Call this again when new animatable elements are created...

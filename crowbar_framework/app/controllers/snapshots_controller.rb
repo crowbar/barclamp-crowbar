@@ -28,15 +28,17 @@ class SnapshotsController < ApplicationController
       format.html {
         @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
-        @roles = {}
+        @barclamps = {}
         @node_roles = { }
         @snapshot.node_roles.each do |nr|
           n = nr.node
           r = nr.role
+          bc = r.barclamp
           @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
-          @roles[r.id] = r unless r.nil? or @roles.has_key? r.id
-          @node_roles[n.id] ||= {}     unless n.nil? or r.nil?
-          @node_roles[n.id][r.id] = nr unless n.nil? or r.nil?
+          @barclamps[bc.id] = bc unless bc.nil? or @barclamps.has_key? bc.id            
+          end
+          @node_roles[n.id] ||= { bc.id => {} } unless n.nil? or r.nil?
+          @node_roles[n.id][bc.id][r.id] = nr   unless n.nil? or r.nil?
         end
         # make sure we have at least 1 role
         if @roles.length == 0

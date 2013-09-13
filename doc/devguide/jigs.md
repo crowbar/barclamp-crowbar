@@ -12,8 +12,24 @@ For testing, Crowbar provides a Test Jig that is included in the core Crowbar ba
 
 The jig can read data from the system and store it into attributes
 
+#### User Data
+#### System Data
+
 ### Outbound path
 
 The jig can create roles for operation
 
 The jig can set attributes for operations
+
+### Methods 
+
+Each jig overrides the following core methods in Crowbar
+
+#### Create Node
+Handles when a node is added to the Crowbar DB.  Allows the jig to make approporate entries in it's own database
+
+#### Delete Node
+Handles when a node is removed from the Crowbar DB.  Allows the jig to remove entries in it's own database
+
+#### Run (input is list of Tacks)
+

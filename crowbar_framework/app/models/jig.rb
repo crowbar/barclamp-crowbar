@@ -106,3 +106,12 @@ private
     }
   end
 end
+
+class NoopJig < Jig
+
+  def run(nr)
+    nr.state = NodeRole::ACTIVE
+    nr
+  end
+
+end

@@ -44,10 +44,6 @@ class Role < ActiveRecord::Base
   scope           :bootstrap,          -> { where(:bootstrap=>true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
-  # Magic to provide a mechanism for letting barclamps provide specific role behaviour.
-  # This will mostly be used to implement the on_* helpers in a not-totally-insane way.
-  after_initialize :mixin_specific_behaviour
-
   # update just one value in the template (assumes just 1 level deep!)
   # use via /api/v2/roles/[role]/template/[key]/[value] 
   def update_template(key, value)
@@ -105,6 +101,29 @@ class Role < ActiveRecord::Base
       res << Role.find_by_name!(r.requires)
     end
     res
+  end
+
+  def reset_cohort
+    Role.transaction do
+      cohort = nil
+      save!
+      RoleRequire.where(:requires => name).each do |rr|
+        rr.role.reset_cohort
+      end
+    end
+  end
+
+  def cohort
+    c = read_attribute("cohort")
+    if c.nil?
+      c = 0
+      parents.each do |parent|
+        p_c = parent.cohort
+        c = p_c + 1 if p_c >= c
+      end
+      write_attribute("cohort",c)
+    end
+    return c
   end
 
   def depends_on?(other)
@@ -193,35 +212,11 @@ class Role < ActiveRecord::Base
   end
 
   def <=>(other)
-    return 0  if self.id == other.id
-    return 1  if self.depends_on?(other)
-    return -1 if other.depends_on?(self)
-    0
+    return 0 if self.id == other.id
+    self.cohort <=> other.cohort
   end
 
   private
-
-  # If there is a module in the form of BarclampName::Role::RoleName,
-  # extend this object with its methods.
-  def mixin_specific_behaviour
-    raise "Roles require a name" if self.name.nil?
-    Rails.logger.info("Seeing if #{self.name} has a mixin...")
-    begin
-      mod = "barclamp_#{barclamp.name}".camelize.to_sym
-      return self unless Module::const_defined?(mod)
-      mod = Module::const_get(mod)
-      ["role",
-       self.name].map{|m|m.tr("-","_").camelize.to_sym}.each do |m|
-        return self unless mod.const_defined?(m)
-        mod = mod.const_get(m)
-        return self unless mod.kind_of?(Module)
-      end
-      Rails.logger.info("Extending #{self.name} with #{mod}")
-      self.extend(mod)
-    rescue
-      # nothing for now, this code is going away
-    end
-  end
 
   # This method ensures that we have a type defined for 
   def create_type_from_name

@@ -41,6 +41,9 @@ jigs:
   - name: script
     class: 'BarclampCrowbar::Jig'
     description: 'Run arbitrary scripts on nodes via SSH'
+  - name: noop
+    class: NoopJig
+    description: "Jig used when roles have no action to run"
 
 crowbar:
   layout: 2.0

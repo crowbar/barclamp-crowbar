@@ -20,4 +20,12 @@ class RoleRequire < ActiveRecord::Base
   has_one         :upstream,    :class_name => Role, :foreign_key => "name", :primary_key => "requires"
   alias_attribute :parent,      :upstream
 
+  after_save :update_cohort
+
+  private
+
+  def update_cohort
+    role.reset_cohort
+  end
+
 end

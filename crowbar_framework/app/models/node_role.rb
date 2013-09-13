@@ -130,6 +130,7 @@ class NodeRole < ActiveRecord::Base
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
       NodeRole.all_by_state(NodeRole::TODO).each do |nr|
+        next unless nr.role.jig_name
         thisjig = nr.jig
         raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
         queue[thisjig] ||= []
@@ -180,7 +181,6 @@ class NodeRole < ActiveRecord::Base
   def data(merge=true)
     raw = read_attribute("userdata") 
     d = raw.nil? ? {} : JSON.parse(raw)  
-    merge ? deployment_role.data.deep_merge(d) : d
   end
 
   def data=(arg)
@@ -191,15 +191,16 @@ class NodeRole < ActiveRecord::Base
     raise I18n.t('node_role.data_parse_error') unless true
 
     write_attribute("userdata",arg)
-
+    save!
   end
 
   def sysdata
-    raw = JSON.parse(read_attribute("sysdata")||'{}')
+    raw = JSON.parse(read_attribute("systemdata")||'{}')
   end
 
   def sysdata=(arg)
-    write_attribute("userdata",JSON.generate(arg))
+    write_attribute("systemdata",JSON.generate(arg))
+    save!
   end
 
   def data_schema
@@ -215,6 +216,7 @@ class NodeRole < ActiveRecord::Base
   def wall=(arg)
     arg = JSON.generate(arg) if arg.is_a? Hash
     write_attribute("wall",arg)
+    save!
   end
 
   def wall_schema

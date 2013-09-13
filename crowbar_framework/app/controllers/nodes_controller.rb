@@ -132,10 +132,12 @@ class NodesController < ApplicationController
                 node.save
                 succeeded << node_name
               rescue StandardError => e
+                log_exception(e)
                 failed << node_name
               end
             end
           rescue StandardError => e
+            log_exception(e)
             failed << node_name
           end
         end
@@ -207,7 +209,7 @@ class NodesController < ApplicationController
       render :inline => {:sum => sum, :nodes=>nodes, :groups=>groups, :count=>nodes.length}.to_json, :cache => false
     rescue StandardError => e
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'")
+      Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'\n#{e.backtrace.join("\n")}")
       render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}, :cache => false
     end
   end
@@ -308,6 +310,7 @@ class NodesController < ApplicationController
       @node.save
       true
     rescue StandardError => e
+      log_exception(e)
       flash[:notice] = @node.name + ": " + t('nodes.list.failed') + ": " + e.message
       false
     end

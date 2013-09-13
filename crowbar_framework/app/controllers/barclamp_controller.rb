@@ -297,7 +297,8 @@ class BarclampController < ApplicationController
       render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
     rescue StandardError => e
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over proposal list due to '#{e.message}'")
+      lines = [ "Failed to iterate over proposal list due to '#{e.message}'" ] + e.backtrace
+      Rails.logger.fatal(lines.join("\n"))
       # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
     end
   end
@@ -319,8 +320,7 @@ class BarclampController < ApplicationController
       Rails.logger.info "proposal is: #{answer.inspect}"
       flash[:notice] =  answer[0] != 200 ? answer[1] : t('proposal.actions.create_success')
     rescue StandardError => e
-      flash[:notice] = e.message
-      Rails.logger.debug e.backtrace.join("\n")
+      flash_and_log_exception(e)
     end
     respond_to do |format|
       format.html { 
@@ -362,7 +362,7 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal_after_save @proposal.raw_data
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue StandardError => e
-          flash[:notice] = e.message
+          flash_and_log_exception(e)
         end
       elsif params[:submit] == t('barclamp.proposal_show.commit_proposal')
         @proposal = ProposalObject.find_proposal_by_id(params[:id])
@@ -385,14 +385,14 @@ class BarclampController < ApplicationController
             flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
           end
         rescue StandardError => e
-          flash[:notice] = e.message
+          flash_and_log_exception(e)
         end
       elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
         begin
           answer = @service_object.proposal_delete(params[:name])
           set_flash(answer, 'barclamp.proposal_show.delete_proposal_%s')
         rescue StandardError => e
-          flash[:notice] = e.message
+          flash_and_log_exception(e)
         end
         redirect_to barclamp_modules_path(:id=>(params[:barclamp] || ''))
         return
@@ -401,14 +401,14 @@ class BarclampController < ApplicationController
           answer = @service_object.destroy_active(params[:name])
           set_flash(answer, 'barclamp.proposal_show.destroy_active_%s')
         rescue StandardError => e
-          flash[:notice] = e.message
+          flash_and_log_exception(e)
         end
       elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
         begin
           answer = @service_object.dequeue_proposal(params[:name])
           set_flash(answer, 'barclamp.proposal_show.dequeue_proposal_%s')
         rescue StandardError => e
-          flash[:notice] = e.message
+          flash_and_log_exception(e)
         end
       else
         Rails.logger.warn "Invalid action #{params[:submit]} for #{params[:id]}"

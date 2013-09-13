@@ -203,7 +203,7 @@ class ServiceObject
           node.save
         end
       end
-    rescue Exception => e
+    rescue StandardError => e
       @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
@@ -324,7 +324,7 @@ class ServiceObject
       end
 
       db.save
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
     ensure
       release_lock f
@@ -351,7 +351,7 @@ class ServiceObject
         prop["deployment"][bc]["crowbar-queued"] = false
         prop.save
       end
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
       return false
@@ -373,7 +373,7 @@ class ServiceObject
       queue = db["proposal_queue"]
       dequeued = dequeue_proposal_no_lock(queue, inst, bc)
       db.save if dequeued
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return [400, e.message]
@@ -459,7 +459,7 @@ class ServiceObject
       
         db.save if save_db
 
-      rescue Exception => e
+      rescue StandardError => e
         @logger.error("Error processing queue: #{e.message}")
         @logger.debug("process queue: exit: error")
         return
@@ -730,7 +730,7 @@ class ServiceObject
     path = "schema" unless CHEF_ONLINE
     begin
       validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.error("failed to load databag schema for #{@bc_name}: #{e.message}")
       Rails.logger.debug e.backtrace.join("\n")
       raise Chef::Exceptions::ValidationFailed.new( "failed to load databag schema for #{@bc_name}: #{e.message}" )
@@ -961,7 +961,7 @@ class ServiceObject
 
     begin
       apply_role_pre_chef_call(old_role, role, all_nodes)
-    rescue Exception => e
+    rescue StandardError => e
       @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception before calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)

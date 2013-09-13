@@ -74,7 +74,7 @@ class SupportController < ApplicationController
           File.rename File.join('/tmp',cfile), File.join(export_dir,cfile)
         end        
         redirect_to "/utils?waiting=true&file=#{@file}"
-      rescue Exception=>e
+      rescue StandardError => e
         flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
         redirect_to "/utils"
       end

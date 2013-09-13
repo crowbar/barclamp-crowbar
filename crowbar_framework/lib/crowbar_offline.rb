@@ -47,7 +47,7 @@ module CrowbarOffline
             f.puts o.to_json
           end
           Rails.logger.info("Dumped Chef #{serial} #{name} object to '#{file}'")
-        rescue Exception => e
+        rescue StandardError => e
           Rails.logger.warn("Error dumping Chef #{serial} object to '#{name}' with '#{e.inspect}'")
         end #dump object
         return true
@@ -115,7 +115,7 @@ module CrowbarOffline
         else
           Rails.logger.warn("Error file not found for chef object.  Looking for '#{file}'")
         end
-      rescue Exception => e          
+      rescue StandardError => e
         Rails.logger.error("Error recovering chef object from '#{file}' caused by error '#{e.inspect}'")
       end
       return nil

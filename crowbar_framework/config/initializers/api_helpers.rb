@@ -15,3 +15,4 @@
 # 
 
 require Rails.root.join('lib/api_helper.rb')
+require Rails.root.join('lib/ip.rb')

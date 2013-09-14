@@ -146,34 +146,7 @@ class Barclamp < ActiveRecord::Base
                                   :commit      => (gitcommit || 'unknown')   )
       barclamp.save
     end
-
-    # iterate over the roles in the yml file and load them all.
-    # Jigs are now late-bound, so we just load everything.
-    bc['roles'].each do |role|
-      role_name = role["name"]
-      role_jig = role["jig"]
-      prerequisites = role['requires'] || []
-      flags = role['flags'] || []
-      description = role['descripion'] || "imported by #{barclamp.name}"
-      template = File.join barclamp.source_path, role_jig, 'roles', role_name, 'role-template.json'
-      # roles data import
-      ## TODO: Verify that adding the roles will not result in circular role dependencies.
-      Role.transaction do
-        r = Role.find_or_create_by_name(:name=>role_name, :jig_name=>role_jig, :barclamp_id=>barclamp.id)
-        r.update_attributes(:jig_name=>role_jig,
-                        :description=>description,
-                        :barclamp_id=>barclamp.id,
-                        :template=>(IO.read(template) rescue "{\"template\":\"none\"}"),
-                        :library=>flags.include?('library'),
-                        :implicit=>flags.include?('implicit'),
-                        :bootstrap=>flags.include?('bootstrap'),
-                        :discovery=>flags.include?('discovery'))
-        RoleRequire.where(:role_id=>r.id).delete_all
-        r.save!
-        prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
-      end
-    end if bc['roles']
-    # Now that roles are loaded, load the jig information.
+    # load the jig information.
     bc['jigs'].each do |jig|
       raise "Jigs must have a name" unless jig['name'] && !jig['name'].empty?
       raise "Jigs must have a type" unless jig['class'] && !jig["class"].empty?
@@ -190,6 +163,32 @@ class Barclamp < ActiveRecord::Base
                             :client_role_name => jig_client_role)
       jig.save!
     end if bc["jigs"]
+
+    # iterate over the roles in the yml file and load them all.
+    # Jigs are now late-bound, so we just load everything.
+    bc['roles'].each do |role|
+      role_name = role["name"]
+      role_jig = role["jig"]
+      prerequisites = role['requires'] || []
+      flags = role['flags'] || []
+      description = role['descripion'] || "imported by #{barclamp.name}"
+      template = File.join barclamp.source_path, role_jig || "none", 'roles', role_name, 'role-template.json'
+      # roles data import
+      ## TODO: Verify that adding the roles will not result in circular role dependencies.
+      Role.transaction do
+        r = Role.find_or_create_by_name(:name=>role_name, :jig_name => role_jig, :barclamp_id=>barclamp.id)
+        r.update_attributes(:description=>description,
+                            :barclamp_id=>barclamp.id,
+                            :template=>(IO.read(template) rescue "{\"template\":\"none\"}"),
+                            :library=>flags.include?('library'),
+                            :implicit=>flags.include?('implicit'),
+                            :bootstrap=>flags.include?('bootstrap'),
+                            :discovery=>flags.include?('discovery'))
+        RoleRequire.where(:role_id=>r.id).delete_all
+        r.save!
+        prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
+      end
+    end if bc['roles']
     barclamp
   end
 

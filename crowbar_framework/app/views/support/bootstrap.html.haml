@@ -1,0 +1,21 @@
+%h1= t '.title'
+
+%h2= 'review roles'
+
+%ul
+  %li= role_path '.dns-server'
+  %li= role_path '.ntp-server'
+  %li= role_path 'network-server'
+  %li= role_path 'chef-server'
+  -if missing network-admin
+    = 'create'
+  -else
+    = role_path 'network-admin'
+
+%h2= 'admin server'
+  -if missing admin server
+    = 'create'
+  -else
+    = node_path 'admin'
+
+%div link_to 'anneal page'

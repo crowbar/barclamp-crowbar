@@ -65,6 +65,8 @@ en:
   export: "Export"
   default: "Default"
   automatic: "Created Automatically by System"
+  automatic_by: "Created Automatically by %{name}"
+  automatic_item_by: "%{item}: Created Automatically by %{name}"
   version: "Version %{version}"
   
   test:

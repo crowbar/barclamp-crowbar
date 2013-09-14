@@ -65,6 +65,7 @@ Crowbar::Application.routes.draw do
     get 'upload/:id'    => 'support#upload', :as => :utils_upload
     get 'restart/:id'   => 'support#restart', :as => :restart
     get 'digest'        => "support#digest"
+    get 'bootstrap'     => "support#bootstrap", :as => :bootstrap
     namespace :scaffolds do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end

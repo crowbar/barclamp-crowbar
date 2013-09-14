@@ -10,6 +10,8 @@
   - if Rails.env.development?
     %dt= t '.type'
     %dd= "[#{@role.class.to_s}]"
+  %dt= '.cohort'
+  %dd= @role.cohort
   %dt= t '.flags'
   %dd
     = t '.library' if @role.library 

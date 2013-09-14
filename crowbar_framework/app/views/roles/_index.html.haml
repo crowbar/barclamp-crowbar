@@ -7,6 +7,7 @@
         %th= t '.role'
         %th= t '.barclamp'
         %th= t '.description'
+        %th= t '.cohort'
         %th= t '.flags'
     %tbody
       -list.each do |role|
@@ -15,6 +16,7 @@
             %td= link_to role.name, role_path(:id=>role.id)
             %td= link_to role.barclamp.name, barclamp_path(role.barclamp.id)
             %td= role.description
+            %td= role.cohort
             %td
               = t '.library' if role.library 
               = t '.discovery' if role.discovery

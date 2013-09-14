@@ -31,19 +31,22 @@ class SnapshotsController < ApplicationController
         @barclamps = {}
         @node_roles = { }
         @snapshot.node_roles.each do |nr|
+          # collect the axis for the grid (node & barclamp)
           n = nr.node
-          r = nr.role
-          bc = r.barclamp
+          bc = nr.role.barclamp
           @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
           @barclamps[bc.id] = bc unless bc.nil? or @barclamps.has_key? bc.id            
+          # build the node_role grid
+          unless n.nil? or bc.nil?
+            @node_roles[n.id] ||= []
+            @node_roles[n.id][bc.id] ||= []
+            @node_roles[n.id][bc.id][nr.role.id] = nr
           end
-          @node_roles[n.id] ||= { bc.id => {} } unless n.nil? or r.nil?
-          @node_roles[n.id][bc.id][r.id] = nr   unless n.nil? or r.nil?
         end
         # make sure we have at least 1 role
-        if @roles.length == 0
-          r = Role.find :first
-          @roles[r.id] = r
+        if @barclamps.length == 0
+          b = Barclamps.find :first
+          @barclamps[b.id] = b
         end
         }
       format.json { render api_show :snapshot, Snapshot }

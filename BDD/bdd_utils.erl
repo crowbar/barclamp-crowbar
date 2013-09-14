@@ -83,9 +83,10 @@ log(Config, Level, Format, Data)  ->
     {true, _}     -> Prefix = "   " ++ string:to_upper(atom_to_list(Level)),
                      {Module, Method, Params} = try erlang:get_stacktrace() of 
                         [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, 0}; 
+                        [{erl_parse, yecctoken_end_location, 1, _} | _] -> {no, trace, 0}; 
                         [ST | _] -> ST; 
                         [] -> {unknown, 0, 0} 
-                      catch _ -> [{module, unknown, 0}] end,
+                      catch _ -> {module, unknown, 0} end,
                       Arity = case Params of [] -> 0; X when is_number(X) -> X; X -> length(X) end,
                       case Arity of
                         0 ->  io:format("~n" ++ Prefix ++ ": " ++ Format, Data);

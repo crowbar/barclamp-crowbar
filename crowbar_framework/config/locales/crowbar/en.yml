@@ -73,14 +73,16 @@ en:
     annealer: "Annealer"
     annealer_description: "Crowbar Orchestration Engine"
 
-    utils: Utilities
+    utils: "Utilities"
     utils_description: "Tools and System Functions "
     util_logs: "Exported Items"
     util_logs_description: "Download information complied for review"
     jigs: "Installed Jigs"
     jigs_description: "Configuration Manager Plug-ins"
-    barclamps: Barclamps
-    barclamps_description: Provisioning and Operations Modules 
+    barclamps: "Barclamps"
+    barclamps_description: "Provisioning and Operations Modules "
+    bootstrap: "Bootstrap"
+    bootstrap_description: "Review Settings for Initial Configuration"
 
     help: Help
     help_description: Help
@@ -170,6 +172,9 @@ en:
     index:
       title: "Installed Barclamps"
       barclamp: "Barclamp"
+      description: "Description"
+      roles: "Roles"
+    show:
       description: "Description"
       roles: "Roles"
   deployments:
@@ -288,6 +293,7 @@ en:
     show:
       <<: *deployment_common
       <<: *roles_common
+
       type: Type
       upstream: "Upstream (prerequisite roles)"
     names:
@@ -322,6 +328,8 @@ en:
 #      delete_succeeded: Delete Succeeded
 #      delete_failed: Delete Failed
 #      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
+    bootstrap:
+      title: "Initial System Configuration"
   users:
     common: &user_common
       email: Email

@@ -42,6 +42,7 @@ class CreateNavs < ActiveRecord::Migration
     # utils
     Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>6000
       Nav.find_or_create_by_item :item=>'utils', :parent_item=>'utils', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>100
+      Nav.find_or_create_by_item :item=>'bootstrap', :parent_item=>'utils', :name=>'nav.bootstrap', :description=>'nav.bootstrap_description', :path=>"bootstrap_path", :order=>150
       Nav.find_or_create_by_item :item=>'util_index', :parent_item=>'utils', :name=>'nav.util_logs', :description=>'nav.util_logs_description', :path=>"utils_path", :order=>200
       Nav.find_or_create_by_item :item=>'jigs', :parent_item=>'utils', :name=>'nav.jigs', :description=>'nav.jigs_description', :path=>"jigs_path", :order=>300
       Nav.find_or_create_by_item :item=>'barclamps', :parent_item=>'utils', :name=>'nav.barclamps', :description=>'nav.barclamps_description', :path=>"barclamps_path", :order=>4000

@@ -117,11 +117,15 @@ class Role < ActiveRecord::Base
     c = read_attribute("cohort")
     if c.nil?
       c = 0
-      parents.each do |parent|
-        p_c = parent.cohort
-        c = p_c + 1 if p_c >= c
+      begin
+        parents.each do |parent|
+          p_c = parent.cohort
+          c = p_c + 1 if p_c >= c
+        end
+        write_attribute("cohort",c)
+      rescue
+        Rails.logger.info "Could not calculate cohort for #{self.name} because #{parent.name} does not exist (could be OK due to late binding)"
       end
-      write_attribute("cohort",c)
     end
     return c
   end

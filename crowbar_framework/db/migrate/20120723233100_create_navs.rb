@@ -30,18 +30,18 @@ class CreateNavs < ActiveRecord::Migration
   
     # nodes
     Nav.find_or_create_by_item :item=>'nodes', :parent_item=>'root', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"nodes_path", :order=>1000
-      Nav.find_or_create_by_item :item=>'nodes', :parent_item=>'nodes', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"nodes_path", :order=>1000
+      Nav.find_or_create_by_item :item=>'nodes_child', :parent_item=>'nodes', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"nodes_path", :order=>1000
       Nav.find_or_create_by_item :item=>'groups', :parent_item=>'nodes', :name=>'nav.groups', :description=>'nav.groups_description', :path=>"nodes_path", :order=>2000
 
     # deployments
     Nav.find_or_create_by_item :item=>'deploy', :parent_item=>'root', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"deployments_path", :order=>2000
-      Nav.find_or_create_by_item :item=>'deploy', :parent_item=>'deploy', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"deployments_path", :order=>1000
+      Nav.find_or_create_by_item :item=>'deploy_child', :parent_item=>'deploy', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"deployments_path", :order=>1000
       Nav.find_or_create_by_item :item=>'roles', :parent_item=>'deploy', :name=>'nav.roles', :description=>'nav.roles_description', :path=>"roles_path", :order=>2000
       Nav.find_or_create_by_item :item=>'annealer', :parent_item=>'deploy', :name=>'nav.annealer', :description=>'nav.annealer_description', :path=>"annealer_path", :order=>2000
 
     # utils
     Nav.find_or_create_by_item :item=>'utils', :parent_item=>'root', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>6000
-      Nav.find_or_create_by_item :item=>'utils', :parent_item=>'utils', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>100
+      Nav.find_or_create_by_item :item=>'utils_child', :parent_item=>'utils', :name=>'nav.utils', :description=>'nav.utils_description', :path=>"utils_path", :order=>100
       Nav.find_or_create_by_item :item=>'bootstrap', :parent_item=>'utils', :name=>'nav.bootstrap', :description=>'nav.bootstrap_description', :path=>"bootstrap_path", :order=>150
       Nav.find_or_create_by_item :item=>'util_index', :parent_item=>'utils', :name=>'nav.util_logs', :description=>'nav.util_logs_description', :path=>"utils_path", :order=>200
       Nav.find_or_create_by_item :item=>'jigs', :parent_item=>'utils', :name=>'nav.jigs', :description=>'nav.jigs_description', :path=>"jigs_path", :order=>300
@@ -53,7 +53,7 @@ class CreateNavs < ActiveRecord::Migration
 
     # help
     Nav.find_or_create_by_item :item=>'help', :parent_item=>'root', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>9999
-      Nav.find_or_create_by_item :item=>'help', :parent_item=>'help', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>100
+      Nav.find_or_create_by_item :item=>'help_child', :parent_item=>'help', :name=>'nav.help', :description=>'nav.help_description', :path=>"docs_path", :order=>100
       Nav.find_or_create_by_item :item=>'crowbar_wiki', :parent_item=>'help', :name=>'nav.wiki', :description=>'nav.wiki_description', :path=>"http://crowbar.github.com/", :order=>200
 
   end

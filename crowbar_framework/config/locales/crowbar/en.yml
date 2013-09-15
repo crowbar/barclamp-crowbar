@@ -175,7 +175,6 @@ en:
       description: "Description"
       roles: "Roles"
     show:
-      description: "Description"
       roles: "Roles"
   deployments:
     index:
@@ -220,7 +219,8 @@ en:
     index:
       title: "Nodes"
       admin: "Admin?"
-      make_admin: "Create Admin Server"
+      no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
+      bootstrap: "Configure System"
       <<: *deployment_common
     show:
       node_roles: "In Process Actions"
@@ -330,6 +330,11 @@ en:
 #      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
     bootstrap:
       title: "Initial System Configuration"
+      roles: "Roles for Review"
+      admin_server: "Crowbar Admin Node"
+      create: "Add '%{server}' Node"
+      add: "Add '%{role}' Role"
+      converge: "Start Installation"
   users:
     common: &user_common
       email: Email

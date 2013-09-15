@@ -1,21 +1,24 @@
 %h1= t '.title'
 
-%h2= 'review roles'
+%h2
+  = t '.roles'
 
-%ul
-  %li= role_path '.dns-server'
-  %li= role_path '.ntp-server'
-  %li= role_path 'network-server'
-  %li= role_path 'chef-server'
-  -if missing network-admin
-    = 'create'
-  -else
-    = role_path 'network-admin'
+%ol
+  - @roles.each do |r|
+    - if r.nil?
+      %li
+        = link_to t('.add', :role=>'network-admin'), roles_path(:version=>'v2'), :"data-method"=>:post, :class=>'button', :remote=>true, :onclick=>"location.reload()"
+    - else
+      %li= link_to r.name, role_path(r.id), :title=>r.description
 
-%h2= 'admin server'
-  -if missing admin server
-    = 'create'
-  -else
-    = node_path 'admin'
+%h2= t '.admin_server'
 
-%div link_to 'anneal page'
+- if Node.count == 0 
+  - name = %x{hostname -f}.strip
+  = link_to t('.create', :server=>name), make_admin_path(:version=>'v2'), :"data-method"=>:post, :class=>'button', :remote=>true, :onclick=>"location.reload()"
+-else
+  - Node.admin.each do |n|
+    =link_to n.name, nodes_path(n.id)
+
+%h2
+  = link_to t('.converge'), converge_path(:version=>'v2'), :class=>'button', :"data-method"=>:put, :remote=>true

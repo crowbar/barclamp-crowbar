@@ -1,7 +1,7 @@
 - state = @snapshot.state
 - if @snapshot and state == NodeRole::TODO
   %p{:style => 'float:right'}
-    = link_to t('.anneal'), converge_path(:version=>'v2'), :class => 'button', :"data-method"=>:put
+    = link_to t('.converge'), converge_path(:version=>'v2'), :class => 'button', :"data-method"=>:put
     = link_to t('.anneal'), anneal_path(:version=>'v2', :step=>Rails.env.development?), :class => 'button', :"data-method"=>:put
 %table.plane
   %tr

@@ -45,7 +45,7 @@ class SnapshotsController < ApplicationController
         end
         # make sure we have at least 1 role
         if @barclamps.length == 0
-          b = Barclamps.find :first
+          b = Barclamp.find :first
           @barclamps[b.id] = b
         end
         }

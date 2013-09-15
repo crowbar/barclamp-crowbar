@@ -15,7 +15,7 @@ In order to more easily manage this, we've created [a tool called the Dev Tool](
 
 * A physical or virtual Ubuntu 12.04.2 server (you will need root access)
 * An ISO of your target Crowbar OS (see instructions below on where they'll go)
-   * Use the [12.04.2 server ISO](http://releases.ubuntu.com/precise/ubuntu-12.04.2-server-amd64.iso) for **OpenStack** builds
+   * Use the [12.04.2 server ISO](http://old-releases.ubuntu.com/releases/12.04.2/ubuntu-12.04.2-server-amd64.iso) for **OpenStack** builds
    * Use [CentOS 6.4 DVD ISO](http://mirrors.seas.harvard.edu/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-bin-DVD1.iso) for **Hadoop** builds
 
 

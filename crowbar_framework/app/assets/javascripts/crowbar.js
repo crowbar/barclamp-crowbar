@@ -48,9 +48,6 @@ jQuery(document).ready(function($) {
 		});
 		return true;
 	};
-
-
-  
   
   $('textarea.editor').each(function(index) {
     CodeMirror.fromTextArea(this, {
@@ -59,15 +56,6 @@ jQuery(document).ready(function($) {
     });
   });
   
-  // TODO: deprecate in favor of $.loadDetails
-  $('a.node_details').click(function(e) {
-    selected = $(this).attr('id');
-    $('#details').load($(this).attr('href'));
-    $('tr.selected').removeClass('selected');
-    $(this).parents('tr').addClass('selected');
-    e.preventDefault();
-  });
-
   $('#details .roles a').live('click', function(e) {
     link = $(this);
     $.getJSON(link.attr('href'), function(data) {

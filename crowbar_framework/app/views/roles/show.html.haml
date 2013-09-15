@@ -3,27 +3,34 @@
 %dl
   %dt= t '.description' 
   %dd= @role.description
-  %dt= t '.jig' 
-  %dd= link_to @role.jig_name, jig_path(@role.jig_name)
-  %dt= t '.barclamp' 
-  %dd= link_to @role.barclamp.name, barclamp_path(@role.barclamp.id), :title=>@role.barclamp.description
-  - if Rails.env.development?
-    %dt= t '.type'
-    %dd= "[#{@role.class.to_s}]"
-  %dt= '.cohort'
-  %dd= @role.cohort rescue t('tbd')
-  %dt= t '.flags'
-  %dd
-    = t '.library' if @role.library 
-    = t '.discovery' if @role.discovery
-    = t '.implicit' if @role.implicit
-    = t '.bootstrap' if @role.bootstrap
-  %dt= t '.template'
-  %dd
+
+  - unless params.include? :form
+    %dt= t '.jig' 
+    %dd= link_to @role.jig_name, jig_path(@role.jig_name)
+    %dt= t '.barclamp' 
+    %dd= link_to @role.barclamp.name, barclamp_path(@role.barclamp.id), :title=>@role.barclamp.description
+    - if Rails.env.development?
+      %dt= t '.type'
+      %dd= "[#{@role.class.to_s}]"
+    %dt= t '.cohort'
+    %dd= @role.cohort rescue t('tbd')
+    %dt= t '.flags'
+    %dd
+      = t '.library' if @role.library 
+      = t '.discovery' if @role.discovery
+      = t '.implicit' if @role.implicit
+      = t '.bootstrap' if @role.bootstrap
+
+  = form_for :role, :'data-remote' => true, :url => role_path(@role.id), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
+    %h3
+      %div{:style => 'float:right'}
+        %input.button{:type => "submit", :name => "save", :value => t('.save')}
+      = t '.template'
     - d = JSON.pretty_generate JSON.parse(@role.template)
     = find_and_preserve do
       %textarea.editor{:name => "template"}= d
 
-%h3= t '.upstream'
+- unless params.include? :form
+  %h3= t '.upstream'
 
-= render :partial => "index", :locals => { :list => @role.parents, :jig_name => nil }
+  = render :partial => "index", :locals => { :list => @role.parents, :jig_name => nil }

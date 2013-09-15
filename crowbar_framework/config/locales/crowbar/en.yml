@@ -293,8 +293,8 @@ en:
     show:
       <<: *deployment_common
       <<: *roles_common
-
-      type: Type
+      save: "Update Template"
+      type: "Type"
       upstream: "Upstream (prerequisite roles)"
     names:
       role: "Roles"
@@ -335,6 +335,7 @@ en:
       create: "Add '%{server}' Node"
       add: "Add '%{role}' Role"
       converge: "Start Installation"
+      hint: 'Select Role to edit initial settings'
   users:
     common: &user_common
       email: Email

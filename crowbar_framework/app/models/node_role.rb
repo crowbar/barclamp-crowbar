@@ -27,12 +27,21 @@ class NodeRole < ActiveRecord::Base
   has_one         :barclamp,          :through => :role
 
   # find other node-roles in this snapshot using their role or node
-  scope           :all_by_state,      ->(state) { where(['state=?', state]) }
+  scope           :all_by_state,      ->(state) { where(['node_roles.state=?', state]) }
+  # A node is runnable if:
+  # It is in TODO.
+  # It is in a committed snapshot.
+  scope           :archived,          -> { joins(:snapshot).where('snapshots.state' => Snapshot::ARCHIVED) }
+  scope           :current,           -> { joins(:snapshot).where(['"snapshots"."state" != ?',Snapshot::ARCHIVED]).readonly(false) }
+  scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
+  scope           :in_state,          ->(state) { where('node_roles.state' => state) }
+  scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
+  scope           :runnable,          -> { committed.in_state(NodeRole::TODO) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
-  scope           :peers_by_state,    ->(ss,state) { where(['snapshot_id=? AND state=?', ss.id, state]) }
-  scope           :peers_by_role,     ->(ss,role)  { where(['snapshot_id=? AND role_id=?', ss.id, role.id]) }
-  scope           :peers_by_node,     ->(ss,node)  { where(['snapshot_id=? AND node_id=?', ss.id, node.id]) }
-  scope           :peers_by_node_and_role,     ->(s,n,r) { where(['snapshot_id=? AND role_id=? AND node_id=?', s.id, r.id, n.id]) }
+  scope           :peers_by_state,    ->(ss,state) { where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
+  scope           :peers_by_role,     ->(ss,role)  { where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
+  scope           :peers_by_node,     ->(ss,node)  { where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?
@@ -126,31 +135,20 @@ class NodeRole < ActiveRecord::Base
 
   # The very basic annealer.
   def self.anneal!
-    queue = Hash.new
+    queue = []
     NodeRole.transaction do
       # Check to see if we have all our jigs before we send everything off.
-      NodeRole.all_by_state(NodeRole::TODO).each do |nr|
-        next unless nr.role.jig_name
-        thisjig = nr.jig
-        raise MissingJig.new(nr) unless thisjig.kind_of?(Jig)
-        queue[thisjig] ||= []
-        queue[thisjig] << nr
-      end
-      # Only set the candidate states inside the transaction.
-      queue.each do |thisjig,candidates|
-        candidates.each do |c|
-          c.state = NodeRole::TRANSITION
-        end
+      queue = NodeRole.runnable.joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false)
+      return nil if queue.empty?
+      queue.each do |nr|
+        nr.state = TRANSITION
       end
     end
-    return nil if queue.empty?
-    # Actaully run the noderoles outside of the transaction.
-    queue.each do |thisjig,candidates|
-      candidates.each do |c|
-        Rails.logger.info("Annealer: #{thisjig.name} running #{c.role.name} on #{c.node.name} for #{c.deployment.name}")
-        thisjig.run(c)
-        Rails.logger.info("Annealer: Run finished.")
-      end
+    buckets = Hash.new
+    queue.each do |nr|
+      Rails.logger.info("Annealer: #{nr.role.jig_name} running #{nr.role.name} on #{nr.node.name} for #{nr.deployment.name}")
+        nr.jig.run(nr)
+      Rails.logger.info("Annealer: Run finished.")
     end
     true
   end
@@ -184,11 +182,12 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data=(arg)
-    raise I18n.t('node_role.cannot_edit_data') unless state==PROPOSED
+    raise I18n.t('node_role.cannot_edit_data') unless snapshot.proposed?
     arg = JSON.generate(arg) if arg.is_a? Hash
  
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
+    
 
     write_attribute("userdata",arg)
     save!
@@ -244,7 +243,8 @@ class NodeRole < ActiveRecord::Base
   end
 
   def activatable?
-    parents.all?{|p|p.active?}
+    (parents.current.count == 0) ||
+      (parents.current.not_in_state(ACTIVE).count == 0)
   end
 
   # Walk returns all of the NodeRole graph (including self) reachable from
@@ -371,7 +371,8 @@ class NodeRole < ActiveRecord::Base
         save!
         # All children of a node_role in ERROR go to BLOCKED.
         children.each do |c|
-          c.walk(lambda{|n|n.state = BLOCKED})
+          next unless c.snapshot.committed?
+          c.state = BLOCKED
         end
       when ACTIVE
         # We can only go to ACTIVE from TRANSITION
@@ -382,7 +383,8 @@ class NodeRole < ActiveRecord::Base
         save!
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
-          c.state = TODO if c.activatable?
+          next unless c.snapshot.committed? && c.activatable?
+          c.state = TODO
         end
       when TODO
         # We can only go to TODO when:
@@ -398,7 +400,7 @@ class NodeRole < ActiveRecord::Base
         save!
         # Going into TODO transitions all our children into BLOCKED.
         children.each do |c|
-          c.walk(lambda{|n|n.state = BLOCKED})
+          c.state = BLOCKED
         end
       when TRANSITION
         # We can only go to TRANSITION from TODO
@@ -419,15 +421,24 @@ class NodeRole < ActiveRecord::Base
             (cstate == PROPOSED || cstate == TODO)
           raise InvalidTransition.new(self,cstate,val)
         end
-        write_attribute("state",val)
-        save!
         # If we are blocked, so are all our children.
-        children.each do |c|
-          c.walk(lambda{|n|n.state = BLOCKED})
+        all_children.each do |c|
+          c.send(:write_attribute,"state",BLOCKED)
+          c.save!
         end
       when PROPOSED
         # Only new node_roles can be in proposed
-        raise InvalidTransition.new(self,cstate,val)
+        raise InvalidTransition.new(self,cstate,val) unless snapshot.proposed?
+        write_attribute("state",val)
+        save!
+        all_children.each do |c|
+          next if c.id == self.id
+          unless c.deployment.id == self.deployment.id
+            raise InvalidTransition.new(c,cstate,val,"NodeRole #{c.name} not in same deployment as #{self.name}")
+          end
+          c.send(:write_attribute,"state",BLOCKED)
+          c.save!
+        end
       else
         # No idea what this is.  Just die.
         raise InvalidState.new("Unknown state #{s.inspect}")
@@ -444,15 +455,16 @@ class NodeRole < ActiveRecord::Base
     "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
+  # Commit takes us back to TODO or BLOCKED, depending
   def commit!
+    unless self.snapshot.proposed? || self.deployment.system?
+      raise InvalidTransition.new(self,state,TODO,"Cannot commit! unless snapshot is in proposed!")
+    end
     cstate = state
     # commit! is a no-op for ACTIVE, TRANSITION, or TODO
-    return if (cstate == ACTIVE) || (cstate == TRANSITION) || (cstate == TODO)
-    # You cannot commit your way out of an error state.
-    raise InvalidTransition(self,cstate,TODO) if cstate == ERROR
+    return unless (cstate == PROPOSED) || (cstate == BLOCKED)
     NodeRole.transaction do
-      rents = parents
-      if rents.empty? || rents.all?{|nr|nr.active?}
+      if (parents.committed.count == 0) || (parents.committed.not_in_state(ACTIVE).count == 0)
         self.state = TODO
       else
         self.state = BLOCKED

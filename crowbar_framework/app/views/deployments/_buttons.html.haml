@@ -1,13 +1,13 @@
-- case state
-  - when NodeRole::PROPOSED
+- case
+  - when snapshot.proposed?
     = link_to t('.commit'), snapshot_commit_path(snapshot.id, :version=>2), :class => 'button', :method=>:put
-  - when NodeRole::TODO
-    = link_to t('.recall'), snapshot_recall_path(:snapshot_id=>snapshot.id), :class => 'button', :method=>:put
-    = link_to t('.anneal'), snapshot_anneal_path(snapshot.id, :step=>Rails.env.development?), :class => 'button', :method=>:put
-  - when NodeRole::ACTIVE
+  - when snapshot.proposable?
     = form_for :snapshot, :'data-remote' => true, :url => snapshot_propose_path(:snapshot_id=>snapshot.id), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
       = text_field_tag :name, snapshot.name, :size => 15
       %input.button{:type => "submit", :name => "propose", :method=>:put, :value => t('.propose')}
-  - else NodeRole::ERROR
+  - when snapshot.annealable?
+    = link_to t('.recall'), snapshot_recall_path(:snapshot_id=>snapshot.id), :class => 'button', :method=>:put
+    = link_to t('.anneal'), snapshot_anneal_path(snapshot.id, :step=>Rails.env.development?), :class => 'button', :method=>:put
+  - when snapshot.error?
     = link_to t('.correct'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button', :method=>:put
 

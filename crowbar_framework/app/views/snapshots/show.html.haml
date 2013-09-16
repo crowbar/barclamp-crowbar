@@ -2,11 +2,11 @@
 %table{:width=>'100%'}
   %tr
     %td 
-      .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+      .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
     %td
       %h1
         = link_to @snapshot.deployment.name, deployment_path(@snapshot.deployment.id)
-        = "#{@snapshot.name} #{NodeRole.state_name(state)}"
+        = "#{@snapshot.name} #{@snapshot.state_name(state)}"
     %td{:align => 'right'}
       = link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 

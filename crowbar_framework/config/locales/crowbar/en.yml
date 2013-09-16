@@ -24,6 +24,8 @@ en:
       transition: "Transition"
       blocked:    "Blocked"
       proposed:   "Proposed"
+      archived:   "Archived"
+      committed:  "Committed"
     deployment: &deployment_common
       deployment: "Deployment"
       snapshot: "Snapshot"

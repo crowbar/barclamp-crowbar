@@ -857,7 +857,7 @@ class ServiceObject
     # Merge the parts based upon the element install list.
     all_nodes = []
     run_order = []
-    element_order.each do | elems |
+    element_order.each do |elems|
       @logger.debug "elems #{elems.inspect}"
       r_nodes = []
       elems.each do |elem|
@@ -972,7 +972,7 @@ class ServiceObject
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
-    run_order.each do | batch |
+    run_order.each do |batch|
       next if batch.empty?
       @logger.debug "batch #{batch.inspect}"
 

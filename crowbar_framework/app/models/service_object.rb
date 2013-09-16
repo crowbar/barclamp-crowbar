@@ -886,7 +886,8 @@ class ServiceObject
       # applied in parallel.
       @logger.debug "elems #{elems.inspect}"
 
-      r_nodes = []
+      nodes_in_batch = []
+
       elems.each do |elem|
         old_nodes = old_elements[elem]
         new_nodes = new_elements[elem]
@@ -908,7 +909,7 @@ class ServiceObject
               pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
               pending_node_actions[n][:remove] << elem
               pending_node_actions[n][:add] << elem_remove unless elem_remove.nil?
-              r_nodes << n
+              nodes_in_batch << n
             end
           end
         end
@@ -921,13 +922,13 @@ class ServiceObject
               pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
               pending_node_actions[n][:add] << elem
             end
-            r_nodes << n unless r_nodes.include?(n)
+            nodes_in_batch << n unless nodes_in_batch.include?(n)
           end
         end
       end
-      @logger.debug "r_nodes #{r_nodes.inspect}"
+      @logger.debug "nodes_in_batch #{nodes_in_batch.inspect}"
       @logger.debug "run_order #{run_order.inspect}"
-      run_order << r_nodes unless r_nodes.empty?
+      run_order << nodes_in_batch unless nodes_in_batch.empty?
     end
 
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"

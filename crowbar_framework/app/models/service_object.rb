@@ -161,9 +161,9 @@ class ServiceObject
     # Create map with nodes and their element list
     all_new_nodes = {}
     elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
+      nodes.each do |node_name|
+        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
+        all_new_nodes[node_name] << elem
       end
     end
 
@@ -180,8 +180,8 @@ class ServiceObject
 
       # Add the entries to the nodes.
       if delay.empty?
-        all_new_nodes.each do |n, val|
-          node = pre_cached_nodes[n]
+        all_new_nodes.each do |node_name, val|
+          node = pre_cached_nodes[node_name]
 
           # Nothing to delay so mark them applying.
           node.crowbar['state'] = 'applying'
@@ -189,12 +189,12 @@ class ServiceObject
           node.save
         end
       else
-        all_new_nodes.each do |n, val|
+        all_new_nodes.each do |node_name, val|
           # Make sure we have a node.
-          node = pre_cached_nodes[n]
-          node = NodeObject.find_node_by_name(n) if node.nil?
+          node = pre_cached_nodes[node_name]
+          node = NodeObject.find_node_by_name(node_name) if node.nil?
           next if node.nil?
-          pre_cached_nodes[n] = node
+          pre_cached_nodes[node_name] = node
 
           # Make sure the node is allocated
           node.allocated = true
@@ -216,17 +216,17 @@ class ServiceObject
     # Create map with nodes and their element list
     all_new_nodes = {}
     elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
+      nodes.each do |node_name|
+        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
+        all_new_nodes[node_name] << elem
       end
     end
 
     # Remove the entries from the nodes.
     f = acquire_lock "BA-LOCK"
     begin
-      all_new_nodes.each do |n,data|
-        node = NodeObject.find_node_by_name(n)
+      all_new_nodes.each do |node_name, data|
+        node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
         unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
           node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = {}
@@ -241,8 +241,8 @@ class ServiceObject
   def restore_to_ready(nodes)
     f = acquire_lock "BA-LOCK"
     begin
-      nodes.each do |n|
-        node = NodeObject.find_node_by_name(n)
+      nodes.each do |node_name|
+        node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
 
         # Nothing to delay so mark them applying.
@@ -903,26 +903,26 @@ class ServiceObject
             elem_remove = tmprole.name
           end
 
-          old_nodes.each do |n|
-            if new_nodes.nil? or !new_nodes.include?(n)
-              @logger.debug "remove node #{n}"
-              pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
-              pending_node_actions[n][:remove] << elem
-              pending_node_actions[n][:add] << elem_remove unless elem_remove.nil?
-              nodes_in_batch << n
+          old_nodes.each do |node_name|
+            if new_nodes.nil? or !new_nodes.include?(node_name)
+              @logger.debug "remove node #{node_name}"
+              pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
+              pending_node_actions[node_name][:remove] << elem
+              pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
+              nodes_in_batch << node_name
             end
           end
         end
 
         unless new_nodes.nil?
-          new_nodes.each do |n|
-            all_nodes << n unless all_nodes.include?(n)
-            if old_nodes.nil? or !old_nodes.include?(n)
-              @logger.debug "add node #{n}"
-              pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
-              pending_node_actions[n][:add] << elem
+          new_nodes.each do |node_name|
+            all_nodes << node_name unless all_nodes.include?(node_name)
+            if old_nodes.nil? or !old_nodes.include?(node_name)
+              @logger.debug "add node #{node_name}"
+              pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
+              pending_node_actions[node_name][:add] << elem
             end
-            nodes_in_batch << n unless nodes_in_batch.include?(n)
+            nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
           end
         end
       end
@@ -933,12 +933,12 @@ class ServiceObject
 
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
-    pending_node_actions.each do |n, lists|
-      node = pre_cached_nodes[n]
-      node = NodeObject.find_node_by_name(n) if node.nil?
+    pending_node_actions.each do |node_name, lists|
+      node = pre_cached_nodes[node_name]
+      node = NodeObject.find_node_by_name(node_name) if node.nil?
       next if node.nil?
 
-      admin_nodes << n if node.admin?
+      admin_nodes << node_name if node.admin?
 
       save_it = false
 
@@ -1006,15 +1006,15 @@ class ServiceObject
 
       non_admin_nodes = []
       admin_list = []
-      batch.each do |n|
+      batch.each do |node_name|
         # Run admin nodes a different way.
-        if admin_nodes.include?(n)
-          @logger.debug "#{n} is in admin_nodes #{admin_nodes.inspect}"
-          admin_list << n
+        if admin_nodes.include?(node_name)
+          @logger.debug "#{node_name} is in admin_nodes #{admin_nodes.inspect}"
+          admin_list << node_name
           ran_admin = true
           next
         end
-        non_admin_nodes << n
+        non_admin_nodes << node_name
       end
  
       @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")

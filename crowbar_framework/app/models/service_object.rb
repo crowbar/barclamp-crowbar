@@ -1003,7 +1003,7 @@ class ServiceObject
       next if batch.empty?
       @logger.debug "batch #{batch.inspect}"
 
-      snodes = []
+      non_admin_nodes = []
       admin_list = []
       batch.each do |n|
         # Run admin nodes a different way.
@@ -1013,10 +1013,10 @@ class ServiceObject
           ran_admin = true
           next
         end
-        snodes << n
+        non_admin_nodes << n
       end
  
-      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
+      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
       @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
@@ -1028,8 +1028,8 @@ class ServiceObject
         # Make this better one day.
         #
         pids = {}
-        unless snodes.empty?
-          snodes.each do |node|
+        unless non_admin_nodes.empty?
+          non_admin_nodes.each do |node|
             nobj = NodeObject.find_node_by_name(node)
             unless nobj[:platform] == "windows"
               filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"

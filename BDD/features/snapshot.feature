@@ -28,8 +28,8 @@ Feature: Snapshot
       And I should see {bdd:crowbar.i18n.snapshots.show.nodes}
       And there are no localization errors
 
-  Scenario: Snapshot Page link to Roles 
+  Scenario: Snapshot Page link to Barclamps 
     Given I am on the "deployments/system/head" page
-    When I click on the "test-discovery" link
-    Then I should see heading "test-discovery"
+    When I click on the "test" link
+    Then I should see heading "test"
       And there are no localization errors

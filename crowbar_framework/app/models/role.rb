@@ -98,7 +98,7 @@ class Role < ActiveRecord::Base
     res = []
     res << jig.client_role if jig.client_role
     role_requires.each do |r|
-      res << Role.find_by_name!(r.requires)
+      res << Role.find_by_name!(r.requires) rescue next 
     end
     res
   end
@@ -117,11 +117,15 @@ class Role < ActiveRecord::Base
     c = read_attribute("cohort")
     if c.nil?
       c = 0
-      parents.each do |parent|
-        p_c = parent.cohort
-        c = p_c + 1 if p_c >= c
+      begin
+        parents.each do |parent|
+          p_c = parent.cohort || 0
+          c = p_c + 1 if p_c >= c
+        end
+        write_attribute("cohort",c)
+      rescue
+        Rails.logger.info "Could not calculate cohort for #{self.name} because requested parent role does not exist (could be OK due to late binding)"
       end
-      write_attribute("cohort",c)
     end
     return c
   end

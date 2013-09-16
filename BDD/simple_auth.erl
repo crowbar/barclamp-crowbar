@@ -70,6 +70,7 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
   %% prepare information that's common
   {http, _, _Host, Port, DigestURI, Params} = case http_uri:parse(URL) of
     {error, no_scheme} -> bdd_utils:log(error, simple_auth, request, "incomplete URL (needs http): ~p",[URL]);
+    {ok, X} -> X;   % needed for newer erlang BIF
     X -> X
   end,
   User = bdd_utils:config(Config,user),

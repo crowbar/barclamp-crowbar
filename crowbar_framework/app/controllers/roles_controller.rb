@@ -30,7 +30,7 @@ class RolesController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html { @role = Role.find_key params[:id] }
+      format.html { @role = Role.find_key params[:id]  }
       format.json { render api_show :role, Role }
     end
   end
@@ -52,10 +52,9 @@ class RolesController < ApplicationController
   end
 
   def update
-    unless Rails.env.development?
-      render  api_not_supported("put", "role")
-    else
-      render api_update :role, Role
+    respond_to do |format|
+      format.html { render ui_not_supported :update, :role }
+      format.json { render api_update :role, Role }
     end
   end
 

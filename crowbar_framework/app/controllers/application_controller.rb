@@ -136,6 +136,10 @@ class ApplicationController < ActionController::Base
     return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405, :content_type=>cb_content_type(object.class.to_s, "error")}
   end
 
+  def ui_not_supported(verb, object)
+    return {:text=>I18n.t('ui.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405, :content_type=>cb_content_type(object.class.to_s, "error")}
+  end
+
   add_help(:help)
   def help
     render :json => { self.controller_name => self.help_contents.collect { |m|

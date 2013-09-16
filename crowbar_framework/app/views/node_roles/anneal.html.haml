@@ -1,0 +1,29 @@
+%p{:style => 'float:right'}
+  = link_to t('.anneal'), anneal_path(:version=>'v2', :step=>Rails.env.development?), :class => 'button', :"data-method"=>:put, :remote=>true
+  = link_to t('.converge'), converge_path(:version=>'v2'), :class => 'button', :"data-method"=>:put, :remote=>true
+%h1= t '.title'
+
+%h2= t '.error'
+- error = NodeRole.all_by_state(NodeRole::ERROR)
+= render :partial=>'node_roles/index', :locals => { :list => error }
+
+%h2= t '.transition'
+- trans = NodeRole.all_by_state(NodeRole::TRANSITION)
+= render :partial=>'node_roles/index', :locals => { :list => trans }
+
+%h2= t '.todo'
+- todo = NodeRole.all_by_state(NodeRole::TODO)
+= render :partial=>'node_roles/index', :locals => { :list => todo }
+  
+%h2= t '.blocked'
+- blocked = NodeRole.all_by_state(NodeRole::BLOCKED)
+= render :partial=>'node_roles/index', :locals => { :list => blocked }
+
+.clear
+
+:javascript
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    location.reload();
+  }

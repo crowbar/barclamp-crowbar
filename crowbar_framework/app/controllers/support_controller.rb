@@ -88,6 +88,15 @@ class SupportController < ApplicationController
     end
   end
 
+  def bootstrap
+    @roles = []
+    @roles << Role.find_key("dns-server")
+    @roles << Role.find_key("ntp-server")
+    @roles << Role.find_key("network-server")
+    @roles << Role.find_key("chef-server")
+    @roles << Role.find_key("network-admin") || :create_network_admin
+  end
+
   def restart
     @init = false
     if params[:id].nil?

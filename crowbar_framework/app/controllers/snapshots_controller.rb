@@ -28,20 +28,25 @@ class SnapshotsController < ApplicationController
       format.html {
         @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
-        @roles = {}
+        @barclamps = {}
         @node_roles = { }
         @snapshot.node_roles.each do |nr|
+          # collect the axis for the grid (node & barclamp)
           n = nr.node
-          r = nr.role
+          bc = nr.role.barclamp
           @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
-          @roles[r.id] = r unless r.nil? or @roles.has_key? r.id
-          @node_roles[n.id] ||= {}     unless n.nil? or r.nil?
-          @node_roles[n.id][r.id] = nr unless n.nil? or r.nil?
+          @barclamps[bc.id] = bc unless bc.nil? or @barclamps.has_key? bc.id            
+          # build the node_role grid
+          unless n.nil? or bc.nil?
+            @node_roles[n.id] ||= []
+            @node_roles[n.id][bc.id] ||= []
+            @node_roles[n.id][bc.id][nr.role.id] = nr
+          end
         end
         # make sure we have at least 1 role
-        if @roles.length == 0
-          r = Role.find :first
-          @roles[r.id] = r
+        if @barclamps.length == 0
+          b = Barclamp.find :first
+          @barclamps[b.id] = b
         end
         }
       format.json { render api_show :snapshot, Snapshot }
@@ -75,19 +80,7 @@ class SnapshotsController < ApplicationController
 
   def anneal
     @snapshot = Snapshot.find_key params[:snapshot_id]
-    # anneal requires PUT to run
-    if request.put?
-      # run anneal in the background (if stepping the skip when any nodes are in transistion)    
-      if !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
-        job1 = fork do
-          %x[rails r NodeRole.anneal!] 
-        end
-        Process.detach(job1)
-        flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
-      end
-    end
     @list = NodeRole.peers_by_state(@snapshot, NodeRole::TRANSITION).order("cohort,id")
-
     respond_to do |format|
       format.html {  }
       format.json { render api_index :node_roles, @list }

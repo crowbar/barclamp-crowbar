@@ -71,7 +71,6 @@ Feature: Scaffolds
     Then I should see heading "Docs"
       And I should see "Description"
       And I should see "Order"
-      And I should see "Parent name"
       And I should see "Parent"
       And I should see "Children"
       And I should see "Created At"

@@ -32,6 +32,7 @@ en:
   inactive: "Inactive"
   are_you_sure: "Are you sure?"
   unknown: "Unknown"
+  tbd: "TBD"
   error: "Error"
   not_set: "Not set"
   undetermined: "Undetermined"
@@ -64,12 +65,18 @@ en:
   prev: "Previous"
   export: "Export"
   default: "Default"
+  useradded: "Created by user '%{user}'"
   automatic: "Created Automatically by System"
+  automatic_by: "Created Automatically by %{name}"
+  automatic_item_by: "%{item}: Created Automatically by %{name}"
   version: "Version %{version}"
   
   test:
     verify: "Affirmative"
   
+  ui:
+    not_supported: "Requested action %{verb} is not supported on %{obj}"
+
   api:
     wrong_version: "Requested API version (%{version}) is not supported."
     not_found: "Could not find %{type} with id %{id}."

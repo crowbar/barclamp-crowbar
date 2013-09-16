@@ -110,24 +110,38 @@ class NodeRolesController < ApplicationController
   end
 
   def anneal
-    NodeRole.anneal!
-    @list = NodeRole.order("cohort asc, id asc")
+    if request.put?
+      if params.include?(:sync)
+        NodeRole.anneal!
+      elsif !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
+        # run anneal in the background (if stepping the skip when any nodes are in transistion)    
+        job1 = fork do
+          %x[rails r NodeRole.anneal!] 
+        end
+        Process.detach(job1)
+        flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
+      end
+    end
     respond_to do |format|
       format.html { }
-      format.json { render api_index :node_role, @list }
+      format.json { render :text => 'ok', :status => 200 }
     end
   end
 
   def converge
-    # Start convergence by transitioning any noderoles in ERROR back to TODO
-    NodeRole.transaction do
-      NodeRole.where(:state => NodeRole::ERROR).each do |nr| nr.rerun; nr.save! end
+    if params.include?(:sync)
+      NodeRole.converge!
+    elsif !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
+      # run anneal in the background (if stepping the skip when any nodes are in transistion)    
+      job1 = fork do
+        %x[rails r NodeRole.converge!] 
+      end
+      Process.detach(job1)
+      flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
     end
-    NodeRole.converge!
-    @list = NodeRole.order("cohort asc, id asc")
     respond_to do |format|
-      format.html { }
-      format.json { render api_index :node_role, @list }
+      format.html { render :action => :anneal }
+      format.json { render :text => 'ok', :status => 200 }
     end
   end
 

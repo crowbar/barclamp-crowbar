@@ -48,13 +48,3 @@ Feature: Deployments
       And I should not see "something went wrong"
       And there should be no translation errors
     Finally REST removes the {object:deployment} "bdd_deploy_showme"
-
-  Scenario: Deployment Proposal
-    Skip untli we can inspect status
-    Given there is a {object:deployment} "bdd_deploy_propose"
-    When I create a "bdd_deploy_propose" proposal
-    Then I should see "bdd_deploy_propose"
-      And I should not see "something went wrong"
-      And there should be no translation errors
-    Finally REST removes the {object:deployment} "bdd_deploy_propose"
-

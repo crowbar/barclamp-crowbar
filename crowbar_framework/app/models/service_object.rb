@@ -820,8 +820,6 @@ class ServiceObject
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
-    nodes = {}
-
     # Get the new elements list
     new_deployment = role.override_attributes[@bc_name]
     new_elements = new_deployment["elements"]
@@ -854,7 +852,23 @@ class ServiceObject
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
 
-    # Merge the parts based upon the element install list.
+    # deployment["element_order"] tells us which order the various
+    # roles should be applied, and deployment["elements"] tells us
+    # which nodes each role should be applied to.  We need to "join
+    # the dots" between these two, to build lists of pending role
+    # addition/removal actions, which will allow us to perform the
+    # correct operations on the nodes' run lists, and then run
+    # chef-client in the correct order.  So we build a
+    # pending_node_actions Hash which maps each node name to a Hash
+    # representing pending role addition/removal actions for that
+    # node, e.g.
+    #
+    #   {
+    #     :remove => [ role1_to_remove, ... ],
+    #     :add    => [ role1_to_add,    ... ]
+    #   }
+    pending_node_actions = {}
+
     all_nodes = []
 
     # We'll build an Array where each item represents a batch of work,
@@ -891,9 +905,9 @@ class ServiceObject
           old_nodes.each do |n|
             if new_nodes.nil? or !new_nodes.include?(n)
               @logger.debug "remove node #{n}"
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:remove] << elem 
-              nodes[n][:add] << elem_remove unless elem_remove.nil?
+              pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
+              pending_node_actions[n][:remove] << elem
+              pending_node_actions[n][:add] << elem_remove unless elem_remove.nil?
               r_nodes << n
             end
           end
@@ -904,8 +918,8 @@ class ServiceObject
             all_nodes << n unless all_nodes.include?(n)
             if old_nodes.nil? or !old_nodes.include?(n)
               @logger.debug "add node #{n}"
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:add] << elem
+              pending_node_actions[n] = { :remove => [], :add => [] } if pending_node_actions[n].nil?
+              pending_node_actions[n][:add] << elem
             end
             r_nodes << n unless r_nodes.include?(n)
           end
@@ -916,9 +930,9 @@ class ServiceObject
       run_order << r_nodes unless r_nodes.empty?
     end
 
-    @logger.debug "Clean the run_lists for #{nodes.inspect}"
+    @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
-    nodes.each do |n, lists|
+    pending_node_actions.each do |n, lists|
       node = pre_cached_nodes[n]
       node = NodeObject.find_node_by_name(n) if node.nil?
       next if node.nil?

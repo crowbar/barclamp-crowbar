@@ -162,6 +162,10 @@ class ServiceObject
     all_new_nodes = {}
     elements.each do |role_name, nodes|
       nodes.each do |node_name|
+        if NodeObject.find_node_by_name(node_name).nil?
+          @logger.debug "add_pending_elements: skipping deleted node #{node_name}"
+          next
+        end
         all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
         all_new_nodes[node_name] << role_name
       end
@@ -217,6 +221,10 @@ class ServiceObject
     all_new_nodes = {}
     elements.each do |role_name, nodes|
       nodes.each do |node_name|
+        if NodeObject.find_node_by_name(node_name).nil?
+          @logger.debug "remove_pending_elements: skipping deleted node #{node_name}"
+          next
+        end
         all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
         all_new_nodes[node_name] << role_name
       end
@@ -904,6 +912,12 @@ class ServiceObject
           end
 
           old_nodes.each do |node_name|
+            # Don't add deleted nodes to the run order
+            if NodeObject.find_node_by_name(node_name).nil?
+              @logger.debug "skipping deleted node #{node_name}"
+              next
+            end
+
             if new_nodes.nil? or !new_nodes.include?(node_name)
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
@@ -916,6 +930,12 @@ class ServiceObject
 
         unless new_nodes.nil?
           new_nodes.each do |node_name|
+            # Don't add deleted nodes to the run order
+            if NodeObject.find_node_by_name(node_name).nil?
+              @logger.debug "skipping deleted node #{node_name}"
+              next
+            end
+
             all_nodes << node_name unless all_nodes.include?(node_name)
             if old_nodes.nil? or !old_nodes.include?(node_name)
               @logger.debug "add node #{node_name}"

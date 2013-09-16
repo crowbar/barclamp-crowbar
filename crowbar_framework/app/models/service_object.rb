@@ -856,9 +856,22 @@ class ServiceObject
 
     # Merge the parts based upon the element install list.
     all_nodes = []
+
+    # We'll build an Array where each item represents a batch of work,
+    # and the batches must be performed sequentially in this order.
+    # This will mirror the ordering specified by element_order below,
+    # but the sub-arrays of run_order will be Arrays of names of the
+    # involved nodes, whereas the sub-arrays of element_order are Arrays
+    # of names of Chef roles.
     run_order = []
+
+    # element_order is an Array where each item represents a batch of
+    # work, and the batches must be performed sequentially in this order.
     element_order.each do |elems|
+      # elems is an Array of names of Chef roles which can all be
+      # applied in parallel.
       @logger.debug "elems #{elems.inspect}"
+
       r_nodes = []
       elems.each do |elem|
         old_nodes = old_elements[elem]

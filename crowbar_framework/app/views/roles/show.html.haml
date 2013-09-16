@@ -12,8 +12,6 @@
     - if Rails.env.development?
       %dt= t '.type'
       %dd= "[#{@role.class.to_s}]"
-    %dt= t '.cohort'
-    %dd= @role.cohort rescue t('tbd')
     %dt= t '.flags'
     %dd
       = t '.library' if @role.library 

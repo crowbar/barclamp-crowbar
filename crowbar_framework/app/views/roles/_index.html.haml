@@ -8,7 +8,6 @@
         %th= t '.barclamp'
         %th= t '.description'
         %th= t '.flags'
-        %th= t '.cohort'
     %tbody
       -list.each do |role|
         - if jig_name.nil? or role.jig_name.eql? jig_name
@@ -21,4 +20,3 @@
               = t '.discovery' if role.discovery
               = t '.implicit' if role.implicit
               = t '.bootstrap' if role.bootstrap
-            %td= role.cohort rescue t('tbd')

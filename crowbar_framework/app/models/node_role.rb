@@ -38,10 +38,10 @@ class NodeRole < ActiveRecord::Base
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
   scope           :runnable,          -> { committed.in_state(NodeRole::TODO) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
-  scope           :peers_by_state,    ->(ss,state) { where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
-  scope           :peers_by_role,     ->(ss,role)  { where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
-  scope           :peers_by_node,     ->(ss,node)  { where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
-  scope           :peers_by_node_and_role,     ->(s,n,r) { where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
+  scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
+  scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
+  scope           :peers_by_node,     ->(ss,node)  { current.where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?

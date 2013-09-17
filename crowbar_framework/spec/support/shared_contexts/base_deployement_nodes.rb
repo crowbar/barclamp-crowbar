@@ -28,19 +28,26 @@ shared_context "crowbar test deployment" do
 
   describe Deployment do
 
-    it "has an active deployment" do
+    it "is a system deployment" do
+      expect(deployment.system).to be_true
+    end
+
+    it "has an active snapshot" do
       expect(deployment.head).to be_kind_of(Snapshot)
       expect(active).to be_kind_of(Snapshot)
     end
 
-    it "is not committed" do
+    it "is committed" do
+      expect(deployment.committed?).to be_true
+    end
+
+    it "has no children" do
       expect(deployment.head.next).to be_nil
     end
 
   end
 
-
-end  
+end
 
 # Just 2 dummy nodes
 shared_context "2 dummy nodes" do

@@ -27,6 +27,7 @@ begin
     d = Deployment.find_or_create_by_name(:name=> "system",
                                           :description=>I18n.t('automatic', :default=>"Created Automatically by System"))
     # Make it a system deployment
+    d.commit
     d.send(:write_attribute,"system",true)
     d.save!
   end

@@ -1,7 +1,7 @@
 - state = @deployment.state
 
 %h1
-  = "#{@deployment.name} #{NodeRole.state_name(state)}"
+  = "#{@deployment.name} #{Snapshot.state_name(state)}"
   = "("
   = link_to @deployment.head.name, snapshot_path(@deployment.head.id)
   = ")"
@@ -9,7 +9,7 @@
 %table.plain{:width=>'100%'}
   %tr
     %td
-      .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+      .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
     %td= @deployment.description
     %td{:align=>'right'}
       = render :partial => 'buttons', :locals => { :state=>state, :snapshot=>@deployment.head }

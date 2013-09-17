@@ -3,9 +3,9 @@
 %h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
 
 %ul.buttons
+  %li= link_to "Reboot", hit_node_path(@node.handle, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
+  %li= link_to "Shutdown", hit_node_path(@node.handle, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
   - if @node.bmc_set?
-    %li= link_to "Reboot", hit_node_path(@node.handle, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
-    %li= link_to "Shutdown", hit_node_path(@node.handle, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
     %li= link_to "Power On", hit_node_path(@node.handle, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
     %li= link_to "Identify", hit_node_path(@node.handle, 'identify'), :class => 'button', :'data-remote' => true
 

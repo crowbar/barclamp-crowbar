@@ -445,7 +445,7 @@ class NodeRole < ActiveRecord::Base
       end
       # Now that the state change has passed, call any hooks for the new state.
       meth = "on_#{STATES[val]}".to_sym
-      role.send(meth,self)
+      role.send(meth,self) if snapshot.committed?
     end
     self
   end

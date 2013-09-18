@@ -160,10 +160,10 @@ class ServiceObject
   def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
     # Create map with nodes and their element list
     all_new_nodes = {}
-    elements.each do |elem, nodes|
+    elements.each do |role_name, nodes|
       nodes.each do |node_name|
         all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
-        all_new_nodes[node_name] << elem
+        all_new_nodes[node_name] << role_name
       end
     end
 
@@ -215,10 +215,10 @@ class ServiceObject
   def remove_pending_elements(bc, inst, elements)
     # Create map with nodes and their element list
     all_new_nodes = {}
-    elements.each do |elem, nodes|
+    elements.each do |role_name, nodes|
       nodes.each do |node_name|
         all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
-        all_new_nodes[node_name] << elem
+        all_new_nodes[node_name] << role_name
       end
     end
 
@@ -438,10 +438,10 @@ class ServiceObject
 
           # Create map with nodes and their element list
           all_new_nodes = {}
-          prop["deployment"][item["barclamp"]]["elements"].each do |elem, nodes|
+          prop["deployment"][item["barclamp"]]["elements"].each do |role_name, nodes|
             nodes.each do |node|
               all_new_nodes[node] = [] if all_new_nodes[node].nil?
-              all_new_nodes[node] << elem
+              all_new_nodes[node] << role_name
             end
           end
           delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys)
@@ -888,17 +888,17 @@ class ServiceObject
 
       nodes_in_batch = []
 
-      elems.each do |elem|
-        old_nodes = old_elements[elem]
-        new_nodes = new_elements[elem]
+      elems.each do |role_name|
+        old_nodes = old_elements[role_name]
+        new_nodes = new_elements[role_name]
 
-        @logger.debug "elem #{elem.inspect}"
+        @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
         unless old_nodes.nil?
           elem_remove = nil
-          tmprole = RoleObject.find_role_by_name "#{elem}_remove"
+          tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
           unless tmprole.nil?
             elem_remove = tmprole.name
           end
@@ -907,7 +907,7 @@ class ServiceObject
             if new_nodes.nil? or !new_nodes.include?(node_name)
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
-              pending_node_actions[node_name][:remove] << elem
+              pending_node_actions[node_name][:remove] << role_name
               pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
               nodes_in_batch << node_name
             end
@@ -920,7 +920,7 @@ class ServiceObject
             if old_nodes.nil? or !old_nodes.include?(node_name)
               @logger.debug "add node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
-              pending_node_actions[node_name][:add] << elem
+              pending_node_actions[node_name][:add] << role_name
             end
             nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
           end

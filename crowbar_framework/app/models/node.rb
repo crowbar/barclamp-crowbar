@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 
+require 'digest/md5'
+
 class Node < ActiveRecord::Base
 
   before_validation :default_population
@@ -84,20 +86,26 @@ class Node < ActiveRecord::Base
     end
   end
 
-  #
-  # This is an hack for now.
-  # XXX: Once networking is better defined, we should use those routines
-  #
-  def address(net = "admin")
-    raise "CB1 do not use - use attrib_admin_address"
-    jig_hash.address(net)
+  def v6_hostpart
+    d = Digest::MD5.hexdigest(name)
+    "#{d[16..19]}:#{d[20..23]}:#{d[24..27]}:#{d[28..32]}"
   end
 
-  def public_ip
-    raise "CB1 do not use - use attrib_public_ip"
-    jig_hash.public_ip
+  def addresses
+    net = BarclampNetwork::Network.where(:name => "admin").first
+    raise "No admin network" if net.nil?
+    res = []
+    res << IP.coerce("#{net.v6prefix}:#{v6_hostpart}") if net.v6prefix
+    BarclampNetwork::Allocation.where(:node_id => id).each do |a|
+      next unless a.network.id == net.id
+      res << a.address
+    end
+    res
   end
 
+  def address
+    addresses.detect{|a|a.reachable?}
+  end
   #
   # Helper function to test admin without calling admin. Style-thing.
   #

@@ -15,7 +15,7 @@
 
 class Doc < ActiveRecord::Base
 
-  attr_accessible :id, :barclamp_id, :name, :description, :order
+  attr_accessible :id, :name, :description, :order
 
   belongs_to :barclamp
   belongs_to :parent, :class_name => "Doc"
@@ -24,6 +24,7 @@ class Doc < ActiveRecord::Base
   validates_uniqueness_of :name, :scope=>:barclamp_id, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
 
   scope :roots, where(:parent_id=>nil)
+  scope :roots_by_barclamp, lambda { |barclamp_id| where(:parent_id=>nil, :barclamp_id=>barclamp_id) }
 
   def <=>(b)
     x = order <=> b.order if order and b.order
@@ -44,9 +45,9 @@ class Doc < ActiveRecord::Base
     roots=[]
     found={}
     # load crowbar docs
-    Doc.discover_docs 0, Doc.root_directory, roots, found
+    Doc.discover_docs nil, Doc.root_directory, roots, found
     # load barclamp docs
-    Barclamp.all.each { |bc| Doc.discover_docs bc.id, File.join(bc.source_path,'doc'), roots, found }
+    Barclamp.all.each { |bc| Doc.discover_docs bc, File.join(bc.source_path,'doc'), roots, found }
     Doc.all
   end
 
@@ -67,7 +68,7 @@ class Doc < ActiveRecord::Base
   end
 
   # scan the directories and find files
-  def self.discover_docs barclamp_id, doc_path, roots, found
+  def self.discover_docs barclamp, doc_path, roots, found
     files_list = %x[find #{doc_path} -iname *.md]
     files = files_list.split "\n"
     files = files.sort_by {|x| x.length} # to ensure that parents come before their children
@@ -103,11 +104,11 @@ class Doc < ActiveRecord::Base
       parent = found[parent_name] if parent_name
       parent = Doc.find_by_name parent_name if parent_name and not parent
 
+      x = Doc.find_or_create_by_name :name=>name, :description=>title, :order=>order
+      x.barclamp = barclamp
       if parent.nil?
-        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :order=>order
         roots << x
       else
-        x = Doc.find_or_create_by_name :name=>name, :barclamp_id=>barclamp_id, :description=>title, :order=>order
         x.parent = parent
       end
       found[name]=x

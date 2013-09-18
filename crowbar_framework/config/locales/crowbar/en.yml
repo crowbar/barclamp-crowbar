@@ -197,6 +197,11 @@ en:
   docs:
     index:
       title: "Documentation"
+      framework_display: "Crowbar Framework"
+      framework_description: "The core Crowbar system"
+      barclamps_display: "Barclamps"
+      barclamps_description: "Crowbar add-ons"
+      toc_title: "Jump to:"
   groups:
     index:
       title: "Node Groups"

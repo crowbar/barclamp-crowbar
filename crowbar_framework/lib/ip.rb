@@ -266,6 +266,11 @@ class IP
     def reverse
       "#{to_a.reverse.join('.')}.in-addr.arpa"
     end
+
+    def reachable?
+      system("ping -c 1 -w 1 -q #{self.addr}")
+    end
+
   end
 
   class IP6 < IP
@@ -365,5 +370,10 @@ class IP
       end
       res.join('.') + ".ip6.arpa"
     end
+
+    def reachable?
+      system("ping6 -c 1 -w 1 -q #{self.addr}")
+    end
+
   end
 end

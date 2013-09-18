@@ -8,7 +8,7 @@ You can create links to pages using with square braces for the link text and par
 
 `[Link Contents](Link URL)`
 
-For relative links, use the doc name and simply drop the .md extension.  You can navigate the docs tree using relative paths, e.g.: ../to_parent.   For example, [sibling doc](topic).
+For relative links, use the doc name with the extension.  You can navigate the docs tree using relative paths, e.g.: ../to_parent.   For example, [sibling doc](topic.md).
 
 
 #### WYSIWG Editing

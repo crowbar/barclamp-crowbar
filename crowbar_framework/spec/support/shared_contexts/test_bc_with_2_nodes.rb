@@ -24,7 +24,7 @@ shared_context "test barclamp with 2 nodes" do
       dep
     }
 
-    before(:all) {            
+    before(:all) {
       # add node
     }
 end

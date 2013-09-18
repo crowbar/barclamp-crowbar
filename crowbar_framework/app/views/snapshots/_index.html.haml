@@ -14,8 +14,8 @@
         - state = i.state 
         %tr
           %td
-            .led{:class => NodeRole::STATES[state|| NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+            .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
           %td= link_to i.deployment.name, deployment_path(i.deployment.id)
-          %td= NodeRole.state_name(state)
+          %td= Snapshot.state_name(state)
           %td= link_to i.name, snapshot_path(:id=>i.id) 
           %td= i.description

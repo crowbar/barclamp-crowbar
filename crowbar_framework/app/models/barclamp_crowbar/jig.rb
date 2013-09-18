@@ -44,7 +44,7 @@ class BarclampCrowbar::Jig < Jig
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
 
     # Hardcode this for now
-    login = "root@#{nr.node.name}"
+    login = "root@#{nr.node.address.addr}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
     raise "No local scripts @ #{local_scripts}" unless File.exists?(local_scripts)
     remote_tmpdir,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- mktemp -d /tmp/scriptjig-XXXXXX")

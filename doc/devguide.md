@@ -1,12 +1,26 @@
-Crowbar Developers Guide
-========================
+# Crowbar Developers Guide
 
-This is the developers guide for Crowbar.
+Crowbar is an Apache 2 licensed open source platform for server
+provisioning and deployment from bare metal. It provides server discovery,
+firmware upgrades, and operating system installation using PXE Boot. It
+deploys applications on top of functioning operating systems using chef.
 
-The guide is s currently under development, and changing rapidly.
+Crowbar was developed by the [Dell CloudEdge Solutions Team]
+(http://dell.com/openstack) as an [OpenStack](http://OpenStack.org)
+installer, but has evolved as a much broader orchestration tool.
 
-The table of contents for the documentation 
-will follow the outline below.
+This is the developers guide for Crowbar.  This guide provides an
+introduction to the concepts and architecture of Crowbar, and describes
+of the development environment used to customize crowbar and extend
+the framework.
+
+Note: This guide is currently under development, and changing rapidly.
+
+## Table of Contents
+
+The table of contents for the documentation will follow the outline below.
+
+TODO dynamically generate this from the actual content.
 
 * crowbar concepts / architecture 
     * what is crowbar 
@@ -52,3 +66,4 @@ will follow the outline below.
 * documentation system
 * api reference
     * api calls 
+

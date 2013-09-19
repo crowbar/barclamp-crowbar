@@ -89,6 +89,7 @@ class NodeRole < ActiveRecord::Base
     def to_s
       @errstr
     end
+    
     def to_str
       to_s
     end
@@ -187,7 +188,6 @@ class NodeRole < ActiveRecord::Base
  
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
-    
 
     write_attribute("userdata",arg)
     save!
@@ -195,6 +195,9 @@ class NodeRole < ActiveRecord::Base
 
   def sysdata
     raw = JSON.parse(read_attribute("systemdata")||'{}')
+    # Allow for dynamic per-role overrides.
+    raw.deep_merge!(role.sysdata(self)) if role.respond_to?(:sysdata)
+    raw
   end
 
   def sysdata=(arg)
@@ -452,7 +455,7 @@ class NodeRole < ActiveRecord::Base
   
   # convenience methods
   def name
-    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
+-   "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
   # Commit takes us back to TODO or BLOCKED, depending

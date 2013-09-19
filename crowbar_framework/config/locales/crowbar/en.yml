@@ -42,6 +42,7 @@ en:
       jig: "Jig"
       barclamp: "Barclamp"
       template: "Template"
+      cohort: "Cohort"
     raid: &raid_types
       JBODOnly: JBOD
       SingleRaid10: RAID 10
@@ -71,15 +72,19 @@ en:
     deployments_description: "Orchestration Management"
     roles: "Roles"
     roles_description: "Services Provided by Deployment"
+    annealer: "Annealer"
+    annealer_description: "Crowbar Orchestration Engine"
 
-    utils: Utilities
+    utils: "Utilities"
     utils_description: "Tools and System Functions "
     util_logs: "Exported Items"
     util_logs_description: "Download information complied for review"
     jigs: "Installed Jigs"
     jigs_description: "Configuration Manager Plug-ins"
-    barclamps: Barclamps
-    barclamps_description: Provisioning and Operations Modules 
+    barclamps: "Barclamps"
+    barclamps_description: "Provisioning and Operations Modules "
+    bootstrap: "Bootstrap"
+    bootstrap_description: "Review Settings for Initial Configuration"
 
     help: Help
     help_description: Help
@@ -171,6 +176,8 @@ en:
       barclamp: "Barclamp"
       description: "Description"
       roles: "Roles"
+    show:
+      roles: "Roles"
   deployments:
     index:
       title: "Deployments"
@@ -219,7 +226,8 @@ en:
     index:
       title: "Nodes"
       admin: "Admin?"
-      make_admin: "Create Admin Server"
+      no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
+      bootstrap: "Configure System"
       <<: *deployment_common
     show:
       node_roles: "In Process Actions"
@@ -257,6 +265,11 @@ en:
     index:
       title: "Node Roles"
       <<: *deployment_common
+    anneal:
+      title: "Crowbar Annealer Activity Monitor"
+      converge: "Run All"
+      anneal: "Next Step"
+      <<: *node_role_states
     show:
       data: "User Configuration Data (outbound)"
       sysdata: "System Configuration Data (outbound)"
@@ -287,7 +300,8 @@ en:
     show:
       <<: *deployment_common
       <<: *roles_common
-      type: Type
+      save: "Update Template"
+      type: "Type"
       upstream: "Upstream (prerequisite roles)"
     names:
       role: "Roles"
@@ -321,6 +335,14 @@ en:
 #      delete_succeeded: Delete Succeeded
 #      delete_failed: Delete Failed
 #      wait: "Exporting... Please wait or check back later (screen will automatically update when complete)"
+    bootstrap:
+      title: "Initial System Configuration"
+      roles: "Roles for Review"
+      admin_server: "Crowbar Admin Node"
+      create: "Add '%{server}' Node"
+      add: "Add '%{role}' Role"
+      converge: "Start Installation"
+      hint: 'Select Role to edit initial settings'
   users:
     common: &user_common
       email: Email

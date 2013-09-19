@@ -78,9 +78,9 @@ class Node < ActiveRecord::Base
   end
 
   def self.make_admin!
-    transaction do
+    Node.transaction do
       raise "Already have an admin node" unless where(:admin => true).empty?
-      create(:name => %x{hostname -f}.strip, :admin => true)
+      Node.create(:name => %x{hostname -f}.strip, :admin => true)
     end
   end
 

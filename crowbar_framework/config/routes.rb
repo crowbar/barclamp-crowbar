@@ -14,11 +14,6 @@
 #
 Crowbar::Application.routes.draw do
 
-  # Install route from each barclamp
-  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
-    eval(IO.read(routes_file), binding)
-  end
-
   # UI scope
 
   # special case items that allow IDs to have .s 
@@ -30,6 +25,7 @@ Crowbar::Application.routes.draw do
   end
 
   # UI resources
+  get "annealer", :to => "node_roles#anneal", :as => :annealer
   resources :attribs
   resources :barclamps
   resources :deployments do
@@ -44,14 +40,11 @@ Crowbar::Application.routes.draw do
   resources :groups
   resources :jigs
   resources :node_roles  do
-    post :anneal
-    post :converge
     put :retry
   end
   resources :roles
   resources :snapshots do
     resources :node_roles
-    match :anneal
     get :graph
     put :propose
     put :commit
@@ -67,6 +60,7 @@ Crowbar::Application.routes.draw do
     get 'upload/:id'    => 'support#upload', :as => :utils_upload
     get 'restart/:id'   => 'support#restart', :as => :restart
     get 'digest'        => "support#digest"
+    get 'bootstrap'     => "support#bootstrap", :as => :bootstrap
     namespace :scaffolds do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
@@ -98,7 +92,7 @@ Crowbar::Application.routes.draw do
   match "manage_users", :controller => 'users', :action => 'index'
   match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
 
-  devise_for :users, :path_prefix => 'my'
+  devise_for :users, { :path_prefix => 'my', :module => :devise, :class_name=> 'Crowbar::User' }
 
   get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
   resources :users, :except => :new
@@ -115,9 +109,9 @@ Crowbar::Application.routes.draw do
           get "snapshots(/:id)" => "snapshots#status", :as => :snapshots_status
         end
         scope ':version' do
-          # These are not restful.  They poke the annealer and wait.
-          post "converge", :to => "node_roles#converge", :as => :converge
-          post "anneal", :to => "node_roles#anneal", :as => :anneal
+          # These are not restful.  They poke the annealer and wait if you pass "sync=true".
+          put "converge", :to => "node_roles#converge", :as => :converge
+          put "anneal", :to => "node_roles#anneal", :as => :anneal
           post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs
           resources :barclamps
@@ -138,8 +132,6 @@ Crowbar::Application.routes.draw do
             resources :attribs
           end
           resources :node_roles do
-            post :anneal
-            post :converge
             put :retry
           end
           resources :roles do
@@ -147,7 +139,6 @@ Crowbar::Application.routes.draw do
           end
           resources :snapshots do
             resources :node_roles
-            put :anneal
             get :graph
             put :propose
             put :commit
@@ -164,6 +155,11 @@ Crowbar::Application.routes.draw do
       end # api
     end # id constraints
   end # json
+
+  # Install route from each barclamp (should be done last so CB gets priority)
+  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
+    eval(IO.read(routes_file), binding)
+  end
 
   root :to => "nodes#index"
 end

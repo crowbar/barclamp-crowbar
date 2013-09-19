@@ -1,7 +1,8 @@
 %h1= t '.title'
 
 - if @list.length == 0
-  = link_to t('.make_admin'), make_admin_path(:version=>'v2'), :method => :post, :class=>'button'
+  %p= t '.no_nodes'
+  %p= link_to t('.bootstrap'), bootstrap_path, :class=>'button'
 - else
   %table.data.box
     %thead

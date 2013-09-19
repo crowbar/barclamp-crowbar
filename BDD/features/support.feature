@@ -30,4 +30,13 @@ Feature: Support UI
     Then I should grep "MARK >>>>>"
       And I should grep "REMAIN_CALM"
       And I should grep "<<<<< KRAM"
+
+  Scenario: Bootstrap Page
+    When I go to the "utils/bootstrap" page 
+    Then I should see a heading {bdd:crowbar.i18n.support.bootstrap.title}
+      And I should see a link to "ntp-server"
+      And I should see a link to "dns-server"
+      And I should see a link to "chef-server"
+      And I should see a link to "network-server"
+      And there are no localization errors
     

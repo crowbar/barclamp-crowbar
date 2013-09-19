@@ -48,9 +48,6 @@ jQuery(document).ready(function($) {
 		});
 		return true;
 	};
-
-
-  
   
   $('textarea.editor').each(function(index) {
     CodeMirror.fromTextArea(this, {
@@ -59,15 +56,6 @@ jQuery(document).ready(function($) {
     });
   });
   
-  // TODO: deprecate in favor of $.loadDetails
-  $('a.node_details').click(function(e) {
-    selected = $(this).attr('id');
-    $('#details').load($(this).attr('href'));
-    $('tr.selected').removeClass('selected');
-    $(this).parents('tr').addClass('selected');
-    e.preventDefault();
-  });
-
   $('#details .roles a').live('click', function(e) {
     link = $(this);
     $.getJSON(link.attr('href'), function(data) {
@@ -103,7 +91,7 @@ jQuery(document).ready(function($) {
 
   // Animate spinning LEDs
   function animate() {
-    $('.led.unready, .led.in_process, .led.spin').sprite({fps: 6, no_of_frames: 8});
+    $('.led.transition, .led.spin').sprite({fps: 6, no_of_frames: 8});
   }
 
   animate(); // Call this again when new animatable elements are created...

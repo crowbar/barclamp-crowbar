@@ -20,7 +20,7 @@ Feature: Deployments
   Scenario: Deployment UI click to Snapshot
     Given I am on the "deployments" page
     When I click on the {lookup:deployment.d_name} link
-    Then I should see "bravo_delta Active"
+    Then I should see "bravo_delta Proposed"
 
   Scenario: The system deployment has the system flag true
     When REST gets the {object:deployment} "system"
@@ -37,7 +37,7 @@ Feature: Deployments
   Scenario: New Deployment has a default snapshot
     Given there is a {object:deployment} "bdd_deploy_has_snap"
     When I go to the "snapshots/bdd_deploy_has_snap" page
-    Then I should see "bdd_deploy_has_snap Active"
+    Then I should see "bdd_deploy_has_snap Proposed"
       And I should see a link to "bdd_deploy_has_snap"
     Finally REST removes the {object:deployment} "bdd_deploy_has_snap"
 
@@ -48,13 +48,3 @@ Feature: Deployments
       And I should not see "something went wrong"
       And there should be no translation errors
     Finally REST removes the {object:deployment} "bdd_deploy_showme"
-
-  Scenario: Deployment Proposal
-    Skip untli we can inspect status
-    Given there is a {object:deployment} "bdd_deploy_propose"
-    When I create a "bdd_deploy_propose" proposal
-    Then I should see "bdd_deploy_propose"
-      And I should not see "something went wrong"
-      And there should be no translation errors
-    Finally REST removes the {object:deployment} "bdd_deploy_propose"
-

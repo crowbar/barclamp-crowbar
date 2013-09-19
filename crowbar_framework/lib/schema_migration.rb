@@ -15,7 +15,6 @@ module SchemaMigration
     return if template.nil?
     return if template['deployment'].nil?
     return if template['deployment'][bc_name].nil?
-    return if template['deployment'][bc_name]['schema-revision'].nil?
 
     all_scripts = find_scripts_for_bc(bc_name)
     return if all_scripts.empty?

@@ -8,6 +8,9 @@ You can create links to pages using with square braces for the link text and par
 
 `[Link Contents](Link URL)`
 
+For relative links, use the doc name with the extension.  You can navigate the docs tree using relative paths, e.g.: ../to_parent.   For example, [sibling doc](topic.md).
+
+
 #### WYSIWG Editing
 
 Markdown is designed to be easy to ready as plan text (think writing an email) but it really helps to be able to see how it will be formatted in the browser.

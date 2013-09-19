@@ -15,6 +15,19 @@
 
 class Snapshot < ActiveRecord::Base
 
+  ARCHIVED = -1
+  PROPOSED = 0
+  COMMITTED = 1
+  ACTIVE = 2
+  ERROR = 3
+  STATES = {
+    ARCHIVED => "archived",
+    PROPOSED => "proposed",
+    COMMITTED => "committed",
+    ACTIVE => "active",
+    ERROR => "error"
+  }
+  
   attr_accessible :id, :name, :description, :order, :deployment_id, :snapshot_id
   
   belongs_to      :deployment
@@ -28,54 +41,77 @@ class Snapshot < ActiveRecord::Base
   has_one         :snapshot
   alias_attribute :next,              :snapshot
 
-
-  def active?
-    state == NodeRole::ACTIVE
+  def self.state_name(s)
+    raise("#{state || 'nil'} is not a valid Snapshot state!") unless s and STATES.include? s
+    I18n.t(STATES[s], :scope=>'node_role.state')
   end
 
-  def committed? 
-    [NodeRole::TODO, NodeRole::TRANSITION, NodeRole::BLOCKED].include? state
+  def state_name(s)
+    self.class.state_name(s)
+  end
+
+  def active?
+    committed? &&
+      node_roles.committed.not_in_state(NodeRole::ACTIVE).count == 0
+  end
+
+  def committed?
+    read_attribute('state') == COMMITTED
   end
   
   def proposed?
-    state == NodeRole::PROPOSED
+    read_attribute('state') == PROPOSED
+  end
+
+  def archived?
+    read_attribute('state') == ARCHIVED
+  end
+
+  def annealable?
+    committed? && !active? && !error?
+  end
+
+  def proposable?
+    active? && !deployment.system?
+  end
+
+  def error?
+    committed? &&
+      node_roles.committed.in_state(NodeRole::ERROR).count > 0
+  end
+
+  def archive
+    write_attribute("state",ARCHIVED)
+    save!
+  end
+
+  def state
+    s = read_attribute("state")
+    
+    return s if s == ARCHIVED || s == PROPOSED
+    return ACTIVE if active?
+    return ERROR if error?
+    COMMITTED
   end
 
   def tail?
     snapshot_id.nil?
   end
 
+  def parent
+    Snapshot.where(:snapshot_id => id).first
+  end
+
   class MissingJig < Exception
     def initalize(nr)
       @errstr = "NodeRole #{nr.name}: Missing jig #{nr.jig_name}"
     end
+
     def to_s
       @errstr
     end
     def to_str
       to_s
-    end
-  end
-   
-  # review all the nodes for the nameshot and figure out an aggregated state
-  # options for snapshots are ACTIVE, PROPOSED and TODO
-  def state
-    state_map = Hash.new
-    node_roles.each { |nr| state_map[nr.state] ||= true }
-    case
-    when state_map[NodeRole::ERROR] then NodeRole::ERROR
-    when state_map[NodeRole::BLOCKED],
-         state_map[NodeRole::TODO],
-         state_map[NodeRole::TRANSITION]
-      if state_map[NodeRole::TRANSITION]
-        NodeRole::TRANSITION
-      elsif !state_map[NodeRole::TODO]
-        NodeRole::BLOCKED
-      else
-        NodeRole::TODO
-      end
-    when state_map[NodeRole::PROPOSED] then NodeRole::PROPOSED
-    else NodeRole::ACTIVE
     end
   end
 
@@ -88,44 +124,40 @@ class Snapshot < ActiveRecord::Base
   def commit
     raise I18n.t('deployment.commit.raise') unless proposed?
     NodeRole.transaction do
-      node_roles.each { |nr| nr.commit! }
+      node_roles.in_state(NodeRole::PROPOSED).each { |nr| nr.commit! }
     end
+    parent.archive unless parent.nil?
+    write_attribute("state",COMMITTED)
+    save!
     self
   end
   
   # create a new proposal from the this one
   def propose(name=nil)
-    raise I18n.t('deployment.propose.raise') unless [NodeRole::ACTIVE, NodeRole::ERROR].include? state
+    raise "Snapshot #{name} not ACTIVE, cannot create a new snapshot from it!" unless active?
+    raise "Cannot propose a new snapshot for the system deployment!" if deployment.system?
     proposal = nil
     Deployment.transaction do
       # create the new proposal
       proposal = deep_clone(name)
       # move the pointer 
       deployment.snapshot_id = proposal.id
+      archive
       deployment.save!
     end
     proposal
   end
 
-  # attempt to stop a proposal that's in transistion by changing it's node_roles back to proposed
+  def recallable?
+    !deployment.system?
+  end
+  
+  # attempt to stop a proposal that's in transistion.
+  # Do this by changing its state from COMMITTED to PROPOSED.
   def recall
-    # first, we're going to create a new snapshot
-    newsnap = self.deep_clone
-    Snapshot.transaction do
-      # then we block all the TODO items to prevent the annealer from moving forward
-      self.node_roles.each do |nr|
-        if nr.state == NodeRole::TODO
-          nr.state = NodeRole::BLOCKED
-          nr.status = I18n.t('recall_status', :scope=>'snapshot') 
-          # we may need to remove all the node-role HABTM entries, but that seeems extreme right now
-        end
-      end
-      self.name = I18n.t('recall', :name=>self.name, :scope=>'snapshot')
-      self.save
-      self.deployment.snapshot_id = newsnap.id
-      self.deployment.save
-    end
-    newsnap
+    raise "Cannot recall a system deployment" unless recallable?
+    write_attribute("state",PROPOSED)
+    save!
   end
 
   ##
@@ -138,6 +170,7 @@ class Snapshot < ActiveRecord::Base
       newsnap.snapshot_id = self.id
       newsnap.order += 1
       newsnap.name = name unless name.nil?
+      newsnap.send(:write_attribute,"state",PROPOSED)
       newsnap.save!
       # collect the deployment roles
       self.deployment_roles.each do |dr|
@@ -150,9 +183,8 @@ class Snapshot < ActiveRecord::Base
       node_role_map = Hash.new
       self.node_roles.each do |nr| 
         # we must create (not duplicate) the NR because of the state machine controls on setting state
-        new_nr = NodeRole.create({:node_id=>nr.node_id, :role_id=>nr.role_id, :snapshot_id=>newsnap.id, :state=>NodeRole::PROPOSED, 
-                      :userdata=>(nr.read_attribute("userdata") || "{}"), :wall=>nr.read_attribute("wall"), :systemdata=>(nr.read_attribute("systemdata") || "{}")},
-                      :without_protection => true)
+        new_nr = nr.dup
+        new_nr.snapshot = newsnap
         # store the new nr because we need it for relationships (it's automatically linked to the snapshot when created)
         node_role_map[nr.id] = [nr,new_nr]
       end
@@ -172,7 +204,4 @@ class Snapshot < ActiveRecord::Base
       newsnap
     end
   end
-
-
-
 end

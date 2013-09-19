@@ -62,9 +62,8 @@ class NodesController < ApplicationController
   end
   
   def make_admin
-    @node = Node.make_admin!
-    @node.save!
-    render api_show :node, Node, nil, nil, @node
+    n = Node.make_admin!
+    redirect_to :action => 'index', :status => :found
   end
 
   # CB1 move to IMPI

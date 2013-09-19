@@ -22,6 +22,6 @@
         %td= link_to d.name, deployment_path(d.id)
         %td= d.description
         %td
-          .led{:class => NodeRole::STATES[state || NodeRole::ERROR], :title=>NodeRole.state_name(state)}
+          .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
         %td= link_to d.head.name, snapshot_path(d.head.id)
         %td= render :partial => 'buttons', :locals => { :state=>state, :snapshot=>d.head } rescue 'buttons?'

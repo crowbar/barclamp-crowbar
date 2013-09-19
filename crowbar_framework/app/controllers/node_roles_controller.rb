@@ -18,9 +18,9 @@ class NodeRolesController < ApplicationController
   def index
     if params.key? :node_id
       @node = Node.find_key params[:node_id]
-      @list = @node.node_roles.sort{|a,b|[a.cohort,a.id] <=> [b.cohort,b.id]}
+      @list = @node.node_roles.current.sort{|a,b|[a.cohort,a.id] <=> [b.cohort,b.id]}
     else
-      @list = NodeRole.order("cohort asc, id asc")
+      @list = NodeRole.current.order("cohort asc, id asc")
     end
     respond_to do |format|
       format.html { }
@@ -48,20 +48,8 @@ class NodeRolesController < ApplicationController
     # the main body of the work
     snap = Snapshot.find_key params[:snapshot_id] 
     # it matters what state we are in when we add the node role (we store it because it can be expensive to compute)
-    snapstate = snap.state 
-    # we cant add to an active snap, so create proposal if there isn't
-    if snapstate == NodeRole::ACTIVE 
-      proposal = snap.propose
-      params[:snapshot_id] = proposal.id
-    end
+    raise "Cannot add noderole to snapshot in #{Snapshot.state_name(snap.state)}" unless snap.proposed?
     r = NodeRole.create! params
-
-    # if we are committed then we need to add the node roles as TODO
-    # this must be done AFTER the node role is created because of the NR state machine
-    if snapstate == NodeRole::TODO
-      r.state = NodeRole::TODO
-      r.save
-    end
 
     render api_show :node_role, NodeRole, nil, nil, r 
   end

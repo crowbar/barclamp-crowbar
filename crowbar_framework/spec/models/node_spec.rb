@@ -36,6 +36,7 @@ describe "node create" do
 
   it "must have inplicit roles" do
     expect {its.node_roles.any?{ |e| e.role.implicit }}.to be_true
+    expect {its.node_roles.any?{ |e| e.role.discovery }}.to be_true
   end
 
   it "must be added to the deployment" do

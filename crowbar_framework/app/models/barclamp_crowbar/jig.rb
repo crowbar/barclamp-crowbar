@@ -31,23 +31,35 @@ class BarclampCrowbar::Jig < Jig
               "-o 'ControlPersist 3'"  # Allow oppourtunistic master connections to live for 3 seconds.
              ]
   def self.ssh(cmd)
-    out =  %x{sudo -H ssh #{SSH_OPTS.join(" ")} #{cmd}}
-    [out, $?.exitstatus == 0]
+    out = ""
+    3.times do |delay|
+      out =  %x{sudo -H ssh #{SSH_OPTS.join(" ")} #{cmd}}
+      return [out, $?.exitstatus == 0] if $?.exitstatus == 0 || !out.empty?
+      sleep delay
+    end
+    return [out, false]
   end
 
   def self.scp(cmd)
-    out =  %x{sudo -H scp #{SSH_OPTS.join(" ")} #{cmd}}
-    [out, $?.exitstatus == 0]
+    out = ""
+    3.times do |delay|
+      out =  %x{sudo -H scp #{SSH_OPTS.join(" ")} #{cmd}}
+      return [out, $?.exitstatus == 0] if $?.exitstatus == 0 || !out.empty?
+      sleep delay
+    end
+    return [out, false]
   end
 
   def run(nr)
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
 
     # Hardcode this for now
-    login = "root@#{nr.node.address.addr}"
+    address = nr.node.address
+    scp_login = address.kind_of?(IP::IP6) ? "root@[#{address.addr}]" : "root@#{address.addr}"
+    ssh_login = "root@#{address.addr}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
     raise "No local scripts @ #{local_scripts}" unless File.exists?(local_scripts)
-    remote_tmpdir,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- mktemp -d /tmp/scriptjig-XXXXXX")
+    remote_tmpdir,ok = BarclampCrowbar::Jig.ssh("'#{ssh_login}' -- mktemp -d /tmp/scriptjig-XXXXXX")
     remote_tmpdir.strip!
     if remote_tmpdir.empty? || !ok
       raise "Did not create remote_tmpdir for some reason!"
@@ -66,7 +78,7 @@ class BarclampCrowbar::Jig < Jig
       FileUtils.cp_r(local_scripts,local_tmpdir)
       FileUtils.cp('/opt/dell/barclamps/crowbar/script/runner',local_tmpdir)
       Rails.logger.info("Copying staged scriptjig information to #{nr.node.name}")
-      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
+      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{scp_login}:#{remote_tmpdir}'")
       unless ok
         Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
         nr.state = NodeRole::ERROR
@@ -74,7 +86,7 @@ class BarclampCrowbar::Jig < Jig
         return nr
       end
       Rails.logger.info("Executing scripts on #{nr.node.name}")
-      nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
+      nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{ssh_login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
       unless ok
         Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
         nr.state = NodeRole::ERROR
@@ -86,7 +98,7 @@ class BarclampCrowbar::Jig < Jig
       Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
       new_wall = {}
       Rails.logger.info("Copying attributes from #{nr.node.name} for analysis")
-      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{login}:#{remote_tmpdir}/attrs' '#{local_tmpdir}'")
+      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{scp_login}:#{remote_tmpdir}/attrs' '#{local_tmpdir}'")
       unless ok
         Rails.logger.error("Copy of attrs back from #{nr.node.name} failed! (status = #{$?.exitstatus})")
       end
@@ -127,7 +139,7 @@ class BarclampCrowbar::Jig < Jig
       system("sudo -H chown -R crowbar.crowbar #{local_tmpdir}")
     end
     # Clean up after ourselves.
-    BarclampCrowbar::Jig.ssh("'#{login}' -- rm -rf '#{remote_tmpdir}'")
+    BarclampCrowbar::Jig.ssh("'#{ssh_login}' -- rm -rf '#{remote_tmpdir}'")
     return nr
   end
 

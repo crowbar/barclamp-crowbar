@@ -21,8 +21,6 @@ require 'active_support/core_ext/string'
 # Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
 
-  helper_method :is_dev?
-  
   before_filter :crowbar_auth
   
   # Basis for the reflection/help system.

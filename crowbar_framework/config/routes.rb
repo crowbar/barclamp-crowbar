@@ -14,11 +14,6 @@
 #
 Crowbar::Application.routes.draw do
 
-  # Install route from each barclamp
-  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
-    eval(IO.read(routes_file), binding)
-  end
-
   # UI scope
 
   # special case items that allow IDs to have .s 
@@ -97,7 +92,7 @@ Crowbar::Application.routes.draw do
   match "manage_users", :controller => 'users', :action => 'index'
   match "delete_users", :controller => 'users', :action => 'delete_users', :as=> :delete_users
 
-  devise_for :users, :path_prefix => 'my'
+  devise_for :users, { :path_prefix => 'my', :module => :devise, :class_name=> 'Crowbar::User' }
 
   get    "/users/new(.:format)", :controller => 'users', :action=>'index', :as=> :new_user
   resources :users, :except => :new
@@ -160,6 +155,11 @@ Crowbar::Application.routes.draw do
       end # api
     end # id constraints
   end # json
+
+  # Install route from each barclamp (should be done last so CB gets priority)
+  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
+    eval(IO.read(routes_file), binding)
+  end
 
   root :to => "nodes#index"
 end

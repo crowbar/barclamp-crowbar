@@ -338,7 +338,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def all_transition_data
-    res = all_deployment_data
+    res = all_data
     res.deep_merge!(self.node.all_active_data)
     res.deep_merge!(wall)
     res.deep_merge!(sysdata)

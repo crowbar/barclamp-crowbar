@@ -83,14 +83,6 @@ module ApiHelper
 
   # for each instance (so we can use self)
   module InstanceMethods
-    
-    def json_wrapper(type=nil, url_base=nil)
-      inner = self.api_hash rescue self.attributes 
-      type ||= self.class.to_s.downcase
-      url_base ||= "/crowbar/2.0/#{type}"
-      outter = { type => inner, 'url'=>"#{url_base}/#{self.id}" }
-      outter.to_json
-    end
 
   end
 

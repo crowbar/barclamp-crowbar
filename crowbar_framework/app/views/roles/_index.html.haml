@@ -13,7 +13,7 @@
         - if jig_name.nil? or role.jig_name.eql? jig_name
           %tr
             %td= link_to role.name, role_path(:id=>role.id)
-            %td= link_to role.barclamp.name, barclamp_path(role.barclamp.id)
+            %td= link_to role.barclamp.name, barclamp_path(role.barclamp.id), :title=>role.barclamp.description
             %td= role.description
             %td
               = t '.library' if role.library 

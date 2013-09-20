@@ -23,14 +23,14 @@
             -else 
               = t 'user.signed_in_as', :user=>current_user.username
             (
-            = link_to t('user.sign_out'), destroy_user_session_path, :method=>'delete'
+            = link_to t('user.sign_out'), main_app.destroy_user_session_path(), :method=>'delete' rescue t('error')
             )
           %nav
             - unless Rails.env.development? and params[:nav].eql? 'false'
               = render_navigation :expand_all => true, :skip_if_empty => true
         - else
           %nav
-            = link_to t('user.sign_in'),  new_user_session_path
+            = link_to t('user.sign_in'),  main_app.new_user_session_path
     
     - if flash[:notice]
       .notice#flash

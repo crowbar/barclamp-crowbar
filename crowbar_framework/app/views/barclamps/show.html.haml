@@ -1,3 +1,7 @@
 %h1= @barclamp.name
 
-= @barclamp.inspect
+= @barclamp.description
+
+%h3= t '.roles'
+
+= render :partial => "roles/index", :locals => { :list => @barclamp.roles, :jig_name => nil }

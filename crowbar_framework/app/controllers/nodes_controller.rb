@@ -72,7 +72,7 @@ class NodesController < ApplicationController
     name = params[:name] || params[:id]
     render api_not_supported action, name
   end
-    
+
   def show
     @node = Node.find_key params[:id]
     respond_to do |format|
@@ -95,10 +95,11 @@ class NodesController < ApplicationController
   
   def update
     @node = Node.find_key params[:id]
-    if params.key? :discovery
-      @node.discovery = params[:discovery]
-      @node.save
-    end
+    @node.discovery = params[:discovery] if params.key? :discovery
+    @node.alive = !!params[:alive] if params.key? :alive
+    @node.available = !!params[:available] if params.key? :available
+    @node.bootenv = params[:bootenv] if params.key? :bootenv
+    @node.save!
     render api_update :node, Node, nil, @node
   end
 

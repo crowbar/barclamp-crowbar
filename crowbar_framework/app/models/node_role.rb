@@ -36,7 +36,7 @@ class NodeRole < ActiveRecord::Base
   scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
-  scope           :runnable,          -> { committed.in_state(NodeRole::TODO) }
+  scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).readonly(false) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
   scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
   scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }

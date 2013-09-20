@@ -21,6 +21,7 @@ class Node < ActiveRecord::Base
   after_create :add_default_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
+  attr_accessible   :alive, :bootenv
 
   # Make sure we have names that are legal
   # old:

@@ -21,7 +21,7 @@ class Node < ActiveRecord::Base
   after_create :add_default_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
-  attr_accessible   :alive, :bootenv
+  attr_accessible   :alive, :available, :bootenv
 
   # Make sure we have names that are legal
   # old:
@@ -92,16 +92,15 @@ class Node < ActiveRecord::Base
     "#{d[16..19]}:#{d[20..23]}:#{d[24..27]}:#{d[28..32]}"
   end
 
+  def auto_v6_address(net)
+    return nil if net.v6prefix.nil?
+    IP.coerce("#{net.v6prefix}:#{v6_hostpart}/64")
+  end
+
   def addresses
     net = BarclampNetwork::Network.where(:name => "admin").first
     raise "No admin network" if net.nil?
-    res = []
-    res << IP.coerce("#{net.v6prefix}:#{v6_hostpart}") if net.v6prefix
-    BarclampNetwork::Allocation.where(:node_id => id).each do |a|
-      next unless a.network.id == net.id
-      res << a.address
-    end
-    res
+    net.node_allocations(self)
   end
 
   def address

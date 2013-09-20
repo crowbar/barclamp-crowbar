@@ -263,6 +263,8 @@ gems:
     - coveralls
     - database_cleaner
     - devise
+    - delayed_job
+    - delayed_job_active_record
     - email_spec
     - formtastic
     - haml

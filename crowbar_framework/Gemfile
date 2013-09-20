@@ -29,6 +29,8 @@ gem 'xml-simple'
 gem 'daemons'
 gem 'active_scaffold'
 gem 'devise'
+gem 'delayed_job'
+gem 'delayed_job_active_record'
 gem 'rails_config'
 
 gem 'jquery-rails'

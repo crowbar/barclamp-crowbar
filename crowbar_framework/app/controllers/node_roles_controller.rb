@@ -105,7 +105,7 @@ class NodeRolesController < ApplicationController
     elsif NodeRole.committed.in_state(NodeRole::ERROR).count > 0
       render :json => { "message" => "failed" }, :status => 409
     else
-      render :json => { "message" => "finished" }, :status => 200
+      render :json => { "message" => "finished" }, :state => 200
     end
   end
 

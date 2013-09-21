@@ -1,6 +1,9 @@
+ENV["RAILS_ENV"]="production"
 Bluepill.application("crowbar-webserver") do |app|
   app.process("puma") do |p|
     p.start_command = "bundle exec puma -C puma.cfg"
+    p.stop_command = "bundle exec pumactl -F puma.cfg stop"
+    p.restart_command = "bundle exec pumactl -F puma.cfg restart"
     p.stdout = "/opt/dell/crowbar_framework/log/production.log"
     p.stderr = p.stdout.dup
     p.working_dir = "/opt/dell/crowbar_framework"
@@ -10,4 +13,29 @@ Bluepill.application("crowbar-webserver") do |app|
     p.start_grace_time = 15.seconds
     p.stop_grace_time = 5.seconds
   end
+  app.process("node-role-runner") do |j|
+    j.start_command = "bundle exec script/delayed_job --queue=NodeRoleRunner -n 10 run"
+    j.stop_command = "pkill -KILL -f delayed_job"
+    j.stdout = "/opt/dell/crowbar_framework/log/delayed_job.log"
+    j.stderr = j.stdout.dup
+    j.working_dir = "/opt/dell/crowbar_framework"
+    j.uid = "crowbar"
+    j.gid = "crowbar"
+    j.daemonize = true
+    j.start_grace_time = 15.seconds
+    j.stop_grace_time = 5.seconds
+  end
+  app.process("annealer") do |j|
+    j.start_command = "bundle exec script/delayed_job --queue=Annealer -n 1 run"
+    j.stop_command = "pkill -KILL -f delayed_job"
+    j.stdout = "/opt/dell/crowbar_framework/log/delayed_job.log"
+    j.stderr = j.stdout.dup
+    j.working_dir = "/opt/dell/crowbar_framework"
+    j.uid = "crowbar"
+    j.gid = "crowbar"
+    j.daemonize = true
+    j.start_grace_time = 15.seconds
+    j.stop_grace_time = 5.seconds
+  end
+
 end

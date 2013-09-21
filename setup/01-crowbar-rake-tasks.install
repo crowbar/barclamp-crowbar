@@ -37,7 +37,6 @@ export RAILS_ENV=production
 tasks=("rake assets:precompile"
     "rake railties:install:migrations"
     "rake db:migrate"
-    "script/rails generate delayed_job"
     "script/rails generate delayed_job:active_record"
     "rake db:migrate")
 for task in "${tasks[@]}"; do
@@ -73,6 +72,7 @@ pidfile("/var/run/crowbar/crowbar.pid")
 rackup("/opt/dell/crowbar_framework/config.ru")
 environment("$cfg")
 state_path("/var/run/crowbar/puma.state")
+activate_control_app 'unix:///var/run/crowbar/pumactl.sock', { no_token: true }
 EOF
 done
 

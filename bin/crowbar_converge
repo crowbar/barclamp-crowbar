@@ -26,16 +26,15 @@ end
 
 opt_parse
 
-res  = put_json2("api/v2/converge")
-if res[1] >= 300
-  STDERR.puts("Failed to talk to Crowbar: got response code #{res[1]}")
-  exit(1)
+loop do
+  res = put_json2("api/v2/anneal")
+  exit 0 if res[1] == 200
+  if res[1] == 409
+    STDERR.puts("Noderoles transitioned to error!")
+    exit(1)
+  elsif res[1] >= 300
+    STDERR.puts("Failed to talk to Crowbar: got response code #{res[1]}")
+    exit(1)
+  end
+  sleep 10
 end
-noderoles = JSON.parse(res[0])
-failed = noderoles.select{|nr|nr["state"] == -1}
-exit(0) if failed.empty?
-STDERR.puts("Noderoles failed to transition to active!")
-failed.each do |nr|
-  STDERR.puts("http://#{@hostname}:#{@port}/node_roles/#{nr["id"]}")
-end
-exit(1)

@@ -26,7 +26,7 @@ end
 
 opt_parse
 
-res  = post_json2("api/v2/converge")
+res  = put_json2("api/v2/converge")
 if res[1] >= 300
   STDERR.puts("Failed to talk to Crowbar: got response code #{res[1]}")
   exit(1)

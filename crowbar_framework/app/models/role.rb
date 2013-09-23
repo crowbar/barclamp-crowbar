@@ -230,13 +230,11 @@ class Role < ActiveRecord::Base
     # remove the redundant part of the name (if any)
     name = self.name.sub("#{self.barclamp.name}-", '').camelize
     # these routines look for the namespace & class
-    m = Module::const_get(namespace) rescue nil
     # barclamps can override specific roles
-    test_specific = !m.const_get(name).nil? rescue false
+    test_specific =  ("#{namespace}::#{name}".constantize ? true : false) rescue false
     # barclamps can provide a generic fallback  "BarclampName::Role"
-    test_generic = !m.const_get("Role").nil? rescue false
+    test_generic = ("#{namespace}::Role".constantize ? true : false) rescue false
     # if they dont' find it we fall back to the core Role
-puts "ZEHICLE #{namespace} #{name} #{test_generic} #{m.const_get("Role").nil?}"
     self.type = if test_specific
       "#{namespace}::#{name}"
     elsif test_generic

@@ -243,5 +243,11 @@ class Node < ActiveRecord::Base
         r.add_to_node_in_snapshot(self,snap)
       end
     end
+    # This is a temporary hack until the DNS barclamp is refactored to handle
+    # node add and remove events.
+    unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")
+      addr = self.addresses.detect{|a|a.v4?}.addr
+      BarclampCrowbar::Jig.ssh("root@localhost 'echo \"#{addr}   #{self.name}\" >>/etc/hosts'")
+    end
   end
 end

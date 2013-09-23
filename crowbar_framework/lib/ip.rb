@@ -92,9 +92,11 @@ class IP
   # Bootstrap the rest of the methods Comparable provides.
   def <=>(other)
     other = ::IP.coerce(other)
-    raise ArgumentError.new("#{other} is not the same class as #{self}") unless
-      self.class == other.class
-    @address <=> other.address
+    case
+    when v6? && other.v4? then -1
+    when other.v6? && v4? then 1
+    else @address <=> other.address
+    end
   end
 
   # We will need this for mathy operators.
@@ -166,6 +168,14 @@ class IP
       raise ArgumentError.new("#{address} cannot be coerced into an IP address")
     end
     self
+  end
+
+  def v4?
+    false
+  end
+
+  def v6?
+    false
   end
 
   # Anything else, assume we want mathy goodness.
@@ -271,6 +281,10 @@ class IP
       system("ping -c 1 -w 1 -q #{self.addr}")
     end
 
+    def v4?
+      true
+    end
+
   end
 
   class IP6 < IP
@@ -373,6 +387,10 @@ class IP
 
     def reachable?
       system("ping6 -c 1 -w 1 -q #{self.addr}")
+    end
+
+    def v6?
+      true
     end
 
   end

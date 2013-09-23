@@ -9,15 +9,9 @@
 # Default-Stop:      0 1 2 6
 # Short-Description: Start the Crowbar Web application
 # Description:       Manages the Crowbar Web application
-#       via bluepill
 ### END INIT INFO
 
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
-for f in /var/lib/gems/*/bin; do
-    [[ -x $f/bluepill ]] || continue
-    PATH="$PATH:$f"
-done
-BLUEPILL_CONFIG="/opt/dell/crowbar_framework/crowbar.pill"
 GEMFILE_LOCK=/opt/dell/crowbar_framework/Gemfile.lock
 if [[ -f /etc/redhat-release || -f /etc/centos-release ]]; then
     OS=redhat
@@ -32,33 +26,49 @@ if [[ -f /etc/crowbar.install.key ]]; then
     export CROWBAR_KEY
 fi
 
+as_crowbar() (
+    cd /opt/dell/crowbar_framework
+    sudo -H -u crowbar -- "$@"
+)
+
+start(){
+    if [[ $OS = suse ]]; then
+        # refresh the Gemfile.lock content before starting the server
+        # (outdated file can cause problems after any of the required
+        # rubygems were updated)
+        rm -f $GEMFILE_LOCK
+        as_crowbar bundle install --local --quiet
+    fi
+    as_crowbar bundle exec puma -d -C puma.cfg
+    echo "Starting delayed_job Annealer queue (1 worker)"
+    as_crowbar bundle exec script/delayed_job --queue=Annealer -n 1 start
+    echo "Starting delayed_job NodeRoleRunner queue (10 workers)"
+    as_crowbar bundle exec script/delayed_job --queue=NodeRoleRunner -n 10 start
+
+}
+
+stop() {
+    as_crowbar bundle exec pumactl -F puma.cfg stop
+    as_crowbar bundle exec script/delayed_job stop
+}
+
+restart() {
+    as_crowbar bundle exec pumactl -F puma.cfg restart
+    as_crowbar bundle exec script/delayed_job restart
+}
+
+status() {
+    as_crowbar bundle exec pumactl -F puma.cfg status && \
+        pgrep -f delayed_job
+}
+
 mkdir -p /var/run/crowbar && chown crowbar:crowbar /var/run/crowbar
 
 case "$1" in
-    start)
-        echo -n "Starting Crowbar webserver"
-        if [[ $OS = suse ]]; then
-            # refresh the Gemfile.lock content before starting the server
-            # (outdated file can cause problems after any of the required
-            # rubygems were updated)
-            rm -f $GEMFILE_LOCK
-            (cd /opt/dell/crowbar_framework; bundle install --local --quiet)
-        fi
-        bluepill load $BLUEPILL_CONFIG
-        bluepill crowbar-webserver start
-        sleep 5
-        ;;
-    stop)
-        echo -n "Stopping Crowbar webserver"
-        bluepill crowbar-webserver stop
-        ;;
-    status)
-        bluepill crowbar-webserver status
-        ;;
-    restart)
-        $0 stop
-        $0 start
-        ;;
+    start) start;;
+    stop) stop;;
+    status) status;;
+    restart) restart;;
     *)
         echo "Usage: $0 {start|stop|status|restart}"
         exit 1

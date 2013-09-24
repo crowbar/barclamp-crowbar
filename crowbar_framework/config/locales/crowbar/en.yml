@@ -231,6 +231,9 @@ en:
       <<: *deployment_common
     show:
       node_roles: "In Process Actions"
+      alive: "Alive"
+      available: "Available"
+      addresses: "Addresses"
       all_node_roles: "All Node Roles"
       admin: "(admin)"
       attribs: "Attributes"

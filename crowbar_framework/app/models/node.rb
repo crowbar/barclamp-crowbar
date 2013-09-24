@@ -19,6 +19,7 @@ class Node < ActiveRecord::Base
 
   before_validation :default_population
   after_create :add_default_roles
+  before_destroy :tear_down_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
   attr_accessible   :alive, :available, :bootenv
@@ -236,6 +237,13 @@ class Node < ActiveRecord::Base
     end
   end
 
+  # Call the on_node_delete hooks.
+  def tear_down_roles
+    Role.all.each do |r|
+      r.on_node_delete(self)
+    end
+  end
+
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
@@ -243,6 +251,13 @@ class Node < ActiveRecord::Base
         r.add_to_node_in_snapshot(self,snap)
       end
     end
+
+    # Call all role on_node_create hooks with ourself.
+    # These should happen synchronously.
+    Role.all.each do |r|
+      r.on_node_create(self)
+    end
+
     # This is a temporary hack until the DNS barclamp is refactored to handle
     # node add and remove events.
     unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")

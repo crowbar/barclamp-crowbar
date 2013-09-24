@@ -95,11 +95,6 @@ class NodesController < ApplicationController
   
   def update
     @node = Node.find_key params[:id]
-    @node.discovery = params[:discovery] if params.key? :discovery
-    @node.alive = !!params[:alive] if params.key? :alive
-    @node.available = !!params[:available] if params.key? :available
-    @node.bootenv = params[:bootenv] if params.key? :bootenv
-    @node.save!
     render api_update :node, Node, nil, @node
   end
 

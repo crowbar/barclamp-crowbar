@@ -177,7 +177,11 @@ class Role < ActiveRecord::Base
     parents.each do |parent|
       # This will need to grow more ornate once we start allowing multiple
       # deployments.
-      pnr = NodeRole.peers_by_role(snap,parent).first
+
+      # We might wind up needing a flag for roles that forces
+      # dependent roles to be on the same node.
+      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first ||
+        NodeRole.peers_by_role(snap,parent).first
       if pnr.nil?
         if parent.implicit
           pnr = parent.add_to_node_in_snapshot(node,snap)

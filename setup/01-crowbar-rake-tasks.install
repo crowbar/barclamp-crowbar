@@ -67,11 +67,12 @@ for cfg in "${!puma_cfgs[@]}"; do
     chmod 644 "log/$cfg.log"
 
     cat >"${puma_cfgs[$cfg]}" <<EOF
-bind("tcp://0.0.0.0:3000")
+bind("tcp://[::]:3000")
 pidfile("/var/run/crowbar/crowbar.pid")
 rackup("/opt/dell/crowbar_framework/config.ru")
 environment("$cfg")
 state_path("/var/run/crowbar/puma.state")
+activate_control_app 'unix:///var/run/crowbar/pumactl.sock', { no_token: true }
 EOF
 done
 

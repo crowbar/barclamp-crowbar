@@ -110,7 +110,6 @@ Crowbar::Application.routes.draw do
         end
         scope ':version' do
           # These are not restful.  They poke the annealer and wait if you pass "sync=true".
-          put "converge", :to => "node_roles#converge", :as => :converge
           put "anneal", :to => "node_roles#anneal", :as => :anneal
           post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs

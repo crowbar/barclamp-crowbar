@@ -21,10 +21,13 @@ require 'json'
 require 'getoptlong'
 
 @debug = false
-@hostname = ENV["CROWBAR_IP"] 
+@hostname = ENV["CROWBAR_IP"]
 # DO NOT CHANGE THE NEXT 2 LINES
-# gather_cli replies on the exact format they are in. 
+# gather_cli replies on the exact format they are in.
 @hostname = "127.0.0.1" unless @hostname
+# If hostname looks like an IPv6 address, assume it is.
+# If it has a colon in it, it looks like an IPv6 address.
+@hostname = "[#{@hostname}]" if @hostname.include?(":")
 @port = 3000
 @url = nil
 @headers = {

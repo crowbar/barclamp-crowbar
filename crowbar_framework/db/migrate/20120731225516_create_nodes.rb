@@ -22,6 +22,9 @@ class CreateNodes < ActiveRecord::Migration
       t.boolean     :admin,         :default=>false
       t.text        :discovery,     :null=>false, :default=>'{}'
       t.boolean     :allocated,     :default=>false
+      t.boolean     :alive,         :null => false, :default => false
+      t.boolean     :available,     :null => false, :default => true
+      t.string      :bootenv,       :null => false, :default => "sledgehammer"
       t.timestamps
     end
     #natural key

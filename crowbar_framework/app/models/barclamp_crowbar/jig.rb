@@ -31,18 +31,27 @@ class BarclampCrowbar::Jig < Jig
               "-o 'ControlPersist 3'"  # Allow oppourtunistic master connections to live for 3 seconds.
              ]
   def self.ssh(cmd)
-    out =  %x{sudo -H ssh #{SSH_OPTS.join(" ")} #{cmd}}
-    [out, $?.exitstatus == 0]
+    out = ""
+    3.times do |delay|
+      out =  %x{sudo -H ssh #{SSH_OPTS.join(" ")} #{cmd}}
+      return [out, $?.exitstatus == 0] if $?.exitstatus == 0 || !out.empty?
+      sleep delay
+    end
+    return [out, false]
   end
 
   def self.scp(cmd)
-    out =  %x{sudo -H scp #{SSH_OPTS.join(" ")} #{cmd}}
-    [out, $?.exitstatus == 0]
+    out = ""
+    3.times do |delay|
+      out =  %x{sudo -H scp #{SSH_OPTS.join(" ")} #{cmd}}
+      return [out, $?.exitstatus == 0] if $?.exitstatus == 0 || !out.empty?
+      sleep delay
+    end
+    return [out, false]
   end
 
   def run(nr)
     raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
-
     # Hardcode this for now
     login = "root@#{nr.node.name}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
@@ -54,78 +63,78 @@ class BarclampCrowbar::Jig < Jig
     else
       Rails.logger.info("Using remote temp dir: #{remote_tmpdir}")
     end
-    Dir.mktmpdir do |local_tmpdir|
-      Rails.logger.info("Using local temp dir: #{local_tmpdir}")
-      attr_to_shellish(nr.all_transition_data).each do |k,v|
-        target = File.join(local_tmpdir,"attrs",k)
-        FileUtils.mkdir_p(target)
-        File.open(File.join(target,"attr"),"w") do |f|
-          f.printf("%s",v.to_s)
-        end
+    local_tmpdir = %x{mktemp -d /tmp/local-scriptjig-XXXXXX}.strip
+    Rails.logger.info("Using local temp dir: #{local_tmpdir}")
+    attr_to_shellish(nr.all_transition_data).each do |k,v|
+      target = File.join(local_tmpdir,"attrs",k)
+      FileUtils.mkdir_p(target)
+      File.open(File.join(target,"attr"),"w") do |f|
+        f.printf("%s",v.to_s)
       end
-      FileUtils.cp_r(local_scripts,local_tmpdir)
-      FileUtils.cp('/opt/dell/barclamps/crowbar/script/runner',local_tmpdir)
-      Rails.logger.info("Copying staged scriptjig information to #{nr.node.name}")
-      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
-      unless ok
-        Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
-        nr.state = NodeRole::ERROR
-        nr.runlog = cp_log
-        return nr
-      end
-      Rails.logger.info("Executing scripts on #{nr.node.name}")
-      nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
-      unless ok
-        Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
-        nr.state = NodeRole::ERROR
-        return nr
-      else
-        nr.state = NodeRole::ACTIVE
-      end
-      # Now, we need to suck any written attributes back out.
-      Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
-      new_wall = {}
-      Rails.logger.info("Copying attributes from #{nr.node.name} for analysis")
-      cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{login}:#{remote_tmpdir}/attrs' '#{local_tmpdir}'")
-      unless ok
-        Rails.logger.error("Copy of attrs back from #{nr.node.name} failed! (status = #{$?.exitstatus})")
-      end
-      FileUtils.cd(File.join(local_tmpdir,"attrs")) do
-        # All new attributes should be saved in wall files.
-        Dir.glob("**/wall") do |attrib|
-          k = attrib.split('/')[0..-2]
-          v = IO.read(attrib).strip
-          Rails.logger.info("Found attribute #{attrib} (value #{v})")
-          next if v.empty?
-          # Convert well-known strings and strings that look like numbers to JSON values
-          v = case
-              when v.downcase == "true" then true
-              when v.downcase == "false" then false
-              when v =~ /^[-+]?[0-9]+$/ then v.to_i
-              when v =~ /^[-+]?[0'9a-fA-f]+$/ then v.to_i(16)
-              when v =~ /^[-+]?0[bodx]?[0-9a-fA-F]+$/ then v.to_i(0)
-              else v
-              end
-          w = new_wall
-          # Build the appropriate hashing structure based on what were directory names.
-          k[0..-2].each do |key|
-            w[key] ||= Hash.new
-            w = w[key]
-          end
-          w[k[-1]] = v
-        end
-      end
-      Rails.logger.info("New wall values for #{nr.name} #{new_wall.inspect}")
-      # By now, we have new_wall populated. Save it if anything changed.
-      NodeRole.transaction do
-        old_wall = nr.wall
-        unless new_wall.empty? || (old_wall == new_wall)
-          nr.wall = old_wall.deep_merge!(new_wall)
-          nr.save!
-        end
-      end
-      system("sudo -H chown -R crowbar.crowbar #{local_tmpdir}")
     end
+    FileUtils.cp_r(local_scripts,local_tmpdir)
+    FileUtils.cp('/opt/dell/barclamps/crowbar/script/runner',local_tmpdir)
+    Rails.logger.info("Copying staged scriptjig information to #{nr.node.name}")
+    cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
+    unless ok
+      Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
+      nr.state = NodeRole::ERROR
+      nr.runlog = cp_log
+      return nr
+    end
+    Rails.logger.info("Executing scripts on #{nr.node.name}")
+    nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
+    unless ok
+      Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
+      nr.state = NodeRole::ERROR
+      return nr
+    else
+      nr.state = NodeRole::ACTIVE
+    end
+    # Now, we need to suck any written attributes back out.
+    Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
+    new_wall = {}
+    Rails.logger.info("Copying attributes from #{nr.node.name} for analysis")
+    cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{login}:#{remote_tmpdir}/attrs' '#{local_tmpdir}'")
+    unless ok
+      Rails.logger.error("Copy of attrs back from #{nr.node.name} failed! (status = #{$?.exitstatus})")
+    end
+    FileUtils.cd(File.join(local_tmpdir,"attrs")) do
+      # All new attributes should be saved in wall files.
+      Dir.glob("**/wall") do |attrib|
+        k = attrib.split('/')[0..-2]
+        v = IO.read(attrib).strip
+        Rails.logger.info("Found attribute #{attrib} (value #{v})")
+        next if v.empty?
+        # Convert well-known strings and strings that look like numbers to JSON values
+        v = case
+            when v.downcase == "true" then true
+            when v.downcase == "false" then false
+            when v =~ /^[-+]?[0-9]+$/ then v.to_i
+            when v =~ /^[-+]?[0'9a-fA-f]+$/ then v.to_i(16)
+            when v =~ /^[-+]?0[bodx]?[0-9a-fA-F]+$/ then v.to_i(0)
+            else v
+            end
+        w = new_wall
+        # Build the appropriate hashing structure based on what were directory names.
+        k[0..-2].each do |key|
+          w[key] ||= Hash.new
+            w = w[key]
+        end
+        w[k[-1]] = v
+      end
+    end
+    Rails.logger.info("New wall values for #{nr.name} #{new_wall.inspect}")
+    # By now, we have new_wall populated. Save it if anything changed.
+    NodeRole.transaction do
+      old_wall = nr.wall
+      unless new_wall.empty? || (old_wall == new_wall)
+        nr.wall = old_wall.deep_merge!(new_wall)
+        nr.save!
+      end
+    end
+    system("sudo -H chown -R crowbar.crowbar #{local_tmpdir}")
+    system("sudo rm -rf '#{local_tmpdir}")
     # Clean up after ourselves.
     BarclampCrowbar::Jig.ssh("'#{login}' -- rm -rf '#{remote_tmpdir}'")
     return nr

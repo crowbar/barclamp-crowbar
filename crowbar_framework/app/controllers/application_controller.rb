@@ -184,7 +184,10 @@ class ApplicationController < ActionController::Base
     case
     when current_user then authenticate_user!
     when request.headers["HTTP_AUTHORIZATION"] && request.headers["HTTP_AUTHORIZATION"].starts_with?('Digest username=') then digest_auth!
-    when request.local? && File.exists?("/tmp/.crowbar_in_bootstrap") && File.stat("/tmp/.crowbar_in_bootstrap").uid == 0
+    when (request.local? ||
+          (/^::ffff:127\.0\.0\.1$/ =~ request.remote_ip)) &&
+        File.exists?("/tmp/.crowbar_in_bootstrap") &&
+        (File.stat("/tmp/.crowbar_in_bootstrap").uid == 0)
       current_user = User.find_by_id_or_username("crowbar")
       true
     else

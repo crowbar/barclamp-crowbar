@@ -98,38 +98,14 @@ class NodeRolesController < ApplicationController
   end
 
   def anneal
-    if request.put?
-      if params.include?(:sync)
-        NodeRole.anneal!
-      elsif !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
-        # run anneal in the background (if stepping the skip when any nodes are in transistion)    
-        job1 = fork do
-          %x[rails r NodeRole.anneal!] 
-        end
-        Process.detach(job1)
-        flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
-      end
-    end
-    respond_to do |format|
-      format.html { }
-      format.json { render :text => 'ok', :status => 200 }
-    end
-  end
-
-  def converge
-    if params.include?(:sync)
-      NodeRole.converge!
-    elsif !params.include?(:step) or NodeRole.all_by_state(NodeRole::TRANSITION).length==0
-      # run anneal in the background (if stepping the skip when any nodes are in transistion)    
-      job1 = fork do
-        %x[rails r NodeRole.converge!] 
-      end
-      Process.detach(job1)
-      flash[:notice] = I18n.t('layouts.snapshot.anneal.annealling')
-    end
-    respond_to do |format|
-      format.html { render :action => :anneal }
-      format.json { render :text => 'ok', :status => 200 }
+    if NodeRole.anneal! || NodeRole.committed.in_state(NodeRole::TODO).count > 0
+      render :json => { "message" => "scheduled" }, :status => 202
+    elsif NodeRole.committed.in_state(NodeRole::TRANSITION).count > 0
+      render :json => { "message" => "working" }, :status => 202
+    elsif NodeRole.committed.in_state(NodeRole::ERROR).count > 0
+      render :json => { "message" => "failed" }, :status => 409
+    else
+      render :json => { "message" => "finished" }, :state => 200
     end
   end
 

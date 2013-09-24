@@ -71,8 +71,9 @@ module SchemaMigration
       start_revision = old_revision + 1
       end_revision = new_revision
     else
-      start_revision = new_revision
-      end_revision = old_revision - 1
+      # downgrade function to reach revision X is in migration script X+1
+      start_revision = new_revision + 1
+      end_revision = old_revision
     end
 
     Range.new(start_revision, end_revision).each do |rev|

@@ -117,6 +117,9 @@ module SchemaMigration
     end
 
     schema_revision = template['deployment'][bc_name]['schema-revision']
+    if schema_revision.nil?
+      schema_revision = 0
+    end
 
     return [nil, nil] if current_schema_revision == schema_revision
 

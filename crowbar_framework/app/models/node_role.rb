@@ -139,6 +139,7 @@ class NodeRole < ActiveRecord::Base
     to_run = Hash.new
     NodeRole.transaction do
       NodeRole.runnable.each do |nr|
+        next unless nr.node.alive?
         to_run[nr.node_id] ||= nr
       end
       return nil if to_run.empty?

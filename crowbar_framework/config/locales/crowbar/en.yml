@@ -273,7 +273,7 @@ en:
     show:
       data: "User Configuration Data (outbound)"
       sysdata: "System Configuration Data (outbound)"
-      no_overlay: "No Override using views/node_role/_raw template"
+      no_overlay: "No Override using views/node_role/_raw template instead of %{overlay}"
       retry: "Retry"
       wall: "System Managed Data (outbound)"
       wall: "Jig Managed Data (inbound / wall)"
@@ -303,6 +303,7 @@ en:
       save: "Update Template"
       type: "Type"
       upstream: "Upstream (prerequisite roles)"
+      no_overlay: "No Override using views/node_role/_raw template instead of %{overlay}"
     names:
       role: "Roles"
   snapshots:

@@ -25,7 +25,21 @@
 
   .clear
 
-  = render :partial => 'node_roles/raw', :locals => { :hide => true, :template => @role.template, :data => nil }
+  - p = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
+  - begin
+    - if params.include? :raw
+      = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide=>true, :template => @role.template }
+    - else
+      = render :partial => p, :locals  => { :data => nil, :hide => true, :template => @role.template }
+  - rescue Exception => e
+    = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide => true, :template => @role.template }
+    - if Rails.env.development?
+      - if e.message.starts_with? "Missing partial #{p}"
+        %p= t '.no_overlay', :overlay=>p
+      - else
+        %p
+          = t 'error'
+          = e.message
 
   - unless params.include? :form
     %h3= t '.upstream'

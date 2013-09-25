@@ -36,12 +36,12 @@ class NodeRole < ActiveRecord::Base
   scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
-  scope           :runnable,          -> { committed.in_state(NodeRole::TODO) }
+  scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state = ?)',TRANSITION]) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
-  scope           :peers_by_state,    ->(ss,state) { where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
-  scope           :peers_by_role,     ->(ss,role)  { where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
-  scope           :peers_by_node,     ->(ss,node)  { where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
-  scope           :peers_by_node_and_role,     ->(s,n,r) { where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
+  scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
+  scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
+  scope           :peers_by_node,     ->(ss,node)  { current.where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?
@@ -89,6 +89,7 @@ class NodeRole < ActiveRecord::Base
     def to_s
       @errstr
     end
+    
     def to_str
       to_s
     end
@@ -135,28 +136,21 @@ class NodeRole < ActiveRecord::Base
 
   # The very basic annealer.
   def self.anneal!
-    queue = []
+    to_run = Hash.new
     NodeRole.transaction do
-      # Check to see if we have all our jigs before we send everything off.
-      queue = NodeRole.runnable.joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false)
-      return nil if queue.empty?
-      queue.each do |nr|
+      NodeRole.runnable.each do |nr|
+        next unless nr.node.alive?
+        to_run[nr.node_id] ||= nr
+      end
+      return nil if to_run.empty?
+      to_run.values.each do |nr|
         nr.state = TRANSITION
       end
     end
-    buckets = Hash.new
-    queue.each do |nr|
-      Rails.logger.info("Annealer: #{nr.role.jig_name} running #{nr.role.name} on #{nr.node.name} for #{nr.deployment.name}")
-        nr.jig.run(nr)
-      Rails.logger.info("Annealer: Run finished.")
+    to_run.values.each do |nr|
+      nr.jig.delay(:queue => "NodeRoleRunner").run(nr)
     end
     true
-  end
-
-  def self.converge!
-    loop do
-      break unless anneal!
-    end
   end
 
   def state
@@ -187,7 +181,6 @@ class NodeRole < ActiveRecord::Base
  
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
-    
 
     write_attribute("userdata",arg)
     save!
@@ -195,6 +188,9 @@ class NodeRole < ActiveRecord::Base
 
   def sysdata
     raw = JSON.parse(read_attribute("systemdata")||'{}')
+    # Allow for dynamic per-role overrides.
+    raw.deep_merge!(role.sysdata(self)) if role.respond_to?(:sysdata)
+    raw
   end
 
   def sysdata=(arg)
@@ -338,7 +334,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def all_transition_data
-    res = all_deployment_data
+    res = all_data
     res.deep_merge!(self.node.all_active_data)
     res.deep_merge!(wall)
     res.deep_merge!(sysdata)
@@ -452,7 +448,7 @@ class NodeRole < ActiveRecord::Base
   
   # convenience methods
   def name
-    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
+-   "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
   # Commit takes us back to TODO or BLOCKED, depending

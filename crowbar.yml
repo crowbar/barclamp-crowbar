@@ -262,9 +262,7 @@ gems:
     - cancan
     - coveralls
     - database_cleaner
-    - devise
-    - delayed_job
-    - delayed_job_active_record
+    - devise-(~>3.0.0)
     - email_spec
     - formtastic
     - haml
@@ -280,7 +278,7 @@ gems:
     - net-ssh-multi
     - puma
     - railroad
-    - rails-3.2.13
+    - rails-(~>3.2.13)
     - rails_config
     - rails-erd
     - rake
@@ -299,3 +297,5 @@ gems:
     - syslogger
     - xml-simple
     - factory_girl_rails-(~>1.7.0)
+    - delayed_job_active_record
+    - delayed_job

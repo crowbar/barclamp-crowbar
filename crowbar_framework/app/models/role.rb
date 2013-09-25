@@ -94,6 +94,15 @@ class Role < ActiveRecord::Base
     Rails.logger.debug "No override for #{self.class.to_s}.on_proposed event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
+  # Event triggers for node creation and destruction.
+  def on_node_create(node)
+    true
+  end
+
+  def on_node_delete(node)
+    true
+  end
+  
   def parents
     res = []
     res << jig.client_role if jig.client_role
@@ -177,7 +186,11 @@ class Role < ActiveRecord::Base
     parents.each do |parent|
       # This will need to grow more ornate once we start allowing multiple
       # deployments.
-      pnr = NodeRole.peers_by_role(snap,parent).first
+
+      # We might wind up needing a flag for roles that forces
+      # dependent roles to be on the same node.
+      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first ||
+        NodeRole.peers_by_role(snap,parent).first
       if pnr.nil?
         if parent.implicit
           pnr = parent.add_to_node_in_snapshot(node,snap)

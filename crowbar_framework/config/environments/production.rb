@@ -49,7 +49,7 @@ Crowbar::Application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Enable threaded mode
-  config.threadsafe! unless $rails_rake_task
+  # config.threadsafe! unless $rails_rake_task
 
   # Legacy vars, should not be needed on Crowbar 2.0
   #DISABLE_CHEF=false

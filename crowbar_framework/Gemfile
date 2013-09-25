@@ -14,7 +14,7 @@
 #
 source "file:///tftpboot/gemsite"
 
-gem 'rails', '~> 3.2.11'
+gem 'rails', '~> 3.2.13'
 
 gem 'sqlite3'
 gem 'haml'
@@ -28,10 +28,10 @@ gem 'amqp'
 gem 'xml-simple'
 gem 'daemons'
 gem 'active_scaffold'
-gem 'devise'
+gem 'devise', "~>3.0.0"
+gem 'rails_config'
 gem 'delayed_job'
 gem 'delayed_job_active_record'
-gem 'rails_config'
 
 gem 'jquery-rails'
 

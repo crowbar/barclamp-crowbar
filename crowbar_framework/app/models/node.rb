@@ -13,12 +13,16 @@
 # limitations under the License.
 #
 
+require 'digest/md5'
+
 class Node < ActiveRecord::Base
 
   before_validation :default_population
   after_create :add_default_roles
+  before_destroy :tear_down_roles
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
+  attr_accessible   :alive, :available, :bootenv
 
   # Make sure we have names that are legal
   # old:
@@ -84,20 +88,25 @@ class Node < ActiveRecord::Base
     end
   end
 
-  #
-  # This is an hack for now.
-  # XXX: Once networking is better defined, we should use those routines
-  #
-  def address(net = "admin")
-    raise "CB1 do not use - use attrib_admin_address"
-    jig_hash.address(net)
+  def v6_hostpart
+    d = Digest::MD5.hexdigest(name)
+    "#{d[16..19]}:#{d[20..23]}:#{d[24..27]}:#{d[28..32]}"
   end
 
-  def public_ip
-    raise "CB1 do not use - use attrib_public_ip"
-    jig_hash.public_ip
+  def auto_v6_address(net)
+    return nil if net.v6prefix.nil?
+    IP.coerce("#{net.v6prefix}:#{v6_hostpart}/64")
   end
 
+  def addresses
+    net = BarclampNetwork::Network.where(:name => "admin").first
+    raise "No admin network" if net.nil?
+    net.node_allocations(self)
+  end
+
+  def address
+    addresses.detect{|a|a.reachable?}
+  end
   #
   # Helper function to test admin without calling admin. Style-thing.
   #
@@ -214,6 +223,16 @@ class Node < ActiveRecord::Base
     data
   end
 
+  def alive?
+    return false if alive == false
+    return true unless Rails.env == "production"
+    a = address
+    return true if a && BarclampCrowbar::Jig.ssh("root@#{a.addr} -- echo alive")[1]
+    self[:alive] = false
+    save!
+    false
+  end
+
   private
 
   # make sure some safe values are set for the node
@@ -228,12 +247,32 @@ class Node < ActiveRecord::Base
     end
   end
 
+  # Call the on_node_delete hooks.
+  def tear_down_roles
+    Role.all.each do |r|
+      r.on_node_delete(self)
+    end
+  end
+
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
       Role.expand(self.admin ? Role.bootstrap.active : Role.discovery.active).sort.each do |r|
         r.add_to_node_in_snapshot(self,snap)
       end
+    end
+
+    # Call all role on_node_create hooks with ourself.
+    # These should happen synchronously.
+    Role.all.each do |r|
+      r.on_node_create(self)
+    end
+
+    # This is a temporary hack until the DNS barclamp is refactored to handle
+    # node add and remove events.
+    unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")
+      addr = self.addresses.detect{|a|a.v4?}.addr
+      BarclampCrowbar::Jig.ssh("root@localhost 'echo \"#{addr}   #{self.name}\" >>/etc/hosts'")
     end
   end
 end

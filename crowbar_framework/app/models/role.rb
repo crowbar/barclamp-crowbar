@@ -94,6 +94,15 @@ class Role < ActiveRecord::Base
     Rails.logger.debug "No override for #{self.class.to_s}.on_proposed event: #{node_role.role.name} on #{node_role.node.name}"
   end
 
+  # Event triggers for node creation and destruction.
+  def on_node_create(node)
+    true
+  end
+
+  def on_node_delete(node)
+    true
+  end
+  
   def parents
     res = []
     res << jig.client_role if jig.client_role

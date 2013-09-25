@@ -391,7 +391,7 @@ class NodeObject < ChefObject
     if virtual?
       "vm-#{mac.gsub(':',"-")}"
     else
-      @node["dmi"]["chassis"]["serial_number"] rescue nil
+      @node[:dmi]["chassis"]["serial_number"] rescue nil
     end
   end
 
@@ -849,7 +849,9 @@ class NodeObject < ChefObject
   end
 
   def hardware
-    @node["dmi"].nil? ? I18n.t('unknown') : (defined?(@node["dmi"].system) ? @node["dmi"].system.product_name : I18n.t('unknown'))
+    return I18n.t('unknown') if @node[:dmi].nil?
+    return I18n.t('unknown') if @node[:dmi][:system].nil?
+    return @node[:dmi][:system][:product_name]
   end
 
   def raid_set

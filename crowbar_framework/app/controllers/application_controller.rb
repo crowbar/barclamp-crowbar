@@ -123,7 +123,13 @@ class ApplicationController < ActionController::Base
     key ||= params[:id]
     o ||= type_class.find_key key
     if o
-      o.update_attributes params
+      # Only try to update attributes that the object has and which have changed.
+      to_update = params.reject do |k,v|
+        (!o.has_attribute?(k)) ||  # Ignore things that are not attributes on this object.
+          k.to_sym == :id ||  # IDs can never be changed.
+          o[k] == v  # Ignore anything that has not changed.
+      end
+      o.update_attributes! to_update
       return api_show type, type_class, nil, nil, o
     else
       return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found, :content_type=>cb_content_type(type, "error")}

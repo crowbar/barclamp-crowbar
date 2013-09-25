@@ -34,6 +34,7 @@ class NodeRole < ActiveRecord::Base
   scope           :archived,          -> { joins(:snapshot).where('snapshots.state' => Snapshot::ARCHIVED) }
   scope           :current,           -> { joins(:snapshot).where(['"snapshots"."state" != ?',Snapshot::ARCHIVED]).readonly(false) }
   scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
+  scope           :deactivatable,     -> { where(:state => [ACTIVE, TRANSITION, ERROR]) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
   scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state = ?)',TRANSITION]) }
@@ -349,7 +350,11 @@ class NodeRole < ActiveRecord::Base
       save!
     end
   end
-  
+
+  def deactivate
+    block_or_todo
+  end
+
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)
@@ -384,9 +389,10 @@ class NodeRole < ActiveRecord::Base
         end
       when TODO
         # We can only go to TODO when:
-        # 1. We were in PROPOSED or BLOCKED or ERROR
+        # 1. We were in PROPOSED or BLOCKED or ERROR or ACTIVE
         # 2. All our parents are in ACTIVE
-        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) || (cstate == ERROR)
+        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) ||
+            (cstate == ERROR) || (cstate == ACTIVE)
           raise InvalidTransition.new(self,cstate,val)
         end
         unless activatable?
@@ -414,7 +420,7 @@ class NodeRole < ActiveRecord::Base
         # We can only go to BLOCKED from PROPOSED or TODO,
         # or if any our parents are in BLOCKED or TODO or ERROR.
         unless parents.any?{|nr|nr.blocked? || nr.todo? || nr.error?} ||
-            (cstate == PROPOSED || cstate == TODO)
+            (cstate == PROPOSED || cstate == TODO) || (cstate == ACTIVE)
           raise InvalidTransition.new(self,cstate,val)
         end
         # If we are blocked, so are all our children.
@@ -459,13 +465,7 @@ class NodeRole < ActiveRecord::Base
     cstate = state
     # commit! is a no-op for ACTIVE, TRANSITION, or TODO
     return unless (cstate == PROPOSED) || (cstate == BLOCKED)
-    NodeRole.transaction do
-      if (parents.committed.count == 0) || (parents.committed.not_in_state(ACTIVE).count == 0)
-        self.state = TODO
-      else
-        self.state = BLOCKED
-      end
-    end
+    block_or_todo
   end
 
   # convenience methods
@@ -476,5 +476,17 @@ class NodeRole < ActiveRecord::Base
   def jig
     role.jig
   end
-  
+
+  private
+
+  def block_or_todo
+    NodeRole.transaction do
+      if (parents.committed.count == 0) || (parents.committed.not_in_state(ACTIVE).count == 0)
+        self.state = TODO
+      else
+        self.state = BLOCKED
+      end
+    end
+  end
+
 end

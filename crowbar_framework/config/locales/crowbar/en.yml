@@ -283,8 +283,8 @@ en:
       save: "Save"
       saved: "Node Role Data Saved"
     raw:
-      merged: "Merged with Template"
-      override: "Raw Data / Override"
+      merged: "Template"
+      override: "Data / Override"
   roles:
     common: &roles_common
       flags: "Flags"
@@ -343,6 +343,7 @@ en:
       add: "Add '%{role}' Role"
       converge: "Start Installation"
       hint: 'Select Role to edit initial settings'
+      admin_net: 'Core infrastructure network'
   users:
     common: &user_common
       email: Email

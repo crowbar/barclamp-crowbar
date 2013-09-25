@@ -1,18 +1,23 @@
 %div
-  - d = JSON.pretty_generate JSON.parse((data || {}).to_json)
   = find_and_preserve do
-    - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7').nil? and node_role and node_role.state == NodeRole::PROPOSED
+    - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7').nil?
       %table.plain{:width=>"100%"}
+        %tr{:align=>'left'}
+          - if template && !hide
+            %th= t '.merged'
+          - if data && !hide
+            %th= t '.override'
         %tr
-          %th= t '.merged'
-          %th= t '.override'
-        %tr
-          %td{:width=>"50%", :valign=>'top'}
-            %textarea.editor{:name => "template"}
-              = d
-          %td{:width=>"50%", :valign=>'top'}
-            %textarea.editor{:name => "data"}
-              = JSON.pretty_generate JSON.parse((node_role.data(false) || {}).to_json)
+          - if template
+            %td{:valign=>'top'}
+              %textarea.editor{:name => "template"}
+                = JSON.pretty_generate JSON.parse(template) rescue "{}"
+          - if data
+            %td{:valign=>'top'}
+              %textarea.editor{:name => "data"}
+                = JSON.pretty_generate JSON.parse(data) rescue "{}"
     - else
-      %textarea.editor{:name => "data"}
-        = d
+      - if data
+        %textarea.editor{:name => "data"}= data
+      - elsif template
+        %textarea.editor{:name => "template"}= template

@@ -21,20 +21,20 @@
   %h3= t '.data'
   - begin
     - if params.include? :raw
-      = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+      = render :partial => 'raw', :locals => { :data => @node_role.data, :template => @node_role.role.template }
     - else
       = render :partial => "barclamp_#{@node_role.barclamp.name}/node_roles/#{@node_role.role.name}", 
-               :locals  => { :data => @node_role.data, :node_role => @node_role }
+               :locals  => { :data => @node_role.data, :hide => false, :template => @node_role.role.template }
   - rescue Exception => e
     - if Rails.env.development?
       %p= t '.no_overlay'
-    = render :partial => 'raw', :locals => { :data => @node_role.data, :node_role => @node_role }
+    = render :partial => 'raw', :locals => { :data => @node_role.data, :hide => false, :template => @node_role }
 
 %h3= t '.sysdata'
-= render :partial => 'raw', :locals => { :data => @node_role.sysdata, :node_role => nil } 
+= render :partial => 'raw', :locals => { :data => @node_role.sysdata, :hide=> true, :template => nil } 
 
 %h3= t '.wall'
-= render :partial => 'raw', :locals => { :data => @node_role.wall, :node_role => nil } 
+= render :partial => 'raw', :locals => { :data => @node_role.wall, :hide=> true, :template => nil } 
 
 %h3= t '.upstream'
 = render :partial=>'index', :locals => { :list => @node_role.parents }

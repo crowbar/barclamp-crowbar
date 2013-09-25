@@ -223,6 +223,16 @@ class Node < ActiveRecord::Base
     data
   end
 
+  def alive?
+    return false if alive == false
+    return true unless Rails.env == "production"
+    a = address
+    return true if a && BarclampCrowbar::Jig.ssh("root@#{a.addr} -- echo alive")[1]
+    self[:alive] = false
+    save!
+    false
+  end
+
   private
 
   # make sure some safe values are set for the node

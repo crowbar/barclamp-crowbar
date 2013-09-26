@@ -15,7 +15,6 @@ module SchemaMigration
     return if template.nil?
     return if template['deployment'].nil?
     return if template['deployment'][bc_name].nil?
-    return if template['deployment'][bc_name]['schema-revision'].nil?
 
     all_scripts = find_scripts_for_bc(bc_name)
     return if all_scripts.empty?
@@ -71,8 +70,9 @@ module SchemaMigration
       start_revision = old_revision + 1
       end_revision = new_revision
     else
-      start_revision = new_revision
-      end_revision = old_revision - 1
+      # downgrade function to reach revision X is in migration script X+1
+      start_revision = new_revision + 1
+      end_revision = old_revision
     end
 
     Range.new(start_revision, end_revision).each do |rev|
@@ -117,6 +117,9 @@ module SchemaMigration
     end
 
     schema_revision = template['deployment'][bc_name]['schema-revision']
+    if schema_revision.nil?
+      schema_revision = 0
+    end
 
     return [nil, nil] if current_schema_revision == schema_revision
 

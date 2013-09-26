@@ -1,6 +1,9 @@
 - prop = "#{@proposal.barclamp}_#{@proposal.name}"
 - barclamp = @proposal.barclamp
 - role_name = @proposal.name
+- catalog = ServiceObject.barclamp_catalog
+- display_name = catalog['barclamps'][barclamp]['display']
+- display_name = barclamp.titlecase if display_name.nil? or display_name == ""
 %p{:style => 'float:right'}
   = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
 
@@ -19,9 +22,9 @@
       %input.button{:type => "submit", :name=>"submit", :source => "commit1", :match=>'commit2', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
       %input.button{:type => "submit", :name => "submit", :source=>"save1", :match=>"save2", :value => t('.save_proposal'), :'data-remote'=>"true"}
   - if @service_object.simple_proposal_ui? && !Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
-    %h2= link_to "#{@proposal.barclamp.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
+    %h2= link_to "#{display_name}", barclamp_modules_path(:id=>@proposal.barclamp)
   - else
-    %h2= link_to "#{@proposal.barclamp.titlecase}: #{@proposal.name.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
+    %h2= link_to "#{display_name}: #{@proposal.name.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
 
   %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
   %input#name{:type => "hidden", :name => "name", :value => @proposal.name}

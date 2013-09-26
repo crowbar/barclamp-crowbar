@@ -36,7 +36,7 @@
                       %td
                         = link_to t('proposal.actions.edit'), proposal_barclamp_path(:controller=>name, :id=>proposal_name), :class => 'button'
                 - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
-                  - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic"} do |f|
+                  - form_for :proposal, :remote => true, :url => create_proposal_barclamp_path(:controller => name), :html => { :'data-type' => 'html', :'data-method' => 'put', :method => :put, :id => 'create_proposal_form', :class => "formtastic", :autocomplete => "off"} do |f|
                     %tr{:class => ["proposal", cycle(:odd, :even)]}
                       %td{:style => "text-align:center"} +
                       %td

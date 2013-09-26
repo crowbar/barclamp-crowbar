@@ -10,7 +10,7 @@
 .led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'} 
 %h1= t '.title'
 -# Rails 2 needs - and Rails 3 needs =
-- form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box" } do |f|
+- form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box", :autocomplete => "off" } do |f|
   %p{:style=>'float:right'}
     - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
       - if @active

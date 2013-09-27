@@ -51,7 +51,6 @@ class BarclampCrowbar::Jig < Jig
   end
 
   def run(nr)
-    raise "Cannot call ScriptJig::Run on #{nr.name}" unless nr.state == NodeRole::TRANSITION
     # Hardcode this for now
     login = "root@#{nr.node.name}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"

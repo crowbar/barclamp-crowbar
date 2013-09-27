@@ -37,7 +37,7 @@ class NodeRole < ActiveRecord::Base
   scope           :deactivatable,     -> { where(:state => [ACTIVE, TRANSITION, ERROR]) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
-  scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state = ?)',TRANSITION]) }
+  scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state in (?, ?))',TRANSITION,ERROR]) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
   scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
   scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
@@ -139,7 +139,7 @@ class NodeRole < ActiveRecord::Base
   def self.anneal!
     to_run = Hash.new
     NodeRole.transaction do
-      NodeRole.runnable.each do |nr|
+      NodeRole.runnable.order("cohort").each do |nr|
         next unless nr.node.alive?
         to_run[nr.node_id] ||= nr
       end
@@ -149,9 +149,16 @@ class NodeRole < ActiveRecord::Base
       end
     end
     to_run.values.each do |nr|
-      nr.jig.delay(:queue => "NodeRoleRunner").run(nr)
+      nr.run!
     end
     true
+  end
+
+  def run!
+    unless state == TRANSITION || state == ACTIVE
+      raise "Cannot call run! on #{name}"
+    end
+    jig.delay(:queue => "NodeRoleRunner").run(self)
   end
 
   def state
@@ -365,7 +372,7 @@ class NodeRole < ActiveRecord::Base
       case val
       when ERROR
         # We can only go to ERROR from TRANSITION
-        unless cstate == TRANSITION 
+        unless (cstate == TRANSITION) || (cstate == ACTIVE)
           raise InvalidTransition.new(self,cstate,val)
         end
         write_attribute("state",val)
@@ -488,5 +495,5 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-
+  
 end

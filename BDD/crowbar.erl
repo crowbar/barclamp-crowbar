@@ -108,6 +108,8 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-client", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-library", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-discovery", "property", "test", "to", "false"]}), 
+  % create admin network
+  network:make_admin(),
   % create node for testing
   Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));

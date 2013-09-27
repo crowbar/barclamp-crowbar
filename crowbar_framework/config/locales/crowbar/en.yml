@@ -270,8 +270,8 @@ en:
       <<: *deployment_common
     anneal:
       title: "Crowbar Annealer Activity Monitor"
-      converge: "Run All"
-      anneal: "Next Step"
+      anneal: "Run Annealer"
+      step: "Single Step"
       <<: *node_role_states
     show:
       data: "User Configuration Data (outbound)"
@@ -345,7 +345,7 @@ en:
       admin_server: "Crowbar Admin Node"
       create: "Add '%{server}' Node"
       add: "Add '%{role}' Role"
-      converge: "Start Installation"
+      anneal: "Start Installation"
       hint: 'Select Role to edit initial settings'
       admin_net: 'Core infrastructure network'
   users:

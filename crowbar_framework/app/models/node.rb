@@ -25,9 +25,6 @@ class Node < ActiveRecord::Base
   attr_accessible   :alive, :available, :bootenv
 
   # Make sure we have names that are legal
-  # old:
-  #  FQDN_RE = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9]))*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])*\.([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
-  
   # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't 
   # be a top level domain ;p
   FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/

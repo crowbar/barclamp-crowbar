@@ -1,6 +1,7 @@
 %div
   = find_and_preserve do
-    - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7').nil?
+    - agent = request.env['HTTP_USER_AGENT']
+    - if agent.nil? or agent.downcase.index('msie 7').nil? 
       %table.plain{:width=>"100%"}
         %tr{:align=>'left'}
           - if template && !hide

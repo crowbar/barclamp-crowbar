@@ -160,10 +160,14 @@ class ServiceObject
   def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
     # Create map with nodes and their element list
     all_new_nodes = {}
-    elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
+    elements.each do |role_name, nodes|
+      nodes.each do |node_name|
+        if NodeObject.find_node_by_name(node_name).nil?
+          @logger.debug "add_pending_elements: skipping deleted node #{node_name}"
+          next
+        end
+        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
+        all_new_nodes[node_name] << role_name
       end
     end
 
@@ -180,8 +184,8 @@ class ServiceObject
 
       # Add the entries to the nodes.
       if delay.empty?
-        all_new_nodes.each do |n, val|
-          node = pre_cached_nodes[n]
+        all_new_nodes.each do |node_name, val|
+          node = pre_cached_nodes[node_name]
 
           # Nothing to delay so mark them applying.
           node.crowbar['state'] = 'applying'
@@ -189,12 +193,12 @@ class ServiceObject
           node.save
         end
       else
-        all_new_nodes.each do |n, val|
+        all_new_nodes.each do |node_name, val|
           # Make sure we have a node.
-          node = pre_cached_nodes[n]
-          node = NodeObject.find_node_by_name(n) if node.nil?
+          node = pre_cached_nodes[node_name]
+          node = NodeObject.find_node_by_name(node_name) if node.nil?
           next if node.nil?
-          pre_cached_nodes[n] = node
+          pre_cached_nodes[node_name] = node
 
           # Make sure the node is allocated
           node.allocated = true
@@ -203,7 +207,7 @@ class ServiceObject
           node.save
         end
       end
-    rescue Exception => e
+    rescue StandardError => e
       @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
@@ -215,18 +219,22 @@ class ServiceObject
   def remove_pending_elements(bc, inst, elements)
     # Create map with nodes and their element list
     all_new_nodes = {}
-    elements.each do |elem, nodes|
-      nodes.each do |node|
-        all_new_nodes[node] = [] if all_new_nodes[node].nil?
-        all_new_nodes[node] << elem
+    elements.each do |role_name, nodes|
+      nodes.each do |node_name|
+        if NodeObject.find_node_by_name(node_name).nil?
+          @logger.debug "remove_pending_elements: skipping deleted node #{node_name}"
+          next
+        end
+        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
+        all_new_nodes[node_name] << role_name
       end
     end
 
     # Remove the entries from the nodes.
     f = acquire_lock "BA-LOCK"
     begin
-      all_new_nodes.each do |n,data|
-        node = NodeObject.find_node_by_name(n)
+      all_new_nodes.each do |node_name, data|
+        node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
         unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
           node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = {}
@@ -241,8 +249,8 @@ class ServiceObject
   def restore_to_ready(nodes)
     f = acquire_lock "BA-LOCK"
     begin
-      nodes.each do |n|
-        node = NodeObject.find_node_by_name(n)
+      nodes.each do |node_name|
+        node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
 
         # Nothing to delay so mark them applying.
@@ -324,7 +332,7 @@ class ServiceObject
       end
 
       db.save
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
     ensure
       release_lock f
@@ -351,7 +359,7 @@ class ServiceObject
         prop["deployment"][bc]["crowbar-queued"] = false
         prop.save
       end
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
       return false
@@ -373,7 +381,7 @@ class ServiceObject
       queue = db["proposal_queue"]
       dequeued = dequeue_proposal_no_lock(queue, inst, bc)
       db.save if dequeued
-    rescue Exception => e
+    rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return [400, e.message]
@@ -438,10 +446,10 @@ class ServiceObject
 
           # Create map with nodes and their element list
           all_new_nodes = {}
-          prop["deployment"][item["barclamp"]]["elements"].each do |elem, nodes|
+          prop["deployment"][item["barclamp"]]["elements"].each do |role_name, nodes|
             nodes.each do |node|
               all_new_nodes[node] = [] if all_new_nodes[node].nil?
-              all_new_nodes[node] << elem
+              all_new_nodes[node] << role_name
             end
           end
           delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys)
@@ -459,7 +467,7 @@ class ServiceObject
       
         db.save if save_db
 
-      rescue Exception => e
+      rescue StandardError => e
         @logger.error("Error processing queue: #{e.message}")
         @logger.debug("process queue: exit: error")
         return
@@ -730,7 +738,7 @@ class ServiceObject
     path = "schema" unless CHEF_ONLINE
     begin
       validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.error("failed to load databag schema for #{@bc_name}: #{e.message}")
       Rails.logger.debug e.backtrace.join("\n")
       raise Chef::Exceptions::ValidationFailed.new( "failed to load databag schema for #{@bc_name}: #{e.message}" )
@@ -820,8 +828,6 @@ class ServiceObject
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
-    nodes = {}
-
     # Get the new elements list
     new_deployment = role.override_attributes[@bc_name]
     new_elements = new_deployment["elements"]
@@ -854,63 +860,105 @@ class ServiceObject
     role_map = new_deployment["element_states"]
     role_map = {} unless role_map
 
-    # Merge the parts based upon the element install list.
-    all_nodes = []
-    run_order = []
-    element_order.each do | elems |
-      @logger.debug "elems #{elems.inspect}"
-      r_nodes = []
-      elems.each do |elem|
-        old_nodes = old_elements[elem]
-        new_nodes = new_elements[elem]
+    # deployment["element_order"] tells us which order the various
+    # roles should be applied, and deployment["elements"] tells us
+    # which nodes each role should be applied to.  We need to "join
+    # the dots" between these two, to build lists of pending role
+    # addition/removal actions, which will allow us to perform the
+    # correct operations on the nodes' run lists, and then run
+    # chef-client in the correct order.  So we build a
+    # pending_node_actions Hash which maps each node name to a Hash
+    # representing pending role addition/removal actions for that
+    # node, e.g.
+    #
+    #   {
+    #     :remove => [ role1_to_remove, ... ],
+    #     :add    => [ role1_to_add,    ... ]
+    #   }
+    pending_node_actions = {}
 
-        @logger.debug "elem #{elem.inspect}"
+    all_nodes = []
+
+    # We'll build an Array where each item represents a batch of work,
+    # and the batches must be performed sequentially in this order.
+    # This will mirror the ordering specified by element_order below,
+    # but the sub-arrays of run_order will be Arrays of names of the
+    # involved nodes, whereas the sub-arrays of element_order are Arrays
+    # of names of Chef roles.
+    run_order = []
+
+    # element_order is an Array where each item represents a batch of
+    # work, and the batches must be performed sequentially in this order.
+    element_order.each do |elems|
+      # elems is an Array of names of Chef roles which can all be
+      # applied in parallel.
+      @logger.debug "elems #{elems.inspect}"
+
+      nodes_in_batch = []
+
+      elems.each do |role_name|
+        old_nodes = old_elements[role_name]
+        new_nodes = new_elements[role_name]
+
+        @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
         unless old_nodes.nil?
           elem_remove = nil
-          tmprole = RoleObject.find_role_by_name "#{elem}_remove"
+          tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
           unless tmprole.nil?
             elem_remove = tmprole.name
           end
 
-          old_nodes.each do |n|
-            if new_nodes.nil? or !new_nodes.include?(n)
-              @logger.debug "remove node #{n}"
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:remove] << elem 
-              nodes[n][:add] << elem_remove unless elem_remove.nil?
-              r_nodes << n
+          old_nodes.each do |node_name|
+            # Don't add deleted nodes to the run order
+            if NodeObject.find_node_by_name(node_name).nil?
+              @logger.debug "skipping deleted node #{node_name}"
+              next
+            end
+
+            if new_nodes.nil? or !new_nodes.include?(node_name)
+              @logger.debug "remove node #{node_name}"
+              pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
+              pending_node_actions[node_name][:remove] << role_name
+              pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
+              nodes_in_batch << node_name
             end
           end
         end
 
         unless new_nodes.nil?
-          new_nodes.each do |n|
-            all_nodes << n unless all_nodes.include?(n)
-            if old_nodes.nil? or !old_nodes.include?(n)
-              @logger.debug "add node #{n}"
-              nodes[n] = { :remove => [], :add => [] } if nodes[n].nil?
-              nodes[n][:add] << elem
+          new_nodes.each do |node_name|
+            # Don't add deleted nodes to the run order
+            if NodeObject.find_node_by_name(node_name).nil?
+              @logger.debug "skipping deleted node #{node_name}"
+              next
             end
-            r_nodes << n unless r_nodes.include?(n)
+
+            all_nodes << node_name unless all_nodes.include?(node_name)
+            if old_nodes.nil? or !old_nodes.include?(node_name)
+              @logger.debug "add node #{node_name}"
+              pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
+              pending_node_actions[node_name][:add] << role_name
+            end
+            nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
           end
         end
       end
-      @logger.debug "r_nodes #{r_nodes.inspect}"
+      @logger.debug "nodes_in_batch #{nodes_in_batch.inspect}"
       @logger.debug "run_order #{run_order.inspect}"
-      run_order << r_nodes unless r_nodes.empty?
+      run_order << nodes_in_batch unless nodes_in_batch.empty?
     end
 
-    @logger.debug "Clean the run_lists for #{nodes.inspect}"
+    @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
-    nodes.each do |n, lists|
-      node = pre_cached_nodes[n]
-      node = NodeObject.find_node_by_name(n) if node.nil?
+    pending_node_actions.each do |node_name, lists|
+      node = pre_cached_nodes[node_name]
+      node = NodeObject.find_node_by_name(node_name) if node.nil?
       next if node.nil?
 
-      admin_nodes << n if node.admin?
+      admin_nodes << node_name if node.admin?
 
       save_it = false
 
@@ -961,7 +1009,7 @@ class ServiceObject
 
     begin
       apply_role_pre_chef_call(old_role, role, all_nodes)
-    rescue Exception => e
+    rescue StandardError => e
       @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception before calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)
@@ -972,24 +1020,24 @@ class ServiceObject
 
     # Each batch is a list of nodes that can be done in parallel.
     ran_admin = false
-    run_order.each do | batch |
+    run_order.each do |batch|
       next if batch.empty?
       @logger.debug "batch #{batch.inspect}"
 
-      snodes = []
+      non_admin_nodes = []
       admin_list = []
-      batch.each do |n|
+      batch.each do |node_name|
         # Run admin nodes a different way.
-        if admin_nodes.include?(n)
-          @logger.debug "#{n} is in admin_nodes #{admin_nodes.inspect}"
-          admin_list << n
+        if admin_nodes.include?(node_name)
+          @logger.debug "#{node_name} is in admin_nodes #{admin_nodes.inspect}"
+          admin_list << node_name
           ran_admin = true
           next
         end
-        snodes << n
+        non_admin_nodes << node_name
       end
  
-      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{snodes.join(" ")}")
+      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
       @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
@@ -1001,8 +1049,8 @@ class ServiceObject
         # Make this better one day.
         #
         pids = {}
-        unless snodes.empty?
-          snodes.each do |node|
+        unless non_admin_nodes.empty?
+          non_admin_nodes.each do |node|
             nobj = NodeObject.find_node_by_name(node)
             unless nobj[:platform] == "windows"
               filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"

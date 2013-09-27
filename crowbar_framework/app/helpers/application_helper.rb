@@ -76,7 +76,7 @@ module ApplicationHelper
         render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
       rescue ActionView::MissingTemplate
         render :partial => 'barclamp/edit_attributes_raw'
-      rescue Exception => e
+      rescue StandardError => e
         puts "Attribute Exception #{e.class}: #{e.message}"
         puts e.backtrace.join("\n")
         render :partial => 'barclamp/edit_attributes_raw'
@@ -93,7 +93,7 @@ module ApplicationHelper
           render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
         rescue ActionView::MissingTemplate
           render :partial => 'barclamp/edit_deployment_raw'
-        rescue Exception => e
+        rescue StandardError => e
           puts "Deployment Exception #{e.message}"
           puts e.backtrace.join("\n")
           render :partial => 'barclamp/edit_deployment_raw'

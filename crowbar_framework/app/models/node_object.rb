@@ -296,7 +296,7 @@ class NodeObject < ChefObject
       since_last = Time.now.to_i-@node['ohai_time'].to_i
       return 'noupdate' if since_last > 1200 # or 20 mins
     end
-    return self.crowbar['state']
+    return self.crowbar['state'] || 'unknown'
   end
 
   def ip

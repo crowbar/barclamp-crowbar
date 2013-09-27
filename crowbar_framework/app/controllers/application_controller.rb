@@ -166,4 +166,14 @@ class ApplicationController < ActionController::Base
     end
     ret
   end
+
+  def flash_and_log_exception(e)
+    flash[:notice] = e.message
+    log_exception(e)
+  end
+
+  def log_exception(e)
+    lines = [ e.message ] + e.backtrace
+    Rails.logger.warn lines.join("\n")
+  end
 end

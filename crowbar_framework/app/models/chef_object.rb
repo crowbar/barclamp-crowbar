@@ -29,7 +29,7 @@ class ChefObject
         @@CrowbarDomain = bag[:attributes][:dns][:domain] || (CHEF_ONLINE ? %x{dnsdomainname}.strip : OFFLINE_DOMAIN)
       end
       return @@CrowbarDomain
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.warn("Could not lookup domain name from Crowbar DNS barclamp attributes/dns/domain key.  Error #{e.message}.")
       @@CrowbarDomain = (CHEF_ONLINE ? nil : OFFLINE_DOMAIN) # reset to make sure we do not cache it
       return %x{dnsdomainname}.strip
@@ -60,7 +60,7 @@ class ChefObject
     begin 
       chef_init
       return Chef::Node.load(name)
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
       return nil
     end
@@ -70,7 +70,7 @@ class ChefObject
     begin 
       chef_init
       return Chef::DataBag.load "crowbar/#{bag_item}"
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")
       return nil
     end

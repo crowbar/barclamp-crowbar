@@ -47,7 +47,7 @@ class ProposalObject < ChefObject
         files = self.offline_search('data_bag_item_crowbar-', search.chop)
         props = files.map { |file| ProposalObject.new(self.recover_json(file)) }
       end
-    rescue Exception => e
+    rescue StandardError => e
        Rails.logger.error("Could not recover Chef Crowbar data searching for '#{search}' due to '#{e.inspect}'")
     end
     return props

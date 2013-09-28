@@ -121,46 +121,6 @@ class NodeRole < ActiveRecord::Base
     I18n.t(STATES[state], :scope=>'node_role.state')
   end
 
-  def self.reset!
-    NodeRole.transaction do
-      NodeRole.all.each do |nr|
-        nr.send(:write_attribute,"state",NodeRole::PROPOSED)
-        nr.data = {}
-        nr.wall = {}
-        nr.save!
-      end
-      NodeRole.all.each do |nr|
-        nr.commit!
-      end
-    end
-  end
-
-  # The very basic annealer.
-  def self.anneal!
-    to_run = Hash.new
-    NodeRole.transaction do
-      NodeRole.runnable.order("cohort").each do |nr|
-        next unless nr.node.alive?
-        to_run[nr.node_id] ||= nr
-      end
-      return nil if to_run.empty?
-      to_run.values.each do |nr|
-        nr.state = TRANSITION
-      end
-    end
-    to_run.values.each do |nr|
-      nr.run!
-    end
-    true
-  end
-
-  def run!
-    unless state == TRANSITION || state == ACTIVE
-      raise "Cannot call run! on #{name}"
-    end
-    jig.delay(:queue => "NodeRoleRunner").run(self)
-  end
-
   def state
     read_attribute("state")
   end
@@ -234,7 +194,7 @@ class NodeRole < ActiveRecord::Base
     state == TODO
   end
 
-  def transistion?
+  def transition?
     state == TRANSITION
   end
 
@@ -249,6 +209,10 @@ class NodeRole < ActiveRecord::Base
   def activatable?
     (parents.current.count == 0) ||
       (parents.current.not_in_state(ACTIVE).count == 0)
+  end
+
+  def runnable?
+    node.available? && node.alive? && jig.active
   end
 
   # Walk returns all of the NodeRole graph (including self) reachable from
@@ -356,6 +320,7 @@ class NodeRole < ActiveRecord::Base
       write_attribute("state",TODO)
       save!
     end
+    Run.enqueue(self) if self.runnable?
   end
 
   def deactivate
@@ -368,6 +333,7 @@ class NodeRole < ActiveRecord::Base
     cstate = state
     return val if val == cstate
     Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
+    meth = "on_#{STATES[val]}".to_sym
     NodeRole.transaction do
       case val
       when ERROR
@@ -377,6 +343,7 @@ class NodeRole < ActiveRecord::Base
         end
         write_attribute("state",val)
         save!
+        role.send(meth,self) if snapshot.committed?
         # All children of a node_role in ERROR go to BLOCKED.
         children.each do |c|
           next unless c.snapshot.committed?
@@ -389,6 +356,7 @@ class NodeRole < ActiveRecord::Base
         end
         write_attribute("state",val)
         save!
+        role.send(meth,self) if snapshot.committed?
         # Immediate children of an ACTIVE node go to TODO
         children.each do |c|
           next unless c.snapshot.committed? && c.activatable?
@@ -407,6 +375,7 @@ class NodeRole < ActiveRecord::Base
         end
         write_attribute("state",val)
         save!
+        role.send(meth,self) if snapshot.committed?
         # Going into TODO transitions all our children into BLOCKED.
         children.each do |c|
           c.state = BLOCKED
@@ -418,11 +387,12 @@ class NodeRole < ActiveRecord::Base
         # to batch up noderole runs by noticing that a noderole it was handed
         # in TRANSITION has children on the same node utilizing the same jig
         # in BLOCKED, and preemptivly grabbing them to batch them up.
-        unless cstate == TODO
+        unless (cstate == TODO) || (cstate == ACTIVE)
           raise InvalidTransition.new(self,cstate,val)
         end
         write_attribute("state",val)
         save!
+        role.send(meth,self) if snapshot.committed?
       when BLOCKED
         # We can only go to BLOCKED from PROPOSED or TODO,
         # or if any our parents are in BLOCKED or TODO or ERROR.
@@ -447,21 +417,23 @@ class NodeRole < ActiveRecord::Base
           end
           c.send(:write_attribute,"state",BLOCKED)
           c.save!
+          role.send(meth,self) if snapshot.committed?
         end
       else
         # No idea what this is.  Just die.
         raise InvalidState.new("Unknown state #{s.inspect}")
       end
-      # Now that the state change has passed, call any hooks for the new state.
-      meth = "on_#{STATES[val]}".to_sym
-      role.send(meth,self) if snapshot.committed?
+      # If the new state is TODO, enqueue ourself.
+      Run.enqueue(self) if self.runnable? && val == TODO
+      # Kick the runner every time something transitions to ACTIVE.
+      Run.run! if val == ACTIVE
     end
     self
   end
   
   # convenience methods
   def name
--   "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
+   "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
   end
 
   # Commit takes us back to TODO or BLOCKED, depending

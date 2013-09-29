@@ -158,6 +158,20 @@ step(_Given, {step_when, {Scenario, _N}, ["I add",node, Node,"to",deployment, De
   bdd_utils:log(debug, annealer, step, "Add node_role ~p POST ~p",[Path, JSON]),
   bdd_restrat:create(Path, JSON, role, Scenario);
 
+
+step(_Given, {step_when, _N, ["REST gets the",network,Network,range,"list"]})  -> 
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = range:path(Network,""),
+  bdd_utils:log(debug, crowbar, step, "REST range get ~p list for ~p path", [Network, URI]),
+  R = eurl:get_http(URI),
+  [R, bdd_restrat:get_object(R)];
+
+step(_Given, {step_when, _N, ["REST gets the",network,Network,range,Key]})  ->
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = range:path(Network,Key),
+  bdd_utils:log(debug, crowbar, step, "REST range get the object ~p for ~p path", [Network, URI]),
+  bdd_restrat:step(_Given, {step_when, _N, ["REST requests the",URI,"page"]});
+
 % ============================  THEN STEPS =========================================
 
 

@@ -20,7 +20,9 @@
 % This method is used to define constants
 g(Item) ->
   case Item of
-    path -> "network/api/v2/networks";
+    base -> "network/api/v2/";
+    path -> g(base) ++ "networks";
+    ipath -> g(base) ++ "interfaces";
     _ -> crowbar:g(Item)
   end.
 
@@ -56,6 +58,19 @@ make_admin() ->
     true -> 
       bdd_utils:log(info, network, make_admin, "Network-Admin Exists, did not recreate", [])
   end.
+
+step(_Global, {step_given, {_Scenario, _N}, ["I add an Interface",Interface,"with map",Map]}) -> 
+ JSON = crowbar:json([{pattern, Interface}, {bus_order, Map}]),
+ bdd_utils:log(debug, network, step, "creating interface ~p map ~p with JSON ~p", [Interface, Map, JSON]),
+ eurl:put_post(g(ipath), JSON, post);
+
+step(_Given, {step_when, {Scenario, _N}, ["I use the Network API to create",Network,"with range",Range,"from",First,"to",Last]}) -> 
+  step(_Given, {step_given, {Scenario, _N}, ["I use the Network API to create",Network,"with range",Range,"from",First,"to",Last]});
+step(_Global, {step_given, {Scenario, _N}, ["I use the Network API to create",Network,"with range",Range,"from",First,"to",Last]}) -> 
+ JSON = crowbar:json([{name, Network}, {description, g(description)}, {order, g(order)}, {conduit, "1g1"}, {deployment, "system"},
+      {ranges, [{0, [{name, Range}, {first, First}, {last, Last}] }] } ]),
+ bdd_utils:log(debug, network, step, "creating network ~p on range ~p [~p to ~p] with JSON ~p", [Network, Range, First, Last, JSON]),
+ bdd_restrat:create(g(path), JSON, network, Scenario);
 
 step(_Global, {step_setup, _N, _}) -> true;
 

@@ -98,10 +98,9 @@ json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 % global setup
 step(Global, {step_setup, {Scenario, _N}, Test}) -> 
   % setup the groups object override
+  bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
   bdd_utils:alias(group, group_cb),
   bdd_utils:alias(user, user_cb),
-  bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
-  bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
   % turn off the delays in the test jig
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "false"]}), 
@@ -111,6 +110,7 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   % create admin network
   network:make_admin(),
   % create node for testing
+  bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
   Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 

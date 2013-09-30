@@ -67,26 +67,30 @@ Feature: Nodes
   Scenario: Node Alive Settable Default False
     Given there is a {object:node} "bdd-alive-false.example.com"
     When REST gets the {object:node} "bdd-alive-false.example.com"
-    Then the key "alive" should be "false"
+    Then key "alive" should be "false"
       And the {object:node} is properly formatted
+    Finally REST removes the {object:node} "bdd-alive-false.example.com"
 
   Scenario: Node Alive Settable
     Given there is a {object:node} "bdd-alive-set.example.com"
     When REST sets the {object:node} "bdd-alive-set.example.com" {atom:alive} state to be "true"
-    Then the key "alive" should be "true"
+    Then key "alive" should be "true"
       And the {object:node} is properly formatted
+    Finally REST removes the {object:node} "bdd-alive-set.example.com"
 
   Scenario: Node Available Settable Default True
     Given there is a {object:node} "bdd-available-false.example.com"
     When REST gets the {object:node} "bdd-available-false.example.com"
-    Then the key "available" should be "true"
+    Then key "available" should be "true"
       And the {object:node} is properly formatted
+    Finally REST removes the {object:node} "bdd-available-false.example.com"
 
   Scenario: Node Available Settable
     Given there is a {object:node} "bdd-available-set.example.com"
     When REST sets the {object:node} "bdd-available-set.example.com" {atom:available} state to be "false"
-    Then the key "available" should be "false"
+    Then key "available" should be "false"
       And the {object:node} is properly formatted
+    Finally REST removes the {object:node} "bdd-available-set.example.com"
 
 
 

@@ -34,6 +34,7 @@ class Role < ActiveRecord::Base
   belongs_to      :barclamp
   belongs_to      :jig,               :foreign_key=>:jig_name, :primary_key=>:name
   has_many        :role_requires,     :dependent => :destroy
+  has_many        :node_roles
   alias_attribute :requires,          :role_requires
 
   #has_many        :upstreams,         :through => :role_requires

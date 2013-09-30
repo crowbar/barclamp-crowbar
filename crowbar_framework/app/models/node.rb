@@ -20,6 +20,7 @@ class Node < ActiveRecord::Base
   before_validation :default_population
   after_create :add_default_roles
   before_destroy :tear_down_roles
+  after_save :after_save_handler
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
   attr_accessible   :alive, :available, :bootenv
@@ -231,6 +232,14 @@ class Node < ActiveRecord::Base
   end
 
   private
+
+  def after_save_handler
+    if !self.alive
+      node_roles.deactivatable.each do |nr|
+        nr.deactivate
+      end
+    end
+  end
 
   # make sure some safe values are set for the node
   def default_population

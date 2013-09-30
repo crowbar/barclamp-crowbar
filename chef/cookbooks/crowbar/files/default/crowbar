@@ -36,7 +36,7 @@ post_state() {
 case $1 in
     start|'')
         # clean up files just in case
-        rm -rf /tmp/looper-chef-client.lock /tmp/chef-client.run /tmp/chef-client.lock
+        rm -rf /var/run/crowbar/looper-chef-client.lock /var/run/crowbar/chef-client.run /var/run/crowbar/chef-client.lock
 
         # Mark us as readying, and get our cert.
 	post_state $HOSTNAME "readying"

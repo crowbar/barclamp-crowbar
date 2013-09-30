@@ -15,19 +15,19 @@
 #
 
 
-[[ -f /tmp/deploying ]] && exit 0
+[[ -f /var/run/crowbar/deploying ]] && exit 0
 
-lockfile="/tmp/looper-chef-client.lock"
+lockfile="/var/run/crowbar/looper-chef-client.lock"
 
 if ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; then
     trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
     
     while true; do
-	rm -f /tmp/chef-client.run
+	rm -f /var/run/crowbar/chef-client.run
 	
 	/opt/dell/bin/blocking_chef_client.sh
 	
-	while [[ ! -f /tmp/chef-client.run ]]
+	while [[ ! -f /var/run/crowbar/chef-client.run ]]
 	do
 	    sleep 1
 	done
@@ -38,6 +38,6 @@ if ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; then
     trap - INT TERM EXIT
     exit 0
 else
-    touch /tmp/chef-client.run
+    touch /var/run/crowbar/chef-client.run
 fi
 

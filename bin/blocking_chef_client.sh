@@ -14,7 +14,7 @@
 # limitations under the License.
 # 
 
-lockfile="/tmp/chef-client.lock"
+lockfile="/var/run/crowbar/chef-client.lock"
 while ! ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; do
     pid=$(cat "$lockfile")
     echo "Failed to aquire lockfile: $lockfile."

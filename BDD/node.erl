@@ -35,7 +35,7 @@ validate(JSON) when is_record(JSON, obj) ->
   R =[JSON#obj.type == "node",
       bdd_utils:is_a(J, length, 13),
       bdd_utils:is_a(J, boolean, alive), 
-      bdd_utils:is_a(J, boolean, availble), 
+      bdd_utils:is_a(J, boolean, available), 
       bdd_utils:is_a(J, boolean, allocated), 
       bdd_utils:is_a(J, boolean, admin), 
       bdd_utils:is_a(J, string, bootenv), 

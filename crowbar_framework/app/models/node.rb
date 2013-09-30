@@ -29,7 +29,7 @@ class Node < ActiveRecord::Base
   # be a top level domain ;p
   FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/
   # for to_api_hash
-  API_ATTRIBUTES = ["id", "name", "description", "order", "admin",
+  API_ATTRIBUTES = ["id", "name", "description", "order", "admin", "available", "alive",
                     "allocated", "created_at", "updated_at"]
 
   # 
@@ -247,7 +247,11 @@ class Node < ActiveRecord::Base
   # Call the on_node_delete hooks.
   def tear_down_roles
     Role.all.each do |r|
-      r.on_node_delete(self)
+      begin 
+        r.on_node_delete(self)
+      rescue Exception => e
+        Rails.logger.error "node #{name} attempting to cleanup role #{r.name} failed with #{e.message}"
+      end
     end
   end
 
@@ -267,9 +271,12 @@ class Node < ActiveRecord::Base
 
     # This is a temporary hack until the DNS barclamp is refactored to handle
     # node add and remove events.
-    unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")
-      addr = self.addresses.detect{|a|a.v4?}.addr
-      BarclampCrowbar::Jig.ssh("root@localhost 'echo \"#{addr}   #{self.name}\" >>/etc/hosts'")
+    script_jib = Jig.find_key 'script'
+    if script_jib.active
+      unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")
+        addr = self.addresses.detect{|a|a.v4?}.addr
+        BarclampCrowbar::Jig.ssh("root@localhost 'echo \"#{addr}   #{self.name}\" >>/etc/hosts'")
+      end
     end
   end
 end

@@ -1,6 +1,5 @@
 %p{:style => 'float:right'}
   = link_to t('.anneal'), anneal_path(:version=>'v2', :step=>Rails.env.development?), :class => 'button', :"data-method"=>:put, :remote=>true
-  = link_to t('.converge'), converge_path(:version=>'v2'), :class => 'button', :"data-method"=>:put, :remote=>true
 %h1= t '.title'
 
 %h2= t '.error'

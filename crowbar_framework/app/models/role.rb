@@ -95,10 +95,13 @@ class Role < ActiveRecord::Base
   end
 
   # Event triggers for node creation and destruction.
+  # roles should override if they want to handle node addition
   def on_node_create(node)
     true
   end
 
+  # Event triggers for node creation and destruction.
+  # roles should override if they want to handle node destruction
   def on_node_delete(node)
     true
   end

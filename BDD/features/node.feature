@@ -63,3 +63,30 @@ Feature: Nodes
       And the list should have an object with key "name" value "bdd1.example.com"
       And the list should have an object with key "name" value {lookup:crowbar.node_name}
     Finally REST removes the {object:node} "bdd-node-list.example.com"
+
+  Scenario: Node Alive Settable Default False
+    Given there is a {object:node} "bdd-alive-false.example.com"
+    When REST gets the {object:node} "bdd-alive-false.example.com"
+    Then the key "alive" should be "false"
+      And the {object:node} is properly formatted
+
+  Scenario: Node Alive Settable
+    Given there is a {object:node} "bdd-alive-set.example.com"
+    When REST sets the {object:node} "bdd-alive-set.example.com" {atom:alive} state to be "true"
+    Then the key "alive" should be "true"
+      And the {object:node} is properly formatted
+
+  Scenario: Node Available Settable Default True
+    Given there is a {object:node} "bdd-available-false.example.com"
+    When REST gets the {object:node} "bdd-available-false.example.com"
+    Then the key "available" should be "true"
+      And the {object:node} is properly formatted
+
+  Scenario: Node Available Settable
+    Given there is a {object:node} "bdd-available-set.example.com"
+    When REST sets the {object:node} "bdd-available-set.example.com" {atom:available} state to be "false"
+    Then the key "available" should be "false"
+      And the {object:node} is properly formatted
+
+
+

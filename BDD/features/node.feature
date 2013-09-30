@@ -92,5 +92,28 @@ Feature: Nodes
       And the {object:node} is properly formatted
     Finally REST removes the {object:node} "bdd-available-set.example.com"
 
+  Scenario: Node UI shows alive
+    Given there is a {object:node} "bdd-alive-ui.example.com"
+    When I go to the "nodes/bdd-alive-ui.example.com" page 
+    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
+  Scenario: Nodes UI shows alive
+    Given there is a {object:node} "bdd-alive-ui.example.com"
+    When I go to the "nodes" page 
+    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
+  Scenario: Node UI shows reserved
+    Given there is a {object:node} "bdd-reserved-ui.example.com"
+      And REST sets the {object:node} "bdd-reserved-ui.example.com" {atom:available} state to be "false"
+    When I go to the "nodes/bdd-reserved-ui.example.com" page 
+    Then I should see {bdd:crowbar.i18n.common.state.reserved}
+    Finally REST removes the {object:node} "bdd-reserved-ui.example.com"
+
+  Scenario: Nodes UI shows reserved
+    Given there is a {object:node} "bdd-reserved-ui1.example.com"
+      And REST sets the {object:node} "bdd-reserved-ui1.example.com" {atom:available} state to be "false"
+    When I go to the "nodes" page 
+    Then I should see {bdd:crowbar.i18n.common.state.reserved}
+    Finally REST removes the {object:node} "bdd-reserved-ui1.example.com"

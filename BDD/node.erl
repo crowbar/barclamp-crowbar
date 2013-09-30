@@ -56,6 +56,8 @@ json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Desc
      
 % Common Routines
 
+step(_Given, {step_given, {_Scenario, _N}, ["REST sets the",node,Node,Field,"state to be",Value]}) -> 
+  step(_Given, {step_when, {_Scenario, _N}, ["REST sets the",node,Node,Field,"state to be",Value]});
 step(_Given, {step_when, {_Scenario, _N}, ["REST sets the",node,Node,Field,"state to be",Value]}) -> 
   % this could be done genericly in bdd_restrat if we get it working!!
   URI = eurl:path([g(path), Node]),

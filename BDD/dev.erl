@@ -35,6 +35,8 @@ pop(ConfigRaw)  ->
   % safety setup 
   bdd_crud:delete(node:g(path), crowbar:g(node_name)),
   {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
+  % admin network
+  network:make_admin(),
   % admin node
   Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Admin, g(node_atom)),

@@ -26,6 +26,10 @@ en:
       proposed:   "Proposed"
       archived:   "Archived"
       committed:  "Committed"
+      alive:      "On"
+      dead:       "Off"
+      available:  "Available"
+      reserved:   "Reserved"
     deployment: &deployment_common
       deployment: "Deployment"
       snapshot: "Snapshot"
@@ -229,6 +233,7 @@ en:
       no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
       bootstrap: "Configure System"
       <<: *deployment_common
+      <<: *node_role_states
     show:
       node_roles: "In Process Actions"
       alive: "Alive"
@@ -262,8 +267,11 @@ en:
       asset_tag: Service Tag
       raid: RAID
       bdd_marker: BDD Marker
+      reserve: "Reserve"
+      release: "Release"
       <<: *bios_types
       <<: *raid_types
+      <<: *node_role_states
   node_roles:
     index:
       title: "Node Roles"

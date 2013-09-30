@@ -9,6 +9,7 @@
       %tr
         %th
         %th= t '.name'
+        %th= t '.status'
         %th= t '.admin'
         %th= t '.description'
     %tbody
@@ -18,6 +19,9 @@
             .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}
           %td
             = link_to n.name, node_path(n.id)
+          %td
+            = t (n.alive ? ".alive" : ".dead")
+            = t (n.available ? ".available" : ".reserved")
           %td
             = t 'yes' if n.admin
           %td= n.description

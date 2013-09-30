@@ -14,7 +14,7 @@
 % 
 -module(eurl).
 -export([post/3, put/3, delete/1, delete/2, post_params/1, post/5, put_post/3, put_post/4, put_post/5, uri/1, path/1, path/2]).
--export([get_http/1, get_result/1, get_result/2, get/1, get/2, get/3, get_page/3, peek/2, search/2, search/3]).
+-export([get_http/1, get_result/1, get_result/2, get_result/3, get/1, get/2, get/3, get_page/3, peek/2, search/2, search/3]).
 -export([find_button/2, find_link/2, find_block/4, find_block/5, find_form/2, find_div/2, html_body/1, html_head/1, find_heading/2]).
 -export([form_submit/2, form_fields_merge/2]).
 -export([encode/1]).
@@ -191,7 +191,6 @@ find_form(Input, KeyPhrase) ->
   bdd_utils:log(debug, "eurl:find_form - form action ~p parse ~p fields ~p",[Method, Href, Inputs]),
   [{target, Href}, {method, Method}, {fields, Inputs}].
 
-
 % we allow for a of open tags (nesting) but only the inner close is needed
 find_block(OpenTag, CloseTag, Input, Match)         -> find_block(OpenTag, CloseTag, Input, Match, 1000).
 find_block(OpenTag, CloseTag, Input, Match, MaxLen) ->
@@ -252,7 +251,31 @@ get_result(Results, Type) ->
     X -> bdd_utils:log(warn, eurl, get_result, "error ~p for ~p in result ~p",[X,Type, Results]),
     not_found
   end.
-  
+% special case for finding http text data matching the selected type recursively
+get_result([],            Type, DataType) -> 
+  bdd_utils:log(warn, eurl, get_result, "did not find expected ~p/~p in result",[Type, DataType]), 
+  not_found;
+get_result([R | Results], Type, DataType) when is_record(R, http) ->
+  case R#http.datatype of 
+    DataType  -> R;
+    _         -> get_result(Results, Type, DataType)
+  end;
+get_result([R | Results], Type, DataType) when is_record(R, obj) ->
+  case R#obj.type of 
+    DataType  -> R;
+    _         -> get_result(Results, Type, DataType)
+  end;
+get_result([R | Results], Type, DataType) when is_record(R, list) ->
+  case R#list.type of 
+    DataType  -> R;
+    _         -> get_result(Results, Type, DataType)
+  end;
+get_result([R | Results], Type, DataType) when is_record(R, item) ->
+  case R#item.type of 
+    DataType  -> R;
+    _         -> get_result(Results, Type, DataType)
+  end.
+
 % get a page from a server - return http record  
 get_http(Page)                -> simple_auth:request(uri(Page)).
 % get a page from a server - returns {Code, Body}

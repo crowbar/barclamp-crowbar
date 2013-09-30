@@ -105,7 +105,7 @@ delete(URI) ->
     404   -> bdd_utils:log(trace,bdd_crud, destroy,  "Removal of obj at ~s skipped: not found.", [URI]),
              [R];
     200   -> DR = eurl:delete(URI),
-             bdd_utils:log(debug, bdd_crud, destroy, "Removed key ~s with ~p", [URI, DR#http.data]),
+             bdd_utils:log(debug, bdd_crud, destroy, "Removed key ~s with ~p", [URI, DR#http.code]),
              [DR];
     _     -> bdd_utils:log(warn, bdd_crud, destroy, "unexpected result at ~s was ~p", [URI, R#http.code]),
              [R]

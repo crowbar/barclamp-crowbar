@@ -98,17 +98,19 @@ json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 % global setup
 step(Global, {step_setup, {Scenario, _N}, Test}) -> 
   % setup the groups object override
+  bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
   bdd_utils:alias(group, group_cb),
   bdd_utils:alias(user, user_cb),
-  bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
-  bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
   % turn off the delays in the test jig
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-client", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-library", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-discovery", "property", "test", "to", "false"]}), 
+  % create admin network
+  network:make_admin(),
   % create node for testing
+  bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
   Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
@@ -155,6 +157,20 @@ step(_Given, {step_when, {Scenario, _N}, ["I add",node, Node,"to",deployment, De
   JSON = crowbar:json([{node, Node}, {role, Role}, {deployment, Deployment}]),
   bdd_utils:log(debug, annealer, step, "Add node_role ~p POST ~p",[Path, JSON]),
   bdd_restrat:create(Path, JSON, role, Scenario);
+
+
+step(_Given, {step_when, _N, ["REST gets the",network,Network,range,"list"]})  -> 
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = range:path(Network,""),
+  bdd_utils:log(debug, crowbar, step, "REST range get ~p list for ~p path", [Network, URI]),
+  R = eurl:get_http(URI),
+  [R, bdd_restrat:get_object(R)];
+
+step(_Given, {step_when, _N, ["REST gets the",network,Network,range,Key]})  ->
+  % This relies on the pattern objects providing a g(path) value mapping to their root information
+  URI = range:path(Network,Key),
+  bdd_utils:log(debug, crowbar, step, "REST range get the object ~p for ~p path", [Network, URI]),
+  bdd_restrat:step(_Given, {step_when, _N, ["REST requests the",URI,"page"]});
 
 % ============================  THEN STEPS =========================================
 

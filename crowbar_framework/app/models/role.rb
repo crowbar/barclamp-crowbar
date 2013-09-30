@@ -96,10 +96,13 @@ class Role < ActiveRecord::Base
   end
 
   # Event triggers for node creation and destruction.
+  # roles should override if they want to handle node addition
   def on_node_create(node)
     true
   end
 
+  # Event triggers for node creation and destruction.
+  # roles should override if they want to handle node destruction
   def on_node_delete(node)
     true
   end
@@ -244,11 +247,10 @@ class Role < ActiveRecord::Base
     # remove the redundant part of the name (if any)
     name = self.name.sub("#{self.barclamp.name}-", '').camelize
     # these routines look for the namespace & class
-    m = Module::const_get(namespace) rescue nil
     # barclamps can override specific roles
-    test_specific = m.const_get(name).superclass == Role rescue false
+    test_specific =  ("#{namespace}::#{name}".constantize ? true : false) rescue false
     # barclamps can provide a generic fallback  "BarclampName::Role"
-    test_generic = m.const_get("Role").superclass == Role rescue false
+    test_generic = ("#{namespace}::Role".constantize ? true : false) rescue false
     # if they dont' find it we fall back to the core Role
     self.type = if test_specific
       "#{namespace}::#{name}"

@@ -84,6 +84,7 @@ log(Config, Level, Format, Data)  ->
                      {Module, Method, Params} = try erlang:get_stacktrace() of 
                         [{erl_parse, yecctoken_end_location, 1} | _] -> {no, trace, 0}; 
                         [{erl_parse, yecctoken_end_location, 1, _} | _] -> {no, trace, 0}; 
+                        [{Mo, Me, Pa, _} | _] -> {Mo, Me, Pa}; 
                         [ST | _] -> ST; 
                         [] -> {unknown, 0, 0} 
                       catch _ -> {module, unknown, 0} end,

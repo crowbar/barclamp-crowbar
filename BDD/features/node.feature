@@ -96,12 +96,14 @@ Feature: Nodes
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes/bdd-alive-ui.example.com" page 
     Then I should see {bdd:crowbar.i18n.common.state.dead}
+      And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
   Scenario: Nodes UI shows alive
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes" page 
     Then I should see {bdd:crowbar.i18n.common.state.dead}
+      And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
   Scenario: Node UI shows reserved
@@ -109,6 +111,7 @@ Feature: Nodes
       And REST sets the {object:node} "bdd-reserved-ui.example.com" {atom:available} state to be "false"
     When I go to the "nodes/bdd-reserved-ui.example.com" page 
     Then I should see {bdd:crowbar.i18n.common.state.reserved}
+      And there should be no translation errors
     Finally REST removes the {object:node} "bdd-reserved-ui.example.com"
 
   Scenario: Nodes UI shows reserved
@@ -116,4 +119,5 @@ Feature: Nodes
       And REST sets the {object:node} "bdd-reserved-ui1.example.com" {atom:available} state to be "false"
     When I go to the "nodes" page 
     Then I should see {bdd:crowbar.i18n.common.state.reserved}
+      And there should be no translation errors
     Finally REST removes the {object:node} "bdd-reserved-ui1.example.com"

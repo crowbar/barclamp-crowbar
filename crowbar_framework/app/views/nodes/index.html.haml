@@ -14,14 +14,21 @@
         %th= t '.description'
     %tbody
       -@list.each do |n|
+        - s = n.state
+        - led = NodeRole::STATES[s]
+        - if !n.available
+          - led = (n.alive ? 'reserved' : 'idle')
+        - elsif !n.alive
+          - led = 'off'
         %tr
           %td{ :width=>'10px'}
-            .led{:class => NodeRole::STATES[n.state], :title=>NodeRole.state_name(n.state)}
+            .led{:class => led, :title=>t(".#{led}")}
           %td
             = link_to n.name, node_path(n.id)
           %td
             = t (n.alive ? ".alive" : ".dead")
             = t (n.available ? ".available" : ".reserved")
+            = NodeRole.state_name(s)
           %td
             = t 'yes' if n.admin
           %td= n.description

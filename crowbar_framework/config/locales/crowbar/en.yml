@@ -28,8 +28,10 @@ en:
       committed:  "Committed"
       alive:      "On"
       dead:       "Off"
+      "off":      "Off"
       available:  "Available"
       reserved:   "Reserved"
+      idle:       "Idle"
     deployment: &deployment_common
       deployment: "Deployment"
       snapshot: "Snapshot"

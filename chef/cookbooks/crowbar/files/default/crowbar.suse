@@ -182,6 +182,8 @@ case "$1" in
 	$0 status >/dev/null
 	if test $? -ne 0; then
 		rc_reset
+		# Remove lock files for local chef-client wrappers
+		rm -f /var/run/crowbar/looper-chef-client.lock /var/run/crowbar/chef-client.lock
 		# Note: while $RAINBOWS_BIN works here, it doesn't work
 		# when using killproc - just have to use 'rainbows' unqualified
 		# there for some reason

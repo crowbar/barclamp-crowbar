@@ -101,7 +101,7 @@ class NodeRolesController < ApplicationController
     respond_to do |format|
       format.html { }
       format.json {
-        if NodeRole.anneal! || NodeRole.committed.in_state(NodeRole::TODO).count > 0
+        if NodeRole.committed.in_state(NodeRole::TODO).count > 0
           render :json => { "message" => "scheduled" }, :status => 202
         elsif NodeRole.committed.in_state(NodeRole::TRANSITION).count > 0
           render :json => { "message" => "working" }, :status => 202

@@ -238,6 +238,10 @@ class Node < ActiveRecord::Base
       node_roles.deactivatable.each do |nr|
         nr.deactivate
       end
+    elsif self.alive && self.available
+      node_roles.runnable.each do |nr|
+        Run.enqueue(nr) if nr.runnable? && nr.todo?
+      end
     end
   end
 
@@ -276,16 +280,6 @@ class Node < ActiveRecord::Base
     # These should happen synchronously.
     Role.all.each do |r|
       r.on_node_create(self)
-    end
-
-    # This is a temporary hack until the DNS barclamp is refactored to handle
-    # node add and remove events.
-    script_jib = Jig.find_key 'script'
-    if script_jib.active
-      unless system("grep -q '#{Regexp.escape(self.name)}' /etc/hosts")
-        addr = self.addresses.detect{|a|a.v4?}.addr
-        BarclampCrowbar::Jig.ssh("root@localhost 'echo \"#{addr}   #{self.name}\" >>/etc/hosts'")
-      end
     end
   end
 end

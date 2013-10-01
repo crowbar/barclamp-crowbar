@@ -184,6 +184,16 @@ en:
       roles: "Roles"
     show:
       roles: "Roles"
+  dashboard:
+    layercake:
+      jigs: "Jigs"
+      core: "Core"
+      network: "Network"
+      nodes: "Nodes"
+      os: "Operating Systems"
+      clients: "Infrastructure Clients"
+      services: "Servies"
+      apps: "Applications"
   deployments:
     index:
       title: "Deployments"

@@ -1,0 +1,10 @@
+{
+  "jigs":["chef-server"],
+  "core":["crowbar_base"],
+  "network":["network"],
+  "nodes":["monitoring"],
+  "os":["monitoring"],
+  "clients":["performance"],
+  "services":["performance"],
+  "apps":["metering"],
+}

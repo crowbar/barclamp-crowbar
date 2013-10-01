@@ -15,26 +15,31 @@
 #
 class DashboardController < ApplicationController
 
-  def index  
-    @sum = Node.name_hash
-    @groups = Group.find_all_by_category 'ui'
-    @node = Node.find_key params[:id]
-    session[:node] = params[:id]
-    if params.has_key?(:role)
-      result = Node.all 
-      @nodes = result.find_all { |node| node.role? params[:role] }
-      if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.name }
-         @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
-      end
-    else
-      @nodes = {}
-      Node.all.each { |n| @nodes[n.id]=n.name }
+  def layercake
+
+    taxmap = JSON::load File.open(File.join("config", "layercake.json"), 'r')
+    @layers = { :count=>-1, :unclassified=>0, :os=>0, :hardware=>0, :test=>0, :network=>0, :crowbar_base=>0, :monitoring=>0, :performance=>0, :metering=>0, :database=>0, :nova=>0, :swift=>0, :glance=>0, :nova_api=>0, :swift_api=>0, :glance_api=>0, :identity_api=>0, :portal_api=>0, :api_ips=>{}, :api_names=>{} }
+    result = Deployment.system_root.first.head.node_roles
+    result.each do |node|
+      node.run_list.each do |role|
+        if taxmap.has_key? role.name
+          taxmap[role.name].each do |layer|
+            @layers[layer.to_sym] += 1
+            if layer =~ /(.*)_api$/ 
+              @layers[:api_ips][layer.to_sym] = node.public_ip
+              @layers[:api_names][layer.to_sym] = node.alias
+            end
+          end
+        else
+          @layers[:unclassified] += 1
+        end
+      end unless node.run_list.nil?
     end
     respond_to do |format|
-      format.html # index.html.haml
+      format.html { }
     end
-  end
+    #respond_with @layers
+  end    
 
   def group_change
     # TODO: not used?

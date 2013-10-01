@@ -51,6 +51,10 @@ Crowbar::Application.routes.draw do
     put :recall
   end
 
+  scope 'dashboard' do
+    get 'layercake'     => 'dashboard#layercake', :as => :layercake
+  end
+  
   scope 'utils' do
     get '/'             => 'support#index', :as => :utils
     get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n, :constraints => { :id => /.*/ }

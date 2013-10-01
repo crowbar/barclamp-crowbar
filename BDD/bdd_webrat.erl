@@ -58,12 +58,12 @@ step(_Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	eurl:get_http(Page);
 
 step(Given, {step_when, _N, ["I click on the",Link,"link"]}) ->
-  G = eurl:get_result(Given),
+  G = eurl:get_result(Given, http, "text/html"),
   URL = eurl:find_link(Link, G),
 	click_link(URL, Link);
 
 step(Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
-  G = eurl:get_result(Given, http),
+  G = eurl:get_result(Given, http, "text/html"),
   [Block] = eurl:find_block("<li", "</li>", G#http.data, ">"++Menu++"</a>", 250),
   URL = eurl:find_link(Menu, Block),
   click_link(URL, Menu);
@@ -84,28 +84,39 @@ step(Result, {step_then, _N, ["I should not see", Text]}) ->
 
 step(Result, {step_then, _N, ["I should not see", Text, "in section", Id]}) -> 
 	bdd_utils:log(trace, "step_then result ~p should NOT have ~p on the page", [Result, Text]),
-	Body = [eurl:html_body(R) || R <- Result],
+	Body = eurl:get_result(Result, http, "text/html"), 
 	Section = [eurl:find_div(B, Id) || B <- Body],
 	eurl:search(Text,Section, false);
+
+step(Result, {step_then, {_Scenario, _N}, ["I should see an input box with",Input]}) ->
+  R = eurl:get_result(Result, http, "text/html"), 
+  {ok, Rex} = re:compile("<input\ (.+?)value=\""++Input++"\"(.+?)>", [multiline, dotall, {newline , anycrlf}]),
+  M = re:run(R#http.data, Rex),
+  try M of
+    {match, _} -> true;
+    _ -> false
+  catch
+    _ -> false
+  end;
 
 step(Result, {step_then, N, ["I should see a heading", Text]}) -> 
   step(Result, {step_then, N, ["I should see heading", Text]});
 step(Result, {step_then, _N, ["I should see heading", Text]}) -> 
 	bdd_utils:log(debug, bdd_webrat, step, "see heading ~p", [Text]),
-  R = eurl:get_result(Result, http),
+  R = eurl:get_result(Result, http, "text/html"),
 	eurl:find_heading(R#http.data,Text);
 
 step(Result, {step_then, _N, ["I should see", Text]}) -> 
-  R = eurl:get_result(Result, http), 
+  R = eurl:get_result(Result, http, "text/html"), 
 	bdd_utils:log(trace, bdd_restrat, step, "I should see ~p on ~p", [Text, R#http.url]),
 	eurl:search(Text,R);
 
 step(Result, {step_then, _N, ["I should see", Text, "in section", Id]}) -> 
-  R = eurl:get_result(Result, http),
-  bdd_utils:log(trace, bdd_restrat, step, "~p should have ~p on the page~n", [Result#http.url, Text]),
+  R = eurl:get_result(Result, http, "text/html"),
+  bdd_utils:log(trace, bdd_restrat, step, "~p should have ~p on the page", [R#http.url, Text]),
 	Body = R#http.data,
 	Section = eurl:find_div(Body, Id),
-	eurl:search(Text,Section);
+	eurl:search(Text,[Section]);
 
 step(Result, {step_then, _N, ["there are no i18n errors"]}) -> 
   step(Result, {step_then, _N, ["there should be no translation errors"]}); 
@@ -113,7 +124,7 @@ step(Result, {step_then, _N, ["there are no localization errors"]}) ->
   step(Result, {step_then, _N, ["there should be no translation errors"]});
 step(Result, {step_then, _N, ["there should be no translation errors"]}) -> 
   TransError = bdd_utils:config(translation_error),
-  R = eurl:get_result(Result, http),
+  R = eurl:get_result(Result, http, "text/html"),
   eurl:search(TransError,R, false);
 
 step(Result, {step_then, _N, ["I should see a link to", Link]}) ->
@@ -127,7 +138,7 @@ step(Result, {step_then, _N, ["I should see a link to", Link]}) ->
 	);
   
 step(Result, {step_then, _N, ["I should see a button with", Button]}) -> 
-  R = eurl:get_result(Result, http),
+  R = eurl:get_result(Result, http, "text/html"),
   try eurl:find_button(Button,R) of
     _ -> true
 	catch

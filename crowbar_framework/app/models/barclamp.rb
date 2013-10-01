@@ -154,7 +154,7 @@ class Barclamp < ActiveRecord::Base
       jig_desc = jig['description'] || "Imported by #{barclamp.name}"
       jig_type = jig['class']
       jig_client_role = jig["implementor"]
-      jig_active = (Rails.env == "production") ^ (jig_name == "test")
+      jig_active = (Rails.env == "production") ^ (["noop", "test"].include? jig_name)
       jig = jig_type.constantize.find_or_create_by_name(:name => jig_name)
       jig.update_attributes(:order => 100,
                             :active => jig_active,

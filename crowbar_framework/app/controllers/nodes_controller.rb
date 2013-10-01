@@ -31,36 +31,9 @@ class NodesController < ApplicationController
   end
   
   def status
-    
-    groups = { 0=>{"name"=>'all', "ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0} }
-    status = {}
-    state = {}
-    i18n = {}
-    sum = Node.name_hash
-    begin
-      result = Node.find_keys params[:id]
-      unless result.nil?
-        result.each do |node|
-          #Rails.logger.debug "ZEHICLE #{node.name} nodes_controller"
-          # CB2 temporary polling
-          # Jig.refresh_node "temporary polling from nodes_controller.status", node
-          
-          # CB1 approach
-          state[node.id] = node.state
-          status[node.id] = node.status
-          i18n[node.state] = I18n.t node.state, :scope =>'state', :default=>node.state unless i18n.has_key? node.state
-          node.groups.each do |group|
-            groups[group.id] ||= {"name"=>group.name, "ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0}
-            groups[group.id][node.status] += 1 
-          end
-          groups[0][node.status] += 1
-        end
-      end
-    end
-    render :inline => {:sum => sum, :status=>status, :state=>state, :i18n=>i18n, :groups=>groups, :count=>state.length}.to_json, :cache => false
-
+    # place holder
   end
-  
+
   def make_admin
     n = Node.make_admin!
     redirect_to :action => 'index', :status => :found
@@ -95,6 +68,11 @@ class NodesController < ApplicationController
   
   def update
     @node = Node.find_key params[:id]
+    # discovery requires a direct save
+    if params.include? :discovery
+      @node.discovery = params[:discovery]
+      @node.save!
+    end
     render api_update :node, Node, nil, @node
   end
 

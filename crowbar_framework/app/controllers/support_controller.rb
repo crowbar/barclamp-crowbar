@@ -89,6 +89,18 @@ class SupportController < ApplicationController
   end
 
   def bootstrap
+    if request.post?
+      # only create if no other netwroks
+      if BarclampNetwork::Network.count == 0
+        deployment = Deployment.system_root.first
+        BarclampNetwork::Network.transaction do
+          net = BarclampNetwork::Network.create :name=>'admin', :description=>I18n.t('support.bootstrap.admin_net'),  :deployment_id=>deployment.id, :conduit=>'1g0'
+          BarclampNetwork::Range.create :name=>'admin', :network_id=>net.id, :first=>"192.168.124.10/24", :last=>"192.168.124.11/24"
+          BarclampNetwork::Range.create :name=>'dhcp', :network_id=>net.id, :first=>"192.168.124.21/24", :last=>"192.168.124.80/24"
+          BarclampNetwork::Range.create :name=>'host', :network_id=>net.id, :first=>"192.168.124.81/24", :last=>"192.168.124.254/24"
+        end
+      end
+    end
     @roles = []
     @roles << Role.find_key("dns-server")
     @roles << Role.find_key("ntp-server")

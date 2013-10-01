@@ -60,7 +60,7 @@ Crowbar::Application.routes.draw do
     get 'upload/:id'    => 'support#upload', :as => :utils_upload
     get 'restart/:id'   => 'support#restart', :as => :restart
     get 'digest'        => "support#digest"
-    get 'bootstrap'     => "support#bootstrap", :as => :bootstrap
+    match "bootstrap"     => "support#bootstrap", :as => :bootstrap
     namespace :scaffolds do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
@@ -110,7 +110,7 @@ Crowbar::Application.routes.draw do
         end
         scope ':version' do
           # These are not restful.  They poke the annealer and wait if you pass "sync=true".
-          put "anneal", :to => "node_roles#anneal", :as => :anneal
+          match "anneal", :to => "node_roles#anneal", :as => :anneal
           post "make_admin", :to => "nodes#make_admin", :as => :make_admin
           resources :attribs
           resources :barclamps

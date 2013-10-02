@@ -87,8 +87,6 @@ class BarclampCrowbar::Jig < Jig
       Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
       nr.state = NodeRole::ERROR
       return nr
-    else
-      nr.state = NodeRole::ACTIVE
     end
     # Now, we need to suck any written attributes back out.
     Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
@@ -136,6 +134,7 @@ class BarclampCrowbar::Jig < Jig
     system("sudo rm -rf '#{local_tmpdir}")
     # Clean up after ourselves.
     BarclampCrowbar::Jig.ssh("'#{login}' -- rm -rf '#{remote_tmpdir}'")
+    nr.state = NodeRole::ACTIVE
     return nr
   end
 

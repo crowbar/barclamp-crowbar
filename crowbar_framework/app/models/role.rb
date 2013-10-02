@@ -25,7 +25,24 @@ class Role < ActiveRecord::Base
   before_create :create_type_from_name
 
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
-  attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
+  ### Flags for roles
+  # Unused by any role.
+  attr_accessible :library
+  # Indicates that this role can be automatically added to any node that
+  # requires it as a dependency.  Otherwise, roles must be bound to nodes
+  # in dependency order.
+  attr_accessible :implicit
+  # Indicates that this role will be automatically bound to the first
+  # admin node.
+  attr_accessible :bootstrap
+  # Indicates that this role will be automatically bound to all newly
+  # discovered nodes.
+  attr_accessible :discovery
+  # Indicates that userdata, system data, and wall data for this node
+  # will be visible to child nodes.  As the name of the flag indicates,
+  # the only roles that will generally require that are ones that implement
+  # servers that other roles need to talk to.
+  attr_accessible :server
   attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
@@ -43,6 +60,7 @@ class Role < ActiveRecord::Base
   scope           :implicit,           -> { where(:implicit=>true) }
   scope           :discovery,          -> { where(:discovery=>true) }
   scope           :bootstrap,          -> { where(:bootstrap=>true) }
+  scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
   # update just one value in the template (assumes just 1 level deep!)

@@ -20,10 +20,17 @@ class CreateRoles < ActiveRecord::Migration
       t.string      :type,              :null=>true
       t.string      :template,          :null=>false, :default=>"{}"
       t.string      :jig_name,          :null=>false
-      t.boolean     :library,           :null=>false, :default=>false  # brings in library code thats used to access another role (sql client)
-      t.boolean     :implicit,          :null=>false, :default=>false  # role is applied automatically to nodes after allocation
-      t.boolean     :bootstrap,         :null=>false, :default=>false  # used for the admin node(s) during bring up
-      t.boolean     :discovery,         :null=>false, :default=>false  # related to the node being discovered in the system (by deployer)
+      # brings in library code thats used to access another role (sql client)
+      t.boolean     :library,           :null=>false, :default=>false
+      # role is applied automatically to nodes after allocation
+      t.boolean     :implicit,          :null=>false, :default=>false
+      # used for the admin node(s) during bring up
+      t.boolean     :bootstrap,         :null=>false, :default=>false
+      # related to the node being discovered in the system (by deployer)
+      t.boolean     :discovery,         :null=>false, :default=>false
+      # Indicates that the attributes used by this node should be made available to
+      # its children in the noderole graph.
+      t.boolean     :server,            :null=>false, :default=>false  
       t.belongs_to  :barclamp,          :null=>false
       t.integer     :cohort
       t.timestamps

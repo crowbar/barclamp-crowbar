@@ -46,6 +46,7 @@ class NodeRole < ActiveRecord::Base
   scope           :peers_by_role,     ->(ss,role)  { in_snapshot(ss).with_role(role) }
   scope           :peers_by_node,     ->(ss,node)  { in_snapshot(ss).on_node(node) }
   scope           :peers_by_node_and_role,     ->(s,n,r) { peers_by_node(s,n).with_role(r) }
+  
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?
@@ -298,7 +299,9 @@ class NodeRole < ActiveRecord::Base
 
   def all_parent_data
     res = {}
-    all_parents.each do |parent| res.deep_merge!(parent.all_my_data) end
+    all_parents.each do |parent|
+      next unless parent.node_id == node_id || parent.role.server
+      res.deep_merge!(parent.all_my_data) end
     res
   end
 
@@ -309,11 +312,9 @@ class NodeRole < ActiveRecord::Base
   end
 
   def all_transition_data
-    res = all_data
+    res = all_deployment_data
     res.deep_merge!(self.node.all_active_data)
-    res.deep_merge!(wall)
-    res.deep_merge!(sysdata)
-    res.deep_merge!(data)
+    res.deep_merge!(all_parent_data)
     res
   end
     

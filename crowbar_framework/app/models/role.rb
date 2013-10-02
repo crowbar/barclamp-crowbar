@@ -181,7 +181,7 @@ class Role < ActiveRecord::Base
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
     return res if res
-    Rails.logger.info("Trying to add #{name} to #{node.name}")
+    Rails.logger.info("Role: Trying to add #{name} to #{node.name}")
     # Check to make sure that all my parent roles are bound properly.
     # If they are not, die unless it is an implicit role.
     # This logic will need to change as we start allowing roles to classify
@@ -190,18 +190,35 @@ class Role < ActiveRecord::Base
     parents.each do |parent|
       # This will need to grow more ornate once we start allowing multiple
       # deployments.
-
-      # We might wind up needing a flag for roles that forces
-      # dependent roles to be on the same node.
-      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first ||
-        NodeRole.peers_by_role(snap,parent).first
+      # Look for a noderole on the current node that satisfies this dep.
+      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first
       if pnr.nil?
+        Rails.logger.info("Role: Did not find #{name} on #{node.name}")
         if parent.implicit
+          # Bind our parent on this node if we did not find an already-deployed noderole.
+          Rails.logger.info("Role: Parent #{parent.name} of #{name} is implicit, binding it to #{node.name}")
           pnr = parent.add_to_node_in_snapshot(node,snap)
         else
-          raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+          # Look for noderoles that can satisfy this dep on other nodes.
+          # Start with the current snapshot, and we will work our way up
+          # in the deployment tree from there.
+          csnap = snap
+          loop do
+            Rails.logger.info("Role: Looking for #{parent.name} binding in #{snap.deployment.name}")
+            pnr = NodeRole.peers_by_role(csnap,parent).first
+            break unless pnr.nil?
+            csnap = (csnap.deployment.parent.snapshot rescue nil)
+            break if csnap.nil?
+          end
         end
       end
+      # For now, raise this error.
+      # We may want to wind up unconditionally trying to bind our parent
+      # role to the same node we want to bind to here..
+      if pnr.nil?
+        raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+      end
+      Rails.logger.info("Role: Choosing #{pnr.role.name} on #{pnr.node.name} as a parent of #{name} on #{node.name}")
       parent_node_roles << pnr
     end
     # By the time we get here, all our parents are bound recursively.

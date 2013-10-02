@@ -164,7 +164,7 @@ class Node < ActiveRecord::Base
   end
 
   def active_node_roles
-    NodeRole.where(:state => NodeRole::ACTIVE, :node_id => self.id).order("cohort")
+    NodeRole.on_node(self).in_state(NodeRole::ACTIVE).committed.order("cohort")
   end
 
   def all_active_data

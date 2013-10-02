@@ -32,17 +32,20 @@ class NodeRole < ActiveRecord::Base
   # It is in TODO.
   # It is in a committed snapshot.
   scope           :archived,          -> { joins(:snapshot).where('snapshots.state' => Snapshot::ARCHIVED) }
-  scope           :current,           -> { joins(:snapshot).where(['"snapshots"."state" != ?',Snapshot::ARCHIVED]).readonly(false) }
+  scope           :current,           -> { joins(:snapshot).where(['snapshots.state != ?',Snapshot::ARCHIVED]).readonly(false) }
   scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
   scope           :deactivatable,     -> { where(:state => [ACTIVE, TRANSITION, ERROR]) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
   scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state in (?, ?))',TRANSITION,ERROR]) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
-  scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
-  scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
-  scope           :peers_by_node,     ->(ss,node)  { current.where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
-  scope           :peers_by_node_and_role,     ->(s,n,r) { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
+  scope           :in_snapshot,       ->(snap) { where(:snapshot_id => snap.id) }
+  scope           :with_role,         ->(r) { where(:role_id => r.id) }
+  scope           :on_node,           ->(n) { where(:node_id => n.id) }
+  scope           :peers_by_state,    ->(ss,state) { in_snapshot(ss).in_state(state) }
+  scope           :peers_by_role,     ->(ss,role)  { in_snapshot(ss).with_role(role) }
+  scope           :peers_by_node,     ->(ss,node)  { in_snapshot(ss).on_node(node) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { peers_by_node(s,n).with_role(r) }
 
   # make sure that new node-roles have require upstreams 
   # validate        :deployable,        :if => :deployable?

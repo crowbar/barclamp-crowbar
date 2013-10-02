@@ -53,7 +53,9 @@ class Node < ActiveRecord::Base
   has_many :snapshots,          :through => :node_roles
   has_many :deployments,        :through => :snapshots
 
-  scope    :admin,              -> { where(:admin=>true) }
+  scope    :admin,              -> { where(:admin => true) }
+  scope    :alive,              -> { where(:alive => true) }
+  scope    :available,          -> { where(:available => true) }
 
   # look at Node state by scanning all node roles.
   def state
@@ -188,11 +190,6 @@ class Node < ActiveRecord::Base
   def <=>(other)
     # use Array#<=> to compare the attributes
     [self.order, self.name] <=> [other.order, other.name]
-  end
-
-  def ip
-    #TODO reference jig_hash.ip somehow?
-    "unknown"
   end
 
   def group

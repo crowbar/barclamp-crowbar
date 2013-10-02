@@ -7,7 +7,7 @@ It is currently focused on the core Rails application and required barclamps.
 ## Setting up the VM
 
 We assume that you are using KVM and have read the [KVM setup
-instructions](dev-vm.md).  If not, setup the VM accordingly and
+instructions](200_dev-vm.md).  If not, setup the VM accordzngly and
 continue on to the [next
 section](#setting-up-the-development-environment).
 

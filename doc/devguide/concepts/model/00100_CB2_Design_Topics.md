@@ -4,9 +4,16 @@ _this is intermediate information, not final docs_
 
 Last Updated: 7/5/2013 by Rob Hirschfeld
 
-We’re working on core CB2 functions as per the design discussion from last week.  Our objective is to code incrementally to validate the design.  I believe this approach gives the community concrete examples for discussion and makes it possible to update the design based on learning and new viewpoints.
+We’re working on core CB2 functions as per the design discussion
+from last week.  Our objective is to code incrementally to validate the
+design.  I believe this approach gives the community concrete examples for
+discussion and makes it possible to update the design based on learning
+and new viewpoints.
 
-Currently, I’ve stripped out a lot of legacy code and rebuilt the very basics of the model we discussed.  See DIA file https://github.com/crowbar/barclamp-crowbar/blob/master/doc/devguide/model/crowbar_model.dia 
+Currently, I’ve stripped out a lot of legacy code and
+rebuilt the very basics of the model we discussed.  See DIA file
+https://github.com/crowbar/barclamp-crowbar/blob/master/doc/devguide/model/crowbar_model.dia
+
 
 ### Script Jig
 

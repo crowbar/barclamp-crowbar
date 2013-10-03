@@ -46,9 +46,9 @@ class NodeRole < ActiveRecord::Base
   scope           :peers_by_role,     ->(ss,role)  { in_snapshot(ss).with_role(role) }
   scope           :peers_by_node,     ->(ss,node)  { in_snapshot(ss).on_node(node) }
   scope           :peers_by_node_and_role,     ->(s,n,r) { peers_by_node(s,n).with_role(r) }
-  
 
-  # make sure that new node-roles have require upstreams 
+
+  # make sure that new node-roles have require upstreams
   # validate        :deployable,        :if => :deployable?
   has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
   has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
@@ -56,7 +56,7 @@ class NodeRole < ActiveRecord::Base
   # State transitions:
   # All node roles start life in the PROPOSED state.
   # At snapshot commit time, all node roles in PROPOSED that:
-  #  1. Have no parent node role, or 
+  #  1. Have no parent node role, or
   #  2. Have a parent in ACTIVE state
   # will be placed in TODO state, and all others will be placed in BLOCKED.
   #
@@ -94,7 +94,7 @@ class NodeRole < ActiveRecord::Base
     def to_s
       @errstr
     end
-    
+
     def to_str
       to_s
     end
@@ -143,14 +143,14 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data(merge=true)
-    raw = read_attribute("userdata") 
-    d = raw.nil? ? {} : JSON.parse(raw)  
+    raw = read_attribute("userdata")
+    d = raw.nil? ? {} : JSON.parse(raw)
   end
 
   def data=(arg)
     raise I18n.t('node_role.cannot_edit_data') unless snapshot.proposed?
     arg = JSON.generate(arg) if arg.is_a? Hash
- 
+
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
 
@@ -282,7 +282,7 @@ class NodeRole < ActiveRecord::Base
     end
     res
   end
-  
+
   def all_my_data
     res = {}
     res.deep_merge!(wall)
@@ -317,7 +317,7 @@ class NodeRole < ActiveRecord::Base
     res.deep_merge!(all_parent_data)
     res
   end
-    
+
   def rerun
     NodeRole.transaction do
       raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
@@ -434,7 +434,7 @@ class NodeRole < ActiveRecord::Base
     end
     self
   end
-  
+
   # convenience methods
   def name
    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
@@ -471,5 +471,5 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-  
+
 end

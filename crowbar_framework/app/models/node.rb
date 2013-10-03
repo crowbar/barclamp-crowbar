@@ -26,14 +26,14 @@ class Node < ActiveRecord::Base
   attr_accessible   :alive, :available, :bootenv
 
   # Make sure we have names that are legal
-  # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't 
+  # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't
   # be a top level domain ;p
   FQDN_RE = /(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.){2,}(?:[a-zA-Z]{2,})$)/
   # for to_api_hash
   API_ATTRIBUTES = ["id", "name", "description", "order", "admin", "available", "alive",
                     "allocated", "created_at", "updated_at"]
 
-  # 
+  #
   # Validate the name should unique (no matter the case)
   # and that it starts with a valid FQDN
   #
@@ -60,8 +60,8 @@ class Node < ActiveRecord::Base
   # look at Node state by scanning all node roles.
   def state
     node_roles.each do |nr|
-      if nr.proposed? 
-        return NodeRole::PROPOSED 
+      if nr.proposed?
+        return NodeRole::PROPOSED
       elsif nr.error?
         return NodeRole::ERROR
       elsif [NodeRole::BLOCKED, NodeRole::TODO, NodeRole::TRANSITION].include? nr.state
@@ -71,7 +71,7 @@ class Node < ActiveRecord::Base
     return NodeRole::ACTIVE
   end
 
-  # returns a hash with all the node error status information 
+  # returns a hash with all the node error status information
   def status
     s = []
     node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
@@ -113,7 +113,7 @@ class Node < ActiveRecord::Base
   def is_admin?
     admin
   end
-  
+
   # CB1 these are really IMPI actions - please move!
   def ipmi_cmd(cmd)
     bmc          = jig_hash.address("bmc").addr rescue nil
@@ -144,21 +144,21 @@ class Node < ActiveRecord::Base
   def identify
     ipmi_cmd("chassis identify")
   end
-  
+
   def virtual?
     # TODO ZEHICLE place holder
     true
   end
-  
+
   def bmc_set?
     # TODO ZEHICLE place holder
     true
   end
-  
+
   # retrieves the Attrib from Attrib
   def get_attrib(attrib_name)
     a = Attrib.by_name(attrib_name).first
-    unless a.nil? 
+    unless a.nil?
       a.value(self.discovery)
     end
   end
@@ -177,7 +177,7 @@ class Node < ActiveRecord::Base
     dres.deep_merge!(res)
     dres
   end
-  
+
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
@@ -186,7 +186,7 @@ class Node < ActiveRecord::Base
       super
     end
   end
-  
+
   def <=>(other)
     # use Array#<=> to compare the attributes
     [self.order, self.name] <=> [other.order, other.name]
@@ -257,7 +257,7 @@ class Node < ActiveRecord::Base
   # Call the on_node_delete hooks.
   def tear_down_roles
     Role.all.each do |r|
-      begin 
+      begin
         r.on_node_delete(self)
       rescue Exception => e
         Rails.logger.error "node #{name} attempting to cleanup role #{r.name} failed with #{e.message}"

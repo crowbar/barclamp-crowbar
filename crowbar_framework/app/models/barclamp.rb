@@ -21,25 +21,25 @@ class Barclamp < ActiveRecord::Base
   attr_accessible :build_on, :mode, :allow_multiple_deployments
   attr_accessible :api_version, :api_version_accepts, :license, :copyright, :proposal_schema_version
   before_create :create_type_from_name
-  # 
-  # Validate the name should unique 
+  #
+  # Validate the name should unique
   # and that it starts with an alph and only contains alpha,digits,underscore
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_exclusion_of :name, :in => %w(framework api barclamp docs machines jigs roles groups users support application), :message => I18n.t("db.barclamp_excludes", :default=>"Illegal barclamp name")
-    
+
   validates_format_of :name, :with=>/^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
-      
+
   # Deployment
   has_many :roles,              :dependent => :destroy
-  
+
   #
   # Order barclamps by their dependency trees and then their name
   #
   def <=>(other)
     [parents.length,name] <=> [other.parents.length,other.name]
   end
-  
+
   #
   # We should set this to something one day.
   #
@@ -106,7 +106,7 @@ class Barclamp < ActiveRecord::Base
       bc = YAML.load_file bc_file
       raise 'Barclamp name must match name from YML file' unless bc['barclamp']['name'].eql? bc_name
     end
-    
+
     # barclamp data import
     Barclamp.transaction do
       # Can't do the || trick booleans because nil is false.
@@ -199,11 +199,11 @@ class Barclamp < ActiveRecord::Base
 
   private
 
-  # This method ensures that we have a type defined for 
+  # This method ensures that we have a type defined for
   def create_type_from_name
     raise "barclamps require a name" if self.name.nil?
     namespace = "Barclamp#{self.name.camelize}"
-    # these routines look for the namespace & class, 
+    # these routines look for the namespace & class,
     m = Module::const_get(namespace) rescue nil
     if m
       c = m.const_get("Barclamp") rescue nil
@@ -212,11 +212,10 @@ class Barclamp < ActiveRecord::Base
     self.type = if c.nil?
       Rails.logger.warn "Barclamp #{self.name} created with fallback Model!"
       "BarclampFramework"
-    else 
+    else
       "#{namespace}::Barclamp"
     end
-    
-  end
-     
-end
 
+  end
+
+end

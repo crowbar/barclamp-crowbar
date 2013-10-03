@@ -21,7 +21,7 @@ class Role < ActiveRecord::Base
 
   class Role::MISSING_JIG < Exception
   end
-  
+
   before_create :create_type_from_name
 
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
@@ -64,11 +64,11 @@ class Role < ActiveRecord::Base
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
   # update just one value in the template (assumes just 1 level deep!)
-  # use via /api/v2/roles/[role]/template/[key]/[value] 
+  # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)
     t = { key => value }
-    raw = read_attribute("template") 
-    d = raw.nil? ? {} : JSON.parse(raw)  
+    raw = read_attribute("template")
+    d = raw.nil? ? {} : JSON.parse(raw)
     merged = d.deep_merge(t)
     self.template = JSON.generate(merged)
     self.save!
@@ -88,7 +88,7 @@ class Role < ActiveRecord::Base
   end
 
   # State Transistion Overrides
-  
+
   def on_error(node_role, *args)
     Rails.logger.debug "No override for #{self.class.to_s}.on_error event: #{node_role.role.name} on #{node_role.node.name}"
   end
@@ -124,12 +124,12 @@ class Role < ActiveRecord::Base
   def on_node_delete(node)
     true
   end
-  
+
   def parents
     res = []
     res << jig.client_role if jig.client_role
     role_requires.each do |r|
-      res << Role.find_by_name!(r.requires) rescue next 
+      res << Role.find_by_name!(r.requires) rescue next
     end
     res
   end
@@ -274,7 +274,7 @@ class Role < ActiveRecord::Base
 
   private
 
-  # This method ensures that we have a type defined for 
+  # This method ensures that we have a type defined for
   def create_type_from_name
     raise "roles require a name" if self.name.nil?
     raise "roles require a barclamp" if self.barclamp_id.nil?

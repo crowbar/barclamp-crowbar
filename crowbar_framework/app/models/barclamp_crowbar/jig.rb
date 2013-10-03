@@ -175,5 +175,5 @@ class BarclampCrowbar::Jig < Jig
     end
     res
   end
-  
+
 end

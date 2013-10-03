@@ -125,6 +125,13 @@ class Role < ActiveRecord::Base
     true
   end
 
+  # Event hook that will be called every time a node changes state via its update method.
+  # First arg is the node in its updated state, second arg is a hash of the old attrs
+  # were updated.
+  def on_node_change(node,old_attrs)
+    true
+  end
+
   def parents
     res = []
     res << jig.client_role if jig.client_role

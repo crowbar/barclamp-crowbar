@@ -316,6 +316,7 @@ en:
       implicit: "Implicit"
       bootstrap: "Bootstrap"
       discovery: "Discovery"
+      server: "Server"
       description: "Description"
     index:
       title: "Roles"

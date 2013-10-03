@@ -21,11 +21,28 @@ class Role < ActiveRecord::Base
 
   class Role::MISSING_JIG < Exception
   end
-  
+
   before_create :create_type_from_name
 
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
-  attr_accessible :library, :implicit, :bootstrap, :discovery     # flags
+  ### Flags for roles
+  # Unused by any role.
+  attr_accessible :library
+  # Indicates that this role can be automatically added to any node that
+  # requires it as a dependency.  Otherwise, roles must be bound to nodes
+  # in dependency order.
+  attr_accessible :implicit
+  # Indicates that this role will be automatically bound to the first
+  # admin node.
+  attr_accessible :bootstrap
+  # Indicates that this role will be automatically bound to all newly
+  # discovered nodes.
+  attr_accessible :discovery
+  # Indicates that userdata, system data, and wall data for this node
+  # will be visible to child nodes.  As the name of the flag indicates,
+  # the only roles that will generally require that are ones that implement
+  # servers that other roles need to talk to.
+  attr_accessible :server
   attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
@@ -43,14 +60,15 @@ class Role < ActiveRecord::Base
   scope           :implicit,           -> { where(:implicit=>true) }
   scope           :discovery,          -> { where(:discovery=>true) }
   scope           :bootstrap,          -> { where(:bootstrap=>true) }
+  scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
   # update just one value in the template (assumes just 1 level deep!)
-  # use via /api/v2/roles/[role]/template/[key]/[value] 
+  # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)
     t = { key => value }
-    raw = read_attribute("template") 
-    d = raw.nil? ? {} : JSON.parse(raw)  
+    raw = read_attribute("template")
+    d = raw.nil? ? {} : JSON.parse(raw)
     merged = d.deep_merge(t)
     self.template = JSON.generate(merged)
     self.save!
@@ -70,7 +88,7 @@ class Role < ActiveRecord::Base
   end
 
   # State Transistion Overrides
-  
+
   def on_error(node_role, *args)
     Rails.logger.debug "No override for #{self.class.to_s}.on_error event: #{node_role.role.name} on #{node_role.node.name}"
   end
@@ -106,12 +124,12 @@ class Role < ActiveRecord::Base
   def on_node_delete(node)
     true
   end
-  
+
   def parents
     res = []
     res << jig.client_role if jig.client_role
     role_requires.each do |r|
-      res << Role.find_by_name!(r.requires) rescue next 
+      res << Role.find_by_name!(r.requires) rescue next
     end
     res
   end
@@ -181,7 +199,7 @@ class Role < ActiveRecord::Base
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
     return res if res
-    Rails.logger.info("Trying to add #{name} to #{node.name}")
+    Rails.logger.info("Role: Trying to add #{name} to #{node.name}")
     # Check to make sure that all my parent roles are bound properly.
     # If they are not, die unless it is an implicit role.
     # This logic will need to change as we start allowing roles to classify
@@ -190,18 +208,35 @@ class Role < ActiveRecord::Base
     parents.each do |parent|
       # This will need to grow more ornate once we start allowing multiple
       # deployments.
-
-      # We might wind up needing a flag for roles that forces
-      # dependent roles to be on the same node.
-      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first ||
-        NodeRole.peers_by_role(snap,parent).first
+      # Look for a noderole on the current node that satisfies this dep.
+      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first
       if pnr.nil?
+        Rails.logger.info("Role: Did not find #{name} on #{node.name}")
         if parent.implicit
+          # Bind our parent on this node if we did not find an already-deployed noderole.
+          Rails.logger.info("Role: Parent #{parent.name} of #{name} is implicit, binding it to #{node.name}")
           pnr = parent.add_to_node_in_snapshot(node,snap)
         else
-          raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+          # Look for noderoles that can satisfy this dep on other nodes.
+          # Start with the current snapshot, and we will work our way up
+          # in the deployment tree from there.
+          csnap = snap
+          loop do
+            Rails.logger.info("Role: Looking for #{parent.name} binding in #{snap.deployment.name}")
+            pnr = NodeRole.peers_by_role(csnap,parent).first
+            break unless pnr.nil?
+            csnap = (csnap.deployment.parent.snapshot rescue nil)
+            break if csnap.nil?
+          end
         end
       end
+      # For now, raise this error.
+      # We may want to wind up unconditionally trying to bind our parent
+      # role to the same node we want to bind to here..
+      if pnr.nil?
+        raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
+      end
+      Rails.logger.info("Role: Choosing #{pnr.role.name} on #{pnr.node.name} as a parent of #{name} on #{node.name}")
       parent_node_roles << pnr
     end
     # By the time we get here, all our parents are bound recursively.
@@ -239,7 +274,7 @@ class Role < ActiveRecord::Base
 
   private
 
-  # This method ensures that we have a type defined for 
+  # This method ensures that we have a type defined for
   def create_type_from_name
     raise "roles require a name" if self.name.nil?
     raise "roles require a barclamp" if self.barclamp_id.nil?

@@ -40,8 +40,6 @@ start(){
         as_crowbar bundle install --local --quiet
     fi
     as_crowbar bundle exec puma -d -C puma.cfg
-    echo "Starting delayed_job Annealer queue (1 worker)"
-    as_crowbar bundle exec script/delayed_job --queue=Annealer -n 1 start
     echo "Starting delayed_job NodeRoleRunner queue (10 workers)"
     as_crowbar bundle exec script/delayed_job --queue=NodeRoleRunner -n 10 start
 

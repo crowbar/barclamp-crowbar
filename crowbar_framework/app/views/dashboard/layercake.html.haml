@@ -1,0 +1,34 @@
+#layercake
+
+  %h1.title= t '.title'
+
+  .column_25.first
+    #core.orange
+      = render :partial=>'layercake', :locals=>{ :layer=>'core' }
+    #jigs.orange
+      = render :partial=>'layercake', :locals=>{ :layer=>'jigs' }
+
+  .column_75.last
+
+    #apps.green
+      = render :partial=>'layercake', :locals=>{ :layer=>'apps' }
+    #services.yellow
+      = render :partial=>'layercake', :locals=>{ :layer=>'services' }
+    #clients.dark_green
+      = render :partial=>'layercake', :locals=>{ :layer=>'clients' }
+    #os.pink
+      = render :partial=>'layercake', :locals=>{ :layer=>'os' }
+    #nodes.blue
+      = render :partial=>'layercake', :locals=>{ :layer=>'nodes' }
+    #network.blue
+      = render :partial=>'layercake', :locals=>{ :layer=>'network' }
+
+.clear
+
+
+:javascript
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    location.reload();
+  }

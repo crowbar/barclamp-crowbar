@@ -15,26 +15,19 @@
 #
 class DashboardController < ApplicationController
 
-  def index  
-    @sum = Node.name_hash
-    @groups = Group.find_all_by_category 'ui'
-    @node = Node.find_key params[:id]
-    session[:node] = params[:id]
-    if params.has_key?(:role)
-      result = Node.all 
-      @nodes = result.find_all { |node| node.role? params[:role] }
-      if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.name }
-         @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
-      end
-    else
-      @nodes = {}
-      Node.all.each { |n| @nodes[n.id]=n.name }
+  def layercake
+    # we may want to move this into the database at some point
+    taxmap = JSON::load File.open(File.join("config", "layercake.json"), 'r')
+    @layers = {}
+    taxmap["layers"].each { |k| @layers[k]=[] }
+    Role.all.each do |role|
+      layer = taxmap[role.name] || 'apps'
+      role.node_roles.each { |nr| @layers[layer] << nr }
     end
     respond_to do |format|
-      format.html # index.html.haml
+      format.html { }
     end
-  end
+  end    
 
   def group_change
     # TODO: not used?

@@ -33,11 +33,12 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "role",
-      bdd_utils:is_a(J, length, 13),
+      bdd_utils:is_a(J, length, 14),
       bdd_utils:is_a(J, boolean, library),
       bdd_utils:is_a(J, boolean, implicit),
       bdd_utils:is_a(J, boolean, bootstrap),
       bdd_utils:is_a(J, boolean, discovery),
+      bdd_utils:is_a(J, boolean, server),
       bdd_utils:is_a(J, string, jig_name),
       bdd_utils:is_a(J, int,    cohort),
       bdd_utils:is_a(J, dbid,   barclamp_id),

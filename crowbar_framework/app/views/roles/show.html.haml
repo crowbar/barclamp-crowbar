@@ -22,24 +22,29 @@
         = t '.discovery' if @role.discovery
         = t '.implicit' if @role.implicit
         = t '.bootstrap' if @role.bootstrap
+        = t '.server' if @role.server
 
   .clear
 
-  - p = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
-  - begin
-    - if params.include? :raw
-      = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide=>true, :template => @role.template }
-    - else
-      = render :partial => p, :locals  => { :data => nil, :hide => true, :template => @role.template }
-  - rescue Exception => e
-    = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide => true, :template => @role.template }
-    - if Rails.env.development?
-      - if e.message.starts_with? "Missing partial #{p}"
-        %p= t '.no_overlay', :overlay=>p
-      - else
-        %p
-          = t 'error'
-          = e.message
+  - specfic = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
+  - general = "barclamp_#{@role.barclamp.name}/roles/role"
+  - if params.include? :raw
+    = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide=>true, :template => @role.template }
+  - else
+    - begin
+      = render :partial => specfic, :locals  => { :data => nil, :hide => true, :template => @role.template }
+    - rescue Exception => e_outer
+      - begin
+        = render :partial => general, :locals  => { :role=>@role, :data => nil, :hide => true, :template => @role.template }
+      -rescue Exception => e_inner
+        = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide => true, :template => @role.template }
+        - if Rails.env.development?
+          - if e_inner.message.starts_with? "Missing partial barclamp_#{@role.barclamp.name}" 
+            %p= t '.no_overlay', :overlay=>"#{specfic} or #{general}"
+          - else
+            %p
+              = t 'error'
+              = e_inner.message
 
   - unless params.include? :form
     %h3= t '.upstream'

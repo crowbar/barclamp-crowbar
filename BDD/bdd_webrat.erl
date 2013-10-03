@@ -37,12 +37,16 @@ step(Global, {step_given, _N, ["I am on the", Page, "page"]}) ->
 step(_Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
 	eurl:get_http(Page);
 
+% use this with parameter Key is Value
+step(_Given, {step_when, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]}) ->
+  step(_Given, {step_given, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]});
 step(_Global, {step_given, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]}) ->
   Param = bdd_utils:scenario_retrieve(Scenario, Key, ""),
   URL = Page ++ "?" ++ Key ++ "=" ++ Param,
   bdd_utils:log(debug, bdd_webrat, step, "Getting ~p for page ~p + ~p=~p",[URL, Page, Key, Param]),
   eurl:get_http(URL);
 	
+% use bdd:[module].[lookup][value]
 step(_Global, {step_given, {Scenario, _N}, ["parameter",Key,"is",Value]}) ->
   bdd_utils:log(debug, bdd_webrat, step, "Store parameter ~p = ~p", [Key, Value]),
   bdd_utils:scenario_store(Scenario, Key, Value),

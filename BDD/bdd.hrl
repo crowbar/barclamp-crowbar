@@ -17,6 +17,8 @@
 -record(list, {namespace = not_set, type = unknown, data, url = unknown, ids = [], count = -1 }).
   % note: the ids field is for backward compatability against the legacy 2.0 api
 
+-record(array, {namespace = not_set, type = unknown, data, url = unknown, ids = -1, count = -1 }).
+
 -record(obj,  {namespace = not_set, type = unknown, data, url = unknown, id = -1 }).
 
 -record(item, {namespace = unknown, type = unknown, data, url = unknown}).

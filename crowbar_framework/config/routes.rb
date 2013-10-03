@@ -51,6 +51,10 @@ Crowbar::Application.routes.draw do
     put :recall
   end
 
+  scope 'dashboard' do
+    get 'layercake'     => 'dashboard#layercake', :as => :layercake
+  end
+  
   scope 'utils' do
     get '/'             => 'support#index', :as => :utils
     get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n, :constraints => { :id => /.*/ }
@@ -65,13 +69,14 @@ Crowbar::Application.routes.draw do
       resources :attribs do as_routes end
       resources :barclamps do as_routes end
       resources :docs do as_routes end
+      resources :deployments do as_routes end
       resources :groups do as_routes end
       resources :jigs do as_routes end
       resources :navs do as_routes end
       resources :nodes do as_routes end
       resources :roles do as_routes end
       resources :role_requires do as_routes end
-      resources :deployments do as_routes end
+      resources :runs do as_routes end
       resources :snapshots do as_routes end
       resources :node_roles do as_routes end
       resources :deployment_roles do as_routes end

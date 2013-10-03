@@ -79,6 +79,17 @@ step(_Global, {step_given, _N, ["I require a",Object, Key]}) ->
   end;
 
 % WHEN STEPS ======================
+% use this with parameter Key is Value
+step(_Given, {step_when, {Scenario, _N}, ["REST requests the", Page, "page with parameter", Key]}) ->
+  step(_Given, {step_given, {Scenario, _N}, ["REST requests the", Page, "page with parameter", Key]});
+step(_Global, {step_given, {Scenario, _N}, ["REST requests the", Page, "page with parameter", Key]}) ->
+  Param = bdd_utils:scenario_retrieve(Scenario, Key, ""),
+  URL = Page ++ "?" ++ Key ++ "=" ++ Param,
+  bdd_utils:log(debug, rest_rat, step, "REST Getting ~p for page ~p + ~p=~p",[URL, Page, Key, Param]),
+  R = eurl:get_http(URL),
+  [R, get_object(R)];
+
+
 step(_Given, {step_when, _N, ["REST requests the",Page,"page"]}) ->
   R = eurl:get_http(Page),
   [R, get_object(R)];
@@ -231,6 +242,13 @@ step(Results, {step_then, {Scenario, _N}, ["id",ID,"should have value",Value]}) 
   bdd_utils:log(debug, "bdd_restrat Then ID ~p (~p) with expected value ~p should be match result ~p", [ID, I, Value, R]),
   R =:= Value;
 
+% handle JSON Arrays as returns
+step(Result, {step_then, {_Scenario, _N}, ["Array contains",Item]}) -> 
+  Array = eurl:get_result(Result, array),
+  bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
+  lists:member(Item,Array#array.data);
+
+% basic page return calls
 step(Result, {step_then, _N, ["the page returns",Number]}) -> 
   step(Result, {step_then, _N, ["I get a",Number,"error"]});
 step(Result, {step_then, _N, ["I get a",Number,"result"]}) -> 

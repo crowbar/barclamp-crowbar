@@ -193,7 +193,7 @@ en:
       nodes: "Nodes"
       os: "Operating Systems"
       clients: "Infrastructure Clients"
-      services: "Servies"
+      services: "Services"
       apps: "Applications"
   deployments:
     index:

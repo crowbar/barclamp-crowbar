@@ -38,6 +38,8 @@ step(_Global, {step_given, _N, ["I went to the", Page, "page"]}) ->
 	eurl:get_http(Page);
 
 % use this with parameter Key is Value
+step(_Given, {step_when, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]}) ->
+  step(_Given, {step_given, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]});
 step(_Global, {step_given, {Scenario, _N}, ["I am on the", Page, "page with parameter", Key]}) ->
   Param = bdd_utils:scenario_retrieve(Scenario, Key, ""),
   URL = Page ++ "?" ++ Key ++ "=" ++ Param,

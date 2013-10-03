@@ -73,7 +73,7 @@ parse_object(Results) ->
                 ID = proplists:get_value("id", JSON),
                 #obj{namespace = crowbar, data=JSON, type = Type, id = ID, url = Results#http.url};
     "array" ->  JSON = json:parse(Results#http.data),
-                #list{namespace = crowbar, data=JSON, type = Type, url = Results#http.url, count = length(JSON) };
+                #array{namespace = crowbar, data=JSON, type = Type, url = Results#http.url, count = length(JSON) };
     "list"  ->  JSON = json:parse(Results#http.data),
                 IDs = [proplists:get_value("id", I) || I <- JSON],
                 #list{namespace = crowbar, data=JSON, type = Type, ids = IDs, url = Results#http.url, count = length(IDs) };

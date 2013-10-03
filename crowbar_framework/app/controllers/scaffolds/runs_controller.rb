@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-class Scaffolds::DocsController < ApplicationController
-  active_scaffold :doc do |conf|
+class Scaffolds::RunsController < ApplicationController
+  active_scaffold :run do |conf|
   end
 end 

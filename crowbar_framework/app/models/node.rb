@@ -231,15 +231,9 @@ class Node < ActiveRecord::Base
   private
 
   def after_save_handler
-    if !self.alive
-      node_roles.deactivatable.each do |nr|
-        nr.deactivate
-      end
-    elsif self.alive && self.available
-      node_roles.runnable.each do |nr|
-        Run.enqueue(nr) if nr.runnable? && nr.todo?
-      end
-    end
+    node_roles.deactivatable.each do |nr|
+      nr.deactivate
+    end if !self.alive
   end
 
   # make sure some safe values are set for the node

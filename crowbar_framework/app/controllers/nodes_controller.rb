@@ -67,11 +67,13 @@ class NodesController < ApplicationController
   end
   
   def update
-    @node = Node.find_key params[:id]
+    # If we wind up changing to being alive and available,
+    # we will want to enqueue some noderoles to run.
+    node = Node.find_key params[:id]
     # discovery requires a direct save
     if params.include? :discovery
-      @node.discovery = params[:discovery]
-      @node.save!
+      node.discovery = params[:discovery]
+      node.save!
     end
     render api_update :node, Node, nil, @node
   end
@@ -156,6 +158,27 @@ class NodesController < ApplicationController
     redirect_to nodes_path(:selected => @node.name)
   end
 
+  def update_hook(o,old_attrs)
+    # Call the on_node_change hook with any updated node attrs.
+    # This will include aliveness and availability.
+    unless old_attrs.empty?
+      Rails.logger.info("Node: calling all role on_node_change hooks for #{o.name}")
+      Role.all.each do |r|
+        r.on_node_change(o,old_attrs)
+      end
+    end
+    # Enqueue any roles we need if we changed aliveness and availablity
+    # and wound up with a node that is both alive and available.
+    if (old_attrs.include?("available") ||
+        old_attrs.include?("alive")) &&
+        o.alive && o.available
+      Rails.logger.info("Node: #{o.name} is alive and available, enqueing noderoles to run.")
+      o.node_roles.runnable.each do |nr|
+        Run.enqueue(nr)
+      end
+    end
+  end
+
   private
 
   def save_node
@@ -204,18 +227,10 @@ class NodesController < ApplicationController
 =end
   end
 
-private
-
-=begin 
-Find a node by name or ID based on the passed in params
-in: params from request
-=end
-
   def find_node(params)
     if p= params[:name]
       return Node.find_by_name p
     end
-  
     if id= params[:id]
       return Node.find_by_id id
     end

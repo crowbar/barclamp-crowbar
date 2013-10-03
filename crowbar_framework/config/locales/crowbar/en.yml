@@ -26,6 +26,12 @@ en:
       proposed:   "Proposed"
       archived:   "Archived"
       committed:  "Committed"
+      alive:      "On"
+      dead:       "Off"
+      "off":      "Off"
+      available:  "Available"
+      reserved:   "Reserved"
+      idle:       "Idle"
     deployment: &deployment_common
       deployment: "Deployment"
       snapshot: "Snapshot"
@@ -178,6 +184,17 @@ en:
       roles: "Roles"
     show:
       roles: "Roles"
+  dashboard:
+    layercake:
+      title: "System Overview"
+      jigs: "Jigs"
+      core: "Core"
+      network: "Network"
+      nodes: "Nodes"
+      os: "Operating Systems"
+      clients: "Infrastructure Clients"
+      services: "Services"
+      apps: "Applications"
   deployments:
     index:
       title: "Deployments"
@@ -229,6 +246,7 @@ en:
       no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
       bootstrap: "Configure System"
       <<: *deployment_common
+      <<: *node_role_states
     show:
       node_roles: "In Process Actions"
       alive: "Alive"
@@ -262,8 +280,11 @@ en:
       asset_tag: Service Tag
       raid: RAID
       bdd_marker: BDD Marker
+      reserve: "Reserve"
+      release: "Release"
       <<: *bios_types
       <<: *raid_types
+      <<: *node_role_states
   node_roles:
     index:
       title: "Node Roles"
@@ -295,6 +316,7 @@ en:
       implicit: "Implicit"
       bootstrap: "Bootstrap"
       discovery: "Discovery"
+      server: "Server"
       description: "Description"
     index:
       title: "Roles"

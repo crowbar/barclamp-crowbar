@@ -1,11 +1,18 @@
 - s = @node.state
+- led = NodeRole::STATES[s]
+- if !@node.available
+  - led = (@node.alive ? 'reserved' : 'idle')
+- elsif !@node.alive
+  - led = 'off'
+
+
 %p{:style => 'float:right'}
   = link_to t('.all_node_roles'), node_node_roles_path(:node_id=>@node.id), :class => 'button'
 
 %table
   %tr
     %td
-      .led{:valign=>'center', :class => NodeRole::STATES[s], :title=>NodeRole.state_name(s)}
+      .led{:valign=>'center', :class => led, :title=>t(".#{led}")}
     %td
       %h1
         = @node.alias || @node.name

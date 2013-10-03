@@ -118,6 +118,11 @@ class ApplicationController < ActionController::Base
       return {:text=>I18n.t('api.wrong_version', :version=>params[:version]), :content_type=>cb_content_type(type, "error")}
     end
   end
+
+  # I exist to be overridden
+  def update_hook(o,old_attrs)
+    true
+  end
   
   def api_update(type, type_class, key=nil, o=nil)
     key ||= params[:id]
@@ -129,7 +134,12 @@ class ApplicationController < ActionController::Base
           k.to_sym == :id ||  # IDs can never be changed.
           o[k] == v  # Ignore anything that has not changed.
       end
+      old_attrs = Hash.new
+      to_update.each_key do |k|
+        old_attrs[k] = o[k]
+      end
       o.update_attributes! to_update
+      self.update_hook(o,old_attrs)
       return api_show type, type_class, nil, nil, o
     else
       return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found, :content_type=>cb_content_type(type, "error")}

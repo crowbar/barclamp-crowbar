@@ -7,7 +7,6 @@
       %input.button{:type => "submit", :name => "propose", :method=>:put, :value => t('.propose')}
   - when snapshot.annealable?
     = link_to t('.recall'), snapshot_recall_path(:snapshot_id=>snapshot.id), :class => 'button', :method=>:put
-    = link_to t('.anneal'), anneal_path(:version=>'v2', :step=>Rails.env.development?), :class => 'button', :method=>:put
   - when snapshot.error?
     = link_to t('.correct'), snapshot_propose_path(:snapshot_id=>snapshot.id), :class => 'button', :method=>:put
 

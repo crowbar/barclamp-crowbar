@@ -172,7 +172,7 @@ class Node < ActiveRecord::Base
     res = {}
     active_node_roles.each do |nr|
       dres.deep_merge!(nr.deployment_data)
-      res.deep_merge!(nr.all_my_data)
+      res.deep_merge!(nr.all_parent_data)
     end
     dres.deep_merge!(res)
     dres

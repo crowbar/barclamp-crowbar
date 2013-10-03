@@ -313,6 +313,7 @@ class NodeRole < ActiveRecord::Base
 
   def all_transition_data
     res = all_deployment_data
+    # This will get all parent data from all the active noderoles on this node.
     res.deep_merge!(self.node.all_active_data)
     res.deep_merge!(all_parent_data)
     res

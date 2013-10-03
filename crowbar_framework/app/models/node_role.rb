@@ -32,19 +32,23 @@ class NodeRole < ActiveRecord::Base
   # It is in TODO.
   # It is in a committed snapshot.
   scope           :archived,          -> { joins(:snapshot).where('snapshots.state' => Snapshot::ARCHIVED) }
-  scope           :current,           -> { joins(:snapshot).where(['"snapshots"."state" != ?',Snapshot::ARCHIVED]).readonly(false) }
+  scope           :current,           -> { joins(:snapshot).where(['snapshots.state != ?',Snapshot::ARCHIVED]).readonly(false) }
   scope           :committed,         -> { joins(:snapshot).where('snapshots.state' => Snapshot::COMMITTED).readonly(false) }
   scope           :deactivatable,     -> { where(:state => [ACTIVE, TRANSITION, ERROR]) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
   scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state in (?, ?))',TRANSITION,ERROR]) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
-  scope           :peers_by_state,    ->(ss,state) { current.where(['node_roles.snapshot_id=? AND node_roles.state=?', ss.id, state]) }
-  scope           :peers_by_role,     ->(ss,role)  { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=?', ss.id, role.id]) }
-  scope           :peers_by_node,     ->(ss,node)  { current.where(['node_roles.snapshot_id=? AND node_roles.node_id=?', ss.id, node.id]) }
-  scope           :peers_by_node_and_role,     ->(s,n,r) { current.where(['node_roles.snapshot_id=? AND node_roles.role_id=? AND node_roles.node_id=?', s.id, r.id, n.id]) }
+  scope           :in_snapshot,       ->(snap) { where(:snapshot_id => snap.id) }
+  scope           :with_role,         ->(r) { where(:role_id => r.id) }
+  scope           :on_node,           ->(n) { where(:node_id => n.id) }
+  scope           :peers_by_state,    ->(ss,state) { in_snapshot(ss).in_state(state) }
+  scope           :peers_by_role,     ->(ss,role)  { in_snapshot(ss).with_role(role) }
+  scope           :peers_by_node,     ->(ss,node)  { in_snapshot(ss).on_node(node) }
+  scope           :peers_by_node_and_role,     ->(s,n,r) { peers_by_node(s,n).with_role(r) }
 
-  # make sure that new node-roles have require upstreams 
+
+  # make sure that new node-roles have require upstreams
   # validate        :deployable,        :if => :deployable?
   has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
   has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
@@ -52,7 +56,7 @@ class NodeRole < ActiveRecord::Base
   # State transitions:
   # All node roles start life in the PROPOSED state.
   # At snapshot commit time, all node roles in PROPOSED that:
-  #  1. Have no parent node role, or 
+  #  1. Have no parent node role, or
   #  2. Have a parent in ACTIVE state
   # will be placed in TODO state, and all others will be placed in BLOCKED.
   #
@@ -90,7 +94,7 @@ class NodeRole < ActiveRecord::Base
     def to_s
       @errstr
     end
-    
+
     def to_str
       to_s
     end
@@ -139,14 +143,14 @@ class NodeRole < ActiveRecord::Base
   end
 
   def data(merge=true)
-    raw = read_attribute("userdata") 
-    d = raw.nil? ? {} : JSON.parse(raw)  
+    raw = read_attribute("userdata")
+    d = raw.nil? ? {} : JSON.parse(raw)
   end
 
   def data=(arg)
     raise I18n.t('node_role.cannot_edit_data') unless snapshot.proposed?
     arg = JSON.generate(arg) if arg.is_a? Hash
- 
+
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
 
@@ -278,7 +282,7 @@ class NodeRole < ActiveRecord::Base
     end
     res
   end
-  
+
   def all_my_data
     res = {}
     res.deep_merge!(wall)
@@ -295,7 +299,9 @@ class NodeRole < ActiveRecord::Base
 
   def all_parent_data
     res = {}
-    all_parents.each do |parent| res.deep_merge!(parent.all_my_data) end
+    all_parents.each do |parent|
+      next unless parent.node_id == node_id || parent.role.server
+      res.deep_merge!(parent.all_my_data) end
     res
   end
 
@@ -306,14 +312,12 @@ class NodeRole < ActiveRecord::Base
   end
 
   def all_transition_data
-    res = all_data
+    res = all_deployment_data
     res.deep_merge!(self.node.all_active_data)
-    res.deep_merge!(wall)
-    res.deep_merge!(sysdata)
-    res.deep_merge!(data)
+    res.deep_merge!(all_parent_data)
     res
   end
-    
+
   def rerun
     NodeRole.transaction do
       raise InvalidTransition(self,state,TODO,"Cannot rerun transition") unless state == ERROR
@@ -430,7 +434,7 @@ class NodeRole < ActiveRecord::Base
     end
     self
   end
-  
+
   # convenience methods
   def name
    "#{deployment.name}: #{node.name}: #{role.name}" rescue I18n.t('unknown')
@@ -467,5 +471,5 @@ class NodeRole < ActiveRecord::Base
       end
     end
   end
-  
+
 end

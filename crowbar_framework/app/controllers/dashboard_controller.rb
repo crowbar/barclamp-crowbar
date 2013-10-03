@@ -16,29 +16,17 @@
 class DashboardController < ApplicationController
 
   def layercake
-
+    # we may want to move this into the database at some point
     taxmap = JSON::load File.open(File.join("config", "layercake.json"), 'r')
-    @layers = { :count=>-1, :unclassified=>0, :os=>0, :hardware=>0, :test=>0, :network=>0, :crowbar_base=>0, :monitoring=>0, :performance=>0, :metering=>0, :database=>0, :nova=>0, :swift=>0, :glance=>0, :nova_api=>0, :swift_api=>0, :glance_api=>0, :identity_api=>0, :portal_api=>0, :api_ips=>{}, :api_names=>{} }
-    result = Deployment.system_root.first.head.node_roles
-    result.each do |node|
-      node.run_list.each do |role|
-        if taxmap.has_key? role.name
-          taxmap[role.name].each do |layer|
-            @layers[layer.to_sym] += 1
-            if layer =~ /(.*)_api$/ 
-              @layers[:api_ips][layer.to_sym] = node.public_ip
-              @layers[:api_names][layer.to_sym] = node.alias
-            end
-          end
-        else
-          @layers[:unclassified] += 1
-        end
-      end unless node.run_list.nil?
+    @layers = {}
+    taxmap["layers"].each { |k| @layers[k]=[] }
+    Role.all.each do |role|
+      layer = taxmap[role.name] || 'apps'
+      role.node_roles.each { |nr| @layers[layer] << nr }
     end
     respond_to do |format|
       format.html { }
     end
-    #respond_with @layers
   end    
 
   def group_change

@@ -9,16 +9,19 @@ $yellow_dark: #df3
 #layercake
   position: relative
   width: 960px
+
+  .title
+    text-align: center
+    z-index: 10
   
   .dark_green, .pink, .orange, .green, .blue, .yellow
-    +rounded_corners(5px,5px,5px,5px)
     +shadow
     margin-bottom: 15px
     padding: 5px 10px
     color: #000
     text-align: center
     h2
-      font-size: 20px
+      font-size: 30px
       color: #EEE
     h3
       font-size: 16px
@@ -34,7 +37,7 @@ $yellow_dark: #df3
   .dark_green
     +gradient($green, $green - #333)
     border: 1px solid $green
-    color: #fff
+    color: #000
     &.off
       color: #fff
       background: desaturate($secondary_bg - #111, 90%)
@@ -45,9 +48,9 @@ $yellow_dark: #df3
       background: desaturate($pink - #111, 60%)
       border: 1px solid #444
   .orange
-    background: $orange
+    +gradient($orange + #333, $orange)
     border: 1px solid $orange + #111
-    color: #fff
+    color: #000
     &.off
       color: #fff
       background: desaturate($secondary_bg - #111, 90%)
@@ -63,63 +66,77 @@ $yellow_dark: #df3
     &.off
       background: desaturate($blue - #111, 60%)
       border: 1px solid #444
-  
-  #ov_api_clients
+
+  #core
+    text-align: center
+    height: 340px
     padding: 0 10px
-    height: 130px
-    +rounded_corners(10px,10px,10px,10px)
-    text-align: left
+    width: 200px
+    +clearfix
+
+  #jigs
+    text-align: center
+    height: 80px
+    padding: 0 10px
+    width: 200px
+    +clearfix
+
+  #apps
+    padding: 0 10px
+    height: 60px
+    text-align: center
     div
       position: relative
       height: 50px
       line-height: 33px
-      top: -10px
-      
-    #ov_api_filler
-      width: 20px
-      float: left
-      margin-right: 15px
-      +clearfix
+      top: -10px      
           
-    #ov_portal_api
-      width: 675px
-      left: 237px
-
-  section#ov_clients
-    padding: 0
-    height: 50px
-    line-height: 50px
-      
-  section#ov_bridge
-    padding: 0
-    +columns(700px)
-    position: absolute
-    margin-left: 247px
-    top: 80px
-    div
-      padding-top: 10px
-      height: 70px
-      line-height: 15px
-  
-  #ov_ops_infrastructure
-    +rounded_corners(10px,10px,10px,10px)
+  #services
     padding: 0 10px
-    +clearfix
-    text-align: left
+    height: 60px
+    text-align: center
+    div
+      position: relative
+      height: 50px
+      line-height: 33px
+      top: -10px      
 
-    #ov_ops_management
-      width: 200px
-      float: left
-      margin-right: 15px
+  #clients
+    padding: 0 10px
+    height: 60px
+    text-align: center
+    div
+      position: relative
+      height: 50px
+      line-height: 33px
+      top: -10px      
 
-    .right
-      +columns(700px)
-      float: left
+  #os
+    padding: 0 10px
+    height: 60px
+    text-align: center
+    div
+      position: relative
+      height: 50px
+      line-height: 33px
+      top: -10px      
     
-    #lc_network, #ov_glance, #ov_swift
-      height: 65px
-      line-height: 65px
-    
-    #lc_os, #ov_hardware, #ov_network
-      height: 55px
-      line-height: 50px
+  #network
+    padding: 0 10px
+    height: 60px
+    text-align: center
+    div
+      position: relative
+      height: 50px
+      line-height: 33px
+      top: -10px      
+  
+  #nodes
+    padding: 0 10px
+    height: 60px
+    text-align: center
+    div
+      position: relative
+      height: 50px
+      line-height: 33px
+      top: -10px      

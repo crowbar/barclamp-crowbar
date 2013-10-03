@@ -186,6 +186,7 @@ en:
       roles: "Roles"
   dashboard:
     layercake:
+      title: "System Overview"
       jigs: "Jigs"
       core: "Core"
       network: "Network"

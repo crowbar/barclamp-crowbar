@@ -30,35 +30,8 @@ class NodeModelTest < ActiveSupport::TestCase
     d.save!
   end
 
-
-  test "Unique Name" do
-    Node.create! :name=>"foo.example.com"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Node.create!(:name => "foo.example.com") }
-    assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
-
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "foo.example.com" }
-  end
-
   test "name too long" do
     assert_raise(ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { Node.create!(:name=>"12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.12345678901234567890123456789012345678901234567890.com") }
-  end
-  
-  test "lower case required" do
-    name = "THIS.ISALL.CAPS"
-    n = Node.create! :name=>name
-    assert_not_equal n.name, name
-    assert_equal n.name, name.downcase
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordInvalid, SQLite3::ConstraintException) { b = Node.create! :name => name }
-  end
-  
-  test "not set group" do
-    n = Node.create! :name=>"not-set.example.com"
-    assert_not_nil n
-    g = Group.find_by_name "not_set"
-    assert_not_nil g
-    assert_equal g.name, "not_set"
-    assert_equal n.groups.size, 1
-    assert_equal n.groups[0].id, g.id
   end
   
   test "Naming Conventions" do

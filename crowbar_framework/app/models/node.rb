@@ -232,7 +232,7 @@ class Node < ActiveRecord::Base
 
   def after_save_handler
     return unless changed?
-    Rails.logger.info("Node: calling all role on_node_change hooks for #{o.name}")
+    Rails.logger.info("Node: calling all role on_node_change hooks for #{name}")
     Role.all.each do |r|
       r.on_node_change(self)
     end

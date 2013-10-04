@@ -173,6 +173,14 @@ class NodeObject < ChefObject
     @node.set[:license_key] = value
   end
 
+  def software_raid
+    @node[:software_raid]
+  end
+
+  def software_raid=(value)
+    @node.set[:software_raid] = value
+  end
+
   def shortname
     Rails.logger.warn("shortname is depricated!  Please change this call to use handle or alias")
     name.split('.')[0]

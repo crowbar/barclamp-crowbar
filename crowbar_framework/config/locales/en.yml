@@ -252,6 +252,10 @@ en:
       license_key: License Key
       target_platform: Target Platform
       target_platform_not_set: Not set
+      software_raid:
+        label: Software RAID
+        singledisk: Singledisk
+        raid1: RAID 1
   
   support:
     index:

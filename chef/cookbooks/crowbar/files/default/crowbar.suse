@@ -125,7 +125,8 @@ test -r $RAINBOWS_CONFIG || { echo "$RAINBOWS_CONFIG does not exist";
 	if [ "$1" = "stop" ]; then exit 0;
 	else exit 6; fi; }
 
-PID_FILE=/var/run/crowbar/crowbar.pid
+CROWBAR_RUNDIR=/var/run/crowbar
+PID_FILE="$CROWBAR_RUNDIR/crowbar.pid"
 PROGNAME="Crowbar"
 
 # Source LSB init functions
@@ -182,6 +183,13 @@ case "$1" in
 	$0 status >/dev/null
 	if test $? -ne 0; then
 		rc_reset
+		# Remove lock files for local chef-client wrappers
+		rm -f "$CROWBAR_RUNDIR/looper-chef-client.lock" "$CROWBAR_RUNDIR/chef-client.lock"
+		# Make sure that $CROWBAR_RUNDIR exists (if tmpfs, for instance)
+		if test ! -d "$CROWBAR_RUNDIR"; then
+			mkdir -p "$CROWBAR_RUNDIR"
+			chown crowbar:crowbar "$CROWBAR_RUNDIR"
+		fi
 		# Note: while $RAINBOWS_BIN works here, it doesn't work
 		# when using killproc - just have to use 'rainbows' unqualified
 		# there for some reason

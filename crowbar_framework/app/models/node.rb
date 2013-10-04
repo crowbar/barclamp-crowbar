@@ -231,9 +231,25 @@ class Node < ActiveRecord::Base
   private
 
   def after_save_handler
-    node_roles.deactivatable.each do |nr|
-      nr.deactivate
-    end if !self.alive
+    return unless changed?
+    Rails.logger.info("Node: calling all role on_node_change hooks for #{name}")
+    Role.all.each do |r|
+      r.on_node_change(self)
+    end
+    if changes["available"] || changes["alive"]
+      if alive && available
+        Rails.logger.info("Node: #{name} is alive and available, enqueing noderoles to run.")
+        node_roles.runnable.each do |nr|
+          Run.enqueue(nr)
+        end
+      end
+      if changes["alive"] && !alive
+        Rails.logger.info("Node: #{name} is not alive, deactivating noderoles on this node.")
+        node_roles.deactivatable.each do |nr|
+          nr.deactivate
+        end
+      end
+    end
   end
 
   # make sure some safe values are set for the node

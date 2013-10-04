@@ -125,10 +125,10 @@ class Role < ActiveRecord::Base
     true
   end
 
-  # Event hook that will be called every time a node changes state via its update method.
-  # First arg is the node in its updated state, second arg is a hash of the old attrs
-  # were updated.
-  def on_node_change(node,old_attrs)
+  # Event hook that will be called every time a node is saved if any attributes changed.
+  # Roles that are interested in watching nodes to see what has changed should
+  # implement this hook.
+  def on_node_change(node)
     true
   end
 

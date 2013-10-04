@@ -158,27 +158,6 @@ class NodesController < ApplicationController
     redirect_to nodes_path(:selected => @node.name)
   end
 
-  def update_hook(o,old_attrs)
-    # Call the on_node_change hook with any updated node attrs.
-    # This will include aliveness and availability.
-    unless old_attrs.empty?
-      Rails.logger.info("Node: calling all role on_node_change hooks for #{o.name}")
-      Role.all.each do |r|
-        r.on_node_change(o,old_attrs)
-      end
-    end
-    # Enqueue any roles we need if we changed aliveness and availablity
-    # and wound up with a node that is both alive and available.
-    if (old_attrs.include?("available") ||
-        old_attrs.include?("alive")) &&
-        o.alive && o.available
-      Rails.logger.info("Node: #{o.name} is alive and available, enqueing noderoles to run.")
-      o.node_roles.runnable.each do |nr|
-        Run.enqueue(nr)
-      end
-    end
-  end
-
   private
 
   def save_node

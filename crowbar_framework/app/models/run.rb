@@ -26,9 +26,12 @@ class Run < ActiveRecord::Base
 
   def self.cleanup
     # Clear out any stale runs.
-    Run.running.each do |j|
-      next if j.node_role.state == NodeRole::TRANSITION rescue Rails.logger.warn("Run job #{j.id} was in queue a nil node_role_id")
-      j.destroy
+    Run.all.each do |j|
+      if !((j.node_role && j.node) rescue nil) ||
+        !j.node.alive ||
+        (j.running && j.node_role.state != NodeRole::TRANSITION)
+        j.destroy
+      end
     end
   end
 
@@ -36,7 +39,7 @@ class Run < ActiveRecord::Base
     cleanup
     Run.all.count == 0
   end
-  
+
   def self.queued?(nr)
     cleanup
     Run.where(:node_role_id => nr.id).count > 0
@@ -45,14 +48,18 @@ class Run < ActiveRecord::Base
   # Queue up a job to run.
   def self.enqueue(nr)
     raise "cannot enqueue a nil node_role!" if nr.nil?
+    if !(nr.node.alive && nr.node.available)
+      Rails.logger.info("Run: #{nr.node.name} is not alive and available, cannot enqueue a noderole for it.")
+      return 0
+    end
     Rails.logger.info("Run: Starting Run enqueue for #{nr.inspect}")
     if nr.todo? && queued?(nr)
       Rails.logger.info("Run: Already enqueued!")
-      return
+    else
+      Rails.logger.info("Run: Enqueing #{nr.inspect}")
+      Run.create!(:node_id => nr.node_id,
+                  :node_role_id => nr.id)
     end
-    Rails.logger.info("Run: Enqueing #{nr.inspect}")
-    Run.create!(:node_id => nr.node_id,
-                :node_role_id => nr.id)
     run!
   end
 

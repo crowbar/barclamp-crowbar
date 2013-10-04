@@ -23,10 +23,10 @@
     = link_to t('.create', :server=>name), make_admin_path(:version=>'v2'), :"data-method"=>:post, :class=>'button', :remote=>true, :onclick=>"location.reload();"
   -else
     - Node.admin.each do |n|
-      =link_to n.name, nodes_path(n.id)
+      =link_to n.name, node_path(n.id)
 
   %h2
-    = link_to t('.anneal'), anneal_path(:version=>'v2'), :class=>'button', :"data-method"=>:put, :remote=>true
+    = link_to t('.anneal'), annealer_path(), :class=>'button', :"data-method"=>:get
 
 .column_50
   %p

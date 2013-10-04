@@ -36,6 +36,8 @@ class NodesController < ApplicationController
 
   def make_admin
     n = Node.make_admin!
+    n.alive = true
+    n.save!
     redirect_to :action => 'index', :status => :found
   end
 

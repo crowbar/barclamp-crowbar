@@ -1,8 +1,9 @@
 development:
   adapter: sqlite3
   database: db/development.sqlite3
-  pool: 5
+  pool: 10
   timeout: 5000
+  reaping_frequency: 3
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -10,14 +11,16 @@ development:
 test: &test
   adapter: sqlite3
   database: db/test.sqlite3
-  pool: 5
+  pool: 10
   timeout: 5000
-
+  reaping_frequency: 3
+  
 production:
   adapter: sqlite3
   database: db/production.sqlite3
-  pool: 5
+  pool: 10
   timeout: 5000
-
+  reaping_frequency: 3
+  
 cucumber:
   <<: *test

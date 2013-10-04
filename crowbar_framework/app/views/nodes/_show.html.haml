@@ -1,6 +1,6 @@
 - options = CrowbarService.read_options
 .led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
+%h1{:title=>@node.description}= "#{@node.alias}"
 
 %ul.buttons
   - unless @node.admin?
@@ -72,10 +72,16 @@
   = dl_item(t('model.attributes.node.roles'), roles_list(@node.roles), {:escape_html=>false})
 
 %ul.buttons
-  - unless @node.admin?
+  - if @node.admin?
+    = link_to "Edit", edit_node_path(@node.handle), :class => 'btn', :'data-remote' => true
+  - else
+    - if @node.allocated?
+      = link_to "Edit", edit_node_path(@node.handle), :class => 'btn', :'data-remote' => true
     -if options[:show].include? :bios or options[:show].include? :raid
       %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_hw_update'), :title => t('.hw_update_tooltip')
     - if @node.allocated?
       %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
       %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
+    - else
+      = link_to "Allocate", edit_node_path(@node.handle), :class => 'btn', :'data-remote' => true
     %li= link_to "Forget", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_forget'), :title => t('.forget_tooltip')

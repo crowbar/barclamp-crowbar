@@ -9,7 +9,7 @@
       .led{:class => NodeRole::STATES[@node_role.state || NodeRole::ERROR], :title=>@node_role.state_name}
     %td
       = @node_role.state_name
-    - if @node_role.error?
+    - if @node_role.error? || @node_role.active?
       %td{:width=>'100%', :align=>'right'}
         = link_to t('.retry'), node_role_retry_path(@node_role.id), :class => 'button', :method=>:put
 

@@ -23,7 +23,7 @@ class CreateJigs < ActiveRecord::Migration
       t.string      :client_role_name,    :null => true
       t.string      :server,              :null=>true
       t.string      :client_name,         :null=>true
-      t.string      :key,                 :null=>true
+      t.text        :key,                 :null=>true
       t.timestamps
     end
     #natural key

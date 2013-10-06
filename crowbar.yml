@@ -63,6 +63,7 @@ debs:
       - deb-src http://extras.ubuntu.com/ubuntu precise main
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
+      - deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main
   #repos:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main
@@ -116,6 +117,10 @@ debs:
     - sqlite
     - sqlite3
     - libsqlite3-dev
+    - postgresql-9.3
+    - postgresql-client-9.3
+    - postgresql-contrib-9.3
+    - libpq-dev
     - kwalify
     - libcurl4-gnutls-dev
     # minicom stuff
@@ -277,6 +282,7 @@ gems:
     - net-ssh
     - net-ssh-multi
     - puma
+    - pg
     - railroad
     - rails-(~>3.2.13)
     - rails_config

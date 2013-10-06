@@ -19,7 +19,7 @@ class Nav < ActiveRecord::Base
   attr_accessible :item, :parent_item, :name, :description, :path, :params, :order, :development
 
   belongs_to :parent, :class_name => "Nav", :foreign_key => "parent_item"
-  has_many :children, :class_name => "Nav", :foreign_key => "parent_item", :order => "[order] ASC", :conditions=>(Rails.env.eql?('development') ? [] : ['development=?', false])
+  has_many :children, :class_name => "Nav", :foreign_key => "parent_item", :conditions=>(Rails.env.eql?('development') ? [] : ['development=?', false])
   
   validates_uniqueness_of :item, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   

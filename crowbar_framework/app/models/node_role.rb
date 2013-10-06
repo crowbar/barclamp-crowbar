@@ -339,100 +339,98 @@ class NodeRole < ActiveRecord::Base
     return val if val == cstate
     Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
     meth = "on_#{STATES[val]}".to_sym
-    NodeRole.transaction do
-      case val
-      when ERROR
-        # We can only go to ERROR from TRANSITION
-        unless (cstate == TRANSITION) || (cstate == ACTIVE)
-          raise InvalidTransition.new(self,cstate,val)
-        end
-        write_attribute("state",val)
-        save!
-        role.send(meth,self) if snapshot.committed?
-        # All children of a node_role in ERROR go to BLOCKED.
-        children.each do |c|
-          next unless c.snapshot.committed?
-          c.state = BLOCKED
-        end
-      when ACTIVE
-        # We can only go to ACTIVE from TRANSITION
-        unless cstate == TRANSITION
-          raise InvalidTransition.new(self,cstate,val)
-        end
-        write_attribute("state",val)
-        save!
-        role.send(meth,self) if snapshot.committed?
-        # Immediate children of an ACTIVE node go to TODO
-        children.each do |c|
-          next unless c.snapshot.committed? && c.activatable?
-          c.state = TODO
-        end
-      when TODO
-        # We can only go to TODO when:
-        # 1. We were in PROPOSED or BLOCKED or ERROR or ACTIVE
-        # 2. All our parents are in ACTIVE
-        unless ((cstate == PROPOSED) || (cstate == BLOCKED)) ||
-            (cstate == ERROR) || (cstate == ACTIVE)
-          raise InvalidTransition.new(self,cstate,val)
-        end
-        unless activatable?
-          raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
-        end
-        write_attribute("state",val)
-        save!
-        role.send(meth,self) if snapshot.committed?
-        # Going into TODO transitions all our children into BLOCKED.
-        children.each do |c|
-          c.state = BLOCKED
-        end
-      when TRANSITION
-        # We can only go to TRANSITION from TODO
-        # As an optimization, we may also want to allow a transition from
-        # BLOCKED to TRANSITION directly -- the goal would be to allow a jig
-        # to batch up noderole runs by noticing that a noderole it was handed
-        # in TRANSITION has children on the same node utilizing the same jig
-        # in BLOCKED, and preemptivly grabbing them to batch them up.
-        unless (cstate == TODO) || (cstate == ACTIVE)
-          raise InvalidTransition.new(self,cstate,val)
-        end
-        write_attribute("state",val)
-        save!
-        role.send(meth,self) if snapshot.committed?
-      when BLOCKED
-        # We can only go to BLOCKED from PROPOSED or TODO,
-        # or if any our parents are in BLOCKED or TODO or ERROR.
-        unless parents.any?{|nr|nr.blocked? || nr.todo? || nr.error?} ||
-            (cstate == PROPOSED || cstate == TODO) || (cstate == ACTIVE)
-          raise InvalidTransition.new(self,cstate,val)
-        end
-        # If we are blocked, so are all our children.
-        all_children.each do |c|
-          c.send(:write_attribute,"state",BLOCKED)
-          c.save!
-        end
-      when PROPOSED
-        # Only new node_roles can be in proposed
-        raise InvalidTransition.new(self,cstate,val) unless snapshot.proposed?
-        write_attribute("state",val)
-        save!
-        all_children.each do |c|
-          next if c.id == self.id
-          unless c.deployment.id == self.deployment.id
-            raise InvalidTransition.new(c,cstate,val,"NodeRole #{c.name} not in same deployment as #{self.name}")
-          end
-          c.send(:write_attribute,"state",BLOCKED)
-          c.save!
-          role.send(meth,self) if snapshot.committed?
-        end
-      else
-        # No idea what this is.  Just die.
-        raise InvalidState.new("Unknown state #{s.inspect}")
+    case val
+    when ERROR
+      # We can only go to ERROR from TRANSITION
+      unless (cstate == TRANSITION) || (cstate == ACTIVE)
+        raise InvalidTransition.new(self,cstate,val)
       end
-      # If the new state is TODO, enqueue ourself.
-      Run.enqueue(self) if self.runnable? && val == TODO
-      # Kick the runner every time something transitions to ACTIVE.
-      Run.run! if val == ACTIVE
+      write_attribute("state",val)
+      save!
+      role.send(meth,self) if snapshot.committed?
+      # All children of a node_role in ERROR go to BLOCKED.
+      children.each do |c|
+        next unless c.snapshot.committed?
+        c.state = BLOCKED
+      end
+    when ACTIVE
+      # We can only go to ACTIVE from TRANSITION
+      unless cstate == TRANSITION
+        raise InvalidTransition.new(self,cstate,val)
+      end
+      write_attribute("state",val)
+      save!
+      role.send(meth,self) if snapshot.committed?
+      # Immediate children of an ACTIVE node go to TODO
+      children.each do |c|
+        next unless c.snapshot.committed? && c.activatable?
+        c.state = TODO
+      end
+    when TODO
+      # We can only go to TODO when:
+      # 1. We were in PROPOSED or BLOCKED or ERROR or ACTIVE
+      # 2. All our parents are in ACTIVE
+      unless ((cstate == PROPOSED) || (cstate == BLOCKED)) ||
+          (cstate == ERROR) || (cstate == ACTIVE)
+        raise InvalidTransition.new(self,cstate,val)
+      end
+      unless activatable?
+        raise InvalidTransition.new(self,cstate,val,"Not all parents are ACTIVE")
+      end
+      write_attribute("state",val)
+      save!
+      role.send(meth,self) if snapshot.committed?
+      # Going into TODO transitions all our children into BLOCKED.
+      children.each do |c|
+        c.state = BLOCKED
+      end
+    when TRANSITION
+      # We can only go to TRANSITION from TODO
+      # As an optimization, we may also want to allow a transition from
+      # BLOCKED to TRANSITION directly -- the goal would be to allow a jig
+      # to batch up noderole runs by noticing that a noderole it was handed
+      # in TRANSITION has children on the same node utilizing the same jig
+      # in BLOCKED, and preemptivly grabbing them to batch them up.
+      unless (cstate == TODO) || (cstate == ACTIVE)
+        raise InvalidTransition.new(self,cstate,val)
+      end
+      write_attribute("state",val)
+      save!
+      role.send(meth,self) if snapshot.committed?
+    when BLOCKED
+      # We can only go to BLOCKED from PROPOSED or TODO,
+      # or if any our parents are in BLOCKED or TODO or ERROR.
+      unless parents.any?{|nr|nr.blocked? || nr.todo? || nr.error?} ||
+          (cstate == PROPOSED || cstate == TODO) || (cstate == ACTIVE)
+        raise InvalidTransition.new(self,cstate,val)
+      end
+      # If we are blocked, so are all our children.
+      all_children.each do |c|
+        c.send(:write_attribute,"state",BLOCKED)
+        c.save!
+      end
+    when PROPOSED
+      # Only new node_roles can be in proposed
+      raise InvalidTransition.new(self,cstate,val) unless snapshot.proposed?
+      write_attribute("state",val)
+      save!
+      all_children.each do |c|
+        next if c.id == self.id
+        unless c.deployment.id == self.deployment.id
+          raise InvalidTransition.new(c,cstate,val,"NodeRole #{c.name} not in same deployment as #{self.name}")
+        end
+        c.send(:write_attribute,"state",BLOCKED)
+        c.save!
+        role.send(meth,self) if snapshot.committed?
+      end
+    else
+      # No idea what this is.  Just die.
+      raise InvalidState.new("Unknown state #{s.inspect}")
     end
+    # If the new state is TODO, enqueue ourself.
+    Run.enqueue(self) if self.runnable? && val == TODO
+    # Kick the runner every time something transitions to ACTIVE.
+    Run.run! if val == ACTIVE
     self
   end
 

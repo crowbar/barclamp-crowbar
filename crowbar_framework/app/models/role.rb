@@ -287,7 +287,7 @@ class Role < ActiveRecord::Base
     raise "roles require a barclamp" if self.barclamp_id.nil?
     namespace = "Barclamp#{self.barclamp.name.camelize}"
     # remove the redundant part of the name (if any)
-    name = self.name.sub("#{self.barclamp.name}-", '').camelize
+    name = self.name.sub("#{self.barclamp.name}-", '').gsub('-','_').camelize
     # these routines look for the namespace & class
     # barclamps can override specific roles
     test_specific =  ("#{namespace}::#{name}".constantize ? true : false) rescue false

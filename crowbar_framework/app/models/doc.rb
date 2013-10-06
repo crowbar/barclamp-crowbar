@@ -19,7 +19,7 @@ class Doc < ActiveRecord::Base
 
   belongs_to :barclamp
   belongs_to :parent, :class_name => "Doc"
-  has_many :children, :class_name => "Doc", :foreign_key => "parent_id", :order => "[order]+[description] ASC"
+  has_many :children, :class_name => "Doc", :foreign_key => "parent_id"
 
   validates_uniqueness_of :name, :scope=>:barclamp_id, :on => :create, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Doc handle must be unique")
 

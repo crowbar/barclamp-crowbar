@@ -113,7 +113,7 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   network:make_admin(),
   % create node for testing
   bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
-  Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {admin, "true"}]),
+  Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {alive, "true"}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it

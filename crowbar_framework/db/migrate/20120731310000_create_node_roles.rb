@@ -21,10 +21,10 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.integer     :state,             :null=>false, :default => NodeRole::PROPOSED
       t.integer     :cohort,            :null=>false, :default => 0
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
-      t.string      :userdata,          :null=>false, :default => '{}'
-      t.string      :systemdata,        :null=>false, :default => '{}'
-      t.string      :wall,              :null=>true
-      t.string      :runlog,            :null=>false, :default => ""
+      t.text        :userdata,          :null=>false, :default => '{}'
+      t.text        :systemdata,        :null=>false, :default => '{}'
+      t.text        :wall,              :null=>true
+      t.text        :runlog,            :null=>false, :default => ""
       t.integer     :order,             :default=>Random.rand(1000000)
       t.timestamps
     end

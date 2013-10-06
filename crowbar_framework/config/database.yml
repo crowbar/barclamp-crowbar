@@ -16,8 +16,10 @@ test: &test
   reaping_frequency: 3
   
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
+  adapter: postgresql
+  database: crowbar_production
+  port: 5439
+  username: crowbar
   pool: 10
   timeout: 5000
   reaping_frequency: 3

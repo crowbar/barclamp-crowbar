@@ -24,7 +24,7 @@ class Group < ActiveRecord::Base
   validates_inclusion_of :category, :in => %w(ui rack tag), :message => I18n.t("db.group_category", :default=>"Illegal group category")
   # REMINDER: if you add a new group category, update the g(categories) list in BDD/groups.erl!
 
-  has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id", :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :nodes, :join_table => "node_groups", :foreign_key => "group_id"
 
   def <=>(other)
     # use Array#<=> to compare the attributes

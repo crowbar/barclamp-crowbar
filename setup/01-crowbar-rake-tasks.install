@@ -35,6 +35,7 @@ fi
 cd /opt/dell/crowbar_framework
 export RAILS_ENV=production
 tasks=("rake assets:precompile"
+    "rake db:create"
     "rake railties:install:migrations"
     "rake db:migrate"
     "script/rails generate delayed_job:active_record"

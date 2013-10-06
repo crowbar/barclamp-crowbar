@@ -46,7 +46,7 @@ class Node < ActiveRecord::Base
   validates_format_of :alias, :with=>/^([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   validates_length_of :alias, :maximum => 100
 
-  has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
+  has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id"
 
   has_many :node_roles,         :dependent => :destroy
   has_many :roles,              :through => :node_roles
@@ -258,7 +258,7 @@ class Node < ActiveRecord::Base
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
     # the line belowrequires a crowbar deployment to which the status attribute is tied
-    if self.groups.size == 0
+    if self.groups.count == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')
       self.groups << g rescue nil
     end

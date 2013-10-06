@@ -18,7 +18,7 @@ class CreateRoles < ActiveRecord::Migration
       t.string      :name,              :null=>false
       t.string      :description,       :null=>true
       t.string      :type,              :null=>true
-      t.string      :template,          :null=>false, :default=>"{}"
+      t.text        :template,          :null=>false, :default=>"{}"
       t.string      :jig_name,          :null=>false
       # brings in library code thats used to access another role (sql client)
       t.boolean     :library,           :null=>false, :default=>false

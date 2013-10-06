@@ -23,7 +23,7 @@ class User < ActiveRecord::Base
   devise :database_authenticatable, :registerable,
          :rememberable, :trackable, :validatable, :recoverable,
          :lockable, :timeoutable, :authentication_keys => [:username]
-         
+
   attr_accessor :admin_reset_password
 
   # Setup accessible (or protected) attributes for your model
@@ -34,9 +34,15 @@ class User < ActiveRecord::Base
   DIGEST_REALM = "Crowbar"
   
   
-  def self.find_by_id_or_username(id_or_username)
-   ret = find :first, :conditions => ['id = ? or username = ?', id_or_username, id_or_username]
-   raise ActiveRecord::RecordNotFound.new(I18n.t('api.by_id_or_username_record_not_found', :id_username=>id_or_username)) unless !ret.nil?
+  def self.find_by_id_or_username(id)
+    if id.kind_of?(Integer)
+      ret = find(id)
+    elsif /^[0-9]+$/ =~ id
+      ret = find(id.to_i)
+    else
+      ret = where(:username => id).first
+    end
+   raise ActiveRecord::RecordNotFound.new(I18n.t('api.by_id_or_username_record_not_found', :id_username=>id)) if ret.nil?
    ret
   end
 

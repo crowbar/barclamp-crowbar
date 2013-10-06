@@ -22,7 +22,7 @@ class Node < ActiveRecord::Base
   before_destroy :tear_down_roles
   after_save :after_save_handler
 
-  attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated
+  attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated, :deployment_id
   attr_accessible   :alive, :available, :bootenv
 
   # Make sure we have names that are legal
@@ -48,10 +48,11 @@ class Node < ActiveRecord::Base
 
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id", :order=>"[order], [name] ASC"
 
-  has_many :node_roles,         :dependent => :destroy
-  has_many :roles,              :through => :node_roles
-  has_many :snapshots,          :through => :node_roles
-  has_many :deployments,        :through => :snapshots
+  has_many    :node_roles,         :dependent => :destroy
+  has_many    :roles,              :through => :node_roles
+  has_many    :snapshots,          :through => :node_roles
+  has_many    :deployments,        :through => :snapshots
+  belongs_to  :deployment
 
   scope    :admin,              -> { where(:admin => true) }
   scope    :alive,              -> { where(:alive => true) }
@@ -257,6 +258,7 @@ class Node < ActiveRecord::Base
     self.admin = true if Node.admin.count == 0    # first node, needs to be admin
     self.name = self.name.downcase
     self.alias = self.name.split(".")[0]
+    self.deployment ||= Deployment.system_root.first
     # the line belowrequires a crowbar deployment to which the status attribute is tied
     if self.groups.size == 0
       g = Group.find_or_create_by_name :name=>'not_set', :description=>I18n.t('not_set', :default=>'Not Set')

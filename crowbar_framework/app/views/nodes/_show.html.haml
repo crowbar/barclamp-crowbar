@@ -10,6 +10,8 @@
   %dl
     = dl_item(t('.name'), @node.name)
     = dl_item(t('.description'), @node.description || (t 'not_set'))
+    %dt= t '.deployment'
+    %dd= link_to @node.deployment.name, deployment_path(@node.deployment.id), :title=>@node.deployment.description
     %dt= t('.status')
     %dd
       = t (@node.alive ? ".alive" : ".dead")
@@ -18,13 +20,13 @@
       = link_to t((@node.available ? '.reserve' : '.release')), node_path(@node.id, :version=>'v2', :available=>!@node.available), 
                     :method=>:put, :class=>'button', :remote=>true, :onclick=>"location.reload();"
     = dl_item(t('.uptime'), (state == NodeRole::ACTIVE ? @node.attrib_uptime : t('na')))
+
+.column_50.last
+  %dl
     - if @node.attrib_switch_unit.nil?
       = dl_item(t('.switch_name_port'), "#{@node.attrib_switch_name || t('unknown') } / #{@node.attrib_switch_port || t('unknown')}")
     - else
       = dl_item(t('.switch_name_unit_port'), link_to("#{@node.attrib_switch_name || t('unknown') } / #{@node.attrib_switch_unit || ''} / #{@node.attrib_switch_port || t('unknown')}", switch_path(:node=>@node.id)))    
-
-.column_50.last
-  %dl
     = dl_item(t('.hardware'), @node.attrib_hardware)
     = dl_item(t('.cpu'), @node.attrib_cpu)
     = dl_item(t('.memory'), format_memory(@node.attrib_memory))

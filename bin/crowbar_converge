@@ -20,14 +20,14 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
 
 def usage(rc)
   puts "crowbar converge has no subcommands."
-  puts "it just has the annealer try to transition all node roles to active."
+  puts "it just sees if the annealer has converged the cluster ot an active state."
   exit(rc)
 end
 
 opt_parse
 
 loop do
-  res = put_json2("api/v2/anneal")
+  res = get_json2("api/v2/anneal")
   exit 0 if res[1] == 200
   if res[1] == 409
     STDERR.puts("Noderoles transitioned to error!")

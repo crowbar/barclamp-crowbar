@@ -117,14 +117,8 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
-step(Global, {step_teardown, {Scenario, _N}, _}) -> 
+step(_Global, {step_teardown, {_Scenario, _N}, _}) -> 
   bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
-  % turn on the delays in the test jig
-  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "true"]}), 
-  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "true"]}), 
-  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-client", "property", "test", "to", "true"]}), 
-  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-library", "property", "test", "to", "true"]}), 
-  role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-discovery", "property", "test", "to", "true"]}), 
   % remove node for testing
   bdd_crud:delete(g(node_atom));
 

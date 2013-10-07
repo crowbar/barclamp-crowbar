@@ -201,12 +201,14 @@ en:
       actions: "Actions"
       default: "default"
       create: "Add"
+      parent: "Parent"
       <<: *deployment_common
     show:
       snapshots: "History"
       assign: "Assign Nodes to Roles"
       roles: "Assigned Roles"
       nodes: "Available Nodes"
+      parent: "Child of "
       <<: *deployment_common
       add_role: "Add"
     buttons:

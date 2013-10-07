@@ -15,6 +15,7 @@ Feature: Deployments
     Given I am on the "deployments" page
     Then I should see a heading {bdd:crowbar.i18n.deployments.index.title}
       And I should see "system"
+      And I should see {apply:crowbar.i18n.deployments.index.parent}
       And there are no localization errors
 
   Scenario: Deployment UI click to Snapshot
@@ -48,3 +49,17 @@ Feature: Deployments
       And I should not see "something went wrong"
       And there should be no translation errors
     Finally REST removes the {object:deployment} "bdd_deploy_showme"
+
+  Scenario: New Deployment is child of System
+    Given there is a {object:deployment} "bdd_deploy_child"
+    When REST gets the {object:deployment} "bdd_deploy_child"
+    Then key "parent_id" should be "1"
+    Finally REST removes the {object:deployment} "bdd_deploy_child"
+
+  Scenario: Parent Deployment shown on UI
+    Given there is a {object:deployment} "bdd_deploy_child_ui"
+    When I go to the "deployments/bdd_deploy_child_ui" page
+    Then I should see "Child of"
+      And I should see a link to "system"
+    Finally REST removes the {object:deployment} "bdd_deploy_child_ui"
+  

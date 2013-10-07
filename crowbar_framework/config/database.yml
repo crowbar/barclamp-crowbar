@@ -1,6 +1,8 @@
 development:
-  adapter: sqlite3
-  database: db/development.sqlite3
+  adapter: postgresql
+  database: crowbar_development
+  port: 5439
+  username: crowbar
   pool: 10
   timeout: 5000
   reaping_frequency: 3
@@ -9,12 +11,14 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test: &test
-  adapter: sqlite3
-  database: db/test.sqlite3
+  adapter: postgresql
+  database: crowbar_test
+  port: 5439
+  username: crowbar
   pool: 10
   timeout: 5000
   reaping_frequency: 3
-  
+
 production:
   adapter: postgresql
   database: crowbar_production
@@ -23,6 +27,6 @@ production:
   pool: 10
   timeout: 5000
   reaping_frequency: 3
-  
+
 cucumber:
   <<: *test

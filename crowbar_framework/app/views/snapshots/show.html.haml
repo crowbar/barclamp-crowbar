@@ -1,7 +1,7 @@
 - state = @snapshot.state
 %table{:width=>'100%'}
   %tr
-    %td 
+    %td
       .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
     %td
       %h1
@@ -15,17 +15,17 @@
   %thead
     %tr
       %th= t '.nodes'
-      - @barclamps.each do |bcid, barclamp|
-        %th= link_to barclamp.name, barclamp_path(bcid)
+      - @barclamps.each do |barclamp|
+        %th= link_to barclamp.name, barclamp_path(barclamp.id)
   %tbody
     - @nodes.each do |nid, node|
       %tr{:class => ["node", cycle(:odd, :even)], :id => nid}
         %td{:width=>'5%'}= link_to node.alias, node_path(nid), :title=>node.description
-        -@barclamps.each do |bid, bc|
+        -@barclamps.each do |bc|
           %td
-            - if @node_roles[nid][bid]
+            - if @node_roles[nid][bc.id]
               %span
-                - @node_roles[nid][bid].each do |nr|
+                - @node_roles[nid][bc.id].each do |nr|
                   - unless nr.nil?
                     %span.led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
                       = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)

@@ -35,7 +35,7 @@ class SnapshotsController < ApplicationController
           n = nr.node
           bc = nr.role.barclamp
           @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
-          @barclamps[bc.id] = bc unless bc.nil? or @barclamps.has_key? bc.id            
+          @barclamps[bc.id] = bc unless bc.nil? or @barclamps.has_key? bc.id
           # build the node_role grid
           unless n.nil? or bc.nil?
             @node_roles[n.id] ||= []
@@ -48,6 +48,7 @@ class SnapshotsController < ApplicationController
           b = Barclamp.find :first
           @barclamps[b.id] = b
         end
+        @barclamps = @barclamps.values.sort
         }
       format.json { render api_show :snapshot, Snapshot }
     end

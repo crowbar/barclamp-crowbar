@@ -20,7 +20,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
 
 def usage(rc)
   puts "crowbar converge has no subcommands."
-  puts "it just has hte annealer try to transition all node roles to active."
+  puts "it just has the annealer try to transition all node roles to active."
   exit(rc)
 end
 

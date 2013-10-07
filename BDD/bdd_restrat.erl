@@ -157,6 +157,17 @@ step(Results, {step_then, _N, ["REST call returned success"]}) ->
            false
   end;
 
+step(_Global, {step_when, {_Scenario, _N}, ["REST sets",Type, Name, "property", Property, "to", Value]}) -> 
+  step(_Global, {step_given, {_Scenario, _N}, ["REST sets",Type, Name, "property", Property, "to", Value]});
+step(_Global, {step_given, {_Scenario, _N}, ["REST sets",Type, Name, "property", Property, "to", Value]}) -> 
+  Path = eurl:path([alias(Type, g, [path]), Name]),
+  J = json:output([{Property,Value}]),
+  bdd_utils:log(debug, bdd_restrat, step, "~p PUT ~p", [Path, J]),
+  % now update 
+  Result = eurl:put_post(Path, J, put),
+  O = bdd_restrat:get_object(Result),
+  [Result, O];
+
 step(_Results, {step_then, _N, ["there is a", Object, Key]}) ->
   URI = alias(Object, g, [path]),
   R =eurl:get_http(eurl:path(URI, Key)),
@@ -193,7 +204,7 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   Test = json:keyfind(Obj#obj.data, Key, ":"),
   case Value =:= Test of
      true  -> true;
-     false -> bdd_utils:log(warn, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
+     false -> bdd_utils:log(info, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
   end;
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 

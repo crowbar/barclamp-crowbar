@@ -33,6 +33,7 @@ class Deployment < ActiveRecord::Base
   alias_attribute   :head,                :snapshot
 
   belongs_to        :parent,              :class_name => "Deployment", :primary_key => "parent_id"
+  has_many          :nodes
 
   scope             :system_root,         -> { where(:system=>true) }   # cannot be named 'system' because of internal method name conflicts
 

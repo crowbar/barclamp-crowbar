@@ -261,6 +261,7 @@ en:
       name: Full Name
       mac: MAC Address
       allocated: Allocated
+      deployment: Deployment
       ip: IP Address
       status: Status
       state: State

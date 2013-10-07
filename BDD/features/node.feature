@@ -3,6 +3,14 @@ Feature: Nodes
   The system operator, Oscar
   wants to be able to check the status of nodes
 
+  Scenario: Admin Node working & defaults
+    When REST gets the {object:node} {lookup:crowbar.node_name}
+    Then the {object:node} is properly formatted
+      And key "deployment_id" should be "1"
+      And key "admin" should be "true"
+      And key "alive" should be "true"
+      And key "available" should be "true"
+
   Scenario: UI Node List
     When I go to the "nodes" page
     Then I should see {bdd:crowbar.i18n.nodes.index.title}
@@ -33,29 +41,6 @@ Feature: Nodes
     When REST gets the {object:node} "thisdoesnotexist"
     Then I get a {integer:404} error
     
-  Scenario: Status Empty
-    Skip TODO ZEHICLE disable during refactoring
-    When AJAX requests node status on "all"
-    Then key "sum" should be a number
-      And there should be a key "state"
-      And there should be a key "status"
-      And there should be a key "groups"
-      And there should be a key "i18n"
-      And there should be a key "count"
-      And key "[groups][0]" should contain "7" items
-
-  Scenario: Status Non Nodes
-    Skip TODO ZEHICLE disable during refactoring
-    When AJAX requests node status on "0"
-    Then key "sum" should be a number
-      And there should be a key "state"
-      And there should be a key "status"
-      And there should be a key "groups"
-      And there should be a key "i18n"
-      And there should be a key "count"
-      And key "count" should be "0"
-      And key "[groups][0]" should contain "7" items
-      
   Scenario: Node List
     Given there is a {object:node} "bdd-node-list.example.com"
     When REST gets the {object:node} list
@@ -84,6 +69,15 @@ Feature: Nodes
     Then key "available" should be "true"
       And the {object:node} is properly formatted
     Finally REST removes the {object:node} "bdd-available-false.example.com"
+
+  Scenario: Node into New Deployment
+    Given there is a {object:node} "node-deploy.example.com"
+      And there is a {object:deployment} "new_deploy"
+    When REST sets {object:node} "node-deploy.example.com" property "deployment" to "new_deploy"
+    Then the {object:node} is properly formatted
+      And key "deployment_id" should not be "1"
+    Finally REST removes the {object:node} "node-deploy.example.com"
+      And REST removes the {object:deployment} "new_deploy"
 
   Scenario: Node Available Settable
     Given there is a {object:node} "bdd-available-set.example.com"

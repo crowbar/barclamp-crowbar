@@ -14,6 +14,7 @@
       %th= t '.description'
       %th= t '.status'
       %th= t '.active'
+      %th= t '.parent'
       %th= t '.actions'
   %tbody
     - @list.each do |d|
@@ -23,5 +24,8 @@
         %td= d.description
         %td
           .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
-        %td= link_to d.head.name, snapshot_path(d.head.id)
+        %td= link_to d.head.name, snapshot_path(d.head.id), :title=>d.head.description
+        %td
+          - if d.parent_id
+            = link_to d.parent.name, deployment_path(d.parent_id), :title=>d.parent.description
         %td= render :partial => 'buttons', :locals => { :state=>state, :snapshot=>d.head } rescue 'buttons?'

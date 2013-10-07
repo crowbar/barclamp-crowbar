@@ -43,7 +43,10 @@ During the build process the Dev Tool has to perform certain tasks which require
     sudo apt-get update
     sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
     mkisofs binutils markdown erlang debhelper python-pip \
-    build-essential libopenssl-ruby1.9 libssl-dev zlib1g-dev
+    build-essential libopenssl-ruby1.9 libssl-dev zlib1g-dev 
+    # Crowbar 2 uses PostgreSQL 9.3, you may have to install that via download (http://www.postgresql.org/download) if the following does not work
+    sudo apt-get install postgresql-9.3 pgadmin3
+
 
     # switch to Ruby 1.9 you need the following (do NOT do this for 1.x dev work!)
     sudo update-alternatives --config ruby (to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3)
@@ -51,7 +54,7 @@ During the build process the Dev Tool has to perform certain tasks which require
 
     # let's install some needed gems next
     sudo gem install ruby1.9.1-dev builder bluecloth
-    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake rcov rspec --no-ri --no-rdoc
+    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake rcov rspec pg --no-ri --no-rdoc
 
 #### Put the needed base ISOs in place
 As a starting point for the build process we will need the ISOs [mentioned above](#pre-requisites) placed where the Dev Toll can find them. The Dev Tool will then use them during the build process described below.

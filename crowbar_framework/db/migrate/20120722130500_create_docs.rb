@@ -16,9 +16,9 @@ class CreateDocs < ActiveRecord::Migration
   def self.up
 
     create_table :docs do |t|
-      t.string      :name
+      t.text        :name
       t.belongs_to  :barclamp, :null=>true
-      t.string      :description, :null=>true
+      t.text        :description, :null=>true
       t.belongs_to  :parent, :null=>true
       t.string      :order, :length=>5, :default => '009999'
       t.timestamps

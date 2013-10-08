@@ -1,4 +1,7 @@
-%li= link_to tree.description, Doc.doc_path(tree.name)
+%li{:id=>tree.id.to_s}
+  %a{:class=>"mini-edit-link", :href=>tree.git_url}<
+    [e]
+  = link_to tree.description, Doc.doc_path(tree.name)
 - if tree.children.length > 0
   %ul
     = render partial: 'tree', collection: tree.children.sort

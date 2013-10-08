@@ -3,29 +3,13 @@
 / Table of Contents
 %div(class="toc box")
   %h2= t('.toc_title')
-  %ol(type="A")
-    %li
-      %a(href="#framework")= t('.framework_display')
-    %li
-      %a(href="#barclamps")= t('.barclamps_display')
-    %ol(type="1")
-      - Barclamp.all.each do |bc|
-        %li
-          %a{:href=>"##{bc.name}"}= bc.display
+  %ol(type="1")
+    - Doc.roots.sort.each do |x|
+      %li
+        %a{:href=>"##{x.id}"}= truncate(x.description)
 
-/ Crowbar Framework docs
-%h2
-  %div{:title=>t('.framework_description'), :id=>'framework'}= t('.framework_display')
+/ Full Index
 %ul
-  = render partial: 'tree', collection: Doc.roots_by_barclamp(nil).sort
-
-/ Barclamp docs
-%h2
-  %div{:title=>t('.barclamps_description'), :id=>'barclamps'}= t('.barclamps_display')
-- Barclamp.all.each do |bc|
-  %h3
-    %div{:title=>bc.description, :id=>bc.name}= bc.display
-  %ul
-    = render partial: 'tree', collection: Doc.roots_by_barclamp(bc.id).sort
+  = render partial: 'tree', collection: Doc.roots.sort
 
 .clear

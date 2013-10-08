@@ -19,7 +19,6 @@ class DocsController < ApplicationController
   skip_before_filter :crowbar_auth
 
   def index
-    @id = params[:id].gsub("%2B",'+') rescue nil
     if Settings.docs.rebuild or params.has_key?(:rebuild)
       # for dev, we want to be able to turn off rebuilds
       Doc.delete_all unless params[:rebuild].eql? "false"
@@ -31,12 +30,44 @@ class DocsController < ApplicationController
     end
   end
 
+  def fix_encoding!
+    ['UTF-8', 'Windows-1252', 'ASCII'].each do |encoding|
+      s = @raw.force_encoding encoding
+      if s.valid_encoding?
+        @raw = s
+        return
+      end
+    end
+    if @raw.encoding == Encoding::UTF_8
+      (0...@raw.length).each do |i|
+        @raw[c] = "\ufffd" unless @raw[c].valid_encoding?
+      end
+    end
+  end
+
   def show
     begin
       id = params[:id]
       @doc = Doc.find_key id
-      @doc = Doc.find_key id.gsub("/","+") unless @doc
       if @doc
+        @nav_up = @doc.parent
+        brothers = Doc.where(:parent_id=>@doc.parent_id).sort
+        @nav_prev = nil
+        @nav_next = nil
+        reached = false
+        brothers.each do |x|
+          if reached
+            @nav_next = x
+            break
+          elsif x.id == @doc.id
+            reached = true
+          else
+          @nav_prev = x
+          end
+        end
+        if not reached
+          @nav_prev = nil
+        end
         @file = File.join Doc.root_directory, @doc.name
       else
         raise "doc not found: #{id}"
@@ -47,9 +78,11 @@ class DocsController < ApplicationController
       # navigation items
       if File.exist? @file
         if @file =~ /\.md$/
-          raw = IO.read(@file)
-          @text = (html ? BlueCloth.new(raw).to_html : raw)
-          @text += Doc.topic_expand(@doc.name, html) if params.has_key? :expand
+          @raw = IO.read(@file)
+          fix_encoding! unless @raw.valid_encoding?
+          @raw.encode!('UTF-8', :invalid=>:replace)
+          @text = (html ? BlueCloth.new(@raw).to_html : @raw)
+          # @text += Doc.topic_expand(@doc.name, html) if params.has_key? :expand
         elsif @file =~ /\.(jpg|png)$/
           html = false
           image = true

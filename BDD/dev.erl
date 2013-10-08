@@ -14,7 +14,7 @@
 % 
 
 -module(dev).
--export([pop/0, pop/1, unpop/0]).  
+-export([pop/0, pop/1, unpop/0, g/1]).  
 -import(bdd_utils).
 -import(digest_auth).
 -include("bdd.hrl").
@@ -30,16 +30,28 @@ g(Item)         ->
 pop()           -> pop(default).
 pop(ConfigRaw)  ->
   bdd:start(ConfigRaw),
+  % includes admin network setup
   bdd_utils:config_set(global_setup, dev),
   bdd_utils:config_set(inspect, false),
+
   % safety setup 
   bdd_crud:delete(node:g(path), crowbar:g(node_name)),
-  {ok, Build} = file:consult(bdd_utils:config(simulator, "dev.config")),
-  % admin network
-  network:make_admin(),
+  Build = case file:consult(bdd_utils:config(simulator, "dev.config")) of
+    {error,enoent} -> bdd_utils:log(error, dev, pop, "missing 'dev.config' initialization file", []), [];
+    {ok, B} -> B
+  end,
+
   % admin node
-  Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {alive, true}, {admin, "true"}]),
+  Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {alive, "true"}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Admin, g(node_atom)),
+
+  % turn on the delays in the test jig (the tests turn these off, simulator wants them on)
+  role:step([], {step_given, {0, 1}, ["I set the",role, "test-admin", "property", "test", "to", "true"]}), 
+  role:step([], {step_given, {0, 2}, ["I set the",role, "test-server", "property", "test", "to", "true"]}), 
+  role:step([], {step_given, {0, 3}, ["I set the",role, "test-client", "property", "test", "to", "true"]}), 
+  role:step([], {step_given, {0, 4}, ["I set the",role, "test-library", "property", "test", "to", "true"]}), 
+  role:step([], {step_given, {0, 5}, ["I set the",role, "test-discovery", "property", "test", "to", "true"]}), 
+
   % rest of the nodes
   [ add_deployment(D) || D <- buildlist(Build, deployments) ],
   [ add_node(N) || N <- buildlist(Build, nodes) ],

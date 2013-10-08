@@ -1,4 +1,4 @@
-- state = @deployment.state
+- state = @deployment.state rescue Snapshot::ERROR
 
 %h1
   = "#{@deployment.name} #{Snapshot.state_name(state)}"
@@ -10,9 +10,17 @@
   %tr
     %td
       .led{:class => Snapshot::STATES[state], :title=>Snapshot.state_name(state)}
-    %td= @deployment.description
+    %td
+      = @deployment.description
     %td{:align=>'right'}
       = render :partial => 'buttons', :locals => { :state=>state, :snapshot=>@deployment.head }
+  - if @deployment.parent_id
+    %tr
+      %td
+      %td
+        = t '.parent'
+        = link_to @deployment.parent.name, deployment_path(@deployment.parent.id), :title=>@deployment.parent.description
+      %td
 
 = form_for :deployment, :'data-remote' => true, :url => deployment_roles_path(:deployment_id=>@deployment.id), :html => { :method=>:post, :'data-type' => 'html',  :class => "formtastic" } do |f|
   - aroles = @deployment.available_roles

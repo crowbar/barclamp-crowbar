@@ -30,14 +30,11 @@ class Run < ActiveRecord::Base
     # Runs that are running a noderole in state TRANSITION
     # Runs that are not running with a noderole in TODO or ACTIVE
     Run.transaction do
-      Run.all.each do |j|
-        if !((j.node_role && j.node) rescue nil) ||
-          !j.node.alive ||
-            (j.running && j.node_role.state != NodeRole::TRANSITION) ||
-            (!j.running && (j.node_role.state != NodeRole::TODO || j.node_role.state != NodeRole::ACTIVE))
-          j.destroy
-        end
-      end
+      Run.delete_all(%Q{id in (
+      select j.id from runs j, node_roles nr
+      where j.node_role_id = nr.id AND NOT (
+         (j.running AND nr.state = #{NodeRole::TRANSITION}) OR
+         (nr.state in (#{NodeRole::TODO}, #{NodeRole::ACTIVE}) AND NOT j.running)))})
     end
   end
 

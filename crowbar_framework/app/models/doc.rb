@@ -104,7 +104,7 @@ class Doc < ActiveRecord::Base
       parent = found[parent_name] if parent_name
       parent = Doc.find_by_name parent_name if parent_name and not parent
 
-      x = Doc.find_or_create_by_name :name=>name, :description=>title, :order=>order
+      x = Doc.find_or_create_by_name :name=>name, :description=>title.truncate(120), :order=>order
       x.barclamp = barclamp
       if parent.nil?
         roots << x

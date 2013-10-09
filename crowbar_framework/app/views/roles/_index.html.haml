@@ -8,6 +8,7 @@
         %th= t '.barclamp'
         %th= t '.description'
         %th= t '.flags'
+        %th= t '.upstream'
     %tbody
       -list.each do |role|
         - if jig_name.nil? or role.jig_name.eql? jig_name
@@ -21,3 +22,6 @@
               = t '.implicit' if role.implicit
               = t '.bootstrap' if role.bootstrap
               = t '.server' if role.server
+            %td
+              - role.parents.each do |p|
+                = link_to p.name, role_path(p), :title=>p.description

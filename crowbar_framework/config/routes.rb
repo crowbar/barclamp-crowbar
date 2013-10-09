@@ -24,7 +24,7 @@ Crowbar::Application.routes.draw do
     end
   end
 
-  # UI resources
+  # UI resources (should generally match the API paths)
   get "annealer", :to => "node_roles#anneal", :as => :annealer
   resources :attribs
   resources :barclamps
@@ -51,10 +51,14 @@ Crowbar::Application.routes.draw do
     put :recall
   end
 
+  # UI only functionality to help w/ visualization
   scope 'dashboard' do
-    get 'layercake'     => 'dashboard#layercake', :as => :layercake
+    get 'list(/:deployment)'  => 'dashboard#list', :as => :bulk_edit
+    put 'list'                => 'dashboard#list', :as => :bulk_edit
+    get 'layercake'           => 'dashboard#layercake', :as => :layercake
   end
   
+  # UI only functionality to help w/ visualization
   scope 'utils' do
     get '/'             => 'support#index', :as => :utils
     get 'i18n/:id'      => 'support#i18n', :as => :utils_i18n, :constraints => { :id => /.*/ }

@@ -126,7 +126,8 @@ find_link_part2(AnchorTag, HrefREX, Match)     ->
 	  	         bdd_utils:log(trace, "eurl:find_link found anchor ~p in path ~p", [AnchorTag, Href]),
 	  	         Href;
 	  nomatch -> bdd_utils:log(error, "eurl:find_link Href Could not find ~s in request (you may need to escape characters)", [Match]), 
-	             {error, "ERROR: No Href Found", AnchorTag};
+               % return something that's URL like instead of an error so the test fails more gracefully becaue issue is likely in the test, not code
+	             "404.html";
 	  RE      -> bdd_utils:log(error, "eurl:find_link Href Could not find href= information in substring '~p' with result ~p", [AnchorTag, RE]), 
 	             {error, "ERROR: No URL Found", AnchorTag}
 	catch

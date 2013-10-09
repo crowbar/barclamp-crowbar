@@ -185,6 +185,13 @@ en:
     show:
       roles: "Roles"
   dashboard:
+    list:
+      title: "Bulk Edit Nodes"
+      name: "Node Name"
+      alias: "Alias"
+      description: "Description"
+      deployment: "Deployment"
+      hint: "edit values then click save > "
     layercake:
       title: "System Overview"
       jigs: "Jigs"
@@ -321,6 +328,7 @@ en:
       discovery: "Discovery"
       server: "Server"
       description: "Description"
+      upstream: "Upstream (prerequisites)"
     index:
       title: "Roles"
       <<: *roles_common
@@ -330,7 +338,6 @@ en:
       <<: *roles_common
       save: "Update Template"
       type: "Type"
-      upstream: "Upstream (prerequisite roles)"
       no_overlay: "No Override using views/node_role/_raw template instead of %{overlay}"
     names:
       role: "Roles"

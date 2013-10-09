@@ -32,6 +32,7 @@ class CreateNavs < ActiveRecord::Migration
     Nav.find_or_create_by_item :item=>'nodes', :parent_item=>'root', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"main_app.nodes_path", :order=>1000
       Nav.find_or_create_by_item :item=>'nodes_child', :parent_item=>'nodes', :name=>'nav.nodes', :description=>'nav.nodes_description', :path=>"main_app.nodes_path", :order=>1000
       Nav.find_or_create_by_item :item=>'groups', :parent_item=>'nodes', :name=>'nav.groups', :description=>'nav.groups_description', :path=>"main_app.nodes_path", :order=>2000
+      Nav.find_or_create_by_item :item=>'bulk_edit', :parent_item=>'nodes', :name=>'nav.bulk_edit', :description=>'nav.bulk_edit_description', :path=>"main_app.bulk_edit_path", :order=>3000
 
     # deployments
     Nav.find_or_create_by_item :item=>'deploy', :parent_item=>'root', :name=>'nav.deployments', :description=>'nav.deployments_description', :path=>"main_app.deployments_path", :order=>2000

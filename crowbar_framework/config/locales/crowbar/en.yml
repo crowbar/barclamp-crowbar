@@ -73,6 +73,8 @@ en:
     nodes_description: "Infrastructure Components"
     groups: "Groups"
     groups_description: "Node Collections"
+    bulk_edit: "Bulk Edit"
+    bulk_edit_description: "Edit Basic Information for Multiple Nodes"
 
     deployments: "Deployments"
     deployments_description: "Orchestration Management"

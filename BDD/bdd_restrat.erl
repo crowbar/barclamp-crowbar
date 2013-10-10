@@ -32,7 +32,7 @@ alias(Object, Method, Params) ->
     Cause: Reason -> bdd_utils:log(error, bdd_restrat, alias, "Unexpected ~p error due to ~p.  Object ~p:~p Abstraction fails.", [Cause, Reason, Object, Method]), false
   end.
 
-% wrapper looks at header to see if there is meta data to help with override parsing
+% wrapper looks at header to see if there is meta data to help wih override parsing
 % if it's json then use the parser from bdd_utils
 % if it's a vendor namespace then use naming convention to resolve
 get_object(Result) when is_record(Result, http) -> 
@@ -206,6 +206,16 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
      true  -> true;
      false -> bdd_utils:log(debug, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
   end;
+
+% this is really handy INSIDE a scenario because you can lookup objects that you created earlier to test IDs (assumes you only create 1 type of each)
+step(Results, {step_then, {Scenario, _N}, ["key",Key,"should match id for",Type]}) -> 
+  Obj = eurl:get_result(Results, obj),
+  Id = bdd_utils:scenario_retrieve(Scenario, Type, "-1"),
+  Test = json:keyfind(Obj#obj.data, Key, ":"),
+  case Id =:= Test of
+     true  -> true;
+     false -> bdd_utils:log(debug, bdd_restrat, step, "Object ~p for Key ~p id expected ~p but was ~p", [Type, Key, Id, Test]), false
+  end; 
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});

@@ -55,7 +55,7 @@ class SupportController < ApplicationController
   end
 
   def import
-    @barclamps = Barclamp.order("order ASC")
+    @barclamps = Barclamp.all
   end
 
   def index

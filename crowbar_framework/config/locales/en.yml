@@ -59,7 +59,7 @@ en:
   depricated: "WARNING Depricated!"
   work_in_progress: "Work in progress notice: %{message}"
   updating: "Updating..."
-  note: "Note"
+  note: "Note:"
   hint: "Hint"
   help: "Help"
   virtual: "Virtual"

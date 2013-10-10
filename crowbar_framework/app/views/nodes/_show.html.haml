@@ -11,7 +11,11 @@
     = dl_item(t('.name'), @node.name)
     = dl_item(t('.description'), @node.description || (t 'not_set'))
     %dt= t '.deployment'
-    %dd= link_to @node.deployment.name, deployment_path(@node.deployment.id), :title=>@node.deployment.description
+    %dd
+      = form_for @node, :remote => true, :url => node_path(:id=>@node.id, :version=>'v2'), :html => { :method=>:put, 'data-type' => 'json', 'data-remote' => true, :class => "formtastic", :onsubmit=>"location.reload();" } do |f|
+        - deployments = Deployment.all
+        = f.collection_select :deployment_id, deployments, :id, :name, :value=>@node.deployment.id
+        %input.button{:type => "submit", :name => "update", :value => t('update'), }
     %dt= t('.status')
     %dd
       = t (@node.alive ? ".alive" : ".dead")

@@ -1,27 +1,38 @@
 #Installing Crowbar#
-The initial admin node installation does not complete the Crowbar installation, to allow the network configuration to be customized. After any customizations have been made, the final Crowbar installation can be completed. The networks cannot be reconfigured after Crowbar is installed.
-
-To complete the Crowbar installation:
+Installation of the OS onto the admin node does not complete the Crowbar installation.  To complete the Crowbar installation follow these steps:
 
 1. Log onto the admin node. The default username is *crowbar*, password is *crowbar*.
-2. Verify or edit the network configuration file in your editor of choice.  For example:
 
-		$ vi /opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json
-3. Once you have verified or modified the Network JSON, enter the following commands in a terminal session:
+2. This step and substeps below are temporary.  Performing these steps changes the execution path to be equivalent to that of the production execution.  This is a necessary workaround to circumvent the developments auto-boot-strapping shortcut that will be go away shortly after this initial cut of the documentation is complete.  
 
-		$ sudo –i
-		$ cd /tftpboot/ubuntu_dvd/extra
-		$ ./install systemname.yourdomain.com
+  a. sudo -i 
+  b. cd /tftpboot/ubunto_dvd/extra
+  c. Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
 
-The Crowbar installation will be started in a screen session. You can attach to this session to follow the install process. The install logs are written to */var/log*, and can be checked if there are any errors during the install process:
+    i. Lines 63-67 as shown below.  
+      if [[ ! -f $DVD_PATH/sha1_passed ]]; then
+        (cd $DVD_PATH && sha1sum -c sha1sums &>dev/null) || \
+        die "SHA1sums do not match install is corrupt."
+        >$DVD_PATH/sha1_passed
+      fi
 
-		$ tail -50f /var/log/install.log
+    ii. And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file. 
+ 
+3. Run the install-crowbar shell script as root using the following procedures:
+  a. sudo -i
+  b. cd /opt/dell/bin
+  c. ./install-crowbar <Domain Name> --no-screen
+  d. Upon seeing the reboot message;  go forth and reboot the system 
 
-The main cause of errors at this point is usually syntax errors caused while modifying the network configuration. If an error occurs, check the log files, fix any syntax errors, and then restart the Crowbar install process.
+4. Once the system comes back up,  use a web browser to connect to Crowbars main page at URL: HTTP://192.168.124.10:3000 You should be seeing a Crowbar Nodes screen with a "Configure System" button. 
 
-**Note:** This can take some time; please be patient.
+5. Click on the "Configure System" button, which should take to the Initial System Configuration page.  
+  a. Click on the "Add network-admin Role" button to add it to the "Roles for Review" list.   
+  b. Click on the "Add <Domain Name> Node" button to add it to the  "Crowbar Admin Node" list. If for some reason you leave this page, you can always get back to here by selecting "Bootstrap" from the Utilities Menu drop-down list.   Also, be patient as the responsiveness of the actions may appear to be delayed after clicking the buttons.
 
-When the Crowbar installation completes, the admin node will remain at a shell prompt. At this point, all Crowbar and operations services have started.
+  c.Upon hitting the "Add <domain Name> Node"  annealer process will run.  One can watch the annealer processes by going to the Nodes option in the Nodes menu list, clicking on the <Domain Name> link.  Once the <Domain Name> page is shown, click on the "All Node Roles" button and one should see the states change as the annealr process steps through the nodes. 
+
+
 ###Crowbar and Operations Service Access###
 
 - **SSH Service** - *SSH crowbar@192.168.124.10*, credentials are *crowbar*

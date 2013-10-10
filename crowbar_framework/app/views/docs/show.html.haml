@@ -2,4 +2,21 @@
 
 -# %p= @doc.inspect
 
+%div(class='nav-container')
+  - if @nav_prev
+    %div(class='nav-prev')
+      %a{:href=>"/docs/#{@nav_prev.name}"}
+        = "previous page (#{truncate @nav_prev.description})"
+  - if @nav_up
+    %div(class='nav-up')
+      %a{:href=>"/docs/#{@nav_up.name}"}
+        = "up (#{truncate @nav_up.description})"
+  - if @nav_next
+    %div(class='nav-next')
+      %a{:href=>"/docs/#{@nav_next.name}"}
+        = "next page (#{truncate @nav_next.description})"
+
+%a{:href=>@doc.git_url, :class=>"edit-link box"}
+  Edit this page on GitHub
+
 %p.topic= @text.html_safe rescue "oops, render broken"

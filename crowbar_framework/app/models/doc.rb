@@ -33,7 +33,7 @@ class Doc < ActiveRecord::Base
   end
 
   def self.root_directory
-    File.join('..')
+    File.join('../doc')
   end
 
   def self.doc_path(x)
@@ -45,9 +45,9 @@ class Doc < ActiveRecord::Base
     roots=[]
     found={}
     # load crowbar docs
-    Doc.discover_docs nil, Doc.root_directory, roots, found
+    Doc.discover_docs nil, 'framework', roots, found
     # load barclamp docs
-    Barclamp.all.each { |bc| Doc.discover_docs bc, File.join(bc.source_path,'doc'), roots, found }
+    Barclamp.all.each { |bc| Doc.discover_docs bc, bc.name, roots, found }
     Doc.all
   end
 
@@ -56,7 +56,7 @@ class Doc < ActiveRecord::Base
     topic = Doc.find_by_name name
     if topic.children.size > 0
       topic.children.each do |t|
-        file = page_path File.join('..','doc'), t.name
+        file = page_path root_directory, t.name
         if File.exist? file
           raw = IO.read(file)
           text += (html ? BlueCloth.new(raw).to_html : raw)
@@ -69,15 +69,11 @@ class Doc < ActiveRecord::Base
 
   # scan the directories and find files
   def self.discover_docs barclamp, doc_path, roots, found
-    files_list = %x[find #{doc_path} -iname *.md]
+    files_list = `cd #{root_directory} && find #{doc_path} -iname *.md`
     files = files_list.split "\n"
     files = files.sort_by {|x| x.length} # to ensure that parents come before their children
-    files.each do |f|
-      name = f[/^\.\.\/(.*)$/,1]
-      name = File.join('crowbar_framework', f) unless name
-      if name =~ /^..\//
-        raise "ERROR: file with more than one set of double dots: #{f}"
-      end
+    files.each do |name|
+      f = File.join(root_directory, name)
 
       # figure out order by inspecting name
       order = name[/\/([0-9]+)_[^\/]*$/,1]
@@ -121,7 +117,7 @@ class Doc < ActiveRecord::Base
     barclamp = path.first
     repo = (barclamp.eql?('framework') ? 'crowbar' : "barclamp-#{barclamp}")
     path[0] = "https://github.com/crowbar/#{repo}/tree/master/doc"
-    return path.join('/') + ".md"
+    return path.join('/')
   end
 
 end

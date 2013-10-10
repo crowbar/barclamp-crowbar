@@ -370,7 +370,8 @@ class NodeRole < ActiveRecord::Base
       # 1. We were in PROPOSED or BLOCKED or ERROR or ACTIVE
       # 2. All our parents are in ACTIVE
       unless ((cstate == PROPOSED) || (cstate == BLOCKED)) ||
-          (cstate == ERROR) || (cstate == ACTIVE)
+          (cstate == ERROR) || (cstate == ACTIVE) ||
+          (!node.alive && cstate == TRANSITION)
         raise InvalidTransition.new(self,cstate,val)
       end
       unless activatable?

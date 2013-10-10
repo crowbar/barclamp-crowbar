@@ -142,10 +142,11 @@ else
   end
 end
 
+# mode 0755 so subdirs can be nfs mounted to admin-exported shares
 directory logdir do
   owner "crowbar"
   group "crowbar"
-  mode "0750"
+  mode "0755"
   action :create
 end
 

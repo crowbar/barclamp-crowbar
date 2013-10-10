@@ -129,6 +129,7 @@ class Snapshot < ActiveRecord::Base
     parent.archive unless parent.nil?
     write_attribute("state",COMMITTED)
     save!
+    Run.run!
     self
   end
   

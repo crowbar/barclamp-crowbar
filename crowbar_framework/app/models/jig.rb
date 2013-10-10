@@ -76,11 +76,20 @@ class Jig < ActiveRecord::Base
     res
   end
 
+  # Gather all of the data needed for a single noderole run.
+  # This function needs to be overridden by the actual jigs.
+  # It should be run to create whatever information will be needed
+  # for the actual run before doing the actual run in a delayed job.
+  def stage_run(nr)
+    raise "Cannot call stage_run on the top-level jig!"
+  end
+
   # Run a single noderole.
   # The noderole must be in TRANSITION state.
   # This function is intended to be overridden by the jig subclasses,
   # and only used for debugging purposes.
-  def run(nr)
+  # Runs will be run in the background by the dalayed_job information.
+  def run(nr,data)
     raise "Cannot call run on the top-level Jig!"
   end
 
@@ -109,7 +118,11 @@ end
 
 class NoopJig < Jig
 
-  def run(nr)
+  def stage_run(nr)
+    return nil
+  end
+
+  def run(nr,data)
     nr.state = NodeRole::ACTIVE
     nr
   end

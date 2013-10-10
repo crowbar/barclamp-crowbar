@@ -12,6 +12,7 @@
         %th= t '.status'
         %th= t '.admin'
         %th= t '.description'
+        %th= t '.deployment'
     %tbody
       -@list.each do |n|
         - s = n.state
@@ -32,7 +33,7 @@
           %td
             = t 'yes' if n.admin
           %td= n.description
-
+          %td= link_to n.deployment.name, deployment_path(n.deployment.id), :title=>n.deployment.description
 .clear
 
 :javascript

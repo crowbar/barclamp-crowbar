@@ -63,6 +63,7 @@ class NodesController < ApplicationController
   end
   
   def update
+    params[:deployment_id] ||= params[:node][:deployment_id] if params.has_key? :node
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
     # If we wind up changing to being alive and available,
     # we will want to enqueue some noderoles to run.

@@ -15,7 +15,7 @@ Feature: Documentation
     Then I should see "Crowbar User Guide"
       And there should be no translation errors
 
-  Scenario: Doc Sub Topic
+  Scenario: Doc Topic Navigation
     Skip TODO ZEHICLE disable during refactoring
     Given parameter "rebuild" is "false"
     Given I am on the "docs/topic/framework/userguide" page with parameter "rebuild"

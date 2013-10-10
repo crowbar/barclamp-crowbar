@@ -13,9 +13,9 @@
 # limitations under the License.
 
 SimpleNavigation::Configuration.run do |navigation|       
-  menu = Nav.find_by_item 'root'
+  menu = Nav.item('root').first
   navigation.items do |primary|
-    menu.children.each do |item| # Top Nav
+    menu.children.sort_by{|n| n.order}.each do |item| # Top Nav
       if item.item != 'root' and item.path =~ /(.*)_path/
         begin   
           name = t(item.name)

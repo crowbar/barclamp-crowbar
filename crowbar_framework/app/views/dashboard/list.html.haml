@@ -1,84 +1,43 @@
 %p{:style => 'float:right'}
-  -if params[:allocated].nil?
-    = link_to t('.unallocated'), dashboard_list_path(:allocated=>'yes'), :class => 'button'
-    %h1= t('.title_all')
-  -else
-    = link_to t('.all'), dashboard_list_path, :class => 'button'
-    %h1= t('.title_unallocated')
+  %h1
+    =t '.title'
+    -if @deployment
+      = link_to @deployment.name, deployment_path(@deployment.id), :title=>@deployment.description
+    -else
+      = t('all')
 
 - # filter to only show unallocated nodes, with an option to display all
-= form_for :node, :'data-remote' => true, :url => '/nodes/list', :html => { :'data-type' => 'html',  :id => 'update_nodes_list', :class => "formtastic" } do |f|
-  -if !params[:allocated].nil?
-    = hidden_field_tag "allocated", 'yes'
+= form_for :dashboard, :'data-remote' => true, :url => '/dashboard/list', :html => { :method=>:put, :'data-type' => 'html',  :id => 'list', :class => "formtastic" } do |f|
   %table.data.box
     %thead
       %tr
         %th= t('.name')
         %th= t('.alias')
         %th= t('.description')
-        %th= t('.group')
-        %th= t('.bios')
-        %th= t('.raid')
-        %th.center 
-          Allocate? 
-          = check_box_tag 'all', 'all', false, {:onChange=>"check_all()"}
+        %th= t('.deployment')
     %tbody
-      - if @nodes.count > 0
-        - @nodes.sort_by{|handle, n| n.name }.each do |handle, node|
-          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.name }
-            %td= link_to node.name.split('.')[0], node_path(node.name), :title=> node.ip
-            -unless node.admin?
-              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias}", :size => 15
-              %td= text_field_tag "node:#{node.name}:description".to_sym, "#{node.description|| ""}", :size => 30
-              - #TODO: there is no 'group', right?!!
-              %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :size => 15
-              %td
-                -if false #or @options[:show].include? :bios
-                  = select_tag "node:#{node.name}:bios".to_sym, options_for_select(option_default(@options[:bios], node.bios_set, 'bios'), node.bios_set)
-                -else
-                  = t 'feature_na'
-              %td
-                -if false #sor @options[:show].include? :raid
-                  = select_tag "node:#{node.name}:raid".to_sym, options_for_select(option_default(@options[:raid], node.raid_set, 'raid'), node.raid_set)
-                -else
-                  = t 'feature_na'
-              %td.center
-                -unless node.allocated
-                  = check_box_tag("node:#{node.name}:allocate".to_sym, 'checked')
-                -else
-                  = t 'complete'
-            -else
-              %td= text_field_tag "node:#{node.name}:alias".to_sym, "#{node.alias || t('.admin')}", :size => 15
-              %td= text_field_tag "node:#{node.name}:description".to_sym, (node.description || ""), :size => 30
-              - #TODO: there is no 'group', right?!!
-              %td= text_field_tag "node:#{node.name}:group".to_sym, node.group, :size => 15
-              %td= t 'na'
-              %td= t 'na'
-              %td.center= t 'na'
+      - if @nodes and @nodes.count > 0
+        - @nodes.sort_by{|n| n.alias }.each do |node|
+          %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.id }
+            %td= link_to node.name, node_path(node.id), :title=> node.addresses.join(',')
+            %td= text_field_tag "node:#{node.id}:alias".to_sym, "#{node.alias}", :size => 15
+            %td= text_field_tag "node:#{node.id}:description".to_sym, "#{node.description || ""}", :size => 30
+            %td 
+              - deployments = Deployment.all
+              = select_tag "node:#{node.id}:deployment_id", options_from_collection_for_select(deployments, "id", "name", node.deployment.id)
       - else
         %tr
-          %td{ :colspan=>8 }
+          %td{ :colspan=>4 }
             = t 'no_items'
-    - if @nodes.count > 0
+    - if @nodes and @nodes.count > 0
       %tfoot
         %tr{ :class => cycle(:odd, :even, :name => "nodes")}
-          %td.hint{:colspan => 6}
-            = t('note')+": "
-            %em= t('.hint').html_safe
+          %td.hint{:colspan => 3}
+            = t 'note'
+            %em= t '.hint'
           %td.action{:colspan => 1}
-            %input.button{:type => "submit", :name => "submit", :value => 'Save'}
+            %input.button{:type => "submit", :name => "submit", :value => t('chuck_norris')}
 
 .clear
 
-:javascript
-  
-  // if all the prereqs are met (none are visiblie) then check the box
-  // and check to see if that enables/disables other barclamps
-  function check_all() {
-    var checkbox = $('#all');
-    $('input[id^=node]').each ( function(index) {
-      if (/allocate$/.test($(this).attr('id')))
-        $(this).attr('checked', (checkbox.attr('checked') != undefined) );
-    });
-  }
   

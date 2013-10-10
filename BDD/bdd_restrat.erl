@@ -204,7 +204,7 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   Test = json:keyfind(Obj#obj.data, Key, ":"),
   case Value =:= Test of
      true  -> true;
-     false -> bdd_utils:log(info, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
+     false -> bdd_utils:log(debug, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
   end;
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 

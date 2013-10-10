@@ -23,4 +23,6 @@ class Nav < ActiveRecord::Base
   
   validates_uniqueness_of :item, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   
+  scope   :item,    ->(item) { where(['item=?', item]) }
+
 end

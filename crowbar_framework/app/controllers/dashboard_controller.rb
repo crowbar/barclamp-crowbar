@@ -49,7 +49,14 @@ class DashboardController < ApplicationController
   
   # Bulk Edit
   def list
-    if request.post?
+    if request.get?
+      @nodes = if params.key? :deployment
+        @deployment = Deployment.find_key params[:deployment]
+        @deployment.nodes
+      else
+        Node.all
+      end
+    elsif request.put?
       nodes = {}
       params.each do |k, v|
         if k.starts_with? "node:"
@@ -122,10 +129,6 @@ class DashboardController < ApplicationController
       else
         flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
       end
-    end
-    @nodes = {}
-    Node.all.each do |node|
-      @nodes[node.name] = node if params[:allocated].nil? or !node.allocated?
     end
   end
 

@@ -2,6 +2,10 @@
 export TMPDIR=$1
 export ROLE=$2
 
+# To force dpkg on Debian-based distros to play nice.
+export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
+export LC_ALL=C LANGUAGE=C LANG=C
+
 read_attribute() {
     if [[ -f $TMPDIR/attrs/$1/attr ]]; then
         cat "$TMPDIR/attrs/$1/attr"

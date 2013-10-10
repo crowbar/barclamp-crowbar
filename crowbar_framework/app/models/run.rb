@@ -26,12 +26,15 @@ class Run < ActiveRecord::Base
 
   def self.cleanup
     # Clear out any stale runs.
-    Run.all.each do |j|
-      if !((j.node_role && j.node) rescue nil) ||
-        !j.node.alive ||
-        (j.running && j.node_role.state != NodeRole::TRANSITION)
-        j.destroy
-      end
+    # The only thing allowed on the run queue are:
+    # Runs that are running a noderole in state TRANSITION
+    # Runs that are not running with a noderole in TODO or ACTIVE
+    Run.transaction do
+      Run.delete_all(%Q{id in (
+      select j.id from runs j, node_roles nr
+      where j.node_role_id = nr.id AND NOT (
+         (j.running AND nr.state = #{NodeRole::TRANSITION}) OR
+         (nr.state in (#{NodeRole::TODO}, #{NodeRole::ACTIVE}) AND NOT j.running)))})
     end
   end
 
@@ -52,27 +55,26 @@ class Run < ActiveRecord::Base
       Rails.logger.info("Run: #{nr.node.name} is not alive and available, cannot enqueue a noderole for it.")
       return 0
     end
-    Rails.logger.info("Run: Starting Run enqueue for #{nr.inspect}")
-    if nr.todo? && queued?(nr)
-      Rails.logger.info("Run: Already enqueued!")
-    else
-      Rails.logger.info("Run: Enqueing #{nr.inspect}")
-      Run.create!(:node_id => nr.node_id,
-                  :node_role_id => nr.id)
+    Run.transaction do
+      Rails.logger.info("Run: Starting Run enqueue for #{nr.inspect}")
+      if nr.todo? && queued?(nr)
+        Rails.logger.info("Run: Already enqueued!")
+      else
+        Rails.logger.info("Run: Enqueing #{nr.inspect}")
+        Run.create!(:node_id => nr.node_id,
+                    :node_role_id => nr.id)
+      end
     end
     run!
   end
 
   # Run up to maxjobs jobs.
   def self.run!(maxjobs=10)
-    cleanup
-    queued = 0
-    Run.runnable.each do |j|
-      next unless Run.running_on(j.node_id).count == 0
-      if j.node_role.nil?
-        Rails.logger.warn("Run job #{j.id} was in queue a nil node_role_id! removing it")
-        j.destroy
-      else
+    Run.transaction do 
+      cleanup
+      queued = 0
+      Run.runnable.each do |j|
+        next unless Run.running_on(j.node_id).count == 0
         Rails.logger.info("Run: Running #{j.node_role.inspect}")
         j.node_role.state = NodeRole::TRANSITION
         j.running = true
@@ -81,7 +83,7 @@ class Run < ActiveRecord::Base
         queued += 1
         break if queued >= maxjobs
       end
+      return queued
     end
-    return queued
   end
 end

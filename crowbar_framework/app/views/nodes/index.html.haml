@@ -33,7 +33,7 @@
             %td= t('.new_drag')
     - @groups.sort.each do |name, group|
       .column_25{:class => column_class(i+=1,4)}
-        %table.data.box{:id => "group_#{(name || t('unknown')).parameterize}"}
+        %table.data.box{:id => "group_#{group[:parameterized_name]}"}
           %thead
             %tr
               %th.status{:title => t('updating')}
@@ -168,8 +168,8 @@
         } else if (groups[key]!=total) {
           location.href =repath;
         }
-        $('#group_'+key.toLowerCase()+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
-        $('#group_'+key.toLowerCase()+' th.status').attr('title', pie_title(total, val['ready'], val['failed'], val['unknown'], val['building'], val['unready'], val['pending']));
+        $('#group_'+val['parameterized_name']+' th.status .inline_piechart').html(values).sparkline('html', piechart_options );
+        $('#group_'+val['parameterized_name']+' th.status').attr('title', pie_title(total, val['ready'], val['failed'], val['unknown'], val['building'], val['unready'], val['pending']));
       });
       
       // Update nodes

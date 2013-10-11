@@ -11,8 +11,8 @@ Feature: Documentation
   Scenario: Doc Topic
     Given parameter "rebuild" is "false"
     Given I am on the "docs" page with parameter "rebuild"
-    When I click on the "Crowbar User Guide" link
-    Then I should see a link to "Crowbar User Guide"
+    When I click on the "Crowbar User Guide" link in section "docindex"
+    Then I should see "Crowbar User Guide"
       And there should be no translation errors
 
   Scenario: Doc Topic Navigation

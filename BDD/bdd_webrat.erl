@@ -74,6 +74,12 @@ step(Given, {step_when, _N, ["I click on the",Link,"link"]}) ->
   URL = eurl:find_link(Link, G),
 	click_link(URL, Link);
 
+step(Given, {step_when, _N, ["I click on the", Link, "link in section", Id]}) -> 
+  Body = eurl:get_result(Given, http, "text/html"),
+  Section = eurl:find_div(Body, Id),
+  URL = eurl:find_link(Link, Section),
+  click_link(URL, Link);
+
 step(Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
   G = eurl:get_result(Given, http, "text/html"),
   [Block] = eurl:find_block("<li", "</li>", G#http.data, ">"++Menu++"</a>", 250),

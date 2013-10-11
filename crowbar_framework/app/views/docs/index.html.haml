@@ -1,16 +1,16 @@
 %h1= t('.title')
 
+/ Full Index
+%div#docindex
+  %ul
+    = render partial: 'tree', collection: Doc.roots.sort
+
 / Table of Contents
-%div."toc box"
+%div{:class=>"toc box"}
   %h2= t('.toc_title')
   %ol(type="1")
     - Doc.roots.sort.each do |x|
       %li
         %a{:href=>"##{x.id}"}= truncate(x.description)
-
-/ Full Index
-%div.index
-  %ul
-    = render partial: 'tree', collection: Doc.roots.sort
 
 .clear

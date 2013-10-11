@@ -130,6 +130,8 @@ step(_Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Obj
   Path = eurl:path([alias(Object, g, [path]), Name]),
   step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
 
+step(_Given, {step_given, _N, ["REST updates an object at",Path,"with",JSON]}) ->
+  step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
 step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]}) ->
   bdd_utils:log(trace, "REST updates an object at ~p with ~p", [Path,JSON]),
   Result = eurl:put_post(Path, JSON, put),

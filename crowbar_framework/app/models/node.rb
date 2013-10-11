@@ -240,9 +240,7 @@ class Node < ActiveRecord::Base
     if changes["available"] || changes["alive"]
       if alive && available
         Rails.logger.info("Node: #{name} is alive and available, enqueing noderoles to run.")
-        node_roles.runnable.each do |nr|
-          Run.enqueue(nr)
-        end
+        Run.run!
       end
       if changes["alive"] && !alive
         Rails.logger.info("Node: #{name} is not alive, deactivating noderoles on this node.")

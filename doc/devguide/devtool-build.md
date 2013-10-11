@@ -15,7 +15,7 @@ In order to more easily manage this, we've created [a tool called the Dev Tool](
 
 * A physical or virtual Ubuntu 12.04.2 server (you will need root access)
 * An ISO of your target Crowbar OS (see instructions below on where they'll go)
-   * Use the [12.04.2 server ISO](http://releases.ubuntu.com/precise/ubuntu-12.04.2-server-amd64.iso) for **OpenStack** builds
+   * Use the [12.04.2 server ISO](http://old-releases.ubuntu.com/releases/12.04.2/ubuntu-12.04.2-server-amd64.iso) for **OpenStack** builds
    * Use [CentOS 6.4 DVD ISO](http://mirrors.seas.harvard.edu/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-bin-DVD1.iso) for **Hadoop** builds
 
 
@@ -141,61 +141,3 @@ Now we can actually kick off the build.
     # FOR OPENSTACK
     ./dev switch mesa-1.6/openstack-os-build
     ./dev build --os ubuntu-12.04 --update-cache
-
-
-
-#TODO:
-**Anything below this line should be ignored, since it hasn't been rewritten edited yet.**
-
-   1. choices are `master` (default, trunk), `openstack-os-build` (OpenStack), `cloudera-os-build` (Hadoop)
-   1. different branches represent different "distros" which combine different sets of barclamps (e.g. openstack, hadoop)
-1. `./dev build --os ubuntu-12.04 --update-cache` 
-   1. The parameter --update-cache will create your Build Cache at this time, thus the first run will download from the internet what it needs.  This takes time and can be skipped for later builds.  Dev Tool will tell you if your cache is need to be updated
-   1. you can add --release development --branch master if you did not switch or checkout 
-
-### Special Notes for Using a Build VM
-If you are using VMware Worktation (or similar) then these extra tips will help you improve your build experience
-
-Tips:
-
-* VMware tools are not working on Ubuntu 12.04 at this time (5.5.2012) so use 11.10
-* To save space on your VM, you can use ISOs that are local to your host
-   * create a shared file location (e.g.: c:\isos) mounted to "isos"
-   * `vi ~/.build-crowbar.conf`
-   * add a reference to `ISO_LIBRARY=/mnt/hgfs/isos`
-* To make it easier to build VMs from the build ISO, have the build save it directory to your host's drive
-   * create a shared file location (e.g.: c:\temp\crowbar) mounted to "crowbar"
-   * `vi ~/.build-crowbar.conf`
-   * add a reference to `ISO_DEST=/mnt/hgfs/crowbar`
-* If you have several build VMs, you may want to share your crowbar cache from the host
-* If you have several active work areas, you can pull down your work-in-progress from github after a './dev backup' by using 'git checkout remotes/personal/[branch e.g. master]' from the impacted barclamp(s).
-
-### Building Barclamp TARs only
-
-If you only want barclamps for import (Utils\Import) then you should use the "--no-iso" flag with the build command.  Note that you must still provide an operating system!
-
-You can find the tars in ~/.crowbar-build-cache/ubuntu-12.04/build/dell/barclamps where the OS will match the one that you choose to target.
-
-See [[Packaging-Barclamps]] about building individual barclamps.
-
-### Coding Steps
-
-We recommend you consult the ./dev command line help, and also [README.dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow) in the crowbar repository.
-
-1. ./dev backup
-   1. makes a copy into your personal forks (if you did not have any, you do now!)
-1. ./dev fetch
-   1. fetches changes from remote repositories, but does not make any local changes.
-1. ./dev sync
-   1. Merges changes fetched with ./dev fetch into your local branches.
-1. commit your code
-   1. git add
-   1. git commit
-1. ./dev is_clean
-1. ./dev pull-requests-prep
-   1. it will give you instructions on next steps to automatically submit a push request on ALL impacted barclamps
-
-
-### Build your cache
-A Crowbar build contains the packages (e.g. deb,rpm,gem etc) that will be used to install your cloud. To avoid having to download the Internet on every build, the Crowbar build system maintains a local cache in ~/.crowbar-build-cache by default.
-Additionally, Crowbar utilizes a customized LiveCD image, SledgeHammer. You can build that too (sources on github), but it changes very infrequently - so you're better of snatching it from somewhere.

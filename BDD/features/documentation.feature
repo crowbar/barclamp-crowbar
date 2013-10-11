@@ -12,7 +12,7 @@ Feature: Documentation
     Given parameter "rebuild" is "false"
     Given I am on the "docs" page with parameter "rebuild"
     When I click on the "Crowbar User Guide" link
-    Then I should see "Crowbar User Guide"
+    Then I should see a link to "Crowbar User Guide"
       And there should be no translation errors
 
   Scenario: Doc Topic Navigation
@@ -23,7 +23,7 @@ Feature: Documentation
     Then I should see heading "Introduction"
       And I should see heading "Navigation"
       And I should see "Master Index"
-      And I should see "Crowbar User Guide"
+      And I should see a link to "Crowbar User Guide"
       And there should be no translation errors
 
   Scenario: Doc Sub Topic return to Main

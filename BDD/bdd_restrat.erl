@@ -61,6 +61,13 @@ create(Path, JSON, Object, ScenarioID) ->
   O = get_object(Result),
   bdd_utils:scenario_store(ScenarioID, Object, O#obj.id),
   [Result, O].
+
+array_matches(_, []) -> false;
+array_matches(Find, [H | T]) ->
+  case re:run(H, Find) of 
+    {match, _}  -> true;
+    _           -> array_matches(Find, T)
+  end.
   
 % GIVEN STEPS ======================
 step(Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
@@ -270,6 +277,12 @@ step(Result, {step_then, {_Scenario, _N}, ["Array contains",Item]}) ->
   Array = eurl:get_result(Result, array),
   bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
   lists:member(Item,Array#array.data);
+
+step(Result, {step_then, {_Scenario, _N}, ["Array matches",Item]}) -> 
+  Array = eurl:get_result(Result, array),
+  bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
+  array_matches(Item,Array#array.data);
+
 
 % basic page return calls
 step(Result, {step_then, _N, ["the page returns",Number]}) -> 

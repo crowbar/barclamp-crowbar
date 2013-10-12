@@ -324,7 +324,7 @@ class NodeRole < ActiveRecord::Base
       write_attribute("state",TODO)
       save!
     end
-    Run.enqueue(self) if self.runnable?
+    Run.run!
   end
 
   def deactivate
@@ -427,10 +427,8 @@ class NodeRole < ActiveRecord::Base
       # No idea what this is.  Just die.
       raise InvalidState.new("Unknown state #{s.inspect}")
     end
-    # If the new state is TODO, enqueue ourself.
-    Run.enqueue(self) if self.runnable? && val == TODO
-    # Kick the runner every time something transitions to ACTIVE.
-    Run.run! if val == ACTIVE
+    # Kick the runner every time something transitions.
+    Run.run! if val == ACTIVE || val == TODO
     self
   end
 

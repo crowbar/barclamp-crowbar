@@ -50,7 +50,11 @@ class BarclampCrowbar::Jig < Jig
     return [out, false]
   end
 
-  def run(nr)
+  def stage_run(nr)
+    return nr.all_transition_data
+  end
+
+  def run(nr,data)
     # Hardcode this for now
     login = "root@#{nr.node.name}"
     local_scripts = "/opt/dell/barclamps/#{nr.barclamp.name}/script/roles/#{nr.role.name}"
@@ -64,7 +68,7 @@ class BarclampCrowbar::Jig < Jig
     end
     local_tmpdir = %x{mktemp -d /tmp/local-scriptjig-XXXXXX}.strip
     Rails.logger.info("Using local temp dir: #{local_tmpdir}")
-    attr_to_shellish(nr.all_transition_data).each do |k,v|
+    attr_to_shellish(data).each do |k,v|
       target = File.join(local_tmpdir,"attrs",k)
       FileUtils.mkdir_p(target)
       File.open(File.join(target,"attr"),"w") do |f|

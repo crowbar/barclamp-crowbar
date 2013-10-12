@@ -115,3 +115,12 @@ Feature: Nodes
     Then I should see {bdd:crowbar.i18n.common.state.reserved}
       And there should be no translation errors
     Finally REST removes the {object:node} "bdd-reserved-ui1.example.com"
+
+  Scenario: Node special API for deployment change
+    Given there is a {object:node} "bdd-deployment-change.example.com"
+      And there is a {object:deployment} "bdd_test1"
+    When REST updates an object at "/api/v2/nodes/bdd-deployment-change.example.com" with "{\"node\":{\"deployment\":\"bdd_test1\"}}"
+    Then key "deployment_id" should not be "1"
+      And key "deployment_id" should match id for {object:deployment}
+    Finally REST removes the {object:node} "bdd-deployment-change.example.com"
+      And REST removes the {object:deployment} "bdd_test1"

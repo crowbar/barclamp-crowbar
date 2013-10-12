@@ -143,6 +143,7 @@ find_heading(Input, Text) ->
   end.
 
 find_div([], _)       -> not_found;
+find_div(Input, Id) when is_record(Input, http)  -> find_div(Input#http.data, Id);
 find_div(Input, Id)   ->
   Start = string:str(Input,"<div"),
   case Start of

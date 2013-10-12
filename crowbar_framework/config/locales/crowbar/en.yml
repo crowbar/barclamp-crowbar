@@ -194,6 +194,8 @@ en:
       description: "Description"
       deployment: "Deployment"
       hint: "edit values then click save > "
+      failed: "Edit failed for %{list}"
+      updated: "Edit succeeded for %{list}"
     layercake:
       title: "System Overview"
       jigs: "Jigs"
@@ -215,11 +217,15 @@ en:
     show:
       snapshots: "History"
       assign: "Assign Nodes to Roles"
+      assigned: "Assigned Nodes to Roles"
       roles: "Assigned Roles"
       nodes: "Available Nodes"
       parent: "Child of "
       <<: *deployment_common
-      add_role: "Add"
+      add_role: "Add to Deployment"
+      must_be_proposed: "WARNING: Deployment must be in Proposed state to make changes."
+      pick: "Add"
+      pick_hint: "Select additional nodes for this deployment"
     buttons:
       commit: "Commit"
       recall: "Interrupt"
@@ -254,6 +260,7 @@ en:
     index:
       title: "Nodes"
       admin: "Admin?"
+      alias: "Alias"
       no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
       bootstrap: "Configure System"
       <<: *deployment_common

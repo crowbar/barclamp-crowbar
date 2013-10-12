@@ -22,21 +22,25 @@
         = link_to @deployment.parent.name, deployment_path(@deployment.parent.id), :title=>@deployment.parent.description
       %td
 
-= form_for :deployment, :'data-remote' => true, :url => deployment_roles_path(:deployment_id=>@deployment.id), :html => { :method=>:post, :'data-type' => 'html',  :class => "formtastic" } do |f|
-  - aroles = @deployment.available_roles
-  - if aroles.length > 0 
-    %p{:style=>'float:right'}
-      = f.collection_select :roles, aroles, :id, :name
-      %input.button{:type => "submit", :name => "add", :value => t('.add_role')}
-  %h2= t '.assign'
+- if @deployment.proposed?
+  = form_for :deployment, :'data-remote' => true, :url => deployment_roles_path(:deployment_id=>@deployment.id), :html => { :method=>:post, :'data-type' => 'html',  :class => "formtastic" } do |f|
+    - aroles = @deployment.available_roles
+    - if aroles.length > 0 
+      %p{:style=>'float:right'}
+        = f.collection_select :roles, aroles, :id, :name
+        %input.button{:type => "submit", :name => "add", :value => t('.add_role')}
+    %h2= t '.assign'
+%h2= t '.assigned'
 
 .box.column_25.first
-  %h3= t '.nodes'
+  %h3
+    = t '.nodes'
+    = link_to t('.pick'), bulk_edit_path(), :title=>t('.pick_hint'), :class=>'button'
   %ul#nodes.plain
     - @deployment.available_nodes.each do |node|
       %li{ :id=>node.id, :draggable=>'true'}
-        = node.name
-        = link_to image_tag('/images/icons/link.png'), node_path(node.id), :title=>node.description
+        = link_to image_tag('/images/icons/link.png'), node_path(node.id), :title=>"#{node.name} #{node.description}"
+        = node.alias
 
 .box.column_66.last
   %h3= t '.roles'
@@ -86,15 +90,19 @@ $(document).ready(function() {
 
     // Handle the final drop...
     .bind('drop', function(ev) {
-      if (ev.preventDefault) ev.preventDefault(); // allows us to drop
-      var node = ev.originalEvent.dataTransfer.getData("node_id");      
-      var role = ev.currentTarget.id;
-      console.debug("deployment id #{@deployment.id} drop node id "+node+" into role id "+role);
-      var postdata = { "snapshot_id":#{@deployment.head.id}, "node_id": node, "role_id":role };
-      console.debug("posting: "+postdata);
-      $.ajax({url:'/api/v2/node_roles', dataType:'json', data:postdata, type:"POST", 
-        statusCode: { 200: function(data) { location.href = '/deployments/#{@deployment.id}' }}
-      });
+      if (#{@deployment.proposed?}) {
+        if (ev.preventDefault) ev.preventDefault(); // allows us to drop
+        var node = ev.originalEvent.dataTransfer.getData("node_id");      
+        var role = ev.currentTarget.id;
+        console.debug("deployment id #{@deployment.id} drop node id "+node+" into role id "+role);
+        var postdata = { "snapshot_id":#{@deployment.head.id}, "node_id": node, "role_id":role };
+        console.debug("posting: "+postdata);
+        $.ajax({url:'/api/v2/node_roles', dataType:'json', data:postdata, type:"POST", 
+          statusCode: { 200: function(data) { location.href = '/deployments/#{@deployment.id}' }}
+        });
+      } else {
+        alert("#{t '.must_be_proposed'}");
+      }
     });
  
 };

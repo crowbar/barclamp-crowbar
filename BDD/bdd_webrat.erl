@@ -61,10 +61,24 @@ step(_Given, {step_when, _N, ["I go to the", Page, "page"]}) ->
 step(_Given, {step_when, _N, ["I try to go to the", Page, "page"]}) ->
 	eurl:get_http(Page);
 
+step(_Given, {step_given, _N, ["I post", Path]}) ->
+  step(_Given, {step_given, _N, ["I",post, Path]});
+step(_Given, {step_given, _N, ["I put", Path]}) ->
+  step(_Given, {step_given, _N, ["I",put, Path]});
+
+step(_Given, {step_given, _N, ["I",Verb, Path]}) ->
+  eurl:put_post(Path, "{}", Verb);
+
 step(Given, {step_when, _N, ["I click on the",Link,"link"]}) ->
   G = eurl:get_result(Given, http, "text/html"),
   URL = eurl:find_link(Link, G),
 	click_link(URL, Link);
+
+step(Given, {step_when, _N, ["I click on the", Link, "link in section", Id]}) -> 
+  Body = eurl:get_result(Given, http, "text/html"),
+  Section = eurl:find_div(Body, Id),
+  URL = eurl:find_link(Link, Section),
+  click_link(URL, Link);
 
 step(Given, {step_when, _N, ["I click on the", Menu, "menu item"]}) -> 
   G = eurl:get_result(Given, http, "text/html"),

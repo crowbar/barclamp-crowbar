@@ -128,4 +128,3 @@ class Run < ActiveRecord::Base
     end
   end
 end
-default

@@ -348,6 +348,7 @@ en:
       save: "Update Template"
       type: "Type"
       no_overlay: "No Override using views/node_role/_raw template instead of %{overlay}"
+      model_error: "Overlay model generated error: %{error}"
     names:
       role: "Roles"
   snapshots:
@@ -385,10 +386,13 @@ en:
       roles: "Roles for Review"
       admin_server: "Crowbar Admin Node"
       create: "Add '%{server}' Node"
+      not_fqdn: "Error: '%{server}' is not fully qualified name."
       add: "Add '%{role}' Role"
-      anneal: "Start Installation"
+      monitor: "Monitor Installation"
+      anneal: "Annealer View"
       hint: 'Select Role to edit initial settings'
       admin_net: 'Core infrastructure network'
+
   users:
     common: &user_common
       email: Email

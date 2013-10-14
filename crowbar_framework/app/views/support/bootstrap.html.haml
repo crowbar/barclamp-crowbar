@@ -11,7 +11,8 @@
         %li
           - rnew = 'network-admin'
           - jigname = Role.find_key('network-server').jig_name
-          = link_to t('.add', :role=>rnew), bootstrap_path(), :"data-method"=>:post, :class=>'button', :remote=>true, :onclick=>"location.reload();"
+          %a.button#bootstrap{:remote=>true}
+            = t('.add', :role=>rnew)
       - else
         %li
           %a.role{:href => role_path(r.id, :form=>'true'), :title=>r.description, :id => r.id}= r.name
@@ -20,13 +21,17 @@
 
   - if Node.count == 0 
     - name = %x{hostname -f}.strip
-    = link_to t('.create', :server=>name), make_admin_path(:version=>'v2'), :"data-method"=>:post, :class=>'button', :remote=>true, :onclick=>"location.reload();"
+    - if name =~ Node::FQDN_RE
+      %a.button#adminserver{:remote=>true}
+        = t '.create', :server=>name
+    - else
+      = t '.not_fqdn', :server=>name
   -else
     - Node.admin.each do |n|
       =link_to n.name, node_path(n.id)
 
-  %h2
-    = link_to t('.anneal'), annealer_path(), :class=>'button', :"data-method"=>:get
+  %h2= t '.monitor'
+  = link_to t('.anneal'), annealer_path()
 
 .column_50
   %p
@@ -36,5 +41,17 @@
 :javascript
 
   $(document).ready(function() {  
+    
     $.loadDetails('role', 'role_edit');
+
+    $("#bootstrap").on("click", function() {
+      $.post("#{bootstrap_path()}");
+      window.reload;
     });
+
+    $("#adminserver").on("click", function() {
+      $.post("#{make_admin_path(:version=>'v2')}");
+      window.reload();
+    });
+
+  });

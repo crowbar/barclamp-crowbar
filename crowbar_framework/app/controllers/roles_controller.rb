@@ -53,7 +53,22 @@ class RolesController < ApplicationController
 
   def update
     respond_to do |format|
-      format.html { render ui_not_supported :update, :role }
+      format.html { 
+        # for HTML, we are processing form input from template overlays (similar to node_role update)
+        # for nested JSON, this routine relies on the role overriding the update_template method
+        @role = Role.find_key params[:id]
+        if params.key? :dataprefix
+          params[:data] ||= {}
+          params.each do |k,v|
+            if k.start_with? params[:dataprefix]
+              key = k.sub(params[:dataprefix],"")
+              @role.update_template(key, v)
+            end
+          end
+          @role.save!
+        end
+        render :action=>:show
+      }
       format.json { render api_update :role, Role }
     end
   end

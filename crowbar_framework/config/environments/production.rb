@@ -1,4 +1,4 @@
-# Copyright 2011, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -51,10 +51,5 @@ Crowbar::Application.configure do
   # Enable threaded mode
   # config.threadsafe! unless $rails_rake_task
 
-  # Legacy vars, should not be needed on Crowbar 2.0
-  #DISABLE_CHEF=false
-  #CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-  #CHEF_NODE_NAME ="crowbar" 
-  #CHEF_SERVER_URL = "http://192.168.124.10:4000"
   CROWBAR_VERSION = "v2.0-dev"
  end 

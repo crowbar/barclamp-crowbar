@@ -47,88 +47,43 @@ class DashboardController < ApplicationController
     end
   end
   
+
   # Bulk Edit
   def list
-    if request.get?
-      @nodes = if params.key? :deployment
-        @deployment = Deployment.find_key params[:deployment]
-        @deployment.nodes
-      else
-        Node.all
-      end
-    elsif request.put?
+    if request.put?
       nodes = {}
       params.each do |k, v|
         if k.starts_with? "node:"
           parts = k.split ':'
           node = parts[1]
           area = parts[2]
-          nodes[node] = {} if nodes[node].nil?
+          nodes[node] ||= {} 
           nodes[node][area] = (v.empty? ? nil : v)
         end
       end
       succeeded = []
       failed = []
-      # before we start saving, make sure someone did not give us duplicate aliases
-      # this SHOULD Be causght by the node.save but race conditoins are breaking the constency of the DB
-      alias_dup = false
       nodes.each do |node_name, values|
-        nodes.each do |nn, vv|
-           alias_dup = true if nn!=node_name and vv['alias'] == values['alias']
-           failed << node_name if alias_dup 
-           break if alias_dup
-        end
-      end
-      unless alias_dup
-        nodes.each do |node_name, values|
-          begin
-            dirty = false
-            # TODO: can one DE-allocate a node in bluk-edit?  If so, we need to add that here...
-            node = Node.find_by_name node_name
-            if !node.allocated and values['allocate'] === 'checked'
-              node.allocated = true
-              dirty = true
-            end
-            if !(node.description == values['description'])
-              node.description = values['description']
-              dirty = true
-            end
-            if !(node.alias == values['alias'])
-              node.alias = values['alias']
-              dirty = true
-            end
-            if !(node.group.name == values['group'])
-              node.group = values['group']
-              dirty = true
-            end
-            if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
-              node.bios_set = values['bios']
-              dirty = true
-            end
-            if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(values['raid'] === 'not_set')
-              node.raid_set = values['raid']
-              dirty = true
-            end
-            if dirty
-              begin
-                node.save!
-                succeeded << node_name
-              rescue Exception=>e
-                failed << node_name
-              end
-            end
-          rescue Exception=>e
-            failed << node_name
-          end
+        node = Node.find_key node_name
+        begin
+          node.update_attributes! values
+          succeeded << node.alias
+        rescue Exception=>e
+          Rails.logger.info "user attempted dashboard.list put for node #{node.name} raised error #{e.message}"
+          failed << node.alias
         end
       end
       if failed.length>0
-        flash[:notice] = failed.join(',') + ": " + I18n.t('failed', :scope=>'nodes.list')
+        flash[:notice] = I18n.t('failed', :scope=>'dashboard.list', :list=>failed.join(','))
       elsif succeeded.length>0
-        flash[:notice] = succeeded.join(',') + ": " + I18n.t('updated', :scope=>'nodes.list')
-      else
-        flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
+        flash[:notice] = I18n.t('updated', :scope=>'dashboard.list', :list=>succeeded.join(','))
       end
+    end
+    @nodes = if params.key? :deployment
+      @deployment = Deployment.find_key params[:deployment]
+      @deployment.nodes
+    else
+      Node.all
     end
   end
 

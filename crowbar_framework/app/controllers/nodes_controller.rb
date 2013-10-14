@@ -63,15 +63,15 @@ class NodesController < ApplicationController
   end
   
   def update
-    params[:deployment_id] ||= params[:node][:deployment_id] if params.has_key? :node
+    params[:deployment] ||= params[:node][:deployment] if params.has_key? :node
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
     # If we wind up changing to being alive and available,
     # we will want to enqueue some noderoles to run.
-    node = Node.find_key params[:id]
+    @node = Node.find_key params[:id]
     # discovery requires a direct save
-    if params.include? :discovery
-      node.discovery = params[:discovery]
-      node.save!
+    if params.has_key? :discovery
+      @node.discovery = params[:discovery]
+      @node.save!
     end
     render api_update :node, Node, nil, @node
   end

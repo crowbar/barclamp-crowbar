@@ -14,7 +14,7 @@
     %dd
       = form_for @node, :remote => true, :url => node_path(:id=>@node.id, :version=>'v2'), :html => { :method=>:put, 'data-type' => 'json', 'data-remote' => true, :class => "formtastic", :onsubmit=>"location.reload();" } do |f|
         - deployments = Deployment.all
-        = f.collection_select :deployment_id, deployments, :id, :name, :value=>@node.deployment.id
+        = f.collection_select :deployment, deployments, :id, :name, :selected=>@node.deployment.id
         %input.button{:type => "submit", :name => "update", :value => t('update'), }
     %dt= t('.status')
     %dd

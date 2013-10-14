@@ -32,7 +32,7 @@ alias(Object, Method, Params) ->
     Cause: Reason -> bdd_utils:log(error, bdd_restrat, alias, "Unexpected ~p error due to ~p.  Object ~p:~p Abstraction fails.", [Cause, Reason, Object, Method]), false
   end.
 
-% wrapper looks at header to see if there is meta data to help with override parsing
+% wrapper looks at header to see if there is meta data to help wih override parsing
 % if it's json then use the parser from bdd_utils
 % if it's a vendor namespace then use naming convention to resolve
 get_object(Result) when is_record(Result, http) -> 
@@ -61,6 +61,13 @@ create(Path, JSON, Object, ScenarioID) ->
   O = get_object(Result),
   bdd_utils:scenario_store(ScenarioID, Object, O#obj.id),
   [Result, O].
+
+array_matches(_, []) -> false;
+array_matches(Find, [H | T]) ->
+  case re:run(H, Find) of 
+    {match, _}  -> true;
+    _           -> array_matches(Find, T)
+  end.
   
 % GIVEN STEPS ======================
 step(Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
@@ -130,6 +137,8 @@ step(_Given, {step_when, _N, ["REST updates the",Object,Name]}) when is_atom(Obj
   Path = eurl:path([alias(Object, g, [path]), Name]),
   step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
 
+step(_Given, {step_given, _N, ["REST updates an object at",Path,"with",JSON]}) ->
+  step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]});
 step(_Given, {step_when, _N, ["REST updates an object at",Path,"with",JSON]}) ->
   bdd_utils:log(trace, "REST updates an object at ~p with ~p", [Path,JSON]),
   Result = eurl:put_post(Path, JSON, put),
@@ -207,6 +216,16 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
      false -> bdd_utils:log(debug, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
   end;
 
+% this is really handy INSIDE a scenario because you can lookup objects that you created earlier to test IDs (assumes you only create 1 type of each)
+step(Results, {step_then, {Scenario, _N}, ["key",Key,"should match id for",Type]}) -> 
+  Obj = eurl:get_result(Results, obj),
+  Id = bdd_utils:scenario_retrieve(Scenario, Type, "-1"),
+  Test = json:keyfind(Obj#obj.data, Key, ":"),
+  case Id =:= Test of
+     true  -> true;
+     false -> bdd_utils:log(debug, bdd_restrat, step, "Object ~p for Key ~p id expected ~p but was ~p", [Type, Key, Id, Test]), false
+  end; 
+
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -> 
   true =/= step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]});
 
@@ -258,6 +277,12 @@ step(Result, {step_then, {_Scenario, _N}, ["Array contains",Item]}) ->
   Array = eurl:get_result(Result, array),
   bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
   lists:member(Item,Array#array.data);
+
+step(Result, {step_then, {_Scenario, _N}, ["Array matches",Item]}) -> 
+  Array = eurl:get_result(Result, array),
+  bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
+  array_matches(Item,Array#array.data);
+
 
 % basic page return calls
 step(Result, {step_then, _N, ["the page returns",Number]}) -> 

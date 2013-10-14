@@ -16,7 +16,7 @@
       %a{:href=>"/docs/#{@nav_next.name}"}
         = "next page (#{truncate @nav_next.description})"
 
-%a{:href=>@doc.git_url, :class=>"edit-link box"}
+%a{:href=>@doc.git_url, :class=>"button"}
   Edit this page on GitHub
 
 %p.topic= @text.html_safe rescue "oops, render broken"

@@ -92,9 +92,7 @@ class Deployment < ActiveRecord::Base
 
   # available nodes that could be used in the deployment
   def available_nodes
-    candidates = Node.all
-    # add some good logic here!
-    candidates
+    self.nodes
   end
 
   # Lookup the roles available for the deployment, use the Proposal then Active 

@@ -42,7 +42,7 @@ class Node < ActiveRecord::Base
   validates_length_of     :name, :maximum => 255
 
   # TODO: 'alias' will move to DNS BARCLAMP someday, but will prob hang around here a while
-  # validates_uniqueness_of :alias, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
+  validates_uniqueness_of :alias, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
   validates_format_of :alias, :with=>/^([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, :message => I18n.t("db.fqdn", :default=>"Name must be a fully qualified domain name.")
   validates_length_of :alias, :maximum => 100
 
@@ -255,7 +255,7 @@ class Node < ActiveRecord::Base
   def default_population
     self.admin = true if Node.admin.count == 0    # first node, needs to be admin
     self.name = self.name.downcase
-    self.alias = self.name.split(".")[0]
+    self.alias ||= self.name.split(".")[0]
     self.deployment ||= Deployment.system_root.first
     # the line belowrequires a crowbar deployment to which the status attribute is tied
     if self.groups.count == 0

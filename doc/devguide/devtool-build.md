@@ -52,13 +52,18 @@ During the build process the Dev Tool has to perform certain tasks which require
     # we need Postgresql 9.3 (we rely on 9.3+ features)
     # first, remove the automatically added old Posgresql
     sudo apt-get remove postgresql
+    # Additional reference, please visit [[https://wiki.postgresql.org/wiki/Apt]]
+    # for now you need to add the sources (please remove this step when 9.3 is in the official repos!)
+    deb http://apt.postgresql.org/pub/repos/apt/ [your release]-pgdg main
+    wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
+    sudo apt-get update
     # now install and set to use the special port/pipe config
     sudo apt-get install postgresql-9.3 pgadmin3
     sudo vi /etc/postgresql/9.3/main/pg_hba.conf
       # add 'local  all   all    trust'
     sudo vi /etc/postgresql/9.3/main/postgresql.conf
       # change 'port = 5439'
-    createuser -s -d -U crowbar
+    sudo createuser -s -d -U postgres crowbar
     # you can test the install by making sure the following call returns
     export PGCLUSTER=9.3/main
     psql postgresql://crowbar@:5439/template1 -c 'select true;'

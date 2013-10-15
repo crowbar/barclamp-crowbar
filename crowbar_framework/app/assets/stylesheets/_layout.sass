@@ -25,6 +25,10 @@ header
   nav
     float: right
     margin-top: 50px
+    > ul
+      > li
+        > ul
+          top: 20px !important
         
     ul /*top*/
       +inline_list
@@ -44,7 +48,6 @@ header
           color: $nav_selected
         ul /* level 2 */
           +nav_ul
-          margin-top: 43px
           margin-right: -10px
           li
             display: inline

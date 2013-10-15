@@ -81,7 +81,7 @@ class Jig < ActiveRecord::Base
   # It should be run to create whatever information will be needed
   # for the actual run before doing the actual run in a delayed job.
   def stage_run(nr)
-    raise "Cannot call stage_run on the top-level jig!"
+    raise "Cannot call stage_run on the top-level jig from role '#{nr.role.name}' on '#{nr.node.name}'!"
   end
 
   # Run a single noderole.

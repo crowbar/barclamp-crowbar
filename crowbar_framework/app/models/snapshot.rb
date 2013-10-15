@@ -122,7 +122,7 @@ class Snapshot < ActiveRecord::Base
   
     # commit the current proposal (cannot be done if there is a committed proposal)
   def commit
-    raise I18n.t('deployment.commit.raise') unless proposed?
+    raise I18n.t('deployment.commit.raise', :default=>'blocked: already 1 committed') unless proposed?
     NodeRole.transaction do
       node_roles.in_state(NodeRole::PROPOSED).each { |nr| nr.commit! }
     end

@@ -22,13 +22,11 @@ begin
   # we cannot run the system w/o a deployment
   # we are creating it here until there is a more logical place
   
-  if !defined?(::Rake) and Deployment.count == 0
+  if !defined?(::Rake)
     # create the default deployment
     d = Deployment.find_or_create_by_name(:name=> "system",
                                           :description=>I18n.t('automatic', :default=>"Created Automatically by System"))
-    # Make it a system deployment
-    d.commit
-    d.send(:write_attribute,"system",true)
-    d.save!
+    # put this deployment into action because system deployment cannot be proposed
+    d.commit if d.proposed?
   end
 end

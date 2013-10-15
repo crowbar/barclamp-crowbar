@@ -123,7 +123,7 @@ class Run < ActiveRecord::Base
         break if queued >= maxjobs
       end if runnable > 0
       Rails.logger.info("Run: #{runnable} runnable, #{queued} handled this pass, #{Run.running.count} in delayed_jobs")
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}")
+      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") unless j.nil?
       return queued
     end
   end

@@ -20,9 +20,9 @@ class DashboardController < ApplicationController
     taxmap = JSON::load File.open(File.join("config", "layercake.json"), 'r')
     @layers = {}
     taxmap["layers"].each { |k| @layers[k]=[] }
-    Role.all.each do |role|
-      layer = taxmap[role.name] || 'apps'
-      role.node_roles.each { |nr| @layers[layer] << nr }
+    NodeRole.current.each do |nr|
+      layer = taxmap[nr.role.name] || 'apps'
+      @layers[layer] << nr 
     end
     respond_to do |format|
       format.html { }

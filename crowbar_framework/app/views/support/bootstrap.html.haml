@@ -11,7 +11,7 @@
         %li
           - rnew = 'network-admin'
           - jigname = Role.find_key('network-server').jig_name
-          %a.button#bootstrap{:remote=>true}
+          %a.button#bootstrap_bootstrap{:remote=>true}
             = t('.add', :role=>rnew)
       - else
         %li
@@ -22,7 +22,7 @@
   - if Node.count == 0 
     - name = %x{hostname -f}.strip
     - if name =~ Node::FQDN_RE
-      %a.button#adminserver{:remote=>true}
+      %a.button#bootstrap_adminserver{:remote=>true}
         = t '.create', :server=>name
     - else
       = t '.not_fqdn', :server=>name
@@ -44,14 +44,14 @@
     
     $.loadDetails('role', 'role_edit');
 
-    $("#bootstrap").on("click", function() {
+    $("a#bootstrap_bootstrap").on("click", function() {
       $.post("#{bootstrap_path()}");
-      window.reload;
+      location.reload();
     });
 
-    $("#adminserver").on("click", function() {
+    $("a#bootstrap_adminserver").on("click", function() {
       $.post("#{make_admin_path(:version=>'v2')}");
-      window.reload();
+      location.reload();
     });
 
   });

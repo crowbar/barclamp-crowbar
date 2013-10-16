@@ -26,21 +26,26 @@
 
   .clear
 
-  - specfic = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
-  - general = "barclamp_#{@role.barclamp.name}/roles/role"
+  - begin 
+    - specific = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
+    - general = "barclamp_#{@role.barclamp.name}/roles/role"
+    - template = @role.template 
+  - rescue Exception => moderror
+    %p= t '.model_error', :error=>moderror.message
+
   - if params.include? :raw
-    = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide=>true, :template => @role.template }
+    = render :partial => 'node_roles/raw', :locals => { :role=>@role, :data => nil, :hide=>true, :template => template }
   - else
     - begin
-      = render :partial => specfic, :locals  => { :data => nil, :hide => true, :template => @role.template }
+      = render :partial => specific, :locals  => { :role=>@role, :data => nil, :hide => true, :template => template }
     - rescue Exception => e_outer
       - begin
-        = render :partial => general, :locals  => { :role=>@role, :data => nil, :hide => true, :template => @role.template }
-      -rescue Exception => e_inner
-        = render :partial => 'node_roles/raw', :locals => { :data => nil, :hide => true, :template => @role.template }
+        = render :partial => general, :locals  => { :role=>@role, :data => nil, :hide => true, :template => template }
+      - rescue Exception => e_inner
+        - render :partial => 'node_roles/raw', :locals => { :role=>@role, :data => nil, :hide => true, :template => template }
         - if Rails.env.development?
           - if e_inner.message.starts_with? "Missing partial barclamp_#{@role.barclamp.name}" 
-            %p= t '.no_overlay', :overlay=>"#{specfic} or #{general}"
+            %p= t '.no_overlay', :overlay=>"#{specific} or #{general}"
           - else
             %p
               = t 'error'

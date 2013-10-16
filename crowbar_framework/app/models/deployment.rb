@@ -103,7 +103,14 @@ class Deployment < ActiveRecord::Base
   private
 
   def set_parent
-    self.parent_id ||= (Deployment.system_root.first.id rescue nil)
+    # 1st system deployment is a special case
+    if Deployment.system_root.count == 0
+      # Make it a system deployment write attribute because we don't allow direct access to system    
+      self[:system]= true
+    else
+      # system is a safe fall back (unless we are system)
+      self.parent_id ||= (Deployment.system_root.first.id rescue nil)
+    end
   end
 
   # all deployments must have a snapshot

@@ -10,17 +10,17 @@
 
   .column_75.last
 
-    #apps.green
+    #apps.dark_green
       = render :partial=>'layercake', :locals=>{ :layer=>'apps' }
-    #services.yellow
+    #services.dark_green
       = render :partial=>'layercake', :locals=>{ :layer=>'services' }
-    #clients.dark_green
+    #clients.yellow
       = render :partial=>'layercake', :locals=>{ :layer=>'clients' }
     #os.pink
       = render :partial=>'layercake', :locals=>{ :layer=>'os' }
     #nodes.blue
       = render :partial=>'layercake', :locals=>{ :layer=>'nodes' }
-    #network.blue
+    #network.dark_blue
       = render :partial=>'layercake', :locals=>{ :layer=>'network' }
 
 .clear

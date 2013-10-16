@@ -5,18 +5,14 @@
 %div(class='nav-container')
   - if @nav_prev
     %div(class='nav-prev')
-      %a{:href=>"/docs/#{@nav_prev.name}"}
-        = "previous page (#{truncate @nav_prev.description})"
+      = link_to "#{t('.nav_prev')} (#{truncate @nav_prev.description})", "/docs/#{@nav_prev.name}"
   - if @nav_up
     %div(class='nav-up')
-      %a{:href=>"/docs/#{@nav_up.name}"}
-        = "up (#{truncate @nav_up.description})"
+      = link_to "#{t('.nav_up')} (#{truncate @nav_up.description})", "/docs/#{@nav_up.name}"
   - if @nav_next
     %div(class='nav-next')
-      %a{:href=>"/docs/#{@nav_next.name}"}
-        = "next page (#{truncate @nav_next.description})"
+      = link_to "#{t('.nav_next')} (#{truncate @nav_next.description})", "/docs/#{@nav_next.name}"
 
-%a{:href=>@doc.git_url, :class=>"button"}
-  Edit this page on GitHub
+= link_to t('.edit_this_page'), @doc.git_url, :class=>"button", :style=>"float:right"
 
 %p.topic= @text.html_safe rescue "oops, render broken"

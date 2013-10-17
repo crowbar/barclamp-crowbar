@@ -245,6 +245,11 @@ en:
       barclamps_display: "Barclamps"
       barclamps_description: "Crowbar add-ons"
       toc_title: "Jump to:"
+    show:
+      nav_prev: "previous page"
+      nav_next: "next page"
+      nav_up: "up"
+      edit_this_page: "Edit this page on GitHub"
   groups:
     index:
       title: "Node Groups"

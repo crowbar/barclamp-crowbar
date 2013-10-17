@@ -6,7 +6,7 @@ This section descusses the common pattern for BDD testing a RESTful API
 ##### Exports
 
 * step/3
-* json/3 - 
+* json/3 -
 * validate/1
 * inspector/1
 * g/1
@@ -34,30 +34,30 @@ A Happy API has consistent JSON.
 
 The json routine creates a valid JSON version of the object.  This is used by the routines that create and update the object via the API.  You may implement multiple versions of json to capture the different required/optional components of the object.
 
-  json(Name) ->
-    json:output([{"name",Name}]).
+    json(Name) ->
+      json:output([{"name",Name}]).
 
-  json(Name, Description, Order) ->
-    json:output([{"name",Name},{"description", Description}, {"order", Order}]).
+    json(Name, Description, Order) ->
+      json:output([{"name",Name},{"description", Description}, {"order", Order}]).
 
 Use the shared validator to check common properties like ID, Name, Description and edit dates.  This validator should only check the items that are specific to your object.
 
 > The `bdd_utils:is_a` is your friend - extend it if needed.  There are similar BIFs for erlang that you can also leverage.
 
-  validate(J) ->
-    R =[length(J) =:= 6,
-        bdd_utils:is_a(J, str, description), 
-        bdd_utils:is_a(J, integer, order),
-        crowbar_rest:validate(J)],
-    bdd_utils:assert(R). 
-         
+    validate(J) ->
+      R =[length(J) =:= 6,
+          bdd_utils:is_a(J, str, description),
+          bdd_utils:is_a(J, integer, order),
+          crowbar_rest:validate(J)],
+      bdd_utils:assert(R).
+
 #### inspector
 
 The inspector is part of a housekeeping system for BDD that helps detect orphaned artifacts.  It is optional, but recommended for root objects.
 
 The objective of the inspector method is to return a list of items found in the system.  This list is generated before and after BDD runs.
 
-    inspector(Config) -> 
+    inspector(Config) ->
       crowbar_rest:inspector(Config, cmdbs).  % shared inspector works here, but may not always
 
 > It is likely that you can leverage a generic inspector routine if your API has a consistent list pattern.
@@ -70,36 +70,36 @@ Setup and teardown steps are just like other steps except that they use the `ste
 
 Setup
 
-    step(Config, _Global, {step_setup, _N, _}) -> 
+    step(Config, _Global, {step_setup, _N, _}) ->
       % create node(s) for tests
       Node = json(g(name), g(description), 100),
       crowbar_rest:create(Config, g(path), g(atom), g(name), Node);
 
 Teardown
-    
-    step(Config, _Global, {step_teardown, _N, _}) -> 
+
+    step(Config, _Global, {step_teardown, _N, _}) ->
       % find the node from setup and remove it
       crowbar_rest:destroy(Config, g(path), g(atom)).
-    
+
 #### Common steps
 
 Common steps are easy to create because thy can leverage existing steps with minor changes.  Even if the underlying step is simple, it's more maintainable to build steps based on other steps.
 
-Get List 
+Get List
 
-    step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) -> 
+    step(Config, _Given, {step_when, _N, ["REST gets the cmdb list"]}) ->
       bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),""),"page"]});
 
 Get Object
 
-    step(Config, _Given, {step_when, _N, ["REST gets the cmdb",Name]}) -> 
+    step(Config, _Given, {step_when, _N, ["REST gets the cmdb",Name]}) ->
       bdd_restrat:step(Config, _Given, {step_when, _N, ["REST requests the",eurl:path(g(path),Name),"page"]});
 
 Validate Object
 
 > This routine will call back the the modules own validate!
 
-    step(_Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) -> 
+    step(_Config, Result, {step_then, _N, ["the cmdb is properly formatted"]}) ->
       crowbar_rest:step(_Config, Result, {step_then, _N, ["the", cmdb, "object is properly formatted"]});
 
 
@@ -107,13 +107,13 @@ Create Object
 
 >Creates a new object using the require components.  The routine builds the JSON for the object (see above) and then calls the shared create method.
 
-    step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) -> 
+    step(Config, _Global, {step_given, _N, ["there is a cmdb",CMDB,"of type", Type]}) ->
       JSON = json(CMDB, g(description), Type, 200),
       crowbar_rest:create(Config, g(path), JSON);
 
 Remove Object
 
-    step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) -> 
+    step(Config, _Given, {step_finally, _N, ["REST removes the cmdb",CMDB]}) ->
       crowbar_rest:destroy(Config, g(path), CMDB);
 
 #### Reference Features
@@ -125,20 +125,20 @@ Remove Object
         And there should be a value "chef"
         And there should be a value "bddcmdb"
       Finally REST removes the cmdb "my_special_cmdb"
-  
+
     Scenario: REST JSON check
       Given there is a cmdb "cmdb_json_test"
       When REST gets the cmdb "cmdb_json_test"
       Then the cmdb is properly formatted
       Finally REST removes the cmdb "cmdb_json_test"
-  
-    Scenario: REST Add 
+
+    Scenario: REST Add
       Given there is not a cmdb "cmdb_add_test"
       When REST adds the cmdb "cmdb_add_test"
       Then there is a cmdb "cmdb_add_test"
       Finally REST removes the cmdb "cmdb_add_test"
-  
-    Scenario: REST Delete 
+
+    Scenario: REST Delete
       Given there is a cmdb "cmdb_delete_test"
       When REST deletes the cmdb "cmdb_delete_test"
       Then there is a not cmdb "cmdb_delete_test"

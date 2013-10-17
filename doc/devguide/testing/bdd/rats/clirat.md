@@ -26,11 +26,11 @@ The values for the parameters are resolved from the configuration file.
 
 For example:
 
-  Scenario: Machines List
-    Unless windows
-    Given there is a {object:node} "cli.cr0wbar.com"
-    Given CLI is {apply:crowbar.g.cli} 
-    When I run the "machines list" command
-    Then the CLI should return "cli.cr0wbar.com"
-      And the CLI should return "global-node.testing.com""
-    Finally REST removes {object:node} "cli.cr0wbar.com"
+    Scenario: Machines List
+      Unless windows
+      Given there is a {object:node} "cli.cr0wbar.com"
+      Given CLI is {apply:crowbar.g.cli}
+      When I run the "machines list" command
+      Then the CLI should return "cli.cr0wbar.com"
+        And the CLI should return "global-node.testing.com""
+      Finally REST removes {object:node} "cli.cr0wbar.com"

@@ -6,18 +6,18 @@ You need a working [[devtool-build]] system.
 
 ### To use the simulator:
 
-In your dev system, run the test server: 
-  
-  ./dev tests server
+In your dev system, run the test server:
 
-In a new window, start erlang 
+    ./dev tests server
 
-  'cd ~/crowbar/barclamps/crowbar/BDD'
-  cp example.config default.config
-  [review default.config and update if needed]
-  cp dev.sample dev.config
-  ./linux_compile.sh
-  ./linux_sim.sh
+In a new window, start erlang
+
+    'cd ~/crowbar/barclamps/crowbar/BDD'
+    cp example.config default.config
+    [review default.config and update if needed]
+    cp dev.sample dev.config
+    ./linux_compile.sh
+    ./linux_sim.sh
 
 Open the Crowbar UI under 'http://[dev system IP]:3000'
 You can then explore and even run the Annealer!

@@ -38,7 +38,7 @@ validate(JSON) when is_record(JSON, obj) ->
       bdd_utils:is_a(J, int, team_mode),
       bdd_utils:is_a(J, boolean, use_team),
       bdd_utils:is_a(J, string, conduit),
-      bdd_utils:is_a(J, str, v6prefix),
+      bdd_utils:is_a(J, "([a-f0-9]){1,4}:([a-f0-9]){1,4}:([a-f0-9]){1,4}:([a-f0-9]){1,4}", v6prefix),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R);
 validate(JSON) -> 

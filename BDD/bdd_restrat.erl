@@ -245,7 +245,15 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) ->
   Obj = eurl:get_result(Results, obj),
   bdd_utils:log(debug, bdd_restrat, step, "Key ~p should be a number",[Key]),
   bdd_utils:is_a(number, json:value(Obj#obj.data, Key));
-                                                       
+
+step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should match", RE]}) -> 
+  Obj = eurl:get_result(Results, obj),
+  Match = json:value(Obj#obj.data, Key),
+  case re:run(Match, RE) of
+    {match, _}  -> true;
+    _           -> false
+  end;
+                                                      
 step(Results, {step_then, {_Scenario, _N}, ["key",Key, "should be an empty string"]}) -> 
   bdd_utils:is_a(empty, json:value(eurl:get_result(Results, obj), Key));
                                                       

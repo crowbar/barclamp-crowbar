@@ -99,3 +99,4 @@ en:
     barclamp_excludes: "Barclamp name is reserved for Crowbar internal operations"
     config_excludes: "Config name 'template' is reserved for Crowbar internal operations"
     not_in_set: "Object %{obj} property %{prop} can only take one of [%{set}]."
+    v6prefix: "Invalid IPv6 prefix."

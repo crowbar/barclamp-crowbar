@@ -141,7 +141,7 @@ class NodeRole < ActiveRecord::Base
     DeploymentRole.snapshot_and_role(snapshot,role).first
   end
 
-  def data(merge=true)
+  def data
     raw = read_attribute("userdata")
     d = raw.nil? ? {} : JSON.parse(raw)
   end

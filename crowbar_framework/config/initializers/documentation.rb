@@ -1,4 +1,4 @@
-# Copyright 2012, Dell 
+# Copyright 2013, Dell 
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); 
 # you may not use this file except in compliance with the License. 
@@ -17,7 +17,7 @@
 # This initializer (re)builds the documentation set on startup 
 begin
   Doc.delete_all
-  Doc.gen_doc_index File.join '..', 'doc' unless defined?(::Rake)
+  Doc.gen_doc_index unless defined?(::Rake)
 rescue
   # don't sweat it, we'll do it later
   true

@@ -80,6 +80,7 @@ class Jig < ActiveRecord::Base
   # This function needs to be overridden by the actual jigs.
   # It should be run to create whatever information will be needed
   # for the actual run before doing the actual run in a delayed job.
+  # RETURNS the data needed for .run
   def stage_run(nr)
     raise "Cannot call stage_run on the top-level jig from role '#{nr.role.name}' on '#{nr.node.name}'!"
   end

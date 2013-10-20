@@ -125,11 +125,9 @@ Feature: Nodes
     Finally REST removes the {object:node} "bdd-deployment-change.example.com"
       And REST removes the {object:deployment} "bdd_test1"
 
-
   Scenario: Node loads test data
     Given there is a {object:node} "bdd-discovery.data.edu"
       Given test loads the "node_discovery" data into {object:node} "bdd-discovery.data.edu"
     When REST gets the {object:node} "bdd-discovery.data.edu"
     Then key "discovery" should contain at least "1" items
-      And I debug BDD
     Finally REST removes the {object:node} "bdd-discovery.data.edu"

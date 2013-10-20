@@ -81,9 +81,14 @@ class NodesController < ApplicationController
   def test_load_data
 
     @node = Node.find_key params[:id]
-    mac = 6.times.map{ |i| rand(256).to_s(16) }.join(":")
+    # get the file
     file = File.join "test", "data", (params[:source] || "node_discovery") + ".json"
-    json = JSON.load File.read file
+    raw = File.read file
+    # cleanup
+    mac = 6.times.map{ |i| rand(256).to_s(16) }.join(":")
+    raw = raw.gsub /00:00:00:00:00:00/, mac
+    # update the node
+    json = JSON.load raw
     @node.discovery  = json
     @node.save!
     redirect_to :action=>:show

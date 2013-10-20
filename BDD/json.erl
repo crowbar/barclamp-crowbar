@@ -72,7 +72,9 @@ json_value_quoted(Value, [Next | T]) ->
 json_value(Value, RawJSON) ->
   [Next | T] = RawJSON, 
   case Next of
-    $: -> throw('unexpected token : in value');
+    $" -> json_value_quoted(Value, T);                        % run to next quote,exit
+    $: -> bdd_utils:log(error, json, json_value, "unexpected : before ~p building value ~p", [T, Value]), 
+          throw('unexpected token : in value');
     ${ -> J = json(#json{raw=RawJSON}, []),                   % recurse to get list
             #jsonkv{value=J#json.list, raw=J#json.raw};  
     $[ -> J = json_array(0, [], T),                    % recurse to get array using 0++ as the Key
@@ -80,7 +82,6 @@ json_value(Value, RawJSON) ->
     $, -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
     $} -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
     $] -> #jsonkv{value=string:strip(Value), raw=RawJSON};    % terminator, return
-    $" -> json_value_quoted(Value, T);                        % run to next quote,exit
     _ -> json_value(Value ++ [Next], T)                       % recurse
   end.
 
@@ -117,7 +118,10 @@ json_array(Index, Value, RawJSON) ->
 json(JSON, Key) ->
   [Next | T] = JSON#json.raw,
   case {Next, T} of
-    {$", _}  -> json(JSON#json{raw=T}, Key);        % ignore
+    {$", _}  -> KV = json_value_quoted([], T),    % using the value parser to get the key
+                K = KV#jsonkv.value,              % so the key is returned as the value
+                V = KV#jsonkv.raw,            
+                json(JSON#json{raw=V}, K);         % strip out the quoted text as the key, loop
     {$\n, _} -> json(JSON#json{raw=T}, Key);        % ignore
     {${, _}  -> json(#json{raw=T}, []);             % start new hash
     {$[, _}  -> JSON2 = json_array(0, [], T), JSON2#json.list;

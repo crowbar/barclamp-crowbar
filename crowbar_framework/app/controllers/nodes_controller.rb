@@ -76,4 +76,18 @@ class NodesController < ApplicationController
     render api_update :node, Node, nil, @node
   end
 
+
+  #test_ methods support test functions that are not considered stable APIs
+  def test_load_data
+
+    @node = Node.find_key params[:id]
+    mac = 6.times.map{ |i| rand(256).to_s(16) }.join(":")
+    file = File.join "test", "data", (params[:source] || "node_discovery") + ".json"
+    json = JSON.load File.read file
+    @node.discovery  = json
+    @node.save!
+    redirect_to :action=>:show
+
+  end
+
 end

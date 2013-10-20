@@ -157,10 +157,12 @@ class Node < ActiveRecord::Base
   end
 
   # retrieves the Attrib from Attrib
-  def get_attrib(attrib_name)
-    a = Attrib.by_name(attrib_name).first
-    unless a.nil?
-      a.value(self.discovery)
+  def get_attrib(attrib)
+    attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
+    if attrib and self.discovery
+      attrib.value(self.discovery)
+    else
+      nil
     end
   end
 

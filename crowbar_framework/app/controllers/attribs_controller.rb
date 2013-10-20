@@ -16,12 +16,8 @@
 class AttribsController < ApplicationController
 
   def index
-    if params.has_key? :node_id
-      n = Node.find_key params[:node_id]
-      @list = n.attribs
-    else
-      @list = Attrib.all
-    end
+    @list = Attrib.all
+    @node = Node.find_key params[:node_id] if params.has_key? :node_id
     respond_to do |format|
       format.html { }
       format.json { render api_index :attrib, @list }
@@ -29,9 +25,7 @@ class AttribsController < ApplicationController
   end
 
   def show
-    if params.has_key? :node_id
-      redirect_to nodes_path(:id=>params[:node_id]), :method=>:get
-    end
+    @node = Node.find_key params[:node_id] if params.has_key? :node_id
     @attrib = Attrib.find_key params[:id]
     respond_to do |format|
       format.html {  }

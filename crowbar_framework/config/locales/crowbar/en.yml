@@ -177,9 +177,11 @@ en:
   attribs:
     index:
       title: "Attributes from discovered properties"
-      name: Name
-      description: Description
-      map: Map
+      name: "Name"
+      description: "Description"
+      map: "Map"
+      value: "Value"
+      unresolved: "Missing!"
   barclamps:
     index:
       title: "Installed Barclamps"

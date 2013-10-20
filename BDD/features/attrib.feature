@@ -77,3 +77,11 @@ Feature: Attrib(utes)
       And I should not see {bdd:crowbar.i18n.ignore}
     Finally REST removes the {object:attrib} "bdd_marker"
       And REST removes the {object:node} "bdd-attrib-methodmissing.cr0wbar.com"
+
+  Scenario: Node loads test data
+    Given there is a {object:node} "bdd-attrib1.data.edu"
+      Given test loads the "node_discovery" data into {object:node} "bdd-attrib1.data.edu"
+    When I go to the "nodes/bdd-attrib1.data.edu/attribs/os" page
+    Then I should see "bddsimulator"
+      And I should see a link to "bdd-attrib1.data.edu"
+    Finally REST removes the {object:node} "bdd-attrib1.data.edu"

@@ -1,3 +1,11 @@
-%h1= @attrib.name
+%h1
+  - if @node
+    = link_to @node.name, node_path(@node.id), :title=>@node.description
+  = @attrib.name
 
-=@attrib.inspect
+-if @node
+  = @node.get_attrib(@attrib)
+-else
+  %ul
+    %ol= @attrib.description
+    %ol= @attrib.map

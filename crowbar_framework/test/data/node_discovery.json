@@ -296,7 +296,7 @@
          "codename":"precise",
          "description":"Ubuntu 12.04.2 LTS"
       },
-      "platform":"ubuntu",
+      "platform":"bddsimulator",
       "platform_version":"12.04",
       "platform_family":"debian",
       "chef_packages":{

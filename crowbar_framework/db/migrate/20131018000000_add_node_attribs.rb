@@ -16,7 +16,7 @@
 # Adds the attributes that we want to generically expose for Nodes
 class AddNodeAttribs < ActiveRecord::Migration
 
-  def up
+  def self.up
 
     # note, these descriptions are NOT localized, we may have to consider that in the future
 
@@ -55,7 +55,7 @@ class AddNodeAttribs < ActiveRecord::Migration
 
   end
 
-  def down
+  def self.down
     keys = ['asset_tag', 'serial_number', 'kernel', 'kernel_version', 'mac_address',
              'os', 'os_version', 'os_description', 'memory', 'cpu', 
               'cpu_count', 'hardware', 'manufacturer']

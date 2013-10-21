@@ -147,8 +147,8 @@ class Node < ActiveRecord::Base
   end
 
   def virtual?
-    # TODO ZEHICLE place holder
-    true
+    virtual = [ "KVM", "VMware Virtual Platform", "VMWare Virtual Platform", "VirtualBox" ]
+    virtual.include? get_attrib('hardware')
   end
 
   def bmc_set?

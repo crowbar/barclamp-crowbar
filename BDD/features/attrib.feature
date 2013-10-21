@@ -84,4 +84,14 @@ Feature: Attrib(utes)
     When I go to the "nodes/bdd-attrib1.data.edu/attribs/os" page
     Then I should see "bddsimulator"
       And I should see a link to "bdd-attrib1.data.edu"
+      And I should see "os"
     Finally REST removes the {object:node} "bdd-attrib1.data.edu"
+
+  Scenario: Node checks calculated attrib
+    Given there is a {object:node} "bdd-attrib2.data.edu"
+      Given test loads the "node_discovery" data into {object:node} "bdd-attrib2.data.edu"
+    When I go to the "nodes/bdd-attrib2.data.edu/attribs/number_of_drives" page
+    Then I should see "1"
+      And I should see a link to "bdd-attrib2.data.edu"
+      And I should see "number_of_drives"
+    Finally REST removes the {object:node} "bdd-attrib2.data.edu"

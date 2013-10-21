@@ -94,7 +94,7 @@ class SupportController < ApplicationController
       if BarclampNetwork::Network.count == 0
         deployment = Deployment.system_root.first
         BarclampNetwork::Network.transaction do
-          net = BarclampNetwork::Network.create :name=>'admin', :description=>I18n.t('support.bootstrap.admin_net'),  :deployment_id=>deployment.id, :conduit=>'1g0'
+          net = BarclampNetwork::Network.create :name=>'admin', :description=>I18n.t('support.bootstrap.admin_net'),  :deployment_id=>deployment.id, :conduit=>'1g0', :v6prefix => "auto"
           BarclampNetwork::Range.create :name=>'admin', :network_id=>net.id, :first=>"192.168.124.10/24", :last=>"192.168.124.11/24"
           BarclampNetwork::Range.create :name=>'dhcp', :network_id=>net.id, :first=>"192.168.124.21/24", :last=>"192.168.124.80/24"
           BarclampNetwork::Range.create :name=>'host', :network_id=>net.id, :first=>"192.168.124.81/24", :last=>"192.168.124.254/24"

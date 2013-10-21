@@ -95,7 +95,7 @@ $(document).ready(function() {
         var node = ev.originalEvent.dataTransfer.getData("node_id");      
         var role = ev.currentTarget.id;
         console.debug("deployment id #{@deployment.id} drop node id "+node+" into role id "+role);
-        var postdata = { "snapshot_id":#{@deployment.head.id}, "node_id": node, "role_id":role };
+        var postdata = { "snapshot":#{@deployment.head.id}, "node": node, "role":role };
         console.debug("posting: "+postdata);
         $.ajax({url:'/api/v2/node_roles', dataType:'json', data:postdata, type:"POST", 
           statusCode: { 200: function(data) { location.href = '/deployments/#{@deployment.id}' }}

@@ -183,7 +183,7 @@ class Snapshot < ActiveRecord::Base
       # collect the node roles
       node_role_map = Hash.new
       self.node_roles.each do |nr| 
-        # we must create (not duplicate) the NR because of the state machine controls on setting state
+        Rails.logger.info("Snapshot: duplicating NodeRole #{nr.id}")
         new_nr = nr.dup
         new_nr.snapshot = newsnap
         # store the new nr because we need it for relationships (it's automatically linked to the snapshot when created)
@@ -193,12 +193,11 @@ class Snapshot < ActiveRecord::Base
         old_nr = nr_array[0]
         new_nr = nr_array[1]
         old_nr.children.each do |c_nr|
-          new_nr.children << (node_role_map[c_nr.id][1] || nil rescue nil) || c_nr
+          new_nr.children << (node_role_map[c_nr.id][1] || c_nr rescue c_nr)
         end
         old_nr.parents.each do |p_nr|
-          new_nr.parents << (node_role_map[p_nr.id][1] || nil rescue nil) || p_nr
+          new_nr.parents << (node_role_map[p_nr.id][1] || p_nr rescue p_nr)
         end
-        new_nr.snapshot = newsnap
         new_nr.save!
       end
       newsnap.save!

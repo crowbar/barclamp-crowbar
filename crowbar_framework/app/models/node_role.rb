@@ -461,7 +461,7 @@ class NodeRole < ActiveRecord::Base
 
   def block_or_todo
     NodeRole.transaction do
-      if (parents.committed.count == 0) || (parents.committed.not_in_state(ACTIVE).count == 0)
+      if (parents.current.count == 0) || (parents.current.not_in_state(ACTIVE).count == 0)
         self.state = TODO
       else
         self.state = BLOCKED

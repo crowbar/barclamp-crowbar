@@ -136,7 +136,7 @@ class Role < ActiveRecord::Base
     res = []
     res << jig.client_role if jig.client_role
     role_requires.each do |r|
-      res << Role.find_by_name!(r.requires) rescue next
+      res << Role.find_by_name!(r.requires)
     end
     res
   end
@@ -191,6 +191,7 @@ class Role < ActiveRecord::Base
   def add_to_snapshot(snap)
     # make sure there's a deployment role before we add a node role
     if DeploymentRole.snapshot_and_role(snap, self).size == 0
+      Rails.logger.info("Role: Adding deployment role #{name} to #{snap.name}")
       DeploymentRole.create!({:role_id=>self.id, :snapshot_id=>snap.id, :data=>self.template}, :without_protection => true)
     end
   end
@@ -201,12 +202,13 @@ class Role < ActiveRecord::Base
     unless active?
       raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
     end
-    # make sure that we also have a deployment role
-    add_to_snapshot(snap)
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
     return res if res
     Rails.logger.info("Role: Trying to add #{name} to #{node.name}")
+    # make sure that we also have a deployment role
+    add_to_snapshot(snap)
+
     # Check to make sure that all my parent roles are bound properly.
     # If they are not, die unless it is an implicit role.
     # This logic will need to change as we start allowing roles to classify
@@ -216,7 +218,7 @@ class Role < ActiveRecord::Base
       # This will need to grow more ornate once we start allowing multiple
       # deployments.
       # Look for a noderole on the current node that satisfies this dep.
-      pnr = NodeRole.peers_by_node_and_role(snap,node,parent).first
+      pnr = parent.node_roles.on_node(node).first
       if pnr.nil?
         Rails.logger.info("Role: Did not find #{name} on #{node.name}")
         if parent.implicit

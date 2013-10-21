@@ -26,7 +26,6 @@ class AddNodeAttribs < ActiveRecord::Migration
     Attrib.create :name=>'kernel', :description=>'Kermel Name', :map=>'ohai/kernel/name'
     Attrib.create :name=>'kernel_version', :description=>'Kernel Version', :map=>'ohai/kernel/version'
 
-    Attrib.create :name=>'mac_address', :description=>'MAC address', :map=>'ohai/macaddress'
     Attrib.create :name=>'os', :description=>'O/S Name', :map=>'ohai/platform'
     Attrib.create :name=>'os_version', :description=>'O/S Version', :map=>'ohai/platform_version'
     Attrib.create :name=>'os_description', :description=>'O/S Description', :map=>'ohai/lsb/description'

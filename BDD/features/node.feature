@@ -124,3 +124,10 @@ Feature: Nodes
       And key "deployment_id" should match id for {object:deployment}
     Finally REST removes the {object:node} "bdd-deployment-change.example.com"
       And REST removes the {object:deployment} "bdd_test1"
+
+  Scenario: Node loads test data
+    Given there is a {object:node} "bdd-discovery.data.edu"
+      Given test loads the "node_discovery" data into {object:node} "bdd-discovery.data.edu"
+    When REST gets the {object:node} "bdd-discovery.data.edu"
+    Then key "discovery" should contain at least "1" items
+    Finally REST removes the {object:node} "bdd-discovery.data.edu"

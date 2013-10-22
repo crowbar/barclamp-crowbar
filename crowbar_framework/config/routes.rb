@@ -117,6 +117,9 @@ Crowbar::Application.routes.draw do
           get "nodes(/:id)" => "nodes#status", :as => :nodes_status
           get "snapshots(/:id)" => "snapshots#status", :as => :snapshots_status
         end
+        scope 'test' do
+          put "nodes(/:id)" => "nodes#test_load_data"
+        end
         scope ':version' do
           # These are not restful.  They poke the annealer and wait if you pass "sync=true".
           get "anneal", :to => "node_roles#anneal", :as => :anneal

@@ -25,6 +25,7 @@ g(Item) ->
     "cli"   -> g(cli);
     i18n    -> "utils/i18n";
     version -> "v2";
+    test_node_path -> "api/test/nodes";
     cli     -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "admin.bddtesting.com";
@@ -146,6 +147,11 @@ step(_Given, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",rol
   bdd_restrat:create(Path, JSON, deployment_role, ScenarioID);
 
  
+step(_Global, {step_given, {_Scenario, _N}, ["test loads the",File,"data into",node, Node]}) -> 
+  URL = eurl:path(g(test_node_path),Node),
+  JSON = json([{source, File}]),
+  bdd_crud:update(URL, JSON);
+
 % ============================  WHEN STEPS =========================================
 
 step(_Given, {step_when, {Scenario, _N}, ["I add",node, Node,"to",deployment, Deployment,"in",role,Role]}) -> 

@@ -68,7 +68,15 @@ array_matches(Find, [H | T]) ->
     {match, _}  -> true;
     _           -> array_matches(Find, T)
   end.
-  
+
+% used by steps to count lists 
+item_count(Results, Key)  ->
+  Obj = eurl:get_result(Results, obj),
+  List = json:value(Obj#obj.data, Key),
+  L = length(List),
+  bdd_utils:log(debug, bdd_restrat, item_count, "result has ~p items", [length(List)]),
+  L.
+
 % GIVEN STEPS ======================
 step(Global, {step_given, _N, ["there is not a",Object, Name]}) -> 
   step(Global, {step_finally, _N, ["REST deletes the",Object, Name]});
@@ -231,14 +239,12 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should not be",Value]}) -
 
 step(Results, {step_then, _N, ["key",Key, "should contain",Count,"items"]}) -> 
   {C, _} = string:to_integer(Count),
-  List = json:value(eurl:get_result(Results, obj), Key),
-  Items = length(List),
+  Items = item_count(Results, Key),
   Items =:= C;
                                                                 
 step(Results, {step_then, _N, ["key",Key,"should contain at least",Count,"items"]}) ->
   {C, _} = string:to_integer(Count),
-  List = json:value(eurl:get_result(Results, obj), Key),
-  Items = length(List),
+  Items = item_count(Results, Key),
   Items >= C;
 
 step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be a number"]}) -> 

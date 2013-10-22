@@ -171,9 +171,6 @@
             "host_ecdsa_type":"ecdsa-sha2-nistp256"
          }
       },
-      "hostname":"admin",
-      "fqdn":"admin.crowbar.com",
-      "domain":"crowbar.com",
       "network":{
          "interfaces":{
             "lo":{
@@ -211,7 +208,7 @@
                ],
                "encapsulation":"Ethernet",
                "addresses":{
-                  "08:00:27:B5:AD:A5":{
+                  "00:00:00:00:00:00":{
                      "family":"lladdr"
                   },
                   "192.168.124.10":{
@@ -229,7 +226,7 @@
                },
                "state":"up",
                "arp":{
-                  "192.168.124.1":"08:00:27:00:d4:67"
+                  "192.168.124.1":"00:00:00:00:00:00"
                },
                "routes":[
                   {
@@ -291,7 +288,7 @@
          }
       },
       "ipaddress":"192.168.124.10",
-      "macaddress":"08:00:27:B5:AD:A5",
+      "macaddress":"00:00:00:00:00:00",
       "ip6address":"fe80::a00:27ff:feb5:ada5",
       "lsb":{
          "id":"Ubuntu",
@@ -299,7 +296,7 @@
          "codename":"precise",
          "description":"Ubuntu 12.04.2 LTS"
       },
-      "platform":"ubuntu",
+      "platform":"bddsimulator",
       "platform_version":"12.04",
       "platform_family":"debian",
       "chef_packages":{
@@ -1439,7 +1436,7 @@
          "switch_config":{
             "eth0":{
                "interface":"eth0",
-               "mac":"08:00:27:b5:ad:a5",
+               "mac":"00:00:00:00:00:00",
                "port_link":true,
                "switch_name":-1,
                "switch_port":-1,

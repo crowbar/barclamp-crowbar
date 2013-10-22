@@ -77,6 +77,9 @@ add_node({Atom, Name, Description, Order, Group}) ->
   JSON = crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, true}, {group, Group}]),
   Path = bdd_restrat:alias(node, g, [path]),
   [_R, O] = bdd_crud:create(Path, JSON, Atom),
+  % load test data
+  crowbar:step([], {step_given, {0, 1}, ["test loads the","node_discovery","data into",node, Name]}),
+  % user info
   bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, O#obj.id, Name, Group]).
 
 add_deployment({Atom, Name, Extras }) ->

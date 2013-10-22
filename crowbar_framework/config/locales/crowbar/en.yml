@@ -177,9 +177,11 @@ en:
   attribs:
     index:
       title: "Attributes from discovered properties"
-      name: Name
-      description: Description
-      map: Map
+      name: "Name"
+      description: "Description"
+      map: "Map"
+      value: "Value"
+      unresolved: "Missing!"
   barclamps:
     index:
       title: "Installed Barclamps"
@@ -291,11 +293,12 @@ en:
       status: Status
       state: State
       hardware: Hardware
-      switch_name: Switch Name
-      switch_port: Switch Port
-      switch_unit: Switch Unit
-      switch_name_unit_port: Switch/Unit/Port
-      switch_name_port: Switch Name/Port
+      switch_name: "Switch Name"
+      switch_port: "Switch Port"
+      switch_unit: "Switch Unit"
+      switch_name_unit_port: "Switch/Unit/Port"
+      switch_name_port: "Switch Name/Port"
+      switch_no_link: "No Active Uplinks"
       uptime: Uptime
       memory: Memory
       cpu: CPU

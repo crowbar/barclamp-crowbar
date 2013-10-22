@@ -37,19 +37,17 @@ class NodeRolesController < ApplicationController
 
   def create
     # helpers to allow create by names instead of IDs
+    snap = nil
     if params.key? :snapshot
-      params[:snapshot_id] = Snapshot.find_key(params[:snapshot]).id
+      snap = Snapshot.find_key(params[:snapshot])
     elsif params.key? :deployment
-      params[:snapshot_id] = Deployment.find_key(params[:deployment]).head.id
+      snap = Deployment.find_key(params[:deployment]).head
     end
-    params[:node_id] = Node.find_key(params[:node]).id if params.key? :node
-    params[:role_id] = Role.find_key(params[:role]).id if params.key? :role
+    node = Node.find_key(params[:node])
+    role = Role.find_key(params[:role])
     
-    # the main body of the work
-    snap = Snapshot.find_key params[:snapshot_id] 
-    # it matters what state we are in when we add the node role (we store it because it can be expensive to compute)
     raise "Cannot add noderole to snapshot in #{Snapshot.state_name(snap.state)}" unless snap.proposed?
-    r = NodeRole.create! params
+    r = role.add_to_node_in_snapshot(node,snap)
 
     render api_show :node_role, NodeRole, nil, nil, r 
   end

@@ -17,7 +17,7 @@ require 'json'
 
 class NodeRole < ActiveRecord::Base
 
-  attr_accessible :status
+  attr_accessible :status, :cohort
   attr_accessible :role_id, :snapshot_id, :node_id
 
   belongs_to      :node
@@ -144,6 +144,16 @@ class NodeRole < ActiveRecord::Base
   def data
     raw = read_attribute("userdata")
     d = raw.nil? ? {} : JSON.parse(raw)
+  end
+
+  def add_parent(new_parent)
+    return if parents.any?{|p| p.id == new_parent.id}
+    if new_parent.cohort >= (self.cohort || 0)
+      self.cohort = new_parent.cohort + 1
+      save!
+    end
+    Rails.logger.info("Role: Binding parent #{new_parent.name} to #{self.name}")
+    parents << new_parent
   end
 
   def data=(arg)
@@ -328,6 +338,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def deactivate
+    return if self.state == PROPOSED
     block_or_todo
   end
 
@@ -356,6 +367,10 @@ class NodeRole < ActiveRecord::Base
       # We can only go to ACTIVE from TRANSITION
       unless cstate == TRANSITION
         raise InvalidTransition.new(self,cstate,val)
+      end
+      if !node.alive
+        block_or_todo
+        return self
       end
       write_attribute("state",val)
       save!

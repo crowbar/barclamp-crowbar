@@ -32,10 +32,34 @@ barclamp:
     - fedora-18
 
 roles:
-  - name: crowbar
-    jig: script
+  - name: crowbar-admin-node
+    jig: noop
     flags:
       - bootstrap
+      - implicit
+    requires:
+      - deployer-client
+      - network-server
+      - dns-database
+      - provisioner-dhcp-database
+      - provisioner-repos
+  - name: crowbar-managed-node
+    jig: noop
+    flags:
+      - discovery
+      - implicit
+    requires:
+      - deployer-client
+      - logging-client
+      - ntp-client
+      - provisioner-repos
+  - name: crowbar-installed-node
+    jig: noop
+    flags:
+      - implicit
+    requires:
+      - crowbar-managed-node
+      - provisioner-os-install
 
 jigs:
   - name: script

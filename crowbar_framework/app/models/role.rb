@@ -13,7 +13,6 @@
 # limitations under the License.
 #
 
-
 class Role < ActiveRecord::Base
 
   class Role::MISSING_DEP < Exception
@@ -43,6 +42,10 @@ class Role < ActiveRecord::Base
   # the only roles that will generally require that are ones that implement
   # servers that other roles need to talk to.
   attr_accessible :server
+  # Indicates that all noderoles for this role in a given deployment should be
+  # bound as parents instead of just one.  This ensures that all instances of
+  # a clsutered service are up instead of just the first one.
+  attr_accessible :cluster
   attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
@@ -73,19 +76,6 @@ class Role < ActiveRecord::Base
     merged = d.deep_merge(t)
     self.template = JSON.generate(merged)
     self.save!
-  end
-
-  # Given a list of roles, find any implicits and add them to the list.
-  # Overall list order will be preserved.
-  def self.expand(roles)
-    res = []
-    roles.each do |r|
-      r.parents.each do |rent|
-        res << rent if rent.implicit
-      end
-      res << r
-    end
-    res.uniq
   end
 
   # State Transistion Overrides
@@ -130,6 +120,17 @@ class Role < ActiveRecord::Base
   # Roles that are interested in watching nodes to see what has changed should
   # implement this hook.
   def on_node_change(node)
+    true
+  end
+
+  # Event hook that is called whenever a new deployment role is bound to a deployment.
+  # Roles that need do something on a per-deployment basis should override this
+  def on_deployment_create(dr)
+    true
+  end
+
+  # Event hook that is called whenever a deployment role is deleted from a deployment.
+  def on_deployment_delete(dr)
     true
   end
 
@@ -197,6 +198,19 @@ class Role < ActiveRecord::Base
     end
   end
 
+  def find_noderoles_for_role(role,snap)
+    csnap = snap
+    loop do
+      Rails.logger.info("Role: Looking for #{role.name} binding in #{snap.deployment.name}")
+      pnrs = NodeRole.peers_by_role(csnap,role)
+      return pnrs unless pnrs.empty?
+      csnap = (csnap.deployment.parent.snapshot rescue nil)
+      break if csnap.nil?
+    end
+    Rails.logger.info("Role: No bindings for #{role.name} in #{snap.deployment.name} or any parents.")
+    []
+  end
+  
   # Bind a role to a node in a snapshot.
   def add_to_node_in_snapshot(node,snap)
     # Roles can only be added to a node of their backing jig is active.
@@ -207,59 +221,60 @@ class Role < ActiveRecord::Base
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first
     return res if res
     Rails.logger.info("Role: Trying to add #{name} to #{node.name}")
-    # make sure that we also have a deployment role
-    add_to_snapshot(snap)
 
-    # Check to make sure that all my parent roles are bound properly.
-    # If they are not, die unless it is an implicit role.
-    # This logic will need to change as we start allowing roles to classify
-    # nodes, but it will work for now.
-    parent_node_roles = Array.new
+    # First pass throug the parents -- we just create any needed parent noderoles.
+    # We will actually bind them after creating the noderole binding.
     parents.each do |parent|
-      # This will need to grow more ornate once we start allowing multiple
-      # deployments.
-      # Look for a noderole on the current node that satisfies this dep.
-      pnr = parent.node_roles.on_node(node).first
-      if pnr.nil?
-        Rails.logger.info("Role: Did not find #{name} on #{node.name}")
-        if parent.implicit
-          # Bind our parent on this node if we did not find an already-deployed noderole.
-          Rails.logger.info("Role: Parent #{parent.name} of #{name} is implicit, binding it to #{node.name}")
-          pnr = parent.add_to_node_in_snapshot(node,snap)
+      pnrs = find_noderoles_for_role(parent,snap)
+      if pnrs.empty? || (parent.implicit && !pnrs.any?{|nr|nr.node_id == node.id})
+        # If there are none, or the parent role has the implicit flag,
+        # then bind the parent to ourself as well.
+        # This logic will need to grow into bind the parent to the best suited
+        # noderole in the current deployment eventually.
+        Rails.logger.info("Role: Parent #{parent.name} not bound in scope, binding it to #{node.name} in #{snap.deployment.name}")
+        parent.add_to_node_in_snapshot(node,snap)
+      end
+    end
+    # At this point, all the parent noderoles we need are bound.
+    # make sure that we also have a deployment role, then
+    # create ourselves and bind our parents.
+    NodeRole.transaction do
+      add_to_snapshot(snap)
+      res = NodeRole.create({ :node => node,
+                              :role => self,
+                              :snapshot => snap,
+                              :cohort => 0}, :without_protection => true)
+      Rails.logger.info("Role: Creating new noderole #{res.name}")
+      # Second pass through our parent array.  Since we created all our
+      # parent noderoles earlier, we can just concern ourselves with creating the bindings we need.
+      parents.each do |parent|
+        pnrs = find_noderoles_for_role(parent,snap)
+        if parent.cluster
+          # If the parent role has a cluster flag, then all of the found
+          # parent noderoles will be bound to this one.
+          Rails.logger.info("Role: Parent #{parent.name} of role #{name} has the cluster flag, binding all instances in deployment #{pnrs[0].deployment.name}")
+          pnrs.each do |pnr|
+            res.add_parent(pnr)
+          end
         else
-          # Look for noderoles that can satisfy this dep on other nodes.
-          # Start with the current snapshot, and we will work our way up
-          # in the deployment tree from there.
-          csnap = snap
-          loop do
-            Rails.logger.info("Role: Looking for #{parent.name} binding in #{snap.deployment.name}")
-            pnr = NodeRole.peers_by_role(csnap,parent).first
-            break unless pnr.nil?
-            csnap = (csnap.deployment.parent.snapshot rescue nil)
-            break if csnap.nil?
+          # Prefer a parent noderole from the same node we are on, otherwise
+          # just pick one at random.
+          pnr = pnrs.detect{|nr|nr.node_id == node.id} ||
+            pnrs[Random.rand(pnrs.length)]
+          res.add_parent(pnr)
+        end
+      end
+      # If I am a new noderole binding for a cluster node, find all the children of my peers
+      # and bind them too.
+      if self.cluster
+        NodeRole.peers_by_role(snap,self).each do |peer|
+          peer.children.each do |c|
+            c.add_parent(res)
+            c.deactivate
+            c.save!
           end
         end
       end
-      # For now, raise this error.
-      # We may want to wind up unconditionally trying to bind our parent
-      # role to the same node we want to bind to here..
-      if pnr.nil?
-        raise MISSING_DEP.new("Role #{name} depends on role #{parent.name}, but #{parent.name} does not exist in deployment #{snap.deployment.name}")
-      end
-      Rails.logger.info("Role: Choosing #{pnr.role.name} on #{pnr.node.name} as a parent of #{name} on #{node.name}")
-      parent_node_roles << pnr
-    end
-    # By the time we get here, all our parents are bound recursively.
-    # Bind ourselves the same way.
-    res = nil
-    NodeRole.transaction do
-      cohort = 0
-      res = NodeRole.create({:node => node, :role => self, :snapshot => snap}, :without_protection => true)
-      parent_node_roles.each do |pnr|
-        cohort = pnr.cohort + 1 if pnr.cohort >= cohort
-        res.parents << pnr
-      end
-      res.cohort = cohort
       res.save!
     end
     # If there is an on_proposed hook for this role, call it now with our fresh node_role.
@@ -270,7 +285,6 @@ class Role < ActiveRecord::Base
   def jig
     Jig.where(["name = ?",jig_name]).first
   end
-
   def active?
     j = jig
     return false unless j

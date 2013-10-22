@@ -188,7 +188,8 @@ class Barclamp < ActiveRecord::Base
                             :implicit=>flags.include?('implicit'),
                             :bootstrap=>flags.include?('bootstrap'),
                             :discovery=>flags.include?('discovery'),
-                            :server=>flags.include?('server'))
+                            :server=>flags.include?('server'),
+                            :cluster=>flags.include?('cluster'))
         RoleRequire.where(:role_id=>r.id).delete_all
         r.save!
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }

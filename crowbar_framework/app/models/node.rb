@@ -167,7 +167,11 @@ class Node < ActiveRecord::Base
   end
 
   def active_node_roles
-    NodeRole.on_node(self).in_state(NodeRole::ACTIVE).committed.order("cohort")
+    res = NodeRole.on_node(self).in_state(NodeRole::ACTIVE).committed.order("cohort ASC")
+    res.each do |nr|
+      Rails.logger.info("Node: Found active noderole #{nr.name} in cohort #{nr.cohort}")
+    end
+    res
   end
 
   def all_active_data
@@ -280,7 +284,7 @@ class Node < ActiveRecord::Base
   def add_default_roles
     raise "you must have at least 1 deployment" unless Deployment.count > 0
     Deployment.system_root.first.recommit do |snap|
-      Role.expand(self.admin ? Role.bootstrap.active : Role.discovery.active).sort.each do |r|
+      (self.admin ? Role.bootstrap.active : Role.discovery.active).sort.each do |r|
         r.add_to_node_in_snapshot(self,snap)
       end
     end

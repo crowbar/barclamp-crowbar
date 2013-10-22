@@ -18,6 +18,8 @@ require 'json'
 class DeploymentRole < ActiveRecord::Base
 
   attr_accessible :id, :role_id, :snapshot_id
+  after_create :role_create_hook
+  before_destroy  :role_delete_hook
 
   belongs_to :snapshot
   has_one    :deployment, :through => :snapshot
@@ -59,4 +61,14 @@ class DeploymentRole < ActiveRecord::Base
     write_attribute("wall",arg)
   end
 
+  private
+
+  def role_create_hook
+    role.on_deployment_create(self)
+  end
+
+  def role_delete_hook
+    role.on_deployment_delete(self)
+  end
+  
 end

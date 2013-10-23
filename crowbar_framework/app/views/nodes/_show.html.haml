@@ -58,7 +58,7 @@
       = link_to t('.bmc'), "https://#{@node["crowbar_wall"]["ipmi"]["address"] rescue 'none'}", :target => '_blank'
       - need_sep = true
     - unless @node["crowbar"]["links"].nil?
-      - @node["crowbar"]["links"].each do |name,link|
+      - @node["crowbar"]["links"].sort_by{|name, link| name}.each do |name, link|
         - if need_sep
           , 
         - else

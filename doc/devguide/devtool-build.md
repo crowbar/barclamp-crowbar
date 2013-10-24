@@ -48,21 +48,33 @@ During the build process the Dev Tool has to perform certain tasks which require
     sudo update-alternatives --config ruby 
     # make Gem 1.9 the default, gem -v will report version 1.9
     sudo update-alternatives --config gem 
-
+    #
+    # Remove Postgresql
+    #
     # we need Postgresql 9.3 (we rely on 9.3+ features)
     # first, remove the automatically added old Posgresql
     sudo apt-get remove postgresql
+    # To Verify that you have removed postgresql you can run
+    sudo dpkg --get-selections | grep postgresql
+    # if there is anything still there with deinstall do a
+    sudo dpkg --purge postgres* 
+    #
+    #
     # Additional reference, please visit [[https://wiki.postgresql.org/wiki/Apt]]
     # for now you need to add the sources (please remove this step when 9.3 is in the official repos!)
-    deb http://apt.postgresql.org/pub/repos/apt/ [your release]-pgdg main
+    # You will need to edit /etc/apt/sources.list and add the following to it.
+    # Add -     deb http://apt.postgresql.org/pub/repos/apt/ [your release]-pgdg main
+    # where [your release] is the version of OS you using, i.e. Ubunutu-precise is "precise-pgdg" (without the quotes)
     wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
     sudo apt-get update
     # now install and set to use the special port/pipe config
     sudo apt-get install postgresql-9.3 pgadmin3
     sudo vi /etc/postgresql/9.3/main/pg_hba.conf
-      # add 'local  all   all    trust'
+      # to the beginning of the file 
+      # add 'local  all   all    trust' 
     sudo vi /etc/postgresql/9.3/main/postgresql.conf
       # change 'port = 5439'
+    sudo service postgresql restart
     sudo createuser -s -d -U postgres crowbar
     # you can test the install by making sure the following call returns
     export PGCLUSTER=9.3/main

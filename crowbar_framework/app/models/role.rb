@@ -63,10 +63,11 @@ class Role < ActiveRecord::Base
   scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
-  # update just one value in the template (assumes just 1 level deep!)
+  # update just one value in the template 
+  # for >1 level deep, add method matching key to role!
   # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)
-    t = { key => value }
+    t = self.send(key.to_sym,value) rescue { key => value }
     raw = read_attribute("template")
     d = raw.nil? ? {} : JSON.parse(raw)
     merged = d.deep_merge(t)

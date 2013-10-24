@@ -44,6 +44,7 @@ During the build process the Dev Tool has to perform certain tasks which require
     sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
     mkisofs binutils markdown erlang debhelper python-pip \
     build-essential libopenssl-ruby1.9 libssl-dev zlib1g-dev 
+    sudo apt-get install libpq-dev
     # to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3
     sudo update-alternatives --config ruby 
     # make Gem 1.9 the default, gem -v will report version 1.9
@@ -82,6 +83,7 @@ During the build process the Dev Tool has to perform certain tasks which require
 
 
     # let's install some needed gems next
+    # On Ubuntu 12.04 you may need to leave ruby1.9.3-dev off
     sudo gem install ruby1.9.3-dev builder bluecloth
     sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake rcov rspec pg --no-ri --no-rdoc
 

@@ -80,9 +80,11 @@ debs:
     - efibootmgr
     - kwalify
     - curl
-    - sqlite3
-    - libsqlite3-dev
     - vim
+    # docker support (Ubuntu only for now)
+    - linux-image-generic-lts-raring 
+    - linux-headers-generic-lts-raring
+    - lxc-docker
   build_pkgs:
     - ruby1.9.1
     - ruby1.9.1-dev
@@ -114,9 +116,6 @@ debs:
     - patch
     # crowbar stuff
     - curl
-    - sqlite
-    - sqlite3
-    - libsqlite3-dev
     - postgresql-9.3
     - postgresql-client-9.3
     - postgresql-contrib-9.3
@@ -194,8 +193,6 @@ rpms:
     - tcpdump
     - efibootmgr
     - curl
-    - sqlite
-    - sqlite-devel
     - vim
   build_pkgs:
     - rubygems
@@ -225,8 +222,6 @@ rpms:
     - patch
     # crowbar stuff
     - curl
-    - sqlite
-    - sqlite-devel
     - rubygem-kwalify
     - createrepo
     # minicom stuff
@@ -259,7 +254,6 @@ gems:
   pkgs:
     - active_scaffold
     - amqp
-    - bluepill
     - bluecloth
     - builder
     - bundler
@@ -298,7 +292,6 @@ gems:
     - sendfile
     - simplecov
     - simple-navigation
-    - sqlite3
     - state_machine
     - syslogger
     - xml-simple

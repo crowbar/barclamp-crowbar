@@ -84,6 +84,7 @@ debs:
     # docker support (Ubuntu only for now)
     - linux-image-generic-lts-raring 
     - linux-headers-generic-lts-raring
+    - docker-golang
     - lxc-docker
   build_pkgs:
     - ruby1.9.1

@@ -58,12 +58,13 @@ debs:
       - deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
       - deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
       - deb http://archive.canonical.com/ubuntu precise partner
-      - deb-src http://archive.canonical.com/ubuntu precise partner
+      - deb-src http:-//archive.canonical.com/ubuntu precise partner
       - deb http://extras.ubuntu.com/ubuntu precise main
       - deb-src http://extras.ubuntu.com/ubuntu precise main
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
       - deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main
+      - deb http://get.docker.io/ubuntu docker main
   #repos:
     # Rabbit MQ repo
     #- deb http://www.rabbitmq.com/debian/ testing main
@@ -84,7 +85,6 @@ debs:
     # docker support (Ubuntu only for now)
     - linux-image-generic-lts-raring 
     - linux-headers-generic-lts-raring
-    - docker-golang
     - lxc-docker
   build_pkgs:
     - ruby1.9.1

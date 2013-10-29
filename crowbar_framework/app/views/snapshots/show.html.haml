@@ -11,25 +11,32 @@
       = link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
       = render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
-%table.data.box
+%table.box
   %thead
     %tr
-      %th= t '.nodes'
-      - @barclamps.each do |barclamp|
-        %th= link_to barclamp.name, barclamp_path(barclamp.id)
+      %th{:rowspan=>2}= t '.nodes'
+      - @barclamps.each do |bc_id, barclamp|
+        %td{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id)
+    %tr
+      - @barclamps.each do |bc_id, barclamp|
+        - barclamp[:roles].each do |dr|
+          %td
+            - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
+            = link_to name, deployment_role_path(dr.id)
   %tbody
     - @nodes.each do |nid, node|
-      %tr{:class => ["node", cycle(:odd, :even)], :id => nid}
+      %tr{:class => ["node"], :id => nid}
         %td{:width=>'5%'}= link_to node.alias, node_path(nid), :title=>node.description
-        -@barclamps.each do |bc|
-          %td
-            - if @node_roles[nid][bc.id]
-              %span
-                - @node_roles[nid][bc.id].each do |nr|
-                  - unless nr.nil?
-                    %span.led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
-                      = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
-
+        -@barclamps.each do |bc_id, barclamp|
+          - barclamp[:roles].each do |dr|
+            - nr = @node_roles[nid][bc_id][dr.role.id]
+            %td.noderole{:id=>(nr ? nr.id : -1)}
+              - if nr
+                %span
+                  .led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
+                    = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
+              - else
+                = image_tag('/images/icons/add.png')
 .clear
 
 :javascript
@@ -38,3 +45,13 @@
     $.ajaxSetup({ timeout: 1000 });
     location.reload();
   }
+  
+  $(document).ready(function() {
+  
+    // set hover showing
+    $('td.noderole[id="-1"]')
+      .bind('hover', function( ev ) {
+        console.debug(ev);
+      });
+
+  });

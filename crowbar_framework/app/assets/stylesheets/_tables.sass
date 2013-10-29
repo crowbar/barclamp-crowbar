@@ -11,6 +11,9 @@ table.data
     text-align: left
     border-bottom: 3px solid $page_bg
     +gradient($secondary_bg, $secondary_bg + #222)
+  thead td, table > tr th
+    text-align: left
+    +gradient($secondary_bg, $secondary_bg + #222)
   td, tbody th
     padding: 5px 10px
     text-align: left
@@ -22,12 +25,18 @@ table.data
       text-align: right
     &.center
       text-align: center
+  tr
+    &:hover, &:active
+      background: $secondary_bg
   tfoot
     td
       background: $secondary_bg
 
 table.box
   padding: 0
+  col
+    &:hover, &:active
+      background: $secondary_bg
   tr
     &:hover, &:active
       background: $secondary_bg

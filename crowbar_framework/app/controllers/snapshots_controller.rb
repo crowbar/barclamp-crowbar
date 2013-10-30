@@ -28,6 +28,7 @@ class SnapshotsController < ApplicationController
       format.html {
         @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
+        @snapshot.deployment.nodes.each { |n| @nodes[n.id] = n }
         @barclamps = {}
         @node_roles = { }
         @snapshot.deployment_roles.each do |dr|

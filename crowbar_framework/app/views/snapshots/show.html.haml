@@ -51,17 +51,21 @@
   - else
     %tr
       %td= t 'no_items'
+    %tr
+      %td= @barclamps.inspect
+    %tr
+      %td= @nodes.inspect
 
 .clear
 
 :javascript
 
-  if (#{state != Snapshot::PROPOSED}) {
     function update() {
       $.ajaxSetup({ timeout: 1000 });
+      if (#{state != Snapshot::PROPOSED}) {
         location.reload();
-    }
-  };
+      }
+    };
   
   $(document).ready(function() {
   

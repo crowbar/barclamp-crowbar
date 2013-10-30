@@ -31,7 +31,6 @@ SimpleNavigation::Configuration.run do |navigation|
              #   secondary.item doc.name.to_sym, t(doc.name, :scope=>'nav.books'), docs_path(:id=>doc.name.html_safe), {:title=>doc.description }
              # end
             #end
-            
             if item.item.eql? 'scaffold'
               build_scaffold_nav(secondary, item)
             else
@@ -42,9 +41,15 @@ SimpleNavigation::Configuration.run do |navigation|
               elsif nav.path =~ /(.*)_path/ 
                 if nav.development
                   secondary.item nav.item.to_sym, "[#{t(nav.name)}]", eval(nav.path), {:title=>"Dev Mode: #{t(nav.description, :default=>t(nav.name))}"} 
-                else
-       
-                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  
+                else       
+                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  do |tertiary|
+                    # deployments helper
+                    if nav.name.eql? 'nav.deployments'
+                      Deployment.all.each do |d|
+                        tertiary.item nav.item.to_sym, d.name, deployment_head_path(d.id), {:title=>d.description }
+                      end
+                    end            
+                  end
                 end
               end 
             end

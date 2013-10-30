@@ -220,16 +220,8 @@ en:
       <<: *deployment_common
     show:
       snapshots: "History"
-      assign: "Assign Nodes to Roles"
-      assigned: "Assigned Nodes to Roles"
-      roles: "Assigned Roles"
-      nodes: "Available Nodes"
       parent: "Child of "
       <<: *deployment_common
-      add_role: "Add to Deployment"
-      must_be_proposed: "WARNING: Deployment must be in Proposed state to make changes."
-      pick: "Add"
-      pick_hint: "Select additional nodes for this deployment"
     buttons:
       commit: "Commit"
       recall: "Interrupt"
@@ -367,8 +359,15 @@ en:
       <<: *deployment_common
     show:
       nodes: "Nodes"
-      anneal: "Anneal"
       graph: "Graph"
+      assign: "Assign Nodes to Roles"
+      assigned: "Assigned Nodes to Roles"
+      roles: "Assigned Roles"
+      nodes: "Available Nodes"
+      add_role: "Add Role"
+      must_be_proposed: "WARNING: Deployment must be in Proposed state to make changes."
+      pick: "Add Nodes"
+      pick_hint: "Select additional nodes for this deployment"
       <<: *deployment_common      
     anneal:
       title: "annealing activity"

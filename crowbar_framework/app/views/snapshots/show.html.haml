@@ -26,28 +26,31 @@
       %tr
         %th{:rowspan=>2}= link_to t('.nodes'), bulk_edit_path()
         - @barclamps.each do |bc_id, barclamp|
-          %td.center{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id)
+          -if barclamp[:roles]
+            %td.center{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id)
       %tr
         - @barclamps.each do |bc_id, barclamp|
-          - barclamp[:roles].each do |dr|
-            %td.dr{:id=>dr.id}
-              - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
-              = link_to name, deployment_role_path(dr.id)
+          - if barclamp[:roles] 
+            - barclamp[:roles].each do |dr|
+              %td.dr{:id=>dr.id}
+                - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
+                = link_to name, deployment_role_path(dr.id)
     %tbody
       - @nodes.each do |nid, node|
         %tr{:class => ["node"], :id => nid}
           %td{:width=>'5%'}= link_to node.alias, node_path(nid), :title=>node.description
           -@barclamps.each do |bc_id, barclamp|
-            - barclamp[:roles].each do |dr|
-              - nr = @node_roles[nid][bc_id][dr.role.id] rescue nil
-              %td.noderole{:id=>(nr ? nr.id : -1), :dr=>dr.id}
-                - if nr
-                  %span{:style=>"display:inline"}
-                    .led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
-                      = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
-                - elsif state == Snapshot::PROPOSED
-                  %span{:style=>"display:none"}
-                    = link_to image_tag('/images/icons/add.png'), node_roles_path(:snapshot_id=>@snapshot.id, :node_id=>nid, :role_id=>dr.role.id), :method=>:post
+            - if barclamp[:roles]
+              - barclamp[:roles].each do |dr|
+                - nr = @node_roles[nid][bc_id][dr.role.id] rescue nil
+                %td.noderole{:id=>(nr ? nr.id : -1), :dr=>dr.id}
+                  - if nr
+                    %span{:style=>"display:inline"}
+                      .led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
+                        = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
+                  - elsif state == Snapshot::PROPOSED
+                    %span{:style=>"display:none"}
+                      = link_to image_tag('/images/icons/add.png'), node_roles_path(:snapshot_id=>@snapshot.id, :node_id=>nid, :role_id=>dr.role.id), :method=>:post
   - else
     %tr
       %td= t 'no_items'

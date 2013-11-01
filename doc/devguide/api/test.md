@@ -9,8 +9,8 @@ WARNING: The Test APIs (=/api/test/...=) are considered to be tightly coupled to
 ## Load Node Data from File (api/test/nodes/[:id]?source)
 
 <table border=1>
-  <tr><th> Verb </th><th> URL                       </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-  <tr><td> PUT  </td><td> /api/test/node/[:id]      </td><td> see below </td><td> Node JSON </td><td> - </td></tr> 
+  <tr><th> Verb </th><th> URL                       </th><th> Comments </th></tr>
+  <tr><td> PUT  </td><td> /api/test/node/[:id]      </td><td> returns Node json </td></tr> 
 </table>
 
 Options

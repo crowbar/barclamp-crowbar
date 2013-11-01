@@ -1,128 +1,36 @@
 ### Attribute (aka Attrib) APIs
 
-Attribute APIs are used to manage attributes tracked by the CMDB system
+Attribute models are used to map/expose attribute data attached to system objects.  They do NOT actually store any data, they are just maps.
 
 > To prevent Rails name collisions, Crowbar uses 'Attrib' instead of Attribute.
 
-#### Attrib CRUD
+For now, they are tied to nodes only.  While they can be linked to data from a wide range of sources, they are generally retrieved from json stored in the node.discovery field.
 
-List, Create, Read, Delete actions for Attribute
+Attribs.value can be customized by subclassing when they are created.  Subclassing allows the attrib to return data composed in more complex ways than simple json lookups using the automatic mapping method.
 
-> There is no update at this time!
-
-##### List
-
-Returns list of Attrib id:names in the system
-
-**Input:**
+#### API Actions
 
 <table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><th> Verb </th><th> URL </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> /2.0/crowbar/2.0/attrib </td>
-  <td> - </td>
-  <td> - </td></tr>
-</table>
-
-
-**Output:**
-
-    {
-      1:"ram",
-      2:"cpu",
-      4:"nics"
-    }
-
-Details:
-
-* id - Attrib id
-* name - Attrib name
-
-##### Read
-
-**Input:**
-
-<table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+  <td> api/v2/attribs </td>
+  <td> List </td></tr>
 <tr><td> GET  </td>
-  <td> /2.0/crowbar/2.0/attrib/[id] </td>
-  <td> id is the Attrib ID or name. </td>
-  <td> -  </td></tr>
-</table>
-
-
-**Output:**
-
-    {
-      "id":4,
-      "name":"ram",
-      "description":null,
-      "order":10000,
-      "barclamp_id":40,
-      "hint":null,
-      "created_at":"2012-08-13T17:20:21Z",
-      "updated_at":"2012-08-13T17:20:21Z"
-    }
-
-Details:
-
-* Format - json
-* id - Attrib id
-* name - Attrib name
-* barclamp_id - relation with barclamp (attribute only has 1)
-* hint - helps the barclamp figure out how to populate the attribute.  should be assigned by the attribute
-
-##### Attrib CRUD: Create
-
-Creates a new Attrib
-
-**Input:**
-
-<table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+  <td> api/v2/attribs/:id </td>
+  <td> Specific Item </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/attribs/:id </td>
+  <td> Update Item </td></tr>
 <tr><td> POST  </td>
-  <td> /2.0/crowbar/2.0/attrib/ </td>
-  <td> json definition (see Attrib Show) </td>
-  <td> must be a legal object </td></tr>
-</table>
-
-**Input:**
-
-    { 
-      "name":"chef",
-      "description":"description",
-      "order":10000,
-    }
-
-Details:
-
-* name (required) - Attrib name (must be letters - numbers and start with a letter)
-* description - optional (default null)
-* order - optional (default 10000) 
-
-##### Attrib CRUD: Delete 
-
-Deletes an Attrib
-
-**Input:**
-
-<table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+  <td> api/v2/attribs </td>
+  <td> Create Item </td></tr>
 <tr><td> DELETE  </td>
-  <td> /2.0/crowbar/2.0/attrib/[id] </td>
-  <td> Database ID or name </td>
-  <td> must be an existing object ID </td></tr>
+  <td> api/v2/attribs/:id </td>
+  <td> Delete Item </td></tr>
 </table>
 
-No body.
+#### Attribs on Nodes
 
-**Ouptut**
+After an attrib is set, you can use it to easily retrieve information from a node using the method missing pattern.  For example, the "asset_tag" attribute can be retrieved on a node using =node.attrib_asset_tag= to return the node's asset tag.
 
-None.
-
-Details:
-
-* id - Attrib name or database ID
-
-
-
+Attibs may return simple strings or complex json hashes depending on how they have been defined.

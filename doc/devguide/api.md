@@ -8,11 +8,43 @@ The Crowbar API is RESTful and accepts/returns JSON.  XML output is not supporte
 
 The Crowbar API is versioned.  API urls include the Crowbar version of the API (e.g.: 1.0 or v2).  Please use the most highest version available!
 
-> Legacy Note: routes with 1.0 should considered deprecated!
+> Legacy Note: routes with 1.0 are deprecated!
+
+### API Index
+
+_This is a reference index - API is documented in subpages_
+
+    * /api/v2
+      * /anneal (check the annealer status)
+      * /make_admin (used by smoke test automation to script install)
+      * /nodes
+        * /[:id]/node_roles 
+        * /[:id]/attribs 
+      * /jigs
+      * /barclamps
+      * /deployments
+        * /head (first snapshot)
+        * /next (second snapshot)
+        * /[:id]/roles
+      * /deployment_roles
+      * /snapshots 
+        * /[:id]/node_roles 
+        * /graph (GET only)
+        * /propose (PUT only)
+        * /commit (PUT only)
+        * /recall (PUT only)
+      * /jigs
+      * /roles 
+        * /template/:key/:value (shortcut to set single values of the template)
+      * /attribs
+      * /groups
+        * /[:id]/nodes
+    * /:barclamp/v2
+      * see docs per barclamp
 
 ### Crowbar 2 API Pattern
 
-The Crowbar 2 API attempts to follow the following behavior pattern.
+The Crowbar 2 API follows the following behavior pattern.
 
 #### Expectations:
 
@@ -28,12 +60,14 @@ API callers may bypass the login screen and use digest authentication for all re
 
 #### Common API URL Patterns:
 
+Crowbar uses a versioned URL pattern.  Version in the URL allows the barclamp to offer an API contract independent of Crowbar.  By convention, resources names are pluralized in the API.  For example, the API will use =nodes= instead of =node= in paths.
+
 * UI URLs: _these are less documented, unsupported for external use, and do not include a version number_.  Do not use these for API calls!
 
-* Base Form: `/[api | [barclamp name]/[bc_version]/[resources]/[id]`
+* Base Form: `[barclamp | api]/[bc_version]/[resources]/[id]`
   * version - version of Crowbar framework being used (v2 for this guide)
-  * barclamp - barclamp that owns the requested activity
-  * bc_version - the version of the barclamp being used.  This allows the barclamp to offer an API contract independent of Crowbar.  For example, it would be possible to have an update to the Network barclamp that adds to the API (v2 -> v3) and callers would need to be able to identify/require a version.  It is anticipated that Barclamps will honor previous versions where possible.
+  * barclamp - barclamp that owns the requested activity.  Framework uses 'api'
+  * bc_version - the version of the barclamp being used. 
   * key_word - groups the API into different categories
      * reserved words such as status and crowbar
      * resource types like node, group, network, etc
@@ -45,74 +79,107 @@ API callers may bypass the login screen and use digest authentication for all re
 
 * List: 
   * HTTP get
+  * Returns a json array of objects
 
-* CRUD Operation: 
+* CRUD Operations: 
   * id - name or database ID of the item.  Items that do not have natural keys are not expected to honor use of name instead of database ID.  When possible, either will be allowed.
   * RESTful Verbs for CRUD:
-     * Create - HTTP Post (ID is ignored)
-     * Read - HTTP Get
-       * Objects will be shallow (they will not populate child references beyond the ID(s)).
-     * Unlink/Deactivate/Dequeue - HTTP Delete 
-     * Update - HTTP Put (returns the updated object serialized)
-     * Delete - HTTP Delete (no return except 200)
+     * POST / Create - ID is ignored if provided
+     * GET / Read - Objects will be shallow
+     * PUT / Update - returns the updated object serialized
+     * DELETE/ Delete - no return data except 200
+  * Special Cases
+     * PUT - used to start an action on existing data (commit a snapshot)
+     * POST - used to create new state (propose a snapshot)
+     * DELETE - Unlink/Deactivate/Dequeue
 
-* Action: 
-  * HTTP PUT 
+In general, Crowbar REST pattern uses the 4 HTTP verbs as follows:
 
-### API Index
+   * GET to retrieve information 
+   * PUT to transform or change existing data  
+   * POST to create new data or relationships
+   * DELETE to remove data or relationships
 
-_This is a temporary summary - API should be split down into subpages!_
+### Expected Fields
 
-* /api/v2
-  * /nodes (list)
-    * /:node (CRUD)
-      * /attribs
-      * /groups
-      * /transition (put)
-      * /allocate (put)
-  * /barclamps
-    * /:barclamp (R)
-      * /deployments
-      * /template (redirects to snapshot)
-  * /deployments
-    * /:deployment (CRUD)
-      * /commit (put)
-      * /recall (put)
-  * /snapshots 
-    * /:snapshot (CRUD)
-  * /jigs
-    * /:jig (CRUD)
-  * /role_types 
-    * /:role_type (CRUD)
-  * /roles (CRUD)
-    * /:role (CRUD)
-      * /attribs
-      * /nodes
-  * /attribs
-    * /:attrib
-  * /groups
-    * /:group
-      * /nodes
-  
-* /:barclamp
-  * /v2 API defined by barclamp
-  * other paths are UI paths
-    
-* /dashboard
-  * /status/:node
-* /barclamp
-  * /status/:deployment
+By convention, most Crowbar models have the same fields.
 
+* id - database assigned role, number
+* name - resource name, often a natural key with enforced uniqueness
+* description - user definable content
+* order - override alpha sort order
+* created_at - when object was created
+* updated_at - when object was last updated
+* object_id - cross reference id to an object.  In most cases, you can use the name of the object instead of the API
 
-#### Documentation
+> Some of the information stored in objects is maintained as json and will appear as nested data.
+
+### API Headers & Response Patterns
+
+The Crowbar REST API uses HTTP "content-type" metadata header tags to help clients quickly identify the information being returned by the API.
+
+The API adds ="application/vnd.crowbar.[type].[form]+json; version=2.0"= to the content-type tag.
+
+* [type] is the object type being returned.  E.g.: node, deployment, jig, etc
+* [form] describes how the objects are formed
+   * obj = single obj
+   * list = list of objects
+   * empty = nothing
+   * error = error.
+
+REST results should be returned with the appropriate standard HTTP rGETesponse code, such as:
+
+* 200 = ok
+* 404 = object not found
+* 500 = application error
+* [complete list](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes) 
+
+### Example Documentation
 
 The following table should be populated for all API calls:
 
+#### API Actions
+
 <table border=1>
-<tr><th> Verb </th><th> URL </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
+<tr><th> Verb </th><th> URL </th><th> Comments </th></tr>
 <tr><td> GET  </td>
-  <td> api/v2/barclamp/crowbar/deployment/default </td>
-  <td> id is the node ID or name. </td>
-  <td> Json: please include an example below the table! </td>
-  <td> Jokes, etc </td></tr>
+  <td> api/v2/resources </td>
+  <td> List </td></tr>
+<tr><td> GET  </td>
+  <td> api/v2/resources/:id </td>
+  <td> Specific Item </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/resources/:id </td>
+  <td> Update Item </td></tr>
+<tr><td> POST  </td>
+  <td> api/v2/resources </td>
+  <td> Create Item </td></tr>
+<tr><td> DELETE  </td>
+  <td> api/v2/resources/:id </td>
+  <td> Delete Item </td></tr>
+<tr><td> VARIOUS  </td>
+  <td> api/v2/resources/:id/extra </td>
+  <td> Special Ops </td></tr>
+
 </table>
+
+### JSON Example:
+
+    {
+      "id":41,
+      "name":"sim.cr0wbar.com",
+      "description":"example",
+      "order":100,
+      "admin":true,
+      "alias":"sim",
+      "alive":true,
+      "allocated":false,
+      "available":true,
+      "bootenv":"sledgehammer",
+      "deployment_id":1,
+      "discovery":{
+         {"foo":"this is json"}
+      },
+      "created_at":"2013-11-01T03:23:27Z",
+      "updated_at":"2013-11-01T03:23:27Z"
+    }

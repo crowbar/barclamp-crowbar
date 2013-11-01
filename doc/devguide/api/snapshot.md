@@ -1,4 +1,6 @@
-### Barclamp/Instance APIs
+### Snapshot API
+
+Snapshots are really a time captured Deployment and effectly refect the a Deployment state.
 
 Snapshots have 3 primary states:
 
@@ -24,8 +26,39 @@ Instances can only be created by
 1. Cloning the template instance using barclamp.create_proposal (see Barclamp/Config)
 2. Editing an existing configuration which clones from the active instance
 
+#### API Actions
+
 <table border=1>
-  <tr><th> Verb </th><th> URL                      </th><th> Options </th><th> Returns </th><th> Comments </th></tr>
-  <tr><td> GET  </td><td> /[:barclamp]/v2/instances  </td><td> none   </td><td> Instance List </td><td> - </td></tr> 
-  <tr><td> GET  </td><td> /[:barclamp]/v2/instances/[:instance]  </td><td> none   </td><td> Instance Info </td><td> - </td></tr> 
+<tr><th> Verb </th><th> URL </th><th> Comments </th></tr>
+<tr><td> GET  </td>
+  <td> api/v2/snapshots </td>
+  <td> List </td></tr>
+<tr><td> GET  </td>
+  <td> api/v2/snapshots/:id </td>
+  <td> Specific Item </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/snapshots/:id </td>
+  <td> Update Item </td></tr>
+<tr><td> POST  </td>
+  <td> api/v2/snapshots </td>
+  <td> Create Item </td></tr>
+<tr><td> DELETE  </td>
+  <td> - </td>
+  <td> NOT SUPPORTED </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/snapshots/:id/propose </td>
+  <td> Creates a new snapshot as the Deployment Head </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/snapshots/:id/commit </td>
+  <td> Commits snapshot for action by the Annealer </td></tr>
+<tr><td> PUT  </td>
+  <td> api/v2/snapshots/:id/recall </td>
+  <td> Interrupts the Annealer </td></tr>
+<tr><td> GET  </td>
+  <td> api/v2/snapshots/:id/node_roles </td>
+  <td> Shows the node-roles for a snapshot </td></tr>
+<tr><td> GET  </td>
+  <td> api/v2/snapshots/:id/graph </td>
+  <td> Shows the node-role relationships for a snapshot.  Used for the UI Graph</td></tr>
+
 </table>

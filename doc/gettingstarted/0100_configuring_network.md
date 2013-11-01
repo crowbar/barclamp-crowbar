@@ -1,5 +1,5 @@
 #Configuring the Network#
-The network should be set up as flat as possibles. Crowbar manages all networks, and is preconfigured with one networkto allow the initial configuration to come up quickly.  
+The network should be set up as flat as possibles. Crowbar manages all networks, and is preconfigured with one network to allow the initial configuration to come up quickly.  
 
 The Crowbar network configuration can be customized to better map to site-specific networking needs and conventions. These changes include adding additional vLANs, changing vLAN mappings, and teaming NICs. Instructions to assist in understanding these changes are available at [http://github.com/crowbar/crowbar](http://github.com/crowbar/crowbar "Crowbar open source website").
 

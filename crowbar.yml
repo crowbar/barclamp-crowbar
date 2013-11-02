@@ -58,7 +58,7 @@ debs:
       - deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
       - deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
       - deb http://archive.canonical.com/ubuntu precise partner
-      - deb-src http:-//archive.canonical.com/ubuntu precise partner
+      - deb-src http://archive.canonical.com/ubuntu precise partner
       - deb http://extras.ubuntu.com/ubuntu precise main
       - deb-src http://extras.ubuntu.com/ubuntu precise main
       - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse

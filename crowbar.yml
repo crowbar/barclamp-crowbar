@@ -82,10 +82,6 @@ debs:
     - kwalify
     - curl
     - vim
-    # docker support (Ubuntu only for now)
-    - linux-image-generic-lts-raring 
-    - linux-headers-generic-lts-raring
-    - lxc-docker
   build_pkgs:
     - ruby1.9.1
     - ruby1.9.1-dev
@@ -155,6 +151,10 @@ debs:
     - vim
     # for nokogiri
     - libxslt1.1
+    # docker support (Ubuntu only for now)
+    - linux-image-generic-lts-raring 
+    - linux-headers-generic-lts-raring
+    - lxc-docker
 
 rpms:
   redhat-6.2:

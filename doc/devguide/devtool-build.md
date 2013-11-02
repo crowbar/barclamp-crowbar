@@ -42,8 +42,8 @@ During the build process the Dev Tool has to perform certain tasks which require
     # let's install some OS packages
     sudo apt-get update
     sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
-    mkisofs binutils markdown erlang debhelper python-pip \
-    build-essential libopenssl-ruby1.9 libssl-dev zlib1g-dev 
+    mkisofs binutils markdown erlang-base debhelper python-pip \
+     libopenssl-ruby1.9.1 libssl-dev zlib1g-dev 
     sudo apt-get install libpq-dev
     # to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3
     sudo update-alternatives --config ruby 

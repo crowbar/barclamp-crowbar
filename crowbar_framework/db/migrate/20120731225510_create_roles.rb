@@ -30,7 +30,12 @@ class CreateRoles < ActiveRecord::Migration
       t.boolean     :discovery,         :null=>false, :default=>false
       # Indicates that the attributes used by this node should be made available to
       # its children in the noderole graph.
-      t.boolean     :server,            :null=>false, :default=>false  
+      t.boolean     :server,            :null=>false, :default=>false
+      # Indicates that this role implements a clustered service.
+      # When the noderole graph is built, any child noderoles of this service
+      # will be bound to all of the noderoled for this role in the deployment.
+      # The cluster flag and the implicit flag are mutually exclusive.
+      t.boolean     :cluster,           :null=>false, :default=>false
       t.belongs_to  :barclamp,          :null=>false
       t.integer     :cohort
       t.timestamps

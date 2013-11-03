@@ -20,13 +20,17 @@ class Run < ActiveRecord::Base
 
   attr_accessible :node_role_id, :node_id
 
-  scope :runnable,   -> { where(:running => false).order("id ASC") }
+  scope :runnable,   -> { where(:running => false).sort{|a,b| a.sort_id <=> b.sort_id} }
   scope :running,    -> { where(:running => true) }
   scope :running_on, ->(node_id) { running.where(:node_id => node_id) }
   scope :deletable,  -> { find_by_sql(%Q{select runs.* from runs INNER JOIN node_roles
           ON runs.node_role_id = node_roles.id
           where NOT ((node_roles.state = #{NodeRole::TRANSITION}) OR
          (node_roles.state in (#{NodeRole::TODO}, #{NodeRole::ACTIVE}) AND NOT runs.running))}) }
+
+  def sort_id
+    [node_role.cohort, node_role_id, id]
+  end
 
   def self.cleanup
     # Clear out any stale runs.
@@ -92,7 +96,7 @@ class Run < ActiveRecord::Base
       # Find any runnable noderoles and see if they can be enqueued.
       # The logic here will only enqueue a noderole of the node does not
       # already have a noderole enqueued.
-      NodeRole.runnable.order("cohort").each do |nr|
+      NodeRole.runnable.order("cohort ASC, id ASC").each do |nr|
         if Run.where(:node_id => nr.node_id).count > 0
           Rails.logger.info("Run: Skipping #{nr.name}")
         else

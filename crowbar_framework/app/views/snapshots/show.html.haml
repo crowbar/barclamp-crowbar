@@ -20,33 +20,33 @@
       %td= link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
     %td= render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
-%table.box
+%table.snap{:align=>'center'}
   - if @nodes.count > 0 and @barclamps.count > 0
     %thead
       %tr
-        %th{:rowspan=>2}= link_to t('.nodes'), bulk_edit_path()
+        %th.anode{:rowspan=>2}= link_to t('.nodes'), bulk_edit_path()
         - @barclamps.each do |bc_id, barclamp|
           -if barclamp[:roles]
-            %td.center{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id)
+            %th.role{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id), :title=>barclamp[:barclamp].description
       %tr
         - @barclamps.each do |bc_id, barclamp|
           - if barclamp[:roles] 
             - barclamp[:roles].each do |dr|
-              %td.dr{:id=>dr.id}
+              %th.dr{:id=>dr.id}
                 - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
-                = link_to name, deployment_role_path(dr.id)
+                = link_to (name || dr.role.name), deployment_role_path(dr.id), :title=>dr.role.description
     %tbody
       - @nodes.each do |nid, node|
-        %tr{:class => ["node"], :id => nid}
-          %td{:width=>'5%'}= link_to node.alias, node_path(nid), :title=>node.description
+        %tr.node{:id => nid}
+          %td.nodename= link_to node.alias, node_path(nid), :title=>node.description
           -@barclamps.each do |bc_id, barclamp|
             - if barclamp[:roles]
               - barclamp[:roles].each do |dr|
                 - nr = @node_roles[nid][bc_id][dr.role.id] rescue nil
                 %td.noderole{:id=>(nr ? nr.id : -1), :dr=>dr.id}
                   - if nr
-                    %span{:style=>"display:inline"}
-                      .led{:style=>"float:left", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
+                    %span{:style=>"float:left; display:inline", :align=>'center'}
+                      .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
                         = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
                   - elsif state == Snapshot::PROPOSED
                     %span{:style=>"display:none"}
@@ -54,10 +54,6 @@
   - else
     %tr
       %td= t 'no_items'
-    %tr
-      %td= @barclamps.inspect
-    %tr
-      %td= @nodes.inspect
 
 .clear
 
@@ -81,10 +77,12 @@
           if (id == -1) {
             if (ev['type']=="mouseenter")
               { $(this).children().show();  
-                $("td.dr#"+dr).css("background-color","black"); }
+                // $("td.dr#"+dr).css("font-weight","italic"); 
+              }
             else if (ev['type']=="mouseleave")
               { $(this).children().hide(); 
-                $("td.dr#"+dr).css("background-color",""); }
+                // $("td.dr#"+dr).css("font-weight","normal"); 
+              }
           }
         }
       );

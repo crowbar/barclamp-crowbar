@@ -1,6 +1,8 @@
 {
   "layers":["jigs","core","network","nodes","os","clients","services","apps", "hide"],
-  "crowbar":"core",
+  "crowbar-admin-node":"core",
+  "crowbar-managed-node":"nodes",
+  "crowbar-installed-node":"hide",
   "chef-server":"jigs",
   "chef-client":"jigs",
   "provisioner-os-install":"os",
@@ -29,5 +31,9 @@
   "test-discovery":"nodes",
   "test-library":"os",
   "test-fails":"hide",
-  "test-event":"services"
+  "test-event":"services",
+  "ceph-config":"hide",
+  "ceph-mon":"services",
+  "ceph-osd":"services",
+  "ceph-client":"apps"  
 }

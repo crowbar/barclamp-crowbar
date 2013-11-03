@@ -1,4 +1,4 @@
-# Copyright 2012, Dell
+# Copyright 2013, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,14 +41,18 @@ SimpleNavigation::Configuration.run do |navigation|
               elsif nav.path =~ /(.*)_path/ 
                 if nav.development
                   secondary.item nav.item.to_sym, "[#{t(nav.name)}]", eval(nav.path), {:title=>"Dev Mode: #{t(nav.description, :default=>t(nav.name))}"} 
-                else       
-                  secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  do |tertiary|
-                    # deployments helper
-                    if nav.name.eql? 'nav.deployments'
-                      Deployment.all.each do |d|
-                        tertiary.item nav.item.to_sym, d.name, deployment_head_path(d.id), {:title=>d.description }
-                      end
-                    end            
+                else
+                    secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  do |tertiary|
+                      # deployments helper
+                    begin
+                      if nav.name.eql? 'nav.deployments'
+                        Deployment.all.each do |d|
+                          tertiary.item nav.item.to_sym, d.name, deployment_head_path(d.id), {:title=>d.description }
+                        end
+                      end            
+                    rescue
+                      # each the exception in the chidlren for now
+                    end
                   end
                 end
               end 

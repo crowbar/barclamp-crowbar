@@ -120,6 +120,33 @@ table.plain
     td, th
       background: none
 
+table.snap
+  align: center
+  padding: 2
+  thead th
+    padding: 3px 10px
+    background: $secondary_bg
+    &.anode
+      +rounded_corners(10px,0,0,0)
+    &.role
+      border-left: 1px solid $content_bg + #444
+      text-align: center
+    &.dr
+      border-left: 1px solid $content_bg + #444
+      text-align: left
+  td 
+    &.node
+      text-align: left
+    &.noderole
+      border-left: 1px solid $content_bg + #444
+      text-align: left
+  tr
+    &:hover, &:active
+      background: $secondary_bg
+  tr.no-hover
+    &:hover, &:active
+      background: transparent !important
+
 table.top
   td,th
     vertical-align: top

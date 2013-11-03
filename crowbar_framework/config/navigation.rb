@@ -42,17 +42,17 @@ SimpleNavigation::Configuration.run do |navigation|
                 if nav.development
                   secondary.item nav.item.to_sym, "[#{t(nav.name)}]", eval(nav.path), {:title=>"Dev Mode: #{t(nav.description, :default=>t(nav.name))}"} 
                 else
-                  begin
                     secondary.item nav.item.to_sym, t(nav.name), eval(nav.path), {:title=>t(nav.description, :default=>t(nav.name))}  do |tertiary|
                       # deployments helper
+                    begin
                       if nav.name.eql? 'nav.deployments'
                         Deployment.all.each do |d|
                           tertiary.item nav.item.to_sym, d.name, deployment_head_path(d.id), {:title=>d.description }
                         end
                       end            
+                    rescue
+                      # each the exception in the chidlren for now
                     end
-                  rescue
-                    # each the exception in the chidlren for now
                   end
                 end
               end 

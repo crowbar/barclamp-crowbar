@@ -1,18 +1,9 @@
-### Crowbar Data Models
+### Crowbar Data Models & Behavior
 
-#### Lionel
+Crowbar Data Models express the data in the system.
 
-The data models in Crowbar are expressed in ActiveRecord
+In this area of the documentation, we discuss the models and their behaivor.
 
-Namespacing:  Individual Barclamps can add models, but are expected to add them 
-in their own namespace.
-
-
-Example:  Foo Barclamp with a model for Attrib::FooBar with a subclass for Attrib
-
-BarclampFoo::Attrib
-Path = `app/models/foo/attrib_foo_bar.rb`
-Class = `Foo::AttribFooBar < Attrib`
 
 
 

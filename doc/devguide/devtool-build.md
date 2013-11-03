@@ -76,11 +76,14 @@ During the build process the Dev Tool has to perform certain tasks which require
     sudo vi /etc/postgresql/9.3/main/postgresql.conf
       # change 'port = 5439'
     sudo service postgresql restart
-    sudo createuser -s -d -U postgres crowbar
+    sudo createuser -s -d -U postgres -p 5439 crowbar
     # you can test the install by making sure the following call returns
     export PGCLUSTER=9.3/main
     psql postgresql://crowbar@:5439/template1 -c 'select true;'
 
+
+    # On OpenSUSE
+    # install Base Development pattern from the software management tool including gcc, c++ & objectC, build, ccache
 
     # let's install some needed gems next
     # On Ubuntu 12.04 you may need to leave ruby1.9.3-dev off

@@ -20,7 +20,7 @@
       %td= link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
     %td= render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
-%table.box
+%table.box{:border=>1}
   - if @nodes.count > 0 and @barclamps.count > 0
     %thead
       %tr
@@ -34,11 +34,11 @@
             - barclamp[:roles].each do |dr|
               %td.dr{:id=>dr.id}
                 - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
-                = link_to name, deployment_role_path(dr.id)
+                = link_to (name || dr.role.name), deployment_role_path(dr.id)
     %tbody
       - @nodes.each do |nid, node|
         %tr{:class => ["node"], :id => nid}
-          %td{:width=>'5%'}= link_to node.alias, node_path(nid), :title=>node.description
+          %td= link_to node.alias, node_path(nid), :title=>node.description
           -@barclamps.each do |bc_id, barclamp|
             - if barclamp[:roles]
               - barclamp[:roles].each do |dr|
@@ -54,10 +54,6 @@
   - else
     %tr
       %td= t 'no_items'
-    %tr
-      %td= @barclamps.inspect
-    %tr
-      %td= @nodes.inspect
 
 .clear
 
@@ -81,10 +77,11 @@
           if (id == -1) {
             if (ev['type']=="mouseenter")
               { $(this).children().show();  
-                $("td.dr#"+dr).css("background-color","black"); }
+                $("td.dr#"+dr).css("font-weight","bold"); 
+              }
             else if (ev['type']=="mouseleave")
               { $(this).children().hide(); 
-                $("td.dr#"+dr).css("background-color",""); }
+                $("td.dr#"+dr).css("font-weight","normal"); }
           }
         }
       );

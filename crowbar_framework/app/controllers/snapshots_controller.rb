@@ -28,10 +28,10 @@ class SnapshotsController < ApplicationController
       format.html {
         @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
-        @snapshot.deployment.nodes.each { |n| @nodes[n.id] = n }
+        @snapshot.deployment.nodes.order("name ASC").each { |n| @nodes[n.id] = n }
         @barclamps = {}
         @node_roles = { }
-        @snapshot.deployment_roles.each do |dr|
+        @snapshot.deployment_roles.order("name ASC").each do |dr|
           bc = dr.role.barclamp
           @barclamps[bc.id] ||= {:barclamp=>bc, :roles=>[]}
           @barclamps[bc.id][:roles] << dr

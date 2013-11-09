@@ -1,3 +1,4 @@
+
 table.data
   width: 100%
   font-size: 12px
@@ -120,6 +121,8 @@ table.plain
     td, th
       background: none
 
+$snapheight: 300px
+
 table.snap
   align: center
   padding: 2
@@ -128,12 +131,26 @@ table.snap
     background: $secondary_bg
     &.anode
       +rounded_corners(10px,0,0,0)
+      height: $snapheight
     &.role
       border-left: 1px solid $content_bg + #444
       text-align: center
     &.dr
+      height: 16px
       border-left: 1px solid $content_bg + #444
       text-align: left
+    div.vertical
+      -webkit-transform: rotate(-90deg)
+      /* Firefox */
+      -moz-transform: rotate(-90deg)
+      /* IE */
+      -ms-transform: rotate(-90deg)
+      /* Opera */
+      -o-transform: rotate(-90deg)
+      /* Internet Explorer */
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3)
+      /* Safari */
+
   td 
     &.node
       text-align: left

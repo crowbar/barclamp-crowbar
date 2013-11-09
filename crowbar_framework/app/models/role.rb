@@ -24,27 +24,12 @@ class Role < ActiveRecord::Base
   before_create :create_type_from_name
 
   attr_accessible :id, :description, :name, :jig_name, :barclamp_id
-  ### Flags for roles
-  # Unused by any role.
+  ### Flags for roles described in [[/doc/devguide/model/role.md]]
   attr_accessible :library
-  # Indicates that this role can be automatically added to any node that
-  # requires it as a dependency.  Otherwise, roles must be bound to nodes
-  # in dependency order.
   attr_accessible :implicit
-  # Indicates that this role will be automatically bound to the first
-  # admin node.
   attr_accessible :bootstrap
-  # Indicates that this role will be automatically bound to all newly
-  # discovered nodes.
   attr_accessible :discovery
-  # Indicates that userdata, system data, and wall data for this node
-  # will be visible to child nodes.  As the name of the flag indicates,
-  # the only roles that will generally require that are ones that implement
-  # servers that other roles need to talk to.
   attr_accessible :server
-  # Indicates that all noderoles for this role in a given deployment should be
-  # bound as parents instead of just one.  This ensures that all instances of
-  # a clsutered service are up instead of just the first one.
   attr_accessible :cluster
   attr_accessible :template
 

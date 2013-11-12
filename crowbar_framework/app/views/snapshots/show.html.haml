@@ -59,15 +59,26 @@
 
 :javascript
 
-    function update() {
-      $.ajaxSetup({ timeout: 1000 });
-      if (#{state != Snapshot::PROPOSED}) {
-        location.reload();
-      }
-    };
+  var height = 100;
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    if (#{state != Snapshot::PROPOSED}) {
+      location.reload();
+    }
+  };
   
+  $('th.dr div a').each(function(){ 
+    w = parseInt($(this).width());
+    if (w > height) height = w;
+  });
+
   $(document).ready(function() {
-  
+
+    $('th.dr').each(function(){
+      $(this).height(height+5);
+    });
+
     // set hover showing
     $('td.noderole')
       .bind('hover',

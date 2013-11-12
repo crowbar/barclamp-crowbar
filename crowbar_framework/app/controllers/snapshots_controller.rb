@@ -30,7 +30,7 @@ class SnapshotsController < ApplicationController
         @nodes = {}
         @roles = {}
         # alpha lists by ID 
-        Node.all.each { |n| @nodes[n.id] = {:node=> n, :scope=>(n.deployment_id==@snapshot.deployment_id), :node_roles=>{} } }
+        Node.order("alias ASC").each { |n| @nodes[n.id] = {:node=> n, :scope=>(n.deployment_id==@snapshot.deployment_id), :node_roles=>{} } }
         @snapshot.deployment_roles.sort_by{ |r| r.name }.each { |r| @roles[r.role_id] = r }
         @snapshot.node_roles.each do |nr|
           # build the node_role grid

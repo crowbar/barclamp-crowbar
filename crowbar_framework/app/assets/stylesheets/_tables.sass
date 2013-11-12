@@ -121,39 +121,46 @@ table.plain
     td, th
       background: none
 
-$snapheight: 300px
+$snapheight: 12em
 
 table.snap
-  align: center
+  align: left
   padding: 2
   thead th
     padding: 3px 10px
     background: $secondary_bg
     &.anode
       +rounded_corners(10px,0,0,0)
-      height: $snapheight
+      vertical-align: bottom
+      padding: 1
     &.role
       border-left: 1px solid $content_bg + #444
       text-align: center
     &.dr
-      height: 16px
+      transform-origin: 100% 100%
       border-left: 1px solid $content_bg + #444
-      text-align: left
-    div.vertical
-      -webkit-transform: rotate(-90deg)
-      /* Firefox */
-      -moz-transform: rotate(-90deg)
-      /* IE */
-      -ms-transform: rotate(-90deg)
-      /* Opera */
-      -o-transform: rotate(-90deg)
-      /* Internet Explorer */
-      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3)
-      /* Safari */
-
+      height: $snapheight
+      width: 1em
+      align: left
+      padding: 1
+      div
+        position: relative
+        top: 44% 
+        width: 1em
+        -webkit-transform: rotate(-90deg)
+        /* Firefox */
+        -moz-transform: rotate(-90deg)
+        /* IE */
+        -ms-transform: rotate(-90deg)
+        /* Opera */
+        -o-transform: rotate(-90deg)
+        /* Internet Explorer */
+        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3)
+        /* Safari */
   td 
-    &.node
-      text-align: left
+    &.nodename
+      text-align: right
+      padding-right: 0.2em
     &.noderole
       border-left: 1px solid $content_bg + #444
       text-align: left

@@ -25,6 +25,10 @@
 
 .clear
 
+
+%h2= t '.nodes'
+= render :partial => 'nodes/index', :locals => { :nodes=>@deployment.nodes.order("name ASC") }
+
 %h2= t '.snapshots'
 = render :partial => 'snapshots/index', :locals => { :list=>@deployment.snapshots.order("id DESC") }
 

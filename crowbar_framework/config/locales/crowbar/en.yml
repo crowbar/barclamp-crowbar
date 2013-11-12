@@ -36,6 +36,7 @@ en:
       deployment: "Deployment"
       snapshot: "Snapshot"
       name: "Name"
+      nodes: "Nodes"
       description: "Description"
       state: "State"
       status: "Status"

@@ -28,33 +28,15 @@ class SnapshotsController < ApplicationController
       format.html {
         @snapshot = Snapshot.find_key params[:id]
         @nodes = {}
-        @snapshot.deployment.nodes.sort_by{ |n| n.name }.each { |n| @nodes[n.id] = n }
-        @barclamps = {}
-        @node_roles = { }
-        @snapshot.deployment_roles.sort_by{ |r| r.name }.each do |dr|
-          bc = dr.role.barclamp
-          @barclamps[bc.id] ||= {:barclamp=>bc, :roles=>[]}
-          @barclamps[bc.id][:roles] << dr
-        end
+        @roles = {}
+        # alpha lists by ID 
+        Node.order("alias ASC").each { |n| @nodes[n.id] = {:node=> n, :scope=>(n.deployment_id==@snapshot.deployment_id), :node_roles=>{} } }
+        @snapshot.deployment_roles.sort_by{ |r| r.name }.each { |r| @roles[r.role_id] = r }
         @snapshot.node_roles.each do |nr|
-          # collect the axis for the grid (node & barclamp)
-          n = nr.node
-          bc = nr.role.barclamp
-          @nodes[n.id] = n unless n.nil? or @nodes.has_key? n.id
           # build the node_role grid
-          unless n.nil? or bc.nil?
-            @node_roles[n.id] ||= []
-            @node_roles[n.id][bc.id] ||= []
-            @node_roles[n.id][bc.id][nr.role.id] = nr
-          end
+          @nodes[nr.node_id][:node_roles][nr.role_id] = nr
         end
-        # make sure we have at least 1 role
-        if @barclamps.length == 0
-          b = Barclamp.find :first
-          @barclamps[b.id] = b
-        end
-        #@barclamps = @barclamps.values.sort
-        }
+      }
       format.json { render api_show :snapshot, Snapshot }
     end
   end

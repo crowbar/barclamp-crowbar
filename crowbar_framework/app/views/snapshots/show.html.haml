@@ -21,36 +21,36 @@
     %td= render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot } 
 
 %table.snap{:align=>'center'}
-  - if @nodes.count > 0 and @barclamps.count > 0
+  - if @nodes.count > 0 and @roles.count > 0
     %thead
       %tr
-        %th.anode{:rowspan=>2}= link_to t('.nodes'), bulk_edit_path()
-        - @barclamps.each do |bc_id, barclamp|
-          -if barclamp[:roles]
-            %th.role{:colspan=>barclamp[:roles].count}= link_to barclamp[:barclamp].name, barclamp_path(bc_id), :title=>barclamp[:barclamp].description
-      %tr
-        - @barclamps.each do |bc_id, barclamp|
-          - if barclamp[:roles] 
-            - barclamp[:roles].each do |dr|
-              %th.dr{:id=>dr.id}
-                - name = dr.role.name[/^#{barclamp[:barclamp].name}-(.*)/,1]
-                = link_to (name || dr.role.name), deployment_role_path(dr.id), :title=>dr.role.description
+        %th.anode= link_to t('.nodes'), bulk_edit_path()
+        - @roles.each do |dr_id, dr|
+          %th.dr{:id=>dr_id}
+            %div
+              - name = (dr.role.name).truncate(24)
+              = link_to name.gsub("-","&#8209;").html_safe, deployment_role_path(dr_id), :title=>dr.role.description
     %tbody
-      - @nodes.each do |nid, node|
-        %tr.node{:id => nid}
-          %td.nodename= link_to node.alias, node_path(nid), :title=>node.description
-          -@barclamps.each do |bc_id, barclamp|
-            - if barclamp[:roles]
-              - barclamp[:roles].each do |dr|
-                - nr = @node_roles[nid][bc_id][dr.role.id] rescue nil
-                %td.noderole{:id=>(nr ? nr.id : -1), :dr=>dr.id}
-                  - if nr
-                    %span{:style=>"float:left; display:inline", :align=>'center'}
-                      .led{:class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
-                        = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
-                  - elsif state == Snapshot::PROPOSED
-                    %span{:style=>"display:none"}
-                      = link_to image_tag('/images/icons/add.png'), node_roles_path(:snapshot_id=>@snapshot.id, :node_id=>nid, :role_id=>dr.role.id), :method=>:post
+      - @nodes.each do |nid, row|
+        - node = row[:node]
+        - if row[:node_roles].length > 0
+          %tr.node{:id => nid}
+            %td.nodename
+              = link_to node.alias, node_path(nid), :title=>node.description
+              - unless row[:scope]
+                = "("
+                = link_to node.deployment.name, deployment_path(node.deployment_id), :title=>node.deployment.description
+                = ")"
+            - @roles.each do |r_id, dr|
+              - nr = row[:node_roles][r_id]
+              %td.noderole{:id=>(nr ? nr.id : -1), :dr=>(row[:scope] ? dr.id : -1)}
+                - if nr
+                  %span{:align=>'center'}
+                    .led{:style=>"width:17px; margin:0px auto; text-align:center", :class => NodeRole::STATES[nr.state || NodeRole::ERROR], :title=>nr.role.name}
+                      = link_to "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".html_safe, node_role_path(nr.id)
+                - elsif state == Snapshot::PROPOSED
+                  %span{:style=>"margin-left:30%; display:none"}
+                    = link_to image_tag('/images/icons/add.png'), node_roles_path(:snapshot_id=>@snapshot.id, :node_id=>nid, :role_id=>dr.role.id), :method=>:post
   - else
     %tr
       %td= t 'no_items'
@@ -59,22 +59,33 @@
 
 :javascript
 
-    function update() {
-      $.ajaxSetup({ timeout: 1000 });
-      if (#{state != Snapshot::PROPOSED}) {
-        location.reload();
-      }
-    };
+  var height = 100;
+
+  function update() {
+    $.ajaxSetup({ timeout: 1000 });
+    if (#{state != Snapshot::PROPOSED}) {
+      location.reload();
+    }
+  };
   
+  $('th.dr div a').each(function(){ 
+    w = parseInt($(this).width());
+    if (w > height) height = w;
+  });
+
   $(document).ready(function() {
-  
+
+    $('th.dr').each(function(){
+      $(this).height(height+5);
+    });
+
     // set hover showing
     $('td.noderole')
       .bind('hover',
         function( ev ) {
           id = $(this).attr("id")
           dr = $(this).attr("dr");
-          if (id == -1) {
+          if (id == -1 && dr > 0) {
             if (ev['type']=="mouseenter")
               { $(this).children().show();  
                 // $("td.dr#"+dr).css("font-weight","italic"); 

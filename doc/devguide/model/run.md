@@ -1,12 +1,38 @@
-## Deployment Model
+## Run / Delayed Job
 
-Deployments are the primary scope boundry for work done by Crowbar.  The time line of a deployment is contained by a series of [[snapshot]] objects.
+The Crowbar framework runs all jig actions in the background using
+delayed_jobs + a thin queuing layer that ensures that only one task is
+running on a node at any given time.  For now, we limit ourselves to
+having up to 10 tasks running in the background at any given time,
+which should be enough for the immediate future until we come up with
+proper tuning guidelines or auto-tuning code for significantly larger
+clusters.
 
-### System Deployment
+Postgresql 9.3:
 
-The System deployment is used for node discovery.
+Migrating to delayed_jobs for all our background processing made it
+immediatly obvious that sqlite is not at all suited to handling real
+concurrency once we started doing multiple jig runs on different nodes
+at a time. Postgresql is more than capable of handling our forseeable
+concurrency and HA use cases, and gives us lots of scope for future
+optimizations and scalability.
 
-Cannot be placed into proposed and therefore cannot be used for anything other than
+DHCP and DNS:
+
+The roles for DHCP and DNS have been refactored to have seperate
+database roles, which are resposible for keeping their respective
+server roles up to date.  Theys use the on_node_* roles mentioned in
+"Roles, nodes, noderoles, lifeycles, and events, oh my!" along with a
+new on_node_change event hook create and destroy DNS and DHCP database
+entries, and (in the case of DHCP) to control what enviroment a node
+will PXE/UEFI boot into.  This gives us back the abiliy to boot into
+something besides Sledgehammer.
+
+Deployment tree:
+
+Until now, the only deployment that Crowbar 2.0 knew about was the
+system deployment.  The system deployment, however, cannot be placed
+into proposed and therefore cannot be used for anything other than
 initial bootstrap and discovery.  To do anything besides
 bootstrap the admin node and discover other nodes, we need to create
 another deployment to host the additional noderoles needed to allow
@@ -14,7 +40,13 @@ other workloads to exist on the cluster.  Right now, you can only
 create deployments as shildren of the system deployment, limiting the
 deployment tree to being 2 layers deep.
 
-### Workload Deployments
+Provisioner Installing Ubuntu 12.04:
+
+Now, we get to the first of tqo big things that were added in the last
+week -- the provisioner being able to install Ubuntu 12.04 and bring
+the resulting node under management by the rest of the CB 2.0
+framework.  This bulds on top of the deployment tree and DHCP/DNS
+database role work.  To install Ubuntu 12.04 on a node from the web UI:
 
 1: Create a new deployment, and add the provisioner-os-install role to
 that deployment.  In the future you will be able to edit the
@@ -56,3 +88,7 @@ that noderole before committing the deployment.
   * When the nodes reboot off their freshly-installed hard drive, they
     will mark themselves as alive, and the annealer will rerun all of
     the usual discovery roles.
+The semi-astute observer will have noticed some obvious bugs and race
+conditions in the above sequence of steps.  These have been left in
+place in the interest of expediency and as learning oppourtunities for
+others who need to get familiar with the Crowbar codebase.

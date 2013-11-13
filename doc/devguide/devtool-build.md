@@ -163,7 +163,12 @@ Now that everything is setup and prepped, the last remaining step is to pick wha
     ./dev build
 
 The above results in the following viable combinations:
-* **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on Grizzly.
+* **Basic Crowbar 2.0 Development::** development/openstack-os-build is the latest 
+
+The pre-2.0 releases require completely different versions of Ruby and gems and other apps.
+You cannot build them in the envioronment you just setup:
+* **OpenStack:** mesa-1.6/openstack-os-build for the latest and most stable OpenStack build based on **Grizzly**.
+* **OpenStack:** mesa-1.6.1/openstack-os-build for the latest and most stable OpenStack build based on **Havana**.
 * **Hadoop:** hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
 
 #### Building

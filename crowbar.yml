@@ -293,7 +293,7 @@ gems:
     - highline
     - i18n
     - jquery-rails
-    - json
+    - json-(~>1.7.0)
     - kwalify
     - launchy
     - libxml-ruby

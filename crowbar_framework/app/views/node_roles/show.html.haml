@@ -34,11 +34,17 @@
         = t 'error'
         = e.message
 
-%h3= t '.sysdata'
-= render :partial => 'raw', :locals => { :data => @node_role.sysdata, :hide=> true, :template => nil } 
+%h3
+  %a.toggle.with_label{:href => "#", :id => "#sysdata_toggle", :rel => "sysdata"}= t '.sysdata'
 
-%h3= t '.wall'
-= render :partial => 'raw', :locals => { :data => @node_role.wall, :hide=> true, :template => nil } 
+%pre.code{:id=>"sysdata", :style =>"display:none"}= JSON.pretty_generate @node_role.sysdata
+
+%h3
+  %a.toggle.with_label{:href => "#", :id => "#wall_toggle", :rel => "wall"}= t '.wall'
+
+%pre.code{:id=>"wall", :style =>"display:none"}= JSON.pretty_generate @node_role.wall
+
+%hr 
 
 %h3= t '.upstream'
 = render :partial=>'index', :locals => { :list => @node_role.parents }

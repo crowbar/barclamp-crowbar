@@ -27,14 +27,11 @@ class SnapshotsController < ApplicationController
     respond_to do |format|
       format.html {
         @snapshot = Snapshot.find_key params[:id]
-        @nodes = {}
-        @roles = {}
-        # alpha lists by ID 
-        Node.order("alias ASC").each { |n| @nodes[n.id] = {:node=> n, :scope=>(n.deployment_id==@snapshot.deployment_id), :node_roles=>{} } }
-        @snapshot.deployment_roles.sort_by{ |r| r.name }.each { |r| @roles[r.role_id] = r }
-        @snapshot.node_roles.each do |nr|
-          # build the node_role grid
-          @nodes[nr.node_id][:node_roles][nr.role_id] = nr
+        @roles = @snapshot.deployment_roles.sort{|a,b|a.role.cohort <=> b.role.cohort}
+        # alpha lists by ID
+        @nodes = Node.order("name ASC").select do |n|
+          (n.deployment_id == @snapshot.deployment_id) ||
+          (n.node_roles.where(:snapshot_id => @snapshot.id).count > 0)
         end
       }
       format.json { render api_show :snapshot, Snapshot }

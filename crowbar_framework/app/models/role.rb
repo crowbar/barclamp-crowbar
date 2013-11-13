@@ -139,20 +139,23 @@ class Role < ActiveRecord::Base
   end
 
   def cohort
-    c = read_attribute("cohort")
-    if c.nil?
-      c = 0
-      begin
-        parents.each do |parent|
-          p_c = parent.cohort || 0
-          c = p_c + 1 if p_c >= c
+    Role.transaction do
+      c = read_attribute("cohort")
+      if c.nil?
+        c = 0
+        begin
+          parents.each do |parent|
+            p_c = parent.cohort || 0
+            c = p_c + 1 if p_c >= c
+          end
+          write_attribute("cohort",c)
+          save!
+        rescue
+          Rails.logger.info "Could not calculate cohort for #{self.name} because requested parent role does not exist (could be OK due to late binding)"
         end
-        write_attribute("cohort",c)
-      rescue
-        Rails.logger.info "Could not calculate cohort for #{self.name} because requested parent role does not exist (could be OK due to late binding)"
       end
+      return c
     end
-    return c
   end
 
   def depends_on?(other)

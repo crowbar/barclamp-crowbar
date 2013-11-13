@@ -1229,7 +1229,7 @@ class ServiceObject
       find_counter = 0
       f = File.open("/var/log/crowbar/chef-client/#{pid}.log")
       f.each do |line|
-        if line =~ /={80}/
+        if line == "="*80
            find_counter = l_counter
         end
         l_counter += 1

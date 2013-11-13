@@ -323,3 +323,4 @@ gems:
     - factory_girl_rails-(~>1.7.0)
     - delayed_job_active_record
     - delayed_job
+    - daemons

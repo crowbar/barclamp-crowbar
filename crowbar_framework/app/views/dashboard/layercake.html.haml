@@ -3,24 +3,24 @@
   %h1.title= t '.title'
 
   .column_25.first
-    #core.orange
+    #core{:class=>(@status['core'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'core' }
-    #jigs.orange
+    #jigs{:class=>(@status['jigs'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'jigs' }
 
   .column_75.last
 
-    #apps.dark_green
+    #apps{:class=>(@status['apps'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'apps' }
-    #services.dark_green
+    #services{:class=>(@status['services'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'services' }
-    #clients.yellow
+    #clients{:class=>(@status['clients'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'clients' }
-    #os.pink
+    #os{:class=>(@status['is'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'os' }
-    #nodes.blue
+    #nodes{:class=>(@status['nodes'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'nodes' }
-    #network.dark_blue
+    #network{:class=>(@status['network'] || 'ready')}
       = render :partial=>'layercake', :locals=>{ :layer=>'network' }
 
 .clear

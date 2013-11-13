@@ -19,11 +19,20 @@ class DashboardController < ApplicationController
     # we may want to move this into the database at some point
     taxmap = JSON::load File.open(File.join("config", "layercake.json"), 'r')
     @layers = {}
+    @status = {}
     taxmap["layers"].each { |k| @layers[k]=[] }
     NodeRole.current.each do |nr|
       layer = taxmap[nr.role.name] || 'apps'
       @layers[layer] << nr 
+      if nr.state == NodeRole::ERROR
+        @status[layer] = 'error'
+      elsif (nr.state == NodeRole::PROPOSED)
+        @status[layer] = 'user'
+      elsif nr.state != NodeRole::ACTIVE
+        @status[layer] = 'system'
+      end
     end
+
     respond_to do |format|
       format.html { }
     end

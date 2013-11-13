@@ -133,7 +133,7 @@ If you receive any messages stating "new file:   README.empty-branch" and the ./
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
 
     cd ~/crowbar
-    sudo ./build_sledgehammer.sh
+    ./build_sledgehammer.sh
 
 
 #### Picking our release and build

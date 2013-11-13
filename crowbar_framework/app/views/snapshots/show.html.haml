@@ -21,7 +21,7 @@
     %td= render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot }
 
 %table.snap{:align=>'center'}
-  - if @nodes.count > 0 and @roles.count > 0
+  - if @nodes.count > 0 or  @roles.count > 0
     %thead
       %tr
         %th.anode= link_to t('.nodes'), bulk_edit_path()

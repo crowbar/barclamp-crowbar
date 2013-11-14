@@ -32,7 +32,7 @@ module NodesHelper
     html = ""
     ip_list.each do |network, addresses|
       unless network=='~notconnected' && addresses.nil?
-        if network == '[not managed]'
+        if ['[not managed]', '[dhcp]'].include? network
           html += "<li><b>#{network}:</b> #{addresses.to_a.join(',')}</li>"
         else
           html += "<li><b>#{network}:</b> #{addresses.keys.collect {|k| "#{k}: #{addresses[k]}"}.join(',')}</li>"

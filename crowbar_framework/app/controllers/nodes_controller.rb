@@ -329,26 +329,35 @@ class NodesController < ApplicationController
         @node.target_platform = find_default_os
         @node.save
       end
-      intf_if_map = @node.build_node_map
-      # build network information (this may need to move into the object)
-      @node.networks.each do |intf, data|
-        network[data["usage"]] = {} if network[data["usage"]].nil?
-        if data["usage"] == "bmc"
-          ifname = "bmc"
-          address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
-        else
-          ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
-          if ifname.nil? or ifs.nil?
-            ifname = "Unknown"
+      # If we're in discovery mode, then we have a temporary DHCP IP address.
+      if not ['discovering', 'discovered', 'hardware-installing', 'hardware-installed'].include? @node.state
+        intf_if_map = @node.build_node_map
+        # build network information (this may need to move into the object)
+        @node.networks.each do |intf, data|
+          if data["usage"] == "bmc"
+            ifname = "bmc"
+            address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
           else
-            ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
+            ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
+            if ifname.nil? or ifs.nil?
+              ifname = "Unknown"
+            else
+              ifname = "#{ifname}[#{ifs.join(",")}]" if ifs.length > 1
+            end
+            address = data["address"]
           end
-          address = data["address"]
+          if address
+            network[data["usage"]] = {} if network[data["usage"]].nil?
+            network[data["usage"]][ifname] = address
+          end
         end
-        network[data["usage"]][ifname] = address || 'n/a'
+        @network = network.sort
+        @network << ['[not managed]', @node.unmanaged_interfaces] unless @node.unmanaged_interfaces.empty?
+      elsif @node.state == 'discovering'
+        @network = [ ['[dhcp]', 'discovering'] ]
+      else
+        @network = [ ['[dhcp]', @node[:ipaddress]] ]
       end
-      @network = network.sort
-      @network << ['[not managed]', @node.unmanaged_interfaces] unless @node.unmanaged_interfaces.empty?
     end
 
     @network

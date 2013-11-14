@@ -35,7 +35,7 @@ a clsutered service are up instead of just the first one.
 
 Indicates that this role implements a clustered service.
 
-When the noderole graph is built, any child noderoles of this service will be bound to all of the noderoled for this role in the deployment.  The cluster flag and the implicit flag are mutually exclusive.
+When the noderole graph is built, any child noderoles of this service will be bound to all of the noderoled for this role in the deployment.
 
 
 ### Hooks 

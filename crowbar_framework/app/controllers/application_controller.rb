@@ -166,8 +166,18 @@ class ApplicationController < ActionController::Base
     }
   end
   set_layout
-  
+
+  unless Rails.application.config.consider_all_requests_local 
+    rescue_from Exception,                            :with => :render_error
+  end
+
   private  
+
+  def render_error(exception)
+    Rails.logger.error(exception)
+    @error = exception
+    render :template => "/errors/500.html.haml", :status => 500 
+  end
 
   def digest_auth!
     authenticate_or_request_with_http_digest(User::DIGEST_REALM) do |username|

@@ -33,6 +33,10 @@ class SupportController < ApplicationController
     end
   end
 
+  def fail
+    raise I18n.t('chuck_norris')
+  end
+
   # used to lookup localization values
   def i18n
     begin

@@ -15,8 +15,6 @@
 -module(crowbar_rest).
 -export([step/2, g/1, validate_core/1, validate/1, inspector/1]).
 -export([step/3, inspector/2]).  % depricate!
--import(bdd_utils).
--import(json).
 -include("bdd.hrl").
 
 g(Item) ->

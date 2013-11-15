@@ -20,9 +20,9 @@ class JigModelTest < ActiveSupport::TestCase
 
   test "Unique Name" do
     Jig.create! :name=>"nodups", :type=>"BarclampCrowbar::Jig", :description=>"unit tests"
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Jig.create!(:name => "nodups") }
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { Jig.create!(:name => "nodups") }
     assert_equal "Validation failed: Name Item must be un...", e.message.truncate(42)
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { b = Node.create! :name => "nodups" }
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { b = Node.create! :name => "nodups" }
   end
 
   test "Naming Conventions" do

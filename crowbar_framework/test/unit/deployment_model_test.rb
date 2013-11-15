@@ -23,7 +23,7 @@ class DeploymentModelTest < ActiveSupport::TestCase
   test "Unique per Barclamp Name" do
     d = Deployment.create :name=>"nodup"
     assert_not_nil d
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Deployment.create!(:name => "nodup") }
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { Deployment.create!(:name => "nodup") }
   end
   
   test "Check protections on illegal names" do

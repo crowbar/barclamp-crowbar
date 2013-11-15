@@ -15,7 +15,6 @@
 % 
 -module(bdd_catchall).
 -export([step/2]).
--import(bdd_utils).
 
 step(_Global, {step_given, {Scenario, _N}, ["I mark the logs with",Mark]}) -> 
   URL = bdd_utils:config(marker_url, undefined),

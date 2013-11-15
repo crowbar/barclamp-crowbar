@@ -16,8 +16,6 @@
 -module(crowbar).
 -export([step/2, g/1, state/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
 -export([json_build/1]).
--import(bdd_utils).
--import(json).
 -include("bdd.hrl").
 
 g(Item) ->

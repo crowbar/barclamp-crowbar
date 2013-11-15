@@ -1,0 +1,11 @@
+%div#error_500{:class=>"fail box"}
+  %div.message
+    %h1= "BE DYNAMIC!"
+    %h2= "We can't find the page you're looking for"
+    %p
+      = "Please double check the URL you're trying to reach or consult your "
+      %a{:href=>"/utils"}= "log files"
+    %p
+      = "If this is an application error, we encourage you to visit the"
+      %a{:href=>"http://crowbar.github.io/issues.html"}= "Crowbar site"
+      = "for more information or to submit a bug report."

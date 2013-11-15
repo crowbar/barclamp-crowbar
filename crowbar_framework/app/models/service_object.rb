@@ -1077,7 +1077,7 @@ class ServiceObject
             unless badones.empty?
               message = "Failed to apply the proposal to: "
               badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
+                message = message + "#{pids[baddie[0]]} \n"+ get_log_lines("#{pids[baddie[0]]}")
               end
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
@@ -1112,7 +1112,7 @@ class ServiceObject
             unless badones.empty?
               message = "Failed to apply the proposal to: "
               badones.each do |baddie|
-                message = message + "#{pids[baddie[0]]} "
+                message = message + "#{pids[baddie[0]]} \n "+ get_log_lines("#{pids[baddie[0]]}")
               end
               update_proposal_status(inst, "failed", message)
               restore_to_ready(all_nodes)
@@ -1274,6 +1274,27 @@ class ServiceObject
     }
   end
 
-
+  def get_log_lines(pid)
+    begin
+      l_counter = 1
+      find_counter = 0
+      f = File.open("/var/log/crowbar/chef-client/#{pid}.log")
+      f.each do |line|
+        if line == "="*80
+           find_counter = l_counter
+        end
+        l_counter += 1
+      end
+      f.seek(0, IO::SEEK_SET)
+      if (find_counter > 0) && (l_counter - find_counter) < 50
+        "Most recent logged lines from the Chef run: \n\n" + f.readlines[find_counter -3..l_counter].join(" ")
+      else
+        "Most recent logged lines from the Chef run: \n\n" + f.readlines[l_counter-50..l_counter].join(" ")
+      end
+    rescue
+      @logger.error("Error reporting: Couldn't open /var/log/crowbar/chef-client/#{pid}.log ")
+      raise "Error reporting: Couldn't open  /var/log/crowbar/chef-client/#{pid}.log"
+    end
+  end
 end
 

@@ -16,7 +16,6 @@
 % 
 -module(swift).
 -export([step/2]).
--import(bdd_utils).
 -include("bdd.hrl").
 
 % TEMPORARY REMAPPING

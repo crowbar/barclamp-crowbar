@@ -15,8 +15,6 @@
 
 -module(dev).
 -export([pop/0, pop/1, unpop/0, g/1]).  
--import(bdd_utils).
--import(digest_auth).
 -include("bdd.hrl").
 
 g(Item)         -> 

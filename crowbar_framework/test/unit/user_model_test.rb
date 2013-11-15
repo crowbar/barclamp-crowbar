@@ -66,7 +66,7 @@ class UserModelTest < ActiveSupport::TestCase
     user = "ThisIsATestUser"
     password = "UnguessablePassword!"
     u = User.create!(:username=>user, :password=>password)
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { User.create!(:username=>user, :password=>password) }
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { User.create!(:username=>user, :password=>password) }
   end
 
 end

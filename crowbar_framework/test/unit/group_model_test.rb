@@ -28,7 +28,7 @@ class GroupModelTest < ActiveSupport::TestCase
   test "Unique Name no dup name+category" do
     g = Group.create! :name=>"foo", :category=>'rack'
     assert_not_nil g, "Node Created"
-    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Group.create!(:name=>"foo", :category=>'rack') }
+    assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { Group.create!(:name=>"foo", :category=>'rack') }
   end
 
   test "default category" do

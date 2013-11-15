@@ -23,7 +23,7 @@ class BarclampModelTest < ActiveSupport::TestCase
   test "Unique Name" do
     b = Barclamp.create! :name=>"nodup"
     assert_not_nil b
-    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique, SQLite3::ConstraintException) { Barclamp.create!(:name => "nodup") }
+    e = assert_raise(ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique) { Barclamp.create!(:name => "nodup") }
   end
 
   test "Check proections on illegal barclamp names" do

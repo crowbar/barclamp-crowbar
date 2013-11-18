@@ -34,6 +34,7 @@ barclamp:
 
 roles:
   - name: crowbar-admin-node
+    description: "Core Crowbar Services Bundle"
     jig: noop
     flags:
       - bootstrap
@@ -45,6 +46,7 @@ roles:
       - provisioner-dhcp-database
       - provisioner-repos
   - name: crowbar-managed-node
+    description: "Crowbar Node Service Bundle"
     jig: noop
     flags:
       - discovery
@@ -55,6 +57,7 @@ roles:
       - ntp-client
       - provisioner-repos
   - name: crowbar-installed-node
+    description: "Crowbar Node Ready Checkpoint"
     jig: noop
     flags:
       - implicit

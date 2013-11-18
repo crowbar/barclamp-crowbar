@@ -28,8 +28,9 @@ barclamp:
     - ubuntu-12.04
     - redhat-6.2
     - centos-6.2
-    - opensuse-12.2
+    - opensuse-12.3
     - fedora-18
+    - fedora-19
 
 roles:
   - name: crowbar-admin-node
@@ -189,6 +190,7 @@ rpms:
       - yum-plugin-downloadonly
       - createrepo
       - libxml2-devel
+      - mysql-devel
       - zlib-devel
   centos-6.2:
     repos:
@@ -199,6 +201,7 @@ rpms:
       - yum-plugin-priorities
       - createrepo
       - libxml2-devel
+      - mysql-devel
       - zlib-devel
   fedora-18:
     build_pkgs:
@@ -206,14 +209,29 @@ rpms:
       - yum-plugin-priorities
       - createrepo
       - libxml2-devel
+      - mysql-devel
+      - zlib-devel
+  fedora-19:
+    build_pkgs:
+      - libcurl-devel
+      - yum-plugin-priorities
+      - createrepo
+      - libxml2-devel
+      - zlib-devel
+  opensuse-12.3:
+    repos:
+      - repo http://download.opensuse.org/repositories/server:/database:/postgresql/openSUSE_12.3/ postgresql
+      - repo http://download.opensuse.org/repositories/devel:/tools/openSUSE_12.3/ devel-libs
+      - repo http://download.opensuse.org/update/12.3/ update-oss
+    build_pkgs:
+      - libcurl-devel
+      - libxml2-devel
       - zlib-devel
   required_pkgs:
     - rubygems
     - gcc
     - gcc-c++
     - make
-    - ruby-devel
-    - libxml2-devel
     - zlib-devel
     - tcpdump
     - efibootmgr
@@ -226,7 +244,6 @@ rpms:
     - gcc
     - kernel-devel
     - sqlite-devel
-    - mysql-devel
   pkgs:
     # apache stuff
     - httpd
@@ -264,6 +281,7 @@ rpms:
     - openssh-clients
     - openssh-server
     - openssh
+    - openssl-devel
     # rabbitmq stuff
     # ruby stuff
     - ruby
@@ -274,6 +292,16 @@ rpms:
     - screen
     - graphviz
     - vim-enhanced
+    # postgresql 93 stuff
+    - postgresql93
+    - postgresql93-devel
+    - postgresql93-contrib
+    - postgresql93-server
+    - ruby-devel
+    - libxml2-devel
+    - libpq5
+    - libossp-uuid16
+    - libecpg6
 
 gems:
   pkgs:

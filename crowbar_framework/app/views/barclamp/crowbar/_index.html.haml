@@ -1,7 +1,9 @@
-%section.box70#banner
-  %div#instructions
-    = t('crowbar.instructions')
-:javascript
-  $('#graphic').attr('src','/images/barclamp.png');
-    
-= render :partial => 'barclamp/index'
+.panel-body
+  %p
+    = t(".instructions")
+
+    - unless t(".hint").empty?
+      %em
+        = t(".hint")
+
+= render :partial => "barclamp/index"

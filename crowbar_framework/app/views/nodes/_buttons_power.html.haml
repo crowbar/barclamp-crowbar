@@ -1,0 +1,10 @@
+- if @node.admin?
+  - if @node.bmc_set?
+    = link_to "Identify", hit_node_path(@node.handle, "identify"), :class => "btn btn-default", "data-remote" => true
+- else
+  = link_to "Reboot", hit_node_path(@node.handle, "reboot"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
+  = link_to "Shutdown", hit_node_path(@node.handle, "shutdown"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
+
+  - if @node.bmc_set?
+    = link_to "Power on", hit_node_path(@node.handle, "poweron"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
+    = link_to "Identify", hit_node_path(@node.handle, "identify"), :class => "btn btn-default", "data-remote" => true

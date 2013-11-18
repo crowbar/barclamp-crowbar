@@ -1,0 +1,11 @@
+- node_detail_attributes(@node).each do |row|
+  %tr
+    - row.each do |column|
+      - if column.empty?
+        %td{ :colspan => 2 }
+          &nbsp;
+      - else
+        %th
+          = column.first
+        %td
+          = column.last

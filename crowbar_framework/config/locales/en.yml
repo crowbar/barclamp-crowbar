@@ -1,58 +1,153 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
-
-# Sample localization file for English. Add more files in this directory for other locales.
-# See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
 
 en:
-
-  # Layout
   nav:
-    nodes: Nodes
-    dashboard: Dashboard
-    families: Family Groups
-    network: Network
-    utils: Utilities
-    util_logs: Exported Items
-    util_chef: Chef Export
-    util_import: Import Barclamps
-    list: Bulk Edit
-    barclamps: Barclamps
-    crowbar_bc: Crowbar
-    all_bc: All Barclamps
-    roles: Active Roles
-    proposals: Proposals
-    help: Help
-    crowbar_wiki: Online Help
-    crowbar_ug: Users Guide
-    crowbar_dg: Deployment Guide
-    documentation: Documentation
+    nodes: 'Nodes'
+    dashboard: 'Dashboard'
+    families: 'Family Groups'
+    network: 'Network'
+    utils: 'Utilities'
+    util_logs: 'Exported Items'
+    util_chef: 'Chef Export'
+    util_import: 'Import Barclamps'
+    list: 'Bulk Edit'
+    barclamps: 'Barclamps'
+    crowbar_bc: 'Crowbar'
+    all_bc: 'All Barclamps'
+    roles: 'Active Roles'
+    proposals: 'Proposals'
+    help: 'Help'
+    crowbar_wiki: 'Online Help'
+    crowbar_ug: 'Users Guide'
+    crowbar_dg: 'Deployment Guide'
+    documentation: 'Documentation'
 
   layouts:
     application:
-      provided_by: Provided by
-      
-  # Crowbar barclamp items
+      foo: 'Bar'
+
+  shared:
+    footer:
+      provided_by: 'Provided by %{provider}'
+
+  barclamp:
+    show_index:
+      created_on: 'Created on %{date}'
+      failed: 'Error: %{message}'
+    show_simplified_index:
+      created_on: 'Created on %{date}'
+      failed: 'Error: %{message}'
+    modules:
+      title: 'All Barclamps'
+    index:
+      proposals: %{count} Proposals
+      members: Members
+      barclamp: Name
+      status: Status
+      description: Description
+      in_process: Processing...
+      failed: Error
+      proposal: Proposal
+      confirm_dequeue: Are you sure you wish to dequeue this proposal?
+      confirm_recall: Are you sure you wish to deactivate this proposal?
+      confirm_delete: Are you sure you wish to delete this proposal?
+      no_action: No Action for
+    proposal_show:
+      title: Edit Proposal
+      apply_changes: Apply changes now?
+      create_proposal_success: Successfully created the proposal
+      commit_proposal: Apply
+      commit_proposal_success: Successfully applied the proposal
+      commit_proposal_queued: Successfully queued the proposal until the following become ready
+      save_proposal: Save
+      save_proposal_success: Successfully saved changes to the proposal
+      dequeue_proposal: Dequeue
+      dequeue_proposal_success: Successfully dequeued the proposal
+      dequeue_proposal_failure: Failed to dequeue the proposal
+      destroy_changes: Deactivate proposal now?
+      destroy_active: Deactivate
+      destroy_active_success: Successfully deactivated the proposal
+      destroy_active_failure: Failed to deactivate the proposal
+      delete_changes: Delete proposal now?
+      delete_proposal: Delete
+      delete_proposal_success: Successfully deleted the proposal
+      delete_proposal_failure: Failed to delete the proposal
+      confirm_delete_proposal: Are you sure you wish to delete this proposal?
+      available_nodes: Available Nodes
+      ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
+    node_selector:
+      title: Deployment
+      hint: Drag nodes for deployment from Available Nodes into the selected Role
+      msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.
+      remove: Remove Node
+      add: Drop Node here to add to Role
+      filter: Filter available node list by entering the first letters of the node name
+      no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
+      added: Added Node [0] to Role [1]
+      removed: Removed Node [0] from Role [1]
+      node_deleted: "WARNING: Deleted"
+      node_deleted_title: "You must remove this node in order to save the proposal."
+      error: "Cannot add Node [0] to Role [1]. Error [2]"
+      constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
+      constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
+      constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
+      constraint_attribute: "Cannot add Node [0] to Role [1]: Required feature is not available on node"
+    edit_attributes_raw:
+      title: Attributes
+    edit_deployment_raw:
+      title: Deployment
+    show:
+      edit: Edit Proposal
+      deployment: Nodes Deployment
+      attributes: Proposal Attributes
+      role: Role
+      key: Key
+    show_attributes_raw:
+      key: Key
+    show_deployment_raw:
+      role: Role
+      nodes: Nodes
+      none: No nodes deployed
+    proposals:
+      title: 'Proposals: %{barclamp}'
+      show: 'Edit'
+
+    crowbar:
+      index:
+        instructions: 'These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.'
+        hint: ''
+      edit_attributes:
+        attributes: 'Attributes'
+        simple_proposal_ui: 'Streamlined interface for proposals'
+      edit_deployment:
+        deployment: 'Deployment'
+        noconfig: 'No configuration options'
+
+    attributes: Attributes
+    deployment: Deployment
+
   crowbar:
     instructions: These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.
     details: Details
     details_by: updated by
-    
-  # General Proposal components
+
   proposal:
     items:
       default: proposal
@@ -85,23 +180,22 @@ en:
       No success information for proposal: No success information for proposal
       duplicate_elements_in_role: Duplicate elements detected in role
       unknown_node: Unable to find any node named 
- 
-  # Documentation
+
   docs:
     root: Master Index
     index:
       title: System Documentation
-      details: Topic Updated
-      details_by: by
+      details: 'Updated: %{date} by %{author}'
     topic:
-      parent: Parent
+      root: 'Index'
+      parent: 'Parent: %{title}'
+      authored: 'Updated at %{date} by %{author}'
       children: Children
       nav: Navigation
       topic_missing: Error, generated HTML page for topic not found
       details: Topic Updated
       details_by: by
-      
-  # Model Names / Attributes
+
   model:
     node:
       multiple_node_alias: Multiple nodes responded to alias request
@@ -165,43 +259,48 @@ en:
         status: Status
         barclamp: Barclamp
 
-  # Views
   nodes:
     index:
-      new_node: Add Node
-      title: Node Dashboard
-      status_empty:
-        one:   There is  %{count} node  available in the system.
-        other: There are %{count} nodes available in the system.
+      new_node: Add node
+      title: Dashboard
+      extended_nodes:
+        one: 'There is %{count} node available in the system'
+        other: 'There are %{count} nodes available in the system'
+      simple_nodes:
+        one: '%{count} node'
+        other: '%{count} nodes'
       status_pie: Total {0} - {1} Ready, {2} Unknown, {3} Not Ready and {4} Pending
-      default_new: New Group
-      add: Add Group
+      default_new: New group
+      add: Add
       add_group_error: Group name should start with a letter and only contain letters, digits, -, _, ., or :.
       hide: Hide Group
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
-      new_drag: To move nodes, drag into title
+      new_drag: To move nodes, drag onto this box
     list:
-      group_error: Group should start with a letter and only contain letters, digits, -, _, ., or :.
+      updated: 'Updated successfull the nodes %{success}'
+      failed: 'Failed to save the nodes %{failed}'
+      group_error: 'Failed to save the group for %{node}, should start with a letter and only contain letters, digits, -, _, ., or :.'
       name: Name
       group: Group
       alias: Alias  
       public_name: Public Name
-      hw_description: Hardware Information
+      hw_description: Hardware
       description: Description
       bios: BIOS
       raid: RAID
-      updated: Node List Updated
-      failed: Node Save Failed
       admin: Crowbar Server
-      title_all: Bulk Edit
-      title_unallocated: Bulk Edit (unallocated only)
-      unallocated: Show Unallocated
-      all: Show All
+      title: Bulk edit
+      title_all: All available nodes
+      title_unallocated: Unallocated nodes only
+      unallocated: Unallocated
+      all: All
       nochange: No Changes
-      license_key: License Key
-      target_platform: Target Platform
+      license_key: License
+      target_platform: Platform
       target_platform_not_set: Not set
-      hint: <i>group italics</i> indicates group is set automatically by system
+      hint: 'Note: <i>group italics</i> indicates group is set automatically by system'
+      allocate_all: Allocate?
+      save: Save
     families:
       title: Node Hardware Families
       name: Nodes
@@ -213,17 +312,32 @@ en:
       cpu: CPU Type
       hardware: Platform
     new:
-      title: Add Node
+      title: Add node
+    edit:
+      title: Edit node
     show:
       title: Node
       ganglia: Ganglia
       nagios: Nagios
       bmc: IP Mgmt Interface
       chef: Chef
-      links: Links
+      raid: RAID
+      license_key: License Key
+      target_platform: Target Platform
+      target_platform_not_set: Not set
+    show_details:
       active: Allocated
       inactive: Not Allocated
-      raid: RAID
+    show_ips:
+      no_entry: No address assigned
+    show_links:
+      links: Links
+      no_entry: No links available
+    show_roles:
+      no_entry: No role assigned
+    show_barclamps:
+      no_entry: No barclamp assigned
+    buttons_chef:
       confirm_hw_update: WARNING!  This will reboot the node in order to apply BIOS updates.  Proceed?
       confirm_reinstall: WARNING!  This will rebuild the node to a pristine state using its current deployment profile.  Any data on the node will be lost.  Proceed?
       confirm_deallocate: WARNING!  This will remove the current allocation from the node.  Any subsequent allocation will rebuild the node from scratch, causing any data to be lost.  Proceed?
@@ -232,9 +346,6 @@ en:
       reinstall_tooltip: Rebuild the node to a pristine state using its current deployment profile
       deallocate_tooltip: Remove the current allocation from the node
       forget_tooltip: Remove all records of the node from the Crowbar / Chef database
-      license_key: License Key
-      target_platform: Target Platform
-      target_platform_not_set: Not set
     form:
       allocate: Allocate
       save: Save
@@ -266,16 +377,17 @@ en:
       none_exported: There are no exported files to download
       other: Other Files
       chef: Chef Objects
-      bc_import: Barclamp Import Logs
-      cli: Command Line Utilities
+      bc_import: Import Logs
+      cli: CLI Utilities
       logs: Log Files
       delete_hint: Delete File from Export Directory
-      delete_succeeded: Delete Succeeded
-      delete_failed: Delete Failed
+      delete_succeeded: 'Deleted %{file} successfull'
+      delete_failed: 'Failed to delete %{file}'
+      offline_mode: Feature not available in offline mode
       wait: Exporting... Please wait or check back later (screen will automatically update when complete)
     export:
       succeed: Chef Objects Exported
-      fail: Chef Export Failed
+      fail: 'Chef export failed with %{message}'
     import:
       title: Barclamp Import
       title_all: Barclamp Import (installed and pending)
@@ -307,87 +419,17 @@ en:
       in_process: Restart in process...
       dev_restart: 'DEV MODE: You must manually restart the web server to complete this action (it may not be needed).'
       restarting: Restart request sent...
-      server_down: Process stopped.  Restarting...
+      server_down: Process stopped. Restarting...
       complete: Crowbar Ready!
       button: Restart Crowbar Server
-      import_log: Import Log
-
-     
-  barclamp:
-    modules:
-      title: All Barclamps
-    index:
-      members: Members
-      proposals: proposals
-      barclamp: Name
-      status: Status
-      description: Description
-      in_process: Processing...
-      failed: ERROR
-      proposal: Proposal
-      confirm_dequeue: Are you sure you wish to dequeue this proposal?
-      confirm_recall: Are you sure you wish to deactivate this proposal?
-      confirm_delete: Are you sure you wish to delete this proposal?
-      no_action: No Action for 
-    proposal_show:
-      title: Edit Proposal
-      apply_changes: Apply changes now?
-      create_proposal_success: Successfully created the proposal
-      commit_proposal: Apply
-      commit_proposal_success: Successfully applied the proposal
-      commit_proposal_queued: Successfully queued the proposal until the following become ready
-      save_proposal: Save
-      save_proposal_success: Successfully saved changes to the proposal
-      dequeue_proposal: Dequeue
-      dequeue_proposal_success: Successfully dequeued the proposal
-      dequeue_proposal_failure: Failed to dequeue the proposal
-      destroy_changes: Deactivate proposal now?
-      destroy_active: Deactivate
-      destroy_active_success: Successfully deactivated the proposal
-      destroy_active_failure: Failed to deactivate the proposal
-      delete_changes: Delete proposal now?
-      delete_proposal: Delete
-      delete_proposal_success: Successfully deleted the proposal
-      delete_proposal_failure: Failed to delete the proposal
-      confirm_delete_proposal: Are you sure you wish to delete this proposal?
-      available_nodes: Available Nodes
-      ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
-    node_selector:
-      title: Node Deployment
-      hint: Drag nodes for deployment from Available Nodes into the selected Role
-      msie_fail: Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.  Using "raw editor mode."
-      remove: Remove Node
-      add: Drop Node here to add to Role
-      filter: Filter available node list by entering the first letters of the node name
-      no_dup: "No action taken: An instance of Node [0] already exists in Role [1]"
-      added: Added Node [0] to Role [1]
-      removed: Removed Node [0] from Role [1]
-      node_deleted: "WARNING: Deleted"
-      node_deleted_title: "You must remove this node in order to save the proposal."
-      error: "Cannot add Node [0] to Role [1]. Error [2]"
-      constraint_admin: "Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node"
-      constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
-      constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
-      constraint_attribute: "Cannot add Node [0] to Role [1]: Required feature is not available on node"
-    edit_attributes_raw:
-      title: Proposal Attributes
-    edit_deployment_raw:
-      title: Deployment
-    show:
-      edit: Edit Proposal
-      deployment: Nodes Deployment
-      attributes: Proposal Attributes
-      role: Role
-      key: Key
-    show_attributes_raw:
-      key: Key
-    show_deployment_raw:
-      role: Role
-      nodes: Nodes
-      none: No Nodes Deployed
-
+      import_log: 'Import log: %{file}'
+    array:
+      words_connector: ', '
+      two_words_connector: ' and '
+      last_word_connector: ' and '
 
   # Global
+  overview: Overview
   show: View
   all: All
   destroy: Remove

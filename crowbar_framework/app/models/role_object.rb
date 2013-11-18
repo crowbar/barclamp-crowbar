@@ -1,21 +1,23 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
-class RoleObject < ChefObject
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
 
+class RoleObject < ChefObject
   extend CrowbarOffline
 
   def self.all
@@ -90,6 +92,27 @@ class RoleObject < ChefObject
 
   def inst
     @role.name.gsub("#{self.barclamp}-config-", "")
+  end
+
+  def prop
+    [barclamp, inst].join("_")
+  end
+
+  def display_name
+    @display_name ||= begin
+      catalog = ServiceObject.barclamp_catalog
+      display = catalog['barclamps'][barclamp]['display']
+
+      if display.nil? or display.empty?
+        barclamp.titlecase
+      else
+        display
+      end
+    end
+  end
+
+  def allow_multiple_proposals?
+    Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
   end
 
   def role
@@ -216,6 +239,4 @@ class RoleObject < ChefObject
   def export
     RoleObject.dump @role, 'role', name 
   end
-
 end
-

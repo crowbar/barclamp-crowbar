@@ -1,7 +1,13 @@
+%input#proposal_development{ :type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_deployment.to_json }
 
+.panel-sub
+  %h3
+    = t("barclamp.deployment")
 
-%input#proposal_development{:type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_data['deployment'][@proposal.barclamp].to_json }
-%p
-  %label{:for => "drag_drop"}= t('.deployment')
-  = link_to "Raw", proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => true, :attr_raw => @attr_raw), :style => "float: right;"
+    .pull-right
+      %small
+        = proposal_raw_button @proposal, :dep_raw => true, :attr_raw => @attr_raw
 
+.panel-body
+  .alert.alert-info
+    = t(".noconfig")

@@ -1,10 +1,35 @@
-# Don't change this file!
-# Configure your app in config/environment.rb and config/environments/*.rb
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
 
-RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
+require "thread"
+require "rubygems"
+require "pathname"
+require "app_config"
+
+RAILS_ROOT = File.expand_path("../..", __FILE__) unless defined?(RAILS_ROOT)
 
 module Rails
   class << self
+    def root
+      ::Pathname.new RAILS_ROOT
+    end
+
     def boot!
       unless booted?
         preinitialize
@@ -21,15 +46,15 @@ module Rails
     end
 
     def vendor_rails?
-      File.exist?("#{RAILS_ROOT}/vendor/rails")
+      self.root.join("vendor", "rails").directory?
     end
 
     def preinitialize
-      load(preinitializer_path) if File.exist?(preinitializer_path)
+      load(preinitializer_path) if preinitializer_path.file?
     end
 
     def preinitializer_path
-      "#{RAILS_ROOT}/config/preinitializer.rb"
+      self.root.join("config", "preinitializer.rb")
     end
   end
 
@@ -42,7 +67,8 @@ module Rails
 
   class VendorBoot < Boot
     def load_initializer
-      require "#{RAILS_ROOT}/vendor/rails/railties/lib/initializer"
+      require Rails.root.join("vendor", "rails", "railties", "lib", "initializer")
+
       Rails::Initializer.run(:install_gem_spec_stubs)
       Rails::GemDependency.add_frozen_gem_path
     end
@@ -52,14 +78,15 @@ module Rails
     def load_initializer
       self.class.load_rubygems
       load_rails_gem
-      require 'initializer'
+
+      require "initializer"
     end
 
     def load_rails_gem
       if version = self.class.gem_version
-        gem 'rails', version
+        gem "rails", version
       else
-        gem 'rails'
+        gem "rails"
       end
     rescue Gem::LoadError => load_error
       $stderr.puts %(Missing the Rails #{version} gem. Please `gem install -v=#{version} rails`, update your RAILS_GEM_VERSION setting in config/environment.rb for the Rails version you do have installed, or comment out RAILS_GEM_VERSION to use the latest version installed.)
@@ -74,21 +101,20 @@ module Rails
       def gem_version
         if defined? RAILS_GEM_VERSION
           RAILS_GEM_VERSION
-        elsif ENV.include?('RAILS_GEM_VERSION')
-          ENV['RAILS_GEM_VERSION']
+        elsif ENV.include?("RAILS_GEM_VERSION")
+          ENV["RAILS_GEM_VERSION"]
         else
           parse_gem_version(read_environment_rb)
         end
       end
 
       def load_rubygems
-        min_version = '1.3.2'
-        require 'rubygems'
+        min_version = "1.3.2"
+
         unless rubygems_version >= min_version
           $stderr.puts %Q(Rails requires RubyGems >= #{min_version} (you have #{rubygems_version}). Please `gem update --system` and try again.)
           exit 1
         end
-
       rescue LoadError
         $stderr.puts %Q(Rails requires RubyGems >= #{min_version}. Please install RubyGems and try again: http://rubygems.rubyforge.org)
         exit 1
@@ -100,21 +126,17 @@ module Rails
 
       private
         def read_environment_rb
-          File.read("#{RAILS_ROOT}/config/environment.rb")
+          File.read(Rails.root.join("config", "environment.rb"))
         end
     end
   end
 end
 
-# We'd usually put things like this in config/initializers/app_config.rb, but
-# that's too late for Bundler configuration.
-require 'rubygems'
-require 'app_config'
-AppConfig.setup(:yaml => "#{RAILS_ROOT}/config/app_config.yml")
+AppConfig.setup(
+  :yaml => Rails.root.join("config", "app_config.yml")
+)
 
 if AppConfig[:use_bundler]
-  # Use Bundler to manage gems. See http://gembundler.com/v1.3/rails23.html for
-  # details.
   class Rails::Boot
     def run
       load_initializer
@@ -130,5 +152,4 @@ if AppConfig[:use_bundler]
   end
 end
 
-# All that for this:
 Rails.boot!

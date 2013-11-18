@@ -1,81 +1,26 @@
-- options = CrowbarService.read_options
-.led{:id => "head_#{@node.handle}", :class=>"led #{@node.status}", :title=>t(@node.state, :scope=>:state, :default=>@node.state.titlecase), :style=>'float:left;'}
-%h1{:title=>@node.description}= "#{@node.alias} (#{link_to t('edit'), edit_node_path(@node.handle)})"#.html_safe
+.panel.panel-default
+  .panel-heading
+    %h2
+      %span.led{ :class => @node.status, :id => "head_#{@node.handle}", :title => t(@node.state, :scope => "state", :default => @node.state.titlecase) }
 
-%ul.buttons
-  - unless @node.admin?
-    %li= link_to "Reboot", hit_node_path(@node.handle, 'reboot'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure') 
-    %li= link_to "Shutdown", hit_node_path(@node.handle, 'shutdown'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-    - if @node.bmc_set?
-      %li= link_to "Power On", hit_node_path(@node.handle, 'poweron'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('are_you_sure')
-      %li= link_to "Identify", hit_node_path(@node.handle, 'identify'), :class => 'button', :'data-remote' => true
-  - else
-    - if @node.bmc_set?
-      %li= link_to "Identify", hit_node_path(@node.handle, 'identify'), :class => 'button', :'data-remote' => true
+      %a{ :href => node_path(@node.handle), :title => @node.description }
+        = @node.alias
 
-.column_50.first
-  %dl
-    = dl_item(t('model.attributes.node.name'), @node.name)
-    = dl_item(t('model.attributes.node.public_name'), (@node.public_name.nil? ? "-" : @node.public_name))
-    = dl_item(t('model.attributes.node.description'), @node.description || t('model.attributes.node.description_not_set'))
-    = dl_item(t('model.attributes.node.target_platform'), !@node.target_platform.blank? ? @node.pretty_target_platform : t('model.attributes.node.target_platform_not_set'))
-    -if CrowbarService.require_license_key?(@node.target_platform)
-      = dl_item(t('model.attributes.node.license_key'), !@node.license_key.blank? ? @node.license_key : t('model.attributes.node.license_key_not_set'))
-    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
-    = dl_item(t('model.attributes.node.uptime'), (@node.ready? ? @node.uptime : t('model.attributes.node.na')))
-    = dl_item(t('model.attributes.node.allocated'), (@node.allocated ? t('.active') : t('.inactive')))
-    = dl_item(t('model.attributes.node.state'), t(@node.state, :scope => :state, :default=>@node.state.titlecase), {:class=>"node_state", :title=>"#{t('raw')}: #{@node.state}"})
+      .btn-group.pull-right
+        = link_to t("edit"), edit_node_path(@node.handle), :class => "btn btn-default"
 
-.column_50.last
-  %dl
-    = dl_item(t('model.attributes.node.hardware'), @node.hardware)
-    = dl_item(t('model.attributes.node.asset_tag'), @node.asset_tag)
-    = dl_item(t('model.attributes.node.cpu'), @node.cpu)
-    = dl_item(t('model.attributes.node.memory'), format_memory(@node.memory))
-    - number_of_drives = @node.number_of_drives
-    - number_of_drives = t('unknown') if number_of_drives < 0
-    -if options[:show].include? :raid
-      = dl_item(t('model.attributes.node.number_of_drives'), "#{number_of_drives}, #{t('.raid')}: #{t('raid.'+@node.raid_set)}")
-    -else
-      = dl_item(t('model.attributes.node.number_of_drives'), "#{number_of_drives}")
-    = dl_item(t('model.attributes.node.mac'), @node.mac || t('unknown'))
-    - if @node.switch_unit.nil?
-      = dl_item(t('model.attributes.node.switch_name_port'), "#{@node.switch_name || t('unknown') } / #{@node.switch_port || t('unknown')}")
-    - else
-      = dl_item(t('model.attributes.node.switch_name_unit_port'), link_to("#{@node.switch_name || t('unknown') } / #{@node.switch_unit || ''} / #{@node.switch_port || t('unknown')}", switch_path(:node=>@node.handle)))
+  %table.table.table-hover.table-attributes
+    %tbody
+      = render :partial => "show_details"
+      = render :partial => "show_ips"
+      = render :partial => "show_barclamps"
+      = render :partial => "show_roles"
+      = render :partial => "show_links"
 
-.clear
+  - if @node.bmc_set? or not @node.admin?
+    .panel-footer
+      .btn-group.pull-right
+        = render :partial => "buttons_power"
 
-%dl.networks
-  = dl_item(t('model.attributes.node.ip'), "<ul class='plain'>#{ip_addresses(@network)}</ul>", {:escape_html=>false})
-
-%dl.links
-  %dt
-    = t('.links')
-  %dd
-    - need_sep = false
-    - if @node.bmc_set?
-      = link_to t('.bmc'), "https://#{@node["crowbar_wall"]["ipmi"]["address"] rescue 'none'}", :target => '_blank'
-      - need_sep = true
-    - unless @node["crowbar"]["links"].nil?
-      - @node["crowbar"]["links"].sort_by{|name, link| name}.each do |name, link|
-        - if need_sep
-          , 
-        - else
-          - need_sep = true
-        = link_to name, link, :target => '_blank'
-  
-%dl.barclamps
-  = dl_item(t('model.attributes.node.barclamps'), barclamps_list(@node.roles), {:escape_html=>false})
-
-%dl.roles
-  = dl_item(t('model.attributes.node.roles'), roles_list(@node.roles), {:escape_html=>false})
-
-%ul.buttons
-  - unless @node.admin?
-    -if options[:show].include? :bios or options[:show].include? :raid
-      %li= link_to "Hardware Update", hit_node_path(@node.handle, 'update'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_hw_update'), :title => t('.hw_update_tooltip')
-    - if @node.allocated?
-      %li= link_to "Reinstall", hit_node_path(@node.handle, 'reinstall'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_reinstall'), :title => t('.reinstall_tooltip')
-      %li= link_to "Deallocate", hit_node_path(@node.handle, 'reset'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_deallocate'), :title => t('.deallocate_tooltip')
-    %li= link_to "Forget", hit_node_path(@node.handle, 'delete'), :class => 'button', :'data-remote' => true, :'data-confirm' => t('.confirm_forget'), :title => t('.forget_tooltip')
+      .btn-group
+        = render :partial => "buttons_chef"

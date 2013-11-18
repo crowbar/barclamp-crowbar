@@ -1,76 +1,46 @@
-- prop = "#{@proposal.barclamp}_#{@proposal.name}"
-- barclamp = @proposal.barclamp
-- role_name = @proposal.name
-- catalog = ServiceObject.barclamp_catalog
-- display_name = catalog['barclamps'][barclamp]['display']
-- display_name = barclamp.titlecase if display_name.nil? or display_name == ""
-%p{:style => 'float:right'}
-  = link_to t('cancel'), barclamp_modules_path(:id=>@proposal.barclamp), :class => 'button'
+.row
+  .col-xs-12
+    %h1.page-header
+      = display_led_for(:unknown, @proposal.prop, status_proposals_barclamp_path(:id => @proposal.prop, :barclamp => @proposal.barclamp, :name => @proposal.name))
 
-.led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left'} 
-%h1= t '.title'
--# Rails 2 needs - and Rails 3 needs =
-- form_for :proposal, :url => update_proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp), :html => { :method => :post, :'data-type' => 'html', :id => 'update_proposal_form', :class => "box", :autocomplete => "off" } do |f|
-  %p{:style=>'float:right'}
-    - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
-      - if @active
-        %input.button{:type => "submit", :name => "submit", :value => t('.destroy_active'), :'data-confirm' => t('.destroy_changes')}
-      - unless @active or @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-        %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
-      - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-        %input.button{:type => "submit", :name=>"submit", :source=> "dequeue1", :match=>'dequeue2', :value => t('.dequeue_proposal'), :'data-remote'=>'true'}
-      %input.button{:type => "submit", :name=>"submit", :source => "commit1", :match=>'commit2', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
-      %input.button{:type => "submit", :name => "submit", :source=>"save1", :match=>"save2", :value => t('.save_proposal'), :'data-remote'=>"true"}
-  - if @service_object.simple_proposal_ui? && !Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
-    %h2= link_to "#{display_name}", barclamp_modules_path(:id=>@proposal.barclamp)
-  - else
-    %h2= link_to "#{display_name}: #{@proposal.name.titlecase}", barclamp_modules_path(:id=>@proposal.barclamp)
+      = t(".title")
 
-  %input#barclamp{:type => "hidden", :name => "barclamp", :value => @proposal.barclamp}
-  %input#name{:type => "hidden", :name => "name", :value => @proposal.name}
-  = render_attributes(@attr_raw, @proposal)
-  = render :partial => "barclamp/attribute_helper"
+- update_proposal_form_for @proposal do |f|
+  %input#barclamp{ :type => "hidden", :name => "barclamp", :value => @proposal.barclamp }
+  %input#name{ :type => "hidden", :name => "name", :value => @proposal.name }
 
-  = render_deployment(@dep_raw, @proposal)
+  .panel.panel-default
+    .panel-heading
+      %h2
+        - if @service_object.simple_proposal_ui? and not @proposal.allow_multiple_proposals?
+          = link_to @proposal.display_name, barclamp_modules_path(:id => @proposal.barclamp)
+        - else
+          = link_to "#{@proposal.display_name}: #{@proposal.name.titlecase}", barclamp_modules_path(:id => @proposal.barclamp)
 
-  %p
-    - if @proposal["deployment"][@proposal.barclamp]["crowbar-committing"].nil? or !@proposal["deployment"][@proposal.barclamp]["crowbar-committing"]
-      - if @active
-        %input.button{:type => "submit", :name => "submit", :value => t('.destroy_active'), :'data-confirm' => t('.destroy_changes')}
-      - unless @active or @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-        %input.button{:type => "submit", :name => "submit", :value => t('.delete_proposal'), :'data-confirm' => t('.delete_changes')}
-      - if @proposal["deployment"][@proposal.barclamp]["crowbar-queued"]
-        %input.button{:type => "submit", :name=>"submit", :source=> "dequeue2", :match=>'dequeue1', :value => t('.dequeue_proposal'), :'data-remote'=>'true'}
-      %input.button{:type => "submit", :name=>"submit", :source => "commit2", :match=>'commit1', :value => t('.commit_proposal'), :'data-remote'=>'true', :'data-confirm' => t('.apply_changes')}
-      %input.button{:type => "submit", :name=>"submit", :source => "save2", :match=>'save1', :value => t('.save_proposal'), :'data-remote'=>'true'}
+        .btn-group.pull-right
+          - unless @proposal.pretty_deployment.crowbar_committing
+            - if @active
+              = deactivate_proposal_button(@proposal)
+            - else
+              = delete_proposal_button(@proposal)
+            = dequeue_proposal_button(@proposal)
+            = apply_proposal_button(@proposal)
+            = save_proposal_button(@proposal)
 
-  
-:javascript
+          = cancel_barclamp_button(@proposal.barclamp)
 
-  function update() {
-    $.ajaxSetup({ timeout: 3000 })
-    $.getJSON('#{status_proposals_barclamp_path(:id=>prop, :barclamp=>barclamp, :name=>role_name)}', function(data) {
-      // Update proposals status
-      $.each(data['proposals'], function(key,val) {
-        var el = $('#'+key);
-        if(el.hasClass("unknown")) {
-          led_update(el, key, val, data['i18n'][key]['status']);
-        } else {
-          led_update(el, key, val, data['i18n'][key]['status'], function(){ el.effect("highlight", {color: '#666666'}, 2000); });
-        }
-      });
-    });
-  }
+    = render_barclamp_edit_attributes(@proposal, @attr_raw)
+    = render_barclamp_edit_deployment(@proposal, @dep_raw)
 
-  function led_update(td, key, val, i18n, callback) {
-    if(!td.hasClass(val)){
-      td.attr('class', val+' led').attr('title', i18n);
-      if(typeof callback == 'function'){
-        callback.call();
-      }
-    };
-  }
+    .panel-footer.text-right
+      .btn-group
+        - unless @proposal.pretty_deployment.crowbar_committing
+          - if @active
+            = deactivate_proposal_button(@proposal)
+          - else
+            = delete_proposal_button(@proposal)
+          = dequeue_proposal_button(@proposal)
+          = apply_proposal_button(@proposal)
+          = save_proposal_button(@proposal)
 
-  jQuery(document).ready(function($) {
-    update();
-  });
+        = cancel_barclamp_button(@proposal.barclamp)

@@ -1,0 +1,6 @@
+%footer
+  %span
+    = raw(branding_config[:version].gsub("CROWBAR_VERSION", CROWBAR_VERSION))
+
+  %span
+    = t(".provided_by", :provider => raw(branding_config[:provider]))

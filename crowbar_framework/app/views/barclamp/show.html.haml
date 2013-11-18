@@ -1,58 +1,25 @@
-- prop = "#{@role.barclamp}_#{@role.inst}"
-- barclamp = @role.barclamp
-- role_name = @role.inst
-- catalog = ServiceObject.barclamp_catalog
-- display_name = catalog['barclamps'][barclamp]['display']
-- display_name = barclamp.titlecase if display_name.nil? or display_name == ""
-%p{:style => 'float:right'}
-  = link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
+.row
+  .col-xs-12
+    %h1.page-header
+      = display_led_for(:unknown, @role.prop, status_proposals_barclamp_path(:id => @role.prop, :barclamp => @role.barclamp, :name => @role.inst))
 
-.led.unknown{:id => prop, :title=>t('proposal.status.unknown'), :style=>'float:left;'}
-- if @service_object.simple_proposal_ui? && !Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
-  %h1= link_to "#{display_name}", barclamp_modules_path(:id=>@role.barclamp)
-- else
-  %h1= link_to "#{display_name}: #{@role.inst.titlecase}", barclamp_modules_path(:id=>@role.barclamp)
+      - if @service_object.simple_proposal_ui? and not @role.allow_multiple_proposals?
+        = link_to @role.display_name, barclamp_modules_path(:id => @role.barclamp)
+      - else
+        = link_to "#{@role.display_name}: #{@role.inst.titlecase}", barclamp_modules_path(:id => @role.barclamp)
 
-.box
-  %h2= t '.attributes'
+      .btn-group.pull-right
+        = edit_barclamp_button(@role.barclamp, @role.inst)
 
-  =(@attr_raw ? (render :partial => 'barclamp/show_attributes_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_attributes" rescue (render :partial => 'barclamp/show_attributes_raw') end))
+.panel.panel-default
+  .panel-heading
+    %h2
+      = t('.attributes')
 
-.box
-  %h2= t '.deployment'
-  =(@attr_raw ? (render :partial => 'barclamp/show_deployment_raw') : (begin render :partial => "barclamp/#{@role.barclamp}/show_deployment" rescue (render :partial => 'barclamp/show_deployment_raw') end))
-  
-%p
-  =link_to t('.edit'), "/crowbar/#{@role.barclamp}/1.0/proposals/#{@role.inst}", :class => 'button'
-  
-  
-:javascript
+  = render_barclamp_show_attributes @role.barclamp, @attr_raw
 
-  function update() {
-    $.ajaxSetup({ timeout: 3000 })
-    $.getJSON('#{status_proposals_barclamp_path(:id=>prop, :barclamp=>barclamp, :name=>role_name)}', function(data) {
-      // Update proposals status
-      $.each(data['proposals'], function(key,val) {
-        var el = $('#'+key);
-        if(el.hasClass("unknown")) {
-          led_update(el, key, val, data['i18n'][key]['status'] );
-        } else {
-          led_update(el, key, val, data['i18n'][key]['status'], function(){ el.effect("highlight", {color: '#666666'}, 2000); });
-        }
-      });
-    });
-  }
+  .panel-heading
+    %h2
+      = t('.deployment')
 
-  function led_update(td, key, val, i18n, callback) {
-    if(!td.hasClass(val)){
-      td.destroy();
-      td.attr('class', val+' led').attr('title', i18n);
-      if(typeof callback == 'function'){
-        callback.call();
-      }
-    };
-  }
-
-  jQuery(document).ready(function($) {
-    update();
-  });
+  = render_barclamp_show_deployment @role.barclamp, @dep_raw

@@ -1,81 +1,85 @@
-.box
-  -# Rails 2 needs - and Rails 3 needs =
-  - form_for :node, :'data-remote' => true, :url => update_node_path(@node.handle), :html => { :'data-type' => 'html', :'data-method' => 'put', :id => 'update_node_form', :class => "formtastic" } do |f|
-    %fieldset.inputs
-      %ol
-        -unless @node.allocated
-          %li.select
-            = f.label :target_platform, t('.target_platform')
-            = select_tag :target_platform, options_for_select(option_default(@target_platforms, @node.target_platform, 'target_platform'), @node.target_platform), {:onchange => "showLicense(this)"}
-          %li.text#licenseKey{:style => CrowbarService.require_license_key?(@node.target_platform) ? 'display:block' : 'display:none'}
-            = f.label :license_key, t('.license_key')
-            = text_field_tag :license_key, @node.license_key, :size => 20
-        -else
-          %li.text
-            = f.label :target_platform, t('.target_platform')
+- form_for :node, :url => update_node_path(@node.handle), "data-remote" => true, :html => { :role => "form", "data-type" => "html", "data-method" => "put" } do |f|
+  .panel.panel-default
+    .panel-heading
+      %h2
+        = @node.name
+
+        .btn-group.pull-right
+          = link_to t("cancel"), nodes_path(:selected => @node.handle), :class => "btn btn-default"
+          %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
+
+          - unless @node.allocated? or @node.admin?
+            %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".allocate") }
+
+    .panel-body
+      - if @node.allocated
+        .form-group
+          = f.label :target_platform, t('.target_platform')
+          %span.form-control{ :disabled => "disabled" }
             = @node.pretty_target_platform
-          -if CrowbarService.require_license_key?(@node.target_platform)
-            %li.text
-              = f.label :license_key, t('.license_key')
+
+        - if crowbar_service.require_license_key? @node.target_platform
+          .form-group
+            = f.label :license_key, t('.license_key')
+            %span.form-control{ :disabled => "disabled" }
               = @node.license_key
-        %li.text
-          = f.label :alias, t('.alias')
-          = text_field_tag :alias, @node.alias(true), :size => 20
-        %li.text
-          = f.label :public_name, t('.public_name')
-          = text_field_tag :public_name, @node.public_name(true), :size => 20
-          %p.inline-hints= t('.public_name_hint')
-        %li.text
-          = f.label :description, t('.description')
-          = text_field_tag :description, @node.description(true), :size => 40
-        %li.text
-          = f.label :group, t('.group')
-          - if @node.display_set?('group')
-            = text_field_tag :group, @node.group, :size => 20
+      - else
+        .form-group
+          = f.label :target_platform, t('.target_platform')
+          = select_tag :target_platform, platforms_for_select(@node.target_platform), :class => "form-control", "data-showit" => crowbar_service.require_license_platforms.join(","), "data-showit-target" => "#license_key"
+
+        .form-group
+          = f.label :license_key, t('.license_key')
+          = text_field_tag :license_key, @node.license_key, :class => "form-control"
+
+      .form-group
+        = f.label :alias, t('.alias')
+        = text_field_tag :alias, @node.alias(true), :class => "form-control"
+
+      .form-group
+        = f.label :public_name, t('.public_name')
+        = text_field_tag :public_name, @node.public_name(true), :class => "form-control"
+
+        %span.help-block
+          = t('.public_name_hint')
+
+      .form-group
+        = f.label :description, t('.description')
+        = text_field_tag :description, @node.description(true), :class => "form-control"
+
+      .form-group
+        = f.label :group, t('.group')
+        - if @node.display_set? 'group'
+          = text_field_tag :group, @node.group, :class => "form-control", :placeholder => @node.group
+        - else
+          = text_field_tag :group, @node.group(true), :class => "form-control", :placeholder => @node.group
+
+      .form-group
+        = f.label :intended_role, t('.intended_role')
+        = select_tag :intended_role, options_for_select([[t('.no_role'),'no_role'], [t('.controller'), 'controller'], [t('.compute'), 'compute'], [t('.network'), 'network'], [t('.storage'), 'storage']], @node.intended_role), :class => "form-control"
+
+      - if crowbar_options[:show].include? :bios
+        .form-group
+          = f.label :bios, t('.bios')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
           - else
-            %p
-              = "#{t '.default'}: "
-              %b= @node.group
-            %p
-              = " #{t '.override'} "
-              = text_field_tag :group, @node.group(true), :size => 20
-        %li.select
-          = f.label :intended_role, t('.intended_role')
-          = select_tag :intended_role, options_for_select([[t('.no_role'),'no_role'], [t('.controller'), 'controller'], [t('.compute'), 'compute'], [t('.network'), 'network'], [t('.storage'), 'storage']], @node.intended_role)
-          %p.inline-hints= t('.intended_role_hint')
-        -if @options[:show].include? :bios
-          %li.select
-            = f.label :bios, t('.bios')
-            -if @node.admin?
-              = t 'na'
-            -else
-              = select_tag :bios, options_for_select(option_default(@options[:bios], @node.bios_set, 'bios'), @node.bios_set)
-        -if @options[:show].include? :raid
-          %li.select
-            = f.label :raid, t('.raid')
-            -if @node.admin?
-              = t 'na'
-            -else
-              = select_tag :raid,  options_for_select(option_default(@options[:raid], @node.raid_set, 'raid'), @node.raid_set)
-    %fieldset.buttons
-      %ol
-        -unless @node.allocated? or @node.admin?
-          %li
-            %input.button{:type => "submit", :name => "submit", :value => t('.allocate')}
-        %li
-          %input.button{:type => "submit", :name => "submit", :value => t('.save')}
+            = select_tag :bios, options_for_select(crowbar_options[:bios], @node.bios_set), :class => "form-control"
 
-:javascript
+      - if crowbar_options[:show].include? :raid
+        .form-group
+          = f.label :raid, t('.raid')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :raid, options_for_select(crowbar_options[:raid], @node.raid_set), :class => "form-control"
 
-  function showLicense(obj)
-  {
-      if(obj[obj.selectedIndex].value == 'windows-6.2')
-      {
-          document.getElementById('licenseKey').style.display = 'block';
-      }
-      else
-      {
-          document.getElementById('licenseKey').style.display = 'none';
-      }
-  }
+    .panel-footer.text-right
+      .btn-group
+        = link_to t("cancel"), nodes_path(:selected => @node.handle), :class => "btn btn-default"
+        %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
 
+        - unless @node.allocated? or @node.admin?
+          %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".allocate") }

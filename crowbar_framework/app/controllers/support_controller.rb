@@ -1,150 +1,163 @@
-# Copyright 2013, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Dell Crowbar Team
+# Author: SUSE LINUX Products GmbH
+#
+
+require "chef"
 
 class SupportController < ApplicationController
-    
-  require 'chef'
-
-  # Legacy Support (UI version moved to loggin barclamp)
   def logs
-    @file = "crowbar-logs-#{ctime}.tar.bz2"
-    system("sudo -i /opt/dell/bin/gather_logs.sh #{@file}")
-    redirect_to "/export/#{@file}"
+    filename = "crowbar-logs-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tar.bz2"
+
+    system("sudo -i #{Rails.root.join("..", "bin", "gather_logs.sh").expand_path} #{filename}")
+    redirect_to "/export/#{filename}"
   end
-  
+
   def get_cli
-    system("sudo -i /opt/dell/bin/gather_cli.sh #{request.env['SERVER_ADDR']} #{request.env['SERVER_PORT']}")
+    executable = Rails.root.join("..", "bin", "gather_cli.sh").expand_path
+    
+    system("sudo -i #{executable} #{request.env["SERVER_ADDR"]} #{request.env["SERVER_PORT"]}")
     redirect_to "/crowbar-cli.tar.gz"
   end
-  
+
   def index
-    @waiting = params['waiting'] == 'true'
-    remove_file 'export', params[:id] if params[:id]
-    @exports = { :count=>0, :logs=>[], :cli=>[], :chef=>[], :other=>[], :bc_import=>[] }
-    Dir.entries(export_dir).each do |f|
-      if f =~ /^\./
-        next # ignore rest of loop
-      elsif f =~ /^KEEP_THIS.*/
-        next # ignore rest of loop
-      elsif f =~ /^crowbar-logs-.*/
-        @exports[:logs] << f 
-      elsif f =~ /^crowbar-cli-.*/
-        @exports[:cli] << f
-      elsif f =~ /^crowbar-chef-.*/
-        @exports[:chef] << f 
-      elsif f =~ /(.*).import.log$/
-        @exports[:bc_import] << f 
+    @export = Utils::ExtendedHash.new({
+      :waiting => params[:waiting] == "true" || params[:format] == "json",
+      :counter => 0,
+      :current => params["file"],
+      :files => {
+        :logs => [],
+        :cli => [],
+        :chef => [],
+        :other => [],
+        :bc_import => []
+      }
+    })
+
+    export_dir.children.each do |file|
+      filename = file.basename.to_s
+
+      if filename =~ /^\./
+        next
+      elsif filename =~ /^KEEP_THIS.*/
+        next
+      elsif filename =~ /^crowbar-logs-.*/
+        @export.files.logs.push filename
+      elsif filename =~ /^crowbar-cli-.*/
+        @export.files.cli.push filename
+      elsif filename =~ /^crowbar-chef-.*/
+        @export.files.chef.push filename
+      elsif filename =~ /(.*).import.log$/
+        @export.files.bc_import.push filename
       else
-        @exports[:other] << f
+        @export.files.other.push filename
       end
-      @exports[:count] += 1
-      @file = params['file'] if params['file']
-      @waiting = false if @file == f
+
+      @export.waiting = false if filename == @export.current
+      @export.counter += 1
     end
+
     respond_to do |format|
-      format.html # index.html.haml
-      format.xml  { render :xml => @exports }
-      format.json { render :json => @exports }
+      format.html
+      format.json { render :json => @export.to_json }
     end
   end
-  
-  
+
+  def destroy
+    file = check_dir("export").join(params[:id])
+
+    begin
+      file.unlink
+      flash[:notice] = t("support.index.delete_succeeded", :file => file.basename)
+    rescue
+      flash[:alert] = t("support.index.delete_failed", :file => file.basename)
+    end
+
+    redirect_to utils_url
+  end
+
   def export_chef
     if CHEF_ONLINE
       begin
-        Dir.entries('db').each { |f| File.delete(File.expand_path(File.join('db',f))) if f=~/.*\.json$/ }
+        Rails.root.join("db").children.each do |file|
+          file.unlink if file.extname == ".json"
+        end
+
         NodeObject.all.each { |n| n.export }
         RoleObject.all.each { |r| r.export }
         ProposalObject.all.each { |p| p.export }
-        @file = cfile ="crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
+
+        filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
+
         pid = fork do
-          system "tar -czf #{File.join('/tmp',cfile)} #{File.join('db','*.json')}" 
-          File.rename File.join('/tmp',cfile), File.join(export_dir,cfile)
-        end        
-        redirect_to "/utils?waiting=true&file=#{@file}"
+          system "tar -czf #{Rails.root.join("tmp", filename)} #{Rails.root.join("db", "*.json").to_s}"
+          File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
+        end
+
+        Process.detach(pid)
+        redirect_to utils_url(:waiting => true, :file => filename) and return
       rescue StandardError => e
-        flash[:notice] = I18n.t('support.export.fail') + ": " + e.message
-        redirect_to "/utils"
+        flash[:alert] = I18n.t("support.export.fail", :error => e.message)
       end
     else
-      flash[:notice] = 'feature not available in offline mode'
+      flash[:alert] = t("support.index.offline_mode")
     end
+
+    redirect_to utils_url
   end
-  
+
   def restart
     @init = false
+    @log = Rails.root.join("public", "export", "#{SERVER_PID}.import.log")
+
     if params[:id].nil?
       render
     elsif params[:id].eql? "request" or params[:id].eql? "import"
       @init = true
       render
     elsif params[:id].eql? "in_process"
-      %x[sudo bluepill crowbar-webserver restart] unless RAILS_ENV == 'development'
-      render :json=>false
+      %x[sudo bluepill crowbar-webserver restart] unless Rails.env.development?
+      render :json => true
     elsif params[:id].eql? SERVER_PID
-      render :json=>false
+      render :json => false
     elsif !params[:id].eql? SERVER_PID
-      render :json=>true
+      render :json => true
     else
       render
     end
   end
   
-  private 
-  
-  def ctime
-    Time.now.strftime("%Y%m%d-%H%M%S")
-  end
-  
+  protected
+
   def import_dir
-    check_dir 'import'
+    check_dir "import"
   end
-  
+
   def export_dir
-    check_dir 'export'
+    check_dir "export"
   end
 
   def check_dir(type)
-    d = File.join 'public', type
-    unless File.directory? d
-      Dir.mkdir d
-    end
-    return d    
-  end
-  
-  def remove_file(type, name)
-    begin
-      f = File.join(check_dir(type), name)
-      File.delete f
-      flash[:notice] = t('support.index.delete_succeeded') + ": " + f
-    rescue
-      flash[:notice] = t('support.index.delete_failed') + ": " + f
-    end
-  end
-  
-  def extract_crowbar_yml(import_dir, tar, regen = true)
-    archive = File.join import_dir,tar
-    name = tar[/^(.*).tar.gz$/,1]
-    name = tar[/^(.*).tgz$/,1] if name.nil?   #alternate ending
-    name += '.yml'
-    # extra from tar if not present
-    if regen or !File.exist?(File.join(import_dir, name))
-      crowbar = %x[tar -t -f #{archive} | grep crowbar.yml].strip
-      %x[tar -x #{crowbar} -f #{archive} -O > #{File.join(import_dir, name)}] if crowbar
-    end
-    return name
-  end
+    path = Rails.root.join("public", type)
 
-end 
+    unless path.directory?
+      FileUtil.mkdir_p path.expand_path
+    end
+
+    path
+  end
+end

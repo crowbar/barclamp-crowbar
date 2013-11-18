@@ -1,0 +1,39 @@
+.page-header {
+  margin-top: 0;
+
+  .btn-group {
+    .btn {
+      font-weight: normal;
+    }
+  }
+}
+
+.panel {
+  .panel-heading {
+    h2 {
+      margin: 0;
+    }
+  }
+
+  .panel-sub {
+    padding: 5px 15px;
+    border-bottom: 1px solid #eeeeee;
+  }
+}
+
+@-moz-document url-prefix() {
+  a {
+    &.btn {
+      @include button-size(($padding-base-vertical - 1px), $padding-base-horizontal, $font-size-base, $line-height-base, $border-radius-base);
+    }
+
+    &.btn-lg {
+      @include button-size(($padding-large-vertical - 1px), $padding-large-horizontal, $font-size-large, $line-height-large, $border-radius-large);
+    }
+
+    &.btn-sm,
+    &.btn-xs {
+      @include button-size(($padding-small-vertical - 1px), $padding-small-horizontal, $font-size-small, $line-height-small, $border-radius-small);
+    }
+  }
+}

@@ -1,4 +1,5 @@
-# Copyright 2011, Dell
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
 #
-#
-# Also functions as a data bag item wrapper as well.
-#
+
 require 'pp'
 require 'chef'
 require 'json'
-
 require 'hash_only_merge'
 
 class ServiceObject
-
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
   extend CrowbarOffline
 
@@ -728,8 +726,8 @@ class ServiceObject
   # This can be overridden to get better validation if needed.
   #
   def validate_proposal proposal
-    path = "/opt/dell/chef/data_bags/crowbar"
-    path = "schema" unless CHEF_ONLINE
+    path = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
+    path = Rails.root.join("schema") unless CHEF_ONLINE
     begin
       validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     rescue StandardError => e
@@ -1113,7 +1111,7 @@ class ServiceObject
         unless admin_list.empty?
           admin_list.each do |node|
             filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-            pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
+            pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
             pids[node] = pid
           end
           status = Process.waitall
@@ -1125,7 +1123,7 @@ class ServiceObject
                 node = pids[baddie[0]]
                 @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
                 filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-                pid = run_remote_chef_client(node, "/opt/dell/bin/single_chef_client.sh", filename)
+                pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
                 pids[pid] = node
               end
               status = Process.waitall
@@ -1148,7 +1146,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE and !ran_admin
+    system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE and !ran_admin
 
     update_proposal_status(inst, "success", "")
     restore_to_ready(all_nodes)
@@ -1306,4 +1304,3 @@ class ServiceObject
     end
   end
 end
-

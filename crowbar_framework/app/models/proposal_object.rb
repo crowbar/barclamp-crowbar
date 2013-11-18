@@ -1,22 +1,22 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
 #
-# Also functions as a data bag item wrapper as well.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
+
 class ProposalObject < ChefObject
 
   extend CrowbarOffline
@@ -84,6 +84,50 @@ class ProposalObject < ChefObject
     I18n.t attrib, :scope => "model.attributes.proposal"
   end
 
+  def raw_attributes
+    @raw_attributes ||= begin
+      raw_data["attributes"][barclamp] || {}
+    end
+  end
+
+  def pretty_attributes
+    @pretty_attributes ||= begin
+      Utils::ExtendedHash.new(
+        raw_attributes.dup
+      )
+    end
+  end
+
+  def pretty_attributes_json
+    JSON.pretty_generate(
+      JSON.parse(
+        (raw_data["attributes"][barclamp] || {}).to_json
+      )
+    )
+  end
+
+  def raw_deployment
+    @raw_deployment ||= begin
+      raw_data["deployment"][barclamp] || {}
+    end
+  end
+
+  def pretty_deployment
+    @pretty_deployment ||= begin
+      Utils::ExtendedHash.new(
+        raw_data["deployment"][barclamp].dup
+      )
+    end
+  end
+
+  def pretty_deployment_json
+    JSON.pretty_generate(
+      JSON.parse(
+        (raw_data["deployment"][barclamp] || {}).to_json
+      )
+    )
+  end
+
   def item
     @item
   end
@@ -98,6 +142,27 @@ class ProposalObject < ChefObject
   
   def barclamp
     @item.name[/crowbar_bc-(.*)-(.*)$/,1]
+  end
+
+  def prop
+    [barclamp, name].join("_")
+  end
+
+  def display_name
+    @display_name ||= begin
+      catalog = ServiceObject.barclamp_catalog
+      display = catalog['barclamps'][barclamp]['display']
+
+      if display.nil? or display.empty?
+        barclamp.titlecase
+      else
+        display
+      end
+    end
+  end
+
+  def allow_multiple_proposals?
+    Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
   end
 
   #NOTE: Status is NOT accurate if the proposal has been deactivated!  You must check the role.
@@ -211,5 +276,4 @@ class ProposalObject < ChefObject
       index_array.index(a.send(att_sym)).to_i <=> index_array.index(b.send(att_sym)).to_i
     end
   end
-
 end

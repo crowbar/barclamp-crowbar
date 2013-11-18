@@ -1,48 +1,66 @@
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Dell Crowbar Team
+# Author: SUSE LINUX Products GmbH
+#
+
 module SchemaMigration
+  require "chef"
 
-  require 'chef'
-
-  public
   def self.run
-    ServiceObject.barclamp_catalog['barclamps'].each do |bc_name, details|
+    ServiceObject.barclamp_catalog["barclamps"].each do |bc_name, details|
       run_for_bc bc_name
     end
   end
 
-  public
   def self.run_for_bc bc_name
     template = ProposalObject.find_proposal("template", bc_name)
+
     return if template.nil?
-    return if template['deployment'].nil?
-    return if template['deployment'][bc_name].nil?
+    return if template["deployment"].nil?
+    return if template["deployment"][bc_name].nil?
 
     all_scripts = find_scripts_for_bc(bc_name)
     return if all_scripts.empty?
 
     props = ProposalObject.find_proposals bc_name
+
     props.each do |prop|
       migrate_proposal(bc_name, template, all_scripts, prop)
 
       # Attempt to do migration for the matching committed proposal
       # Note: we don't want to commit the proposal we just migrated, because it
       # might have other uncommitted changes that are not wanted.
+
       role_name = prop['id'].gsub("bc-#{bc_name}-", "#{bc_name}-config-")
       role = RoleObject.find_role_by_name(role_name)
+
       unless role.nil?
         migrate_role(bc_name, template, all_scripts, role)
       end
     end
   end
 
-### Private methods
-
   private
+
   def self.get_migrate_dir(bc_name)
-    data_bags_path_prefix = "/opt/dell/chef/data_bags/crowbar"
+    data_bags_path_prefix = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
     return File.join(data_bags_path_prefix, 'migrate', bc_name)
   end
 
-  private
   def self.find_scripts_for_bc(bc_name)
     all_scripts = []
 
@@ -58,7 +76,6 @@ module SchemaMigration
     return all_scripts
   end
 
-  private
   def self.find_scripts_for_migration(bc_name, all_scripts, old_revision, new_revision)
     scripts = []
     migrate_dir = get_migrate_dir(bc_name)
@@ -87,7 +104,6 @@ module SchemaMigration
     return scripts
   end
 
-  private
   def self.run_script(script, is_upgrade, template_attributes, template_deployment, attributes, deployment)
     # redefine upgrade/downgrade to no-op before each load
     def upgrade ta, td, a, d
@@ -106,7 +122,6 @@ module SchemaMigration
     end
   end
 
-  private
   def self.migrate_object(bc_name, template, all_scripts, attributes, deployment)
     attributes ||= Mash.new
     deployment ||= Mash.new
@@ -138,7 +153,6 @@ module SchemaMigration
     return attributes, deployment
   end
 
-  private
   def self.migrate_proposal(bc_name, template, all_scripts, proposal)
     attributes = proposal['attributes'][bc_name]
     deployment = proposal['deployment'][bc_name]
@@ -152,7 +166,6 @@ module SchemaMigration
     proposal.save
   end
 
-  private
   def self.migrate_role(bc_name, template, all_scripts, role)
     attributes = role.default_attributes[bc_name]
     deployment = role.override_attributes[bc_name]
@@ -165,5 +178,4 @@ module SchemaMigration
     role.override_attributes[bc_name] = deployment
     role.save
   end
-
 end

@@ -1,4 +1,5 @@
-# Copyright 2011, Dell
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
 #
+
+require "chef"
+
 class NodesController < ApplicationController
 
-  require 'chef'
 
-  # GET /nodes
-  # GET /nodes.xml
+
+
+
   def index
     @sum = 0
     session[:node] = params[:name]
@@ -37,7 +42,7 @@ class NodesController < ApplicationController
       get_node_and_network(params[:selected]) if params[:selected]
       raw_nodes.each do |node|
         @sum = @sum + node.name.hash
-        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status }
+        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
         group = node.group
         @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
         @groups[group][:nodes][node.group_order] = node.handle
@@ -50,150 +55,191 @@ class NodesController < ApplicationController
       end
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
+
+
+
     respond_to do |format|
-      format.html # index.html.haml
-      format.xml  { render :xml => @nodes }
+      format.html
+      format.xml { render :xml => @nodes }
       format.json { render :json => @nodes }
     end
   end
 
+
+
+
+
   def list
     if request.post?
-      nodes = {}
-      params.each do |k, v|
-        if k.starts_with? "node:"
-          parts = k.split ':'
-          node = parts[1]
-          area = parts[2]
-          nodes[node] = {} if nodes[node].nil?
-          nodes[node][area] = (v.empty? ? nil : v)
-        end
-      end
-      succeeded = []
-      failed = []
-      # before we start saving, make sure someone did not give us duplicate aliases
-      # this SHOULD Be causght by the node.save but race conditoins are breaking the constency of the DB
-      alias_dup = false
-      nodes.each do |node_name, values|
-        nodes.each do |nn, vv|
-           alias_dup = true if nn!=node_name and vv['alias'] == values['alias']
-           failed << node_name if alias_dup 
-           break if alias_dup
-        end
-      end
-      unless alias_dup
-        nodes.each do |node_name, values|
-          begin
-            dirty = false
-            node = NodeObject.find_node_by_name node_name
-            if !node.allocated and values['allocate'] === 'checked'
-              node.allocated = true
-              dirty = true
-            end
-            if !(node.description == values['description'])
-              node.description = values['description']
-              dirty = true
-            end
-            if !(node.alias == values['alias'])
-                node.alias = values['alias']
+      @report = {
+        :success => [],
+        :failed => [],
+        :duplicate => false
+      }.tap do |report|
+        node_aliases = params[:node].values.map { |attributes| attributes["alias"] }
+
+        params[:node].each do |node_name, node_attributes|
+          node_count = node_aliases.select do |name|
+            name == node_attributes["alias"]
+          end
+
+          if node_count.length > 1
+            report[:duplicate] = true
+            report[:failed].push node_name
+
+            next
+          end
+
+          unless report[:duplicate]
+            begin
+              dirty = false
+              node = NodeObject.find_node_by_name node_name
+
+              if node_attributes["allocate"] == "checked" and not node.allocated
+                node.allocated = true
                 dirty = true
-            end
-            if !(node.public_name == values['public_name'])
-                node.public_name = values['public_name']
+              end
+
+              unless node.description == node_attributes["description"]
+                node.description = node_attributes["description"]
                 dirty = true
-            end
-            if !(node.group == values['group'])
-              if values['group'] and values['group'] != "" and !(values['group'] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-                raise node.name + ": " + t('nodes.list.group_error')
               end
-              node.group = values['group']
-              dirty = true
-            end
-            if !values['bios'].nil? and values['bios'].length>0 and !(node.bios_set === values['bios']) and !(values['bios'] === 'not_set')
-              node.bios_set = values['bios']
-              dirty = true
-            end
-            if !values['raid'].nil? and values['raid'].length>0 and !(node.raid_set === values['raid']) and !(values['raid'] === 'not_set')
-              node.raid_set = values['raid']
-              dirty = true
-            end
-            if !(node.target_platform == values['target_platform'])
-              node.target_platform = values['target_platform']
-              unless CrowbarService.require_license_key?(node.target_platform)
-                 values['license_key'] = ""
+
+              unless node.alias == node_attributes["alias"]
+                node.alias = node_attributes["alias"]
+                dirty = true
               end
-              dirty = true
-            end
-            if !(node.license_key == values['license_key'])
-              node.license_key = values['license_key']
-              dirty = true
-            end
-            if dirty
-              begin
+
+              unless node.public_name == node_attributes["public_name"]
+                node.public_name = node_attributes["public_name"]
+                dirty = true
+              end
+
+              unless node.target_platform == node_attributes["target_platform"]
+                node.target_platform = node_attributes["target_platform"]
+                dirty = true
+              end
+
+              if CrowbarService.require_license_key? node.target_platform
+                unless node.license_key == node_attributes["license_key"]
+                  node.license_key = node_attributes["license_key"]
+                  dirty = true
+                end
+              else
+                unless node.license_key == ""
+                  node.license_key = ""
+                  dirty = true
+                end
+              end
+
+              if @template.crowbar_options[:show].include?(:bios) and node.bios_set != node_attributes["bios"]
+                node.bios_set = node_attributes["bios"]
+                dirty = true
+              end
+
+              if @template.crowbar_options[:show].include?(:raid) and node.raid_set != node_attributes["raid"]
+                node.raid_set = node_attributes["raid"]
+                dirty = true
+              end
+
+              unless node.group == node_attributes["group"]
+                unless node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
+                  raise I18n.t("nodes.list.group_error", :node => node.name)
+                end
+
+                node.group = node_attributes["group"]
+                dirty = true
+              end
+
+              if dirty
                 node.save
-                succeeded << node_name
-              rescue StandardError => e
-                log_exception(e)
-                failed << node_name
+                report[:success].push node_name
               end
+            rescue StandardError => e
+              log_exception(e)
+              report[:failed].push node_name
             end
-          rescue StandardError => e
-            log_exception(e)
-            failed << node_name
           end
         end
       end
-      if failed.length>0
-        flash[:notice] = failed.join(',') + ": " + I18n.t('failed', :scope=>'nodes.list')
-      elsif succeeded.length>0
-        flash[:notice] = succeeded.join(',') + ": " + I18n.t('updated', :scope=>'nodes.list')
+
+      if @report[:failed].length > 0
+        node_list = @report[:failed].map do |node_name|
+          node_name.split(".").first
+        end
+
+        flash.now[:alert] = I18n.t("nodes.list.failed", :failed => node_list.to_sentence)
+      elsif @report[:success].length > 0
+        node_list = @report[:success].map do |node_name|
+          node_name.split(".").first
+        end
+
+        flash.now[:notice] = I18n.t("nodes.list.updated", :success => node_list.to_sentence)
       else
-        flash[:notice] = I18n.t('nochange', :scope=>'nodes.list')
+        flash.now[:info] = I18n.t("nodes.list.nochange")
       end
     end
-    @options = CrowbarService.read_options
-    @nodes = {}
 
-    default_os = find_default_os
+    @nodes = {}.tap do |nodes|
+      NodeObject.all.each do |node|
+        if node.target_platform.blank?
+          node.target_platform = @template.default_platform
+          node.save
+        end
 
-    NodeObject.all.each do |node|
-      if node.target_platform.blank?
-         node.target_platform = default_os
-         node.save
+        if params[:allocated].nil? or not node.allocated?
+          nodes[node.handle] = node
+        end
       end
-      @nodes[node.handle] = node if params[:allocated].nil? or !node.allocated?
     end
 
-    @target_platforms = options_target_platform(default_os)
+    respond_to do |format|
+      format.html
+    end
   end
 
   def families
-    nodes = NodeObject.all
-    @families = {}
-    nodes.each do |n|
-      f = n.family.to_s  
-      @families[f] = {:names=>[], :family=>n.family} unless @families.has_key? f
-      @families[f][:names] << {:alias=>n.alias, :description=>n.description, :handle=>n.handle}
-    end
-  end
-  
-  def group_change
-    node = NodeObject.find_node_by_name params[:id]
-    if node.nil?
-      raise "Node #{params[:id]} not found.  Cannot change group" 
-    else
-      group = params[:group]
-      if params.key? 'automatic'
-        node.group=""
-      else
-        node.group=group
+    @families = {}.tap do |families|
+      NodeObject.all.each do |node|
+        family = node.family.to_s
+
+        unless families.has_key? family
+          families[family] = {
+            :names => [],
+            :family => node.family
+          }
+        end
+
+        families[family][:names].push({
+          :alias => node.alias,
+          :description => node.description,
+          :handle => node.handle
+        })
       end
-      node.save
-      Rails.logger.info "node #{node.name} (#{node.alias}) changed its group to be #{node.group.empty? ? 'automatic' : group}."
-      render :inline => "SUCCESS: added #{node.name} to #{group}.", :cache => false 
     end
   end
-  
+
+  def group_change
+    NodeObject.find_node_by_name(params[:id]).tap do |node|
+      raise ActionController::RoutingError.new('Not Found') if node.nil?
+
+      if params[:group].downcase.eql? 'automatic'
+        node.group = ""
+      else
+        node.group = params[:group]
+      end
+
+      node.save
+
+      Rails.logger.info "Node #{node.name} (#{node.alias}) changed its group to be #{node.group || "automatic"}."
+      render :inline => "Added #{node.name} to #{node.group}.", :cache => false
+    end
+  end
+
+
+
+
+
   def status
     nodes = {}
     groups = {}
@@ -254,14 +300,13 @@ class NodesController < ApplicationController
   end
 
   def edit
-    @options = CrowbarService.read_options
-    @target_platforms = options_target_platform(find_default_os)
     get_node_and_network(params[:id] || params[:name])
   end
 
   def update
     if request.post?
       get_node_and_network(params[:id] || params[:name])
+
       if params[:submit] == t('nodes.form.allocate')
         @node.allocated = true
         flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
@@ -327,7 +372,7 @@ class NodesController < ApplicationController
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
       if @node.target_platform.blank?
-        @node.target_platform = find_default_os
+        @node.target_platform = @template.default_platform
         @node.save
       end
       # If we're in discovery mode, then we have a temporary DHCP IP address.
@@ -362,20 +407,5 @@ class NodesController < ApplicationController
     end
 
     @network
-  end
-
-  def find_default_os
-    NodeObject.all.each do |node|
-      return "#{node[:platform]}-#{node[:platform_version]}" if node.admin?
-    end
-    return ""
-  end
-
-  def options_target_platform(default_os)
-    return {
-      CrowbarService.pretty_target_platform(default_os) => default_os,
-      CrowbarService.pretty_target_platform("windows-6.2") => "windows-6.2",
-      CrowbarService.pretty_target_platform("hyperv-6.2") => "hyperv-6.2"
-    }
   end
 end

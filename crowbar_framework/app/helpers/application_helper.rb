@@ -1,4 +1,5 @@
-# Copyright 2011, Dell
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,134 +13,185 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
 #
-# Methods added to this helper will be available to all templates in the application.
+
 module ApplicationHelper
-  # Is this a Rails 2-ism - csrf_meta_tag?
-  # app/helpers/application_helper.rb
-  def csrf_meta_tag
-    if protect_against_forgery?
-      out = %(<meta name="csrf-param" content="%s"/>\n)
-      out << %(<meta name="csrf-token" content="%s"/>)
-      out % [ Rack::Utils.escape_html(request_forgery_protection_token),
-              Rack::Utils.escape_html(form_authenticity_token) ]
+  include Sprockets::Helpers
+
+  # Check if we are using a quite old bad internet explorer, currently used for
+  # disableing drag and drop for this old browser
+  def bad_explorer?
+    request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
+  end
+
+  # Added this helper method to access app config, maybe we need some wrapping
+  # and it feels better to call a method instead of a class
+  def app_config
+    AppConfig
+  end
+
+  # A simple wrapper to access the branding configuration directly, looks much
+  # cleaner within the views
+  def branding_config
+    app_config[:branding]
+  end
+
+  # Generate the meta title that gets displayed on the page meta information
+  def meta_title
+    "#{branding_config[:page_title]}: #{controller.action_name.titleize}"
+  end
+
+  # This method gets extended in the future to include anywhere registered
+  # stylesheets to get the stylesheets more dynamic included
+  def registered_stylesheets
+    @registered_stylesheets ||= begin
+      [
+        "application"
+      ]
     end
   end
 
-  def dl_item(term, definition, options={})
-    unless definition.blank? && options[:show_if_blank] != true
-      html  = "<dt>#{options[:escape_html] != false ? (h term) : (term)}</dt>"
-      dd = "<dd" + (options[:class].nil? ? "" : " class='"+options[:class]+"'") + (options[:title].nil? ? "" : " title='" + options[:title]+"'") + ">"
-      html += "#{dd}#{options[:escape_html] != false ? (h definition) : (definition)}</dd>"
-      raw html
+  # Register more stylesheets to the collection, they are getting included in
+  # the document head
+  def register_stylesheets(*stylesheets)
+    registered_stylesheets.push(stylesheets).flatten!
+  end
+
+  # This method gets extended in the future to include anywhere registered
+  # javascripts to get the javascripts more dynamic included
+  def registered_javascripts
+    @registered_javascripts ||= begin
+      [
+        "application"
+      ]
     end
   end
 
-  def column_class(current_column, total)
-    if (current_column % total) == 0
-      "first"
-    elsif (current_column % total) == (total-1)
-      "last"
-    end
+  # Register more javascripts to the collection, they are getting included in
+  # the document head
+  def register_javascripts(*javascripts)
+    registered_javascripts.push(javascripts).flatten!
   end
-  
-  def format_memory(kB)
-    mem = (kB.to_f / 1024 / 1024)
-    "#{sprintf("%#1.2f", mem)} GB"
-  end
-  
-  def hash_to_ul(hash)
-      result = "<ul>"
-      hash.each do |key,value|
-          result << "<li>"
-          if key.is_a?(Hash)
-              result << hash_to_ul(key)
-          else
-              result << "<em>#{key}</em>"
-          end
-          if value.is_a?(Hash)
-              result << hash_to_ul(value)
-          else
-              result << ( value == nil ? "" : ": #{value}" )
-          end
-          result << "</li>"
+
+  # Generate the page title that gets displayed on every page within the header
+  def page_title
+    [].tap do |output|
+      output.push content_tag(
+        :span,
+        AppConfig[:branding][:page_title],
+        :class => "title"
+      )
+
+      unless AppConfig[:branding][:page_slogan].empty?
+        output.push content_tag(
+          :span,
+          AppConfig[:branding][:page_slogan],
+          :class => "slogan"
+        )
       end
-      result << "</ul>"
+    end.join("\n")
   end
 
-  def render_attributes(raw, proposal)
-    if raw
-      render :partial => 'barclamp/edit_attributes_raw'
-    else
-      begin
-        render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
-      rescue ActionView::MissingTemplate
-        render :partial => 'barclamp/edit_attributes_raw'
-      rescue StandardError => e
-        puts "Attribute Exception #{e.class}: #{e.message}"
-        puts e.backtrace.join("\n")
-        render :partial => 'barclamp/edit_attributes_raw'
+  # Include required meta tags like csrf token, viewport and such stuff
+  def meta_tags
+    [].tap do |output|
+      output.push tag(
+        :meta,
+        :charset => "utf-8"
+      )
+
+      output.push tag(
+        :meta,
+        :content => "IE=edge",
+        "http-equiv" => "X-UA-Compatible"
+      )
+
+      output.push tag(
+        :meta,
+        :name => "viewport",
+        :content => "width=device-width, initial-scale=1.0"
+      )
+
+      if protect_against_forgery?
+        output.push tag(
+          :meta,
+          :name => "csrf-param",
+          :content => Rack::Utils.escape_html(request_forgery_protection_token)
+        )
+
+        output.push tag(
+          :meta,
+          :name => "csrf-token",
+          :content => Rack::Utils.escape_html(form_authenticity_token)
+        )
       end
+    end.join("\n")
+  end
+
+  # Build a wrapper for the crowbar service options, feels much better
+  # within the views to simply call a method for getting the hash
+  def crowbar_service
+    @crowbar_service ||= begin
+      CrowbarService
     end
   end
 
-  def render_deployment(raw, proposal)
-    if raw
-      render :partial => 'barclamp/edit_deployment_raw'
+  # Build a wrapper for the crowbar service options, feels much better
+  # within the views to simply call a method for getting the hash
+  def crowbar_options
+    @crowbar_options ||= begin
+      crowbar_service.read_options
+    end
+  end
+
+  def flash_for(value)
+    case value
+    when :notice
+      "success"
+    when :alert
+      "danger"
     else
-      unless RAILS_ENV == 'development'
-        begin
-          render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
-        rescue ActionView::MissingTemplate
-          render :partial => 'barclamp/edit_deployment_raw'
-        rescue StandardError => e
-          puts "Deployment Exception #{e.message}"
-          puts e.backtrace.join("\n")
-          render :partial => 'barclamp/edit_deployment_raw'
-        end
-      else
-        render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
-      end
+      value.to_s
     end
   end
 
-  def nodes_hash(group=nil)
-    nodes = {}
-    NodeObject.all.each do |node|      
-      nodes[node.name] = {:handle=>node.handle, :alias=>node.alias, :title=>node.description(false, true), :admin=>node.admin?, :group=>node.group} if node.group==group or group.nil? 
-    end
-    nodes
-  end
-  
-  def instance_selector_get_select_tag(bc, name, field, proposal)
-    service = eval("#{bc.camelize}Service.new nil")
-    options = service.list_active[1] | service.proposals[1]
-    if options.empty?
-      options = [["None", ""]]
+  def dash_or(value)
+    if value.nil? or value.empty?
+      content_tag(
+        :span,
+        "&mdash;",
+        :class => "empty"
+      )
     else
-      options = options.map { |x| [x.humanize,x] }
+      value
+    end
+  end
+
+  def value_for(value, fallback, condition = nil)
+    is_empty = if condition.nil?
+      value.nil? or value.empty?
+    else
+      ! condition
     end
 
-    def_val = proposal.raw_data['attributes'][proposal.barclamp] || ""
-    for f in field.split('/')
-      next if f.empty?
-      break if def_val == ""
-      def_val = def_val[f] || ""
+    if is_empty
+      content_tag(
+        :span,
+        fallback,
+        :class => "empty"
+      )
+    else
+      value
+    end
+  end
+
+  def default_platform
+    NodeObject.all.each do |node|
+      return "#{node[:platform]}-#{node[:platform_version]}" if node.admin?
     end
 
-    select_tag name, options_for_select(options, def_val), :onchange => "update_value(\'#{field}\', \'#{name}\', 'string')"
+    ""
   end
-
-  def render_instance_selector(bc, name, label, field, proposal)
-    return if not Kernel.const_get("#{bc.camelize}Service").method(:allow_multiple_proposals?).call
-    select_tag = instance_selector_get_select_tag(bc, name, field, proposal)
-    render :partial => "barclamp/instance_selector", :locals => { :field => field, :label => label, :select_tag => select_tag }
-  end
-
-  def instance_selector(bc, name, field, proposal)
-    Chef::Log.error("instance_selector method is deprecated! Please update your code to use render_instance_selector.")
-    instance_selector_get_select_tag(bc, name, field, proposal)
-  end
-
 end

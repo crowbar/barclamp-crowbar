@@ -1,21 +1,21 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
-
-# Settings specified here will take precedence over those in config/environment.rb
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
 
 # The production environment is meant for finished, "live" apps.
 # Code is not reloaded between requests
@@ -23,27 +23,29 @@ config.cache_classes = true
 
 # Full error reports are disabled and caching is turned on
 config.action_controller.consider_all_requests_local = false
-config.action_controller.perform_caching             = true
-config.action_view.cache_template_loading            = true
+config.action_controller.perform_caching = true
+config.action_view.cache_template_loading = true
+config.action_view.debug_rjs = false
 
-# See everything in the log (default is :info)
+# Log error messages when you accidentally call methods on nil.
+config.whiny_nils = false
+
+# Set a verbose log level to get the informations we need
 config.log_level = :debug
 
-# Use a different cache store in production
-# config.cache_store = :mem_cache_store
+# Don't care if the mailer can't send
+config.action_mailer.raise_delivery_errors = false
 
-# Enable serving of images, stylesheets, and javascripts from an asset server
-# config.action_controller.asset_host = "http://assets.example.com"
-
-# Disable delivery errors, bad email addresses will be ignored
-# config.action_mailer.raise_delivery_errors = false
+# Enable request forgery protection in production environment
+config.action_controller.allow_forgery_protection = true
 
 # Enable threaded mode
-# config.threadsafe!
+#config.threadsafe!
 
-  CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-  CHEF_NODE_NAME ="crowbar" 
-  CHEF_SERVER_URL = "http://localhost:4000"
-  CHEF_ONLINE = true
-  CROWBAR_VERSION = "Production"
-  
+CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
+CHEF_NODE_NAME ="crowbar"
+CHEF_SERVER_URL = "http://localhost:4000"
+CHEF_ONLINE = File.exist? CHEF_CLIENT_KEY
+CROWBAR_VERSION = "Production"
+OFFLINE_FILES_DIR = "db"
+#OFFLINE_DOMAIN = "dell.com" # used when the cache domain is not the same as the server domain

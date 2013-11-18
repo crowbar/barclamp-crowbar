@@ -6,7 +6,6 @@ log/*.html
 tmp/
 .rvmrc
 config/database.yml
-public/stylesheets/*.css
 *~
 .beam
 vendor/cache

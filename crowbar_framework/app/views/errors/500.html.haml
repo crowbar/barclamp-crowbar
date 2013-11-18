@@ -1,11 +1,23 @@
 %div#error_500{:class=>"fail box"}
   %div.message
-    %h1= "BE DYNAMIC!"
-    %h2= "We can't find the page you're looking for"
-    %p
-      = "Please double check the URL you're trying to reach or consult your "
-      %a{:href=>"/utils"}= "log files"
-    %p
-      = "If this is an application error, we encourage you to visit the"
-      %a{:href=>"http://crowbar.github.io/issues.html"}= "Crowbar site"
-      = "for more information or to submit a bug report."
+    %h2= t 'error.title'
+    %ul
+      %li
+        = t 'error.logfile' 
+        (
+        = link_to t('link'), utils_path()
+        )
+      %li
+        = t 'error.filebug' 
+        (
+        = link_to t('link'), "http://crowbar.github.io/issues.html"
+        )
+    %div
+      %a.toggle.with_label{:href => "#", :id => "#error_toggle", :rel => "error"}= t('error.details', :message=>@error.message)
+    %div.box{:id=>"error", :style =>"position:relative; top:1em", :futre_style =>"display:none; position:relative; top:1em"} 
+      %p
+        %em= @error.message
+      %h3= t 'error.backtrace'
+      %ol
+        - @error.backtrace.each do |l|
+          %li= l

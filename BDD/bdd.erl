@@ -1,4 +1,4 @@
-% Copyright 2012, Dell 
+% Copyright 2013, Dell 
 % 
 % Licensed under the Apache License, Version 2.0 (the "License"); 
 % you may not use this file except in compliance with the License. 
@@ -190,7 +190,10 @@ stop(Config) ->
 % load the configuration file
 getconfig(Config) when is_atom(Config) -> getconfig(atom_to_list(Config));
 getconfig(ConfigName)                  ->
-  {ok, ConfigBase} = file:consult(ConfigName++".config"),
+  ConfigBase = case file:consult(ConfigName++".config") of
+     {error,enoent} -> bdd_utils:log(error, bdd, test, "Cannot start BDD.  ~p configuration file not found.~n", [ConfigName]), throw('no config');
+     {ok, CB} -> CB
+  end,
   [put(K, V) || {K, V} <- ConfigBase ],
   bdd_utils:config_set(get(), config, ConfigName).
   

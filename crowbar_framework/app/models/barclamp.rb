@@ -175,7 +175,7 @@ class Barclamp < ActiveRecord::Base
       role_jig = role["jig"]
       prerequisites = role['requires'] || []
       flags = role['flags'] || []
-      description = role['descripion'] || "imported by #{barclamp.name}"
+      description = role['descripion'] || role_name.gsub("-"," ").titleize
       template = File.join barclamp.source_path, role_jig || "none", 'roles', role_name, 'role-template.json'
       # roles data import
       ## TODO: Verify that adding the roles will not result in circular role dependencies.

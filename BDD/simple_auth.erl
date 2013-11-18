@@ -124,7 +124,10 @@ request(Config, Method, {URL, Headers, ContentType, Body}, HTTPOptions, Options)
     302 ->
       % we have to shoehorn the port number back into the redirect URL - erlang bug?
       Location = proplists:get_value("location", ResponseHeaders),
-      {http, _, NHost, _Port, NURI, _Params} = http_uri:parse(Location),
+      {http, _, NHost, _Port, NURI, _Params} = case http_uri:parse(Location) of
+	{ok, {http, A, B, C, D, E}} -> {http, A, B, C, D, E};
+        {http, A, B, C, D, E} -> {http, A, B, C, D, E}
+      end,
       CorrectURL = assemble_url(NHost,Port,NURI),
       request(Method, CorrectURL, TrialHeaders, ContentType, Body, HTTPOptions2, Options);
 

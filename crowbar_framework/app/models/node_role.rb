@@ -225,7 +225,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def runnable?
-    node.available? && node.alive? && jig.active
+    node.available && node.alive && jig.active
   end
 
   # Walk returns all of the NodeRole graph (including self) reachable from

@@ -4,7 +4,7 @@ Crowbar uses a composite documentation system that allows each barclamp to add d
 
 > Please see the Formating subsection for tips on formatting markdown.
 
-This information is available as a video! see http://youtu.be/eWHeEWiOEvo
+This information is available as a video! see [http://youtu.be/eWHeEWiOEvo](http://youtu.be/eWHeEWiOEvo)
 
 #### Composite Documentation
 

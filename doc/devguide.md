@@ -23,3 +23,5 @@ Before you start developing a barclamp, we recommend that you do the following:
 ## Guidelines for contributors
 
 Pending (please port from crowbar/crowbar/docs/devguide/contributing.md.
+
+Ready for more? [[https://github.com/crowbar/barclamp-crowbar/tree/master/doc/devguide]]

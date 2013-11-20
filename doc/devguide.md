@@ -18,28 +18,8 @@ Before you start developing a barclamp, we recommend that you do the following:
 
 ## Getting started
 
-* [How to set up a development environment in a VM](devguide/dev-vm.md)
+* Install DevTool
 
 ## Guidelines for contributors
 
-See the [Contributor Guide](devguide/contributing.md).
-
-## Technical topics
-
-* [2.0 API reference guide](devguide/API.md)
-* [Barclamps](devguide/barclamps.md)
-* [Browser support matrix](devguide/browser-support.md)
-* [Building ISOs](devguide/building.md)
-* [Using the ./dev tool](devguide/devtool.md)
-* [Testing](devguide/testing.md)
-* [Code analysis](devguide/analysis.md)
-* [UI development](devguide/ui.md)
-* [openSUSE images](devguide/openSUSE-images.md)
-
-## Authors
-
-* Rob Hirschfeld
-* Greg Althaus
-* Mike Pittaro
-* Chris Dearborn
-* Adam Spiers
+Pending (please port from crowbar/crowbar/docs/devguide/contributing.md.

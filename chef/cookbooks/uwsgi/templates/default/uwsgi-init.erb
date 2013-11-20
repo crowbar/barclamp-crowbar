@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# uwsgi - This script starts and stops all configured uwsgi applications
+#
+# chkconfig:   - 85 15
+# description: uWSGI is a program to run applications adhering to the
+#              Web Server Gateway Interface.
+# processname: uwsgi
+# config:      /etc/sysconfig/uwsgi
+
+# Source function library.
+. /etc/init.d/functions
+
+servicename="<%= @service %>"
+serviceconfig="<%= @config %>"
+pidfile="/var/run/$servicename.pid"
+
+start() {
+	echo -n "Starting $servicename:"
+	daemon --pidfile="$pidfile" uwsgi "$serviceconfig --log-master --die-on-term --pidfile $pidfile --daemonize /var/log/$servicename-uwsgi.log" 2> /dev/null
+	retval=$?
+	echo
+	return $retval
+}
+
+stop() {
+        echo -n "Shutting down $servicename:"
+	killproc -p "$pidfile" "uwsgi" -TERM
+	retval=$?		
+	echo
+	return $retval
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status -p $pidfile uwsgi
+        ;;
+    restart)
+	stop
+	start
+        ;;
+    *)
+        echo "Usage: <servicename> {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+exit $?
+

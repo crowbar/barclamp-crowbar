@@ -13,10 +13,10 @@ Inside the migration, use the `Nav.find_or_create_by_item` to populate the infor
 *	path = the Rails path you want to follow.  Unless it starts with http, `eval` will be applied to the path.
 *	order = the display order of the menu item
 
-Remember:
+Remember to:
 
-*	to provide a `self.down` that removes your menu item!  It’s just more sanitary that way.
-*	to create matching entries in your barclamps i18n files
+*	Provide a `self.down` that removes your menu item, to maintain sanitation.
+*	Create matching entries in your barclamps i18n files.
 
 #### Example from the Network barclamp:
     class NetworkNavs < ActiveRecord::Migration
@@ -30,6 +30,6 @@ Remember:
       end
     end
 
-#### Crowbar 1.0 note
+#### Crowbar 1.0 Note
 
-We no longer support storing navigation strings in the crowbar.yml meta data file.  This approach made difficult to upgrade and maintain.  The new approach is also difficult to maintain but easier to upgrade.
+Due to scaling issues, we no longer support storing localization strings in the `crowbar.yml` metadata file.

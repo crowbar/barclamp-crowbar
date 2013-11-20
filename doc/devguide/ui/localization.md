@@ -1,21 +1,26 @@
 ### Adding Localizations (i18n)
 
-Crowbar uses Rails I18N library.  Please refer to the documentation (http://http://guides.rubyonrails.org/i18n.html) for usage hints that can help you reduce coding and add nifty features like Interpolation.
+Crowbar uses the Rails I18N library.  Please refer to the documentation [http://guides.rubyonrails.org/i18n.html](http://guides.rubyonrails.org/i18n.html) for usage hints that can help you reduce coding, and to add features such as Interpolation.
 
-Each barclamp is expected to add its own localization (i18n) file.  Please do _not_ add your localizations into another barclamps i18n file, it’s not friendly!  However, you also need to be careful not to create duplicate entries.  That’s just too confusing for Crowbar and makes the bunny angry.
+Each barclamp is expected to add its own localization (i18n) file.
+>Please do _not_ add your localizations into another barclamp's i18n file.
+You must also be careful not to create duplicate entries; doing so can confuse Crowbar.
 
-Add your localization file (`en.yml` is the default) into the `crowbar_framework/config/locales/[barclamp]` directory.  You know this but I’ve got to tell the n00bs: you need to replace [barclamp] with the name of your barclamp.
+1. Add your localization file (`en.yml` is the default) into the `crowbar_framework/config/locales/[barclamp]` directory.
+> You must replace [barclamp] with the name of your barclamp.
 
-If you are supporting multiple languages, replace `en` with the target language code.  Like `kl.yml` if you want provide Klingon translations.
+1. If you are supporting multiple languages, replace `en` with the target language code.  For example, use `fr.yml` if you want to provide French translations.
 
-Inside the i18n file, you’ll provide a simple YML hash for translations.
+1. Inside the i18n file, provide a simple YML hash for translations. For example:
+
+```
     en:
       # Layout
       nav:
         nodes: Nodes
         nodes_description: Infrastructure Components
+```
+>**Reminder**: Encode your translations in quotes if you need to use comma ( : ) or tick ( ` ) characters!
 
-Reminder: encode your translations in quotes if you need to use : or ‘ marks!
-
-#### Crowbar 1.0 note
-We no longer support storing localization strings in the crowbar.yml meta data file.  This was not scaling so we dropped it like a rotten tomato in the Heinz ketchup factory. 
+#### Crowbar 1.0 Note
+Due to scaling issues, we no longer support storing localization strings in the `crowbar.yml` metadata file. 

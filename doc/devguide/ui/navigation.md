@@ -15,8 +15,8 @@ Inside the migration, use the `Nav.find_or_create_by_item` to populate the infor
 
 Remember to:
 
-*	Provide a `self.down` that removes your menu item, to maintain sanitation.
-*	Create matching entries in your barclamps i18n files.
+*	Provide a `self.down` that removes your menu item, to maintain a clean environment.
+*	Create matching entries in your barclamp's i18n files.
 
 #### Example from the Network barclamp:
     class NetworkNavs < ActiveRecord::Migration

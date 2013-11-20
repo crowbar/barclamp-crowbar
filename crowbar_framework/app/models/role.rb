@@ -119,6 +119,7 @@ class Role < ActiveRecord::Base
     true
   end
 
+  # returns list of roles that are the parents of this role
   def parents
     res = []
     res << jig.client_role if jig.client_role
@@ -189,7 +190,7 @@ class Role < ActiveRecord::Base
   def find_noderoles_for_role(role,snap)
     csnap = snap
     loop do
-      Rails.logger.info("Role: Looking for #{role.name} binding in #{snap.deployment.name}")
+      Rails.logger.info("Role: Looking for role '#{role.name}' binding in '#{snap.deployment.name}' deployment")
       pnrs = NodeRole.peers_by_role(csnap,role)
       return pnrs unless pnrs.empty?
       csnap = (csnap.deployment.parent.snapshot rescue nil)
@@ -203,7 +204,14 @@ class Role < ActiveRecord::Base
   def add_to_node_in_snapshot(node,snap)
     # Roles can only be added to a node of their backing jig is active.
     unless active?
-      raise MISSING_JIG.new("#{name} cannot be added to #{node.name} without #{jig_name} being active!")
+      # if we are testing, then we're going to just skip adding and keep going
+      if Jig.active('test')
+        Rails.logger.info("Role: Test mode allows us to coerce role #{name} to use the 'test' jig instead of #{jig_name} when it is not active")
+        self.jig = Jig.find_key 'test'
+        self.save
+      else
+        raise MISSING_JIG.new("Role: role '#{name}' cannot be added to node '#{node.name}' without '#{jig_name}' being active!")
+      end
     end
     # If we are already bound to this node in a snapshot, do nothing.
     res = NodeRole.where(:node_id => node.id, :role_id => self.id).first

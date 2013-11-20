@@ -40,7 +40,7 @@ class Run < ActiveRecord::Base
     Run.transaction do
       ActiveRecord::Base.connection.execute("LOCK TABLE runs")
       deletable.each do |j|
-        Rails.logger.info("Run: Deleting #{j.node_role.name}: state #{j.node_role.state}")
+        Rails.logger.info("Run: Deleting #{j.node_role.name}: state #{j.node_role.state}") unless j.node_role.nil?
         j.destroy
       end
     end
@@ -65,7 +65,7 @@ class Run < ActiveRecord::Base
     Run.transaction do
       unless nr.runnable? &&
           ([NodeRole::ACTIVE, NodeRole::TODO, NodeRole::TRANSITION].member?(nr.state))
-        Rails.logger.info("Run: #{nr.name} is not enqueueable")
+        Rails.logger.info("Run: #{nr.name} is not enqueueable/runnable [node.available #{nr.node.available} && node.alive #{nr.node.alive} && jig.active #{nr.role.jig.active}]")
       else
         ActiveRecord::Base.connection.execute("LOCK TABLE runs")
         current_run = Run.where(:node_id => nr.node_id).first
@@ -81,7 +81,7 @@ class Run < ActiveRecord::Base
                       :node_role_id => nr.id)
         end
       end
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}")
+      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") rescue Rails.logger.info("Run: enqueue has nil node_roles")
     end
     run!
   end
@@ -98,9 +98,9 @@ class Run < ActiveRecord::Base
       # already have a noderole enqueued.
       NodeRole.runnable.order("cohort ASC, id ASC").each do |nr|
         if Run.where(:node_id => nr.node_id).count > 0
-          Rails.logger.info("Run: Skipping #{nr.name}")
+          Rails.logger.info("Run: Skipping #{nr.name}") unless nr.nil?
         else
-          Rails.logger.info("Run: Enqueing #{nr.name}")
+          Rails.logger.info("Run: Enqueing #{nr.name}") unless nr.nil?
           Run.create!(:node_id => nr.node_id,
                       :node_role_id => nr.id)
         end
@@ -113,7 +113,7 @@ class Run < ActiveRecord::Base
         # If one of our candidates refers to a node that already has something
         # running on it, then skip it for now.
         next unless Run.running_on(j.node_id).count == 0
-        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs")
+        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs") unless j.node_role.nil?
         j.node_role.state = NodeRole::TRANSITION
         j.running = true
         j.save!
@@ -127,7 +127,7 @@ class Run < ActiveRecord::Base
         break if queued >= maxjobs
       end if runnable > 0
       Rails.logger.info("Run: #{runnable} runnable, #{queued} handled this pass, #{Run.running.count} in delayed_jobs")
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") unless j.nil?
+      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") rescue Rails.logger.info("Run: Queue has nil node_roles")
       return queued
     end
   end

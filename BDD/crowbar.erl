@@ -127,6 +127,11 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
   URI = eurl:path(g(i18n),Key),
   eurl:get_http(URI);
 
+% we need to set alive value for new nodes
+step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"marked alive"]}) -> 
+  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {alive, "true"}]),
+  bdd_restrat:create(node:g(path), Node, node, ScenarioID);
+
 step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
   step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
 

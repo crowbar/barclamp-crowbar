@@ -25,6 +25,7 @@ class NodeRole < ActiveRecord::Base
   belongs_to      :snapshot
   has_one         :deployment,        :through => :snapshot
   has_one         :barclamp,          :through => :role
+  has_many        :runs,              :dependent => :destroy
 
   # find other node-roles in this snapshot using their role or node
   scope           :all_by_state,      ->(state) { where(['node_roles.state=?', state]) }

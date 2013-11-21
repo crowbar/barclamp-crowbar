@@ -98,9 +98,9 @@ class Run < ActiveRecord::Base
       # already have a noderole enqueued.
       NodeRole.runnable.order("cohort ASC, id ASC").each do |nr|
         if Run.where(:node_id => nr.node_id).count > 0
-          Rails.logger.info("Run: Skipping #{nr.name}") unless nr.nil?
+          Rails.logger.info("Run: Skipping #{nr.name}")
         else
-          Rails.logger.info("Run: Enqueing #{nr.name}") unless nr.nil?
+          Rails.logger.info("Run: Enqueing #{nr.name}")
           Run.create!(:node_id => nr.node_id,
                       :node_role_id => nr.id)
         end
@@ -113,7 +113,8 @@ class Run < ActiveRecord::Base
         # If one of our candidates refers to a node that already has something
         # running on it, then skip it for now.
         next unless Run.running_on(j.node_id).count == 0
-        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs") unless j.node_role.nil?
+        raise "you cannot run job #{j.id} on node #{j.node_id} without a node_role." if j.node_role.nil?
+        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs") 
         j.node_role.state = NodeRole::TRANSITION
         j.running = true
         j.save!
@@ -127,7 +128,13 @@ class Run < ActiveRecord::Base
         break if queued >= maxjobs
       end if runnable > 0
       Rails.logger.info("Run: #{runnable} runnable, #{queued} handled this pass, #{Run.running.count} in delayed_jobs")
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") rescue Rails.logger.info("Run: Queue has nil node_roles")
+      begin
+        # log queue state
+        Rails.logger.debug("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") 
+      rescue
+        # catch node_role is nil (exposed in simulator runs)
+        Run.all.each { |j| raise "you cannot run job #{j.id} with missing node #{j.node_id} and node_role #{j.node_role_id} information.  This is likely a garbage collection issue!" if j.node_role.nil? }
+      end
       return queued
     end
   end

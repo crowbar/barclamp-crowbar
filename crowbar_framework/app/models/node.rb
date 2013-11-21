@@ -49,6 +49,7 @@ class Node < ActiveRecord::Base
   has_and_belongs_to_many :groups, :join_table => "node_groups", :foreign_key => "node_id"
 
   has_many    :node_roles,         :dependent => :destroy
+  has_many    :runs,               :dependent => :destroy
   has_many    :roles,              :through => :node_roles
   has_many    :snapshots,          :through => :node_roles
   has_many    :deployments,        :through => :snapshots

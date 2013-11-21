@@ -4,36 +4,38 @@ Installation of the OS onto the admin node does not complete the Crowbar install
 1. Log onto the admin node. The default username is *crowbar*, password is *crowbar*.
 
 1. This step and substeps below are temporary.  Performing these steps changes the execution path to be equivalent to that of the production execution.  This is a necessary workaround to circumvent the developments auto-boot-strapping shortcut that will be go away shortly after this initial cut of the documentation is complete.  
- 1. sudo -i 
- 1. cd /tftpboot/ubuntu_dvd/extra
- 1. Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
- 1. Lines 63-67 as shown below.
-    
-    	<pre>if [[ ! -f $DVD_PATH/sha1_passed ]]; then
+
+ 1. sudo -i
+ 2. cd /tftpboot/ubuntu_dvd/extra
+ 3. Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
+ 4. Lines 63-67 as shown below.
+ 
+   <pre>if [[ ! -f $DVD_PATH/sha1_passed ]]; then
             (cd $DVD_PATH && sha1sum -c sha1sums &>dev/null) || \
             die "SHA1sums do not match install is corrupt."
             >$DVD_PATH/sha1_passed
     fi</pre>
-  * And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file. 
+
+ 5. And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file. 
  
 1. Run the install-crowbar shell script as root using the following procedures:
  1. sudo -i
- 1. cd /opt/dell/bin
- 1. ./install-crowbar <Domain Name> --no-screen
- 1. A reboot message diesplays in the console; reboot the system.
+ 2. cd /opt/dell/bin
+ 3. ./install-crowbar <Domain Name> --no-screen
+ 4. A reboot message diesplays in the console; reboot the system.
 
 1. Once the system comes back up, use a web browser to connect to Crowbar's main page at [http://192.168.124.10:3000](http://192.168.124.10:3000).
  1. You should see a Crowbar Nodes screen with a *Configure System* button. 
 
 1. Click on the **Configure System** button, which should take you to the Initial System Configuration page.  
  1. Click on the **Add network-admin Role** button to add the role to the *Roles for Review* list.   
- 1. Click on the **Add <Domain Name> Node** button to add the node to the  *Crowbar Admin Node* list, and begin the annealer process.
+ 2. Click on the **Add <Domain Name> Node** button to add the node to the  *Crowbar Admin Node* list, and begin the annealer process.
 
  >If for some reason you leave this page, you can always get back to here by selecting "Bootstrap" from the Utilities Menu drop-down list.   Also, be patient as the responsiveness of the actions may appear to be delayed after clicking the buttons.
 
 1. You can watch the annealer processes by:
  1. Going to the Nodes option in the Nodes menu list, and then clicking on the **<Domain Name>** link.
- 1. Once the <Domain Name> page is shown, click on the **All Node Roles** button.
+ 2. Once the <Domain Name> page is shown, click on the **All Node Roles** button.
 
  You should see the states change as the annealer process steps through the nodes. 
 

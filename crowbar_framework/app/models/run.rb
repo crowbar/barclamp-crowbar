@@ -40,7 +40,7 @@ class Run < ActiveRecord::Base
     Run.transaction do
       ActiveRecord::Base.connection.execute("LOCK TABLE runs")
       deletable.each do |j|
-        Rails.logger.info("Run: Deleting #{j.node_role.name}: state #{j.node_role.state}")
+        Rails.logger.info("Run: Deleting #{j.node_role.name}: state #{j.node_role.state}") unless j.node_role.nil?
         j.destroy
       end
     end
@@ -65,7 +65,7 @@ class Run < ActiveRecord::Base
     Run.transaction do
       unless nr.runnable? &&
           ([NodeRole::ACTIVE, NodeRole::TODO, NodeRole::TRANSITION].member?(nr.state))
-        Rails.logger.info("Run: #{nr.name} is not enqueueable")
+        Rails.logger.info("Run: #{nr.name} is not enqueueable/runnable [node.available #{nr.node.available} && node.alive #{nr.node.alive} && jig.active #{nr.role.jig.active}]")
       else
         ActiveRecord::Base.connection.execute("LOCK TABLE runs")
         current_run = Run.where(:node_id => nr.node_id).first
@@ -81,7 +81,7 @@ class Run < ActiveRecord::Base
                       :node_role_id => nr.id)
         end
       end
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}")
+      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") rescue Rails.logger.info("Run: enqueue has nil node_roles")
     end
     run!
   end
@@ -113,7 +113,8 @@ class Run < ActiveRecord::Base
         # If one of our candidates refers to a node that already has something
         # running on it, then skip it for now.
         next unless Run.running_on(j.node_id).count == 0
-        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs")
+        raise "you cannot run job #{j.id} on node #{j.node_id} without a node_role." if j.node_role.nil?
+        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs") 
         j.node_role.state = NodeRole::TRANSITION
         j.running = true
         j.save!
@@ -127,7 +128,13 @@ class Run < ActiveRecord::Base
         break if queued >= maxjobs
       end if runnable > 0
       Rails.logger.info("Run: #{runnable} runnable, #{queued} handled this pass, #{Run.running.count} in delayed_jobs")
-      Rails.logger.info("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") unless j.nil?
+      begin
+        # log queue state
+        Rails.logger.debug("Run: Queue: #{Run.all.map{|j|"#{j.node_role.name}: state #{j.node_role.state}"}}") 
+      rescue
+        # catch node_role is nil (exposed in simulator runs)
+        Run.all.each { |j| raise "you cannot run job #{j.id} with missing node #{j.node_id} and node_role #{j.node_role_id} information.  This is likely a garbage collection issue!" if j.node_role.nil? }
+      end
       return queued
     end
   end

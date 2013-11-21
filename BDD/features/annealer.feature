@@ -20,7 +20,7 @@ Feature: Crowbar Engine
 
   Scenario: Add node into Test Deployment
     Given there is a {o:deployment} "bdd_add_node"
-      And there is a {o:node} "bdd-add-me.cr0wbar.com"
+      And there is a {o:node} "bdd-add-me.cr0wbar.com" marked alive
       And {o:deployment} "bdd_add_node" includes {o:role} "test-event"
     When I add {o:node} "bdd-add-me.cr0wbar.com" to {o:deployment} "bdd_add_node" in {o:role} "test-event"
     Then the {o:node_role} is properly formatted

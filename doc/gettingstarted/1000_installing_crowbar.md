@@ -10,13 +10,11 @@ Installation of the OS onto the admin node does not complete the Crowbar install
   * Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
 
     * Lines 63-67 as shown below.  
-    ```
-      if [[ ! -f $DVD_PATH/sha1_passed ]]; then
-        (cd $DVD_PATH && sha1sum -c sha1sums &>dev/null) || \
-        die "SHA1sums do not match install is corrupt."
-        >$DVD_PATH/sha1_passed
-      fi
-    ```
+    <pre>if [[ ! -f $DVD_PATH/sha1_passed ]]; then
+            (cd $DVD_PATH && sha1sum -c sha1sums &>dev/null) || \
+            die "SHA1sums do not match install is corrupt."
+            >$DVD_PATH/sha1_passed
+    fi</pre>
     * And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file. 
  
 3. Run the install-crowbar shell script as root using the following procedures:

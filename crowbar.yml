@@ -120,18 +120,6 @@ debs:
     - zlib1g-dev
     - libxslt1-dev
   pkgs:
-    # apache stuff
-    - apache2
-    - apache2-prefork-dev
-    - libopkele-dev
-    - libopkele3
-    - libapache2-svn
-    - libapache2-mod-fcgid
-    - libapache2-mod-php5
-    - libapache2-mod-python
-    - libapache2-mod-wsgi
-    # apt-cacher stuff
-    - apt-cacher
     # build-essential stuff
     - build-essential
     - binutils-doc
@@ -149,8 +137,6 @@ debs:
     - libcurl4-gnutls-dev
     # minicom stuff
     - minicom
-    # nscd stuff
-    - nscd
     # openldap stuff
     - libnss-ldap
     - libpam-ldap
@@ -185,7 +171,7 @@ debs:
     - lxc-docker
 
 rpms:
-  redhat-6.2:
+  redhat-6.4:
     repos:
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
@@ -195,7 +181,21 @@ rpms:
       - libxml2-devel
       - mysql-devel
       - zlib-devel
-  centos-6.2:
+      - rubygems
+    required_pkgs:
+      - rubygems
+    pkgs:
+      # openldap stuff
+      - openldap
+      - openldap-servers
+      - openldap-clients
+      - krb5-workstation
+      # openssh stuff
+      - openssh-clients
+      - openssh-server
+      - openssl-devel
+      - vim-enhanced
+  centos-6.4:
     repos:
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
     build_pkgs:
@@ -206,6 +206,21 @@ rpms:
       - libxml2-devel
       - mysql-devel
       - zlib-devel
+      - rubygems
+    required_pkgs:
+      - rubygems
+    pkgs:
+      # openldap stuff
+      - openldap
+      - openldap-servers
+      - openldap-clients
+      - krb5-workstation
+      # openssh stuff
+      - openssh-clients
+      - openssh-server
+      - openssl-devel
+      - vim-enhanced
+
   fedora-18:
     build_pkgs:
       - libcurl-devel
@@ -214,6 +229,17 @@ rpms:
       - libxml2-devel
       - mysql-devel
       - zlib-devel
+    pkgs:
+      # openldap stuff
+      - openldap
+      - openldap-servers
+      - openldap-clients
+      - krb5-workstation
+      # openssh stuff
+      - openssh-clients
+      - openssh-server
+      - openssl-devel
+      - vim-enhanced
   fedora-19:
     build_pkgs:
       - libcurl-devel
@@ -221,6 +247,17 @@ rpms:
       - createrepo
       - libxml2-devel
       - zlib-devel
+    pkgs:
+      # openldap stuff
+      - openldap
+      - openldap-servers
+      - openldap-clients
+      - krb5-workstation
+      # openssh stuff
+      - openssh-clients
+      - openssh-server
+      - openssl-devel
+      - vim-enhanced
   opensuse-12.3:
     repos:
       - repo http://download.opensuse.org/repositories/server:/database:/postgresql/openSUSE_12.3/ postgresql
@@ -230,8 +267,16 @@ rpms:
       - libcurl-devel
       - libxml2-devel
       - zlib-devel
+    pkgs:
+      # openldap stuff
+      - openldap2
+      - openldap2-client
+      - krb5-client
+      - libopenssl-devel
+      - openssl
+      - libssh-devel
+      - vim
   required_pkgs:
-    - rubygems
     - gcc
     - gcc-c++
     - make
@@ -241,21 +286,11 @@ rpms:
     - curl
     - vim
   build_pkgs:
-    - rubygems
     - ruby-devel
     - make
     - gcc
     - kernel-devel
-    - sqlite-devel
   pkgs:
-    # apache stuff
-    - httpd
-    - httpd-devel
-    - mod_fcgid
-    - php
-    - mod_python
-    - mod_ssl
-    - mod_wsgi
     # build-essential stuff
     - gcc
     - gcc-c++
@@ -267,44 +302,28 @@ rpms:
     - patch
     # crowbar stuff
     - curl
-    - rubygem-kwalify
     - createrepo
     # minicom stuff
     - minicom
-    # nscd stuff
-    - nscd
-    # openldap stuff
-    - nss
-    - nss-tools
-    - openldap
-    - openldap-servers
-    - openldap-clients
-    - krb5-workstation
-    # openssh stuff
-    - openssh-clients
-    - openssh-server
-    - openssh
-    - openssl-devel
     # rabbitmq stuff
     # ruby stuff
     - ruby
     - ruby-devel
-    - ruby-shadow
     # sudo stuff
     - sudo
     - screen
     - graphviz
-    - vim-enhanced
     # postgresql 93 stuff
     - postgresql93
     - postgresql93-devel
     - postgresql93-contrib
     - postgresql93-server
-    - ruby-devel
     - libxml2-devel
     - libpq5
     - libossp-uuid16
     - libecpg6
+    # openssh stuff
+    - openssh
 
 gems:
   pkgs:
@@ -328,6 +347,7 @@ gems:
     - kwalify
     - launchy
     - libxml-ruby
+    - ruby-shadow
     - net-http-digest_auth
     - net-ssh
     - net-ssh-multi

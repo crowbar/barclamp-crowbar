@@ -17,39 +17,120 @@ The examples below represent just a few of the possible combinations of OpenStac
 
 ###Nova Compute Cluster###
 
-| Install Order | Barclamp |
-| :-- | :----- |
-| 1 | Database |
-| 2 | Keystone |
-| 3 | RabbitMQ |
-| 4 | Glance |
-| 5 | Cinder |
-| 6 | Neutron |
-| 7 | Nova |
-| 8 | Nova-Dashboard |
+<table border="0">
+<tr>
+<th>Install Order</th>
+<th>Barclamp</th>
+</tr>
+<tr>
+<td>1</td>
+<td>Database</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Keystone</td>
+</tr>
+<tr>
+<td>3</td>
+<td>RabbitMQ</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Glance</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cinder</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Neutron</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Nova</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Nova-Dashboard</td>
+</tr>
+</table>
 
 ###Swift Storage Cluster###
  
-|  Install Order | Barclamp |
-| :-- | :----- |
-| 1 | Database |
-| 2 | Keystone |
-| 3 | Swift |
-| 4 | Nova |
-| 5 | Nova-dashboard |
+<table border="0">
+<tr>
+<th>Install Order</th>
+<th>Barclamp</th>
+</tr>
+<tr>
+<td>1</td>
+<td>Database</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Keystone</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Swift</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Nova</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Nova-Dashbaord</td>
+</tr>
+</table>
 
 ###Combined Nova Compute/Swift Storage Cluster, with Glance Image Service and Tempest Tests###
 
-|  Install Order | Barclamp |
-| :-- | :----- |
-| 1 | Database |
-| 2 | Keystone |
-| 3 | RabbitMQ |
-| 4 | Swift |
-| 5 | Glance |
-| 6 | Cinder |
-| 7 | Neutron |
-| 8 | Nova |
-| 9 | Nova-dashboard |
-| 10 | Tempest |
+<table border="0">
+<tr>
+<th>Install Order</th>
+<th>Barclamp</th>
+</tr>
+<tr>
+<td>1</td>
+<td>Database</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Keystone</td>
+</tr>
+<tr>
+<td>3</td>
+<td>RabbitMQ</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Swift</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Glance</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Cinder</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Neutron</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Nova</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Nova-Dashboard</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Tempest</td>
+</tr>
+</table>
 

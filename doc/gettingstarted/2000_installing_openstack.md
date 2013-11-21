@@ -8,7 +8,7 @@ After node discovery, use these instructions to install and configure an OpenSta
 		$ chef-client
 4. Verify nodes statuses in the Crowbar UI by navigating to *Nodes > Dashboard*, and then ensuring that all nodes' icons are green.
 
-**Note:** This can take some time; please be patient.
+>**Note:** This can take some time; please be patient.
 
 ##About OpenStack Barclamps##
 The OpenStack barclamp proposals installation order is important, but not readily apparent. It depends greatly upon your planned cloud usage (e.g., Nova compute  cluster, Swift storage cluster, etc.).

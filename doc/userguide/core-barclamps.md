@@ -156,11 +156,24 @@ The Deployer also controls the allocate flag on the node. The allocate flag is u
 
 ----------
 
-| Name | Description |
-| :-- | :---------- |
-| pattern | Regular expression applied to the role names on the node. |
-| bios_set | The BIOS set of parameters to apply. Values are: *Virtualization* or *Storage*. |
-| raid_set | The RAID set of parameters to apply. Values are: *JBODOnly* or *SingeRaid10*. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>pattern</td>
+<td>Regular expression applied to the role names on the node.</td>
+</tr>
+<tr>
+<td>bios_set</td>
+<td>The BIOS set of parameters to apply. Values are: <i>Virtualization</i> or <i>Storage</i>.</td>
+</tr>
+<tr>
+<td>raid_set</td>
+<td> RAID set of parameters to apply. Values are: <i>JBODOnly</i> or <i>SingeRaid10</i>.</td>
+</tr>
+</table>
 
 ----------
 
@@ -170,16 +183,53 @@ The Provisioner provides the roles and recipes to set up the provisioning server
 
 ----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- | 
-| default_user | crowbar | User to create for external login. |
-| default_password | unset | Clear text password to use for external login. |
-| default_password_hash | Hash of crowbar | MD5 hash of password to use for external login. ** |
-| web_port | 8091 | The default Web port that the repository web server uses. |
-| use_local_security | true | This defaults the security updates path in the install to use the admin node instead of the Internet. |
-| dhcp | map | This is a map that contains the DHCP parameters (lease-time and state machine). |
-| lease-time | 60 |	The number of seconds a DHCP lease is valid for the system. |
-| state_machine | map | This is the state machine that the DHCP server uses in this instance of the barclamp. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>default_user</td>
+<td>crowbar</td>
+<td>User to create for external login.</td>
+</tr>
+<tr>
+<td>default_password</td>
+<td>unset</td>
+<td>Clear text password to use for external login.</td>
+</tr>
+<tr>
+<td>default_password_hash</td>
+<td>Hash of crowbar</td>
+<td>MD5 hash of password to use for external login. **</td>
+</tr>
+<tr>
+<td>web_port</td>
+<td>8091</td>
+<td>The default Web port that the repository web server uses.</td>
+</tr>
+<tr>
+<td>use_local_security</td>
+<td>true</td>
+<td>This defaults the security updates path in the install to use the admin node instead of the Internet.</td>
+</tr>
+<tr>
+<td>dhcp</td>
+<td>map</td>
+<td>This is a map that contains the DHCP parameters (lease-time and state_machine).</td>
+</tr>
+<tr>
+<td>lease-time</td>
+<td>60</td>
+<td>The number of seconds a DHCP lease is valid for the system.</td>
+</tr>
+<tr>
+<td>state_machine</td>
+<td>map</td>
+<td>This is the state machine that the DHCP server uses in this instance of the barclamp.</td>
+</tr>
+</table>
 
 ----------
 ** The following command will generate the hash:

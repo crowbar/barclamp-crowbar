@@ -250,11 +250,28 @@ Modification of the following parameters should only be done when installing Cro
 
 ----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| mode | single | A string value of single, dual, or team. This specifies the default network interface construction model. |
-| teaming |	map | A map of values specific to teaming. |
-| networks | map | A map of networks that this barclamp should manage. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>mode</td>
+<td>single</td>
+<td>A string value of single, dual, or team. This specifies the default network interface construction model.</td>
+</tr>
+<tr>
+<td>teaming</td>
+<td>map</td>
+<td>A map of values specific to teaming.</td>
+</tr>
+<tr>
+<td>networks</td>
+<td>map</td>
+<td>A map of networks that this barclamp should manage.</td>
+</tr>
+</table>
 
 ----------
 

@@ -17,22 +17,17 @@ Installation of the OS onto the admin node does not complete the Crowbar install
         fi</pre>
 
  5. And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file. 
- 
 1. Run the install-crowbar shell script as root using the following procedures:
  1. sudo -i
  2. cd /opt/dell/bin
  3. ./install-crowbar <Domain Name> --no-screen
  4. A reboot message diesplays in the console; reboot the system.
-
 1. Once the system comes back up, use a web browser to connect to Crowbar's main page at [http://192.168.124.10:3000](http://192.168.124.10:3000).
  1. You should see a Crowbar Nodes screen with a *Configure System* button. 
-
 1. Click on the **Configure System** button, which should take you to the Initial System Configuration page.  
  1. Click on the **Add network-admin Role** button to add the role to the *Roles for Review* list.   
  2. Click on the **Add <Domain Name> Node** button to add the node to the  *Crowbar Admin Node* list, and begin the annealer process.
-
- >If for some reason you leave this page, you can always get back to here by selecting "Bootstrap" from the Utilities Menu drop-down list.   Also, be patient as the responsiveness of the actions may appear to be delayed after clicking the buttons.
-
+>If for some reason you leave this page, you can always get back to here by selecting "Bootstrap" from the Utilities Menu drop-down list.   Also, be patient as the responsiveness of the actions may appear to be delayed after clicking the buttons.
 1. You can watch the annealer processes by:
  1. Going to the Nodes option in the Nodes menu list, and then clicking on the **<Domain Name>** link.
  2. Once the <Domain Name> page is shown, click on the **All Node Roles** button.

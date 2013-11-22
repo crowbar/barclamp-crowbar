@@ -4,9 +4,9 @@ Installation of the OS onto the admin node does not complete the Crowbar install
 1. Log onto the admin node. The default username is *crowbar*, password is *crowbar*.
 1. This step and substeps below are temporary. Performing these steps changes the execution path to be equivalent to that of the production execution. This is a necessary workaround to circumvent the developments auto-boot-strapping shortcut that will be go away shortly after this initial cut of the documentation is complete.  
 
-	 a. sudo -i
+	 a. `sudo -i`
 	 
-	 b. cd /tftpboot/ubuntu_dvd/extra
+	 b. `cd /tftpboot/ubuntu_dvd/extra`
 	 
 	 c. Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
 	 
@@ -20,13 +20,13 @@ Installation of the OS onto the admin node does not complete the Crowbar install
       fi</pre>
 
 	 e. And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file.
-1. Run the install-crowbar shell script as root using the following procedures:
+1. Run the `install-crowbar` shell script as root using the following procedures:
 
-	a. sudo -i
+	a. `sudo -i`
 	
-	b. cd /opt/dell/bin
+	b. `cd /opt/dell/bin`
 	
-	c. ./install-crowbar <Domain Name> --no-screen
+	c. `./install-crowbar <Domain Name> --no-screen`
 	
 	d. A reboot message diesplays in the console; reboot the system.
 

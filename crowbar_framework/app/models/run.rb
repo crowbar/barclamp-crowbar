@@ -122,9 +122,15 @@ class Run < ActiveRecord::Base
         # We do this so that the jig gets fed data that is consistent for this point
         # in time, as opposed to picking up whatever is lying around when delayed_jobs
         # gets around to actually doing its thing, which may not be what we expect.
-        run_data = j.node_role.jig.stage_run(j.node_role)
-        j.node_role.jig.delay(:queue => "NodeRoleRunner").run(j.node_role,run_data)
-        queued += 1
+        begin
+          run_data = j.node_role.jig.stage_run(j.node_role)
+          j.node_role.jig.delay(:queue => "NodeRoleRunner").run(j.node_role,run_data)
+          queued += 1
+        rescue Exception => e
+          j.node_role.runlog = "#{e.message}\n#{e.backtrace.join("\n")}"
+          j.node_role.state = NodeRole::ERROR
+          j.node_role.save!
+        end
         break if queued >= maxjobs
       end if runnable > 0
       Rails.logger.info("Run: #{runnable} runnable, #{queued} handled this pass, #{Run.running.count} in delayed_jobs")

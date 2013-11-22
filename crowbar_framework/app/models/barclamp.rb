@@ -183,7 +183,7 @@ class Barclamp < ActiveRecord::Base
         r = Role.find_or_create_by_name(:name=>role_name, :jig_name => role_jig, :barclamp_id=>barclamp.id)
         r.update_attributes(:description=>description,
                             :barclamp_id=>barclamp.id,
-                            :template=>(IO.read(template) rescue "{\"template\":\"none\"}"),
+                            :template=>(IO.read(template) rescue "{}"),
                             :library=>flags.include?('library'),
                             :implicit=>flags.include?('implicit'),
                             :bootstrap=>flags.include?('bootstrap'),

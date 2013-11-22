@@ -4,21 +4,64 @@ There are a set of core barclamps that are a part of every Crowbar installation.
 
 ----------
 
-| Barclamp | Function/Comments |
-| :------ | :---------------- |
-|Crowbar | The roles and recipes to set up the barclamp framework. References other barclamps. Modify the default proposal to change the Usernames and passwords for access to the Crowbar UI. |
-| Deployer | Initial classification system for the Crowbar environment (aka the state machine). |
-| Provisioner | The roles and recipes to set up the provisioning server and a base environment for all nodes. |
-| Network |	Instantiates network interfaces on the Crowbar managed systems. Also manages the address pool. |
-| RAID | Sets up LSI RAID controllers in a variety of configurations. If missing, the RAID controllers can be set up manually. |
-| BIOS | Configures BIOS options for Dell™ PowerEdge™ servers. If missing, the BIOS options can be configured manually. |
-| IPMI |	Allows management of the IP Management Interface (IPMI) on servers when the BMC network is enabled. |
-| NTP | Common NTP service for the cluster (required for secure access). An NTP server can be specified. |
-| DNS | Manages the DNS subsystem for the cluster. |
-| Logging | Centralized logging system based on syslog. |
-| Nagios | System monitoring service for the cluster that can be used by other barclamps. |
-| Ganglia | Performance monitoring service for the cluster that can be used by other barclamps. |
-| Test | Provides a shell against which you can write tests. |
+<table border="0">
+<tr>
+<th>Barclamp</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>Crowbar</td>
+<td>The roles and recipes to set up the barclamp framework. References other barclamps. Modify the default proposal to change the Usernames and passwords for access to the Crowbar UI.</td>
+</tr>
+<tr>
+<td>Deployer</td>
+<td>Initial classification system for the Crowbar environment (aka the state machine).</td>
+</tr>
+<tr>
+<td>Provisioner</td>
+<td>The roles and recipes to set up the provisioning server and a base environment for all nodes.</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>Instantiates network interfaces on the Crowbar managed systems. Also manages the address pool.</td>
+</tr>
+<tr>
+<td>RAID</td>
+<td>Sets up LSI RAID controllers in a variety of configurations. If missing, the RAID controllers can be set up manually.</td>
+</tr>
+<tr>
+<td>BIOS</td>
+<td>Configures BIOS options for Dell™ PowerEdge™ servers. If missing, the BIOS options can be configured manually.</td>
+</tr>
+<tr>
+<td>IPMI</td>
+<td>Allows management of the IP Management Interface (IPMI) on servers when the BMC network is enabled.</td>
+</tr>
+<tr>
+<td>NTP</td>
+<td>Common NTP service for the cluster (required for secure access). An NTP server can be specified.</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>Manages the DNS subsystem for the cluster.</td>
+</tr>
+<tr>
+<td>Logging</td>
+<td>Centralized logging system based on syslog.</td>
+</tr>
+<tr>
+<td>Nagios</td>
+<td>System monitoring service for the cluster that can be used by other barclamps.</td>
+</tr>
+<tr>
+<td>Ganglia</td>
+<td>Performance monitoring service for the cluster that can be used by other barclamps.</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>Provides a shell against which you can write tests.</td>
+</tr>
+</table>
 
 ----------
 
@@ -33,10 +76,23 @@ All barclamps’ transition functions can be called directly, but the Crowbar ba
 
 ----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| instances | The starting barclamps using their default configurations. |A map of barclamp names that reference a list of JSON files (default is special to mean to take the defaults) that represent barclamp instances to create. |
-| users | A map of users — containing Crowbar. | This map defines the users allowed to access Crowbar’s UI and REST API. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>instances</td>
+<td>The starting barclamps using their default configurations.</td>
+<td>A map of barclamp names that reference a list of JSON files (default is special to mean to take the defaults) that represent barclamp instances to create.</td>
+</tr>
+<tr>
+<td>users</td>
+<td>A map of users — containing Crowbar.</td>
+<td>This map defines the users allowed to access Crowbar’s UI and REST API.</td>
+</tr>
+</table>
 
 ----------
 
@@ -45,10 +101,20 @@ The users map contains a map. The key is the user name and the rest of the requi
 
 ----------
 
-| Name | Description |
-| :-- | :---------- |
-| password | Clear text password of the user. |
-| description |	A description of the user. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>password</td>
+<td>The user's clear text password.</td>
+</tr>
+<tr>
+<td>users</td>
+<td>A description of the user.</td>
+</tr>
+</table>
 
 ----------
 
@@ -66,10 +132,23 @@ The Deployer also controls the allocate flag on the node. The allocate flag is u
 
 ----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| bios_map | A list of default settings for bios and raid for swift and nova. | The map defines a list of patterns that would apply a configuration setting for BIOS and RAID. |
-| use_allocate | true | A Boolean value true indicates that a pause should be injected after the discovered state to allow the admin to accept and allocate the node. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>bios_map</td>
+<td>A list of default settings for bios and raid for swift and nova.</td>
+<td>The map defines a list of patterns that would apply a configuration setting for BIOS and RAID.</td>
+</tr>
+<tr>
+<td>use_allocate</td>
+<td>true</td>
+<td>A Boolean value true indicates that a pause should be injected after the discovered state to allow the admin to accept and allocate the node.</td>
+</tr>
+</table>
 
 ----------
 

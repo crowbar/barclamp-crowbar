@@ -186,7 +186,8 @@ The Provisioner provides the roles and recipes to set up the provisioning server
 
 	printf 'password' | mkpasswd -s -m md5
 
->![notes.png](graphics/notes.png "notes.png") While neither is required, one of default_password or default_password_hash is required.
+>While neither is required, one of either default_password or default_password_hash is required.
+
 ##Network Barclamp##
 The Network barclamp provides two functions for the system. The first is a common role to instantiate network interfaces on the Crowbar managed systems. The other function is address pool management. 
 
@@ -259,7 +260,8 @@ Modification of the following parameters should only be done when installing Cro
 
 ----------
 
->![caution.png](graphics/caution.png "caution") Settings in the Network barclamp should not be changed after the installation of the Admin Node.
+>Settings in the Network barclamp should not be changed after the installation of the Admin Node.
+
 ##RAID Barclamp##
 RAID is an acronym for “Redundant Array of Independent Disks.” This means that a RAID controller makes (or can make) multiple disks look like one big/smart/safe disk. 
 
@@ -317,7 +319,8 @@ The NTP barclamp provides a common NTP service for the cluster. You can specify 
 
 ----------
 
->![notes.png](graphics/notes.png "note") If you are setting up an external server it can take up to 5 minutes for the nodes to sync with the server. Systems should not be rebooted during this process. If they are rebooted, then they will pause during bootup for time synchronization.
+>If you are setting up an external server it can take up to 5 minutes for the nodes to sync with the server. Systems should not be rebooted during this process. If they are rebooted, then they will pause during bootup for time synchronization.
+
 ##Logging Barclamp##
 The Logging  barclamp provides a centralized logging system based on syslog. The barclamp enables a centralized log server that can then forward information to external syslog servers. The Crowbar installation process sends logs to the admin node by default, but the configuration from the logging barclamp can override this initial configuration.
 ######Logging Barclamp Configuration Parameters######
@@ -368,4 +371,4 @@ The Test barclamp provides a shell for writing tests against. It allows for fail
 
 ----------
 
->![caution.png](graphics/caution.png "caution") This barclamp is currently used only to perform a quick smoke test of Crowbar following Crowbar installation, and as a result should never be deployed.
+>This barclamp is currently used only to perform a quick smoke test of Crowbar following Crowbar installation, and as a result should never be deployed.

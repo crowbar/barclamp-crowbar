@@ -13,13 +13,12 @@ You must also be careful not to create duplicate entries; doing so can confuse C
 
 1. Inside the i18n file, provide a simple YML hash for translations. For example:
 
-```
-    en:
+    <pre>en:
       # Layout
       nav:
         nodes: Nodes
-        nodes_description: Infrastructure Components
-```
+        nodes_description: Infrastructure Components</pre>
+
 >**Reminder**: Encode your translations in quotes if you need to use comma ( : ) or tick ( ` ) characters!
 
 #### Crowbar 1.0 Note

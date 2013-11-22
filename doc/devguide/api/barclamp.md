@@ -6,7 +6,7 @@ There are very limited action to be taken on a barclamp.
 
 #### API Actions
 
-<table border=1>
+<table border=0>
 <tr><th> Verb </th><th> URL </th><th> Comments </th></tr>
 <tr><td> GET  </td>
   <td> api/v2/barclamps </td>
@@ -28,6 +28,6 @@ There are very limited action to be taken on a barclamp.
 
 #### Barclamp APIs
 
-Barclamps may expose their own set of APIs as =/barclamp/v2/[resoources]= depending on their need for functionality.  Barclamps are expected to extend the documentation in =/doc/devguide/api= paths if they expose REST APIs.
+Barclamps may expose their own set of APIs as `=/barclamp/v2/[resoources]=` depending on their need for functionality.  Barclamps are expected to extend the documentation in `=/doc/devguide/api=` paths if they expose REST APIs.
 
 It is not required for barclamps to have additional API.

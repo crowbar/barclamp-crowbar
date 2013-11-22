@@ -2,7 +2,7 @@
 
 Barclamps are the core modulization for Crowbar.  For that reason, the API for barclamps is more limited because changes to barclamps can cause breaking changes to the framework.
 
-There are very limited action to be taken on a barclamp.
+There are very limited actions to be taken on a barclamp.
 
 #### API Actions
 
@@ -28,6 +28,6 @@ There are very limited action to be taken on a barclamp.
 
 #### Barclamp APIs
 
-Barclamps may expose their own set of APIs as `=/barclamp/v2/[resoources]=` depending on their need for functionality.  Barclamps are expected to extend the documentation in `=/doc/devguide/api=` paths if they expose REST APIs.
+Barclamps may expose their own set of APIs as */barclamp/v2/[resoources]* depending on their need for functionality.  Barclamps are expected to extend the documentation in the */doc/devguide/api* paths if they expose REST APIs.
 
-It is not required for barclamps to have additional API.
+>Barclamps are not required to have additional APIs.

@@ -317,29 +317,76 @@ Modification of the following parameters should only be done when installing Cro
 ######Network Parameters######
 
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| vlan | Integer | The VLAN to use on the switch and interfaces for this network. |
-| use_vlan | true |	A value of true indicates that the VLAN should apply to the interface. A value of false assumes that the node receives untagged traffic for this network. |
-| add_bridge | false | Indicates if the network should have a bridge built on top of it. The bridge will be *br*. This is mostly for Nova compute. |
-| subnet | IP Address |	The subnet for this network. |
-| netmask |	Netmask | The netmask for this network. |
-| router | IP Address | The default router for this network. |
-| broadcast	| IP Address | The default broadcast address for this network. |
-| ranges | map | This contains a map of strings to start and stop values for the network. This allows allocating sub-ranges with the network for specific uses. For example: DHCP, admin, BMC, hosts. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>vlan</td>
+<td>Integer</td>
+<td>The VLAN to use on the switch and interfaces for this network.</td>
+</tr>
+<tr>
+<td>use_vlan</td>
+<td>true</td>
+<td>A value of true indicates that the VLAN should apply to the interface. A value of false assumes that the node receives untagged traffic for this network.</td>
+</tr>
+<tr>
+<td>add_bridge</td>
+<td>false</td>
+<td>Indicates if the network should have a bridge built on top of it. The bridge will be <i>br</i>. This is mostly for Nova compute.</td>
+</tr>
+<tr>
+<td>subnet</td>
+<td>IP Address</td>
+<td>The subnet for this network.</td>
+</tr>
+<tr>
+<td>netmask</td>
+<td>Netmask</td>
+<td>The netmask for this network.</td>
+</tr>
+<tr>
+<td>router</td>
+<td>IP Address</td>
+<td>The default router for this network.</td>
+</tr>
+<tr>
+<td>broadcast</td>
+<td>IP Address</td>
+<td>The default broadcast address for this network.</td>
+</tr>
+<tr>
+<td>ranges</td>
+<td>map</td>
+<td>This contains a map of strings to start and stop values for the network. This allows allocating sub-ranges with the network for specific uses. For example: DHCP, admin, BMC, hosts.</td>
+</tr>
+</table>
 
-----------
 
 ######Range Map String Key######
 
-----------
 
-| Name | Type | Description |
-| :-- | :--- | :---------- |
-|start | IP Address | First address in the range, inclusive. |
-| end | IP Address | Last address in the range, inclusive. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>start</td>
+<td>IP Address</td>
+<td>The first address in the range, inclusive.</td>
+</tr>
+<tr>
+<td>end</td>
+<td>IP Address</td>
+<td>The last address in the range, inclusive.</td>
+</tr>
+</table>
 
-----------
 
 >Settings in the Network barclamp should not be changed after the installation of the Admin Node.
 
@@ -376,29 +423,59 @@ The IPMI barclamp configures IPMI access on platforms that support it. It select
 The IPMI barclamp allows the user to control the following parameters: 
 ######IPMI Barclamp Parameters######
 
-----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| bmc_enable | true	| Controls if the barclamp attempts to work on the BMC. |
-| bmc_password | cr0wBar! | The password that will be configured on the BMC. |
-| bmc_user | root | The username that will be configured on the BMC. |
-| debug	| true | Turns on more verbose output. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>bmc_enable</td>
+<td>true</td>
+<td>Controls if the barclamp attempts to work on the BMC.</td>
+</tr>
+<tr>
+<td>bmc_password</td>
+<td>cr0wBar!</td>
+<td>The password that will be configured on the BMC.</td>
+</tr>
+<tr>
+<td>bmc_user</td>
+<td>root</td>
+<td>The username that will be configured on the BMC.</td>
+</tr>
+<tr>
+<td>debug</td>
+<td>true</td>
+<td>Turns on more verbose output.</td>
+</tr>
+</table>
 
-----------
 
 ##NTP Barclamp##
 The NTP barclamp provides a common NTP service for the cluster. You can specify an NTP server or servers and all other nodes are clients of them. By default, the time on all nodes are synced to the hardware clock of the Crowbar admin node. The time zone of all Crowbar managed nodes in the cluster is set to UTC.
 ######NTP Barclamp Parameters######
 
-----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| external_servers | empty list | A list of IP addresses or hostnames that should be used as external NTP servers. Hostname can be used if the DNS barclamp is configured to have access to an external resolver. |
-| admin_ip_eval  | Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address  | The Ruby eval expression that returns the admin IP address of a node. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>external_servers</td>
+<td>Empty list</td>
+<td>A list of IP addresses or hostnames that should be used as external NTP servers. Hostname can be used if the DNS barclamp is configured to have access to an external resolver.</td>
+</tr>
+<tr>
+<td>admin_ip_eval</td>
+<td>Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address</td>
+<td>The Ruby eval expression that returns the admin IP address of a node.</td>
+</tr>
+</table>
 
-----------
 
 >If you are setting up an external server it can take up to 5 minutes for the nodes to sync with the server. Systems should not be rebooted during this process. If they are rebooted, then they will pause during bootup for time synchronization.
 
@@ -406,13 +483,18 @@ The NTP barclamp provides a common NTP service for the cluster. You can specify 
 The Logging  barclamp provides a centralized logging system based on syslog. The barclamp enables a centralized log server that can then forward information to external syslog servers. The Crowbar installation process sends logs to the admin node by default, but the configuration from the logging barclamp can override this initial configuration.
 ######Logging Barclamp Configuration Parameters######
 
-----------
-
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| external_servers | Empty list	| A list of IP addresses for the logging-server to which to forward logs.|
-
-----------
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>external_servers</td>
+<td>Empty list</td>
+<td>A list of IP addresses for the logging-server to which to forward logs.</td>
+</tr>
+</table>
 
 ##Nagios® Barclamp##
 The Nagios® barclamp provides a common Nagios® service for the cluster. A Nagios® server or servers can be specified and all other nodes are clients of them. The barclamp attempts to direct all traffic over the admin network.

@@ -500,38 +500,58 @@ The Logging  barclamp provides a centralized logging system based on syslog. The
 The Nagios® barclamp provides a common Nagios® service for the cluster. A Nagios® server or servers can be specified and all other nodes are clients of them. The barclamp attempts to direct all traffic over the admin network.
 ######Nagios® Barclamp Parameters######
 
-----------
-
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| admin_interface_eval | Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface | The Ruby eval expression that returns the admin interface of the node. |
-| admin_ip_eval | Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address | The Ruby eval expression that returns the admin IP address of the node. |
-
-----------
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>admin_interface_eval</td>
+<td>Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface</td>
+<td>The Ruby eval expression that returns the admin interface of the node.</td>
+</tr>
+<tr>
+<td>admin_ip_eval</td>
+<td>Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface</td>
+<td>The Ruby eval expression that returns the admin IP address of the node.</td>
+</tr>
+</table>
 
 ##Ganglia Barclamp##
 The Ganglia barclamp provides a common Ganglia service for the cluster. Ganglia server or servers can be specified and all other nodes are clients of them.
 ######Ganglia Barclamp Parameters######
 
-----------
-
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| interface_eval | Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface | The Ruby evaluation string that gets the interface of the admin interface. |
-
-----------
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>interface_eval</td>
+<td>Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface</td>
+<td>The Ruby evaluation string that gets the interface of the admin interface.</td>
+</tr>
+</table>
 
 ##Test Barclamp##
 The Test barclamp provides a shell for writing tests against. It allows for failures to be injected and other barclamps can be validated against it.
 ######Test Barclamp Parameters######
 
-----------
-
-| Name |Description |
-| :-- | :---------- |
-| barclamps | A list of supported barclamps that are used as the return value for the barclamp list API call. |
-| instances | A map of barclamp names that reference a list of JSON files (default is special to mean to take the defaults) that represent starting barclamp instances to create. |
-
-----------
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>barclamps</td>
+<td>A list of supported barclamps that are used as the return value for the barclamp list API call.</td>
+</tr>
+<tr>
+<td>instances</td>
+<td>A map of barclamp names that reference a list of JSON files (default is special to mean to take the defaults) that represent starting barclamp instances to create.</td>
+</tr>
+</table>
 
 >This barclamp is currently used only to perform a quick smoke test of Crowbar following Crowbar installation, and as a result should never be deployed.

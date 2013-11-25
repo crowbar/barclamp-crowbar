@@ -67,6 +67,10 @@ en:
       Virtualization: Virtualization Flag Enabled
       Storage: Storage (Virt Off)
       not_set: Not Set
+    bootenv: &bootenv
+      local: "Admin server (local)"
+      noop: "Use Exiting (bypass)"
+      sledgehammer: "Discovery (Sledgehammer)"
 
   # Layout
   nav:
@@ -265,8 +269,10 @@ en:
       alias: "Alias"
       no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
       bootstrap: "Configure System"
+      bootenv: "Boot Environment"
       <<: *deployment_common
       <<: *node_role_states
+      <<: *bootenv
     show:
       node_roles: "In Process Actions"
       alive: "Alive"

@@ -16,6 +16,8 @@
         - deployments = Deployment.all
         = f.collection_select :deployment, deployments, :id, :name, :selected=>@node.deployment.id
         %input.button{:type => "submit", :name => "update", :value => t('update'), }
+    %dt= t('.bootenv')
+    %dd= t(@node.bootenv, :default=>@node.bootenv)
     %dt= t('.status')
     %dd
       = t (@node.alive ? ".alive" : ".dead")

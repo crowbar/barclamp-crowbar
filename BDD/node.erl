@@ -24,7 +24,7 @@ g(Item) ->
     path -> "api/v2/nodes";
     status_path -> "/api/status/nodes";
     name -> "bdd1.example.com";
-    bootenv -> "simulator"
+    bootenv -> "simulator";
     atom -> node1;
     _ -> crowbar:g(Item)
   end.

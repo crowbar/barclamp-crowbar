@@ -1,5 +1,16 @@
 ## Node Model
 
+### Boot Environment ("bootenv")
+
+The node's Boot Environment determines which operating system will be installed on the node after configuration and inventory by Sledgehammer.
+
+There are several built in bootenv values 
+
+* local - used by the bootstrapping process when installing the admin node to prevent reimaging the admin server(s)
+* simulator - used by the development simulator to skip physical configuration during test runs
+* bypass - used by operators who want to tell crowbar to skip installing the OS.  Generally used because an operating system is already installed on the system (e.g.: a VM)
+* container - used by automation that configurations LCX/Docker containers to skip installing the OS because these environments already have a functional operating system.
+
 ### Aliveness and availability:
 
 Nodes in the Crowbar framework have two related flags that control

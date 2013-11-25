@@ -52,9 +52,6 @@ step(_Global, {step_given, {Scenario, _N}, ["parameter",Key,"is",Value]}) ->
   bdd_utils:scenario_store(Scenario, Key, Value),
   [];
 
-step(_Given, {step_when, _N, ["I go to url", Page]}) -> 
-  noop;
-
 step(_Given, {step_when, _N, ["I go to the home page"]}) -> 
 	eurl:get_http([]);
 

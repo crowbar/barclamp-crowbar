@@ -91,10 +91,18 @@ json_build({Key, Value}) when is_atom(Key)   -> json_build({atom_to_list(Key), V
 json_build({Key, Value})                     -> {Key, Value};
 json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 
-%json(Part, JSON)  ->  
-%  Key = atom_to_list(Part),
-%  {Key, P} = lists:keyfind(Key,1,JSON), 
-%  P.
+% wait for URL to return item, loop until we get the desire result
+wait_for(URL, Match, 0, _) -> 
+  bdd_utils:log(error, crowbar,wait_for, "Did not get ~p from ~p after repeats", [Match, URL]),
+  throw("Did not get result from URL after requested # of attempts");
+wait_for(URL, Match, Times, Sleep) ->
+  R = eurl:get_http(URL),
+  case R#http.data of
+    Match ->  true;
+    X     ->  bdd_utils:log(crowbar, wait_for, debug, "Waiting on ~p.  Result is ~p",[URL, X]), 
+              timer:sleep(Sleep), 
+              wait_for(URL, Match, Times-1, Sleep)
+  end.
 
 % global setup
 step(Global, {step_setup, {Scenario, _N}, Test}) -> 
@@ -187,6 +195,12 @@ step(Result, {step_then, _N, ["I should see", Text, "in the body"]}) ->
 % helper for limiting checks to body
 step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) -> 
   bdd_webrat:step(Result, {step_then, _N, ["I should not see", Text, "in section", "main_body"]});
+
+% ============================  CLEANUP =============================================
+
+step(_Given, {step_finally, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+  URL = eurl:path(run:g(path),Node),
+  wait_for(URL, "[]", 60, 500);
 
 % ============================  LAST RESORT =========================================
 step(_Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;

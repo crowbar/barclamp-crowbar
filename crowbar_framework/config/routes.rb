@@ -138,6 +138,8 @@ Crowbar::Application.routes.draw do
               get 'nodes'
             end
           end
+
+          resources :runs
           resources :jigs
           resources :nodes do
             resources :node_roles

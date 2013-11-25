@@ -2,8 +2,6 @@
 There are a set of core barclamps that are a part of every Crowbar installation. They are listed in the table below.
 ######Barclamps######
 
-----------
-
 <table border="0">
 <tr>
 <th>Barclamp</th>
@@ -63,7 +61,6 @@ There are a set of core barclamps that are a part of every Crowbar installation.
 </tr>
 </table>
 
-----------
 
 Details about these barclamps are provided below.
 ##Crowbar Barclamp##
@@ -74,7 +71,6 @@ The Crowbar barclamp initializes the system, creates initial proposals of other 
 All barclamps’ transition functions can be called directly, but the Crowbar barclamp calls these in an order specified in its configuration, which is determined by their priority. The default unspecified priority is 100. The special cases are the Provisioner, which is last, and the Deployer and Network, which are first and second, respectively. 
 ######Crowbar Barclamp Parameters######
 
-----------
 
 <table border="0">
 <tr>
@@ -94,12 +90,10 @@ All barclamps’ transition functions can be called directly, but the Crowbar ba
 </tr>
 </table>
 
-----------
 
 The users map contains a map. The key is the user name and the rest of the required fields are as follows:  
 ######User Name Key######
 
-----------
 
 <table border="0">
 <tr>
@@ -116,7 +110,6 @@ The users map contains a map. The key is the user name and the rest of the requi
 </tr>
 </table>
 
-----------
 
 ##Deployer Barclamp##
 The Deployer provides an initial classification system for the Crowbar environment. As nodes are discovered, the Deployer makes sure that discovery tools are run on the node by making sure that the Deployer-client role is assigned to the node. The results of that discovery are classified, and the node’s attributes are updated to reflect its potential usage. The Deployer also builds a map of valid and usable disks.
@@ -130,7 +123,6 @@ The Deployer is also responsible for manipulating the run list during the hardwa
 The Deployer also controls the allocate flag on the node. The allocate flag is used to pause the node after discovery. The node waits for it to be allocated to continue. The Deployer has a configuration option to indicate if the allocate flag should be set to false (and cause a pause) or just allocate all nodes. 
 ######Deployer Barclamp Parameters######
 
-----------
 
 <table border="0">
 <tr>
@@ -150,11 +142,9 @@ The Deployer also controls the allocate flag on the node. The allocate flag is u
 </tr>
 </table>
 
-----------
 
 ######BIOS Map Entry Keys######
 
-----------
 
 <table border="0">
 <tr>
@@ -175,13 +165,11 @@ The Deployer also controls the allocate flag on the node. The allocate flag is u
 </tr>
 </table>
 
-----------
 
 ##Provisioner Barclamp##
 The Provisioner provides the roles and recipes to set up the provisioning server and a base environment for all provisioned nodes. The Provisioner also provides the transition entry point for nodes that need to have DHCP transitions done. The Provisioner assumes that IP addressing is handled outside of this barclamp.
 ######Provisioner Barclamp Parameters######
 
-----------
 
 <table border="0">
 <tr>
@@ -231,7 +219,6 @@ The Provisioner provides the roles and recipes to set up the provisioning server
 </tr>
 </table>
 
-----------
 ** The following command will generate the hash:
 
 	printf 'password' | mkpasswd -s -m md5
@@ -248,7 +235,6 @@ The network assignment function is handled by the creation of an API extension o
 Modification of the following parameters should only be done when installing Crowbar, prior to running the *./install systemname.yourdomain.com* command. See the Crowbar OpenStack Deployment Guide for more information.
 ######Network Configuration Options######
 
-----------
 
 <table border="0">
 <tr>
@@ -273,35 +259,63 @@ Modification of the following parameters should only be done when installing Cro
 </tr>
 </table>
 
-----------
 
 ######Teaming Sub-Parameters######
 
-----------
 
-| Name | Default | Description |
-| :-- | :------ | :---------- |
-| mode | 6 | The default teaming algorithm to use for the bonding driver in Linux. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>mode</td>
+<td>6</td>
+<td>The default teaming algorithm to use for the bonding driver in Linu.</td>
+</tr>
+</table>
 
-----------
 
 ######Default Networks######
 
-----------
 
-| Name | Usage | Notes |
-| :-- | :-----| :--- |
-| admin | Private network for node-to-node communication | A router, if wanted, is external to the system. This network must be owned by the Crowbar system to run DHCP. |
-| bmc | Private network for BMC communication | This can be the same as the admin network by using the ranges to limit what IP goes where. A router, if wanted, is external to the system. |
-|bmc_vlan |	Private network for admin nodes on the BMC network | This must be the same as the BMC network and have the same VLAN. This is used to generate a VLAN-tagged interface on the admin nodes that can access the BMC LAN. |
-| storage |	Private network for storage traffic | A router, if wanted, is external to the system. |
-| public | Public network for Crowbar and other components | A router, if wanted, is external to the system. |
+<table border="0">
+<tr>
+<th>Name</th>
+<th>Usage</th>
+<th>Notes</th>
+</tr>
+<tr>
+<td>admin</td>
+<td>Private network for node-to-node communication</td>
+<td>A router, if wanted, is external to the system. This network must be owned by the Crowbar system to run DHCP.</td>
+</tr>
+<tr>
+<td>bmc</td>
+<td>Private network for BMC communication</td>
+<td>This can be the same as the admin network by using the ranges to limit what IP goes where. A router, if wanted, is external to the system.</td>
+</tr>
+<tr>
+<td>bmc_vlan</td>
+<td>Private network for admin nodes on the BMC network</td>
+<td>This must be the same as the BMC network and have the same VLAN. This is used to generate a VLAN-tagged interface on the admin nodes that can access the BMC LAN.</td>
+</tr>
+<tr>
+<td>storage</td>
+<td>Private network for storage traffic</td>
+<td>A router, if wanted, is external to the system.</td>
+</tr>
+<tr>
+<td>public</td>
+<td>Public network for Crowbar and other components</td>
+<td>A router, if wanted, is external to the system.</td>
+</tr>
+</table>
 
-----------
 
 ######Network Parameters######
 
-----------
 
 | Name | Default | Description |
 | :-- | :------ | :---------- |

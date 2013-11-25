@@ -34,7 +34,7 @@ class Jig < ActiveRecord::Base
   # and that it starts with an alph and only contains alpha,digist,hyphen,underscore
   #
   validates_uniqueness_of :name, :case_sensitive => false, :message => I18n.t("db.notunique", :default=>"Name item must be unique")
-  validates_format_of     :name, :with=> /^[a-zA-Z][_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [_a-zA-Z0-9]")
+  validates_format_of     :name, :with=> /^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [-_a-zA-Z0-9]")
 
   has_many    :roles,     :primary_key=>:name, :foreign_key=>:jig_name
 
@@ -92,6 +92,29 @@ class Jig < ActiveRecord::Base
   # Runs will be run in the background by the dalayed_job information.
   def run(nr,data)
     raise "Cannot call run on the top-level Jig!"
+  end
+
+  # Return all keys from hash A that do not exist in hash B, recursively
+  def deep_diff(a,b)
+    raise "Only pass hashes to deep_diff" unless a.kind_of?(Hash) && b.kind_of?(Hash)
+    # Base case, hashes are equal.
+    res = Hash[]
+    b.each do |k,v|
+      case
+        # Simple cases first:
+        # if a does not have a key named k, then b[k] is in the result set.
+      when !a.has_key?(k) then res[k] = v
+        # if a[k] == v, then k is not in the result set.
+      when a[k] == v then next
+        # a[k] != v, and both are Hashes.  res[k] is their deep_diff.
+      when a[k].kind_of?(Hash) && v.kind_of?(Hash)
+        maybe_res = deep_diff(a[k],v)
+        res[k] = maybe_res unless maybe_res.nil? || maybe_res.empty?
+        # v wins.
+      else res[k] = v
+      end
+    end
+    res
   end
 
 private

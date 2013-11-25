@@ -213,6 +213,19 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def hint
+    d = read_attribute("hint")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d) rescue {}
+  end
+
+  def hint=(arg)
+    arg = JSON.parse(arg) unless arg.is_a? Hash
+    data = discovery.merge arg
+    write_attribute("hint",JSON.generate(data))
+    data
+  end
+
   def discovery
     d = read_attribute("discovery")
     return {} if d.nil? || d.empty?

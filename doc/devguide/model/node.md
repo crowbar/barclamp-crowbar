@@ -7,9 +7,23 @@ The node's Boot Environment determines which operating system will be installed 
 There are several built in bootenv values 
 
 * local - used by the bootstrapping process when installing the admin node to prevent reimaging the admin server(s)
-* simulator - used by the development simulator to skip physical configuration during test runs
-* bypass - used by operators who want to tell crowbar to skip installing the OS.  Generally used because an operating system is already installed on the system (e.g.: a VM)
-* container - used by automation that configurations LCX/Docker containers to skip installing the OS because these environments already have a functional operating system.
+* noop - used by operators who want to tell crowbar to skip installing the OS.  Generally used because an operating system is already installed on the system (e.g.: a VM)
+* [system defined] - used by the Provisioner to select an operating system image from the local catalog
+
+### Hint
+
+Hints are settable on a Node to make user preferences known to Roles during operation.  For example, a user may wish a node to have a specific IP address.  This advice is communicated to the network role(s) by adding a key-value pair to the node's hint json data set.
+
+Common Hints
+
+<table>
+  <tr><td>Field</td><td>Schema</td></td>Comments</td></td>
+  <tr> 
+    <td>Admin IP address</td>
+    <td>"network_admin": {"ip_v4address": [a.d.d.r] }</td>
+    <td>Must comply with network subnet requirements</td>
+  </td>
+</table>
 
 ### Aliveness and availability:
 

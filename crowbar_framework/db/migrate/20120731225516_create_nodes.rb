@@ -20,6 +20,7 @@ class CreateNodes < ActiveRecord::Migration
       t.string      :description,   :null=>true
       t.integer     :order,         :default=>10000
       t.boolean     :admin,         :default=>false
+      t.integer     :target_role_id,:null=>true
       t.belongs_to  :deployment     # should be system by default
       t.text        :discovery,     :null=>false, :default=>'{}'
       t.text        :hint,          :null=>false, :default=>'{}'
@@ -30,6 +31,6 @@ class CreateNodes < ActiveRecord::Migration
       t.timestamps
     end
     #natural key
-    add_index(:nodes, :name, :unique => true)   
+    add_index(:nodes, :name, :unique => true)
   end
 end

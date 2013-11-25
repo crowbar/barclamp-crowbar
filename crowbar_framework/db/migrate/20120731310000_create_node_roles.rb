@@ -13,22 +13,24 @@
 # limitations under the License.
 #
 class CreateNodeRoles < ActiveRecord::Migration
-  def change  
+  def change
     create_table :node_roles do |t|
       t.belongs_to  :snapshot,          :null=>false
       t.belongs_to  :role,              :null=>false
       t.belongs_to  :node,              :null=>false
       t.integer     :state,             :null=>false, :default => NodeRole::PROPOSED
       t.integer     :cohort,            :null=>false, :default => 0
+      t.integer     :run_count,         :null=>false, :default => 0
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
       t.text        :userdata,          :null=>false, :default => '{}'
       t.text        :systemdata,        :null=>false, :default => '{}'
       t.text        :wall,              :null=>true
       t.text        :runlog,            :null=>false, :default => ""
+      t.boolean     :available,         :null=>false, :default => true
       t.integer     :order,             :default=>Random.rand(1000000)
       t.timestamps
     end
-    #natural key 
+    #natural key
     add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)
   end
 

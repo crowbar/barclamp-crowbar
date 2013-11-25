@@ -31,6 +31,7 @@ class Role < ActiveRecord::Base
   attr_accessible :discovery
   attr_accessible :server
   attr_accessible :cluster
+  attr_accessible :destructive
   attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id

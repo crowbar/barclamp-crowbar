@@ -33,6 +33,7 @@ class ServiceObject
   def initialize(thelogger)
     @bc_name = 'unknown'
     @logger = thelogger
+    @validation_errors = []
   end
 
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
@@ -734,24 +735,19 @@ class ServiceObject
     end
     Rails.logger.info "validating proposal #{@bc_name}"
 
-    errors = validator.validate(proposal)
-    if errors && !errors.empty?
-      strerrors = ""
-      errors.each do |e|
-        strerrors += "#{e.message}\n"
-      end
-      Rails.logger.info "validation errors in proposal #{@bc_name}"
-      raise Chef::Exceptions::ValidationFailed.new(strerrors)
-    end
+    @validation_errors = validator.validate(proposal)
+    handle_validation_errors
   end
 
   #
   # This does additional validation of the proposal, but after it has been
   # saved. This should be used if the errors are easy to fix in the proposal.
   #
-  # This can be overridden to get better validation if needed.
+  # This can be overridden to get better validation if needed. Call it
+  # after your overriden method for error handling.
   #
   def validate_proposal_after_save proposal
+    handle_validation_errors
   end
 
   def _proposal_update(proposal)
@@ -1263,6 +1259,13 @@ class ServiceObject
     }
   end
 
+  private
 
+  def handle_validation_errors
+    if @validation_errors && @validation_errors.length > 0
+      Rails.logger.info "validation errors in proposal #{@bc_name}"
+      raise Chef::Exceptions::ValidationFailed.new(@validation_errors.join("\n"))
+    end
+  end
 end
 

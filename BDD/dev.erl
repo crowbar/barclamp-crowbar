@@ -72,7 +72,7 @@ remove(Atom) ->
   bdd_crud:delete(Atom).
 
 add_node({Atom, Name, Description, Order, Group}) ->
-  JSON = crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, true}, {group, Group}]),
+  JSON = crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, true}, {bootenv, node:g(bootenv)}, {group, Group}]),
   Path = bdd_restrat:alias(node, g, [path]),
   [_R, O] = bdd_crud:create(Path, JSON, Atom),
   % load test data
@@ -83,6 +83,9 @@ add_node({Atom, Name, Description, Order, Group}) ->
 add_deployment({Atom, Name, Extras }) ->
   JSON = crowbar:json([{name, Name} | Extras]),
   Path = bdd_restrat:alias(deployment, g, [path]),
-  [_R, O] = bdd_crud:create(Path, JSON, Atom),
-  bdd_utils:log(info, "Created Deployment ~p=~p named ~p", [Atom, O#obj.id, Name]).
+  case bdd_crud:read_id(Path,Name) of
+    -1 -> [_R, O] = bdd_crud:create(Path, JSON, Atom),
+          bdd_utils:log(info, "Created Deployment ~p=~p named ~p", [Atom, O#obj.id, Name]);
+    _  -> bdd_utils:log(info, "Deployment ~p already exists", [Name])
+  end.
 

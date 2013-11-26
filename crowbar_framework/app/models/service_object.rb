@@ -31,7 +31,7 @@ class ServiceObject
   attr_accessor :bc_name
 
   def initialize(thelogger)
-    @bc_name = bc_name
+    @bc_name = 'unknown'
     @logger = thelogger
   end
 
@@ -511,11 +511,6 @@ class ServiceObject
 
     @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
     res
-  end
-
-  def initialize(thelogger)
-    @bc_name = "unknown"
-    @logger = thelogger
   end
 
 #

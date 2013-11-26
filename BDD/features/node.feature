@@ -48,6 +48,14 @@ Feature: Nodes
       And the list should have an object with key "name" value "bdd1.example.com"
       And the list should have an object with key "name" value {lookup:crowbar.node_name}
     Finally REST removes the {object:node} "bdd-node-list.example.com"
+    
+  Scenario: Node Page Checkout
+    Given there is a {object:node} "bdd-node-page.example.com" marked alive
+    When I go to the "nodes/bdd-node-page.example.com" page 
+    Then I should see {bdd:crowbar.i18n.common.bootenv.local}
+      And I should not see {bdd:crowbar.i18n.common.bootenv.sledgehammer}
+      And there should be no translation errors
+    Finally REST removes the {object:node} "bdd-node-page.example.com"
 
   Scenario: Node Alive Settable Default False
     Given there is a {object:node} "bdd-alive-false.example.com"

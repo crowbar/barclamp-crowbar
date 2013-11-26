@@ -68,9 +68,9 @@ en:
       Storage: Storage (Virt Off)
       not_set: Not Set
     bootenv: &bootenv
-      local: "Admin server (local)"
-      noop: "Use Exiting (bypass)"
-      sledgehammer: "Discovery (Sledgehammer)"
+      local: "Local Boot"
+      sledgehammer: "Discovery / Sledgehammer"
+
 
   # Layout
   nav:

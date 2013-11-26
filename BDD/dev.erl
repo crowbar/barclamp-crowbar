@@ -74,18 +74,26 @@ remove(Atom) ->
 add_node({Atom, Name, Description, Order, Group}) ->
   JSON = crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, true}, {bootenv, node:g(bootenv)}, {group, Group}]),
   Path = bdd_restrat:alias(node, g, [path]),
-  [_R, O] = bdd_crud:create(Path, JSON, Atom),
-  % load test data
-  crowbar:step([], {step_given, {0, 1}, ["test loads the","node_discovery","data into",node, Name]}),
-  % user info
-  bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, O#obj.id, Name, Group]).
+  Obj = bdd_crud:read_obj(Path,Name),
+  case Obj#obj.id of
+    "-1" -> [_R, O] = bdd_crud:create(Path, JSON, Atom),
+          % load test data
+          crowbar:step([], {step_given, {0, 1}, ["test loads the","node_discovery","data into",node, Name]}),
+          % user info
+          bdd_utils:log(info, "Created Node ~p=~p named ~p in group ~p", [Atom, O#obj.id, Name, Group]);
+    _  -> bdd_utils:config_set(Atom, Obj),
+          bdd_utils:log(info, "Node ~p already exists (~p)", [Name, Obj#obj.id])
+  end.
+
 
 add_deployment({Atom, Name, Extras }) ->
   JSON = crowbar:json([{name, Name} | Extras]),
   Path = bdd_restrat:alias(deployment, g, [path]),
-  case bdd_crud:read_id(Path,Name) of
-    -1 -> [_R, O] = bdd_crud:create(Path, JSON, Atom),
+  Obj = bdd_crud:read_obj(Path,Name),
+  case Obj#obj.id of
+    "-1" -> [_R, O] = bdd_crud:create(Path, JSON, Atom),
           bdd_utils:log(info, "Created Deployment ~p=~p named ~p", [Atom, O#obj.id, Name]);
-    _  -> bdd_utils:log(info, "Deployment ~p already exists", [Name])
+    _ -> bdd_utils:config_set(Atom, Obj),
+          bdd_utils:log(info, "Deployment ~p (~p) already exists", [Name, Obj#obj.id])
   end.
 

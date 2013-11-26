@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(bdd_crud).
--export([read/1, read/2, read_id/1, read_id/2, read_obj/1, read_obj/2, create/2, create/3, create/4, delete/1, delete/2, update/2]).
+-export([read/1, read/2, read_id/1, read_id/2, read_obj/1, read_obj/2, fix_obj_url/1, create/2, create/3, create/4, delete/1, delete/2, update/2]).
 -include("bdd.hrl").
 
 % This is a wrapper used by the BDD framework for object level create/update/read/delete actions
@@ -51,6 +51,11 @@ read_obj(Path) ->
     [_, O]  -> O
   end.
 
+% if an objet is created, it's URL does not include it's ID.  This fixes that
+fix_obj_url(Obj) ->
+  URL = eurl:path(Obj#obj.url, Obj#obj.id),
+  Obj#obj{url=URL}.
+
 create(Path, JSON) -> create(Path, JSON, 3).  % loop prevention
 
 % Creates object AND adds marker to session where marker is an atom
@@ -69,7 +74,7 @@ create(Path, JSON, N) ->
   R = eurl:put_post(Path, JSON, post),
   bdd_utils:log(trace, bdd_crud, create, "Code: ~p, URL: ~p", [R#http.code, R#http.url]),
   case R#http.code of
-    200 ->  [R | bdd_restrat:get_object(R)];
+    200 ->  [R | fix_obj_url(bdd_restrat:get_object(R))];
     422 ->  Key = json:keyfind(JSON, "name"),
             bdd_utils:log(info, bdd_crud, create, "422 error. Delete object ~p and try again.",[Key]),
             delete(Path, Key),
@@ -96,7 +101,7 @@ update(URI, JSON) ->
 
 delete(Scenario, Key) when is_number(Scenario) -> delete(bdd_utils:scenario_retrieve(Scenario, Key, undefined));
 delete(Path, Key)                   -> delete(eurl:path([Path, Key])).
-delete(O) when is_record(O, obj)    -> delete(O#obj.url, O#obj.id);
+delete(O) when is_record(O, obj)    -> delete(O#obj.url);
 delete(Marker) when is_atom(Marker) -> delete(bdd_utils:config(Marker));
 delete(URI) ->
   [R | _O] = read(URI),

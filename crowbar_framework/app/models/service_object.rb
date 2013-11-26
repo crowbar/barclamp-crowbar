@@ -41,6 +41,10 @@ class ServiceObject
     false
   end
 
+  def validation_error message
+    @logger.warn message
+    @validation_errors << message
+  end
 
   def simple_proposal_ui?
     proposals = ProposalObject.find_proposals("crowbar")
@@ -757,7 +761,7 @@ class ServiceObject
     elements = proposal["deployment"][@bc_name]["elements"]
 
     if not elements.has_key?(role) or elements[role].length != 1
-      @validation_errors << "Need one (and only one) #{role} node."
+      validation_error("Need one (and only one) #{role} node.")
     end
   end
 

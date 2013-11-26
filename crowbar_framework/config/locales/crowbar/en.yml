@@ -269,10 +269,8 @@ en:
       alias: "Alias"
       no_nodes: "No Nodes Registered.  Suggested action: configure Crowbar."
       bootstrap: "Configure System"
-      bootenv: "Boot Environment"
       <<: *deployment_common
       <<: *node_role_states
-      <<: *bootenv
     show:
       node_roles: "In Process Actions"
       alive: "Alive"
@@ -310,6 +308,8 @@ en:
       bdd_marker: BDD Marker
       reserve: "Reserve"
       release: "Release"
+      bootenv: "Boot Environment"
+      <<: *bootenv
       <<: *bios_types
       <<: *raid_types
       <<: *node_role_states

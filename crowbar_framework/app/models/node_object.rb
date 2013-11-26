@@ -940,7 +940,7 @@ class NodeObject < ChefObject
       save
     end
 
-    if state == "reset" or state == "reinstall" or state == "update"
+    if %w(reset reinstall update).include? state
       # wait with reboot for the finish of configuration update by local chef-client
       # (so dhcp & PXE config is prepared when node is rebooted)
       while File.exist?("/var/run/crowbar/chef-client.lock")

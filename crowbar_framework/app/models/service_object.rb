@@ -28,6 +28,8 @@ class ServiceObject
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
   extend CrowbarOffline
 
+  attr_accessor :bc_name
+
   def initialize(thelogger)
     @bc_name = bc_name
     @logger = thelogger
@@ -509,14 +511,6 @@ class ServiceObject
 
     @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
     res
-  end
-
-  def bc_name=(new_name)
-    @bc_name = new_name
-  end
-
-  def bc_name
-    @bc_name
   end
 
   def initialize(thelogger)

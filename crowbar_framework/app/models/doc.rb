@@ -85,6 +85,8 @@ class Doc < ActiveRecord::Base
       title = if File.exist? f
                 begin
                   actual_title = File.open(f, 'r').readline
+                  # we require titles to star w/ # - anything else is considered extra content
+                  next unless actual_title.starts_with? "#"
                   actual_title.strip[/^#+(.*?)#*$/,1].strip
                 rescue
                   # if that fails, use the name/path

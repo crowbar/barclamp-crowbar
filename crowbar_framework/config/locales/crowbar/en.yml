@@ -67,6 +67,10 @@ en:
       Virtualization: Virtualization Flag Enabled
       Storage: Storage (Virt Off)
       not_set: Not Set
+    bootenv: &bootenv
+      local: "Local Boot"
+      sledgehammer: "Discovery / Sledgehammer"
+
 
   # Layout
   nav:
@@ -304,6 +308,8 @@ en:
       bdd_marker: BDD Marker
       reserve: "Reserve"
       release: "Release"
+      bootenv: "Boot Environment"
+      <<: *bootenv
       <<: *bios_types
       <<: *raid_types
       <<: *node_role_states

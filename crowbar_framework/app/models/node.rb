@@ -213,6 +213,20 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def hint
+    d = read_attribute("hint")
+    Rails.logger.info "ZEHICLE #{d}"
+    return {} if d.nil? || d.empty?
+    JSON.parse(d) rescue {}
+  end
+
+  def hint=(arg)
+    arg = JSON.parse(arg) unless arg.is_a? Hash
+    data = hint.merge arg
+    write_attribute("hint",JSON.generate(data))
+    data
+  end
+
   def discovery
     d = read_attribute("discovery")
     return {} if d.nil? || d.empty?
@@ -242,9 +256,8 @@ class Node < ActiveRecord::Base
     return unless changed?
     Rails.logger.info("Node: calling all role on_node_change hooks for #{name}")
     Role.all.each do |r|
-      Rails.logger.debug("\tNode: calling role #{r.name} for #{name}")
+      #Rails.logger.debug("\tNode: calling role #{r.name} for #{name}")
       r.on_node_change(self)
-      Rails.logger.debug("\tZEHICLE DONE calling roles for #{name}")
     end
     if changes["available"] || changes["alive"]
       if alive && available

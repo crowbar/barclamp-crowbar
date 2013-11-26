@@ -39,11 +39,13 @@ get_object(Result) when is_record(Result, http) ->
   apply(Result#http.namespace, parse_object, [Result]).
 
 % rest response for generic JSON parsing by inspecting the text
-parse_object(Results) ->
+parse_object(Results)             -> parse_object(Results, false).
+parse_object(Results, FromCreate) ->
   case Results#http.data of 
     [${ | _] -> JSON = json:parse(Results#http.data),
                 {"id", ID} = lists:keyfind("id", 1, JSON),
-                #obj{namespace = rest, data=JSON, id= ID, type = json, url = Results#http.url };
+                URL = case fromCreate of true -> eurl:path([Results#http.url, ID]); _ -> Results#http.url end,
+                #obj{namespace = rest, data=JSON, id= ID, type = json, url = URL };
     [$[ | _] -> JSON = json:parse(Results#http.data),
                 #list{namespace = rest, data=JSON, type = json, url = Results#http.url };
     D        -> bdd_utils:log(debug, "JSON API returned non-JSON result.  Returned ~p", [Results]),

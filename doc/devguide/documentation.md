@@ -62,3 +62,6 @@ For example, a file named `333_sample_order.md` would be ordered as 333.
 
 > If you omit order, the system defaults to 9999.
 
+##### Omitting Pages
+
+Crowbar documentation is required to start with "#_ Title".  If the pound (#) is omitted from the first position in the file then it will not be included in the documentation generation process.

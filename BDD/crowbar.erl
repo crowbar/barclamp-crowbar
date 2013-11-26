@@ -91,10 +91,18 @@ json_build({Key, Value}) when is_atom(Key)   -> json_build({atom_to_list(Key), V
 json_build({Key, Value})                     -> {Key, Value};
 json_build([Head | Tail])                    -> [ Head | json_build(Tail)].
 
-%json(Part, JSON)  ->  
-%  Key = atom_to_list(Part),
-%  {Key, P} = lists:keyfind(Key,1,JSON), 
-%  P.
+% wait for URL to return item, loop until we get the desire result
+wait_for(URL, Match, 0, _) -> 
+  bdd_utils:log(error, crowbar,wait_for, "Did not get ~p from ~p after repeats", [Match, URL]),
+  throw("Did not get result from URL after requested # of attempts");
+wait_for(URL, Match, Times, Sleep) ->
+  R = eurl:get_http(URL),
+  case R#http.data of
+    Match ->  true;
+    X     ->  bdd_utils:log(crowbar, wait_for, debug, "Waiting on ~p.  Result is ~p",[URL, X]), 
+              timer:sleep(Sleep), 
+              wait_for(URL, Match, Times-1, Sleep)
+  end.
 
 % global setup
 step(Global, {step_setup, {Scenario, _N}, Test}) -> 
@@ -112,7 +120,7 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   network:make_admin(),
   % create node for testing
   bdd_utils:log(debug, crowbar, step, "Global Setup running (creating node ~p)",[g(node_name)]),
-  Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {alive, "true"}, {admin, "true"}]),
+  Node = json([{name, g(node_name)}, {description, Test ++ g(description)}, {order, 100}, {alive, "true"}, {bootenv, node:g(bootenv)}, {admin, "true"}]),
   bdd_crud:create(node:g(path), Node, g(node_atom));
 
 % find the node from setup and remove it
@@ -129,7 +137,7 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
 
 % we need to set alive value for new nodes
 step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"marked alive"]}) -> 
-  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {alive, "true"}]),
+  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}]),
   bdd_restrat:create(node:g(path), Node, node, ScenarioID);
 
 step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
@@ -187,6 +195,12 @@ step(Result, {step_then, _N, ["I should see", Text, "in the body"]}) ->
 % helper for limiting checks to body
 step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) -> 
   bdd_webrat:step(Result, {step_then, _N, ["I should not see", Text, "in section", "main_body"]});
+
+% ============================  CLEANUP =============================================
+
+step(_Given, {step_finally, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+  URL = eurl:path(run:g(path),Node),
+  wait_for(URL, "[]", 60, 500);
 
 % ============================  LAST RESORT =========================================
 step(_Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;

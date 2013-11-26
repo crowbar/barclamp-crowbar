@@ -750,6 +750,17 @@ class ServiceObject
     handle_validation_errors
   end
 
+  #
+  # Ensure that the proposal contains exactly one role
+  #
+  def validate_one_role(proposal, role)
+    elements = proposal["deployment"][@bc_name]["elements"]
+
+    if not elements.has_key?(role) or elements[role].length != 1
+      @validation_errors << "Need one (and only one) #{role} node."
+    end
+  end
+
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 

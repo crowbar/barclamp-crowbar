@@ -276,6 +276,24 @@ rpms:
       - openssl
       - libssh-devel
       - vim
+  opensuse-13.1:
+    repos:
+      - repo http://download.opensuse.org/repositories/server:/database:/postgresql/openSUSE_13.1/ postgresql
+      - repo http://download.opensuse.org/repositories/devel:/tools/openSUSE_13.1/ devel-libs
+      - repo http://download.opensuse.org/update/13.1/ update-oss
+    build_pkgs:
+      - libcurl-devel
+      - libxml2-devel
+      - zlib-devel
+    pkgs:
+      # openldap stuff
+      - openldap2
+      - openldap2-client
+      - krb5-client
+      - libopenssl-devel
+      - openssl
+      - libssh-devel
+      - vim
   required_pkgs:
     - gcc
     - gcc-c++

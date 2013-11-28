@@ -30,8 +30,8 @@
                 %a.available{:hidden=>"true", :admin=>"false", :id =>"-1", :title =>t('.node_deleted_title'), :draggable=>'false'  }= t('.node_deleted')
     .column_50.last
       - @proposal.all_elements.each do |element|
-        %div
-          %div.droptarget{ :id=>element, :draggable=>'true'}
+        %div.droptarget{ :id=>element, :draggable=>'true'}
+          %div
             - if CONVERGED_ADMIN && HAVE_CHEF_WEBUI
               %b= link_to element, "http://#{request.host}:4040/roles/#{element}", :target => '_blank'
             - else

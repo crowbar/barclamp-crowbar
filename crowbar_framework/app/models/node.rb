@@ -23,7 +23,7 @@ class Node < ActiveRecord::Base
   after_save :after_save_handler
 
   attr_accessible   :id, :name, :description, :alias, :order, :admin, :allocated, :deployment_id
-  attr_accessible   :alive, :available, :bootenv
+  attr_accessible   :alive, :available, :bootenv, :hint
 
   # Make sure we have names that are legal
   # requires at least three domain elements "foo.bar.com", cause the admin node shouldn't
@@ -213,22 +213,11 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def hint
+  # hints are stored as json, this returns a hash instead
+  def get_hint
     d = read_attribute("hint")
     return {} if d.nil? || d.empty?
     JSON.parse(d) rescue {}
-  end
-
-  def hint=(arg)
-    arg = JSON.parse(arg) unless arg.is_a? Hash
-    data = hint.merge arg
-    write_attribute("hint",JSON.generate(data))
-    data
-  end
-
-  def set_hint(role, key, value)
-    arg = { role => { key => value }}
-      self.hint=arg
   end
 
   def discovery

@@ -202,7 +202,8 @@ step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) ->
 
 % ============================  CLEANUP =============================================
 
-step(_Given, {step_finally, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+step(_, {_, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+  timer:sleep(100),   % we want a little pause to allow for settling
   URL = eurl:path(run:g(path),Node),
   wait_for(URL, "[]", 60, 500);
 

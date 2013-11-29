@@ -58,11 +58,12 @@ class NodesController < ApplicationController
   # RESTfule POST of the node resource
   def create
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
+    # deal w/ hint shortcuts
+    hint = JSON.parse(params[:hint] || "{}")
+    hint["network-admin"] = {"ip_v4address"=>params["ip"]} if params.has_key? :ip
+    params[:hint] = JSON.generate(hint)
+
     n = Node.create! params
-    if params.has_key? :ip
-      n.set_hint "network-admin", "ip_v4address", params["ip"] 
-      n.save!
-    end
     render api_show :node, Node, n.id.to_s, nil, n
   end
   

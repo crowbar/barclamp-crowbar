@@ -59,6 +59,10 @@ class NodesController < ApplicationController
   def create
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
     n = Node.create! params
+    if params.has_key? :ip
+      n.set_hint "network-admin", "ip_v4address", params["ip"] 
+      n.save!
+    end
     render api_show :node, Node, n.id.to_s, nil, n
   end
   

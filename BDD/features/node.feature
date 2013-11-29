@@ -139,3 +139,17 @@ Feature: Nodes
     When REST gets the {object:node} "bdd-discovery.data.edu"
     Then key "discovery" should contain at least "1" items
     Finally REST removes the {object:node} "bdd-discovery.data.edu"
+
+  Scenario: Node takes hint about IP address
+    Given there is a {object:node} "bdd-hint-ip1.data.edu" hinted "ip" as "192.168.124.124"
+    When REST gets the {object:node} "bdd-hint-ip1.data.edu"
+    Then key "hint" should have json "network-admin:ip_v4address" with value "192.168.124.124" 
+    Finally REST removes the {object:node} "bdd-hint-ip1.data.edu"
+  
+  Scenario: Node set IP address from hint
+    Given there is a {object:node} "bdd-hint-ip2.data.edu" hinted "ip" as "192.168.124.125"
+      And parameter "node" is "bdd-hint-ip2.data.edu"
+      And after "1" seconds
+    When REST requests the "network/api/v2/networks/admin/allocations" page with parameter "node"
+    Then Array matches "192\.168\.124\.125" 
+    Finally REST removes the {object:node} "bdd-hint-ip2.data.edu"

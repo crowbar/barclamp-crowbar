@@ -215,7 +215,6 @@ class Node < ActiveRecord::Base
 
   def hint
     d = read_attribute("hint")
-    Rails.logger.info "ZEHICLE #{d}"
     return {} if d.nil? || d.empty?
     JSON.parse(d) rescue {}
   end
@@ -225,6 +224,11 @@ class Node < ActiveRecord::Base
     data = hint.merge arg
     write_attribute("hint",JSON.generate(data))
     data
+  end
+
+  def set_hint(role, key, value)
+    arg = { role => { key => value }}
+      self.hint=arg
   end
 
   def discovery

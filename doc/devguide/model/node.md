@@ -14,7 +14,8 @@ There are several built in bootenv values
 
 Hints are settable on a Node to make user preferences known to Roles during operation.  For example, a user may wish a node to have a specific IP address.  This advice is communicated to the network role(s) by adding a key-value pair to the node's hint json data set.
 
-Common Hints
+The pattern for hints is a hash where hints are collected by the roles that's expected to consume them.  For example a hint for the Admin Network (role network-admin) would be stored under the =network-admin= key and then specific key value pairs should be included for that specific role's logic.
+#### Common Hints
 
 <table>
   <tr><td>Field</td><td>Schema</td></td>Comments</td></td>
@@ -24,6 +25,13 @@ Common Hints
     <td>Must comply with network subnet requirements</td>
   </td>
 </table>
+
+#### Hint Shortcut
+
+Some hints are so common that there are parameter short-cuts during node creation.  This makes it easier to set these special values.
+
+* =ip= maps to =network_admin \ ip_v4address=
+
 
 ### Aliveness and availability:
 

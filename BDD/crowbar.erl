@@ -140,6 +140,10 @@ step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"marked aliv
   Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}]),
   bdd_restrat:create(node:g(path), Node, node, ScenarioID);
 
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted",Hint,"as",Value]}) -> 
+  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}, {list_to_atom(Hint), Value}]),
+  bdd_restrat:create(node:g(path), Node, node, ScenarioID);
+
 step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
   step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
 

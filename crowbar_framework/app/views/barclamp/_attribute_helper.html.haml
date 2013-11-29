@@ -12,14 +12,14 @@
     } else if (type == 'float') {
       value = parseFloat(value);
     } else if (type == 'array-string') {
-      value = value.split(' ');
+      value = _split_comma_space(value);
     } else if (type == 'array-boolean') {
-      value = value.split(' ');
+      value = _split_comma_space(value);
       for (i in value) {
         value[i] = (value[i] == 'true' || value[i] == 'True');
       }
     } else if (type == 'array-integer') {
-      value = value.split(' ');
+      value = _split_comma_space(value);
       for (i in value) {
         value[i] = parseInt(value[i]);
       }
@@ -42,4 +42,9 @@
   function update_value(path, part, type) {
     var comp = document.getElementById(part);
     update_value_direct(path, comp.value, type);
+  }
+
+  function _split_comma_space(str) {
+    // Split a comma/space-separated string while also deduplicating commas
+    return str.replace(/ /g, ",").replace(/,+/g, ",").split(",");
   }

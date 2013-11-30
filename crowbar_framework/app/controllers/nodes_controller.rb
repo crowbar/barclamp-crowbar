@@ -61,6 +61,7 @@ class NodesController < ApplicationController
     # deal w/ hint shortcuts
     hint = JSON.parse(params[:hint] || "{}")
     hint["network-admin"] = {"ip_v4address"=>params["ip"]} if params.has_key? :ip
+    hint["provisioner-dhcp-database"] = {"mac"=>params["mac"]} if params.has_key? :mac
     params[:hint] = JSON.generate(hint)
 
     n = Node.create! params

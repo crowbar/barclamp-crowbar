@@ -17,7 +17,7 @@ require 'json'
 
 class NodeRole < ActiveRecord::Base
 
-  attr_accessible :status, :cohort
+  attr_accessible :status, :cohort, :run_count
   attr_accessible :role_id, :snapshot_id, :node_id
 
   belongs_to      :node
@@ -38,7 +38,8 @@ class NodeRole < ActiveRecord::Base
   scope           :deactivatable,     -> { where(:state => [ACTIVE, TRANSITION, ERROR]) }
   scope           :in_state,          ->(state) { where('node_roles.state' => state) }
   scope           :not_in_state,      ->(state) { where(['node_roles.state != ?',state]) }
-  scope           :runnable,          -> { committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state in (?, ?))',TRANSITION,ERROR]) }
+  scope           :available,         -> { where(:available => true) }
+  scope           :runnable,          -> { available.committed.in_state(NodeRole::TODO).joins(:node).where('nodes.alive' => true, 'nodes.available' => true).joins(:role).joins('inner join jigs on jigs.name = roles.jig_name').readonly(false).where(['node_roles.node_id not in (select node_roles.node_id from node_roles where node_roles.state in (?, ?))',TRANSITION,ERROR]) }
   scope           :committed_by_node, ->(node) { where(['state<>? AND state<>? AND node_id=?', NodeRole::PROPOSED, NodeRole::ACTIVE, node.id])}
   scope           :in_snapshot,       ->(snap) { where(:snapshot_id => snap.id) }
   scope           :with_role,         ->(r) { where(:role_id => r.id) }
@@ -140,6 +141,17 @@ class NodeRole < ActiveRecord::Base
 
   def deployment_role
     DeploymentRole.snapshot_and_role(snapshot,role).first
+  end
+
+  def available
+    read_attribute("available")
+  end
+  
+  def available=(b)
+    NodeRole.transaction do
+      write_attribute("available",!!b)
+      save!
+    end
   end
 
   def data
@@ -343,13 +355,27 @@ class NodeRole < ActiveRecord::Base
     block_or_todo
   end
 
+  def run_hook
+    # There are some limits to running hooks:
+    # 1: Snapshot has to be committed.
+    # 2: noderole must be available.
+    # 3: role mist not be destructive, or
+    #    it must have a run count of 0 (if not active),
+    #    or 1 (if active)
+    meth = "on_#{STATES[state]}".to_sym
+    return unless snapshot.committed? &&
+      available &&
+      ((!role.destructive) || (run_count == self.active? ? 1 : 0))
+    role.send(meth,self)
+  end
+
   # Implement the node role state transition rules
   # by guarding state assignment.
   def state=(val)
     cstate = state
     return val if val == cstate
     Rails.logger.info("NodeRole: transitioning #{self.role.name}:#{self.node.name} from #{STATES[cstate]} to #{STATES[val]}")
-    meth = "on_#{STATES[val]}".to_sym
+
     case val
     when ERROR
       # We can only go to ERROR from TRANSITION
@@ -358,7 +384,7 @@ class NodeRole < ActiveRecord::Base
       end
       write_attribute("state",val)
       save!
-      role.send(meth,self) if snapshot.committed?
+      run_hook
       # All children of a node_role in ERROR go to BLOCKED.
       children.each do |c|
         next unless c.snapshot.committed?
@@ -375,7 +401,7 @@ class NodeRole < ActiveRecord::Base
       end
       write_attribute("state",val)
       save!
-      role.send(meth,self) if snapshot.committed?
+      run_hook
       # Immediate children of an ACTIVE node go to TODO
       children.each do |c|
         next unless c.snapshot.committed? && c.activatable?
@@ -395,7 +421,7 @@ class NodeRole < ActiveRecord::Base
       end
       write_attribute("state",val)
       save!
-      role.send(meth,self) if snapshot.committed?
+      run_hook
       # Going into TODO transitions all our children into BLOCKED.
       children.each do |c|
         c.state = BLOCKED
@@ -412,7 +438,7 @@ class NodeRole < ActiveRecord::Base
       end
       write_attribute("state",val)
       save!
-      role.send(meth,self) if snapshot.committed?
+      run_hook
     when BLOCKED
       # We can only go to BLOCKED from PROPOSED or TODO,
       # or if any our parents are in BLOCKED or TODO or ERROR.
@@ -437,7 +463,7 @@ class NodeRole < ActiveRecord::Base
         end
         c.send(:write_attribute,"state",BLOCKED)
         c.save!
-        role.send(meth,self) if snapshot.committed?
+        run_hook
       end
     else
       # No idea what this is.  Just die.

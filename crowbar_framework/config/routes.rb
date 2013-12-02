@@ -144,6 +144,9 @@ Crowbar::Application.routes.draw do
           resources :nodes do
             resources :node_roles
             resources :attribs
+            put :reboot
+            put :debug
+            put :undebug
           end
           resources :node_roles do
             put :retry

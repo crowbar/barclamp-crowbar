@@ -22,7 +22,23 @@ needrunfile="/var/run/crowbar/chef-client.run"
 
 touch "$needrunfile"
 
+obtained_lock=''
+
+# Is there already a lock file?
+if [ -e "$lockfile" ]; then
+    pid="$(<$lockfile)"
+    # Does the process no longer run ?
+    if ! printf "%d" "$pid" &>/dev/null || ! kill -0 "$pid" >/dev/null 2>/dev/null; then
+        echo "$$" > "$lockfile"
+        obtained_lock='true'
+    fi
+fi
+
 if ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; then
+    obtained_lock='true'
+fi
+
+if [ -n "$obtained_lock" ]; then
     trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
     
     while true; do

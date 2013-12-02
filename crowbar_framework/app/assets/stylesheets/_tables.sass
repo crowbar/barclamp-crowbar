@@ -125,10 +125,12 @@ $snapheight: 12em
 
 table.snap
   align: left
+  background: $content_bg
   padding: 2
   thead th
     padding: 3px 10px
-    background: $secondary_bg
+    background: $page_bg
+    border-style: none
     &.anode
       +rounded_corners(10px,0,0,0)
       vertical-align: bottom
@@ -147,13 +149,13 @@ table.snap
         position: relative
         top: 44% 
         width: 1em
-        -webkit-transform: rotate(-90deg)
+        -webkit-transform: rotate(-45deg)
         /* Firefox */
-        -moz-transform: rotate(-90deg)
+        -moz-transform: rotate(-45deg)
         /* IE */
-        -ms-transform: rotate(-90deg)
+        -ms-transform: rotate(-45deg)
         /* Opera */
-        -o-transform: rotate(-90deg)
+        -o-transform: rotate(-45deg)
         /* Internet Explorer */
         filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3)
         /* Safari */

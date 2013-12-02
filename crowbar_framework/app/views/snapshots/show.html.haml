@@ -20,7 +20,7 @@
       %td= link_to t('.graph'), snapshot_graph_path(@snapshot.id), :class => 'button', :method=>:get
     %td= render :partial => 'deployments/buttons', :locals => { :state=>state, :snapshot=>@snapshot }
 
-%table.snap{:align=>'center'}
+%table.snap{:align=>'left'}
   - if @nodes.count > 0 or  @roles.count > 0
     %thead
       %tr
@@ -28,7 +28,7 @@
         - @roles.each do |dr|
           %th.dr{:id=>dr.id}
             %div
-              - name = (dr.role.name).truncate(24)
+              - name = (dr.role.name).truncate(30)
               = link_to name.gsub("-","&#8209;").html_safe, deployment_role_path(dr.id), :title=>dr.role.description
     %tbody
       - @nodes.each do |node|

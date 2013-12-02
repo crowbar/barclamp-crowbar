@@ -39,8 +39,7 @@ get_object(Result) when is_record(Result, http) ->
   apply(Result#http.namespace, parse_object, [Result]).
 
 % rest response for generic JSON parsing by inspecting the text
-parse_object(Results)             -> parse_object(Results, false).
-parse_object(Results, FromCreate) ->
+parse_object(Results)             ->
   case Results#http.data of 
     [${ | _] -> JSON = json:parse(Results#http.data),
                 {"id", ID} = lists:keyfind("id", 1, JSON),
@@ -224,6 +223,15 @@ step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should be",Value]}) ->
   case Value =:= Test of
      true  -> true;
      false -> bdd_utils:log(debug, bdd_restrat, step, "Key ~p expected ~p but was ~p", [Key, Value, Test]), false
+  end;
+
+step(Results, {step_then, {_Scenario, _N}, ["key",Key,"should have json",JSON,"with value",Value]}) ->
+  Obj = eurl:get_result(Results, obj),
+  KValue = json:keyfind(Obj#obj.data, Key, ":"),
+  V = json:keyfind(KValue, JSON, ":"),
+  case Value =:= V of
+     true  -> true;
+     false -> bdd_utils:log(debug, bdd_restrat, step, "Key ~p expected ~p:~p but was ~p", [Key, JSON, Value, V]), false
   end;
 
 % this is really handy INSIDE a scenario because you can lookup objects that you created earlier to test IDs (assumes you only create 1 type of each)

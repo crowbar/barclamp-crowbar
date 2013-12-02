@@ -140,6 +140,10 @@ step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"marked aliv
   Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}]),
   bdd_restrat:create(node:g(path), Node, node, ScenarioID);
 
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted",Hint,"as",Value]}) -> 
+  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}, {list_to_atom(Hint), Value}]),
+  bdd_restrat:create(node:g(path), Node, node, ScenarioID);
+
 step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
   step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
 
@@ -198,7 +202,8 @@ step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) ->
 
 % ============================  CLEANUP =============================================
 
-step(_Given, {step_finally, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+step(_, {_, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
+  timer:sleep(100),   % we want a little pause to allow for settling
   URL = eurl:path(run:g(path),Node),
   wait_for(URL, "[]", 60, 500);
 

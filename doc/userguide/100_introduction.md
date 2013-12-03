@@ -20,18 +20,16 @@ The Dell EULA version of Crowbar provides additional functionality and color pal
 
 >Crowbar is not limited to managing Dell servers and components.  Due to driver requirements, some barclamps, for example: BIOS & RAID, must be targeted to specific hardware; however, those barclamps are not required for system configuration.
 
-##New For Version 1.5##
+##New For Version 1.6##
 The following features have been added to Crowbar version 1.5:
 
-- Dashboard
-	- Node Alias
-	- Grouping
-- Bulk Edit
-	- Node Alias
-	- Description Population
-- Networking Menu
-	- Switch view 
-	- VLAN view
-- Utility Menu
-	- Import Barclamps
-	- Export Logs and Chef Objects
+* Dell PowerEdge-C6220 and C8000 support for Compute nodes
+* Dell Force10 S4810 support for ToR and aggregation switches
+* 10 GbE support on the following platforms:
+	* C6220
+	* C8000
+	* R720
+* 3 TB large disk support on the following platforms:
+	* C8000
+	* R720
+* Scalability up to 6 to 120 nodes per cluster

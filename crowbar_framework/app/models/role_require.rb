@@ -16,8 +16,8 @@
 class RoleRequire < ActiveRecord::Base
 
   attr_accessible :id, :role_id, :requires
-  belongs_to 	    :role
-  has_one         :upstream,    :class_name => Role, :foreign_key => "name", :primary_key => "requires"
+  belongs_to      :role
+  has_one         :upstream,    :class_name => "Role", :foreign_key => "name", :primary_key => "requires"
   alias_attribute :parent,      :upstream
 
   after_save :update_cohort

@@ -13,15 +13,17 @@
 # limitations under the License.
 #
 class CreateAttribs < ActiveRecord::Migration
-    
+
   def change
     create_table :attribs do |t|
-      t.string      :type,          :null => false, :default => Attrib.to_s
+      t.integer     :barclamp_id,   :null => true
+      t.integer     :role_id,       :null => true
+      t.string      :type,          :null => true
       t.string      :name,          :null => false
       t.string      :description,   :null => true
       t.integer     :order,         :default=>10000
       t.string      :map,           :null => true
-      t.timestamps      
+      t.timestamps
     end
 
     # natural key

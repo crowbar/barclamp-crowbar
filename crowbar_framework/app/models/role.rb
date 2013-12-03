@@ -40,6 +40,10 @@ class Role < ActiveRecord::Base
   belongs_to      :barclamp
   belongs_to      :jig,               :foreign_key=>:jig_name, :primary_key=>:name
   has_many        :role_requires,     :dependent => :destroy
+  has_many        :role_require_attribs, :dependent => :destroy
+  has_many        :attribs
+  has_many        :wanted_attribs, :through => :role_requires_attribs, :class_name => "Attrib", :source => :attrib
+  has_many        :role_parents, :through => :role_requires, :class_name => "Role", :source => :upstream
   has_many        :node_roles
   alias_attribute :requires,          :role_requires
 
@@ -124,10 +128,7 @@ class Role < ActiveRecord::Base
   def parents
     res = []
     res << jig.client_role if jig.client_role
-    role_requires.each do |r|
-      res << Role.find_by_name!(r.requires)
-    end
-    res
+    res + role_parents
   end
 
   def reset_cohort

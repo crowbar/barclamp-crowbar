@@ -13,10 +13,10 @@
 # limitations under the License.
 #
 
-class BarclampCrowbar::AttribDriveCount < Attrib
+class BarclampCrowbar::Attrib::NumberOfDrives < Attrib
 
   # number_of_drives has to calculate info from the data, not just look it up
-  def value(data)
+  def get(data)
 
     # we want to leverage the map for the data in general
     # just we only want to sd* drives

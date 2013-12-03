@@ -131,7 +131,7 @@ class Node < ActiveRecord::Base
   def get_attrib(attrib)
     attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
     if attrib and self.discovery
-      attrib.value(self.discovery)
+      attrib.get(self.discovery)
     else
       nil
     end

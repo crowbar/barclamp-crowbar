@@ -1,7 +1,6 @@
 ## Contributing to Crowbar
 
-Before [submitting pull requests]
-(https://help.github.com/articles/using-pull-requests), please ensure you are
+Before [submitting pull requests](https://help.github.com/articles/using-pull-requests), please ensure you are
 covered by a [CLA](CLA.md).
 
 #### Guidelines for Pull Requests
@@ -57,7 +56,7 @@ The following table shows the progression of new feature additions to Crowbar.
 The purpose of this list is to help articulate how new features appear in
 Crowbar and when they are considered core.
 
-<table border=1>
+<table border=0>
   <thead>
     <tr>
       <th align="center"><em>Phase   </em></th>

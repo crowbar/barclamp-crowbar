@@ -28,8 +28,7 @@ class SupportController < ApplicationController
 
   def get_cli
     executable = Rails.root.join("..", "bin", "gather_cli.sh").expand_path
-    
-    system("sudo -i #{executable} #{request.env["SERVER_ADDR"]} #{request.env["SERVER_PORT"]}")
+    system("sudo", "-i", executable, request.env['SERVER_ADDR'], request.env['SERVER_PORT'])
     redirect_to "/crowbar-cli.tar.gz"
   end
 

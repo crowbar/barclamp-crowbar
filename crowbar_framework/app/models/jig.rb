@@ -37,6 +37,7 @@ class Jig < ActiveRecord::Base
   validates_format_of     :name, :with=> /^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [-_a-zA-Z0-9]")
 
   has_many    :roles,     :primary_key=>:name, :foreign_key=>:jig_name
+  belongs_to  :barclamp
 
 
   def self.active(jig)

@@ -13,8 +13,9 @@
 # limitations under the License.
 #
 
-class BarclampCrowbar::AttribDefault < Attrib
+class RoleRequireAttrib < ActiveRecord::Base
 
-  # nothing
-
+  attr_accessible :id, :role_id, :attrib_name
+  belongs_to      :role
+  has_one         :attrib,      :class_name => "Attrib", :foreign_key => "name", :primary_key => "attrib_name"
 end

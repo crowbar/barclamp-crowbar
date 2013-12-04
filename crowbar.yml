@@ -73,6 +73,47 @@ jigs:
     class: NoopJig
     description: "Jig used when roles have no action to run"
 
+attribs:
+  - name: asset_tag
+    map: 'ohai/dmi/base_board/asset_tag'
+    description: 'BIOS configured system identifier'
+  - name: serial_number
+    description: 'System Serial Number'
+    map: 'ohai/dmi/base_board/asset_tag'
+  - name: 'kernel'
+    description: 'Kermel Name'
+    map: 'ohai/kernel/name'
+  - name: 'kernel_version'
+    description: 'Kernel Version'
+    map: 'ohai/kernel/version'
+  - name: 'os'
+    description: 'O/S Name'
+    map: 'ohai/platform'
+  - name: 'os_version'
+    description: 'O/S Version'
+    map: 'ohai/platform_version'
+  - name: 'os_description'
+    description: 'O/S Description'
+    map: 'ohai/lsb/description'
+  - name: 'memory'
+    description: 'System Memory'
+    map: 'ohai/memory/total'
+  - name: 'cpu'
+    description: 'System Processor'
+    map: 'ohai/cpu/0/model_name'
+  - name: 'cpu_count'
+    description: 'Number of Processors'
+    map: 'ohai/cpu/total'
+  - name: 'hardware'
+    description: 'Product Name'
+    map: 'ohai/dmi/system/product_name'
+  - name: 'manufacturer'
+    description: 'Product Vendor'
+    map: 'ohai/dmi/system/manufacturer'
+  - name: 'number_of_drives'
+    description: 'RAID set'
+    map: 'ohai/block_device'
+
 crowbar:
   layout: 2.0
   order: 0

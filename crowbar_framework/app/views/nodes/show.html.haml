@@ -33,11 +33,11 @@
       %th= t '.value'
       %th= t '.description'
   %tbody
-    - Attrib.all.each do |a|
-      %tr    
+    - @node.attribs.each do |a|
+      %tr
         %td= link_to a.name, attrib_path(a.id)
         %td
-          - v = a.get(@node.discovery) rescue nil
+          - v = a.get(@node) rescue nil
           - unless v.nil?
             = v
           - else

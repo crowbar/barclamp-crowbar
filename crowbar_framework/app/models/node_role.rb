@@ -25,6 +25,7 @@ class NodeRole < ActiveRecord::Base
   belongs_to      :snapshot
   has_one         :deployment,        :through => :snapshot
   has_one         :barclamp,          :through => :role
+  has_many        :attribs,           :through => :role
   has_many        :runs,              :dependent => :destroy
 
   # find other node-roles in this snapshot using their role or node
@@ -311,6 +312,10 @@ class NodeRole < ActiveRecord::Base
     res.deep_merge!(sysdata)
     res.deep_merge!(data)
     res
+  end
+
+  def attrib_data
+    deployemnt_data.deep_merge(all_my_data)
   end
 
   def all_deployment_data

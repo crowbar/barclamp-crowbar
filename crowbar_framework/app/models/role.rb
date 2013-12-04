@@ -56,7 +56,7 @@ class Role < ActiveRecord::Base
   scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
-  # update just one value in the template 
+  # update just one value in the template
   # for >1 level deep, add method matching key to role!
   # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)

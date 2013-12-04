@@ -48,9 +48,9 @@ class AttribsController < ApplicationController
   def update
     if params.key? :node_id and params.key? :value
       node = Node.find_key params[:node_id]
-      attrib = Attrib.find_key params[:id]
-      node.discovery = attrib.discovery(params[:value])
-      node.save!
+      attrib = Attrib.find_key(params[:id])
+      attrib.set(node,params[:value])
+      node.reload
       render api_show :node, Node, nil, nil, node
     else
       respond_to do |format|
@@ -66,5 +66,5 @@ class AttribsController < ApplicationController
       format.json { render api_delete Attrib }
     end
   end
-      
+
 end

@@ -147,7 +147,7 @@ class NodeObject < ChefObject
       end
     end
     # deep clone of @role.default_attributes, used when saving node
-    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+    @attrs_last_saved = deep_clone(@role.default_attributes)
     @node = node
   end
 
@@ -553,7 +553,7 @@ class NodeObject < ChefObject
     end
 
     # update deep clone of @role.default_attributes
-    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+    @attrs_last_saved = deep_clone(@role.default_attributes)
 
     Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
   end
@@ -1019,6 +1019,27 @@ class NodeObject < ChefObject
   end
 
   private
+
+  # Used for cloning role's default attributes.
+  def deep_clone object, options = {}
+    case object
+    when Numeric,TrueClass,FalseClass,NilClass,Symbol #immutable
+      object
+    when ::String
+      options[:full] ? object.clone : object
+    when ::Hash
+      object.reduce({}) do |acc,kv|
+        acc[deep_copy(kv[0])] = deep_copy(kv[1])
+        acc
+      end
+    when ::Array
+       object.reduce([]) do |acc,v|
+        acc << deep_copy(v)
+      end
+    else
+      object.clone #deep copy
+    end
+  end
 
   # this is used by the alias/description code split
   def chef_description

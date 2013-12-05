@@ -110,7 +110,7 @@ using `virt-manager` in the normal way.
 
 You should now have a working VM that you can SSH into from the qemu-kvm host.
 
-1.  Copy your `.gitconfig` and other configuration files to the VM, e.g.:
+1.  Copy your `.gitconfig` and other configuration files to the VM. For example:
 
             crowbar-dev> scp -r <your-usual-dev-host>:.{gitconfig,vimrc,vim,profile,ssh} .
 
@@ -150,8 +150,7 @@ See the [testing page](testing.md) for details.
 
 ## Troubleshooting Tips
 
-1.  Connect to the VM via VNC. This is useful for debugging the VM (e.g.
-    networking issues).
+1.  Connect to the VM via VNC. This is useful for debugging the VM (e.g., networking issues).
 
             kvm-host> vncviewer :10
 

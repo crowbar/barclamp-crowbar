@@ -1,4 +1,5 @@
 ## Automated code analysis
+
 [![Code Climate](https://codeclimate.com/github/crowbar/travis-ci-crowbar.png)](https://codeclimate.com/github/crowbar/travis-ci-crowbar)
 
 In addition to [automated testing and code coverage

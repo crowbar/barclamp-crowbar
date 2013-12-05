@@ -24,7 +24,7 @@ There are a set of core barclamps that are a part of every Crowbar installation.
 <td>Instantiates network interfaces on the Crowbar managed systems. Also manages the address pool.</td>
 </tr>
 <tr>
-<td>RAID</td>
+<td>Dell RAID</td>
 <td>Sets up LSI RAID controllers in a variety of configurations. If missing, the RAID controllers can be set up manually.</td>
 </tr>
 <tr>
@@ -390,7 +390,7 @@ Modification of the following parameters should only be done when installing Cro
 
 >Settings in the Network barclamp should not be changed after the installation of the Admin Node.
 
-##RAID Barclamp##
+##Dell RAID Barclamp##
 RAID is an acronym for “Redundant Array of Independent Disks.” This means that a RAID controller makes (or can make) multiple disks look like one big/smart/safe disk. 
 
 Different RAID controllers have different capabilities. In general, a RAID controller can support one or more RAID volumes of various types. Any disks not included in a RAID volume are directly exposed to the operating system. Disks that are directly exposed like this are known as Just a Bunch Of Disks (JBOD).

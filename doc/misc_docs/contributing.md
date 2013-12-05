@@ -10,7 +10,7 @@ covered by a [CLA](CLA.md).
      discretion
    * UI strings are localized (only EN file needs to be updated)
    * Does not inject vendor information (Name or Product) into Crowbar expect
-     where relevant to explain utility of push (e.g.: help documentation &
+     where relevant to explain utility of push (e.g., help documentation and
      descriptions).
    * Passes code review by Dell Crowbar team reviewer
    * Does not degrade the security model of the product
@@ -33,19 +33,17 @@ covered by a [CLA](CLA.md).
    * Unit tests for all models concurrent with pull request
    * BDD tests for all API calls and web pages concurrent with pull request
    * Documentation for API calls concurrent with pull request
-   * Adhere to the community [Ruby style guide]
-     (https://github.com/bbatsov/ruby-style-guide)
-   * Adhere to the community [Rails style guide]
-     (https://github.com/bbatsov/rails-style-guide/)
+   * Adhere to the community [Ruby style guide](https://github.com/bbatsov/ruby-style-guide)
+   * Adhere to the community [Rails style guide](https://github.com/bbatsov/rails-style-guide/)
 
 #### Testing/ Validation
 
    * For core functions, push will be validated to NOT break build or deploy or
      our commercial products
-   * For product suites (OpenStack, Hadoop, etc), push will be validated to NOT
+   * For product suites (OpenStack, Hadoop, etc.), push will be validated to NOT
      break build or deploy our commercial products
    * For operating systems that are non-core, we will _not_ validate on the
-     target OS for the push (e.g.: not testing SUSE install at this point)
+     target OS for the push (e.g., not testing SUSE install at this point)
    * For non-DellCloudEdge barclamps &ndash; no rules!
    * Eventually, we would expect that a pull request would be built and tested
      in our CI system before the push can be accepted
@@ -59,11 +57,11 @@ Crowbar and when they are considered core.
 <table border=0>
   <thead>
     <tr>
-      <th align="center"><em>Phase   </em></th>
-      <th align="center"><em>Comments</em></th>
-      <th align="center"><em>Roadmap </em></th>
-      <th align="center"><em>Support </em></th>
-      <th align="center"><em>On Trunk</em></th>
+      <th align="center">Phase</th>
+      <th align="center">Comments</th>
+      <th align="center">Roadmap</th>
+      <th align="center">Support</th>
+      <th align="center">On Trunk</th>
     </tr>
   </thead>
   <tbody>
@@ -118,6 +116,6 @@ Crowbar and when they are considered core.
   </tbody>
 </table>
 
-Note: Features are NOT required to progress through all these phases!
+>**Note**: Features are NOT required to progress through all these phases!
 Architectural changes may skip ahead based on their level of impact and
 disruption.

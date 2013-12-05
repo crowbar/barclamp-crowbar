@@ -18,7 +18,7 @@ The Dell EULA version of Crowbar provides additional functionality and color pal
 
 >**Note**: To perform some configuration options and provide some integration, we use libraries that cannot be distributed using open source. 
 
->Crowbar is not limited to managing Dell servers and components.  Due to driver requirements, some barclamps (i.e., BIOS and RAID must be targeted to specific hardware. However, those barclamps are not required for system configuration.
+>Crowbar is not limited to managing Dell servers and components.  Due to driver requirements, some barclamps (i.e., BIOS and RAID) must be targeted to specific hardware. However, those barclamps are not required for system configuration.
 
 ##New For Version 1.6##
 The following features have been added to Crowbar version 1.6:

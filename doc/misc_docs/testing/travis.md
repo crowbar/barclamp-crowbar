@@ -65,7 +65,7 @@ However it's possible that failures may be due to the subtle differences between
 the two environments. To more closely mimic the Travis CI environment, you can
 do the following:
 
-```bash
+<pre>bash
 git clone git://github.com/crowbar/travis-ci-crowbar.git
 cd travis-ci-crowbar/crowbar_framework
 
@@ -80,7 +80,7 @@ bundle install --without development
 
 # Now run the tests
 bundle exec rake db:drop railties:install:migrations db:migrate db:fixtures:dump test:units spec
-```
+</pre>
 
 ### Setting Up the openSUSE Jenkins Node
 
@@ -90,46 +90,41 @@ Here's how the openSUSE Jenkins node was setup:
    (../dev-vm-SUSE.md).
 
 1. Create a new `crowbar` user account and switch to it.
-   ```
-   useradd -m crowbar
-   su - crowbar
-   ```
+   
+   <pre>useradd -m crowbar
+   su - crowbar</pre>
 
 1. Now ensure you have ssh keys set up for whichever github account you want to
-   commit from, then configure git with the corresponding identity (--global is
-   required to cover the multiple repositories we are about to clone),
-   e.g.:
-   ```
-   git config --global user.name "Crowbar Travis Bot"
-   git config --global user.email "crowbar.gravatar+travis@gmail.com"
-   ```
+   commit from, then configure git with the corresponding identity (`--global` is
+   required to cover the multiple repositories we are about to clone). For example:
+
+   <pre>git config --global user.name "Crowbar Travis Bot"
+   git config --global user.email "crowbar.gravatar+travis@gmail.com"</pre>
+ 
 
 1. Check out and configure the various Crowbar repositories:
-   ```
-   git clone git://github.com/crowbar/crowbar.git
+   
+   <pre>git clone git://github.com/crowbar/crowbar.git
    cd crowbar
    # GIT_ASKPASS works around a bug in ./dev where it tries to do stuff
    # with Dell-proprietary barclamps.
-   GIT_ASKPASS=true ./dev setup --no-github
-   ```
+   GIT_ASKPASS=true ./dev setup --no-github</pre>
 
 1. Check out the `travis-ci-crowbar` repository which the Jenkins job will keep
    updated:
-   ```
-   cd
+   
+   <pre>cd
    git clone git://github.com/crowbar/travis-ci-crowbar.git
-   cd travis-ci-crowbar
-   ```
+   cd travis-ci-crowbar</pre>
+   
 
 1. Set up a remote from which we can issue pull requests:
-   ```
-   git remote add personal git@github.com:crowbar-travis/travis-ci-crowbar.git
-   ```
+   
+   `git remote add personal git@github.com:crowbar-travis/travis-ci-crowbar.git`
 
-1. Perform a dummy push to ensure that the server's ssh key fingerprint
+1. Perform a dummy push to ensure that the server's SSH key fingerprint
    is in `.ssh/known_hosts`:
-   ```
-   git push -n personal HEAD
-   ```
+   
+    `git push -n personal HEAD`
 
 Now you're done!

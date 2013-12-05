@@ -52,6 +52,14 @@ class DeploymentRole < ActiveRecord::Base
     write_attribute("data",arg)
   end
 
+  def data_update(val)
+    DeploymentRole.transaction do
+      d = data
+      d.deep_merge!(val)
+      data = d
+    end
+  end
+
   def wall
     d = read_attribute("wall")
     return {} if d.nil? || d.empty?
@@ -61,6 +69,14 @@ class DeploymentRole < ActiveRecord::Base
   def wall=(arg)
     arg = JSON.generate(arg) if arg.is_a? Hash
     write_attribute("wall",arg)
+  end
+
+  def wall_update(val)
+    DeploymentRole.transaction do
+      d = wall
+      d.deep_merge!(val)
+      wall = d
+    end
   end
 
   private

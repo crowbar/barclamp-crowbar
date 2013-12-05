@@ -181,16 +181,31 @@ class NodeRole < ActiveRecord::Base
     save!
   end
 
+  def data_update(val)
+    NodeRole.transaction do
+      d = data
+      d.deep_merge!(val)
+      data = d
+    end
+  end
+
   def sysdata
-    raw = JSON.parse(read_attribute("systemdata")||'{}')
-    # Allow for dynamic per-role overrides.
-    raw.deep_merge!(role.sysdata(self)) if role.respond_to?(:sysdata)
-    raw
+    return role.sysdata(self) if role.respond_to?(:sysdata)
+    JSON.parse(read_attribute("systemdata")||'{}')
   end
 
   def sysdata=(arg)
+    raise("#{role.name} dynamically overwrites sysdata, cannot write to it!") if role.respond_to?(:sysdata)
     write_attribute("systemdata",JSON.generate(arg))
     save!
+  end
+
+  def sysdata_update(val)
+    NodeRole.transaction do
+      d = sysdata
+      d.deep_merge!(val)
+      sysdata = d
+    end
   end
 
   def data_schema
@@ -207,6 +222,14 @@ class NodeRole < ActiveRecord::Base
     arg = JSON.generate(arg) if arg.is_a? Hash
     write_attribute("wall",arg)
     save!
+  end
+
+  def wall_update(val)
+    NodeRole.transaction do
+      d = wall
+      d.deep_merge!(val)
+      wall = d
+    end
   end
 
   def wall_schema
@@ -315,7 +338,7 @@ class NodeRole < ActiveRecord::Base
   end
 
   def attrib_data
-    deployemnt_data.deep_merge(all_my_data)
+    deployment_data.deep_merge(all_my_data)
   end
 
   def all_deployment_data

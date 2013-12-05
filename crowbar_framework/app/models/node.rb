@@ -208,6 +208,14 @@ class Node < ActiveRecord::Base
     data
   end
 
+  def discovery_update(val)
+    Node.transaction do
+      d = discovery
+      d.deep_merge!(val)
+      discovery = d
+    end
+  end
+
   def reboot
     BarclampCrowbar::Jig.ssh("root@#{self.name} reboot")
   end

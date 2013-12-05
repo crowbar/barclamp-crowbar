@@ -68,6 +68,14 @@ class Role < ActiveRecord::Base
     self.save!
   end
 
+  def template_update(val)
+    Role.transaction do
+      d = JSON.parse(read_attribute(template))
+      d.deep_merge!(val)
+      write_attribute("template",JSON.generate(d))
+    end
+  end
+
   # State Transistion Overrides
 
   def on_error(node_role, *args)

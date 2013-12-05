@@ -40,12 +40,24 @@ class Attrib < ActiveRecord::Base
   # For now, we are encoding information about the objects we can use directly in to
   # the Attrib class, and failing hard if we were passed something that
   # we do not know how to handle.
-  def get(from)
+  def get(from,source=:all)
     from = __resolve(from)
     d = case
         when from.is_a?(Node) then from.discovery
-        when from.is_a?(DeploymentRole) then from.wall.deep_merge(from.data)
-        when from.is_a?(NodeRole) then from.attrib_data
+        when from.is_a?(DeploymentRole)
+          case source
+          when :all then from.wall.deep_merge(from.data)
+          when :wall then from.wall
+          else from.data
+          end
+        when from.is_a?(NodeRole)
+          case source
+          when :all then from.attrib_data
+          when :wall then from.wall
+          when :system then from.sysdata
+          when :user then from.data
+          else raise("#{target} is not a valid target to read data from!")
+          end
         when from.is_a?(Role) then from.template
         else raise("Cannot extract attribute data from #{from.class.to_s}")
         end
@@ -95,7 +107,7 @@ class Attrib < ActiveRecord::Base
     # 3. Finally, fall back on the generic Attrib class.
     klassnames = []
     klassnames << "Barclamp#{self.barclamp.name.camelize}::Attrib::#{name}" if self.barclamp_id
-    klassnames << "#{self.role.jig.type}Attrib" if self.role_id
+    klassnames << "#{self.role.jig.type}Attrib" if self.role_id && (Jig.where(:name => role.jig_name).count > 0)
     klassnames << "Attrib"
     klassnames.each do |t|
       if (t.constantize rescue nil)
@@ -123,24 +135,19 @@ class Attrib < ActiveRecord::Base
   # The last parameter is what area the new attribute should be placed on
   def __set(to,value,target=:system)
     to = __resolve(to)
-    attr = case
-           when to.is_a?(Node) then "discovery"
-           when to.is_a?(Role) then "template"
-           when to.is_a?(DeploymentRole) then target == :system ? "wall" : "data"
-           when to.is_a?(NodeRole)
-             case target
-             when :system then 'systemdata'
-             when :user then 'userdata'
-             when :wall then 'wall'
-             else raise("#{target} is not a valid target to write data to!")
-             end
-           else raise("Cannot write attribute data to #{to.class.to_s}")
-           end
-    transaction do
-      data = JSON.parse(to.send(:read_attribute,attr))
-      data.deep_merge(template(value))
-      to.send(:write_attribute,attr,JSON.generate(data))
-      to.save!
+    case
+    when to.is_a?(Node) then to.discovery_update(value)
+    when to.is_a?(Role) then to.template_update(value)
+    when to.is_a?(DeploymentRole)
+      target == :system ? to.wall_update(value) : to.data_update(value)
+    when to.is_a?(NodeRole)
+      case target
+      when :system then to.sysdata_update(value)
+      when :user then to.data_update(value)
+      when :wall then to.wall_update(value)
+      else raise("#{target} is not a valid target to write data to!")
+      end
+    else raise("Cannot write attribute data to #{to.class.to_s}")
     end
   end
 

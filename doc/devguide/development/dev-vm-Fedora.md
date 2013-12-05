@@ -1,6 +1,6 @@
-# Crowbar dev environment based on Fedora
+# Crowbar Develepment Environment Based Upon Fedora
 
-## Setting up the virtual machine (VM)
+## Setting Up the Virtual Machine (VM)
 
 1. Create a new virtual network 192.168.124.0/24 (using virt-manager or virsh).
    Do not use DHCP for this network.
@@ -58,7 +58,7 @@ root@crowbar-dev> passwd crowbar</pre>
    <pre>root@crowbar-dev> yum install git ruby rubygem-rake rubygem-bundler mkisofs binutils markdown erlang debootstrap ruby-devel gcc gcc-c++ sqlite-devel libxml2-devel libxslt-devel</pre>
 
 
-## Setting up the development environment
+## Setting Up the Development Environment
 
 You should now have a working VM that you can SSH into from the host.
 

@@ -105,10 +105,8 @@ with setting up the Crowbar development environment.
 
    The `./dev setup` script will ask for your Github username and password. It
    will fork the Crowbar and corresponding barclamp repositories to your
-   account and clone them into `crowbar/barclamps/`. See [dev-and-workflow]
-   (https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow)
-   and [dev-and-code-review]
-   (https://github.com/crowbar/crowbar/blob/master/README.dev-and-code-review)
+   account and clone them into `crowbar/barclamps/`. See [dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow)
+   and [dev-and-code-review](https://github.com/crowbar/crowbar/blob/master/README.dev-and-code-review)
    for details. This will take a while so get some coffee.
 
 1. Install dependencies required by the test suite:

@@ -940,7 +940,7 @@ class NodeObject < ChefObject
       # command on the client else ssh never disconnects when client dies
       # `timeout` and '-o ConnectTimeout=10' are there in case anything
       # else goes wrong...
-      unless system("sudo -i -u root -- timeout -k 5s 15s ssh -o ConnectTimeout=10 root@#{@node.name} '#{ssh_command} </dev/null >/dev/null 2>&1 &'")
+      unless system("sudo", "-i", "-u", "root", "--", "timeout", "-k", "5s", "15s", "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}", "#{ssh_command} </dev/null >/dev/null 2>&1 &")
         Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
         return nil
       end

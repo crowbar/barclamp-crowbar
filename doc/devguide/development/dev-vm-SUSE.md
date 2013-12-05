@@ -1,4 +1,4 @@
-# Crowbar Dev based on SUSE
+# Crowbar Development Based Upon SUSE
 
 Here we describe how to setup a Crowbar development environment in a virtual
 machine (VM) that is based on openSUSE or SUSE Linux Enterprise Server (SLES).

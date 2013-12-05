@@ -1,4 +1,6 @@
-# Crowbar and Travis CI [![Build Status](https://travis-ci.org/crowbar/travis-ci-crowbar.png?branch=master)](https://travis-ci.org/crowbar/travis-ci-crowbar) [![Coverage Status](https://coveralls.io/repos/crowbar/travis-ci-crowbar/badge.png?branch=master)](https://coveralls.io/r/crowbar/travis-ci-crowbar) [![Code Climate](https://codeclimate.com/github/crowbar/travis-ci-crowbar.png)](https://codeclimate.com/github/crowbar/travis-ci-crowbar)
+# Crowbar and Travis CI
+
+[![Build Status](https://travis-ci.org/crowbar/travis-ci-crowbar.png?branch=master)](https://travis-ci.org/crowbar/travis-ci-crowbar) [![Coverage Status](https://coveralls.io/repos/crowbar/travis-ci-crowbar/badge.png?branch=master)](https://coveralls.io/r/crowbar/travis-ci-crowbar) [![Code Climate](https://codeclimate.com/github/crowbar/travis-ci-crowbar.png)](https://codeclimate.com/github/crowbar/travis-ci-crowbar)
 
 Crowbar uses Travis CI (among other things) to perform continuous integration.
 The badges above represent (left to right):
@@ -28,7 +30,7 @@ Crowbar architecture:
 The goal is to ultimately use barclamps like regular gems, then Crowbar can
 adopt a standard Rails setup that doesn't have these limitations.
 
-## Setup details
+## Setup Details
 
 It's usually easy to setup Travis CI, but Crowbar needs to be assembled from
 several Git repositories. So we use the [update-git.sh]
@@ -49,7 +51,7 @@ script looks like this:
 This is script is run every 15 minutes by our public [Jenkins server]
 (https://ci.opensuse.org/job/crowbar-travis_ci-trackupstream/).
 
-### Debugging test failures
+### Debugging Test Failures
 
 You should be able to reproduce all test failures in your local dev environment,
 as Travis CI simply launches a fresh Ubuntu VM, sets up the environment and runs
@@ -80,7 +82,7 @@ bundle install --without development
 bundle exec rake db:drop railties:install:migrations db:migrate db:fixtures:dump test:units spec
 ```
 
-### Setting up the openSUSE Jenkins node
+### Setting Up the openSUSE Jenkins Node
 
 Here's how the openSUSE Jenkins node was setup:
 

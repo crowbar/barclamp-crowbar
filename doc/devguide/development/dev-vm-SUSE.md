@@ -106,7 +106,7 @@ using `virt-manager` in the normal way.
             jamestyj@kvm-host> ssh 192.168.124.10
             jamestyj@crowbar-dev>
 
-## Setting up the development environment
+## Setting Up the Development Environment
 
 You should now have a working VM that you can SSH into from the qemu-kvm host.
 
@@ -148,7 +148,7 @@ You should now have a working VM that you can SSH into from the qemu-kvm host.
 
 See the [testing page](testing.md) for details.
 
-## Troubleshooting tips
+## Troubleshooting Tips
 
 1.  Connect to the VM via VNC. This is useful for debugging the VM (e.g.
     networking issues).

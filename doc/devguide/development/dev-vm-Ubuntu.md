@@ -1,6 +1,6 @@
-# Crowbar Dev environment based on Ubuntu
+# Crowbar Development Environment Based Upon Ubuntu
 
-## Setting up the virtual machine (VM)
+## Setting Up the Virtual Machine (VM)
 
 Currently only Ubuntu 12.04 LTS is supported, though the instructions here
 should also work with other versions.
@@ -23,7 +23,7 @@ Installation steps:
    aria2c http://releases.ubuntu.com/precise/ubuntu-12.04.1-server-amd64.iso.torrent
    ````
 
-1. Create a blank disk image that is at least 20 GB, eg:
+1. Create a blank disk image that is at least 20 GB. For example:
 
    ````
    qemu-img create -f qcow2 -o preallocation=metadata ubuntu-12.04.qcow2 20G
@@ -72,7 +72,7 @@ Installation steps:
    use the [qemu-kvm/start-vm](https://github.com/crowbar/crowbar/blob/master/dev-setup/qemu-kvm/start-vm))
    helper script.
 
-## Setting up the development environment
+## Setting Up the Development Environment
 
 You should now have a working VM that you can SSH into from the qemu-kvm host.
 For example:

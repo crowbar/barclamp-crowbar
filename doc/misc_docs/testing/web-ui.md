@@ -1,8 +1,8 @@
-### Manually testing the web UI
+### Manually Testing the Web UI
 
-Firstly [set up your development environment](devtool.md).
+First, [set up your development environment](devtool.md).
 
-#### Starting the Crowbar web interface
+#### Starting the Crowbar Web Interface
 
    ````
    cd /tmp/crowbar-dev-test/opt/dell/crowbar_framework

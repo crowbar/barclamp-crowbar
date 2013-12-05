@@ -21,6 +21,7 @@ require 'chef'
 require 'json'
 
 class BarclampController < ApplicationController
+  include BarclampServicesHelper
 
   before_filter :controller_to_barclamp
 
@@ -187,7 +188,7 @@ class BarclampController < ApplicationController
         @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
         @count = -1
         members = {}
-        list = Kernel.const_get("#{@bc_name.camelize}Service").method(:members).call
+        list = barclamp_members(@bc_name)
         cat = ServiceObject.barclamp_catalog
         i = 0
         list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }

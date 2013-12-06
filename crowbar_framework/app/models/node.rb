@@ -60,6 +60,15 @@ class Node < ActiveRecord::Base
   scope    :alive,              -> { where(:alive => true) }
   scope    :available,          -> { where(:available => true) }
 
+  # Get all the attributes applicable to a node.
+  # This includes:
+  # * All attributes that are defined for our node roles, by virtue of
+  #   being defined as part of the role that the node role is bound to, and
+  # * All attributes that are not defined as part of a node.
+  def attribs
+    Attrib.where(["attribs.role_id IS NULL OR attribs.role_id in (select role_id from node_roles where node_id = ?)",self.id])
+  end
+
   # look at Node state by scanning all node roles.
   def state
     node_roles.each do |nr|
@@ -130,11 +139,7 @@ class Node < ActiveRecord::Base
   # retrieves the Attrib from Attrib
   def get_attrib(attrib)
     attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
-    if attrib and self.discovery
-      attrib.get(self.discovery)
-    else
-      nil
-    end
+    attrib.get(self) rescue nil
   end
 
   def active_node_roles
@@ -159,7 +164,7 @@ class Node < ActiveRecord::Base
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
-      return get_attrib method[7..100]
+      return get_attrib method[7..-1]
     else
       super
     end
@@ -201,6 +206,14 @@ class Node < ActiveRecord::Base
     data = discovery.merge arg
     write_attribute("discovery",JSON.generate(data))
     data
+  end
+
+  def discovery_update(val)
+    Node.transaction do
+      d = discovery
+      d.deep_merge!(val)
+      discovery = d
+    end
   end
 
   def reboot

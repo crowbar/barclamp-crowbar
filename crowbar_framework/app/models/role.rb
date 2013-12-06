@@ -56,7 +56,7 @@ class Role < ActiveRecord::Base
   scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
-  # update just one value in the template 
+  # update just one value in the template
   # for >1 level deep, add method matching key to role!
   # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)
@@ -66,6 +66,14 @@ class Role < ActiveRecord::Base
     merged = d.deep_merge(t)
     self.template = JSON.generate(merged)
     self.save!
+  end
+
+  def template_update(val)
+    Role.transaction do
+      d = JSON.parse(read_attribute(template))
+      d.deep_merge!(val)
+      write_attribute("template",JSON.generate(d))
+    end
   end
 
   # State Transistion Overrides

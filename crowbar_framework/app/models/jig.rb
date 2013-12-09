@@ -37,6 +37,7 @@ class Jig < ActiveRecord::Base
   validates_format_of     :name, :with=> /^[a-zA-Z][-_a-zA-Z0-9]*$/, :message => I18n.t("db.lettersnumbers", :default=>"Name limited to [-_a-zA-Z0-9]")
 
   has_many    :roles,     :primary_key=>:name, :foreign_key=>:jig_name
+  belongs_to  :barclamp
 
 
   def self.active(jig)
@@ -94,6 +95,12 @@ class Jig < ActiveRecord::Base
     raise "Cannot call run on the top-level Jig!"
   end
 
+  def finish_run(nr)
+    nr.run_count += 1 if nr.active?
+    nr.save!
+    return nr
+  end
+
   # Return all keys from hash A that do not exist in hash B, recursively
   def deep_diff(a,b)
     raise "Only pass hashes to deep_diff" unless a.kind_of?(Hash) && b.kind_of?(Hash)
@@ -148,7 +155,7 @@ class NoopJig < Jig
 
   def run(nr,data)
     nr.state = NodeRole::ACTIVE
-    nr
+    finish_run(nr)
   end
 
 end

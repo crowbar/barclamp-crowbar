@@ -37,13 +37,14 @@ During the build process the Dev Tool has to perform certain tasks which require
     sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
 
 
-#### Install needed packages and gems
+#### Install needed packages and gems on Ubuntu Precise
+Other versions of Ubuntu are not supported.  Postgresql is only supported by the Postgresql community on LTS releases.
 
     # let's install some OS packages
     sudo apt-get update
     sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
-    mkisofs binutils markdown erlang-base debhelper python-pip \
-     libopenssl-ruby1.9.1 libssl-dev zlib1g-dev 
+    mkisofs binutils markdown erlang-base debhelper python-pip libsqlite-dev \
+     libopenssl-ruby1.9.1 libssl-dev zlib1g-dev ruby-sqlite3 libsqlite3-dev
     sudo apt-get install libpq-dev
     # to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3
     sudo update-alternatives --config ruby 
@@ -96,6 +97,12 @@ As a starting point for the build process we will need the ISOs [mentioned above
     mkdir -p ~/.crowbar-build-cache/iso
     cd ~/.crowbar-build-cache/iso
     # now scp or wget the ISOs into this directory
+
+### Running the test suites
+
+We've put a lot of effort into creating test suites:
+
+   ./dev tests setup --update-gem-cache
 
 
 

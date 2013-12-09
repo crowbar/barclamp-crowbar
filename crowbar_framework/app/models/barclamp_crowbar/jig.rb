@@ -78,19 +78,18 @@ class BarclampCrowbar::Jig < Jig
     FileUtils.cp_r(local_scripts,local_tmpdir)
     FileUtils.cp('/opt/dell/barclamps/crowbar/script/runner',local_tmpdir)
     Rails.logger.info("Copying staged scriptjig information to #{nr.node.name}")
-    cp_log,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
+    nr.runlog,ok = BarclampCrowbar::Jig.scp("-r '#{local_tmpdir}/.' '#{login}:#{remote_tmpdir}'")
     unless ok
       Rails.logger.error("Copy failed! (status = #{$?.exitstatus})")
       nr.state = NodeRole::ERROR
-      nr.runlog = cp_log
-      return nr
+      return finish_run(nr)
     end
     Rails.logger.info("Executing scripts on #{nr.node.name}")
     nr.runlog,ok = BarclampCrowbar::Jig.ssh("'#{login}' -- /bin/bash '#{remote_tmpdir}/runner' '#{remote_tmpdir}' '#{nr.role.name}'")
     unless ok
       Rails.logger.error("Script jig run for #{nr.role.name} on #{nr.node.name} failed! (status = #{$?.exitstatus})")
       nr.state = NodeRole::ERROR
-      return nr
+      return finish_run(nr)
     end
     # Now, we need to suck any written attributes back out.
     Rails.logger.info("Retrieving any information that needs to go on the wall from #{nr.node.name}")
@@ -139,7 +138,7 @@ class BarclampCrowbar::Jig < Jig
     # Clean up after ourselves.
     BarclampCrowbar::Jig.ssh("'#{login}' -- rm -rf '#{remote_tmpdir}'")
     nr.state = NodeRole::ACTIVE
-    return nr
+    finish_run(nr)
   end
 
   def create_node(node)

@@ -174,11 +174,13 @@ class Barclamp < ActiveRecord::Base
       role_name = role["name"]
       role_jig = role["jig"]
       prerequisites = role['requires'] || []
+      wanted_attribs = role['wants-attribs'] || []
       flags = role['flags'] || []
       description = role['descripion'] || role_name.gsub("-"," ").titleize
       template = File.join barclamp.source_path, role_jig || "none", 'roles', role_name, 'role-template.json'
       # roles data import
       ## TODO: Verify that adding the roles will not result in circular role dependencies.
+      r = nil
       Role.transaction do
         r = Role.find_or_create_by_name(:name=>role_name, :jig_name => role_jig, :barclamp_id=>barclamp.id)
         r.update_attributes(:description=>description,
@@ -189,12 +191,36 @@ class Barclamp < ActiveRecord::Base
                             :bootstrap=>flags.include?('bootstrap'),
                             :discovery=>flags.include?('discovery'),
                             :server=>flags.include?('server'),
+                            :destructive=>flags.include?('destructive'),
                             :cluster=>flags.include?('cluster'))
         RoleRequire.where(:role_id=>r.id).delete_all
+        RoleRequireAttrib.where(:role_id => r.id).delete_all
         r.save!
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
+        wanted_attribs.each{ |attr| RoleRequireAttrib.create :role_id => r.id, :attrib_name => attr }
       end
+      role['attribs'].each do |attrib|
+        attrib_name = attrib["name"]
+        attrib_desc = attrib['description'] || ""
+        attrib_map = attrib['map'] || ""
+        a = Attrib.find_or_create_by_name(:name => attrib_name,
+                                          :description => attrib_desc,
+                                          :map => attrib_map,
+                                          :role_id => r.id,
+                                          :barclamp_id => barclamp.id)
+        a.save!
+      end if r && role['attribs']
     end if bc['roles']
+    bc['attribs'].each do |attrib|
+      attrib_name = attrib["name"]
+      attrib_desc = attrib['description'] || ""
+      attrib_map = attrib['map'] || ""
+      a = Attrib.find_or_create_by_name(:name => attrib_name,
+                                        :description => attrib_desc,
+                                        :map => attrib_map,
+                                        :barclamp_id => barclamp.id)
+      a.save!
+    end if bc['attribs']
     barclamp
   end
 

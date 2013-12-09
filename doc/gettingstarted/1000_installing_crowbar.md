@@ -53,7 +53,7 @@ Installation of the OS onto the admin node does not complete the Crowbar install
 
 ###Crowbar and Operations Service Access###
 
-<table border="1">
+<table border="0">
 <tr>
 <th>Service</th>
 <th>URL</th>

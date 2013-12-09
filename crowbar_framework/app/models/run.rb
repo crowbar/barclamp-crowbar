@@ -114,10 +114,17 @@ class Run < ActiveRecord::Base
         # running on it, then skip it for now.
         next unless Run.running_on(j.node_id).count == 0
         raise "you cannot run job #{j.id} on node #{j.node_id} without a node_role." if j.node_role.nil?
-        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs") 
+        Rails.logger.info("Run: Sending #{j.node_role.name} to delayed_jobs")
         j.node_role.state = NodeRole::TRANSITION
         j.running = true
         j.save!
+        # Destructive noderoles only run once.  Enforce that here.
+        if j.node_role.role.destructive && j.node_role.run_count > 0
+          Rails.logger.info("Run: #{j.node_role.name} is destructive and has already run.")
+          j.node_role.state = NodeRole::ACTIVE
+          j.node_role.save!
+          next
+        end
         # Take a snapshot of the data we want to hand to the jig's run method.
         # We do this so that the jig gets fed data that is consistent for this point
         # in time, as opposed to picking up whatever is lying around when delayed_jobs

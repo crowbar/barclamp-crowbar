@@ -96,7 +96,7 @@ If you entered the Cloudera Manager License key, you will see this additional sc
 
 1. Select the role assignments for Hadoop add-ons services and monitoring services (Activity Monitor, Service Monitor Resource Manager).
 	
-	>Best practice is to assign these roles to the Edge node.
+	>**Note**: Best practice is to assign these roles to the Edge node.
 2. Click the **Continue** button.
 
 ##Monitoring Database Setup##

@@ -54,10 +54,20 @@ class Node < ActiveRecord::Base
   has_many    :snapshots,          :through => :node_roles
   has_many    :deployments,        :through => :snapshots
   belongs_to  :deployment
+  belongs_to  :target_role,        :class_name => "Role", :foreign_key => "target_role_id"
 
   scope    :admin,              -> { where(:admin => true) }
   scope    :alive,              -> { where(:alive => true) }
   scope    :available,          -> { where(:available => true) }
+
+  # Get all the attributes applicable to a node.
+  # This includes:
+  # * All attributes that are defined for our node roles, by virtue of
+  #   being defined as part of the role that the node role is bound to, and
+  # * All attributes that are not defined as part of a node.
+  def attribs
+    Attrib.where(["attribs.role_id IS NULL OR attribs.role_id in (select role_id from node_roles where node_id = ?)",self.id])
+  end
 
   # look at Node state by scanning all node roles.
   def state
@@ -116,37 +126,6 @@ class Node < ActiveRecord::Base
     admin
   end
 
-  # CB1 these are really IMPI actions - please move!
-  def ipmi_cmd(cmd)
-    bmc          = jig_hash.address("bmc").addr rescue nil
-    bmc_user     = jig_hash.get_bmc_user
-    bmc_password = jig_hash.get_bmc_password
-    system("ipmitool -I lanplus -H #{bmc} -U #{bmc_user} -P #{bmc_password} #{cmd}") unless bmc.nil?
-  end
-
-  # CB1 these are really IMPI actions - please move!
-  def reboot
-    set_state("reboot")
-    ipmi_cmd("power cycle")
-  end
-
-  # CB1 these are really IMPI actions - please move!
-  def shutdown
-    set_state("shutdown")
-    ipmi_cmd("power off")
-  end
-
-  # CB1 these are really IMPI actions - please move!
-  def poweron
-    set_state("poweron")
-    ipmi_cmd("power on")
-  end
-
-  # CB1 these are really IMPI actions - please move!
-  def identify
-    ipmi_cmd("chassis identify")
-  end
-
   def virtual?
     virtual = [ "KVM", "VMware Virtual Platform", "VMWare Virtual Platform", "VirtualBox" ]
     virtual.include? get_attrib('hardware')
@@ -160,11 +139,7 @@ class Node < ActiveRecord::Base
   # retrieves the Attrib from Attrib
   def get_attrib(attrib)
     attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
-    if attrib and self.discovery
-      attrib.value(self.discovery)
-    else
-      nil
-    end
+    attrib.get(self) rescue nil
   end
 
   def active_node_roles
@@ -189,7 +164,7 @@ class Node < ActiveRecord::Base
   def method_missing(m,*args,&block)
     method = m.to_s
     if method.starts_with? "attrib_"
-      return get_attrib method[7..100]
+      return get_attrib method[7..-1]
     else
       super
     end
@@ -237,6 +212,77 @@ class Node < ActiveRecord::Base
     data = discovery.merge arg
     write_attribute("discovery",JSON.generate(data))
     data
+  end
+
+  def discovery_update(val)
+    Node.transaction do
+      d = discovery
+      d.deep_merge!(val)
+      discovery = d
+    end
+  end
+
+  def reboot
+    BarclampCrowbar::Jig.ssh("root@#{self.name} reboot")
+  end
+  
+  def debug
+    self.alive = false
+    self.bootenv = "sledgehammer"
+    self.target = Role.where(:name => "crowbar-managed-node").first
+    self.reboot
+  end
+
+  def undebug
+    self.alive = false
+    self.bootenv = "local"
+    self.target = nil
+    self.reboot
+  end
+
+  def target
+    return target_role
+  end
+  # Set the annealer target for this node, which will restrict the annealer
+  # to considering the noderole for this role bound to this node and its parents
+  # for converging.  If nil is passed, then all the noderoles are marked as available.
+  def target=(r)
+    if r.nil?
+      NodeRole.transaction do
+        old_alive = self.alive
+        self.save!
+        node_roles.each do |nr|
+          nr.available = true
+        end
+        self.target_role_id = nil
+        self.alive = old_alive
+        self.save!
+      end
+      return self
+    elsif r.kind_of?(Role) &&
+        roles.member?(r) &&
+        r.barclamp.name == "crowbar" &&
+        r.jig.name == "noop"
+      NodeRole.transaction do
+        old_alive = self.alive
+        self.alive = false
+        self.save!
+        self.target_role = r
+        node_roles.each do |nr|
+          nr.available = false
+        end
+        target_nr = self.node_roles.where(:role_id => r.id).first
+        target_nr.all_parents.each do |nr|
+          next unless nr.node_id == self.id
+          nr.available = true
+        end
+        target_nr.available = true
+        self.save!
+      end
+      return self
+    else
+      raise("Cannot set target role #{r.name} for #{self.name}")
+    end
   end
 
   def alive?

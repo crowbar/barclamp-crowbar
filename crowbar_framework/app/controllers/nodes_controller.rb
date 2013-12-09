@@ -54,7 +54,19 @@ class NodesController < ApplicationController
     n = Node.find_key(params[:id] || params[:name])
     render api_delete Node
   end
-  
+
+  def reboot
+    node_action :reboot
+  end
+
+  def debug
+    node_action :debug
+  end
+
+  def undebug
+    node_action :undebug
+  end
+
   # RESTfule POST of the node resource
   def create
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
@@ -99,6 +111,14 @@ class NodesController < ApplicationController
     @node.save!
     redirect_to :action=>:show
 
+  end
+
+  private
+
+  def node_action(meth)
+    n = Node.find_key(params[:id] || params[:name] || params[:node_id])
+    n.send(meth)
+    render api_show :node, Node, nil, nil, n
   end
 
 end

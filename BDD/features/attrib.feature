@@ -19,19 +19,18 @@ Feature: Attrib(utes)
   Scenario: REST Attrib List
     When REST gets the {object:attrib} list
     Then the list should have an object with key "name" value "random"
-    Then the list should have an object with key "map" value "random"
+    Then the list should have an object with key "map" value "test/random"
 
   Scenario: REST JSON check
     When REST gets the {object:attrib} "random"
     Then the {object:attrib} is properly formatted
 
-    
   Scenario: REST Can Delete
     Given REST creates the {object:attrib} "bdd_foo"
     When REST deletes the {object:attrib} "bdd_foo"
     Then I get a {integer:200} result
       And there is not a {object:attrib} "bdd_foo"
-  
+
   Scenario: REST Get 404
     When REST gets the {object:attrib} "thisdoesnotexist"
     Then I get a {integer:404} error

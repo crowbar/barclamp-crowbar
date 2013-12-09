@@ -15,77 +15,140 @@
 
 class Attrib < ActiveRecord::Base
 
-  before_create :set_type_and_role
+  before_create :create_type_from_name
 
-  attr_accessible :role_id, :type, :name, :description, :order, :map     # core relationship
+  attr_accessible :barclamp_id, :role_id, :type, :name, :description, :order, :map     # core relationship
 
   belongs_to      :role
+  belongs_to      :barclamp
 
   scope           :by_name,              ->(name) { where(:name=>name) }
-    
-  # this is designed to be over-ridden, but let's make the default useful
-  # expects the json data from node.discovery
-  def value(data)
 
+  # Return a deeply nested hash table built from the map with this attribute's
+  # data at the end.
+  def template(value)
+    keys = map.split('/')
+    raise "Cannot deal with an empty map!" if keys.empty?
+    res = value
+    while !keys.empty? do
+      res = {keys.pop => res}
+    end
+    res
+  end
+
+  # Get the attribute value from the passed object.
+  # For now, we are encoding information about the objects we can use directly in to
+  # the Attrib class, and failing hard if we were passed something that
+  # we do not know how to handle.
+  def get(from,source=:all)
+    from = __resolve(from)
+    d = case
+        when from.is_a?(Node) then from.discovery
+        when from.is_a?(DeploymentRole)
+          case source
+          when :all then from.wall.deep_merge(from.data)
+          when :wall then from.wall
+          else from.data
+          end
+        when from.is_a?(NodeRole)
+          case source
+          when :all then from.attrib_data
+          when :wall then from.wall
+          when :system then from.sysdata
+          when :user then from.data
+          else raise("#{target} is not a valid target to read data from!")
+          end
+        when from.is_a?(Role) then from.template
+        else raise("Cannot extract attribute data from #{from.class.to_s}")
+        end
     begin
-      # this code does a simple drill into the hash using / as a delimeter
-      nav = self.map.split '/'
-      # add some optimization to avoid looping down through the structure
-      case nav.length 
-        when 1 
-          data[nav[0]]
-        when 2
-          data[nav[0]][nav[1]]
-        when 3
-          data[nav[0]][nav[1]][nav[2]]
-        when 4
-          data[nav[0]][nav[1]][nav[2]][nav[3]]
-        when 5
-          data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]]
-        when 6
-          data[nav[0]][nav[1]][nav[2]][nav[3]][nav[4]][nav[5]]
-        else 
-          # we could use this without the optimized code, but it's not as fast
-          nav.each { |key| data = data[key] }
-      end
+      map.split('/').each{|s|d = d[s]}
+      return d
     rescue
       nil
     end
   end
 
- 
-  # this is designed to be over-ridden, but let's make the default useful
-  # returns the json snippet that should be added to node.discovery
-  def discovery(arg)
+  # Gets the requested value from the passed data, but returns it wrapped in template()
+  # unless this attribute is not in the passed blob, in which case it returns nil.
+  def extract(from)
+    r = get(from)
+    return r unless r
+    template(r)
+  end
 
-    # this code does a simple drill into the hash using / as a delimeter
-    nav = self.map.split '/'
-    # add some optimization to avoid looping down through the structure
-    data = case nav.length 
-      when 1 
-        {nav[0] => arg}
-      when 2
-        {nav[0] => {nav[1] => arg}}
-      when 3
-        {nav[0] => {nav[1] => {nav[2] => arg}}}
-      when 4
-        {nav[0] => {nav[1] => {nav[2] => {nav[3] => arg }}}}
-      when 5
-        {nav[0] => {nav[1] => {nav[2] => {nav[3] => {nav[4] => arg }}}}}
-      when 6
-        {nav[0] => {nav[1] => {nav[2] => {nav[3] => {nav[4] => {nav[5] => arg }}}}}}
-      else 
-        # we could use this without the optimized code, but it's not as fast
-        raise "too deep in attrib.value="
-    end
+  def wall_set(to,value)
+    __set(to,value,:wall)
+  end
+
+  def user_set(to,value)
+    __set(to,value,:user)
+  end
+
+  def system_set(to,value)
+    __set(to,value,:system)
+  end
+
+  def set(to,value)
+    Rails.logger.warn("Please do not use attrib.set")
+    __set(to,value,:system)
   end
 
   private
-  
-  # make sure some safe values are set for the node
-  def set_type_and_role
-    # we need to have a type, cannot use the superclass!
-    self.type = Attrib.to_s if self.type.nil?
+
+  # This method ensures that we have a type defined for
+  def create_type_from_name
+    raise "attribs require a name" if self.name.nil?
+    # remove the redundant part of the name (if any)
+    name = self.name.gsub('-','_').camelize
+    # Find the proper class to use to instantiate this attribute
+    # 1. If the barclamp provides a specific class for this attribute, use it.
+    # 2. Otherwise fall back on attrib class that the jig provides.
+    # 3. Finally, fall back on the generic Attrib class.
+    klassnames = []
+    klassnames << "Barclamp#{self.barclamp.name.camelize}::Attrib::#{name}" if self.barclamp_id
+    klassnames << "#{self.role.jig.type}Attrib" if self.role_id && (Jig.where(:name => role.jig_name).count > 0)
+    klassnames << "Attrib"
+    klassnames.each do |t|
+      if (t.constantize rescue nil)
+        Rails.logger.info("Attrib: Using #{t} for #{self.name}")
+        self.type = t
+        return
+      else
+        Rails.logger.info("Attrib: #{t} cannot be used for #{self.name}")
+      end
+    end
+    raise "Cannot find the appropriate class for attribute #{self.name}"
   end
-  
+
+  # If we were asked to do something with an attribute on a node,
+  # but that attribute is part of a node role bound to that node,
+  # use the node role instead.
+  def __resolve(to)
+    return to unless to.is_a?(Node) && self.role_id
+    res = to.node_roles.where(:role_id => self.role_id).first
+    raise("#{self.name} belongs to role #{role.name}, but node #{node.name} does not have a binding for it!") unless res
+    res
+  end
+
+  # Set a new value for this attribute onto the passed object.
+  # The last parameter is what area the new attribute should be placed on
+  def __set(to,value,target=:system)
+    to = __resolve(to)
+    case
+    when to.is_a?(Node) then to.discovery_update(value)
+    when to.is_a?(Role) then to.template_update(value)
+    when to.is_a?(DeploymentRole)
+      target == :system ? to.wall_update(value) : to.data_update(value)
+    when to.is_a?(NodeRole)
+      case target
+      when :system then to.sysdata_update(value)
+      when :user then to.data_update(value)
+      when :wall then to.wall_update(value)
+      else raise("#{target} is not a valid target to write data to!")
+      end
+    else raise("Cannot write attribute data to #{to.class.to_s}")
+    end
+  end
+
 end

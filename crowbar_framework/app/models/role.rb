@@ -31,6 +31,7 @@ class Role < ActiveRecord::Base
   attr_accessible :discovery
   attr_accessible :server
   attr_accessible :cluster
+  attr_accessible :destructive
   attr_accessible :template
 
   validates_uniqueness_of   :name,  :scope => :barclamp_id
@@ -39,6 +40,10 @@ class Role < ActiveRecord::Base
   belongs_to      :barclamp
   belongs_to      :jig,               :foreign_key=>:jig_name, :primary_key=>:name
   has_many        :role_requires,     :dependent => :destroy
+  has_many        :role_require_attribs, :dependent => :destroy
+  has_many        :attribs
+  has_many        :wanted_attribs, :through => :role_requires_attribs, :class_name => "Attrib", :source => :attrib
+  has_many        :role_parents, :through => :role_requires, :class_name => "Role", :source => :upstream
   has_many        :node_roles
   alias_attribute :requires,          :role_requires
 
@@ -51,7 +56,7 @@ class Role < ActiveRecord::Base
   scope           :server,             -> { where(:server => true) }
   scope           :active,             -> { joins(:jig).where(["jigs.active = ?", true]) }
 
-  # update just one value in the template 
+  # update just one value in the template
   # for >1 level deep, add method matching key to role!
   # use via /api/v2/roles/[role]/template/[key]/[value]
   def update_template(key, value)
@@ -61,6 +66,14 @@ class Role < ActiveRecord::Base
     merged = d.deep_merge(t)
     self.template = JSON.generate(merged)
     self.save!
+  end
+
+  def template_update(val)
+    Role.transaction do
+      d = JSON.parse(read_attribute(template))
+      d.deep_merge!(val)
+      write_attribute("template",JSON.generate(d))
+    end
   end
 
   # State Transistion Overrides
@@ -123,10 +136,7 @@ class Role < ActiveRecord::Base
   def parents
     res = []
     res << jig.client_role if jig.client_role
-    role_requires.each do |r|
-      res << Role.find_by_name!(r.requires)
-    end
-    res
+    res + role_parents
   end
 
   def reset_cohort

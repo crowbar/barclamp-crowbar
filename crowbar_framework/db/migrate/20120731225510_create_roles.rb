@@ -36,6 +36,9 @@ class CreateRoles < ActiveRecord::Migration
       # will be bound to all of the noderoled for this role in the deployment.
       # The cluster flag and the implicit flag are mutually exclusive.
       t.boolean     :cluster,           :null=>false, :default=>false
+      # Indicates that the role is not idempotent -- once a noderole binding
+      # it has transitioned to active, it will not be run again.
+      t.boolean     :destructive,       :null=>false, :default=>false
       t.belongs_to  :barclamp,          :null=>false
       t.integer     :cohort
       t.timestamps

@@ -24,13 +24,16 @@ NODES_PATH = "api/v2/nodes"
   "list_status" => [ "list_status", "list_status - show a list of nodes and their status" ],
   "show" => [ "show ARGV.shift, ARGV.shift", "show <name> [arg] - show a specific node" ],
   "show_status" => [ "show_status ARGV.shift", "show_status <name> - show a specific node status" ],
+  "reboot" => [ "reboot ARGV.shift", "reboot <name> - reboot a node" ],
+  "debug" => [ "debug ARGV.shift", "debug <name> - reboot a node into Sledgehammer for debugging."],
+  "undebug" => [ "undebug ARGV.shift", "debug <name> - Let a node boot up normally."]
 }
 
 =begin
   "create" => [ "create ARGV.shift", "create <name> - create a specific node" ],
   "edit" => [ "edit ARGV.shift", "edit <name> - edit a new node" ],
   "delete" => [ "delete ARGV.shift", "delete <name> - delete a node" ],
-  "reboot" => [ "action \"reboot\", ARGV.shift", "reboot <name> - reboot a node" ],
+
   "shutdown" => [ "action \"shutdown\", ARGV.shift", "shutdown <name> - shutdown a node" ],
   "poweron" => [ "action \"poweron\", ARGV.shift", "poweron <name> - poweron a node" ],
   "identify" => [ "action \"identify\", ARGV.shift", "identify <name> - identify a node" ],
@@ -39,6 +42,21 @@ NODES_PATH = "api/v2/nodes"
   "reinstall" => [ "action \"reinstall\", ARGV.shift", "reinstall <name> - reinstall a node" ],
   "update" => [ "action \"update\", ARGV.shift", "update <name> - update a node (hardware only)" ] 
 =end
+
+def reboot(name)
+  res = put_json2(NODES_PATH+"/"+name+"/reboot")
+  res[1] == 200
+end
+
+def debug(name)
+  res = put_json2(NODES_PATH+"/"+name+"/debug")
+    res[1] == 200
+end
+
+def undebug(name)
+  res = put_json2(NODES_PATH+"/"+name+"/undebug")
+  res[1] == 200
+end
 
 def list
   struct = get_json2(NODES_PATH)
@@ -99,64 +117,6 @@ def show_status(name_or_id)
   end
 end
 
-=begin
-def create(name)
-  usage -1 if name.nil? or name == ""
 
-  @data = "{\"name\":\"#{name}\"}" if @data.nil? or @data == ""
-
-  struct = put_json("/", @data)
-
-  if struct[1] == 200
-    [ "Created #{name}", 0 ]
-  else
-    [ "Failed to talk to service create: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-
-def edit(name)
-  usage -1 if name.nil? or name == ""
-
-  struct = post_json("/#{name}", @data)
-
-  if struct[1] == 200
-    [ "Edited #{name}", 0 ]
-  elsif struct[1] == 404
-    [ "Failed to edit: #{name} : Not Found", 1 ]
-  elsif struct[1] == 400
-    [ "Failed to edit: #{name} : Errors in data\n#{struct[0]}", 1 ]
-  else
-    [ "Failed to talk to service edit: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-
-def delete(name)
-  usage -1 if name.nil? or name == ""
- 
-  struct = delete_json("?name=#{name}")
-
-  if struct[1] == 200
-    [ "Deleted #{name}", 0 ]
-  elsif struct[1] == 404
-    [ "Delete failed for #{name}: Not Found", 1 ] 
-  else
-    [ "Failed to talk to service delete: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-
-def action(aaa, name)
-  usage -1 if name.nil? or name == ""
-
-  @data = "{\"name\":\"#{name}\"}" if @data.nil? or @data == ""
-
-  struct = post_json("/#{aaa}/0", @data)
-
-  if struct[1] == 200
-    [ "#{aaa} #{name}", 0 ]
-  else
-    [ "Failed to talk to service #{aaa}: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-=end
 main
 

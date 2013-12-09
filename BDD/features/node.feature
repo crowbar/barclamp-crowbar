@@ -33,8 +33,10 @@ Feature: Nodes
     
   Scenario: REST Can Delete
     Given REST creates the {object:node} "going.going.gone"
+      And there are no pending Crowbar runs for {o:node} "going.going.gone"
     When REST deletes the {object:node} "going.going.gone"
     Then I get a {integer:200} result
+      And there are no pending Crowbar runs for {o:node} "going.going.gone"
       And there is not a {object:node} "going.going.gone"
   
   Scenario: REST Get 404
@@ -60,7 +62,7 @@ Feature: Nodes
   Scenario: Node Alive Settable Default False
     Given there is a {object:node} "bdd-alive-false.example.com"
     When REST gets the {object:node} "bdd-alive-false.example.com"
-    Then key "alive" should be "false"
+    Then key "alive" should be "true"
       And the {object:node} is properly formatted
     Finally REST removes the {object:node} "bdd-alive-false.example.com"
 
@@ -97,14 +99,14 @@ Feature: Nodes
   Scenario: Node UI shows alive
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes/bdd-alive-ui.example.com" page 
-    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Then I should see {bdd:crowbar.i18n.common.state.alive}
       And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
   Scenario: Nodes UI shows alive
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes" page 
-    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Then I should see {bdd:crowbar.i18n.common.state.alive}
       And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 

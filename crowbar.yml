@@ -267,3 +267,5 @@ gems:
     - xml-simple
     - libxml-ruby
     - kwalify
+pips:
+  - uwsgi

@@ -131,6 +131,7 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
 % find the node from setup and remove it
 step(_Global, {step_teardown, {_Scenario, _N}, _}) -> 
   worker(),
+  crowbar:step([], {step_given, {0, 0}, ["there are no pending Crowbar runs for",node,g(node_name)]}), 
   bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
   % remove node for testing
   bdd_crud:delete(g(node_atom));

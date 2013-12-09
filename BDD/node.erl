@@ -75,4 +75,5 @@ step(_Global, {step_setup, _N, _}) ->
 
 step(_Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
+  crowbar:step([], {step_given, {0, 0}, ["there are no pending Crowbar runs for",node,g(name)]}), 
   bdd_crud:delete(g(atom)).  

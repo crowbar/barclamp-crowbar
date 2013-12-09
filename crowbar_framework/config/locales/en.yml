@@ -252,6 +252,12 @@ en:
       license_key: License Key
       target_platform: Target Platform
       target_platform_not_set: Not set
+      intended_role: Intended Role
+      controller: Controller
+      compute: Compute
+      storage: Storage
+      no_role: No Role
+      intended_role_hint: Intended Role is the way you intend to use the node in your cloud infrastructure. The value is used to propose the inital node deployment for barclamps.
   
   support:
     index:

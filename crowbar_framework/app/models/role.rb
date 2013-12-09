@@ -42,7 +42,7 @@ class Role < ActiveRecord::Base
   has_many        :role_requires,     :dependent => :destroy
   has_many        :role_require_attribs, :dependent => :destroy
   has_many        :attribs
-  has_many        :wanted_attribs, :through => :role_requires_attribs, :class_name => "Attrib", :source => :attrib
+  has_many        :wanted_attribs, :through => :role_require_attribs, :class_name => "Attrib", :source => :attrib
   has_many        :role_parents, :through => :role_requires, :class_name => "Role", :source => :upstream
   has_many        :node_roles
   alias_attribute :requires,          :role_requires

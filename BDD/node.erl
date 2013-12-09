@@ -55,7 +55,7 @@ inspector() ->
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
-json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Description}, {order, Order}]).
+json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, "true"}, {bootenv, node:g(bootenv)}]).
      
 % Common Routines
 
@@ -70,7 +70,8 @@ step(_Given, {step_when, {_Scenario, _N}, ["REST sets the",node,Node,Field,"stat
 step(_Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
-  bdd_crud:create(g(path), Node, g(atom));
+  bdd_crud:create(g(path), Node, g(atom)),
+  true = bdd_clirat:step([], {foo, {0,0}, ["process", "delayed","returns", "delayed_job.([0..9])"]});
 
 step(_Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it

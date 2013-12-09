@@ -29,9 +29,19 @@ class NodeRolesController < ApplicationController
   end
 
   def show
+    if params.key? :node_id
+      node = Node.find_key params[:node_id]
+      raise "could not find node #{params[:node_id]}" unless node
+      role = Role.find_key params[:id]
+      raise "could not find role #{params[:id]}" unless role
+      snap = node.deployment.head
+      @node_role = NodeRole.snap_node_role(snap, node, role).first
+    else
+      @node_role = NodeRole.find_key params[:id]
+    end
     respond_to do |format|
-      format.html { @node_role = NodeRole.find_key params[:id] }
-      format.json { render api_show :node_role, NodeRole }
+      format.html {  }
+      format.json {  render api_show :node_role, NodeRole, @node_role.id, nil, @node_role }
     end
   end
 

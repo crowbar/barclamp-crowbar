@@ -13,7 +13,7 @@
 % limitations under the License. 
 % 
 -module(bdd_clirat).
--export([step/3]).
+-export([step/2]).
 -export([run_cli/2]).
 -include("bdd.hrl").
 
@@ -34,7 +34,7 @@ pass_cli(Scenario, Params) ->
   bdd_utils:log(debug, bdd_clirat, pass_cli, "os:cmd(~p). Output ~p",[Cmd, Out]),
   Out.
   
-step(_Config, _Global, {step_when, {_Scenario, _N}, ["CURL calls",Path]}) -> 
+step(_Global, {step_when, {_Scenario, _N}, ["CURL calls",Path]}) -> 
   CLI = "curl --digest",
   Username = " -u '" ++ bdd_utils:config(user, "NOT_GIVEN") ++ ":" ++ bdd_utils:config(password, "NOT_GIVEN") ++ "'",
   URL = " -i '" ++ bdd_utils:config(url, "NOT_GIVEN"),
@@ -44,21 +44,22 @@ step(_Config, _Global, {step_when, {_Scenario, _N}, ["CURL calls",Path]}) ->
   bdd_utils:log(debug, bdd_clirat, step, "curl os:cmd(~p). Output ~p",[Cmd, Out]),
   {cli, string:tokens(Out,"\n")};
 
-step(_Config, _Global, {step_given, {Scenario, _N}, ["CLI is",Path]}) -> 
+step(_Global, {step_given, {Scenario, _N}, ["CLI is",Path]}) -> 
   bdd_utils:log(debug, bdd_clirat, step, "CLI stored as ~p",[Path]),
   bdd_utils:scenario_store(Scenario, cli, Path);
 
-step(_Config, _Given, {step_when, {Scenario, _N}, ["I run the",CMD,"command"]}) ->
+step(_Given, {step_when, {Scenario, _N}, ["I run the",CMD,"command"]}) ->
   Out = run_cli(Scenario, CMD),
   {cli, string:tokens(Out,"\n")};
   
-step(_Config, _Given, {step_when, {Scenario, _N}, ["I pass the",Parameters,"parameters"]}) ->
+step(_Given, {step_when, {Scenario, _N}, ["I pass the",Parameters,"parameters"]}) ->
   Out = pass_cli(Scenario, Parameters),
   {cli, string:tokens(Out,"\n")};                                                            
-step(_Config, Result, {step_then, {_Scenario, _N}, ["the CLI should not return",Line]}) -> 
-  true =/= step(_Config, Result, {step_then, {_Scenario, _N}, ["the CLI should return",Line]});
 
-step(_Config, Result, {step_then, {_Scenario, _N}, ["the CLI should return",Line]}) -> 
+step(Result, {step_then, {_Scenario, _N}, ["the CLI should not return",Line]}) -> 
+  true =/= step(Result, {step_then, {_Scenario, _N}, ["the CLI should return",Line]});
+
+step(Result, {step_then, {_Scenario, _N}, ["the CLI should return",Line]}) -> 
   case lists:keyfind(cli, 1, Result) of
     {cli, Outlist} -> bdd_utils:log(debug, bdd_clirat, step, "~p looking at ~p",[Line, Outlist]),
                   Eval = [re:run(R,Line) || R <- Outlist],
@@ -67,5 +68,12 @@ step(_Config, Result, {step_then, {_Scenario, _N}, ["the CLI should return",Line
     _          -> false
   end;
 
-step(_Config, _Result, {_Type, _N, ["END OF CLIRAT"]}) ->
+step(_, {_Any, {_Scenario, _N}, ["process", PS, "returns", Test]}) ->
+  Result = os:cmd("ps ax | grep " ++ PS),
+  case re:run(Result, Test) of 
+    {match, _}  -> true;
+    _           -> bdd_utils:log(warn, bdd_clirat, step, "process ~p did to find ~p in ~p", [PS, Test, Result]), false
+  end;
+
+step(_Result, {_Type, _N, ["END OF CLIRAT"]}) ->
   false.

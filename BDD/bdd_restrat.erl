@@ -65,9 +65,14 @@ create(Path, JSON, Object, ScenarioID) ->
 
 array_matches(_, []) -> false;
 array_matches(Find, [H | T]) ->
-  case re:run(H, Find) of 
+  case array_matches_item(Find, H) of 
+    true  -> true;
+    false -> array_matches(Find, T)
+  end.
+array_matches_item(Find, Item) ->
+  case re:run(Item, Find) of 
     {match, _}  -> true;
-    _           -> array_matches(Find, T)
+    _           -> false
   end.
 
 % used by steps to count lists 
@@ -307,6 +312,12 @@ step(Result, {step_then, {_Scenario, _N}, ["Array matches",Item]}) ->
   bdd_utils:log(debug, bdd_restrat, step, "looking for ~p in array ~p",[Item, Array#array.data]),
   array_matches(Item,Array#array.data);
 
+
+step(Result, {step_then, {_Scenario, _N}, ["Array key", Key, "matches",Item]}) -> 
+  Array = eurl:get_result(Result, array),
+  {Key, Value} = lists:keyfind(Key, 1, Array#array.data),
+  bdd_utils:log(debug, bdd_restrat, step, "key ~p looking for ~p in array value ~p",[Key, Item, Value]),
+  array_matches_item(Item,Value);
 
 % basic page return calls
 step(Result, {step_then, _N, ["the page returns",Number]}) -> 

@@ -220,6 +220,12 @@ class Node < ActiveRecord::Base
     JSON.parse(d) rescue {}
   end
 
+  def hint
+    d = read_attribute("hint")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d) rescue {}
+  end
+
   def discovery
     d = read_attribute("discovery")
     return {} if d.nil? || d.empty?

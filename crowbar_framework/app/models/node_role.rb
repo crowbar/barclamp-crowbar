@@ -17,7 +17,7 @@ require 'json'
 
 class NodeRole < ActiveRecord::Base
 
-  attr_accessible :status, :cohort
+  attr_accessible :id, :status, :cohort
   attr_accessible :role_id, :snapshot_id, :node_id
 
   belongs_to      :node
@@ -47,6 +47,7 @@ class NodeRole < ActiveRecord::Base
   scope           :peers_by_role,     ->(ss,role)  { in_snapshot(ss).with_role(role) }
   scope           :peers_by_node,     ->(ss,node)  { in_snapshot(ss).on_node(node) }
   scope           :peers_by_node_and_role,     ->(s,n,r) { peers_by_node(s,n).with_role(r) }
+  scope           :snap_node_role,    ->(s,n,r) { where(['snapshot_id=? AND node_id=? AND role_id=?', s.id, n.id, r.id]) }
 
   # make sure that new node-roles have require upstreams
   # validate        :deployable,        :if => :deployable?

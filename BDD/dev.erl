@@ -32,6 +32,9 @@ pop(ConfigRaw)  ->
   bdd_utils:config_set(global_setup, dev),
   bdd_utils:config_set(inspect, false),
 
+  % make sure background progress
+  true = bdd_clirat:step([], {foo, {0,0}, ["process", "delayed","returns", "delayed_job.([0..9])"]}),
+
   % safety setup 
   bdd_crud:delete(node:g(path), crowbar:g(node_name)),
   Build = case file:consult(bdd_utils:config(simulator, "dev.config")) of
@@ -40,8 +43,10 @@ pop(ConfigRaw)  ->
   end,
 
   % admin node
-  Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {alive, "true"}, {admin, "true"}]),
+  Admin = crowbar:json([{name, g(node_name)}, {description, "dev" ++ g(description)}, {order, 100}, {alive, "true"}, {admin, "true"}, {bootenv, crowbar:g(bootenv)}]),
   bdd_crud:create(node:g(path), Admin, g(node_atom)),
+  % admin node has to complete
+  crowbar:step([], {step_given, {0, 0}, ["there are no pending Crowbar runs for",node,g(node_name)]}), 
 
   % turn on the delays in the test jig (the tests turn these off, simulator wants them on)
   role:step([], {step_given, {0, 1}, ["I set the",role, "test-admin", "property", "test", "to", "true"]}), 

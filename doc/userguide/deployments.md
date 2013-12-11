@@ -16,7 +16,7 @@ Shows a functional "layer cake" of the deployment roles in the system.  It is a 
 
 Because this is a system view, node-roles from _all_ deployments are shown together.  There is no way to scope this view to just a single deployment.
 
-> This screen automatically refreshes.
+>**Note**: This screen automatically refreshes.
 
 The colors of the layers change depending on the state of the node-roles in the layer:
 
@@ -27,4 +27,4 @@ The colors of the layers change depending on the state of the node-roles in the 
 
 As the system processes the node-roles the layers will change to the correct colors.
 
-> users may click on the node-roles to see details.
+>**Note**: You can click on the node-roles to see details.

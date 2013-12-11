@@ -58,7 +58,7 @@ You can control the order of documents within a directory by prefixing the file 
 
 For example, a file named `333_sample_order.md` would be ordered as 333.
 
-> **Note** If you omit order, the system defaults to 9999.
+> **Note**: If you omit order, the system defaults to 9999.
 
 ##### Omitting Pages
 

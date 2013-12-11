@@ -72,7 +72,7 @@ step(_, {_Any, {_Scenario, _N}, ["process", PS, "returns", Test]}) ->
   Result = os:cmd("ps ax | grep " ++ PS),
   case re:run(Result, Test) of 
     {match, _}  -> true;
-    _           -> bdd_utils:log(warn, bdd_clirat, step, "process ~p did to find ~p in ~p", [PS, Test, Result]), false
+    _           -> bdd_utils:log(warn, bdd_clirat, step, "process ~p did not find ~p in ~p", [PS, Test, Result]), false
   end;
 
 step(_Result, {_Type, _N, ["END OF CLIRAT"]}) ->

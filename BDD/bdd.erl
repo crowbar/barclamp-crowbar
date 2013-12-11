@@ -283,7 +283,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
 		  {error, Step};
 		Result -> 
       {_, {Scenario, StepNum}, _} = Step, 
-		  bdd_utils:marker("STEP RESULT"),
+		  bdd_utils:marker(io_lib:format("STEP RESULT (Scenario ~p:~p)", [Scenario, StepNum])),
 		  log(debug, "^^ ~p,~p Ran ~p:step(R, ~p).",[Scenario, StepNum, Alias,Step]),
       log(trace, "^^ ~p,~p Input -> ~p",[Scenario, StepNum, Input]),
 		  log(trace, "^^ ~p,~p Result -> ~p",[Scenario, StepNum, Result]),

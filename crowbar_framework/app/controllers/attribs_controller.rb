@@ -49,7 +49,7 @@ class AttribsController < ApplicationController
     if params.key? :node_id and params.key? :value
       node = Node.find_key params[:node_id]
       attrib = Attrib.find_key(params[:id])
-      attrib.set(node,params[:value])
+      attrib.discovery_set(node,params[:value])
       node.reload
       render api_show :node, Node, nil, nil, node
     else

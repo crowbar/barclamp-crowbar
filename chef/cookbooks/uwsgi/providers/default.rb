@@ -1,5 +1,4 @@
 action :enable do
-  require 'rexml/document'
 
   # install pip and developer headers
   package "python-pip"
@@ -36,28 +35,6 @@ action :enable do
 
   instances = new_resource.instances.is_a?(Hash) ? [new_resource.instances] : new_resource.instances
 
-  # create config
-  document = REXML::Document.new.add_element("uwsgi")
-  config = document.add_element("uwsgi")
-
-  # add global options merged with default
-  options.each do |key, value|
-    element = config.add_element(key.to_s)
-    if value != true
-      element.add_text(value.to_s)
-    end
-  end
-
-  # add all instances of application
-  instances.each_with_index do |instance, index|
-    instance.each do |key, value|
-      element = config.add_element(key.to_s, { "id" => index })
-      if value != true
-        element.add_text(value.to_s)
-      end
-    end
-  end
-
   file_available, file_enable = config_files(new_resource.name)
 
   # Create service for application
@@ -82,7 +59,8 @@ action :enable do
   # write config to file
   template file_available do
     variables ({
-        :config => config,
+        :options => options,
+        :instances => instances,
         :application => new_resource.name
     })
     cookbook "uwsgi"

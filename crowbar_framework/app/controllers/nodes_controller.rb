@@ -19,11 +19,14 @@ class NodesController < ApplicationController
   # UI GET /dashboard
   def index
     @list = if params.has_key? :group_id
-      g = Group.find_key params[:group_id]
-      g.nodes
-    else
-      Node.all
-    end
+              Group.find_key(params[:group_id]).nodes
+            elsif params.has_key? :deployment_id
+              Deployment.find_key(params[:deployment_id]).nodes
+            elsif params.has_key? :snapshot_id
+              Snapshot.find_key(params[:snapshot_id]).nodes
+            else
+              Node.all
+            end
     respond_to do |format|
       format.html { }
       format.json { render api_index :node, @list }

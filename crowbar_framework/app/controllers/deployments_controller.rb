@@ -25,7 +25,7 @@ class DeploymentsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html { @deployment = Deployment.find_key params[:id] } 
+      format.html { @deployment = Deployment.find_key params[:id] }
       format.json { render api_show :deployment, Deployment }
     end
   end
@@ -42,16 +42,25 @@ class DeploymentsController < ApplicationController
     render api_delete Deployment
   end
 
-  # return the committed snapshot  
+  # return the committed snapshot
   def head
     deploy = Deployment.find_key params[:deployment_id]
     render_snaps(deploy.head)
   end
 
-  # return the proposed snapshot  
+  # return the proposed snapshot
   def next
     deploy = Deployment.find_key params[:deployment_id]
     render_snaps(deploy.head.next)
+  end
+
+  def claim
+    deploy = Deployment.find_key params[:deployment_id]
+    node = Node.find_key params[:node_id]
+    node.deployment_id = deploy.id
+    node.save!
+    node.reload
+    render api_show :node, Node, nil, nil, node
   end
 
   private 

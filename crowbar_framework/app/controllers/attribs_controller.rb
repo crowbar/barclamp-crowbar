@@ -16,8 +16,17 @@
 class AttribsController < ApplicationController
 
   def index
-    @list = Attrib.all
-    @node = Node.find_key params[:node_id] if params.has_key? :node_id
+    @list = if params.has_key? :node_id
+              Node.find_key(params[:node_id]).attribs
+            elsif params.has_key? :role_id
+              Role.find_key(params[:role_id]).attribs
+            elsif params.has_key? :node_role_id
+              NodeRole.find_key(params[:node_role_id]).attribs
+            elsif params.has_key? :deployment_role_id
+              DeploymentRole.find_key(params[:deployment_role_id]).attribs
+            else
+              Attrib.all
+            end
     respond_to do |format|
       format.html { }
       format.json { render api_index :attrib, @list }
@@ -25,17 +34,16 @@ class AttribsController < ApplicationController
   end
 
   def show
-    @node = Node.find_key params[:node_id] if params.has_key? :node_id
     @attrib = Attrib.find_key params[:id]
     respond_to do |format|
       format.html {  }
       format.json { render api_show :attrib, Attrib, nil, nil, @attrib }
     end
   end
-  
+
   def create
     if params.has_key? :node_id
-      render api_not_supported 'post', 'nodes/:id/attribs/:id'
+      render api_not_supported 'post', 'nodes/:node_id/attribs/:id'
     else
       a = Attrib.create! params
       respond_to do |format|
@@ -44,20 +52,25 @@ class AttribsController < ApplicationController
       end
     end
   end
-  
+
   def update
-    if params.key? :node_id and params.key? :value
-      node = Node.find_key params[:node_id]
-      attrib = Attrib.find_key(params[:id])
-      attrib.set(node,params[:value])
-      node.reload
-      render api_show :node, Node, nil, nil, node
-    else
-      respond_to do |format|
-        format.html { render api_not_supported 'put', 'nodes/:id/attribs/:id' }
-        format.json { render api_update :attrib, Attrib }
-      end
+    klass,key,rt = case
+                   when params.has_key?(:node_id) then [Node,:node_id,:node]
+                   when params.has_key?(:deployment_role_id) then [DeploymentRole,:deployment_role_id,:deployment_role]
+                   when params.has_key?(:node_role_id) then [NodeRole,:node_role_id,:node_role]
+                   when params.has_key?(:role_id) then [Role,:role_id,:role]
+                   else [nil,nil,nil]
+                   end
+    attrib = Attrib.find_key(params[:id])
+    if (key == :node_id && !attrib.role_id.nil?) ||
+        (key != :node_id && attrib.role_id.nil?) ||
+        key.nil?
+      render api_not_supported 'put', 'attribs/:id'
     end
+    target = klass.find_key(params[key])
+    attrib.set(target,params[:value])
+    target.reload
+    render api_show rt, klass, nil, nil, target
   end
 
   def destroy

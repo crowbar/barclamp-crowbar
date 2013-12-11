@@ -41,7 +41,7 @@
               = text_field_tag :group, @node.group(true), :size => 20
         %li.select
           = f.label :intended_role, t('.intended_role')
-          = select_tag :intended_role, options_for_select([[t('.no_role'),'no_role'], [t('.controller'), 'controller'], [t('.compute'), 'compute'], [t('.storage'), 'storage']], @node.intended_role)
+          = select_tag :intended_role, options_for_select([[t('.no_role'),'no_role'], [t('.controller'), 'controller'], [t('.compute'), 'compute'], [t('.network'), 'network'], [t('.storage'), 'storage']], @node.intended_role)
           %p.inline-hints= t('.intended_role_hint')
         -if @options[:show].include? :bios
           %li.select

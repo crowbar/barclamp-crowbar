@@ -257,7 +257,7 @@ en:
       compute: Compute
       storage: Storage
       network: Network
-      no_role: No Role
+      no_role: Undecided
       intended_role_hint: Intended Role is the way you intend to use the node in your cloud infrastructure. The value is used to propose the inital node deployment for barclamps.
   
   support:

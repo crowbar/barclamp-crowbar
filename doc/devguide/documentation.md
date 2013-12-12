@@ -46,7 +46,7 @@ There is a documentation tree index (`[barclamp].yml`) for each barclamp. The in
 
 The index has an entry for each topic page that follows the following pattern: `barclamp/topic`. The `/` is required!
 
-> **Note**: You can comment out a page from being automatically index by prefixing its name with `#`.
+> **Note**: You can comment out a page from being automatically indexed by prefixing its name with `#`.
 
 A barclamp can reference topics in another barclamp so that the correct parent topics are used to build an integrated set. The index file should be nested so that topics have correct parents.
 
@@ -62,4 +62,4 @@ For example, a file named `333_sample_order.md` would be ordered as 333.
 
 ##### Omitting Pages
 
-Crowbar documentation is required to start with `#_ Title`.  If the pound (#) is omitted from the first position in the file, then it will not be included in the documentation generation process.
+The first heading of each Crowbar document must start with `#_ Title`.  If the pound (#) is omitted from the first position in the file, then it will not be included in the documentation generation process.

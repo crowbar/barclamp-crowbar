@@ -66,9 +66,25 @@ a new role.
 #### Deployment hooks
 
 There are two hooks for letting roles interact with deployment roles:
-`on_deployment_create` and `on_deployment_delete`.  They are called
-passing the relavent deployment as a parameter just after a
-[[deployment_role]] is created or just before it is destroyed.
+
+* `on_deployment_create` 
+* `on_deployment_delete`.  
+
+They are called passing the relavent deployment as a parameter just after a
+deployment_role is created or just before it is destroyed.
+
+This function is import to set defaults, cleanup, validate and perform other setups when a new role is added or removed from a deployment.  This can be very helpful to ensure that sane defaults are set and items are cleaned up.
+
+#### Node hooks
+
+There are two hooks for letting roles take actions when nodes are created or deleted:
+
+* `on_node_create` 
+* `on_node_delete`
+
+They are _for all roles_ in the system when a new node is added.  The role does not have to be included in a deployment or used in anyway for this hook to be called.  If a node exists and implements this hook then it will get called when a node is created or destroyed.  
+
+> It is expected that the code will scope correctly!
 
 #### Noderole hooks
 

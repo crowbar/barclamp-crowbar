@@ -38,24 +38,25 @@ action :enable do
   file_available, file_enable = config_files(new_resource.name)
 
   # Create service for application
-  template "/etc/init.d/#{new_resource.service_name}" do
-    source "uwsgi-service.sh.erb"
+  template "/etc/init/#{new_resource.service_name}.conf" do
+    source "uwsgi-upstart.conf.erb"
     mode "0755"
     cookbook "uwsgi"
     variables({
-       :application => new_resource.name,
-       :service => new_resource.service_name,
-       :config => file_enable,
-       :options => options
-     })
+      :config => file_enable,
+    })
+  end
+
+  link "/etc/init.d/#{new_resource.service_name}" do
+    to "/lib/init/upstart-job"
   end
 
   # write config to file
   template file_available do
     variables ({
-        :options => options,
-        :instances => instances,
-        :application => new_resource.name
+      :options => options,
+      :instances => instances,
+      :application => new_resource.name
     })
     cookbook "uwsgi"
     source "uwsgi-config.xml.erb"

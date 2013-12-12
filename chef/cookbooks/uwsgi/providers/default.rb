@@ -48,12 +48,6 @@ action :enable do
        :config => file_enable,
        :options => options
      })
-    notifies :restart, "service[#{new_resource.service_name}]", :immediately
-  end
-
-  service "#{new_resource.service_name}" do
-    supports :restart => true, :start => true, :stop => true, :status => true
-    action [:enable, :nothing]
   end
 
   # write config to file
@@ -68,12 +62,19 @@ action :enable do
     owner "root"
     group "root"
     mode 00600
-    notifies :restart, "service[#{new_resource.service_name}]", :immediately
   end
 
   # enabling config
   link file_enable do
     to file_available
+  end
+
+  service "#{new_resource.service_name}" do
+    supports :restart => true, :start => true, :stop => true, :status => true
+    action [:enable, :start]
+    subscribes :restart, "template[/etc/init.d/#{new_resource.service_name}]", :immediately
+    subscribes :restart, "template[#{file_available}]", :immediately
+    subscribes :restart, "link[#{file_enable}]", :immediately
   end
 
 end

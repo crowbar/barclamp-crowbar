@@ -277,12 +277,12 @@ step_run(Config, Input, Step) ->
 step_run(Config, Input, Step, [Feature | Features]) ->
   % sometimes, we have to rename files, the alias lets the system handle that
   Alias = bdd_utils:alias(Feature),
+  {_, {Scenario, StepNum}, _} = Step, 
   % now we need to try and run the feature
 	try apply(Alias, step, [Input, Step]) of
 		error -> 
 		  {error, Step};
 		Result -> 
-      {_, {Scenario, StepNum}, _} = Step, 
 		  bdd_utils:marker(io_lib:format("STEP RESULT (Scenario ~p:~p)", [Scenario, StepNum])),
 		  log(debug, "^^ ~p,~p Ran ~p:step(R, ~p).",[Scenario, StepNum, Alias,Step]),
       log(trace, "^^ ~p,~p Input -> ~p",[Scenario, StepNum, Input]),
@@ -301,7 +301,7 @@ step_run(Config, Input, Step, [Feature | Features]) ->
       log(error, "Attempted \"feature ~p, step ~p.\"",[Alias, Step]),
 		  error; 
 		X: Y -> 
-		  bdd_utils:marker("BDD ERROR"),
+		  bdd_utils:marker(io_lib:format("BDD ERROR (Scenario ~p:~p)", [Scenario, StepNum])),
 		  log(info,  "step run found ~p:~p", [X, Y]), 
       log(debug, "Stacktrace: ~p", [erlang:get_stacktrace()]),
       log(error, "Attempted \"apply(~p, step, [[Input], ~p]).\"",[Alias, Step]),

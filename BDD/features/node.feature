@@ -145,7 +145,7 @@ Feature: Nodes
   Scenario: Node takes hint about IP address
     Given there is a {object:node} "bdd-hint-ip1.data.edu" hinted "ip" as "192.168.124.124"
     When REST gets the {object:node} "bdd-hint-ip1.data.edu"
-    Then key "hint" should have json "network-admin:v4address" with value "192.168.124.124" 
+    Then key "hint" should have json "network-admin:v4addr" with value "192.168.124.124" 
     Finally REST removes the {object:node} "bdd-hint-ip1.data.edu"
 
   Scenario: Node takes hint about MAC address
@@ -153,7 +153,7 @@ Feature: Nodes
       And there is a hint "mac" with "f1:f2:f3:f4:f5:f6"
       And there is a {object:node} "bdd-hint-ip3.data.edu" hinted
     When REST gets the {object:node} "bdd-hint-ip3.data.edu"
-    Then key "hint" should have json "network-admin:ip_v4address" with value "192.168.124.124" 
+    Then key "hint" should have json "network-admin:v4addr" with value "192.168.124.124" 
       And key "hint" should have json "provisioner-dhcp-database:mac" with value "f1:f2:f3:f4:f5:f6" 
     Finally REST removes the {object:node} "bdd-hint-ip3.data.edu"
 

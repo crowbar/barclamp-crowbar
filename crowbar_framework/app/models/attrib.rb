@@ -61,7 +61,7 @@ class Attrib < ActiveRecord::Base
           when :wall then from.wall
           when :system then from.sysdata
           when :user then from.data
-          when :hint then from_orig.hint[role.name]
+          when :hint then from_orig.get_hint[role.name]
           else raise("#{from} is not a valid source to read noderole data from!")
           end
         when from.is_a?(Role) then from.template
@@ -145,7 +145,7 @@ class Attrib < ActiveRecord::Base
   def __resolve(to)
     return to unless to.is_a?(Node) && self.role_id
     res = to.node_roles.where(:role_id => self.role_id).first
-    raise("#{self.name} belongs to role #{role.name}, but node #{node.name} does not have a binding for it!") unless res
+    raise("#{self.name} belongs to role #{role.name}, but node #{to.name} does not have a binding for it!") unless res
     res
   end
 

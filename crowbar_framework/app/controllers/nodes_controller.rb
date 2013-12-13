@@ -72,8 +72,8 @@ class NodesController < ApplicationController
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
     # deal w/ hint shortcuts  (these are hardcoded but MUST match the imported Attrib list)
     hint = JSON.parse(params[:hint] || "{}")
-    hint["network-admin"] = {"v4address"=>params["ip"]} if params.has_key? :ip
-    hint["provisioner-dhcp-database"] = {"mac"=>params["mac"]} if params.has_key? :mac
+    hint["network-admin"] = {"v4addr"=>params["ip"]} if params.has_key? :ip
+    hint["provisioner-repos"] = {"admin_mac"=>params["mac"]} if params.has_key? :mac
     params[:hint] = JSON.generate(hint)
 
     n = Node.create! params

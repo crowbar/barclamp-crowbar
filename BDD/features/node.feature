@@ -154,7 +154,7 @@ Feature: Nodes
       And there is a {object:node} "bdd-hint-ip3.data.edu" hinted
     When REST gets the {object:node} "bdd-hint-ip3.data.edu"
     Then key "hint" should have json "network-admin:v4addr" with value "192.168.124.124" 
-      And key "hint" should have json "provisioner-dhcp-database:mac" with value "f1:f2:f3:f4:f5:f6" 
+      And key "hint" should have json "provisioner-repos:admin_mac" with value "f1:f2:f3:f4:f5:f6" 
     Finally REST removes the {object:node} "bdd-hint-ip3.data.edu"
 
   Scenario: Provisioner DHCP database uses hint about MAC address [move to Provisoner]

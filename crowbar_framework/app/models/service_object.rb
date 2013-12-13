@@ -739,7 +739,8 @@ class ServiceObject
     end
     Rails.logger.info "validating proposal #{@bc_name}"
 
-    @validation_errors = validator.validate(proposal)
+    errors = validator.validate(proposal)
+    @validation_errors = errors.map {|e| e.message}
     handle_validation_errors
   end
 
@@ -1302,7 +1303,7 @@ class ServiceObject
   def handle_validation_errors
     if @validation_errors && @validation_errors.length > 0
       Rails.logger.info "validation errors in proposal #{@bc_name}"
-      raise Chef::Exceptions::ValidationFailed.new(@validation_errors.join("\n"))
+      raise Chef::Exceptions::ValidationFailed.new("#{@validation_errors.join("\n")}\n")
     end
   end
 end

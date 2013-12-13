@@ -16,12 +16,13 @@
 class NodeRolesController < ApplicationController
 
   def index
-    if params.key? :node_id
-      @node = Node.find_key params[:node_id]
-      @list = @node.node_roles.current.sort{|a,b|[a.cohort,a.id] <=> [b.cohort,b.id]}
-    else
-      @list = NodeRole.current.order("cohort asc, id asc")
-    end
+    @list = (if params.key? :node_id
+              Node.find_key(params[:node_id]).node_roles.current
+            elsif params.key? :snapshot_id
+              Snapshot.find_key(params[:snapshot_id]).node_roles
+            else
+              NodeRole.current
+            end).order("cohort asc, id asc")
     respond_to do |format|
       format.html { }
       format.json { render api_index :node_role, @list }
@@ -47,6 +48,7 @@ class NodeRolesController < ApplicationController
     end
     node = Node.find_key(params[:node] || params[:node_id])
     role = Role.find_key(params[:role] || params[:role_id])
+    snap ||= node.deployment.head
     
     raise "Cannot add noderole to snapshot in #{Snapshot.state_name(snap.state)}" unless snap.proposed?
     r = role.add_to_node_in_snapshot(node,snap)

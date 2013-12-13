@@ -131,8 +131,12 @@ Crowbar::Application.routes.draw do
             get :head
             get :next
             resources :roles
+            resources :nodes
+            put 'claim/:node_id' => "deployments#claim"
           end
-          resources :deployment_roles
+          resources :deployment_roles do
+            resources :attribs
+          end
           resources :groups do
             member do
               get 'nodes'
@@ -144,6 +148,7 @@ Crowbar::Application.routes.draw do
           resources :nodes do
             resources :node_roles
             resources :attribs
+            resources :roles
             put :reboot
             put :debug
             put :undebug
@@ -152,10 +157,14 @@ Crowbar::Application.routes.draw do
             put :retry
           end
           resources :roles do
+            resources :deployment_roles
             put 'template/:key/:value' => "roles#template"
           end
           resources :snapshots do
             resources :node_roles
+            resources :nodes
+            resources :roles
+            resources :deployment_roles
             get :graph
             put :propose
             put :commit

@@ -16,7 +16,14 @@
 class DeploymentRolesController < ApplicationController
 
   def index
-    @list = DeploymentRole.all
+    @list = if params.has_key? :snapshot_id
+              Snapshot.find_key(params[:snapshot_id]).deployment_roles
+            elsif params.has_key? :role_id
+              Role.find_key(params[:role_id]).deployment_roles
+            else
+              DeploymentRole.all
+            end
+                                  
     respond_to do |format|
       format.html { }
       format.json { render api_index :deployment_role, @list }

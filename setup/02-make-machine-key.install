@@ -8,9 +8,18 @@
 if [[ ! -e /etc/crowbar.install.key ]]; then
     read key rest < <(dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null)
     echo "Creating machine-install user"
-    sleep 15
-    if ! /opt/dell/bin/crowbar users create machine-install \
-        "root@$(hostname --fqdn)" "$key" "$key" false false true; then
+    machine_user="
+{
+  \"username\": \"machine-install\",
+  \"email\": \"root@$(hostname -f)\",
+  \"password\": \"$key\",
+  \"password_confirmation\": \"$key\",
+  \"remember_me\": false,
+  \"is_admin\": false,
+  \"digest\": true
+}"
+
+    if ! /opt/dell/bin/crowbar users create "$machine_user"; then
         echo "Could not create machine-install user!"
         exit 1
     fi

@@ -16,12 +16,13 @@
 class RolesController < ApplicationController
 
   def index
-    if params.include? :deployment_id
-      deployment = Deployment.find_key params[:deployment_id]
-      @list = deployment.head.roles
-    else
-      @list = Role.all
-    end
+    @list = if params.include? :deployment_id
+              Deployment.find_key(params[:deployment_id]).roles
+            elsif params.include? :node_id
+              Node.find_key(params[:node_id]).roles
+            else
+              Role.all
+            end
     respond_to do |format|
       format.html { }
       format.json { render api_index :role, @list }

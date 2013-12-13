@@ -96,6 +96,14 @@ class NodesController < ApplicationController
     render api_update :node, Node, nil, @node
   end
 
+  def move
+    deploy = Deployment.find_key params[:deployment_id]
+    node = Node.find_key params[:node_id]
+    node.deployment_id = deploy.id
+    node.save!
+    node.reload
+    render api_show :node, Node, nil, nil, node
+  end
 
   #test_ methods support test functions that are not considered stable APIs
   def test_load_data

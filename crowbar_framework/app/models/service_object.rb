@@ -765,6 +765,29 @@ class ServiceObject
     end
   end
 
+  #
+  # Look for a database proposal. If :active is specified, then it will
+  # return the first active database proposal, otherwise both active and
+  # inactive are searched, in that order.
+  #
+  def validate_has_database_proposal(kind=nil)
+    databaseService = DatabaseService.new(@logger)
+
+    dbs = databaseService.list_active[1]
+
+    unless kind == :active
+      dbs = databaseService.proposals[1] if dbs.empty?
+    end
+
+    validation_error("A#{"n active" if kind == :active} database proposal is required.") if dbs.blank? || dbs[0].blank?
+
+    dbs[0]
+  end
+
+  def validate_has_active_database_proposal
+    validate_has_database_proposal :active
+  end
+
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 

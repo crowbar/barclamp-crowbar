@@ -17,12 +17,15 @@ When Nodes are created, updated or deleted, roles and jigs are notified so they 
 <tr><td> PUT  </td>
   <td> api/v2/nodes/:id </td>
   <td> Update Item, notifies all jigs and roles </td></tr>
-<tr><td> POST  </td>
+<tr><td> POST </td>
   <td> api/v2/nodes </td>
   <td> Create Item, notifies all jigs and roles </td></tr>
-<tr><td> DELETE, notifies all jigs and roles  </td>
+<tr><td> DELETE </td>
   <td> api/v2/nodes/:id </td>
-  <td> Delete Item </td></tr>
+  <td> Delete Item + notifies all jigs and roles </td></tr>
+<tr><td> GET  </td>
+  <td> api/v2/nodes/:id/node_roles </td>
+  <td> Shows all the roles that the node is using (including their status) </td></tr>
 
 </table>
 

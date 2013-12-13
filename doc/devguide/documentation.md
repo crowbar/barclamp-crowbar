@@ -2,7 +2,7 @@
 
 Crowbar uses a composite documentation system that allows each barclamp to add documentation specific to its function while still building a single comprehensive documentation set.
 
-> Please see the Formating subsection for tips on formatting markdown.
+> **Note**: Please see the Formatting subsection for tips on formatting markdown.
 
 This information is available as a video! see [http://youtu.be/eWHeEWiOEvo](http://youtu.be/eWHeEWiOEvo)
 
@@ -35,24 +35,22 @@ For example,
 
 In the above example, the `devguide` topic layout out general information for the developer guide. The `api` and `testing` sections would be shown as sections of the Developer Guide. Individual API topics `node` and `group` are subsections of the API topic.
 
-> The convention of having an the index topic name (`api.md`) match the subfolder (`api/`) makes it easier for Crowbar to assemble to table of contents without extra meta data.
+> **Note**: The convention of having an the index topic name (`api.md`) match the subfolder (`api/`) makes it easier for Crowbar to assemble to table of contents without extra meta data.
 
 If no hints (see index below) are given, Crowbar will automatically scan the subdirectory tree and build the table of contents based on the file path naming convention.
 
 #### Index
 There is a documentation tree index (`[barclamp].yml`) for each barclamp. The index is a yml file which builds the documentation tree by deep merging all the barclamp indexes together.
 
-> The index _must_ be named the same as the barclamp. So each barclamp provides "barclamp.yml" in the `doc` directory. These files are merged together during the barclamp install.
+> **Note**: The index _must_ be named the same as the barclamp. So each barclamp provides `barclamp.yml` in the `doc` directory. These files are merged together during the barclamp install.
 
 The index has an entry for each topic page that follows the following pattern: `barclamp/topic`. The `/` is required!
 
-> You can comment out a page from being automatically index by prefixing its name with `#`
+> **Note**: You can comment out a page from being automatically indexed by prefixing its name with `#`.
 
-It is acceptable for a barclamp to reference topics in another barclamp so that the correct parent topics are used to build an integrated set.
+A barclamp can reference topics in another barclamp so that the correct parent topics are used to build an integrated set. The index file should be nested so that topics have correct parents.
 
-The index file should be nested so that topics have correct parents.
-
-> It is strongly encouraged (but not required) to keep the index path the same as the file path.
+> **Note**: It is strongly encouraged (but not required) to keep the index path the same as the file path.
 
 ##### Ordering
 
@@ -60,8 +58,8 @@ You can control the order of documents within a directory by prefixing the file 
 
 For example, a file named `333_sample_order.md` would be ordered as 333.
 
-> If you omit order, the system defaults to 9999.
+> **Note**: If you omit order, the system defaults to 9999.
 
 ##### Omitting Pages
 
-Crowbar documentation is required to start with "#_ Title".  If the pound (#) is omitted from the first position in the file then it will not be included in the documentation generation process.
+The first heading of each Crowbar document must start with `#_ Title`.  If the pound (#) is omitted from the first position in the file, then it will not be included in the documentation generation process.

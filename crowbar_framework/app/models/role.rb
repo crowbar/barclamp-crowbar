@@ -209,6 +209,10 @@ class Role < ActiveRecord::Base
     Rails.logger.info("Role: No bindings for #{role.name} in #{snap.deployment.name} or any parents.")
     []
   end
+
+  def add_to_node(node)
+    add_to_node_in_snapshot(node,node.deployment.head)
+  end
   
   # Bind a role to a node in a snapshot.
   def add_to_node_in_snapshot(node,snap)

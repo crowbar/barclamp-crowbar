@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2013, Dell
+# Copyright 2011, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,26 +12,425 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+require 'rubygems'
+require 'net/http'
+require 'net/http/digest_auth'
+require 'uri'
+require 'json'
+require 'getoptlong'
+
+$debug = false
+$hostname = ENV["CROWBAR_IP"]
+# DO NOT CHANGE THE NEXT 2 LINES
+# gather_cli replies on the exact format they are in.
+$hostname = "127.0.0.1" unless $hostname
+# If hostname looks like an IPv6 address, assume it is.
+# If it has a colon in it, it looks like an IPv6 address.
+$hostname = "[#{$hostname}]" if $hostname.include?(":")
+$port = 3000
+$url = nil
+$headers = {
+  "Accept" => "application/json",
+  "Content-Type" => "application/json"
+}
+$data = ""
+$timeout = 500
+$key = ENV["CROWBAR_KEY"]
+if $key
+  $username=$key.split(':',2)[0]
+  $password=$key.split(':',2)[1]
+end
+
+def debug(foo)
+  STDERR.puts("DEBUG: #{foo}") if $debug
+end
+
 #
+# Parsing options can be added by adding to this list before calling opt_parse
+#
+$options = [
+    [ [ '--help', '-h', GetoptLong::NO_ARGUMENT ], "--help or -h - help" ],
+    [ [ '--username', '-U', GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - specifies the username" ],
+    [ [ '--password', '-P', GetoptLong::REQUIRED_ARGUMENT ], "--password <password> or -P <password>  - specifies the password" ],
+    [ [ '--hostname', '-n', GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - specifies the destination server" ],
+    [ [ '--port', '-p', GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - specifies the destination server port" ],
+    [ [ '--url', GetoptLong::REQUIRED_ARGUMENT ], "--url <http://host:port> - specifies the API address URL" ],
+    [ [ '--debug', '-d', GetoptLong::NO_ARGUMENT ], "--debug or -d - turns on debugging information" ],
+    [ [ '--data', GetoptLong::REQUIRED_ARGUMENT ], "--data <data> - used by create or edit as data (must be in json format)" ],
+    [ [ '--file', GetoptLong::REQUIRED_ARGUMENT ], "--file <file> - used by create or edit as data when read from a file (must be in json format)" ],
+    [ [ '--timeout', GetoptLong::REQUIRED_ARGUMENT ], "--timeout <seconds> - timeout in seconds for read http reads" ]
+]
 
-loc=File.expand_path(File.dirname(__FILE__))
-def usage (rc)
-  puts "Usage: crowbar <area> <subcommand>"
-  puts "  Areas: #{@areas.join(" ")}"
-  exit rc
+def opt_parse
+  sub_options = $options.map { |x| x[0] }
+  lsub_options = $options.map { |x| [ x[0][0], x[2] ] }
+  opts = GetoptLong.new(*sub_options)
+
+  opts.each do |opt, arg|
+    case opt
+      when '--help'
+        usage 0
+      when '--debug'
+        $debug = true
+      when '--url'
+        $url = arg
+      when '--hostname'
+        $hostname = arg
+      when '--username'
+        $username = arg
+      when '--password'
+        $password = arg
+      when '--port'
+        $port = arg.to_i
+      when '--data'
+        $data = arg
+      when '--timeout'
+        $timeout = arg
+      when '--file'
+        $data = File.read(arg)
+      else
+        found = false
+        lsub_options.each do |x|
+          next if x[0] != opt
+          eval x[1]
+          found = true
+        end
+        usage -1 unless found
+    end
+  end
 end
 
-@areas = Dir.glob("./crowbar_*").map! { |x| x.gsub("./crowbar_", "") }
-@areas << Dir.glob(File.join(loc,"crowbar_*")).map! { |x| x.gsub(File.join(loc,"crowbar_"), "") }
-@areas = @areas.flatten
+class REST
 
-if ARGV.length == 0
-  usage -1
+  def self.authenticate(req,uri,data=nil)
+    uri.user=$username
+    uri.password=$password
+    res=nil
+    Net::HTTP.start(uri.host, uri.port) {|http|
+      http.read_timeout = $timeout
+      r = req.new(uri.request_uri,$headers)
+      r.body = data if data
+      res = http.request r
+      debug "(a) return code: #{res.code}"
+      debug "(a) return body: #{res.body}"
+      debug "(a) return headers:"
+      res.each_header do |h, v|
+        debug "#{h}: #{v}"
+      end if $debug
+
+      if res['www-authenticate']
+        digest_auth=Net::HTTP::DigestAuth.new
+        auth=Net::HTTP::DigestAuth.new.auth_header(uri,
+                                                   res['www-authenticate'],
+                                                   req::METHOD)
+        r.add_field 'Authorization', auth
+        res = http.request r
+      end
+    }
+    res
+  end
+
+  def self.go(verb,path,data=nil)
+    uri = URI.parse("http://#{$hostname}:#{$port}/#{path}" )
+    res = authenticate(verb,uri,data)
+    debug "(#{verb}) hostname: #{uri.host}:#{uri.port}"
+    debug "(#{verb}) request: #{uri.path}"
+    debug "(#{verb}) data: #{@data}"
+    debug "(#{verb}) return code: #{res.code}"
+    debug "(#{verb}) return body: #{res.body}"
+    [ JSON.parse(res.body), res.code.to_i ]
+  end
+
+  def self.get(path)
+    go(Net::HTTP::Get,path)
+  end
+
+  def self.post(path, data=nil)
+    go(Net::HTTP::Post,path,data)
+  end
+
+  def self.put(path, data=nil)
+    go(Net::HTTP::Put,path,data)
+  end
+
+  def self.delete(path)
+    go(Net::HTTP::Delete,path)
+  end
 end
 
-area = ARGV.shift
+class CrowbarProxy
+  def self.path
+    "api/v2/#{name.downcase}s"
+  end
 
-usage -1 unless @areas.include?(area)
+  # This should be passed either:
+  # 1: A name or ID for the things to retrieve from the server
+  # 2: A pre-retrieved blob of JSON.
 
-exec("./crowbar_#{area}", *ARGV) if File.exists?("./crowbar_#{area}")
-exec(File.join(loc,"crowbar_#{area}"), *ARGV) if File.exists?(File.join(loc,"crowbar_#{area}"))
+  def initialize(blob,*rest)
+    case
+    when blob.is_a?(String) || blob.is_a?(Integer)
+      @blob,res = REST.get("#{self.class.path}/#{blob}")
+      raise("Failed to get #{self.class.name} object named #{name}") if res != 200
+    when blob.is_a?(Hash) && blob["id"]
+      @blob = blob
+    else
+      raise("Cannot cast #{blob.inspect} into a #{name}}")
+    end
+  end
+
+  def self.list(*rest)
+    objs, res = REST.get(path)
+    raise("Failed to get a list of #{name} objects") if res != 200
+    objs.map{|o| self.new(o)}
+  end
+
+  def self.create(data, *rest)
+    obj, res = REST.post(path,data)
+    raise("Failed to create a new #{name} object") if res >= 300
+    self.new(obj)
+  end
+
+  def self.help
+    STDERR.puts "Commands for #{name.downcase}s:"
+    commands.each_key do |k|
+      STDERR.puts "    #{k}"
+    end
+  end
+
+  def self.commands
+    res = {
+      "list" => method(:list).to_proc,
+      "show" => method(:new).to_proc,
+      "create" => method(:create).to_proc,
+      "help" => method(:help).to_proc
+    }
+    public_instance_methods.each do |m|
+      next unless m.to_s =~ /^do_(.+)$/
+      res[$1] = Proc.new { |n,*rest| new(n).send(m,*rest) }
+    end
+    res
+  end
+
+  def id
+    @blob["id"]
+  end
+
+  def reload
+    @blob,res = REST.get("#{self.class.path}/#{id}")
+    self
+  end
+
+  def do_update(data, *rest)
+    obj, res = REST.put("#{self.class.path}/#{id}",data)
+    raise("Failed to update #{self.class.name} object id #{id}") if res >= 300
+    @blob = obj
+    self
+  end
+
+  def do_destroy(*rest)
+    obj,res = REST.delete("#{self.class.path}/#{id}")
+    raise("Failed to destroy #{self.class.name} object named #{id}") if res >= 300
+    self
+  end
+
+  def to_json
+    JSON.pretty_generate(@blob)
+  end
+
+  def to_hash
+    @blob
+  end
+end
+
+class Node < CrowbarProxy
+
+  def name
+    @blob["name"]
+  end
+
+  def do_reboot(*rest)
+    obj, res = REST.put("#{self.class.path}/#{id}/reboot")
+    raise("Could not reboot #{name}") if res >= 300
+    @blob = obj
+    self
+  end
+
+  def do_debug(*rest)
+    obj, res = REST.put("#{self.class.path}/#{id}/debug")
+    raise("#{name} could not be put into debug mode") if res != 200
+    @blob = obj
+    self
+  end
+
+  def do_undebug(*rest)
+    obj, res = REST.put("#{self.class.path}/#{id}/undebug")
+    raise("#{name} could not be taken out of debug mode") if res != 200
+    @blob = obj
+    self
+  end
+
+  def do_noderoles(*rest)
+    objs,res = REST.get("#{self.class.path}/#{id}/node_roles")
+    raise("Could not get noderoles for node #{name}") if res >= 300
+    objs.map{|o|NodeRole.new(o)}
+  end
+
+  def do_attribs(*rest)
+    objs,res = REST.get("#{self.class.path}/#{id}/attribs")
+    raise("Could not get attribs for node #{name}") if res >= 300
+    objs.map{|o|Attrib.new(o)}
+  end
+end
+
+class Deployment < CrowbarProxy
+  def name
+    @blob["name"]
+  end
+
+  def snapshot
+    Snapshot.new(@blob["snapshot_id"])
+  end
+
+  def do_propose(*rest)
+    snapshot.do_propose(*rest)
+    reload
+  end
+
+  def do_commit(*rest)
+    snapshot.do_commit(*rest)
+    reload
+  end
+
+  def do_recall(*rest)
+    shapshot.do_recall(*rest)
+    reload
+  end
+
+  def do_nodes(*rest)
+    objs,res = REST.get("#{self.class.path}/#{id}/nodes")
+    raise("Unable to get node list for deployment #{name}") if res >= 300
+    objs.map{|o|Node.new(o)}
+  end
+
+  def do_claim(node,*rest)
+    node = Node.new(node)
+    objs,res = REST.put("#{self.class.path}/#{id}/claim/#{node.id}")
+    raise("Unable to have deployment #{name} claim #{node.name}") if res >= 300
+    Node.new(obj)
+  end
+end
+
+class Role < CrowbarProxy
+
+  def name
+    @blob["name"]
+  end
+
+  def do_bind(node, *rest)
+    node = Node.new(node)
+    obj,res = REST.post("#{NodeRole.path}",JSON.generate({:node_id => node.id, :role_id => id}))
+    raise("Unable to bind role #{name} to node #{node.name}") if res >= 300
+    NodeRole.new(obj)
+  end
+
+end
+
+class NodeRole < CrowbarProxy; end
+class Snapshot < CrowbarProxy
+
+  def name
+    @blob["name"]
+  end
+
+  def do_propose(*rest)
+    obj,res = REST.put("#{self.class.path}/#{id}/propose")
+    raise("#{name} could not be put into proposed!") if res >= 300
+    @blob = obj
+    self
+  end
+
+  def do_commit(*rest)
+    obj,res = REST.put("#{self.class.path}/#{id}/commit")
+    raise("#{name} could not be committed!") if res >= 300
+    @blob = obj
+    self
+  end
+
+  def do_recall(*rest)
+    obj,res = REST.put("#{self.class.path}/#{id}/recall")
+    raise("#{name} could not be recalled") if res >= 300
+    @blob = obj
+    self
+  end
+end
+class Barclamp < CrowbarProxy; end
+class User < CrowbarProxy; end
+class Attrib < CrowbarProxy; end
+
+class Network < CrowbarProxy
+  def self.path
+    "network/api/v2/networks"
+  end
+end
+
+$commands = Hash.new
+Module.constants.each do |mod|
+  mod = Module.const_get(mod)
+  next unless mod.respond_to?(:superclass) && !mod.superclass.nil? && mod.superclass == CrowbarProxy
+  $commands["#{mod.name.downcase}s"] = mod.commands
+end
+
+$commands["converge"] = lambda { |*rest|
+  loop do
+    obj, res = REST.get("api/v2/anneal")
+    exit(0) if res == 200
+    raise("Unable to converge roles") if res == 409
+    raise("Failed to talk to Crowbar") if res >= 300
+    sleep 10
+  end
+}
+
+def show_help(c,keys=[])
+  if c.is_a?(Proc)
+    STDERR.puts("#{keys.join(" ")} <args>")
+  elsif c.is_a?(Hash)
+    c.each_key do |k|
+      show_help(c[k],keys + [k])
+    end
+  end
+end
+
+$commands["help"] = lambda { |*rest|
+  STDERR.puts("All available commands:")
+  show_help($commands)
+}
+
+def run_commands
+  command = $commands
+  probers = []
+  while command.is_a?(Hash) && command[ARGV[0]] do
+    command = command[ARGV[0]]
+    probers << ARGV.shift
+  end
+  if probers.empty?
+    show_help($commands)
+    return
+  elsif !command.is_a?(Proc)
+    STDERR.puts("#{probers.join(" ")} is not a command!")
+    show_help($command)
+    return
+  end
+  debug ("Command: #{probers.join(' ')}; Args: #{ARGV.join(' ')}")
+
+  STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!" if $username.nil? or $password.nil?
+  STDERR.puts "Please set CROWBAR_KEY or use -U and -P" if $username.nil? or $password.nil?
+
+  res = command.call(*ARGV)
+  puts JSON.pretty_generate(res.is_a?(Array) ? res.map{|a|a.to_hash} : res.to_hash) unless probers[-1] == "help"
+end
+
+opt_parse
+run_commands

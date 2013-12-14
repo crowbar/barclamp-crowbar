@@ -138,8 +138,7 @@ class Node < ActiveRecord::Base
 
   # retrieves the Attrib from Attrib
   def get_attrib(attrib)
-    attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
-    attrib.get(self, :discovery) rescue nil
+    Attrib.get(attrib, self, :discovery) rescue nil
   end
 
   def active_node_roles

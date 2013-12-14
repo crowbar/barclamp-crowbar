@@ -36,6 +36,11 @@ class Attrib < ActiveRecord::Base
     res
   end
 
+  def self.get(name, from, source=:discovery)
+    attrib = ( name.is_a?(ActiveRecord::Base) ? name : Attrib.find_key(name) )
+    attrib.get(from, source)
+  end
+
   # Get the attribute value from the passed object.
   # For now, we are encoding information about the objects we can use directly in to
   # the Attrib class, and failing hard if we were passed something that

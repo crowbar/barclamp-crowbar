@@ -112,7 +112,7 @@ class NodesController < ApplicationController
     json = JSON.load raw
     @node.discovery  = json
     @node.save!
-    redirect_to :action=>:show
+    render api_show :node, Node, nil, nil, @node
 
   end
 

@@ -37,7 +37,7 @@
       %tr
         %td= link_to a.name, attrib_path(a.id)
         %td
-          - v = a.get(@node) rescue nil
+          - v = a.get(@node, :discovery) rescue nil
           - unless v.nil?
             = v
           - else

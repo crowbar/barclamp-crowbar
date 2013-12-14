@@ -34,6 +34,7 @@ class AttribsController < ApplicationController
   end
 
   def show
+    @node = Node.find_key params[:node_id] if params.key? :node_id
     @attrib = Attrib.find_key params[:id]
     respond_to do |format|
       format.html {  }

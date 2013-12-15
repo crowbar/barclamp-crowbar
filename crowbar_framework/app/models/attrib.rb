@@ -119,6 +119,12 @@ class Attrib < ActiveRecord::Base
 
   private
 
+  # used to create a mapping for discovery values from the map
+  def map_set_value(map,value)
+    return ( map =~ /^([^\/]*)\/(.*)/ ? { $1 => map_set_value($2, value)} : { map => value } )
+  end
+
+
   # This method ensures that we have a type defined for
   def create_type_from_name
     raise "attribs require a name" if self.name.nil?
@@ -161,8 +167,8 @@ class Attrib < ActiveRecord::Base
     case
     when to.is_a?(Node) 
       case target
-      when :hint then to.hint_update(value)
-      when :discovery then to.discovery_update(value)
+      when :hint then to.hint_update(map_set_value("#{role.name}/#{map}", value))
+      when :discovery then  to.discovery_update(map_set_value(map,value))
       else raise("#{target} is not a valid target to write node data to!")
       end      
     when to.is_a?(Role) then to.template_update(value)
@@ -172,7 +178,7 @@ class Attrib < ActiveRecord::Base
       case target
       when :system then to.sysdata_update(value)
       when :user then to.data_update(value)
-      when :hint then to_orig.hint_update({role.name => { map => value }})
+      when :hint then to_orig.hint_update(map_set_value("#{role.name}/#{map}", value))
       when :wall then to.wall_update(value)
       else raise("#{target} is not a valid target to write noderole data to!")
       end

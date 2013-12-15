@@ -226,7 +226,7 @@ class Node < ActiveRecord::Base
     Node.transaction do
       d = discovery
       d.deep_merge!(val)
-      discovery = d
+      write_attribute("discovery",JSON.generate(d))
     end
   end
 

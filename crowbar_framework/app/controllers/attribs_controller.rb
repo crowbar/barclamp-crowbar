@@ -55,11 +55,12 @@ class AttribsController < ApplicationController
   end
 
   def update
-    klass,key,rt = case
-                   when params.has_key?(:node_id) then [Node,:node_id,:node]
-                   when params.has_key?(:deployment_role_id) then [DeploymentRole,:deployment_role_id,:deployment_role]
-                   when params.has_key?(:node_role_id) then [NodeRole,:node_role_id,:node_role]
-                   when params.has_key?(:role_id) then [Role,:role_id,:role]
+    # based on the type of data being passed, figure out they attribute class (klass), key, role type (rt) and attribue type (atype)
+    klass,key,rt,atype = case
+                   when params.has_key?(:node_id) then [Node,:node_id,:node, :discovery]
+                   when params.has_key?(:deployment_role_id) then [DeploymentRole,:deployment_role_id,:deployment_role, :user]
+                   when params.has_key?(:node_role_id) then [NodeRole,:node_role_id,:node_role, :user]
+                   when params.has_key?(:role_id) then [Role,:role_id,:role, :user]
                    else [nil,nil,nil]
                    end
     attrib = Attrib.find_key(params[:id])
@@ -69,8 +70,8 @@ class AttribsController < ApplicationController
       render api_not_supported 'put', 'attribs/:id'
     end
     target = klass.find_key(params[key])
-    attrib.set(target,params[:value])
-    target.reload
+    attrib.set(target,params[:value], atype)
+    target.save!
     render api_show rt, klass, nil, nil, target
   end
 

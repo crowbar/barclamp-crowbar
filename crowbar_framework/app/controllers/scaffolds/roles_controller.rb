@@ -15,5 +15,6 @@
 
 class Scaffolds::RolesController < ApplicationController
   active_scaffold :role do |conf|
+    list.columns.exclude :template 
   end
 end 

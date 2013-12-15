@@ -20,7 +20,7 @@ In order to more easily manage this, we've created [a tool called the Dev Tool](
 
 
 ### The Dev Tool and GitHub
-
+a 
 Since all the development on Crowbar takes place on GitHub, the Dev Tool is absolutely reliant on having a reliable connection to GitHub. If you ever see console output like this: `......!!!.....!!!!.` while Dev Tool is at work, it indicates connection problems. Also, if you don't want to use HTTPS, make sure that your build server's public key is registered with your GitHub account.
 
 If you intend on doing _development_ which might result in you submitting pull- requests, you will also need a GitHub account .  **Note:** Using your GitHub account will result in every needed Crowbar repo being forked to your account. During development it is important to use the Dev Tool for managing branches and releases.
@@ -29,9 +29,9 @@ If you intend on doing _development_ which might result in you submitting pull- 
 
 
 ### Preparing Our Build Box
-
+a 
 #### Setup password-less sudo
-During the build process the Dev Tool has to perform certain tasks which require root access (mounting ISOs, etc.). In order to avoid being prompted for your password every time we will setup password-less sudo. **Don't run your build as root.**
+Da uring the build process the Dev Tool has to perform certain tasks which require root access (mounting ISOs, etc.). In order to avoid being prompted for your password every time we will setup password-less sudo. **Don't run your build as root.**
 
     # run this command to add your 
     sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
@@ -196,3 +196,4 @@ Now we can actually kick off the build.
     # FOR OPENSTACK
     ./dev switch mesa-1.6/openstack-os-build
     ./dev build --os ubuntu-12.04 --update-cache
+

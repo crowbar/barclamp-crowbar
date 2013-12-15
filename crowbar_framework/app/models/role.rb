@@ -23,7 +23,7 @@ class Role < ActiveRecord::Base
 
   before_create :create_type_from_name
 
-  attr_accessible :id, :description, :name, :jig_name, :barclamp_id
+  attr_accessible :id, :description, :name, :jig_name, :barclamp_id, :template
   ### Flags for roles described in [[/doc/devguide/model/role.md]]
   attr_accessible :library
   attr_accessible :implicit
@@ -68,12 +68,25 @@ class Role < ActiveRecord::Base
     self.save!
   end
 
+  # incremental update (merges with existing)
   def template_update(val)
     Role.transaction do
       d = JSON.parse(read_attribute(template))
       d.deep_merge!(val)
       write_attribute("template",JSON.generate(d))
     end
+  end
+
+  # replaces existing
+  def template=(val)
+    val = JSON.generate(val) unless val.is_a?(String)
+    write_attribute("template",val)
+  end
+
+  def template
+    t = read_attribute("template")
+    return {} if t.nil? || t.empty?
+    JSON.parse(t) rescue {}
   end
 
   # State Transistion Overrides

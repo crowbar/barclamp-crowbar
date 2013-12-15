@@ -66,8 +66,10 @@ class RolesController < ApplicationController
               @role.update_template(key, v)
             end
           end
-          @role.save!
+        elsif params.key? :template
+          @role.template = params[:template]
         end
+        @role.save!
         render :action=>:show
       }
       format.json { render api_update :role, Role }
@@ -78,6 +80,7 @@ class RolesController < ApplicationController
   def template
     role = Role.find_key params[:role_id]
     role.update_template params[:key], params[:value]
+    role.save!
     render api_show :role, Role, nil, nil, role
   end
 

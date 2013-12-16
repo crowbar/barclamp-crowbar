@@ -53,7 +53,7 @@ module FormHelper
     field.split("/").each do |f|
       next if f.empty?
       break if def_val == ""
-      def_val = def_val.send(f) || ""
+      def_val = def_val[f] || ""
     end
 
     select_tag(

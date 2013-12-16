@@ -165,6 +165,14 @@ class NodeObject < ChefObject
     @node.set[:target_platform] = value
   end
 
+  def intended_role
+    @node["crowbar_wall"]["intended_role"]
+  end
+
+  def intended_role=(value)
+    @node["crowbar_wall"]["intended_role"] = value
+  end
+
   def license_key
     @node[:license_key]
   end

@@ -27,7 +27,7 @@ module NodesHelper
     ]
 
     if group[:status]["building"]
-      values.last += group[:status]["building"]
+      values << values.pop + group[:status]["building"]
     end
 
     tooltip = content_tag(

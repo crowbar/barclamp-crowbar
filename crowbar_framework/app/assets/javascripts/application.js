@@ -86,6 +86,34 @@ jQuery(document).ready(function($) {
     }
   }).trigger('change');
 
+  $('[data-enabler]').live('change keyup', function(event) {
+    var $el = $(event.target);
+    var $target = $($el.data('enabler-target'));
+    var values = $el.data('enabler').toString().split(',');
+
+    if ($target) {
+      if ($.inArray($el.val(), values) >= 0) {
+        $target.removeAttr('disabled');
+      } else {
+        $target.attr('disabled', 'disabled');
+      }
+    }
+  }).trigger('change');
+
+  $('[data-disabler]').live('change keyup', function(event) {
+    var $el = $(event.target);
+    var $target = $($el.data('disabler-target'));
+    var values = $el.data('disabler').toString().split(',');
+
+    if ($target) {
+      if ($.inArray($el.val(), values) >= 0) {
+        $target.attr('disabled', 'disabled');
+      } else {
+        $target.removeAttr('disabled');
+      }
+    }
+  }).trigger('change');
+
   $('[data-toggle-action]').live('click', function(e) {
     var target = '[data-toggle-target="{0}"]'.format(
       $(this).data('toggle-action')

@@ -5,8 +5,8 @@
 Currently only Ubuntu 12.04 LTS is supported, though the instructions here
 should also work with other versions.
 
-The steps here describe how to setup the VM from the command line. You can use
-[virt-manager](http://virt-manager.org) if you prefer a graphical user
+The steps here describe how to setup the VM from the command line. You can
+use [virt-manager](http://virt-manager.org) if you prefer a graphical user
 interface. Do submit your relevant virt-manager configs if you have some!
 
 The steps here assume that your KVM host is also the desktop that you are
@@ -72,47 +72,93 @@ Installation steps:
    use the [qemu-kvm/start-vm](https://github.com/crowbar/crowbar/blob/master/dev-setup/qemu-kvm/start-vm))
    helper script.
 
-## Setting Up the Development Environment
+### Setup password-less sudo
+During the build process the Dev Tool has to perform certain tasks which require root access (mounting ISOs, etc.). In order to avoid being prompted for your password every time we will setup password-less sudo. **Don't run your build as root.**
 
-You should now have a working VM that you can SSH into from the qemu-kvm host.
-For example:
+    # run this command to add your 
+    sed -ie "s/%sudo\tALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD: ALL/g" /etc/sudoers
 
-    ssh 192.168.124.10
+## Setting up the development environment
 
-The VM should also be able to access the external network. We can now start
-with setting up the Crowbar development environment.
+Before beginning to set up a development environment, you should have
+a working VM that with a build user created.  These directions use 'crowbar'
+as the build user.
 
-1. Install the basic Crowbar dev tool dependencies:
+The general requirements are:
 
-   ````
-   sudo apt-get install git rubygems
-   sudo gem install json --no-ri --no-rdoc
-   ````
+1. You should be able to access the machine from the host with ssh as the build 
+   user.
+1. The build user has passwordless sudo access enabled.
+1. The machine has outbound acess via http for downloading packages,operating 
+   system images, and Ruby gems, including any necessary firewall and 
+   proxy setup.
+1. The machine has access to github for fetching code.
+1. The machine has approximately 40Gb of free disk space 
+   ( 15 Gb - operating system images, 10 Gb for output isos, 15 Gb for 
+   build cache
 
-1. Copy your .gitconfig and other configuration files to the VM, eg:
+After verifying these requirements, you can begin setting up the development 
+environment.
 
-   ````
-   scp -r <your-usual-dev-host>:.{gitconfig,vimrc,vim,profile,ssh} .
-   ````
+### Install needed packages and gems 
 
-1. Check out the Crowbar git repo and run the dev tool:
+These directions are for Ubuntu 12.04 (Precise.) Other versions of
+Ubuntu are not supported.  Postgresql is only supported by the Postgresql
+community on LTS releases.
 
-   ````
-   git clone git://github.com/crowbar/crowbar.git
-   cd crowbar
-   ./dev setup
-   ````
+    # let's install some OS packages
+    sudo apt-get update
+    sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
+    mkisofs binutils markdown erlang-base debhelper python-pip libsqlite-dev \
+     libopenssl-ruby1.9.1 libssl-dev zlib1g-dev ruby-sqlite3 libsqlite3-dev
+    sudo apt-get install libpq-dev
+    # to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3
+    sudo update-alternatives --config ruby 
+    # make Gem 1.9 the default, gem -v will report version 1.9
+    sudo update-alternatives --config gem 
+    #
+    # Remove Postgresql
+    #
+    # we need Postgresql 9.3 (we rely on 9.3+ features)
+    # first, remove the automatically added old Posgresql
+    sudo apt-get remove postgresql
+    # To Verify that you have removed postgresql you can run
+    sudo dpkg --get-selections | grep postgresql
+    # if there is anything still there with deinstall do a
+    sudo dpkg --purge postgres* 
+    #
+    #
+    # Additional reference, please visit [[https://wiki.postgresql.org/wiki/Apt]]
+    # for now you need to add the sources (please remove this step when 9.3 is in the official repos!)
+    # You will need to edit /etc/apt/sources.list and add the following to it.
+    # Add -     deb http://apt.postgresql.org/pub/repos/apt/ [your release]-pgdg main
+    # where [your release] is the version of OS you using, i.e. Ubunutu-precise is "precise-pgdg" (without the quotes)
+    wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
+    sudo apt-get update
+    # now install and set to use the special port/pipe config
+    sudo apt-get install postgresql-9.3 pgadmin3
+    sudo vi /etc/postgresql/9.3/main/pg_hba.conf
+      # to the beginning of the file 
+      # add 'local  all   all    trust' 
+    sudo vi /etc/postgresql/9.3/main/postgresql.conf
+      # change 'port = 5439'
+    sudo service postgresql restart
+    sudo createuser -s -d -U postgres -p 5439 crowbar
+    # you can test the install by making sure the following call returns
+    export PGCLUSTER=9.3/main
+    psql postgresql://crowbar@:5439/template1 -c 'select true;'
 
-   The `./dev setup` script will ask for your Github username and password. It
-   will fork the Crowbar and corresponding barclamp repositories to your
-   account and clone them into `crowbar/barclamps/`. See [dev-and-workflow](https://github.com/crowbar/crowbar/blob/master/README.dev-and-workflow)
-   and [dev-and-code-review](https://github.com/crowbar/crowbar/blob/master/README.dev-and-code-review)
-   for details. This will take a while so get some coffee.
 
-1. Install dependencies required by the test suite:
+    # On OpenSUSE
+    # install Base Development pattern from the software management tool including gcc, c++ & objectC, build, ccache
 
-   ````
-   sudo apt-get install ruby-dev ruby-bundler libsqlite3-dev g++ erlang-base erlang-inets
-   ````
+    # let's install some needed gems next
+    # On Ubuntu 12.04 you may need to leave ruby1.9.3-dev off
+    sudo gem install ruby1.9.3-dev builder bluecloth
+    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake rcov rspec pg --no-ri --no-rdoc
 
-Now see the [testing page](testing.md) for how to run the tests.
+## Building Crowbar 
+
+At this point, the development environment is set up, and you can 
+follow the directions in [devtool-build.md](../devtool-build.md) to 
+checkout the Crowbar code and start developing.

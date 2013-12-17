@@ -267,3 +267,5 @@ gems:
     - xml-simple
     - libxml-ruby
     - kwalify
+
+build_cmd: build/build.sh

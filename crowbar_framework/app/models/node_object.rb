@@ -474,6 +474,9 @@ class NodeObject < ChefObject
 
     # Cull by state
     map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
+    # Ruby 1.8 vs. 1.9 compatibility. Select returns Hash in 1.9 instead of
+    # an array, so map it back to [key, val] pairs.
+    map = map.map { |k, v| [k, v] } if map.is_a?(Hash)
     # Sort map
     vals = map.sort { |a,b| a[1]["priority"] <=> b[1]["priority"] }
     Rails.logger.debug("rebuilt run_list will be #{vals.inspect}")
@@ -489,7 +492,11 @@ class NodeObject < ChefObject
   def run_list_to_roles
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
     a = crowbar["run_list_map"].select { |k,v| v["priority"] != -1001 }
-    a.collect! { |x| x[0] }
+    if a.is_a?(Hash)
+      a.keys
+    else
+      a.collect! { |x| x[0] }
+    end
   end
 
   def crowbar

@@ -9,3 +9,4 @@
 //= require jquery/listSearch
 //= require jquery/nodeList
 //= require jquery/updateAttribute
+//= require jquery/messages

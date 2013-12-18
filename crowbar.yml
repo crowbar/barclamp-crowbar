@@ -113,7 +113,7 @@ debs:
     - patch
     # crowbar stuff
     - curl
-    - sqlite
+    - sqlite3
     - libsqlite3-dev
     - libshadow-ruby1.8
     - chef
@@ -252,6 +252,7 @@ gems:
     - haml-(~>3.1)
     - net-http-digest_auth
     - rails-2.3.18
+    - activerecord-2.3.11
     - activesupport-2.3.18
     - bundler
     - builder
@@ -259,7 +260,7 @@ gems:
     - eventmachine
     - rainbows
     - sendfile
-    - sqlite3-ruby
+    - sqlite3
     - app_config-1.0.2
     # rdoc
     - net-ssh-multi

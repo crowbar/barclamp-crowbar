@@ -64,13 +64,23 @@ module Dsl
         @attribute = attribute
 
         grouping(options.delete(:wrapper)) do
+          collection = options.delete(:collection)
+
+          selects = if collection.is_a? Symbol
+            send(collection, attribute_value)
+          else
+            if collection.nil?
+              booleans_for_select(attribute_value)
+            else
+              options_for_select(collection, attribute_value)
+            end
+          end
+
           [
             labeling,
             select_tag(
               attribute_name,
-              booleans_for_select(
-                attribute_value
-              ),
+              selects,
 
               defaults.merge({
                 "data-change" => changer("boolean")

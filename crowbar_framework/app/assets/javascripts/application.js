@@ -34,7 +34,7 @@ jQuery(document).ready(function($) {
     $(switcher).live('change', function() {
       var val = $(this).val();
 
-      if (val == 'true' || val == 'https') {
+      if (val == true || val == 'true' || val == 'https') {
         $(container).show(100).removeAttr('checked');
       } else {
         $(container).hide(100).attr('disabled', 'disabled');

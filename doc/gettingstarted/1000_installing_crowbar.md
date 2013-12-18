@@ -26,7 +26,7 @@ Installation of the OS onto the admin node does not complete the Crowbar install
 	
 	b. `cd /opt/dell/bin`
 	
-	c. `./install-crowbar <Domain Name> --no-screen`
+	c. `./install-crowbar <hostname.FQDN> --no-screen`
 	
 	d. A reboot message diesplays in the console; reboot the system.
 

@@ -88,6 +88,10 @@ module Dsl
         input attribute, :text_field_tag, "string", options
       end
 
+      def password_field(attribute, options = {})
+        input attribute, :password_field_tag, "string", options
+      end
+
       def float_field(attribute, options = {})
         input attribute, :text_field_tag, "float", options
       end
@@ -159,7 +163,11 @@ module Dsl
             result = result[n]
           end
 
-          result
+          if result.is_a? Array
+            result.join(", ")
+          else
+            result
+          end
         rescue
           Rails.logger.debug "Failed to find the attribute for `#{attribute.join(", ")}`"
           ""

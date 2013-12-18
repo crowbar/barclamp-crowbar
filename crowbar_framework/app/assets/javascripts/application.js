@@ -20,6 +20,54 @@ jQuery(document).ready(function($) {
     );
   });
 
+  $('[data-sslprefix]').each(function() {
+    var afterInit = false;
+    var prefix = $(this).data('sslprefix');
+
+    var switcher = 'select[name={0}]'.format($(this).attr('id'));
+    var container = '#{0}_container'.format(prefix);
+    var target = '#{0}_generate_certs'.format(prefix);
+
+    var key = $(this).data('sslkey');
+    var cert = $(this).data('sslcert');
+
+    $(switcher).live('change', function() {
+      var val = $(this).val();
+
+      if (val == 'true' || val == 'https') {
+        $(container).show(100).removeAttr('checked');
+      } else {
+        $(container).hide(100).attr('disabled', 'disabled');
+      }
+    }).trigger('change');
+
+    $(target).live('change', function() {
+      var $parent = $(
+        '#{0}_certfile, #{1}_keyfile, #{2}_insecure'.format(
+          prefix,
+          prefix,
+          prefix
+        )
+      );
+
+      if ($(this).val() == 'true') {
+        $parent.attr('disabled', 'disabled');
+
+        $('#{0}_certfile'.format(prefix)).val(cert);
+        $('#{0}_keyfile'.format(prefix)).val(key);
+        $('#{0}_insecure'.format(prefix)).val('true');
+      } else {
+        $parent.removeAttr('disabled');
+
+        if (afterInit) {
+          $('#{0}_insecure'.format(prefix)).val('false');
+        }
+      }
+    }).trigger('change');
+
+    afterInit = true;
+  });
+
   $('[data-checkall]').live('change', function(event) {
     var checker = $(event.target).data('checkall');
 

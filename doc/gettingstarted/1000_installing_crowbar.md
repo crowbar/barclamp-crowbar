@@ -2,24 +2,6 @@
 Installation of the OS onto the admin node does not complete the Crowbar installation.  To complete the Crowbar installation follow these steps:
 
 1. Log onto the admin node. The default username is *crowbar*, password is *crowbar*.
-1. This step and substeps below are temporary. Performing these steps changes the execution path to be equivalent to that of the production execution. This is a necessary workaround to circumvent the developments auto-boot-strapping shortcut that will be go away shortly after this initial cut of the documentation is complete.  
-
-	 a. `sudo -i`
-	 
-	 b. `cd /tftpboot/ubuntu_dvd/extra`
-	 
-	 c. Open the install-crowbar-native.sh with your favorite editor and comment out the following lines before proceeding.
-	 
-	 d. Lines 63-67 as shown below.
-	 
-
-      <pre>if [[ ! -f $DVD_PATH/sha1_passed ]]; then
-            (cd $DVD_PATH && sha1sum -c sha1sums &>dev/null) || \
-            die "SHA1sums do not match install is corrupt."
-            >$DVD_PATH/sha1_passed
-      fi</pre>
-
-	 e. And lines starting at #227 (# Wait for puma to come to life) to the line # 282 or end of file.
 1. Run the `install-crowbar` shell script as root using the following procedures:
 
 	a. `sudo -i`

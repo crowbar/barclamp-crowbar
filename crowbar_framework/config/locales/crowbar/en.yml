@@ -244,6 +244,9 @@ en:
       barclamps_display: "Barclamps"
       barclamps_description: "Crowbar add-ons"
       toc_title: "Jump to:"
+      export_show: Show export
+      export_hide: Hide
+      export_export: Export
     show:
       nav_prev: "previous page"
       nav_next: "next page"

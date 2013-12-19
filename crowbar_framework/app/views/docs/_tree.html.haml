@@ -1,4 +1,5 @@
 %li{:id=>tree.id.to_s}
+  %input{:type=>'checkbox', :class=>'doc-export-checkbox', :value=>tree.id.to_s}
   = link_to tree.description, Doc.doc_path(tree.name)
 - if tree.children.length > 0
   %ul

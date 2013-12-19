@@ -30,15 +30,22 @@ module NodesHelper
       values << values.pop + group[:status]["building"]
     end
 
-    tooltip = content_tag(
-      :p,
-      t("updating")
-    )
+    tooltip = [].tap do |result|
+      result.push content_tag(
+        :strong,
+        t(".status_pie.total", :count => values.sum)
+      )
+
+      result.push t(".status_pie.ready", :count => values[0]) if values[0] > 0
+      result.push t(".status_pie.unknown", :count => values[1]) if values[1] > 0
+      result.push t(".status_pie.unready", :count => values[2]) if values[2] > 0
+      result.push t(".status_pie.pending", :count => values[3]) if values[3] > 0
+    end
 
     content_tag(
       :span,
       "",
-      :title => tooltip,
+      :title => tooltip.join(tag(:br)),
       "data-piechart" => values.join(","),
       "data-tooltip" => "true"
     )

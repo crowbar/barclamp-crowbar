@@ -10,3 +10,4 @@
 //= require jquery/nodeList
 //= require jquery/updateAttribute
 //= require jquery/messages
+//= require jquery/dynamicTable

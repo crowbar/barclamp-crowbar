@@ -68,6 +68,19 @@ jQuery(document).ready(function($) {
     afterInit = true;
   });
 
+  $('[data-piechart]').sparkline('html', {
+    type: 'pie',
+    tagValuesAttribute: 'data-piechart',
+    disableTooltips: true,
+    disableHighlight: true,
+    sliceColors: [
+      '#0f0',
+      '#f00',
+      '#999',
+      '#ff0'
+    ]
+  });
+
   $('[data-checkall]').live('change', function(event) {
     var checker = $(event.target).data('checkall');
 
@@ -81,7 +94,7 @@ jQuery(document).ready(function($) {
   $('[data-showit]').live('change keyup', function(event) {
     var $el = $(event.target);
     var $target = $($el.data('showit-target'));
-    var values = $el.data('showit').split(',');
+    var values = $el.data('showit').toString().split(',');
 
     if (!$el.data('showit-direct')) {
       $target = $target.parent();
@@ -99,7 +112,7 @@ jQuery(document).ready(function($) {
   $('[data-hideit]').live('change keyup', function(event) {
     var $el = $(event.target);
     var $target = $($el.data('hideit-target'));
-    var values = $el.data('hideit').split(',');
+    var values = $el.data('hideit').toString().split(',');
 
     if (!$el.data('hideit-direct')) {
       $target = $target.parent();
@@ -180,6 +193,7 @@ jQuery(document).ready(function($) {
     html: true
   });
 
+  $('[data-dynamic]').dynamicTable();
   $('[data-change]').updateAttribute();
   $('[data-listsearch]').listSearch();
   $('[data-ledupdate]').ledUpdate();

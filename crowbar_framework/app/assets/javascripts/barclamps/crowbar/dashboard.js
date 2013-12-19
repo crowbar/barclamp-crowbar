@@ -162,19 +162,6 @@ jQuery(document).ready(function($) {
     event.preventDefault();
   });
 
-  $('[data-piechart]').sparkline('html', {
-    type: 'pie',
-    tagValuesAttribute: 'data-piechart',
-    disableTooltips: true,
-    disableHighlight: true,
-    sliceColors: [
-      '#0f0',
-      '#f00',
-      '#999',
-      '#ff0'
-    ]
-  });
-
   $("[data-draggable=true]").draggable({
     opacity: 0.9,
     helper: "clone"

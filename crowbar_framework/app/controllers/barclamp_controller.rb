@@ -154,7 +154,6 @@ class BarclampController < ApplicationController
   def element_info
     ret = @service_object.element_info
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end
 

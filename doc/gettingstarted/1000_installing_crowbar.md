@@ -10,7 +10,7 @@ Installation of the OS onto the admin node does not complete the Crowbar install
 	
 	c. `./install-crowbar <hostname.FQDN> --no-screen`
 	
-	d. A reboot message displays in the console "When the Crowbar installation is complete - Please reboot the Admin node" - do this after the next steps.
+	d. A reboot message displays in the console "When the Crowbar installation is complete - Please reboot the Admin node" - do NOT do this. 
 
 
 1. Once the system comes back up, use a web browser to connect to Crowbar's main page at [http://192.168.124.10:3000](http://192.168.124.10:3000).

@@ -33,8 +33,10 @@ Feature: Nodes
     
   Scenario: REST Can Delete
     Given REST creates the {object:node} "going.going.gone"
+      And there are no pending Crowbar runs for {o:node} "going.going.gone"
     When REST deletes the {object:node} "going.going.gone"
     Then I get a {integer:200} result
+      And there are no pending Crowbar runs for {o:node} "going.going.gone"
       And there is not a {object:node} "going.going.gone"
   
   Scenario: REST Get 404
@@ -60,7 +62,7 @@ Feature: Nodes
   Scenario: Node Alive Settable Default False
     Given there is a {object:node} "bdd-alive-false.example.com"
     When REST gets the {object:node} "bdd-alive-false.example.com"
-    Then key "alive" should be "false"
+    Then key "alive" should be "true"
       And the {object:node} is properly formatted
     Finally REST removes the {object:node} "bdd-alive-false.example.com"
 
@@ -97,14 +99,14 @@ Feature: Nodes
   Scenario: Node UI shows alive
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes/bdd-alive-ui.example.com" page 
-    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Then I should see {bdd:crowbar.i18n.common.state.alive}
       And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
   Scenario: Nodes UI shows alive
     Given there is a {object:node} "bdd-alive-ui.example.com"
     When I go to the "nodes" page 
-    Then I should see {bdd:crowbar.i18n.common.state.dead}
+    Then I should see {bdd:crowbar.i18n.common.state.alive}
       And there should be no translation errors
     Finally REST removes the {object:node} "bdd-alive-ui.example.com"
 
@@ -143,5 +145,27 @@ Feature: Nodes
   Scenario: Node takes hint about IP address
     Given there is a {object:node} "bdd-hint-ip1.data.edu" hinted "ip" as "192.168.124.124"
     When REST gets the {object:node} "bdd-hint-ip1.data.edu"
-    Then key "hint" should have json "network-admin:ip_v4address" with value "192.168.124.124" 
+    Then key "hint" should have json "network-admin:v4addr" with value "192.168.124.124" 
     Finally REST removes the {object:node} "bdd-hint-ip1.data.edu"
+
+  Scenario: Node takes hint about MAC address
+    Given there is a hint "ip" with "192.168.124.124"
+      And there is a hint "mac" with "f1:f2:f3:f4:f5:f6"
+      And there is a {object:node} "bdd-hint-ip3.data.edu" hinted
+    When REST gets the {object:node} "bdd-hint-ip3.data.edu"
+    Then key "hint" should have json "network-admin:v4addr" with value "192.168.124.124" 
+      And key "hint" should have json "provisioner-repos:admin_mac" with value "f1:f2:f3:f4:f5:f6" 
+    Finally REST removes the {object:node} "bdd-hint-ip3.data.edu"
+
+  Scenario: Provisioner DHCP database uses hint about MAC address [move to Provisoner]
+    Given there is a hint "ip" with "192.168.124.127"
+      And there is a hint "mac" with "f6:f5:f4:f3:f2:f1"
+      And there is a {object:node} "bdd-hint-ip4.data.edu" hinted
+      And process "delayed" returns "delayed_job.([0..9])"
+      And there are no pending Crowbar runs for {o:node} {lookup:crowbar.node_name}
+      And there are no pending Crowbar runs for {o:node} "bdd-hint-ip4.data.edu"
+    When REST requests the "provisioner/api/v2/dhcp/bdd-hint-ip4.data.edu" page
+    Then Array key "mac_addresses" matches "f6:f5:f4:f3:f2:f1"
+      And Array key "v4addr" matches "192\.168\.124\.127\/([0-9]{2})"
+    Finally there are no pending Crowbar runs for {o:node} "bdd-hint-ip4.data.edu"
+      And REST removes the {object:node} "bdd-hint-ip4.data.edu"

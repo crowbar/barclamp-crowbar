@@ -35,7 +35,9 @@ validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "attrib",
       bdd_utils:is_a(J, string, map), 
-      bdd_utils:is_a(J, length, 7),
+      bdd_utils:is_a(J, dbid, role_id), 
+      bdd_utils:is_a(J, dbid, barclamp_id), 
+      bdd_utils:is_a(J, length, 9),
       crowbar_rest:validate(J)],
   bdd_utils:assert(R).
   

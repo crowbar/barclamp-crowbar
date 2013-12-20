@@ -34,7 +34,7 @@ g(Item) ->
 validate(JSON) when is_record(JSON, obj) ->
   J = JSON#obj.data,
   R =[JSON#obj.type == "node",
-      bdd_utils:is_a(J, length, 15),
+      bdd_utils:is_a(J, length, 16),
       bdd_utils:is_a(J, boolean, alive), 
       bdd_utils:is_a(J, boolean, available), 
       bdd_utils:is_a(J, boolean, allocated), 
@@ -43,6 +43,7 @@ validate(JSON) when is_record(JSON, obj) ->
       bdd_utils:is_a(J, string, discovery), 
       bdd_utils:is_a(J, string, hint), 
       bdd_utils:is_a(J, dbid, deployment_id), 
+      bdd_utils:is_a(J, dbid, target_role_id),
       bdd_utils:is_a(J, string, alias), 
       bdd_utils:is_a(J, integer, order),
       crowbar_rest:validate(J)],
@@ -55,7 +56,7 @@ inspector() ->
 
 % Common Routine
 % Creates JSON used for POST/PUT requests
-json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Description}, {order, Order}]).
+json(Name, Description, Order) -> crowbar:json([{name, Name}, {description, Description}, {order, Order}, {alive, "true"}, {bootenv, node:g(bootenv)}]).
      
 % Common Routines
 
@@ -70,8 +71,10 @@ step(_Given, {step_when, {_Scenario, _N}, ["REST sets the",node,Node,Field,"stat
 step(_Global, {step_setup, _N, _}) -> 
   % create node(s) for tests
   Node = json(g(name), g(description), 100),
-  bdd_crud:create(g(path), Node, g(atom));
+  bdd_crud:create(g(path), Node, g(atom)),
+  true = bdd_clirat:step([], {foo, {0,0}, ["process", "delayed","returns", "delayed_job.([0..9])"]});
 
 step(_Global, {step_teardown, _N, _}) -> 
   % find the node from setup and remove it
+  crowbar:step([], {step_given, {0, 0}, ["there are no pending Crowbar runs for",node,g(name)]}), 
   bdd_crud:delete(g(atom)).  

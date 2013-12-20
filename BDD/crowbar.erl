@@ -14,7 +14,7 @@
 % 
 % 
 -module(crowbar).
--export([step/2, g/1, state/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1]).
+-export([step/2, g/1, state/1, i18n/1, i18n/2, i18n/3, i18n/4, i18n/5, i18n/6, json/1, json/3, parse_object/1, worker/0]).
 -export([json_build/1]).
 -include("bdd.hrl").
 
@@ -25,6 +25,7 @@ g(Item) ->
     version -> "v2";
     test_node_path -> "api/test/nodes";
     cli     -> bdd_utils:config(cli, "cd ../bin && ./crowbar");
+    bootenv -> node:g(bootenv);
     natural_key -> name;			% for most crowbar objects, this is the natural key.  override if not
     node_name -> "admin.bddtesting.com";
     node_atom -> admin_node;
@@ -99,10 +100,12 @@ wait_for(URL, Match, Times, Sleep) ->
   R = eurl:get_http(URL),
   case R#http.data of
     Match ->  true;
-    X     ->  bdd_utils:log(crowbar, wait_for, debug, "Waiting on ~p.  Result is ~p",[URL, X]), 
+    X     ->  bdd_utils:log(debug, crowbar, wait_for, "Waiting on ~p.  Result is ~p long",[URL, length(X)]), 
               timer:sleep(Sleep), 
               wait_for(URL, Match, Times-1, Sleep)
   end.
+
+worker() -> bdd_clirat:step([], {foo, {0,0}, ["process", "delayed","returns", "delayed_job.([0..9])"]}).
 
 % global setup
 step(Global, {step_setup, {Scenario, _N}, Test}) -> 
@@ -110,6 +113,8 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
   bdd_utils:log(debug, crowbar, step, "Global Setup alias: ~p",[get({scenario,alias_map})]),
   bdd_utils:alias(group, group_cb),
   bdd_utils:alias(user, user_cb),
+  % make sure that the delayed job queues are running
+  true = bdd_clirat:step([], {foo, {0,0}, ["process", "delayed","returns", "delayed_job.([0..9])"]}),
   % turn off the delays in the test jig
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-admin", "property", "test", "to", "false"]}), 
   role:step(Global, {step_given, {Scenario, _N}, ["I set the",role, "test-server", "property", "test", "to", "false"]}), 
@@ -125,6 +130,8 @@ step(Global, {step_setup, {Scenario, _N}, Test}) ->
 
 % find the node from setup and remove it
 step(_Global, {step_teardown, {_Scenario, _N}, _}) -> 
+  worker(),
+  crowbar:step([], {step_given, {0, 0}, ["there are no pending Crowbar runs for",node,g(node_name)]}), 
   bdd_utils:log(debug, crowbar, step, "Global Teardown running",[]),
   % remove node for testing
   bdd_crud:delete(g(node_atom));
@@ -137,12 +144,21 @@ step(_Given, {step_when, _N, ["I18N checks",Key]}) ->
 
 % we need to set alive value for new nodes
 step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"marked alive"]}) -> 
-  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}]),
+  bdd_utils:scenario_store({ScenarioID, hint}, alive, "true"),
+  step(_Given, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted"]});
+
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a hint",Hint,"with",Value]}) -> 
+  bdd_utils:scenario_store({ScenarioID, hint}, Hint, Value),
+  _Global;
+
+step(_Global, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted"]}) -> 
+  Hints = get({scenario, {ScenarioID, hint}}),
+  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"} | Hints]),
   bdd_restrat:create(node:g(path), Node, node, ScenarioID);
 
 step(_Global, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted",Hint,"as",Value]}) -> 
-  Node = json([{name, Name}, {description, g(description)}, {order, 200}, {bootenv, node:g(bootenv)}, {alive, "true"}, {list_to_atom(Hint), Value}]),
-  bdd_restrat:create(node:g(path), Node, node, ScenarioID);
+  bdd_utils:scenario_store({ScenarioID, hint}, Hint, Value),
+  step(_Global, {step_given, {ScenarioID, _N}, ["there is a",node,Name,"hinted"]});
 
 step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name]}) -> 
   step(Global, {step_given, {ScenarioID, _N}, ["there is a",role, Name, "in", barclamp, "crowbar", "for", jig, "test"]});
@@ -161,7 +177,6 @@ step(_Given, {step_when, {ScenarioID, _N}, [deployment,Deployment,"includes",rol
   Path = deployment_role:g(path),
   bdd_restrat:create(Path, JSON, deployment_role, ScenarioID);
 
- 
 step(_Global, {step_given, {_Scenario, _N}, ["test loads the",File,"data into",node, Node]}) -> 
   URL = eurl:path(g(test_node_path),Node),
   JSON = json([{source, File}]),

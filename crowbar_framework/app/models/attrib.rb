@@ -36,14 +36,24 @@ class Attrib < ActiveRecord::Base
     res
   end
 
+  def self.get(name, from, source=:discovery)
+    attrib = ( name.is_a?(ActiveRecord::Base) ? name : Attrib.find_key(name) )
+    attrib.get(from, source)
+  end
+
   # Get the attribute value from the passed object.
   # For now, we are encoding information about the objects we can use directly in to
   # the Attrib class, and failing hard if we were passed something that
   # we do not know how to handle.
-  def get(from,source=:all)
-    from = __resolve(from)
+  def get(from_orig,source=:all)
+    from = __resolve(from_orig)
     d = case
-        when from.is_a?(Node) then from.discovery
+        when from.is_a?(Node) 
+          case source
+          when :hint then from.hint
+          when :discovery then from.discovery
+          else raise("#{from} is not a valid source to get node data from!")
+          end
         when from.is_a?(DeploymentRole)
           case source
           when :all then from.wall.deep_merge(from.data)
@@ -56,7 +66,8 @@ class Attrib < ActiveRecord::Base
           when :wall then from.wall
           when :system then from.sysdata
           when :user then from.data
-          else raise("#{target} is not a valid target to read data from!")
+          when :hint then from_orig.get_hint[role.name]
+          else raise("#{from} is not a valid source to read noderole data from!")
           end
         when from.is_a?(Role) then from.template
         else raise("Cannot extract attribute data from #{from.class.to_s}")
@@ -77,6 +88,14 @@ class Attrib < ActiveRecord::Base
     template(r)
   end
 
+  def hint_set(to,value)
+    __set(to,value,:hint)
+  end
+
+  def discovery_set(to,value)
+    __set(to,value,:discovery)
+  end
+
   def wall_set(to,value)
     __set(to,value,:wall)
   end
@@ -89,12 +108,22 @@ class Attrib < ActiveRecord::Base
     __set(to,value,:system)
   end
 
-  def set(to,value)
-    Rails.logger.warn("Please do not use attrib.set")
-    __set(to,value,:system)
+  def set(to,value,type=:system)
+    __set(to,value,type)
+  end
+
+  def self.set(name, to, value, type)
+    a = Attrib.find_key name
+    a.set(to,value,type)
   end
 
   private
+
+  # used to create a mapping for discovery values from the map
+  def map_set_value(map,value)
+    return ( map =~ /^([^\/]*)\/(.*)/ ? { $1 => map_set_value($2, value)} : { map => value } )
+  end
+
 
   # This method ensures that we have a type defined for
   def create_type_from_name
@@ -127,16 +156,21 @@ class Attrib < ActiveRecord::Base
   def __resolve(to)
     return to unless to.is_a?(Node) && self.role_id
     res = to.node_roles.where(:role_id => self.role_id).first
-    raise("#{self.name} belongs to role #{role.name}, but node #{node.name} does not have a binding for it!") unless res
+    raise("#{self.name} belongs to role #{role.name}, but node #{to.name} does not have a binding for it!") unless res
     res
   end
 
   # Set a new value for this attribute onto the passed object.
   # The last parameter is what area the new attribute should be placed on
-  def __set(to,value,target=:system)
-    to = __resolve(to)
+  def __set(to_orig,value,target=:system)
+    to = __resolve(to_orig)
     case
-    when to.is_a?(Node) then to.discovery_update(value)
+    when to.is_a?(Node) 
+      case target
+      when :hint then to.hint_update(map_set_value("#{role.name}/#{map}", value))
+      when :discovery then  to.discovery_update(map_set_value(map,value))
+      else raise("#{target} is not a valid target to write node data to!")
+      end      
     when to.is_a?(Role) then to.template_update(value)
     when to.is_a?(DeploymentRole)
       target == :system ? to.wall_update(value) : to.data_update(value)
@@ -144,8 +178,9 @@ class Attrib < ActiveRecord::Base
       case target
       when :system then to.sysdata_update(value)
       when :user then to.data_update(value)
+      when :hint then to_orig.hint_update(map_set_value("#{role.name}/#{map}", value))
       when :wall then to.wall_update(value)
-      else raise("#{target} is not a valid target to write data to!")
+      else raise("#{target} is not a valid target to write noderole data to!")
       end
     else raise("Cannot write attribute data to #{to.class.to_s}")
     end

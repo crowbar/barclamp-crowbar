@@ -65,7 +65,7 @@ class Run < ActiveRecord::Base
     Run.transaction do
       unless nr.runnable? &&
           ([NodeRole::ACTIVE, NodeRole::TODO, NodeRole::TRANSITION].member?(nr.state))
-        Rails.logger.info("Run: #{nr.name} is not enqueueable/runnable [node.available #{nr.node.available} && node.alive #{nr.node.alive} && jig.active #{nr.role.jig.active}]")
+        Rails.logger.info("Run: #{nr.name} is NOT enqueueable/runnable [nr.state #{nr.state} is Active/Todo/Trans && node.available #{nr.node.available} && node.alive #{nr.node.alive} && jig.active #{nr.role.jig.active}]")
       else
         ActiveRecord::Base.connection.execute("LOCK TABLE runs")
         current_run = Run.where(:node_id => nr.node_id).first

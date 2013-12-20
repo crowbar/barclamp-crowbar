@@ -17,6 +17,7 @@
 -module(json).
 -export([parse/1, value/2, output/1, pretty/1, keyfind/2, keyfind/3]).
 -export([json_array/3, json_value/2, json_safe/3]).
+-export([json_value_quoted/2]).
 -record(json, {list=[], raw=[]}).
 -record(jsonkv, {value=[], raw=[]}).
 
@@ -55,10 +56,14 @@ value_item(JSON, Key) ->
 value(JSON, Key) ->    
   List = string:tokens(Key, "]"),
   value_list(JSON, List).
-  
+
+% handles \" escaped quotes
+json_value_quoted(Value, ["\\\"" | T]) ->
+  #jsonkv{value=Value, raw=T};
+
 % handles \" escaped quotes
 json_value_quoted(Value, [$\\, $" | T]) ->
-  json_value_quoted(Value ++ "\\\"", T);
+  #jsonkv{value=Value, raw=T};
 
 % handles values that are quoted (this one ends the quote)
 json_value_quoted(Value, [$" | T]) ->
@@ -71,9 +76,10 @@ json_value_quoted(Value, [Next | T]) ->
 json_value(Value, RawJSON) ->
   [Next | T] = RawJSON, 
   case Next of
+% omit this test because the json should be formatted correctly, this is reall a cheat for bad quoting!
+%    $: -> bdd_utils:log(error, json, json_value, "unexpected : before ~p building value ~p", [T, Value]), 
+%          throw('unexpected token : in value');
     $" -> json_value_quoted(Value, T);                        % run to next quote,exit
-    $: -> bdd_utils:log(error, json, json_value, "unexpected : before ~p building value ~p", [T, Value]), 
-          throw('unexpected token : in value');
     ${ -> J = json(#json{raw=RawJSON}, []),                   % recurse to get list
             #jsonkv{value=J#json.list, raw=J#json.raw};  
     $[ -> J = json_array(0, [], T),                    % recurse to get array using 0++ as the Key
@@ -117,6 +123,7 @@ json_array(Index, Value, RawJSON) ->
 json(JSON, Key) ->
   [Next | T] = JSON#json.raw,
   case {Next, T} of
+    {$\\, _} -> json(JSON#json{raw=T}, Key);        % ignore
     {$", _}  -> KV = json_value_quoted([], T),    % using the value parser to get the key
                 K = KV#jsonkv.value,              % so the key is returned as the value
                 V = KV#jsonkv.raw,            
@@ -137,6 +144,7 @@ json(JSON, Key) ->
 parse(RawJSON) ->
   % make sure that this needs to be parsed!
   case RawJSON of 
+    "null"            -> [];
     [${ | _]          -> json(#json{raw=RawJSON}, []);
     [$[ | _]          -> json(#json{raw=RawJSON}, []);
     [{_, _} | _] when is_list(RawJSON) 

@@ -29,7 +29,7 @@
   - begin 
     - specific = "barclamp_#{@role.barclamp.name}/node_roles/#{@role.name}"
     - general = "barclamp_#{@role.barclamp.name}/roles/role"
-    - template = @role.template 
+    - template = @role.template.to_json
   - rescue Exception => moderror
     %p= t '.model_error', :error=>moderror.message
 

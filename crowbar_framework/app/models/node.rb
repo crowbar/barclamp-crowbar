@@ -138,8 +138,7 @@ class Node < ActiveRecord::Base
 
   # retrieves the Attrib from Attrib
   def get_attrib(attrib)
-    attrib = Attrib.find_key attrib unless attrib.is_a? ActiveRecord::Base
-    attrib.get(self) rescue nil
+    Attrib.get(attrib, self, :discovery) rescue nil
   end
 
   def active_node_roles
@@ -195,6 +194,21 @@ class Node < ActiveRecord::Base
     JSON.parse(d) rescue {}
   end
 
+  def hint
+    d = read_attribute("hint")
+    return {} if d.nil? || d.empty?
+    JSON.parse(d) rescue {}
+  end
+
+  def hint_update(val)
+    Node.transaction do
+      h = hint
+      h.deep_merge!(val)
+      write_attribute("hint",JSON.generate(h))
+      h
+    end
+  end
+
   def discovery
     d = read_attribute("discovery")
     return {} if d.nil? || d.empty?
@@ -212,7 +226,7 @@ class Node < ActiveRecord::Base
     Node.transaction do
       d = discovery
       d.deep_merge!(val)
-      discovery = d
+      write_attribute("discovery",JSON.generate(d))
     end
   end
 

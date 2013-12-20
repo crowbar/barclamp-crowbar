@@ -24,14 +24,20 @@ The pattern for hints is a hash where hints are collected by the roles that's ex
     <td>"network_admin": {"ip_v4address": [a.d.d.r] }</td>
     <td>Must comply with network subnet requirements</td>
   </td>
+  <tr> 
+    <td>Admin MAC address</td>
+    <td>"provisioner-dhcp-database": {"mac": [M:A:C:A:D:D:R:S] }</td>
+    <td>Requires also setting an IP address</td>
+  </td>
 </table>
+
 
 #### Hint Shortcut
 
 Some hints are so common that there are parameter short-cuts during node creation.  This makes it easier to set these special values.
 
 * =ip= maps to =network_admin \ ip_v4address=
-
+* =mac= sets up DHCP database entry so node name and ip is user controlled during initial discovery
 
 ### Aliveness and availability:
 

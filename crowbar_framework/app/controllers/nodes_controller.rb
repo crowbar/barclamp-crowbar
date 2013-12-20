@@ -73,9 +73,10 @@ class NodesController < ApplicationController
   # RESTfule POST of the node resource
   def create
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment
-    # deal w/ hint shortcuts
+    # deal w/ hint shortcuts  (these are hardcoded but MUST match the imported Attrib list)
     hint = JSON.parse(params[:hint] || "{}")
-    hint["network-admin"] = {"ip_v4address"=>params["ip"]} if params.has_key? :ip
+    hint["network-admin"] = {"v4addr"=>params["ip"]} if params.has_key? :ip
+    hint["provisioner-repos"] = {"admin_mac"=>params["mac"]} if params.has_key? :mac
     params[:hint] = JSON.generate(hint)
 
     n = Node.create! params
@@ -111,7 +112,7 @@ class NodesController < ApplicationController
     json = JSON.load raw
     @node.discovery  = json
     @node.save!
-    redirect_to :action=>:show
+    render api_show :node, Node, nil, nil, @node
 
   end
 

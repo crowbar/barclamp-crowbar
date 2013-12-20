@@ -136,6 +136,16 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # formats API json output 
+  # used for json output that is not mapped to a Crowbar model
+  def api_array(json)
+    if params[:version].eql?('v2') 
+      return {:json=>json, :content_type=>cb_content_type("json", "array") }
+    else
+      return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
+    end
+  end
+
   def api_not_supported(verb, object)
     return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405, :content_type=>cb_content_type(object.class.to_s, "error")}
   end

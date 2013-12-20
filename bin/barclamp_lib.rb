@@ -456,7 +456,7 @@ def opt_parse()
       when '--data'
         @data = arg
       when '--timeout'
-        @timeout = arg
+        @timeout = arg.to_i
       when '--file'
         @data = File.read(arg)
       else

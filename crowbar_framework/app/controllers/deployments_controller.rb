@@ -54,15 +54,6 @@ class DeploymentsController < ApplicationController
     render_snaps(deploy.head.next)
   end
 
-  def claim
-    deploy = Deployment.find_key params[:deployment_id]
-    node = Node.find_key params[:node_id]
-    node.deployment_id = deploy.id
-    node.save!
-    node.reload
-    render api_show :node, Node, nil, nil, node
-  end
-
   private 
 
   def render_snaps(snap)

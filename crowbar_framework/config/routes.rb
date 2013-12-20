@@ -132,7 +132,6 @@ Crowbar::Application.routes.draw do
             get :next
             resources :roles
             resources :nodes
-            put 'claim/:node_id' => "deployments#claim"
           end
           resources :deployment_roles do
             resources :attribs
@@ -152,6 +151,7 @@ Crowbar::Application.routes.draw do
             put :reboot
             put :debug
             put :undebug
+            put 'move/:deployment_id' => "nodes#move"
           end
           resources :node_roles do
             put :retry

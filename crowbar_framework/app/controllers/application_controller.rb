@@ -1,17 +1,17 @@
-# Copyright 2013, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
+# Copyright 2013, Dell
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 require 'uri'
 require 'digest/md5'
@@ -22,18 +22,18 @@ require 'active_support/core_ext/string'
 class ApplicationController < ActionController::Base
 
   before_filter :crowbar_auth
-  
+
   # Basis for the reflection/help system.
-  
-  # First, a place to stash the help contents.  
-  # Using a class_inheritable_accessor ensures that 
-  # these contents are inherited by children, but can be 
-  # overridden or appended to by child classes without messing up 
+
+  # First, a place to stash the help contents.
+  # Using a class_inheritable_accessor ensures that
+  # these contents are inherited by children, but can be
+  # overridden or appended to by child classes without messing up
   # the contents we are building here.
   class_attribute :help_contents
   self.help_contents = []
-  
-  # Class method for adding method-specific help/API information 
+
+  # Class method for adding method-specific help/API information
   # for each method we are going to expose to the CLI.
   # Since it is a class method, it will not be bothered by the Rails
   # trying to expose it to everything else, and we can call it to build
@@ -55,14 +55,14 @@ class ApplicationController < ActionController::Base
       })
     }
   end
-  
+
   #helper :all # include all helpers, all the time
-  
+
   protect_from_forgery # See ActionController::RequestForgeryProtection for details
-  
+
   def self.set_layout(template = "application")
-    layout proc { |controller| 
-      if controller.is_ajax? 
+    layout proc { |controller|
+      if controller.is_ajax?
         return nil
       end
       template
@@ -74,25 +74,28 @@ class ApplicationController < ActionController::Base
     request.xhr?
   end
 
-  # creates the content type for a consistent API  
+  # creates the content type for a consistent API
   def cb_content_type(type, form="list")
     "application/vnd.crowbar.#{ type.to_s.downcase }.#{form}+json; version=2.0"
   end
 
-  # formats API json output 
+  # formats API json output
   # using this makes it easier to update the API format for all models
   def api_index(type, list, link=nil)
-    if params[:version].eql?('v2') 
+    if params[:version].eql?('v2')
       return {:json=>list, :content_type=>cb_content_type(type, "list") }
     else
-      return {:text=>I18n.t('api.wrong_version', :version=>params[:version])}
+      return {
+        :json=> { "message" => I18n.t('api.wrong_version', :version=>params[:version])},
+        :status => 400
+      }
     end
   end
 
   # formats API json for output
   # using this makes it easier to update the API format for all models
   def api_show(type, type_class, key=nil, link=nil, o=nil)
-    if params[:version].eql?('v2') 
+    if params[:version].eql?('v2')
       # we've got information to move forward
       key ||= o.id unless o.nil?
       key ||= params[:id]
@@ -100,22 +103,41 @@ class ApplicationController < ActionController::Base
       if o
         return {:json=>o, :content_type=>cb_content_type(type, "obj") }
       else
-        return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found}
+        return {
+          :json => {
+            :message => I18n.t('api.not_found', :id=>key, :type=>type.to_s)
+          },
+          :status => :not_found
+        }
       end
     else
-      return {:text=>I18n.t('api.wrong_version', :version=>params[:version]), :content_type=>cb_content_type(type, "error")}
+      return {:json => {
+          :message => I18n.t('api.wrong_version', :version=>params[:version])
+        },
+        :content_type=>cb_content_type(type, "error"),
+        :status => 400
+      }
     end
   end
-    
+
   # formats API for delete
   # using this makes it easier to update the API format for all models
   def api_delete(type, key=nil)
-    if params[:version].eql?('v2') 
+    if params[:version].eql?('v2')
       key ||= params[:id]
       type.destroy type.find_key(key)
-      return {:text=>I18n.t('api.deleted', :id=>key, :obj=>type), :content_type=>cb_content_type(type, "empty")}
+      return {:json => {
+          :message => I18n.t('api.deleted', :id=>key, :obj=>type)
+        },
+        :content_type=>cb_content_type(type, "empty")
+      }
     else
-      return {:text=>I18n.t('api.wrong_version', :version=>params[:version]), :content_type=>cb_content_type(type, "error")}
+      return {:json => {
+          :message => I18n.t('api.wrong_version', :version=>params[:version])
+        },
+        :content_type=>cb_content_type(type, "error"),
+        :status => 400
+      }
     end
   end
 
@@ -132,7 +154,12 @@ class ApplicationController < ActionController::Base
       o.update_attributes! to_update
       return api_show type, type_class, nil, nil, o
     else
-      return {:text=>I18n.t('api.not_found', :id=>key, :type=>type.to_s), :status => :not_found, :content_type=>cb_content_type(type, "error")}
+      return {:json => {
+          :mesasge => I18n.t('api.not_found', :id=>key, :type=>type.to_s)
+        },
+        :status => :not_found,
+        :content_type=>cb_content_type(type, "error")
+      }
     end
   end
 
@@ -147,7 +174,12 @@ class ApplicationController < ActionController::Base
   end
 
   def api_not_supported(verb, object)
-    return {:text=>I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object), :status => 405, :content_type=>cb_content_type(object.class.to_s, "error")}
+    return {:json => {
+        :message => I18n.t('api.not_supported', :verb=>verb.upcase, :obj=>object)
+      },
+      :status => 405,
+      :content_type=>cb_content_type(object.class.to_s, "error")
+    }
   end
 
   def ui_not_supported(verb, object)
@@ -163,7 +195,7 @@ class ApplicationController < ActionController::Base
           # I suppose we have to do it at runtime.
           url=URI::unescape(url_for({ :action => k,
                         :controller => self.controller_name,
-            
+
           }.merge(v["args"].inject({}) {|acc,x|
             acc.merge({x.to_s => "(#{x.to_s})"})
           }
@@ -177,16 +209,24 @@ class ApplicationController < ActionController::Base
   end
   set_layout
 
-  unless Rails.application.config.consider_all_requests_local 
-    rescue_from Exception,                            :with => :render_error
+  unless Rails.application.config.consider_all_requests_local
+    rescue_from Exception, :with => :render_error
   end
 
-  private  
+  private
 
   def render_error(exception)
     Rails.logger.error(exception)
     @error = exception
-    render :template => "/errors/500.html.haml", :status => 500 
+    respond_to do |format|
+      format.html { render :template => "/errors/500.html.haml", :status => 500 }
+      format.json { render :json => {
+          :message => @error.message,
+          :backtrace => @error.backtrace
+        },
+        :status => 500
+      }
+    end
   end
 
   def digest_auth!

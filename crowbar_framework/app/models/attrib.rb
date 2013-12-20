@@ -48,12 +48,8 @@ class Attrib < ActiveRecord::Base
   def get(from_orig,source=:all)
     from = __resolve(from_orig)
     d = case
-        when from.is_a?(Node) 
-          case source
-          when :hint then from.hint
-          when :discovery then from.discovery
-          else raise("#{from} is not a valid source to get node data from!")
-          end
+        when from.is_a?(Node)
+          source == :hint ? from.hint : from.discovery
         when from.is_a?(DeploymentRole)
           case source
           when :all then from.wall.deep_merge(from.data)
@@ -66,7 +62,7 @@ class Attrib < ActiveRecord::Base
           when :wall then from.wall
           when :system then from.sysdata
           when :user then from.data
-          when :hint then from_orig.get_hint[role.name]
+          when :hint then from_orig.hint[role.name]
           else raise("#{from} is not a valid source to read noderole data from!")
           end
         when from.is_a?(Role) then from.template
@@ -165,12 +161,12 @@ class Attrib < ActiveRecord::Base
   def __set(to_orig,value,target=:system)
     to = __resolve(to_orig)
     case
-    when to.is_a?(Node) 
+    when to.is_a?(Node)
       case target
       when :hint then to.hint_update(map_set_value("#{role.name}/#{map}", value))
       when :discovery then  to.discovery_update(map_set_value(map,value))
       else raise("#{target} is not a valid target to write node data to!")
-      end      
+      end
     when to.is_a?(Role) then to.template_update(value)
     when to.is_a?(DeploymentRole)
       target == :system ? to.wall_update(value) : to.data_update(value)

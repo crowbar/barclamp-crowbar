@@ -40,6 +40,11 @@ class Doc < ActiveRecord::Base
     File.join '/docs', x
   end
 
+  def self.default_barclamp
+    # this defines the barclamp whose directory structure will be used as the default
+    'framework' # can be changed to 'crowbar' if that would be better
+  end
+
   # creates the table of contents from the files
   def self.gen_doc_index
     roots=[]
@@ -96,11 +101,25 @@ class Doc < ActiveRecord::Base
                 name.gsub("/"," ").titleize
               end
 
-      # figure out parent by stripping file
-      m = name.match(/^(.*)\/[^\/]*$/)
-      parent_name = m[1] + ".md" if m
-      parent = found[parent_name] if parent_name
-      parent = Doc.find_by_name parent_name if parent_name and not parent
+      # figure out parent by stripping file recursively
+      # - first tries to find a parent in the same barclamp
+      # - if not found, then tries `default_barclamp`
+      parent_name = name
+      parent = nil
+      while parent == nil
+        m = parent_name.match(/^(.*)\/[^\/]*$/)
+        if not m
+          if parent_name == "#{default_barclamp}.md"
+            break
+          else
+            parent_name = File.join default_barclamp, name[/^[^\/]*\/(.*)$/, 1]
+            next
+          end
+        end
+        parent_name = m[1] + ".md"
+        parent = found[parent_name] if parent_name
+        # parent = Doc.find_by_name parent_name if parent_name and not parent
+      end
 
       x = Doc.find_or_create_by_name :name=>name, :description=>title.truncate(120), :order=>order
       x.barclamp = barclamp

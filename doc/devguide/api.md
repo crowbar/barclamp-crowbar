@@ -163,7 +163,7 @@ The following table should be populated for all API calls:
 
 </table>
 
-### JSON Example:
+### JSON Output Example:
 
     {
       "id":41,
@@ -183,3 +183,30 @@ The following table should be populated for all API calls:
       "created_at":"2013-11-01T03:23:27Z",
       "updated_at":"2013-11-01T03:23:27Z"
     }
+
+### Node Create Example:
+
+Node JSON Data: /tmp/node_sample.json
+```
+{
+  "admin": false,
+  "alias": "newtest",
+  "alive": true,
+  "allocated": false,
+  "available": true,
+  "bootenv": "local",
+  "description": "Testing Only - should be automatically removed",
+  "hint": "{}",
+  "name": "newtest.cr0wbar.com",
+  "order": 100
+}
+
+```
+
+Curl command to create the node:
+```
+judd@cb2dev2ubuntu:~$ curl --digest -u 'developer:Cr0wbar!' --data @/temp/node_samples.json -H "Content-Type:application/json" --url http://127.0.0.1:3000/api/v2/nodes
+
+{"admin":false,"alias":"simaa","alive":true,"allocated":false,"available":true,"bootenv":"local","created_at":"2013-12-21T05:49:00Z","deployment_id":1,"description":"devBDD Testing Only - should be automatically removed","discovery":{},"hint":"{}","id":41,"name":"simaa.cr0wbar.com","order":100,"target_role_id":null,"updated_at":"2013-12-21T05:49:00Z"}judd@cb2dev2ubuntu:~$ 
+```
+

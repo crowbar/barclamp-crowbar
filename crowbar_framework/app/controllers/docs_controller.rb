@@ -105,4 +105,12 @@ class DocsController < ApplicationController
     end
   end
 
+  def export
+    @docs = params[:q].split(/,/).map do |id|
+      params[:id] = id
+      show
+      @text
+    end
+  end
+
 end

@@ -36,7 +36,7 @@ Crowbar::Application.routes.draw do
   resources :deployment_roles
   get 'docs', to: 'docs#index'
   get 'docs/:id', to: 'docs#show', constraints: {id: /[^\?]*/}
-#  resources :docs
+  get 'docs-export', to: 'docs#export', constraints: {q: /[0-9]+(,[0-9]+)*/}
   resources :groups
   resources :jigs
   resources :node_roles  do

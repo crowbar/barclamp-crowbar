@@ -20,7 +20,7 @@ While this adds complexity for the documentation author, it greatly simplify the
 
 By design, the table of contents generally follows the directory structure of the documentation. This is intentional because it simplifies composition.
 
-Each subdirectory should be paired with a matching topic document that functions as the index for the items in the subdirectory.
+Each subdirectory can be paired with a matching topic document that functions as the index for the items in the subdirectory.
 
 For example,
 
@@ -35,22 +35,7 @@ For example,
 
 In the above example, the `devguide` topic layout out general information for the developer guide. The `api` and `testing` sections would be shown as sections of the Developer Guide. Individual API topics `node` and `group` are subsections of the API topic.
 
-> **Note**: The convention of having an the index topic name (`api.md`) match the subfolder (`api/`) makes it easier for Crowbar to assemble to table of contents without extra meta data.
-
-If no hints (see index below) are given, Crowbar will automatically scan the subdirectory tree and build the table of contents based on the file path naming convention.
-
-#### Index
-There is a documentation tree index (`[barclamp].yml`) for each barclamp. The index is a yml file which builds the documentation tree by deep merging all the barclamp indexes together.
-
-> **Note**: The index _must_ be named the same as the barclamp. So each barclamp provides `barclamp.yml` in the `doc` directory. These files are merged together during the barclamp install.
-
-The index has an entry for each topic page that follows the following pattern: `barclamp/topic`. The `/` is required!
-
-> **Note**: You can comment out a page from being automatically indexed by prefixing its name with `#`.
-
-A barclamp can reference topics in another barclamp so that the correct parent topics are used to build an integrated set. The index file should be nested so that topics have correct parents.
-
-> **Note**: It is strongly encouraged (but not required) to keep the index path the same as the file path.
+If there is an index topic name (`devguide.md`) that matches a subdirectory (`devguide/`), then the contents of the subdirectory will be listed under the index topic name in the table of contents. If the index topic name is missing, but exists in the same location in the crowbar framwork docs, then the subdirectory will be conflated with other barclamps under the crowbar framework's index topic name.
 
 ##### Ordering
 

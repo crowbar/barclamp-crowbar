@@ -1,4 +1,10 @@
+= javascript_include_tag 'doc'
+
 %h1= t('.title')
+
+%input{:type=>'button', :class=>'doc-export-show', :onclick=>'doc_export_show()', :value=>t('.export_show')}
+%input{:type=>'button', :class=>'doc-export-hide', :onclick=>'doc_export_hide()', :value=>t('.export_hide')}
+%input{:type=>'button', :class=>'doc-export-export', :onclick=>'doc_export_export()', :value=>t('.export_export')}
 
 / Full Index
 %div#docindex

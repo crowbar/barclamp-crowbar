@@ -226,7 +226,7 @@ class NodeObject < ChefObject
         set_display "alias", value
         @role.description = chef_description
         # move this to event driven model one day
-        system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE
+        system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
       end
     end
     return value

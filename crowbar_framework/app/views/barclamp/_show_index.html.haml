@@ -32,7 +32,7 @@
                     - else
                       = proposal[:description].capitalize
                   %td.col-xs-1
-                    = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default form-control input-sm"
+                    = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
 
             - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
               - create_proposal_form_for(barclamp_name) do
@@ -45,4 +45,4 @@
                     = text_field_tag :description, t(".created_on", :date => l(Time.now)), :class => "form-control input-sm"
                   %td.col-xs-1
                     = hidden_field_tag :barclamp, barclamp_name
-                    %input.btn.btn-default.form-control.input-sm{ :type => "submit", :value => t("proposal.actions.create") }
+                    %input.btn.btn-default.btn-block{ :type => "submit", :value => t("proposal.actions.create") }

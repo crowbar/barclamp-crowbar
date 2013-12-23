@@ -114,9 +114,9 @@ en:
     edit_deployment_raw:
       title: Deployment
     show:
-      edit: Edit Proposal
-      deployment: Nodes Deployment
-      attributes: Proposal Attributes
+      edit: Edit
+      deployment: Deployment
+      attributes: Attributes
       role: Role
       key: Key
     show_attributes_raw:

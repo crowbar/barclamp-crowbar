@@ -8,18 +8,21 @@
       - else
         = link_to "#{@role.display_name}: #{@role.inst.titlecase}", barclamp_modules_path(:id => @role.barclamp)
 
-      .btn-group.pull-right
-        = edit_barclamp_button(@role.barclamp, @role.inst)
-
 .panel.panel-default
   .panel-heading
     %h2
-      = t('.attributes')
+      = t(".attributes")
+
+      .btn-group.pull-right
+        = edit_barclamp_button(@role.barclamp, @role.inst)
 
   = render_barclamp_show_attributes @role.barclamp, @attr_raw
 
   .panel-heading
     %h2
-      = t('.deployment')
-
+      = t(".deployment")
+      
+      .btn-group.pull-right
+        = edit_barclamp_button(@role.barclamp, @role.inst)
+        
   = render_barclamp_show_deployment @role.barclamp, @dep_raw

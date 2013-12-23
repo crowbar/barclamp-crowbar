@@ -66,9 +66,10 @@ class ApplicationController < ActionController::Base
   def self.set_layout(template = "application")
     layout proc { |controller| 
       if controller.is_ajax? 
-        return nil
+        nil
+      else
+        template
       end
-      template
     }
   end
   

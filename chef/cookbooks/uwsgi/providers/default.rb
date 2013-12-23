@@ -1,5 +1,4 @@
 action :enable do
-  require 'rexml/document'
 
   # install pip and developer headers
   package "python-pip"
@@ -36,66 +35,47 @@ action :enable do
 
   instances = new_resource.instances.is_a?(Hash) ? [new_resource.instances] : new_resource.instances
 
-  # create config
-  document = REXML::Document.new.add_element("uwsgi")
-  config = document.add_element("uwsgi")
-
-  # add global options merged with default
-  options.each do |key, value|
-    element = config.add_element(key.to_s)
-    if value != true
-      element.add_text(value.to_s)
-    end
-  end
-
-  # add all instances of application
-  instances.each_with_index do |instance, index|
-    instance.each do |key, value|
-      element = config.add_element(key.to_s, { "id" => index })
-      if value != true
-        element.add_text(value.to_s)
-      end
-    end
-  end
-
   file_available, file_enable = config_files(new_resource.name)
 
   # Create service for application
-  template "/etc/init.d/#{new_resource.service_name}" do
-    source "uwsgi-service.sh.erb"
+  template "/etc/init/#{new_resource.service_name}.conf" do
+    source "uwsgi-upstart.conf.erb"
     mode "0755"
     cookbook "uwsgi"
     variables({
-       :application => new_resource.name,
-       :service => new_resource.service_name,
-       :config => file_enable,
-       :options => options
-     })
-    notifies :restart, "service[#{new_resource.service_name}]", :immediately
+      :config => file_enable,
+    })
   end
 
-  service "#{new_resource.service_name}" do
-    supports :restart => true, :start => true, :stop => true, :status => true
-    action [:enable, :nothing]
+  link "/etc/init.d/#{new_resource.service_name}" do
+    to "/lib/init/upstart-job"
   end
 
   # write config to file
   template file_available do
     variables ({
-        :config => config,
-        :application => new_resource.name
+      :options => options,
+      :instances => instances,
+      :application => new_resource.name
     })
     cookbook "uwsgi"
     source "uwsgi-config.xml.erb"
     owner "root"
     group "root"
     mode 00600
-    notifies :restart, "service[#{new_resource.service_name}]", :immediately
   end
 
   # enabling config
   link file_enable do
     to file_available
+  end
+
+  service "#{new_resource.service_name}" do
+    supports :restart => true, :start => true, :stop => true, :status => true
+    action [:enable, :start]
+    subscribes :restart, "template[/etc/init.d/#{new_resource.service_name}]", :immediately
+    subscribes :restart, "template[#{file_available}]", :immediately
+    subscribes :restart, "link[#{file_enable}]", :immediately
   end
 
 end

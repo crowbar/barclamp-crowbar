@@ -1147,7 +1147,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE and !ran_admin
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE and !ran_admin
 
     update_proposal_status(inst, "success", "")
     restore_to_ready(all_nodes)
@@ -1268,17 +1268,17 @@ class ServiceObject
       #   node[:reboot] = "complete"
       # end
 
-      exit(1) unless system("sudo -u root -- ssh root@#{node} \"#{command}\"")
+      exit(1) unless system("sudo", "-u", "root", "--", "ssh", "root@#{node}", command)
 
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
       while nobj[:reboot] == "require" and attempt <= 3
         attempt += 1
         puts "going to reboot #{node} due to #{nobj[:reboot]} attempt #{attempt}"
-        system("sudo -u root -- ssh root@#{node} \"reboot\"")
+        system("sudo", "-u", "root", "--", "ssh", "root@#{node}", "reboot")
         if RemoteNode.ready?(node, 1200)
           3.times do
-            if system("sudo -u root -- ssh root@#{node} \"#{command}\"")
+            if system("sudo", "-u", "root", "--", "ssh", "root@#{node}", command)
               nobj = NodeObject.find_node_by_name(node)
               break
             else

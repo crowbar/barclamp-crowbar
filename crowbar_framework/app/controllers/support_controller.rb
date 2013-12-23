@@ -22,15 +22,13 @@ require "chef"
 class SupportController < ApplicationController
   def logs
     filename = "crowbar-logs-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tar.bz2"
-
-    system("sudo -i #{Rails.root.join("..", "bin", "gather_logs.sh").expand_path} #{filename}")
+    system("sudo", "-i", Rails.root.join("..", "bin", "gather_logs.sh").expand_path, filename)
     redirect_to "/export/#{filename}"
   end
 
   def get_cli
     executable = Rails.root.join("..", "bin", "gather_cli.sh").expand_path
-    
-    system("sudo -i #{executable} #{request.env["SERVER_ADDR"]} #{request.env["SERVER_PORT"]}")
+    system("sudo", "-i", executable, request.env['SERVER_ADDR'], request.env['SERVER_PORT'])
     redirect_to "/crowbar-cli.tar.gz"
   end
 
@@ -104,7 +102,7 @@ class SupportController < ApplicationController
         filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
 
         pid = fork do
-          system "tar -czf #{Rails.root.join("tmp", filename)} #{Rails.root.join("db", "*.json").to_s}"
+          system "tar", "-czf", Rails.root.join("tmp", filename), Rails.root.join("db", "*.json").to_s
           File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
         end
 

@@ -74,7 +74,7 @@ class DocsController < ApplicationController
       @children = @topic.delete_if { |k, v| k == META }
       from = @meta['file']  
       raw = if File.exist? file
-        %x[markdown #{from}]
+        Cmd.run(['markdown', from])
       else
         I18n.t '.topic_missing', :scope=>'docs.topic'
       end
@@ -194,7 +194,4 @@ class DocsController < ApplicationController
       end
     end
   end
-
-
-
 end

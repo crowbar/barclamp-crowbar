@@ -147,7 +147,7 @@ class NodeObject < ChefObject
       end
     end
     # deep clone of @role.default_attributes, used when saving node
-    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+    @attrs_last_saved = deep_clone(@role.default_attributes)
     @node = node
   end
 
@@ -226,7 +226,7 @@ class NodeObject < ChefObject
         set_display "alias", value
         @role.description = chef_description
         # move this to event driven model one day
-        system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE
+        system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
       end
     end
     return value
@@ -560,7 +560,7 @@ class NodeObject < ChefObject
     end
 
     # update deep clone of @role.default_attributes
-    @attrs_last_saved = Marshal.load(Marshal.dump(@role.default_attributes))
+    @attrs_last_saved = deep_clone(@role.default_attributes)
 
     Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
   end
@@ -934,7 +934,7 @@ class NodeObject < ChefObject
 
   def bmc_cmd(cmd)
     if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
-        !system("ipmitool -I lanplus -H #{bmc_address} -U #{get_bmc_user} -P #{get_bmc_password} #{cmd}")
+        !system("ipmitool", "-I", "lanplus", "-H", bmc_address, "-U", get_bmc_user, "-P", get_bmc_password, cmd)
       case cmd
       when "power cycle"
         ssh_command="/sbin/reboot -f"
@@ -949,7 +949,7 @@ class NodeObject < ChefObject
       # command on the client else ssh never disconnects when client dies
       # `timeout` and '-o ConnectTimeout=10' are there in case anything
       # else goes wrong...
-      unless system("sudo -i -u root -- timeout -k 5s 15s ssh -o ConnectTimeout=10 root@#{@node.name} '#{ssh_command} </dev/null >/dev/null 2>&1 &'")
+      unless system("sudo", "-i", "-u", "root", "--", "timeout", "-k", "5s", "15s", "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}", "#{ssh_command} </dev/null >/dev/null 2>&1 &")
         Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
         return nil
       end
@@ -1028,6 +1028,27 @@ class NodeObject < ChefObject
   end
 
   private
+
+  # Used for cloning role's default attributes.
+  def deep_clone object, options = {}
+    case object
+    when Numeric,TrueClass,FalseClass,NilClass,Symbol #immutable
+      object
+    when ::String
+      options[:full] ? object.clone : object
+    when ::Hash
+      object.reduce({}) do |acc,kv|
+        acc[deep_copy(kv[0])] = deep_copy(kv[1])
+        acc
+      end
+    when ::Array
+       object.reduce([]) do |acc,v|
+        acc << deep_copy(v)
+      end
+    else
+      object.clone #deep copy
+    end
+  end
 
   # this is used by the alias/description code split
   def chef_description

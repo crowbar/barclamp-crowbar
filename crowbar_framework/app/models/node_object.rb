@@ -1,4 +1,5 @@
-# Copyright 2011, Dell
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
 #
 
 require 'chef/mixin/deep_merge'
@@ -224,7 +226,7 @@ class NodeObject < ChefObject
         set_display "alias", value
         @role.description = chef_description
         # move this to event driven model one day
-        system("sudo -i /opt/dell/bin/single_chef_client.sh") if CHEF_ONLINE
+        system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE
       end
     end
     return value
@@ -423,6 +425,14 @@ class NodeObject < ChefObject
       end.length
     else
       -1
+    end
+  end
+
+  def pretty_drives
+    if number_of_drives < 0
+      I18n.t("unknown")
+    else
+      number_of_drives
     end
   end
 
@@ -1052,7 +1062,4 @@ class NodeObject < ChefObject
     end
     {}
   end
-
 end
-
-

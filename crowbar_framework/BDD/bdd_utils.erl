@@ -91,7 +91,7 @@ html_peek(Match, Input) ->
 	
 	
 html_find_button(Match, Input) ->
-  %<form.. <input class="button" name="submit" type="submit" value="Save"></form>
+  %<form.. <input class="btn btn-default" name="submit" type="submit" value="Save"></form>
   %debug(puts,Match),
 	Form = html_find_block("<form ", "</form>", Input, "value='"++Match++"'"),
 	%debug(puts,Form),

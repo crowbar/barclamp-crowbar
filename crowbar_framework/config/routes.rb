@@ -1,19 +1,22 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
+
 ActionController::Routing::Routes.draw do |map|
   # Install route from each barclamp
   Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
@@ -28,7 +31,7 @@ ActionController::Routing::Routes.draw do |map|
   map.docs_barclamp 'docs/:controller/:id', :action=>'docs', :conditions => { :method => :get }
 
   # nodes
-  map.resources :nodes, :only => [:index, :new]
+  map.resources :nodes, :only => [:index]
   map.connect 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
               :requirements => { :name => /.*/, :path => /.*/ }, :conditions => { :method => :get }
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
@@ -52,14 +55,16 @@ ActionController::Routing::Routes.draw do |map|
   map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
   
   #support paths
-  map.utils 'utils', :controller=>'support', :action=>'index'
-  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'index', :requirements => { :id => /.*/ }
+
+
+  map.utils 'utils.:format', :controller=>'support', :action=>'index'
+  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'destroy', :requirements => { :id => /.*/ }
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
   map.utils_export 'utils/:controller/1.0/export', :action=>'export'
   map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
   map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
   map.utils_upload 'utils/upload/:id', :controller=>'support', :action=>'upload', :requirements => { :id => /.*/ }
-  map.restart 'utils/restart/:id', :controller=>'support', :action=>'restart'
+  map.restart 'utils/restart/:id.:format', :controller=>'support', :action=>'restart'
   
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }

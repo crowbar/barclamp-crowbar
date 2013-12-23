@@ -1,40 +1,39 @@
 !!!
-%html
+%html{ :lang => :en }
   %head
-    %title= "Crowbar: #{ controller.action_name }"
-    = stylesheet_link_tag 'application'
-    /[if IE]
-      = stylesheet_link_tag 'ie', :media => "all"
-      = javascript_include_tag "html5"
-    -# ALWAYS DIFFERENT FROM RAILS3
-    = javascript_include_tag 'jquery.min', 'jquery-ui.min', 'jquery.sparkline.min', 'rails', 'codemirror/codemirror', 'codemirror/javascript', 'jquery.spritely-0.6.1', 'application', 'event_helpers', 'drag_drop_helpers', 'jquery.dataTables', 'nodes'
-    = csrf_meta_tag
-  
-  %body
-    %header
-      .container
-        %h1
-          %a{:href => "/"}
-            %span logo
-        %nav
-          = render_navigation :expand_all => true, :skip_if_empty => true
-    
-    - if flash[:notice] || !CHEF_ONLINE
-      .notice#flash
-        .container
-          %p
-            = flash[:notice].gsub("\n", "<br/>")
-            = link_to " [#{t('clear_msg')}]", "#", :onClick=>"$('#flash').attr('style', 'display:none');"
-          - if !CHEF_ONLINE
-            %p= t "offline"
+    %title
+      = meta_title
 
-    #main.container
+    = meta_tags
+
+    - registered_stylesheets.each do |stylesheet|
+      = stylesheet_tag stylesheet
+
+    = yield :stylesheets
+
+    - registered_javascripts.each do |javascript|
+      = javascript_tag javascript
+
+    = yield :javascripts
+
+    /[if lt IE 9]
+      = stylesheet_tag "ie"
+      = javascript_tag "ie"
+
+  %body{ :class => params[:controller] }
+    = render :partial => "shared/header"
+
+    .container#content
+      = render :partial => "shared/flashes"
+
       = yield
+      = render :partial => "shared/footer"
 
-    %footer
-      =t '.provided_by'
-      %a{:href=>"http://dell.com/cloud", :target=>"_new"}
-        %img{:src=>"/images/layout/dell.png", :alt=>"Dell, Inc.", :title=>"Dell, Inc.", :style=>"vertical-align:middle;padding-bottom:2px"}
-      %a{:href=>"http://dell.com/cloud", :target=>"_new", :alt=>"Dell, Inc."}
-        CloudEdge Solutions team
-      ="- Version #{CROWBAR_VERSION}"
+    %script#message-template{ :type => "text/x-handlebars-template" }
+      .alert{ :class => "{{classes}}" }
+        {{#if dismiss}}
+        %button.close{ :type => "button", "data-dismiss" => "alert", "aria-hidden" => true }
+          &times;
+        {{/if}}
+
+        {{message}}

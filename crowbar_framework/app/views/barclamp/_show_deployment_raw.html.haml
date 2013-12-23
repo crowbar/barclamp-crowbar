@@ -1,27 +1,19 @@
-- nodes = nodes_hash()
-- if @role.elements.length > 0
-  %table{:class => "top", :style =>"width: 100%"  }
-    %tr
-      %td{:style => "float left"}
-        = t '.role' 
-      %td
-        = t '.nodes'
-    - @role.elements.sort.each do |key, value|
-      %tr{:class => cycle("odd", "even")}
-        %td{:style => "white-space:nowrap; width: 20%;" }
-          %em
-            %b
-            - if CONVERGED_ADMIN && HAVE_CHEF_WEBUI
-              = link_to key, "http://#{request.host}:4040/roles/#{key}", :target => '_blank'
-            - else
-              = key
-        - members = {}
-        - nodes.each { |k,v| members[k] = v if value.member? k }
-        %td
-          - members.sort_by{ |k, v| v[:alias] }.each do |name, node|
-            %div= link_to node[:alias], nodes_path(:selected => node[:handle]), :title=>node[:title]
-
-  .clear
+- if @role.elements.empty?
+  .alert.alert-info
+    = t('.none')
 - else
-  %p= t '.none'
-
+  %table.table.table-hover
+    %thead
+      %th.col-xs-4
+        = t(".role")
+      %th
+        = t(".nodes")
+    %tbody
+      - @role.elements.sort.each do |name, value|
+        %tr
+          %td
+            %em
+              %b
+                = chef_server_role_link name
+          %td
+            = node_links_for(value).join(", ")

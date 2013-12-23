@@ -1,38 +1,38 @@
-# Copyright 2012, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# Copyright 2011-2013, Dell
+# Copyright 2013, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Rob Hirschfeld
+# Author: SUSE LINUX Products GmbH
+#
+
+require "yaml"
 
 class DocsController < ApplicationController
-    
-  require 'yaml'
-  META = 'topic_meta_data'
-  
+  before_filter :generate_books
+
   def index
-    doc_yml = File.join RAILS_ROOT, 'config', 'docs.yml'
-    docs_path = File.join RAILS_ROOT, 'doc'
-    if File.exist? doc_yml and RAILS_ENV != 'development'
-      @index = YAML.load_file File.join('config', 'docs.yml')
-    else #create yml
-      @index = gen_doc_index docs_path
-      File.open( doc_yml, 'w' ) { |out| YAML.dump( @index, out ) }
-    end
-  end  
+    @index = YAML.load_file(
+      docs_index
+    )
+  end
 
   def topic
     begin 
+
+
+
       all = YAML.load_file File.join('config', 'docs.yml')
       @path = params[:id]
       id = @path.split('+')
@@ -83,39 +83,79 @@ class DocsController < ApplicationController
       #end
       #markdown = Redcarpet.new "raw", []
       @text = raw #markdown.to_html
+
+
+
     rescue
-      @text = I18n.t '.topic_missing', :scope=>'docs.topic'
-      flash[:notice] = @text
+      flash.now[:alert] = I18n.t("docs.topic.topic_missing")
     end
   end
   
-  private 
+  protected
   
-  
-  def gen_doc_index(path)
-    @root = { } if @root.nil?
-    root_meta_data = { 'author'=>'Multiple Authors', 'license'=>'Apache 2', 'copyright'=>'2012 by Dell, Inc', 'date'=>I18n.t('unknown'), 'order'=>'alpha', 'url'=>'/', 'format'=>'markdown' }
-    Dir.entries(path).each do |bc_index|
-      # collect all the index files
-      if bc_index =~ /(.*).yml$/
-        bc = bc_index[/(.*).yml$/,1]
-        topic = YAML.load_file(File.join(path, bc_index))['root'] rescue continue
-        meta_data = root_meta_data.merge! topic['topic_meta_data']
-        children = topic.delete_if { |k, v| k=='topic_meta_data' }
-        make_topics path, meta_data, bc, 'root', children
-      end
-    end
-    @root
+  def docs_index
+    Rails.root.join("config", "docs.yml")
   end
 
-  def make_topics(path, meta_data, barclamp, parent, topics)
+  def docs_path
+    Rails.root.join("doc")
+  end
+
+  def generate_books
+    return if docs_index.file? and not Rails.env.development?
+
+    @books = {}.tap do |books|
+      meta_root = {
+        "author" => "Multiple Authors", 
+        "license" => "Apache 2", 
+        "copyright" => "2012 by Dell, Inc", 
+        "date" => I18n.t("unknown"), 
+        "order" => "alpha", 
+        "url" => "/", 
+        "format" => "markdown" 
+      }
+
+      docs_path.children.each do |book|
+        next unless book.extname == ".yml"
+
+        begin
+          content = YAML.load_file(
+            book
+          )
+        rescue
+          next
+        end
+        
+        next if content["root"].nil?
+
+        barclamp = book.basename(".yml")
+        topic = content["root"]
+        meta_data = meta_root.merge! topic["topic_meta_data"]
+        children = topic.delete_if { |k, v| k == "topic_meta_data" }
+
+
+
+        generate_topics books, meta_data, barclamp, 'root', children
+
+
+
+      end
+    end
+
+    File.open(docs_index, "w") do |output|
+      YAML.dump(@books, output)
+    end
+  end
+
+
+
+  def generate_topics(books, meta_data, barclamp, parent, topics)
     return if topics.nil?
     topics.each do |id, details|
       if id != 'topic_meta_data'
         topic_meta_data = ((details.nil? or details['topic_meta_data'].nil?) ? meta_data : meta_data.merge!(details['topic_meta_data']))
         source = topic_meta_data['source'] || barclamp
-        file = File.join path, 'default', source, id+'.md'
-puts "ROB2 #{File.exist? file} #{source} #{id} #{file}"
+        file = docs_path.join 'default', source, id+'.md'
         if File.exist? file
           title = File.open(file, 'r').readline rescue id.humanize
           title = title[/(#*)(.*)/,2].strip rescue id.humanize
@@ -131,29 +171,30 @@ puts "ROB2 #{File.exist? file} #{source} #{id} #{file}"
           t = { 'topic_meta_data'=> {'title'=>"topic pending", 'sort'=>"999999"  }}
         end
         p = parent.split('+')
-puts "ROB #{barclamp} #{p} #{id} #{t}"
         case p.length
         when 1
-          @root[id] = t
-        when 2 
-          @root[p[1]][id] = t 
-        when 3 
-          @root[p[1]][p[2]][id] = t 
+          books[id] = t
+        when 2
+          books[p[1]][id] = t
+        when 3
+          books[p[1]][p[2]][id] = t
         when 4
-          @root[p[1]][p[2]][p[3]][id] = t
+          books[p[1]][p[2]][p[3]][id] = t
         when 5 
-          @root[p[1]][p[2]][p[3]][p[4]][id] = t
+          books[p[1]][p[2]][p[3]][p[4]][id] = t
         when 6
-          @root[p[1]][p[2]][p[3]][p[4]][p[5]][id] = t
+          books[p[1]][p[2]][p[3]][p[4]][p[5]][id] = t
         when 7
-          @root[p[1]][p[2]][p[3]][p[4]][p[5]][p[6]][id] = t
+          books[p[1]][p[2]][p[3]][p[4]][p[5]][p[6]][id] = t
         else
           raise "documentation nested to too many levels, max is 7"
         end
         # recurse the children
-        make_topics path, meta_data, barclamp, "#{parent}+#{id}", details
+        generate_topics books, meta_data, barclamp, "#{parent}+#{id}", details
       end
     end
   end
-  
+
+
+
 end

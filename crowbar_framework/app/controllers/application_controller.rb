@@ -59,7 +59,7 @@ class ApplicationController < ActionController::Base
     }
   end
   
-  #helper :all # include all helpers, all the time
+  helper :all
   
   protect_from_forgery # See ActionController::RequestForgeryProtection for details
   

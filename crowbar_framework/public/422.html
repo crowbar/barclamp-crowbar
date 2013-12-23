@@ -1,34 +1,68 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      Crowbar: 422 Error
+    </title>
+    <meta charset="utf-8" />
+    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <link rel="stylesheet" href="/assets/application.css">
+    <script src="/assets/application.js"></script>
+    <script src="/assets/branding.js"></script>
 
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <title>The change you wanted was rejected (422)</title>
-	<style type="text/css">
-		body { background-color: #fff; color: #666; text-align: center; font-family: arial, sans-serif; }
-		div.dialog {
-			width: 25em;
-			padding: 0 4em;
-			margin: 4em auto 0 auto;
-			border: 1px solid #ccc;
-			border-right-color: #999;
-			border-bottom-color: #999;
-		}
-		h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
-	</style>
-</head>
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" href="/assets/ie.css">
+    <script src="/assets/ie.js"></script>
+    <![endif]-->
+  </head>
+  <body class="nodes">
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse">
+            <span class="sr-only">
+              Navigation
+            </span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="/" class="navbar-brand">
+            <span class="title">Crowbar</span>
+          </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-right">
+          <ul class="nav navbar-nav">
+            <li>
+              <a href="/">Dashboard</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container" id="errorpage">
+      <div class="panel panel-default panel-warning">
+        <div class="panel-heading">
+          <h2>
+            The change you wanted was rejected
+          </h2>
+        </div>
+        <div class="panel-body">
+          <p>
+            Maybe you tried to change something you didn't have access to. If
+            this is an application error, we encourage you to visit the <a href="http://github.com/crowbar/crowbar/wiki/error">Crowbar site</a>
+            for more information or to submit a bug report. Return to the <a href="/">dashboard</a>.
+          </p>
+        </div>
+      </div>
 
-<body>
-  <!-- This file lives in public/422.html -->
-  <div class="dialog">
-    <h1>The change you wanted was rejected.</h1>
-    <p>Maybe you tried to change something you didn't have access to.</p>
-  </div>
-  <footer>
-    Provided by <a href="http://dell.com/crowbar"><img src="/images/layout/dell.png" alt="Dell, Inc." title="Dell, Inc." style="vertical-align:middle;padding-bottom:2px" /></a>
-    <a href="http://dell.com/crowbar">CloudEdge Solutions team</a>
-  </footer>
-</body>
+      <footer>
+        <span>
+          Provided by <a href="http://dell.com/cloud" target="_blank"><img src="/assets/dell/dell.png" alt="Dell, Inc." /> CloudEdge Solutions team</a>
+        </span>
+      </footer>
+    </div>
+  </body>
 </html>

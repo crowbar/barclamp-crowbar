@@ -1,42 +1,12 @@
-- if @count>0
-  %p{:style => 'float:right'}
-    = "#{@count} #{t('.proposals')}"
-- else
-  %div#logo{:style => 'float:right', :width=>'25%', :border=>0, :visibility=>'hidden'}
-    %img#graphic{:alt=>@title, :width=>'100px'}
-%h1= @title
+.row
+  .col-xs-12
+    %h1.page-header
+      = @title
 
-%table.data.box
-  - if @bc_name === 'barclamp'
-    = render :partial => 'barclamp/index'
-  - else
-    = begin render :partial => "barclamp/#{@bc_name}/index" rescue (render :partial => 'barclamp/index') end
+      - if @count >= 0
+        .pull-right
+          %span.badge
+            = t(".proposals", :count => @count)
 
-:javascript
-  function update() {
-    $.ajaxSetup({ timeout: 3000 }) 
-    $.getJSON('#{status_proposals_barclamp_path}', function(data) {
-      // If role has changed, re-render the page
-      if (#{@count}>0 && data['count'] != #{@count}) {
-        location.reload();
-      };
-      
-      // Update proposals status
-      $.each(data['proposals'], function(key,val) {
-        led_update($('#'+key), key, val, data['i18n'][key]['proposal'] + ' - ' + data['i18n'][key]['status']);
-        led_update($('#'+key+'_details'), key, val, data['i18n'][key]['status']);
-      });
-
-    });
-  }
-  
-  function led_update(td, key, val, i18n) {
-    if(!td.hasClass(val)){
-      td.destroy();
-      td.attr('class', val+' led');
-      td.attr('title', i18n);
-      td.effect("highlight", {color: '#666666'}, 2000);
-      // remove the button since it does not reflect the state anymore
-      $('#'+key+'_button').attr('hidden', 'true');
-    };  
-  }
+.panel.panel-default{ "data-ledupdate" => status_proposals_barclamp_path }
+  = render_barclamp_index(@bc_name)

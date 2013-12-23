@@ -118,12 +118,12 @@ class NodesController < ApplicationController
                 end
               end
 
-              if @template.crowbar_options[:show].include?(:bios) and node.bios_set != node_attributes["bios"]
+              if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
                 node.bios_set = node_attributes["bios"]
                 dirty = true
               end
 
-              if @template.crowbar_options[:show].include?(:raid) and node.raid_set != node_attributes["raid"]
+              if @template.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
                 node.raid_set = node_attributes["raid"]
                 dirty = true
               end

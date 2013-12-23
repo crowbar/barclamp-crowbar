@@ -1038,12 +1038,12 @@ class NodeObject < ChefObject
       options[:full] ? object.clone : object
     when ::Hash
       object.reduce({}) do |acc,kv|
-        acc[deep_copy(kv[0])] = deep_copy(kv[1])
+        acc[deep_clone(kv[0])] = deep_clone(kv[1])
         acc
       end
     when ::Array
        object.reduce([]) do |acc,v|
-        acc << deep_copy(v)
+        acc << deep_clone(v)
       end
     else
       object.clone #deep copy

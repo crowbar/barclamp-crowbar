@@ -28,7 +28,7 @@ module BarclampServicesHelper
     Kernel.const_get("#{bc_name.camelize}Service")
   end
 
-  def barclamp_members(bc)
+  def barclamp_members(bc_name)
     barclamp_service(bc_name).method(:members).call
   end
 end

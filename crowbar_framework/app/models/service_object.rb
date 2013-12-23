@@ -1147,7 +1147,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo -i #{Rails.root.join("..", "bin", "single_chef_client.sh").expand_path}") if CHEF_ONLINE and !ran_admin
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE and !ran_admin
 
     update_proposal_status(inst, "success", "")
     restore_to_ready(all_nodes)

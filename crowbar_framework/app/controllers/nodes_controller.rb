@@ -21,10 +21,6 @@ require "chef"
 
 class NodesController < ApplicationController
 
-
-
-
-
   def index
     @sum = 0
     session[:node] = params[:name]
@@ -56,18 +52,12 @@ class NodesController < ApplicationController
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
 
-
-
     respond_to do |format|
       format.html
       format.xml { render :xml => @nodes }
       format.json { render :json => @nodes }
     end
   end
-
-
-
-
 
   def list
     if request.post?
@@ -79,18 +69,14 @@ class NodesController < ApplicationController
         node_aliases = params[:node].values.map { |attributes| attributes["alias"] }
 
         params[:node].each do |node_name, node_attributes|
-          node_count = node_aliases.select do |name|
-            name == node_attributes["alias"]
-          end
-
-          if node_count.length > 1
+          if node_aliases.grep(node_attributes["alias"]).size > 1
             report[:duplicate] = true
             report[:failed].push node_name
-
-            next
           end
+        end
 
-          unless report[:duplicate]
+        unless report[:duplicate]
+          params[:node].each do |node_name, node_attributes|
             begin
               dirty = false
               node = NodeObject.find_node_by_name node_name
@@ -235,10 +221,6 @@ class NodesController < ApplicationController
       render :inline => "Added #{node.name} to #{node.group}.", :cache => false
     end
   end
-
-
-
-
 
   def status
     nodes = {}

@@ -154,7 +154,10 @@ class NodesController < ApplicationController
           node_name.split(".").first
         end
 
-        flash.now[:alert] = I18n.t("nodes.list.failed", :failed => node_list.to_sentence)
+        flash.now[:alert] = I18n.t(
+          report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
+          :failed => node_list.to_sentence
+        )
       elsif @report[:success].length > 0
         node_list = @report[:success].map do |node_name|
           node_name.split(".").first

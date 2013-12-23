@@ -191,7 +191,7 @@ class BarclampController < ApplicationController
         list = barclamp_members(@bc_name)
         cat = ServiceObject.barclamp_catalog
         i = 0
-        list.each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
+        (list || {}).each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
         @modules = get_proposals_from_barclamps(members).sort_by { |k,v| "%05d%s" % [v[:order], k] }
         render 'barclamp/index' 
       }

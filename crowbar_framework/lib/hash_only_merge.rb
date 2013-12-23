@@ -28,15 +28,19 @@ module HashOnlyMerge
   # `merge_onto` is the object that will "lose" in case of conflict.
   # `merge_with` is the object whose values will replace `merge_onto`s
   # values when there is a conflict.
-  def self.hash_only_merge!(merge_onto, merge_with)
+  def hash_only_merge!(merge_onto, merge_with)
+    # If there are two Hashes, recursively merge.
     if merge_onto.kind_of?(Hash) && merge_with.kind_of?(Hash)
       merge_with.each do |key, merge_with_value|
         merge_onto[key] = hash_only_merge!(merge_onto[key], merge_with_value)
       end
-
       merge_onto
+
+      # If merge_with is nil, don't replace merge_onto
     elsif merge_with.nil?
       merge_onto
+
+      # In all other cases, replace merge_onto with merge_with
     else
       merge_with
     end

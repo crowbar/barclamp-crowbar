@@ -142,8 +142,8 @@ module NodesHelper
       ]
 
       result.push [
-        t("model.attributes.node.state"),
-        t(node.state, :scope => :state, :default => node.state.titlecase)
+        t("model.attributes.node.uptime"),
+        value_for(node.uptime, t("model.attributes.node.na"), node.ready?)
       ]
 
       result.push [
@@ -155,8 +155,8 @@ module NodesHelper
       ]
 
       result.push [
-        t("model.attributes.node.uptime"),
-        value_for(node.uptime, t("model.attributes.node.na"), node.ready?)
+        t("model.attributes.node.allocated"),
+        value_for(t(".active"), t(".inactive"), node.allocated)
       ]
 
       result.push [
@@ -165,8 +165,8 @@ module NodesHelper
       ]
 
       result.push [
-        t("model.attributes.node.allocated"),
-        value_for(t(".active"), t(".inactive"), node.allocated)
+        t("model.attributes.node.state"),
+        t(node.state, :scope => :state, :default => node.state.titlecase)
       ]
 
       if node.switch_unit.nil?

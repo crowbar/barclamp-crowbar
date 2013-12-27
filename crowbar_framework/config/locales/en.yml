@@ -282,7 +282,7 @@ en:
       drag_hint: You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.
       new_drag: To move nodes, drag onto this box
     list:
-      updated: 'Updated successfull the nodes %{success}'
+      updated: 'Updated successfully the nodes %{success}'
       failed: 'Failed to save the nodes %{failed}'
       duplicates: 'Failed to save the nodes %{failed} because there are duplicate aliases. Nothing got changed!'
       group_error: 'Failed to save the group for %{node}, should start with a letter and only contain letters, digits, -, _, ., or :.'
@@ -387,7 +387,7 @@ en:
       cli: CLI Utilities
       logs: Log Files
       delete_hint: Delete File from Export Directory
-      delete_succeeded: 'Deleted %{file} successfull'
+      delete_succeeded: 'Deleted %{file} successfully'
       delete_failed: 'Failed to delete %{file}'
       offline_mode: Feature not available in offline mode
       wait: Exporting... Please wait or check back later (screen will automatically update when complete)

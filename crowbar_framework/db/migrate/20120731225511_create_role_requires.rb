@@ -25,6 +25,7 @@ class CreateRoleRequires < ActiveRecord::Migration
     create_table :role_require_attribs do |t|
       t.belongs_to :role
       t.string     :attrib_name
+      t.string     :attrib_at
       t.timestamps
     end
     add_index(:role_require_attribs, [:role_id, :attrib_name], :unique => true)

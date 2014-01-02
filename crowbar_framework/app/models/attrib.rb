@@ -49,10 +49,15 @@ class Attrib < ActiveRecord::Base
     from = __resolve(from_orig)
     d = case
         when from.is_a?(Node)
-          source == :hint ? from.hint : from.discovery
+          case source
+          when :all then from.discovery.deep_merge(from.hint)
+          when :hint,:user then from.hint
+          else from.discovery
+          end
         when from.is_a?(DeploymentRole)
           case source
           when :all then from.wall.deep_merge(from.data)
+          when :hint, :user then from.data
           when :wall then from.wall
           else from.data
           end

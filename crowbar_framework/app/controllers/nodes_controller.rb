@@ -242,7 +242,7 @@ class NodesController < ApplicationController
     rescue StandardError => e
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
       Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'\n#{e.backtrace.join("\n")}")
-      render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}, :cache => false
+      render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}.to_json, :cache => false
     end
   end
 

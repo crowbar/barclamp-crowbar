@@ -155,7 +155,7 @@ class NodesController < ApplicationController
         end
 
         flash.now[:alert] = I18n.t(
-          report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
+          @report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
           :failed => node_list.to_sentence
         )
       elsif @report[:success].length > 0

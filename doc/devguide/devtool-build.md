@@ -174,13 +174,4 @@ With the above knowledge we can now kick off our Hadoop or OpenStack build.
     cd ~/crowbar/barclamps
     for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
 
-Now we can actually kick off the build.
-
-    # FOR HADOOP
-    ./dev switch hadoop-2.3/hadoop-os-build
-    ./dev build --os centos-6.4 --update-cache
-
-    # FOR OPENSTACK
-    ./dev switch mesa-1.6/openstack-os-build
-    ./dev build --os ubuntu-12.04 --update-cache
 

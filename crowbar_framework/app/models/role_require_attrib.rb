@@ -34,4 +34,8 @@ class RoleRequireAttrib < ActiveRecord::Base
     end
     res
   end
+
+  def get(from)
+    map(attrib.get(from))
+  end
 end

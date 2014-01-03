@@ -53,8 +53,34 @@ class NodeRole < ActiveRecord::Base
 
   # make sure that new node-roles have require upstreams
   # validate        :deployable,        :if => :deployable?
-  has_and_belongs_to_many :parents, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "child_id", :association_foreign_key => "parent_id"
-  has_and_belongs_to_many :children, :class_name => "NodeRole", :join_table => "node_role_pcms", :foreign_key => "parent_id", :association_foreign_key => "child_id"
+  # node_role_pcms maps parent noderoles to child noderoles.
+  has_and_belongs_to_many(:parents,
+                          :class_name => "NodeRole",
+                          :join_table => "node_role_pcms",
+                          :foreign_key => "child_id",
+                          :association_foreign_key => "parent_id",
+                          :order => "cohort DESC")
+  has_and_belongs_to_many(:children,
+                          :class_name => "NodeRole",
+                          :join_table => "node_role_pcms",
+                          :foreign_key => "parent_id",
+                          :association_foreign_key => "child_id",
+                          :order => "cohort ASC")
+  # node_role_all_pcms is a view that expands node_role_pcms
+  # to include all of the parents and children of a noderole,
+  # recursively.
+  has_and_belongs_to_many(:all_parents,
+                          :class_name => "NodeRole",
+                          :join_table => "node_role_all_pcms",
+                          :foreign_key => "child_id",
+                          :association_foreign_key => "parent_id",
+                          :order => "cohort DESC")
+  has_and_belongs_to_many(:all_children,
+                          :class_name => "NodeRole",
+                          :join_table => "node_role_all_pcms",
+                          :foreign_key => "parent_id",
+                          :association_foreign_key => "child_id",
+                          :order => "cohort ASC")
 
   # State transitions:
   # All node roles start life in the PROPOSED state.
@@ -266,61 +292,6 @@ class NodeRole < ActiveRecord::Base
     node.available && node.alive && jig.active
   end
 
-  # Walk returns all of the NodeRole graph (including self) reachable from
-  # the current node as parents or children, depending on which method is passed
-  # Found noderoles are returned in cohort order.
-  def __walk(meth)
-    tracked = Hash.new
-    NodeRole.transaction do
-      curr = [ self ]
-      until curr.empty? do
-        next_curr = Array.new
-        curr.each do |nr|
-          tracked[nr] = nr.cohort
-          nr.send(meth).each do |cnr|
-            next if tracked[cnr]
-            tracked[cnr] = cnr.cohort
-            next_curr << cnr
-          end
-        end
-        curr = next_curr
-      end
-    end
-    res = Array.new
-    tracked.each do |k,v|
-      res[v] ||= Array.new
-      res[v] << k
-    end
-    res.compact!
-    res.sort!
-    res.flatten!
-    res
-  end
-
-  # Return all parents and ourself in cohort order.
-  def all_parents
-    __walk(:parents)
-  end
-
-  # Return ourself and all our children in cohort order.
-  def all_children
-    __walk(:children)
-  end
-
-  # Find all the direct and indirect children, then call the block
-  # on them along with the current block in cohort order.
-  def walk(block)
-    raise "Must be passed a block" unless block.kind_of?(Proc)
-    all_children.map do |nr| block.call(nr) end
-  end
-
-  # Find all the direct and indirect parents, and then call the block
-  # on them in reverse cohort order.
-  def parentwalk(block)
-    raise "Must be passed a block" unless block.kind_of?(Proc)
-    all_parents.reverse.map do |nr| block.call(nr) end
-  end
-
   def deployment_data
     res = {}
     DeploymentRole.where(:snapshot_id => snapshot.id,:role_id => role.id).each do |dr|
@@ -345,7 +316,7 @@ class NodeRole < ActiveRecord::Base
   def all_deployment_data
     res = {}
     all_parents.each {|parent| res.deep_merge!(parent.deployment_data)}
-    res
+    res.deep_merge(deployment_data)
   end
 
   def all_parent_data
@@ -359,7 +330,7 @@ class NodeRole < ActiveRecord::Base
   def all_data
     res = all_deployment_data
     res.deep_merge!(all_parent_data)
-    res
+    res.deep_merge(all_my_data)
   end
 
   def all_transition_data
@@ -367,7 +338,7 @@ class NodeRole < ActiveRecord::Base
     # This will get all parent data from all the active noderoles on this node.
     res.deep_merge!(self.node.all_active_data)
     res.deep_merge!(all_parent_data)
-    res
+    res.deep_merge(all_my_data)
   end
 
   def rerun
@@ -476,6 +447,8 @@ class NodeRole < ActiveRecord::Base
         raise InvalidTransition.new(self,cstate,val)
       end
       # If we are blocked, so are all our children.
+      write_attribute("state",val)
+      save!
       all_children.each do |c|
         c.send(:write_attribute,"state",BLOCKED)
         c.save!
@@ -486,7 +459,6 @@ class NodeRole < ActiveRecord::Base
       write_attribute("state",val)
       save!
       all_children.each do |c|
-        next if c.id == self.id
         unless c.deployment.id == self.deployment.id
           raise InvalidTransition.new(c,cstate,val,"NodeRole #{c.name} not in same deployment as #{self.name}")
         end

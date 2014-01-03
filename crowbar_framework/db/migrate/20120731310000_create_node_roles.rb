@@ -32,10 +32,21 @@ class CreateNodeRoles < ActiveRecord::Migration
     end
     #natural key
     add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)
-  end
 
-  create_table :node_role_pcms, :id => false do |t|
-    t.integer :parent_id
-    t.integer :child_id
+    create_table :node_role_pcms, :id => false do |t|
+      t.integer :parent_id
+      t.integer :child_id
+    end
+    add_index(:node_role_pcms, [:parent_id, :child_id], :unique => true)
+
+    # Create a view that expands all node_role_pcms to include all the
+    # recursive parents and children of a node.
+    # This is very postgresql 9.3 specific.
+   execute "
+create or replace recursive view node_role_all_pcms (child_id, parent_id) as
+      select child_id, parent_id from node_role_pcms
+      union
+      select p.child_id, pcm.parent_id from node_role_pcms pcm, node_role_all_pcms p
+      where pcm.child_id = p.parent_id;"
   end
 end

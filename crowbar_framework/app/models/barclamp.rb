@@ -197,7 +197,11 @@ class Barclamp < ActiveRecord::Base
         RoleRequireAttrib.where(:role_id => r.id).delete_all
         r.save!
         prerequisites.each { |req| RoleRequire.create :role_id => r.id, :requires => req }
-        wanted_attribs.each{ |attr| RoleRequireAttrib.create :role_id => r.id, :attrib_name => attr }
+        wanted_attribs.each do  |attr|
+          RoleRequireAttrib.create(:role_id => r.id,
+                                   :attrib_name => attr.is_a?(Hash) ? attr["name"] : attr,
+                                   :attrib_at => attr.is_a?(Hash) ? attr["at"] : nil)
+        end
       end
       role['attribs'].each do |attrib|
         attrib_name = attrib["name"]

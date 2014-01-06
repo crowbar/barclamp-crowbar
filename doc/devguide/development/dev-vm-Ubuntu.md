@@ -108,13 +108,13 @@ community on LTS releases.
 
     # let's install some OS packages
     sudo apt-get update
-    sudo apt-get install git rpm ruby rubygems1.9 curl build-essential debootstrap \
+    sudo apt-get install git rpm ruby ruby1.9.1-dev rubygems1.9 curl build-essential debootstrap \
     mkisofs binutils markdown erlang-base debhelper python-pip libsqlite-dev \
      libopenssl-ruby1.9.1 libssl-dev zlib1g-dev ruby-sqlite3 libsqlite3-dev
     sudo apt-get install libpq-dev
     # to make Ruby 1.9.1 the default. ruby -v will report version 1.9.3
     sudo update-alternatives --config ruby 
-    # make Gem 1.9 the default, gem -v will report version 1.9
+    # make Gem 1.9 the default, gem -v will report version 1.8.11
     sudo update-alternatives --config gem 
     #
     # Remove Postgresql
@@ -149,13 +149,9 @@ community on LTS releases.
     psql postgresql://crowbar@:5439/template1 -c 'select true;'
 
 
-    # On OpenSUSE
-    # install Base Development pattern from the software management tool including gcc, c++ & objectC, build, ccache
-
     # let's install some needed gems next
-    # On Ubuntu 12.04 you may need to leave ruby1.9.3-dev off
-    sudo gem install ruby1.9.3-dev builder bluecloth
-    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake rcov rspec pg --no-ri --no-rdoc
+    sudo gem install builder bluecloth
+    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake simplecov rspec pg --no-ri --no-rdoc
 
 ## Building Crowbar 
 

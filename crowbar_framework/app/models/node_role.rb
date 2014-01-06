@@ -74,13 +74,15 @@ class NodeRole < ActiveRecord::Base
                           :join_table => "node_role_all_pcms",
                           :foreign_key => "child_id",
                           :association_foreign_key => "parent_id",
-                          :order => "cohort DESC")
+                          :order => "cohort DESC",
+                          :delete_sql => "SELECT 1")
   has_and_belongs_to_many(:all_children,
                           :class_name => "NodeRole",
                           :join_table => "node_role_all_pcms",
                           :foreign_key => "parent_id",
                           :association_foreign_key => "child_id",
-                          :order => "cohort ASC")
+                          :order => "cohort ASC",
+                          :delete_sql => "SELECT 1")
 
   # State transitions:
   # All node roles start life in the PROPOSED state.

@@ -77,13 +77,51 @@ class Jig < ActiveRecord::Base
     res
   end
 
-  # Gather all of the data needed for a single noderole run.
-  # This function needs to be overridden by the actual jigs.
+  # Gather all of the attribute data needed for a single noderole run.
   # It should be run to create whatever information will be needed
   # for the actual run before doing the actual run in a delayed job.
-  # RETURNS the data needed for .run
+  # RETURNS the attribute data needed for a single noderole run.
   def stage_run(nr)
-    raise "Cannot call stage_run on the top-level jig from role '#{nr.role.name}' on '#{nr.node.name}'!"
+    res = {}
+    # Figure out which attribs will be satisfied from node data vs.
+    # which will be satisfied from noderoles.
+    node_req_attrs,role_req_attrs = nr.role.role_require_attribs.partition do |rrr|
+      attr = rrr.attrib
+      raise("RoleRequiresAttrib: Cannot find required attrib #{rrr.attrib_name}") if attr.nil?
+      attr.role_id.nil?
+    end
+    # For all the node attrs, resolve them.  Prefer hints.
+    # Start with the node data.
+    node_req_attrs.each do |req_attr|
+      Rails.logger.info("Jig: Adding node attribute #{req_attr.attrib_name} to attribute blob for #{nr.name} run")
+      res.deep_merge!(req_attr.get(nr.node))
+    end
+    # Next, build up the node specific part of the attrib blob.
+    # All parent noderoles that are on the same node get their attribs pulled
+    # in by default.
+    nr.all_parents.on_node(nr.node).order("cohort ASC").each do |parent_nr|
+      res.deep_merge!(parent_nr.deployment_data)
+      res.deep_merge!(parent_nr.all_my_data)
+    end
+    # Next, do the same for the attribs we want from a noderole.
+    role_req_attrs.each do |req_attr|
+      source = if req_attr.attrib.role.implicit
+                 # If we are requesting an attribute provided by an implicit role, then
+                 # that attribute must come from a noderole bound to the same node as we are.
+                 nr.all_parents.where(:role_id => req_attr.attrib.role_id, :node_id => nr.node_id).first
+               else
+                 # Otherwise, it can come from any parent noderole.
+                 nr.all_parents.where(:role_id => req_attr.attrib.role_id).first
+               end
+      raise("Cannot find source for wanted attrib #{req_attr.attrib_name}") unless source
+      Rails.logger.info("Jig: Adding role attribute #{req_attr.attrib_name} from #{source.name} to attribute blob for #{nr.name} run")
+      res.deep_merge!(req_attr.get(source))
+    end
+    # Add this noderole's attrib data.
+    Rails.logger.info("Jig: Merging attribute data from #{nr.name} for jig run.")
+    res.deep_merge!(nr.attrib_data)
+    # And we are done.
+    res
   end
 
   # Run a single noderole.
@@ -92,7 +130,7 @@ class Jig < ActiveRecord::Base
   # and only used for debugging purposes.
   # Runs will be run in the background by the dalayed_job information.
   def run(nr,data)
-    raise "Cannot call run on the top-level Jig!"
+    true
   end
 
   def finish_run(nr)

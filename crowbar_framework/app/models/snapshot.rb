@@ -27,9 +27,9 @@ class Snapshot < ActiveRecord::Base
     ACTIVE => "active",
     ERROR => "error"
   }
-  
+
   attr_accessible :id, :name, :description, :order, :deployment_id, :snapshot_id
-  
+
   belongs_to      :deployment
 
   has_many        :deployment_roles,  :dependent => :destroy
@@ -37,7 +37,7 @@ class Snapshot < ActiveRecord::Base
 
   has_many        :node_roles,        :dependent => :destroy
   has_many        :nodes,             :through => :node_roles
- 
+
   has_one         :snapshot
   alias_attribute :next,              :snapshot
 
@@ -58,7 +58,7 @@ class Snapshot < ActiveRecord::Base
   def committed?
     read_attribute('state') == COMMITTED
   end
-  
+
   def proposed?
     read_attribute('state') == PROPOSED
   end
@@ -87,7 +87,7 @@ class Snapshot < ActiveRecord::Base
 
   def state
     s = read_attribute("state")
-    
+
     return s if s == ARCHIVED || s == PROPOSED
     return ACTIVE if active?
     return ERROR if error?
@@ -115,11 +115,11 @@ class Snapshot < ActiveRecord::Base
     end
   end
 
-  # returns a hash with all the snapshot error status information 
+  # returns a hash with all the snapshot error status information
   def status
     node_roles.each { |nr| s[nr.id] = nr.status if nr.error?  }
   end
-  
+
     # commit the current proposal (cannot be done if there is a committed proposal)
   def commit
     raise I18n.t('deployment.commit.raise', :default=>'blocked: already 1 committed') unless proposed?
@@ -132,7 +132,7 @@ class Snapshot < ActiveRecord::Base
     Run.run!
     self
   end
-  
+
   # create a new proposal from the this one
   def propose(name=nil)
     raise "Snapshot #{name} not ACTIVE, cannot create a new snapshot from it!" unless active?
@@ -141,7 +141,7 @@ class Snapshot < ActiveRecord::Base
     Deployment.transaction do
       # create the new proposal
       proposal = deep_clone(name)
-      # move the pointer 
+      # move the pointer
       deployment.snapshot_id = proposal.id
       archive
       deployment.save!
@@ -152,7 +152,7 @@ class Snapshot < ActiveRecord::Base
   def recallable?
     !deployment.system?
   end
-  
+
   # attempt to stop a proposal that's in transistion.
   # Do this by changing its state from COMMITTED to PROPOSED.
   def recall
@@ -180,27 +180,10 @@ class Snapshot < ActiveRecord::Base
         new_dr.save!
         newsnap.deployment_roles << new_dr
       end
-      # collect the node roles
-      node_role_map = Hash.new
-      self.node_roles.each do |nr| 
-        Rails.logger.info("Snapshot: duplicating NodeRole #{nr.id}")
-        new_nr = nr.dup
-        new_nr.snapshot = newsnap
-        # store the new nr because we need it for relationships (it's automatically linked to the snapshot when created)
-        node_role_map[nr.id] = [nr,new_nr]
+      node_roles.each do |nr|
+        nr.snapshot_id = newsnap.id
+        nr.save!
       end
-      node_role_map.each do |id,nr_array|
-        old_nr = nr_array[0]
-        new_nr = nr_array[1]
-        old_nr.children.each do |c_nr|
-          new_nr.children << (node_role_map[c_nr.id][1] || c_nr rescue c_nr)
-        end
-        old_nr.parents.each do |p_nr|
-          new_nr.parents << (node_role_map[p_nr.id][1] || p_nr rescue p_nr)
-        end
-        new_nr.save!
-      end
-      newsnap.save!
       newsnap
     end
   end

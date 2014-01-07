@@ -27,6 +27,7 @@ class NodeRole < ActiveRecord::Base
   has_one         :barclamp,          :through => :role
   has_many        :attribs,           :through => :role
   has_many        :runs,              :dependent => :destroy
+  has_many        :node_role_data,    :dependent => :destroy, :order => "id DESC"
 
   # find other node-roles in this snapshot using their role or node
   scope           :all_by_state,      ->(state) { where(['node_roles.state=?', state]) }
@@ -74,13 +75,15 @@ class NodeRole < ActiveRecord::Base
                           :join_table => "node_role_all_pcms",
                           :foreign_key => "child_id",
                           :association_foreign_key => "parent_id",
-                          :order => "cohort DESC")
+                          :order => "cohort DESC",
+                          :delete_sql => "SELECT 1")
   has_and_belongs_to_many(:all_children,
                           :class_name => "NodeRole",
                           :join_table => "node_role_all_pcms",
                           :foreign_key => "parent_id",
                           :association_foreign_key => "child_id",
-                          :order => "cohort ASC")
+                          :order => "cohort ASC",
+                          :delete_sql => "SELECT 1")
 
   # State transitions:
   # All node roles start life in the PROPOSED state.
@@ -182,11 +185,6 @@ class NodeRole < ActiveRecord::Base
     end
   end
 
-  def data
-    raw = read_attribute("userdata")
-    d = raw.nil? ? {} : JSON.parse(raw)
-  end
-
   def add_parent(new_parent)
     return if parents.any?{|p| p.id == new_parent.id}
     if new_parent.cohort >= (self.cohort || 0)
@@ -197,15 +195,17 @@ class NodeRole < ActiveRecord::Base
     parents << new_parent
   end
 
+  def data
+    raw = current_data
+    raw.nil? ? {} : JSON.parse(raw.data)
+  end
+
   def data=(arg)
     raise I18n.t('node_role.cannot_edit_data') unless snapshot.proposed?
     arg = JSON.generate(arg) if arg.is_a? Hash
-
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
-
-    write_attribute("userdata",arg)
-    save!
+    new_data(:data, arg)
   end
 
   def data_update(val)
@@ -218,13 +218,13 @@ class NodeRole < ActiveRecord::Base
 
   def sysdata
     return role.sysdata(self) if role.respond_to?(:sysdata)
-    JSON.parse(read_attribute("systemdata")||'{}')
+    raw = current_data
+    raw.nil? ? {} : JSON.parse(raw.sysdata)
   end
 
   def sysdata=(arg)
     raise("#{role.name} dynamically overwrites sysdata, cannot write to it!") if role.respond_to?(:sysdata)
-    write_attribute("systemdata",JSON.generate(arg))
-    save!
+    new_data(:sysdata,JSON.generate(arg))
   end
 
   def sysdata_update(val)
@@ -240,15 +240,12 @@ class NodeRole < ActiveRecord::Base
   end
 
   def wall
-    d = read_attribute("wall")
-    return {} if d.nil? || d.empty?
-    JSON.parse(d)
+    raw = current_data
+    raw.nil? ? {} : JSON.parse(raw.wall)
   end
 
   def wall=(arg)
-    arg = JSON.generate(arg) if arg.is_a? Hash
-    write_attribute("wall",arg)
-    save!
+    new_data(:wall,JSON.generate(arg))
   end
 
   def wall_update(val)
@@ -509,6 +506,31 @@ class NodeRole < ActiveRecord::Base
       else
         self.state = BLOCKED
       end
+    end
+  end
+
+  def current_data
+    node_role_data.active.first
+  end
+
+  def new_data(kind,val)
+    NodeRoleDatum.transaction do
+      nrd = current_data
+      nrd = if nrd.nil?
+              NodeRoleDatum.new(:node_role_id => id,
+                               :snapshot_id => snapshot_id,
+                               :current => true,
+                               kind => val)
+            else
+              new_nrd = nrd.dup
+              nrd.current = false
+              nrd.save!
+              new_nrd.node_role_id = nrd.node_role_id
+              new_nrd.snapshot_id = nrd.snapshot_id
+              new_nrd[kind] = val
+              new_nrd
+            end
+      nrd.save!
     end
   end
 

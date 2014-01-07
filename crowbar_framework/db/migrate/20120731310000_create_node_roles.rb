@@ -22,22 +22,33 @@ class CreateNodeRoles < ActiveRecord::Migration
       t.integer     :cohort,            :null=>false, :default => 0
       t.integer     :run_count,         :null=>false, :default => 0
       t.string      :status,            :null=>true   # expected for error, blocked, transistioning
-      t.text        :userdata,          :null=>false, :default => '{}'
-      t.text        :systemdata,        :null=>false, :default => '{}'
-      t.text        :wall,              :null=>true
       t.text        :runlog,            :null=>false, :default => ""
       t.boolean     :available,         :null=>false, :default => true
       t.integer     :order,             :default=>Random.rand(1000000)
       t.timestamps
     end
     #natural key
-    add_index(:node_roles, [:snapshot_id, :role_id, :node_id], :unique => true)
+    add_index(:node_roles, [:role_id, :node_id], :unique => true)
+    add_index(:node_roles, :snapshot_id)
 
     create_table :node_role_pcms, :id => false do |t|
       t.integer :parent_id
       t.integer :child_id
     end
     add_index(:node_role_pcms, [:parent_id, :child_id], :unique => true)
+
+    create_table :node_role_data do |t|
+      t.belongs_to :snapshot,         :null => false
+      t.belongs_to :node_role,        :null => false
+      t.text       :data,             :null => false, :default => '{}'
+      t.text       :sysdata,          :null => false, :default => '{}'
+      t.text       :wall,             :null => false, :default => '{}'
+      t.boolean    :current,          :null => false, :default => true
+      t.timestamps
+    end
+
+    add_index(:node_role_data, :current)
+    add_index(:node_role_data, :node_role_id)
 
     # Create a view that expands all node_role_pcms to include all the
     # recursive parents and children of a node.

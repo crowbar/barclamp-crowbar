@@ -51,7 +51,7 @@ class BarclampCrowbar::Jig < Jig
   end
 
   def stage_run(nr)
-    return nr.all_transition_data
+    super(nr)
   end
 
   def run(nr,data)
@@ -125,14 +125,7 @@ class BarclampCrowbar::Jig < Jig
       end
     end
     Rails.logger.info("New wall values for #{nr.name} #{new_wall.inspect}")
-    # By now, we have new_wall populated. Save it if anything changed.
-    NodeRole.transaction do
-      old_wall = nr.wall
-      unless new_wall.empty? || (old_wall == new_wall)
-        nr.wall = old_wall.deep_merge!(new_wall)
-        nr.save!
-      end
-    end
+    nr.wall = new_wall
     system("sudo -H chown -R crowbar.crowbar #{local_tmpdir}")
     system("sudo rm -rf '#{local_tmpdir}")
     # Clean up after ourselves.

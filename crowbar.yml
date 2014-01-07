@@ -160,6 +160,7 @@ debs:
     - libxml2-dev
     - zlib1g-dev
     - libxslt1-dev
+    - libpq-dev
   pkgs:
     # build-essential stuff
     - build-essential

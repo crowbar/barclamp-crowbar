@@ -7,6 +7,7 @@
 
     this.options = $.extend(
       {
+        disabledSubmits: 'input[source=commit1], input[source=save1]',
         storage: '#proposal_attributes',
         namespace: this.root.data('namespace'),
         entries: this.root.data('dynamic'),
@@ -62,7 +63,7 @@
     }
 
     var input = this.root.find(
-      'tfoot [data-name={0}'.format(
+      'tfoot [data-name={0}]'.format(
         this.options.key
       )
     );
@@ -210,6 +211,22 @@
       var data = self.json;
       var namespace = $(this).data('update').toString().split('/');
 
+      var optionals = self.options.optional.toString().split(',');
+
+      if ($.inArray($(this).data('name'), optionals) < 0) {
+        if ($(this).val() == '') {
+          $(this).parents('td').addClass('has-error');
+        } else {
+          $(this).parents('td').removeClass('has-error');
+        }
+      }
+
+      if ($('tbody td.has-error').length > 0) {
+        $(self.options.disabledSubmits).attr('disabled', 'disabled');
+      } else {
+        $(self.options.disabledSubmits).removeAttr('disabled');
+      }
+
       while (namespace.length > 1) {
         var current_namespace = namespace.shift();
 
@@ -226,7 +243,6 @@
       );
 
       self.writeJson();
-      self.renderEntries();
     });
   };
 

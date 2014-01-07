@@ -233,7 +233,7 @@ class NodeObject < ChefObject
   end
 
   def public_name(suggest=false)
-    if !crowbar["crowbar"]["public_name"].nil? && !crowbar["crowbar"]["public_name"].empty?
+    if !crowbar["crowbar"].nil? && !crowbar["crowbar"]["public_name"].nil? && !crowbar["crowbar"]["public_name"].empty?
       crowbar["crowbar"]["public_name"]
     elsif suggest
       default_loader['public_name']

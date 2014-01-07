@@ -36,7 +36,7 @@ class SupportController < ApplicationController
     @export = Utils::ExtendedHash.new({
       :waiting => params[:waiting] == "true" || params[:format] == "json",
       :counter => 0,
-      :current => params["file"],
+      :current => params["file"].to_s.gsub("-DOT-", "."),
       :files => {
         :logs => [],
         :cli => [],

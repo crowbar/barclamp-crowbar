@@ -298,8 +298,8 @@ en:
       title: Bulk edit
       title_all: All available nodes
       title_unallocated: Unallocated nodes only
-      unallocated: Unallocated
-      all: All
+      unallocated: Show unallocated
+      all: Show all
       nochange: No Changes
       license_key: License
       target_platform: Platform

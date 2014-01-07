@@ -3,6 +3,12 @@
     %h1.page-header
       = t(".title")
 
+      .btn-group.pull-right
+        - if params[:allocated]
+          = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
+        - else
+          = link_to t(".unallocated"), nodes_list_path(:allocated => "yes"), :class => "btn btn-default"
+
 - form_for :node, :url => nodes_list_path, :html => { :role => "form" } do |f|
   - if params[:allocated]
     = hidden_field_tag "allocated", "yes"
@@ -12,16 +18,11 @@
       %h2
         - if params[:allocated]
           = t(".title_unallocated")
-
-          .btn-group.pull-right
-            = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
-            %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
         - else
           = t(".title_all")
 
-          .btn-group.pull-right
-            = link_to t(".unallocated"), nodes_list_path(:allocated => "yes"), :class => "btn btn-default"
-            %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
+        .btn-group.pull-right
+          %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
 
     - if @nodes.count > 0
       %table.table.table-hover.table-middle
@@ -128,8 +129,4 @@
 
     .panel-footer.text-right
       .btn-group
-        - if params[:allocated]
-          = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
-        - else
-          = link_to t(".unallocated"), nodes_list_path(:allocated => "yes"), :class => "btn btn-default"
         %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }

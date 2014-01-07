@@ -45,6 +45,12 @@ gem "sprockets-helpers", "1.1.0"
 
 group :development do
   gem "brakeman"
+  gem "rspec-rails", "1.3.4"
+end
+
+group :test do
+  gem "rspec-rails", "1.3.4"
+  gem "mocha", "0.10.5"
 end
 
 # Install gems from each barclamp. The crowbar_path variable is

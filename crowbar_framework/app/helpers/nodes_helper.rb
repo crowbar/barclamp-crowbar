@@ -169,28 +169,45 @@ module NodesHelper
         t(node.state, :scope => :state, :default => node.state.titlecase)
       ]
 
+      show_name = if node.switch_name.nil?
+        false
+      else
+        node.switch_name >= 0
+      end
+
+      show_port = if node.switch_port.nil?
+        false
+      else
+        node.switch_port >= 0
+      end
+
+      show_unit = if node.switch_unit.nil?
+        false
+      else
+        node.switch_unit >= 0
+      end
+
       if node.switch_unit.nil?
         switch_label = [
-          value_for(node.switch_name, t("unknown"), node.switch_name >= 0),
-          value_for(node.switch_port, t("unknown"), node.switch_port >= 0)
+          value_for(node.switch_name, t("unknown"), show_name),
+          value_for(node.switch_port, t("unknown"), show_port)
         ].join(" / ")
 
-        result.push [
-          t("model.attributes.node.switch_name_port"),
-          link_to(switch_label, switch_path(:node => node.handle))
-        ]
+        switch_title = t("model.attributes.node.switch_name_port")
       else
         switch_label = [
-          value_for(node.switch_name, t("unknown"), node.switch_name >= 0),
-          value_for(node.switch_unit, t("unknown"), node.switch_unit >= 0),
-          value_for(node.switch_port, t("unknown"), node.switch_port >= 0)
+          value_for(node.switch_name, t("unknown"), show_name),
+          value_for(node.switch_unit, t("unknown"), show_unit),
+          value_for(node.switch_port, t("unknown"), show_port)
         ].join(" / ")
 
-        result.push [
-          t("model.attributes.node.switch_name_unit_port"),
-          link_to(switch_label, switch_path(:node => node.handle))
-        ]
+        switch_title = t("model.attributes.node.switch_name_unit_port")
       end
+
+      result.push [
+        switch_title,
+        link_to(switch_label, switch_path(:node => node.handle))
+      ]
 
       if CrowbarService.require_license_key? node.target_platform
         result.push [

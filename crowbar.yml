@@ -391,7 +391,7 @@ gems:
     - amqp
     - bluecloth
     - builder
-    - bundler
+    - bundler-(~>1.3.0)
     - bunny-(<0.8.0)
     - cancan
     - coveralls

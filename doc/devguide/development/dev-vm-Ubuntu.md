@@ -148,10 +148,10 @@ community on LTS releases.
     export PGCLUSTER=9.3/main
     psql postgresql://crowbar@:5439/template1 -c 'select true;'
 
-
     # let's install some needed gems next
     sudo gem install builder bluecloth
-    sudo gem install json net-http-digest_auth kwalify bundler delayed_job delayed_job_active_record rake simplecov rspec pg --no-ri --no-rdoc
+    sudo gem install bundler --version '1.3.5' --no-ri --no-rdoc
+    sudo gem install json net-http-digest_auth kwalify delayed_job delayed_job_active_record rake simplecov rspec pg --no-ri --no-rdoc
 
 ## Building Crowbar 
 

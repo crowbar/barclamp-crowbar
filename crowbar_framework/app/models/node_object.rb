@@ -16,6 +16,7 @@
 #
 
 require 'chef/mixin/deep_merge'
+require 'timeout'
 
 class NodeObject < ChefObject
   extend CrowbarOffline
@@ -951,7 +952,7 @@ class NodeObject < ChefObject
           end
         end
       rescue Timeout::Error
-        Rails.logger.warn("chef client seems to be running after 5 minutes, going to reboot anyway")
+        Rails.logger.warn("chef client seems to be still running after 5 minutes of wait; going on with the reboot")
       end
 
       if CHEF_ONLINE

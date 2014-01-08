@@ -418,7 +418,7 @@ gems:
     - rails_config
     - rails-erd
     - rake
-    - rcov
+    # - rcov
     - rdoc
     - rest-client
     # Pinned to not interfere with chefspec.

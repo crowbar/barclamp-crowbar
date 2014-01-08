@@ -18,6 +18,7 @@
 #
 
 require 'chef/mixin/deep_merge'
+require 'timeout'
 
 class NodeObject < ChefObject
   extend CrowbarOffline
@@ -970,9 +971,15 @@ class NodeObject < ChefObject
     if %w(reset reinstall update).include? state
       # wait with reboot for the finish of configuration update by local chef-client
       # (so dhcp & PXE config is prepared when node is rebooted)
-      while File.exist?("/var/run/crowbar/chef-client.lock")
-        Rails.logger.debug("chef client still running")
-        sleep(1)
+      begin
+        Timeout.timeout(300) do
+          while File.exist?("/var/run/crowbar/chef-client.lock")
+            Rails.logger.debug("chef client still running")
+            sleep(1)
+          end
+        end
+      rescue Timeout::Error
+        Rails.logger.warn("chef client seems to be still running after 5 minutes of wait; going on with the reboot")
       end
 
       if CHEF_ONLINE

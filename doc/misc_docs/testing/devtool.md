@@ -1,29 +1,30 @@
-### Dev Tool Helpers 
+### Testing Using The Dev Tool
 
 The dev tool allows you to set up a test environment and run tests
-from it.
+from it on the development VM.
 
 Firstly ensure you have [set up a development VM](../dev-vm.md) which has
 the correct dependencies installed.
 
-The following commands work for UNIX environments.  When you first run
-`./dev tests run`, use the `--update-gem-cache` option to make sure you
-have the gems.
+The following commands work for UNIX environments.
 
 #### Setting up the test environment
 
-`./dev tests setup` builds a test environment in `/tmp/crowbar-dev-test`.
-On openSUSE, you should use the `--no-gem-cache` option.
+Before running the tests, you must set up the test environment.
 
-Setup includes the following tasks:
+* If you are working internal to Dell and are using the gitolite build cache then run './dev tests setup'
+* If you are working external to Dell or are not using the gitolite build cache, then run './dev tests setup --update-gem-cache' to make sure you have the necessary gems
+* If you are working on openSUSE, you should run './dev tests setup --no-gem-cache`
 
-* copying the sources into the right locations under
+Setup performs the following tasks:
+
+* Copies the sources into the right locations under
   `/tmp/crowbar-dev-test/opt/dell`
-* running bundler to install required gems
-* creating a `coverage` symlink under the Rails app's `public/`
+* Runs bundler to install required gems
+* Creates a `coverage` symlink under the Rails app's `public/`
   directory so that the web server will serve up the HTML coverage
   reports
-* compiling the BDD tests
+* Compiles the BDD tests
 
 #### Running the tests
 
@@ -31,7 +32,7 @@ Setup includes the following tasks:
 
 You can also run them with finer granularity:
 
-    ./dev tests run-unit  # executes the Rails specs, Chef specs, and unit tests
+    ./dev tests run-units  # executes the Rails specs, Chef specs, and unit tests
     ./dev tests run-BDD   # executes the BDD tests
 
 After changing code, you can re-run the above command after first

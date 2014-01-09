@@ -56,9 +56,21 @@ describe MachinesController do
   end
 
   describe "GET list" do
+    before do
+      ChefObject.stubs(:cloud_domain).returns("localdomain")
+    end
+
     it "responds with index" do
       MachinesController.any_instance.expects(:index).once
       get :list
+    end
+  end
+
+  describe "POST action" do
+    it "assigns @name in a before filter based on param passed" do
+      NodeObject.stubs(:find_node_by_name).returns(nil)
+      post :reboot, :name => "testing"
+      assigns(:name).should == "testing.#{session[:domain]}"
     end
   end
 

@@ -23,6 +23,8 @@ class MachinesController < ApplicationController
 
   self.help_contents = Array.new(superclass.help_contents)
 
+  before_filter :set_name, :except => [:index, :list]
+
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
       begin
@@ -50,15 +52,13 @@ class MachinesController < ApplicationController
 
   add_help(:show,[:name])
   def show
-    name = params[:name]
-    if session[:domain].nil? 
+    if session[:domain].nil?
       session[:domain] = ChefObject.cloud_domain
     end
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
 
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -71,12 +71,9 @@ class MachinesController < ApplicationController
 
   add_help(:reinstall,[:name],[:post])
   def reinstall
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -90,12 +87,9 @@ class MachinesController < ApplicationController
 
   add_help(:update,[:name],[:post])
   def update
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -109,12 +103,9 @@ class MachinesController < ApplicationController
 
   add_help(:reset,[:name],[:post])
   def reset
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -128,12 +119,9 @@ class MachinesController < ApplicationController
 
   add_help(:identify,[:name],[:post])
   def identify
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -147,12 +135,9 @@ class MachinesController < ApplicationController
 
   add_help(:shutdown,[:name],[:post])
   def shutdown
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -166,12 +151,9 @@ class MachinesController < ApplicationController
 
   add_help(:reboot,[:name],[:post])
   def reboot
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -185,12 +167,9 @@ class MachinesController < ApplicationController
 
   add_help(:poweron,[:name],[:post])
   def poweron
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -204,12 +183,9 @@ class MachinesController < ApplicationController
 
   add_help(:allocate,[:name],[:post])
   def allocate
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -223,12 +199,9 @@ class MachinesController < ApplicationController
 
   add_help(:delete,[:name],[:delete])
   def delete
-    name = params[:name]
-    name = "#{name}.#{session[:domain]}" if name.split(".").length <= 1
-
-    machine = NodeObject.find_node_by_name name
+    machine = NodeObject.find_node_by_name @name
     if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{name}"
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
@@ -238,5 +211,14 @@ class MachinesController < ApplicationController
         format.json { render :json => {} }
       end
     end
+  end
+
+  private
+
+  # FIXME: the session[:domain] is only set for index action, while this is
+  # called before every action. Is that a problem?
+  def set_name
+    @name = params[:name]
+    @name = "#{@name}.#{session[:domain]}" if @name.split(".").length <= 1
   end
 end

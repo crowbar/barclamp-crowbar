@@ -53,6 +53,9 @@
               = t 'na'
             -else
               = select_tag :raid,  options_for_select(option_default(@options[:raid], @node.raid_set, 'raid'), @node.raid_set)
+        %li.select
+          = f.label :software_raid, t('.software_raid.label')
+          = select_tag :software_raid, options_for_select([[t('.software_raid.singledisk'), 'false'], [t('.software_raid.raid1'), 'true']], @node.software_raid)
     %fieldset.buttons
       %ol
         -unless @node.allocated? or @node.admin?

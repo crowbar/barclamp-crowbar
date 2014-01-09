@@ -303,6 +303,7 @@ class NodesController < ApplicationController
       @node.public_name = params[:public_name]
       @node.group = params[:group]
       @node.description = params[:description]
+      @node.software_raid = params[:software_raid]
       if change_target_platform
         @node.target_platform = params[:target_platform]
         @node.license_key = params[:license_key]

@@ -8,6 +8,7 @@ Feature: NodeRole
     Then the page returns {integer:200}
 
   Scenario: REST can add a node to a role
+    Skip Broken until OpenCrowbar Migration Complete
     Given there is a {object:deployment} "bdd_deploy_add_role"
       And there is a {object:role} "bdd_role_add_node"
       And there is a {object:node} "bdd-add-me-to-role.cr0wbar.com"

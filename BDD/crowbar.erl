@@ -220,7 +220,7 @@ step(Result, {step_then, _N, ["I should not see", Text, "in the body"]}) ->
 step(_, {_, {_Scenario, _N}, ["there are no pending Crowbar runs for",node,Node]}) -> 
   timer:sleep(100),   % we want a little pause to allow for settling
   URL = eurl:path(run:g(path),Node),
-  wait_for(URL, "[]", 60, 500);
+  wait_for(URL, "[]", 30, 250);
 
 % ============================  LAST RESORT =========================================
 step(_Given, {step_when, _N, ["I have a test that is not in WebRat"]}) -> true;

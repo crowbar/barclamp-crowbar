@@ -112,17 +112,17 @@ describe MachinesController do
         end
 
         it "sends #{operation} to the node" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
         end
 
         it "responds with empty json as a response" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
           json = JSON.parse(response.body)
           json.should == {}
         end
 
         it "is successful" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
           response.should be_success
         end
       end
@@ -135,17 +135,17 @@ describe MachinesController do
         end
 
         it "sends #{operation} to the node" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
         end
 
         it "responds with empty json as a response" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
           json = JSON.parse(response.body)
           json.should == {}
         end
 
         it "is successful" do
-          get operation, :name => "testing"
+          post operation, :name => "testing"
           response.should be_success
         end
       end

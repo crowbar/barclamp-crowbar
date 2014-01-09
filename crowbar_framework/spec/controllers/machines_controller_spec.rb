@@ -2,6 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "spec_helper"))
 
 describe MachinesController do
   before do
+    ChefObject.stubs(:cloud_domain).returns("localdomain")
     RoleObject.stubs(:find_role_by_name).returns(RoleObject.new(Chef::Role.new))
   end
 
@@ -12,7 +13,6 @@ describe MachinesController do
     before do
       NodeObject.stubs(:find_all_nodes).returns([node])
       FileTest.stubs(:exist?).returns(true)
-      ChefObject.stubs(:cloud_domain).returns("localdomain")
     end
 
     it "is successful" do
@@ -29,10 +29,6 @@ describe MachinesController do
   end
 
   describe "GET show" do
-    before do
-      ChefObject.stubs(:cloud_domain).returns("localdomain")
-    end
-
     it "is successful" do
       NodeObject.stubs(:find_node_by_name).returns(node)
 
@@ -56,10 +52,6 @@ describe MachinesController do
   end
 
   describe "GET list" do
-    before do
-      ChefObject.stubs(:cloud_domain).returns("localdomain")
-    end
-
     it "responds with index" do
       MachinesController.any_instance.expects(:index).once
       get :list

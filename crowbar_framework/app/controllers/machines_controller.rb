@@ -23,15 +23,13 @@ class MachinesController < ApplicationController
 
   self.help_contents = Array.new(superclass.help_contents)
 
+  before_filter :set_cloud_domain
   before_filter :set_name, :except => [:index, :list]
   before_filter :load_machine_or_render_not_found, :except => [:index, :list]
 
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
       begin
-        if session[:domain].nil? 
-          session[:domain] = ChefObject.cloud_domain
-        end
         @app = NodeObject.find_all_nodes
       rescue
         flash.now[:notice] = "ERROR: Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
@@ -53,9 +51,6 @@ class MachinesController < ApplicationController
 
   add_help(:show,[:name])
   def show
-    if session[:domain].nil?
-      session[:domain] = ChefObject.cloud_domain
-    end
     render_machine(@machine, :empty_response => false)
   end
 
@@ -115,8 +110,12 @@ class MachinesController < ApplicationController
 
   private
 
-  # FIXME: the session[:domain] is only set for index action, while this is
-  # called before every action. Is that a problem?
+  def set_cloud_domain
+    if session[:domain].nil?
+      session[:domain] = ChefObject.cloud_domain
+    end
+  end
+
   def set_name
     @name = params[:name]
     @name = "#{@name}.#{session[:domain]}" if @name.split(".").length <= 1

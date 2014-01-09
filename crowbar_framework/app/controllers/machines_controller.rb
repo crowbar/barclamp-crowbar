@@ -24,7 +24,7 @@ class MachinesController < ApplicationController
   self.help_contents = Array.new(superclass.help_contents)
 
   before_filter :set_name, :except => [:index, :list]
-  before_filter :set_machine, :except => [:index, :list]
+  before_filter :load_machine_or_render_not_found, :except => [:index, :list]
 
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
@@ -61,55 +61,55 @@ class MachinesController < ApplicationController
 
   add_help(:reinstall,[:name],[:post])
   def reinstall
-    @machine.set_state("reinstall") if @machine
+    @machine.set_state("reinstall")
     render_machine(@machine)
   end
 
   add_help(:update,[:name],[:post])
   def update
-    @machine.set_state("update") if @machine
+    @machine.set_state("update")
     render_machine(@machine)
   end
 
   add_help(:reset,[:name],[:post])
   def reset
-    @machine.set_state("reset") if @machine
+    @machine.set_state("reset")
     render_machine(@machine)
   end
 
   add_help(:identify,[:name],[:post])
   def identify
-    @machine.identify if @machine
+    @machine.identify
     render_machine(@machine)
   end
 
   add_help(:shutdown,[:name],[:post])
   def shutdown
-    @machine.shutdown if @machine
+    @machine.shutdown
     render_machine(@machine)
   end
 
   add_help(:reboot,[:name],[:post])
   def reboot
-    @machine.reboot if @machine
+    @machine.reboot
     render_machine(@machine)
   end
 
   add_help(:poweron,[:name],[:post])
   def poweron
-    @machine.poweron unless @machine.nil?
+    @machine.poweron
     render_machine(@machine)
   end
 
   add_help(:allocate,[:name],[:post])
   def allocate
-    @machine.allocate unless @machine.nil?
+    @machine.allocate
     render_machine(@machine)
   end
 
   add_help(:delete,[:name],[:delete])
   def delete
-    @machine.set_state("delete") unless @machine.nil?
+    @machine.set_state("delete")
     render_machine(@machine)
   end
 
@@ -122,22 +122,25 @@ class MachinesController < ApplicationController
     @name = "#{@name}.#{session[:domain]}" if @name.split(".").length <= 1
   end
 
-  def set_machine
+  def load_machine_or_render_not_found
+    load_machine || render_not_found
+  end
+
+  def load_machine
     @machine = NodeObject.find_node_by_name @name
+  end
+
+  def render_not_found
+    flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
+    respond_to do |format|
+      format.json { render :text => "Host not found", :status => 404 }
+    end
   end
 
   def render_machine(machine, options = {})
     options.reverse_merge!(:empty_response => true)
-
-    if machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      respond_to do |format|
-        format.json { render :json => options[:empty_response] ? {} : machine.to_hash }
-      end
+    respond_to do |format|
+      format.json { render :json => options[:empty_response] ? {} : machine.to_hash }
     end
   end
 end

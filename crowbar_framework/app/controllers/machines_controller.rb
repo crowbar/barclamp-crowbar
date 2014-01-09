@@ -56,152 +56,61 @@ class MachinesController < ApplicationController
     if session[:domain].nil?
       session[:domain] = ChefObject.cloud_domain
     end
-
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      respond_to do |format|
-        format.json { render :json => @machine.to_hash }
-      end
-    end
+    render_machine(@machine, :empty_response => false)
   end
 
   add_help(:reinstall,[:name],[:post])
   def reinstall
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.set_state("reinstall")
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.set_state("reinstall") if @machine
+    render_machine(@machine)
   end
 
   add_help(:update,[:name],[:post])
   def update
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.set_state("update")
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.set_state("update") if @machine
+    render_machine(@machine)
   end
 
   add_help(:reset,[:name],[:post])
   def reset
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.set_state("reset")
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.set_state("reset") if @machine
+    render_machine(@machine)
   end
 
   add_help(:identify,[:name],[:post])
   def identify
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.identify
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.identify if @machine
+    render_machine(@machine)
   end
 
   add_help(:shutdown,[:name],[:post])
   def shutdown
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.shutdown
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.shutdown if @machine
+    render_machine(@machine)
   end
 
   add_help(:reboot,[:name],[:post])
   def reboot
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.reboot
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.reboot if @machine
+    render_machine(@machine)
   end
 
   add_help(:poweron,[:name],[:post])
   def poweron
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.poweron
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.poweron unless @machine.nil?
+    render_machine(@machine)
   end
 
   add_help(:allocate,[:name],[:post])
   def allocate
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.allocate
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.allocate unless @machine.nil?
+    render_machine(@machine)
   end
 
   add_help(:delete,[:name],[:delete])
   def delete
-    if @machine.nil?
-      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
-      respond_to do |format|
-        format.json { render :text => "Host not found", :status => 404 }
-      end
-    else
-      @machine.set_state("delete")
-      respond_to do |format|
-        format.json { render :json => {} }
-      end
-    end
+    @machine.set_state("delete") unless @machine.nil?
+    render_machine(@machine)
   end
 
   private
@@ -215,5 +124,20 @@ class MachinesController < ApplicationController
 
   def set_machine
     @machine = NodeObject.find_node_by_name @name
+  end
+
+  def render_machine(machine, options = {})
+    options.reverse_merge!(:empty_response => true)
+
+    if machine.nil?
+      flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
+      respond_to do |format|
+        format.json { render :text => "Host not found", :status => 404 }
+      end
+    else
+      respond_to do |format|
+        format.json { render :json => options[:empty_response] ? {} : machine.to_hash }
+      end
+    end
   end
 end

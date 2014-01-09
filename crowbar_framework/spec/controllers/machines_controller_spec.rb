@@ -96,6 +96,10 @@ describe MachinesController do
           response.should be_missing
           response.body.should == "Host not found"
         end
+
+        it "does not call node operation" do
+          NodeObject.any_instance.expects(operation).never
+        end
       end
     end
   end

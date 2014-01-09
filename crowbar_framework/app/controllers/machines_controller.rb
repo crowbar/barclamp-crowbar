@@ -24,6 +24,7 @@ class MachinesController < ApplicationController
   self.help_contents = Array.new(superclass.help_contents)
 
   before_filter :set_name, :except => [:index, :list]
+  before_filter :set_machine, :except => [:index, :list]
 
   def index
     if FileTest.exist? CHEF_CLIENT_KEY
@@ -56,29 +57,27 @@ class MachinesController < ApplicationController
       session[:domain] = ChefObject.cloud_domain
     end
 
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
       respond_to do |format|
-        format.json { render :json => machine.to_hash }
+        format.json { render :json => @machine.to_hash }
       end
     end
   end
 
   add_help(:reinstall,[:name],[:post])
   def reinstall
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.set_state("reinstall")
+      @machine.set_state("reinstall")
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -87,14 +86,13 @@ class MachinesController < ApplicationController
 
   add_help(:update,[:name],[:post])
   def update
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.set_state("update")
+      @machine.set_state("update")
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -103,14 +101,13 @@ class MachinesController < ApplicationController
 
   add_help(:reset,[:name],[:post])
   def reset
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.set_state("reset")
+      @machine.set_state("reset")
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -119,14 +116,13 @@ class MachinesController < ApplicationController
 
   add_help(:identify,[:name],[:post])
   def identify
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.identify
+      @machine.identify
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -135,14 +131,13 @@ class MachinesController < ApplicationController
 
   add_help(:shutdown,[:name],[:post])
   def shutdown
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.shutdown
+      @machine.shutdown
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -151,14 +146,13 @@ class MachinesController < ApplicationController
 
   add_help(:reboot,[:name],[:post])
   def reboot
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.reboot
+      @machine.reboot
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -167,14 +161,13 @@ class MachinesController < ApplicationController
 
   add_help(:poweron,[:name],[:post])
   def poweron
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.poweron
+      @machine.poweron
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -183,14 +176,13 @@ class MachinesController < ApplicationController
 
   add_help(:allocate,[:name],[:post])
   def allocate
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.allocate
+      @machine.allocate
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -199,14 +191,13 @@ class MachinesController < ApplicationController
 
   add_help(:delete,[:name],[:delete])
   def delete
-    machine = NodeObject.find_node_by_name @name
-    if machine.nil?
+    if @machine.nil?
       flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
       respond_to do |format|
         format.json { render :text => "Host not found", :status => 404 }
       end
     else
-      machine.set_state("delete")
+      @machine.set_state("delete")
       respond_to do |format|
         format.json { render :json => {} }
       end
@@ -220,5 +211,9 @@ class MachinesController < ApplicationController
   def set_name
     @name = params[:name]
     @name = "#{@name}.#{session[:domain]}" if @name.split(".").length <= 1
+  end
+
+  def set_machine
+    @machine = NodeObject.find_node_by_name @name
   end
 end

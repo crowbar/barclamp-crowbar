@@ -20,39 +20,71 @@
 require "socket"
 
 module RemoteNode
-  def self.ready?(host, timeout = 60)
-    sleep(10)
 
-    #workaround for similar issue
-    #http://projects.puppetlabs.com/issues/2776
+  # Wait for the host to come up and reach a certain runlevel
+  # so we can send ssh commands to it
+  # @param host [string] hostname or IP
+  # @param timeout [integer] timeout in seconds
 
-    ip = `dig +short #{host}`
+  def self.ready?(host, timeout = 60, sleep_time = 10)
+    timeout_at = Time.now.to_i + timeout
+    ip         = self.resolve_host(host)
+
+    self.wait_until(timeout_at, sleep_time) do
+      self.port_open?(ip, 22) && self.ssh_cmd(ip, runlevel_check_cmd(host))
+    end
+  end
+
+  private
+
+  # Workaround for similar issue
+  # http://projects.puppetlabs.com/issues/2776
+  def self.resolve_host(host)
+    `dig +short #{host}`
+  end
+
+  def self.runlevel_check_cmd(host)
+    if self.node_redhat?(host)
+      'runlevel | grep "N 3"'
+    else
+      'last | head -n1 | grep -vq down'
+    end
+  end
+
+  def self.node_redhat?(host)
     nobj = NodeObject.find_node_by_name(host)
-    start = Time.now.to_i
+    nobj && %w(redhat centos).include?(nobj[:platform])
+  end
 
-    while (Time.now.to_i - start) < timeout do
-      begin
-        puts "checking socket"
-        TCPSocket.new(ip, 22)
+  # Polls until yielded block returns true or a timeout is reached
+  def self.wait_until(timeout_at, sleep_time = 10)
+    done = block_given? ? yield : false
 
-        if %w(redhat centos).include?(nobj[:platform])
-          puts "checking runlevel"
-          raise "next" unless system("sudo -i -u root -- ssh root@#{host} 'runlevel | grep \"N 3\"'")
-        else
-          puts "checking lastlog"
-          raise "next" unless system("sudo -i -u root -- ssh root@#{host} 'last | head -n1 | grep -vq down'")
-        end
-        
-        return true
-      rescue => e
-        puts "Next cycle due to:"
-        puts "#{e.inspect}"
-        puts "------------"
-        
-        sleep(10)
-        next
+    while Time.now.to_i < timeout_at && !done do
+      done = block_given? ? yield : false
+
+      unless done
+        puts "Waiting, next attempt at #{Time.now + sleep_time}"
+        sleep(sleep_time)
       end
     end
-    return false
+
+    done
+  end
+
+  def self.ssh_cmd(host_or_ip, cmd)
+    system("sudo", "-i", "-u", "root", "--", "ssh", "root@#{host_or_ip}", cmd)
+  end
+
+  def self.port_open?(ip, port)
+    sock = nil
+    begin
+      sock = TCPSocket.new(ip, port)
+    rescue => e
+      false
+    else
+      sock.close
+      true
+    end
   end
 end

@@ -343,6 +343,8 @@
       })
     );
 
+    self.root.find('tbody input[type=password]').hideShowPassword();
+
     $.event.trigger({
       type: 'dynamicTableRenderedEntry',
       json: data,

@@ -8,6 +8,7 @@
 //= require jquery/queryString
 //= require jquery/listSearch
 //= require jquery/nodeList
+//= require jquery/jsonAttribute
 //= require jquery/updateAttribute
 //= require jquery/messages
 //= require jquery/dynamicTable

@@ -100,7 +100,7 @@ class SupportController < ApplicationController
         begin
           tmp = Rails.root.join("tmp").join(base).to_s
 
-          supportconfig = ["sudo", "-i", "supportconfig", "-mQ", "-R", tmp]
+          supportconfig = ["sudo", "-i", "supportconfig", "-Q", "-R", tmp]
           chown = ["sudo", "-i", "chown", "-R", "#{Process.uid}:#{Process.gid}", tmp]
 
           ok  = system(*supportconfig)

@@ -60,6 +60,7 @@ ActionController::Routing::Routes.draw do |map|
   map.utils 'utils.:format', :controller=>'support', :action=>'index'
   map.utils_files 'utils/files/:id', :controller=>'support', :action=>'destroy', :requirements => { :id => /.*/ }
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
+  map.export_supportconfig 'utils/supportconfig', :controller=>'support', :action=>'export_supportconfig'
   map.utils_export 'utils/:controller/1.0/export', :action=>'export'
   map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
   map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }

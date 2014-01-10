@@ -26,6 +26,7 @@ en:
     utils: 'Utilities'
     util_logs: 'Exported Items'
     util_chef: 'Chef Export'
+    util_supportconfig: 'Supportconfig Export'
     util_import: 'Import Barclamps'
     list: 'Bulk Edit'
     barclamps: 'Barclamps'

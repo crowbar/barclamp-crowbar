@@ -51,61 +51,63 @@ class MachinesController < ApplicationController
 
   add_help(:show,[:name])
   def show
-    render_machine(@machine, :empty_response => false)
+    respond_to do |format|
+      format.json { render :json => @machine.to_hash }
+    end
   end
 
   add_help(:reinstall,[:name],[:post])
   def reinstall
     @machine.set_state("reinstall")
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:update,[:name],[:post])
   def update
     @machine.set_state("update")
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:reset,[:name],[:post])
   def reset
     @machine.set_state("reset")
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:identify,[:name],[:post])
   def identify
     @machine.identify
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:shutdown,[:name],[:post])
   def shutdown
     @machine.shutdown
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:reboot,[:name],[:post])
   def reboot
     @machine.reboot
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:poweron,[:name],[:post])
   def poweron
     @machine.poweron
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:allocate,[:name],[:post])
   def allocate
     @machine.allocate
-    render_machine(@machine)
+    render_empty_json
   end
 
   add_help(:delete,[:name],[:delete])
   def delete
     @machine.set_state("delete")
-    render_machine(@machine)
+    render_empty_json
   end
 
   private
@@ -136,10 +138,9 @@ class MachinesController < ApplicationController
     end
   end
 
-  def render_machine(machine, options = {})
-    options.reverse_merge!(:empty_response => true)
+  def render_empty_json
     respond_to do |format|
-      format.json { render :json => options[:empty_response] ? {} : machine.to_hash }
+      format.json { render :json => {} }
     end
   end
 end

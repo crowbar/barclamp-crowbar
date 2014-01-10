@@ -12,9 +12,12 @@ In your dev system, run the test server:
 
 In a new window, start erlang
 
-    'cd ~/crowbar/barclamps/crowbar/BDD'
+    cd ~/crowbar/barclamps/crowbar/BDD
     cp example.config default.config
-    [review default.config and update if needed]
+    Edit default.config
+    Search for http:
+    Change the IP address in the URL to the IP of your dev system
+    Save the file
     cp dev.sample dev.config
     ./linux_compile.sh
     ./linux_sim.sh

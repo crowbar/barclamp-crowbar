@@ -32,11 +32,11 @@ class MachinesController < ApplicationController
       begin
         @app = NodeObject.find_all_nodes
       rescue
-        flash.now[:notice] = "ERROR: Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
+        flash.now[:alert] = "Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
         @app = []
       end
     else
-      flash.now[:notice] = "ERROR: Could not find Chef Key at \"#{CHEF_CLIENT_KEY}.\""
+      flash.now[:alert] = "Could not find Chef Key at \"#{CHEF_CLIENT_KEY}.\""
     end
 
     respond_to do |format|
@@ -132,7 +132,7 @@ class MachinesController < ApplicationController
   end
 
   def render_not_found
-    flash.now[:notice] = "ERROR: Could not find node for name #{@name}"
+    flash.now[:alert] = "Could not find node for name #{@name}"
     respond_to do |format|
       format.json { render :text => "Host not found", :status => 404 }
     end

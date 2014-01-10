@@ -20,13 +20,12 @@
     );
 
     this.clone = (function() {
-      return function (obj) {
-        Clone.prototype=obj;
+      return function(obj) {
+        Clone.prototype = obj;
         return new Clone();
       };
-      function Clone(){
 
-      }
+      function Clone() {}
     }());
 
     this.initialize();
@@ -71,6 +70,13 @@
     var data = this.json;
     var namespace = this.options.namespace.split('/');
 
+    $.event.trigger({
+      type: 'dynamicTableBeforeDuplicate',
+      input: input,
+      json: data,
+      namespace: namespace
+    });
+
     while (namespace.length > 0) {
       var current_namespace = namespace.shift();
 
@@ -82,25 +88,53 @@
     }
 
     if (data[$(input).val()]) {
-      return true;
-    }
+      $.event.trigger({
+        type: 'dynamicTableGotDuplicate',
+        input: input,
+        json: data,
+        namespace: namespace
+      });
 
-    return false;
+      return true;
+    } else {
+      return false;
+    }
   };
 
   DynamicTable.prototype.invalidEntry = function() {
     var optionals = this.options.optional.toString().split(',');
     var isInvalid = false;
+    var invalidInput = false
 
-    $.each(this.root.find('tfoot input'), function(index, input) {
+    var inputs = this.root.find('tfoot input');
+
+    $.event.trigger({
+      type: 'dynamicTableBeforeInvalid',
+      optionals: optionals,
+      inputs: inputs
+    });
+
+    $.each(inputs, function(index, input) {
       if ($.inArray($(input).data('name'), optionals) < 0) {
         if ($(input).val() == '') {
           isInvalid = true;
+          invalidInput = $(input).data('name');
         }
       }
     });
 
-    return isInvalid;
+    if (isInvalid) {
+      $.event.trigger({
+        type: 'dynamicTableGotInvalid',
+        optionals: optionals,
+        inputs: inputs,
+        invalid: invalidInput
+      });
+
+      return true;
+    } else {
+      return false;
+    }
   };
 
   DynamicTable.prototype.registerEvents = function() {
@@ -108,18 +142,6 @@
 
     self.root.find('[data-add]').live('click', function(event) {
       event.preventDefault();
-
-      if (self.duplicateEntry()) {
-        self.root.after(
-          $.dangerMessage(
-            self.options.duplicate,
-            true,
-            true
-          )
-        );
-
-        return false;
-      }
 
       if (self.invalidEntry()) {
         self.root.after(
@@ -133,6 +155,20 @@
         return false;
       }
 
+      if (self.duplicateEntry()) {
+        self.root.after(
+          $.dangerMessage(
+            self.options.duplicate,
+            true,
+            true
+          )
+        );
+
+        return false;
+      }
+
+      var inputs = self.root.find('tfoot input');
+
       var data = self.json;
       var namespace = self.options.namespace.split('/');
       var values = {};
@@ -140,7 +176,7 @@
       var currentKey = false;
       var currentValue = false;
 
-      $.each(self.root.find('tfoot input'), function(index, input) {
+      $.each(inputs, function(index, input) {
         var name = $(input).data('name');
 
         var value = self.parseValue(
@@ -172,10 +208,19 @@
         data[namespace.shift()] = values;
       }
 
-      self.root.find('tfoot input').val('');
-
       self.writeJson();
+
+      $.event.trigger({
+        type: 'dynamicTableAddedEntry',
+        json: data,
+        namespace: namespace,
+        values: values,
+        inputs: inputs
+      });
+
       self.renderEntries();
+
+      inputs.val('');
     });
 
     self.root.find('tfoot input').live('keydown', function(event) {
@@ -204,6 +249,13 @@
       delete data[namespace.shift()][$(this).data('remove')];
 
       self.writeJson();
+
+      $.event.trigger({
+        type: 'dynamicTableRemovedEntry',
+        json: data,
+        namespace: namespace
+      });
+
       self.renderEntries();
     });
 
@@ -243,6 +295,13 @@
       );
 
       self.writeJson();
+
+      $.event.trigger({
+        type: 'dynamicTableUpdatedEntry',
+        json: data,
+        namespace: namespace,
+        optionals: optionals
+      });
     });
   };
 
@@ -283,6 +342,15 @@
         entries: entries
       })
     );
+
+    self.root.find('tbody input[type=password]').hideShowPassword();
+
+    $.event.trigger({
+      type: 'dynamicTableRenderedEntry',
+      json: data,
+      namespace: namespace,
+      entries: entries
+    });
   };
 
   DynamicTable.prototype.parseValue = function(type, value) {

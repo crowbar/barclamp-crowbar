@@ -37,8 +37,6 @@
   }
 
   UpdateAttribute.prototype.init = function() {
-    var self = this;
-
     var data = this.$el.data(
       this.options.attribute
     ).split(';', 3);
@@ -50,66 +48,13 @@
     var $field = $('#{0}'.format(field));
     var $storage = $(this.options.storage);
 
-    this.$el.on('change', function() {
-      var value = $field.val();
-      var json = JSON.parse($storage.val());
-
-      switch (type) {
-        case 'boolean':
-          value = value.toLowerCase() == 'true';
-          break;
-        case 'integer':
-          value = parseInt(value);
-          break;
-        case 'float':
-          value = parseFloat(value);
-          break;
-        case 'array-string':
-          value = self.splitString(value);
-          break;
-        case 'array-boolean':
-          value = self.splitString(value);
-
-          for (i in value) {
-            value[i] = value[i].toLowerCase() == 'true'
-          }
-          break;
-        case 'array-integer':
-          value = self.splitString(value);
-
-          for (i in value) {
-            value[i] = parseInt(value[i]);
-          }
-          break;
-        case 'array-float':
-          value = self.splitString(value);
-
-          for (i in value) {
-            value[i] = parseFloat(value[i]);
-          }
-          break;
-      }
-
-      var data = json;
-      var path_parts = path.split('/');
-
-      while (path_parts.length > 1) {
-        var path_part = path_parts.shift();
-
-        if (!data[path_part]) {
-          data[path_part] = {};
-        }
-
-        data = data[path_part];
-      }
-
-      data[path_parts.shift()] = value;
-      $storage.val(JSON.stringify(json));
+    this.$el.on('change keyup', function() {
+      $storage.writeJsonAttribute(
+        path,
+        $field.val(),
+        type
+      );
     });
-  };
-
-  UpdateAttribute.prototype.splitString = function() {
-    return value.replace(/ /g, ',').replace(/,+/g, ',').split(',');
   };
 
   $.fn.updateAttribute = function(options) {

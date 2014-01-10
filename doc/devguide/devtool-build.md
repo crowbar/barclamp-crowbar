@@ -103,13 +103,7 @@ If you receive any messages stating "new file:   README.empty-branch" and the ./
     cd ..
     find / -name README.empty-branch -delete
 
-#### Running the test suites
-
-We've put a lot of effort into creating test suites:
-
-   ./dev tests setup --update-gem-cache
-
-##### Building the discovery image
+#### Building the discovery image
 During the cluster deployment Crowbar uses a special stripped down image (Sledgehammer) for node discovery. As part of our build process we also need to build Sledgehammer. This is a one time process and doesn't need to be repeated everytime. **Note:** This next step will take some time.
 
     cd ~/crowbar
@@ -165,13 +159,12 @@ The above results in the following viable combinations:
 * **Hadoop:** 
   hadoop-2.3/hadoop-os-build for the latest and most stable Hadoop build
 
-#### Building
-With the above knowledge we can now kick off our Hadoop or OpenStack build. 
-
 **Note:** The Dev Tool currently has a bug where it litters README.empty-branch files. Those will be problematic during `dev switch` operations. In order to **clean them up run the following commands** any time you run into this issue.
 
     # clean up any .empty-branch files first
     cd ~/crowbar/barclamps
     for bc in *; do (cd "$bc"; git clean -f -x -d 1>/dev/null 2>&1; git reset --hard 1>/dev/null 2>&1); done 
 
+#### Running the test suites
 
+We've put a lot of effort into creating test suites that can all be run directly on the development VM.  See the [Testing Using The Dev Tool](../misc_docs/testing/devtool.md) page for details.

@@ -754,9 +754,9 @@ class ServiceObject
   end
 
   #
-  # Ensure that the proposal contains exactly one role
+  # Ensure that the proposal contains exactly one node for role
   #
-  def validate_one_role(proposal, role)
+  def validate_one_for_role(proposal, role)
     elements = proposal["deployment"][@bc_name]["elements"]
 
     if not elements.has_key?(role) or elements[role].length != 1
@@ -764,7 +764,11 @@ class ServiceObject
     end
   end
 
-  #
+  # Deprecated in favor of validate_one_for_role
+  def validate_one_role(proposal, role)
+    validate_one_for_role proposal, role
+  end
+
   # Look for a database proposal. If :active is specified, then it will
   # return the first active database proposal, otherwise both active and
   # inactive are searched, in that order.

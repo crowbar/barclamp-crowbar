@@ -134,7 +134,7 @@ class MachinesController < ApplicationController
   def render_not_found
     flash.now[:alert] = "Could not find node for name #{@name}"
     respond_to do |format|
-      format.json { render :text => "Host not found", :status => 404 }
+      format.json { render :json => {:alert => "Host not found"}, :status => 404 }
     end
   end
 

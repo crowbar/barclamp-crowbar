@@ -71,8 +71,6 @@ describe MachinesController do
       NodeObject.stubs(:find_node_by_name).returns(nil)
     end
 
-=begin
-    FIXME: decide if this is a bug
     describe "POST action" do
       it "fails with JSON when w/ not found" do
         post :reinstall, :name => "testing"
@@ -81,7 +79,10 @@ describe MachinesController do
           JSON.parse(response.body)
         }.to_not raise_error
       end
+    end
 
+=begin
+    FIXME: decide if this is a bug
       it "fails with a reasonable error when name not passed" do
         post :reinstall
         response.should be_bad_request
@@ -91,10 +92,10 @@ describe MachinesController do
 
     ["poweron", "allocate", "delete", "reboot", "shutdown", "identify", "reset", "update", "reinstall"].each do |operation|
       describe "POST #{operation}" do
-        it "renders error text w/ not found" do
-          post operation, :name => "testing"
+        it "renders error JSON w/ not alert found" do
+          response = post operation, :name => "testing"
           response.should be_missing
-          response.body.should == "Host not found"
+          JSON.parse(response.body)["alert"].should == "Host not found"
         end
 
         it "does not call node operation" do

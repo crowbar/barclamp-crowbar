@@ -28,7 +28,7 @@ module ApplicationHelper
 
   # Check if we are running on a suse system
   def suse_system?
-    @@suse ||= File.exist?("/etc/SuSE-release")
+    @@suse_system ||= File.exist?("/etc/SuSE-release")
   end
 
   # Added this helper method to access app config, maybe we need some wrapping

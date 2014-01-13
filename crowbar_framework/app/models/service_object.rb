@@ -816,6 +816,19 @@ class ServiceObject
     validate_has_database_proposal :active
   end
 
+  def validate_dep_proposal_is_active(bc, proposal)
+    const_service = Kernel.const_get("#{bc.camelize}Service")
+    service = const_service.new @logger
+    proposals = service.list_active[1].to_a
+    unless proposals.include?(proposal)
+      if const_service.allow_multiple_proposals?
+        validation_error("Proposal \"#{proposal}\" for #{service.display_name} is not active yet.")
+      else
+        validation_error("Proposal for #{service.display_name} is not active yet.")
+      end
+    end
+  end
+
   def _proposal_update(proposal)
     data_bag_item = Chef::DataBagItem.new
 

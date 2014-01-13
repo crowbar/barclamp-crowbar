@@ -26,6 +26,11 @@ module ApplicationHelper
     request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
   end
 
+  # Check if we are running on a suse system
+  def suse_system?
+    @@suse_system ||= File.exist?("/etc/SuSE-release")
+  end
+
   # Added this helper method to access app config, maybe we need some wrapping
   # and it feels better to call a method instead of a class
   def app_config

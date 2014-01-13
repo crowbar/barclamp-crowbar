@@ -42,6 +42,7 @@ class SupportController < ApplicationController
         :cli => [],
         :chef => [],
         :other => [],
+        :support_configs => [],
         :bc_import => []
       }
     })
@@ -61,6 +62,8 @@ class SupportController < ApplicationController
         @export.files.chef.push filename
       elsif filename =~ /(.*).import.log$/
         @export.files.bc_import.push filename
+      elsif filename =~ /^supportconfig.*/
+        @export.files.support_configs.push filename
       else
         @export.files.other.push filename
       end
@@ -83,6 +86,39 @@ class SupportController < ApplicationController
       flash[:notice] = t("support.index.delete_succeeded", :file => file.basename)
     rescue
       flash[:alert] = t("support.index.delete_failed", :file => file.basename)
+    end
+
+    redirect_to utils_url
+  end
+
+  def export_supportconfig
+    begin
+      base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
+      filename = "#{base}.tbz"
+
+      pid = fork do
+        begin
+          tmp = Rails.root.join("tmp", base).to_s
+
+          supportconfig = ["sudo", "-i", "supportconfig", "-Q", "-R", tmp]
+          chown = ["sudo", "-i", "chown", "-R", "#{Process.uid}:#{Process.gid}", tmp]
+
+          ok  = system(*supportconfig)
+          ok &= system(*chown)
+
+          tarball = Dir.glob("#{tmp}/*.tbz").first
+          File.rename tarball, export_dir.join(filename) if tarball && ok
+        rescue => e
+          Rails.logger.warn(e.message)
+        ensure
+          FileUtils.rm_rf(tmp)
+        end
+      end
+
+      Process.detach(pid)
+      redirect_to utils_url(:waiting => true, :file => filename) and return
+    rescue StandardError => e
+      flash[:alert] = t("support.export.fail", :error => e.message)
     end
 
     redirect_to utils_url
@@ -138,7 +174,7 @@ class SupportController < ApplicationController
       render
     end
   end
-  
+
   protected
 
   def import_dir

@@ -769,6 +769,18 @@ class ServiceObject
     validate_one_for_role proposal, role
   end
 
+  #
+  # Ensure that the proposal contains at least n nodes for role
+  #
+  def validate_at_least_n_for_role(proposal, role, n)
+    elements = proposal["deployment"][@bc_name]["elements"]
+
+    if not elements.has_key?(role) or elements[role].length < n
+      validation_error("Need at least #{n} #{role} node#{"s" if n > 1}.")
+    end
+  end
+
+  #
   # Look for a database proposal. If :active is specified, then it will
   # return the first active database proposal, otherwise both active and
   # inactive are searched, in that order.

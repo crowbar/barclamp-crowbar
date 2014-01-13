@@ -703,6 +703,19 @@ class ServiceObject
     end
   end
 
+  def display_name
+    @display_name ||= begin
+      catalog = ServiceObject.barclamp_catalog
+      display = catalog['barclamps'][@bc_name]['display']
+
+      if display.nil? or display.empty?
+        @bc_name.titlecase
+      else
+        display
+      end
+    end
+  end
+
   #
   # This can be overridden.  Specific to node validation.
   #

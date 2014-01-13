@@ -98,7 +98,7 @@ class SupportController < ApplicationController
 
       pid = fork do
         begin
-          tmp = Rails.root.join("tmp").join(base).to_s
+          tmp = Rails.root.join("tmp", base).to_s
 
           supportconfig = ["sudo", "-i", "supportconfig", "-Q", "-R", tmp]
           chown = ["sudo", "-i", "chown", "-R", "#{Process.uid}:#{Process.gid}", tmp]

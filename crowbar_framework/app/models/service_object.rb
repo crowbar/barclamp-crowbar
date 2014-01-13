@@ -627,6 +627,34 @@ class ServiceObject
   end
 
   #
+  # Utility method to find instances for barclamps we depend on
+  #
+  def find_dep_proposal(bc, optional=false)
+    begin
+      const_service = Kernel.const_get("#{bc.camelize}Service")
+    rescue
+      @logger.info "Barclamp \"#{bc}\" is not available."
+      proposals = []
+    else
+      service = const_service.new @logger
+      proposals = service.list_active[1]
+      proposals = service.proposals[1] if proposals.empty?
+    end
+
+    if proposals.empty? || proposals[0].blank?
+      if optional
+        @logger.info "No optional \"#{bc}\" dependency proposal found for \"#{@bc_name}\" proposal."
+      else
+        raise(I18n.t('model.service.dependency_missing', :name => @bc_name, :dependson => bc))
+      end
+    end
+
+    # Return empty string instead of nil, because the attributes referring to
+    # proposals are generally required in the schema
+    proposals[0] || ""
+  end
+
+  #
   # This can be overridden to provide a better creation proposal
   #
   def create_proposal

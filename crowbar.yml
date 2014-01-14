@@ -55,7 +55,6 @@ nav:
   help:
     - [ crowbar_wiki, '"https://github.com/crowbar/crowbar/wiki/", { :link => { :target => "_blank" } }' ]
     - [ crowbar_ug, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
-    - [ crowbar_dg, '"/crowbar_deployment_guide.pdf", { :link => { :target => "_blank" } }' ]
     - [ documentation, docs_path if RAILS_ENV == 'development' ]
 
 locale_additions:

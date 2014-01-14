@@ -117,8 +117,8 @@ class BarclampController < ApplicationController
       set_flash(ret, 'proposal.actions.delete_%s')
     rescue StandardError => e
       Rails.logger.error "Failed to deactivate proposal: #{e.message}\n#{e.backtrace.join("\n")}"
-      flash[:notice] = t('proposal.actions.delete_failure') + e.message
-      ret = [500, flash[:notice] ]
+      flash[:alert] = t('proposal.actions.delete_failure') + e.message
+      ret = [500, flash[:alert] ]
     end
 
     respond_to do |format|
@@ -266,7 +266,7 @@ class BarclampController < ApplicationController
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     @proposal = ret[1]
     @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
-    flash[:notice] = @proposal.fail_reason if @proposal.failed?
+    flash.now[:alert] = @proposal.fail_reason if @proposal.failed?
     @attr_raw = params[:attr_raw] || false
     @dep_raw = params[:dep_raw] || false
 
@@ -322,7 +322,11 @@ class BarclampController < ApplicationController
       Rails.logger.info "asking for proposal of: #{params.inspect}"
       answer = @service_object.proposal_create params
       Rails.logger.info "proposal is: #{answer.inspect}"
-      flash[:notice] =  answer[0] != 200 ? answer[1] : t('proposal.actions.create_success')
+      if answer[0] == 200
+        flash[:notice] =  t('proposal.actions.create_success')
+      else
+        flash[:alert] = answer[1]
+      end
     rescue StandardError => e
       flash_and_log_exception(e)
     end
@@ -332,11 +336,11 @@ class BarclampController < ApplicationController
         redirect_to proposal_barclamp_path :controller=> controller, :id=>orig_id
       }
       format.xml  {
-        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
         render :xml => answer[1] 
       }
       format.json {
-        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
         render :json => answer[1] 
       }
     end
@@ -380,7 +384,8 @@ class BarclampController < ApplicationController
           @service_object.validate_proposal_after_save @proposal.raw_data
 
           answer = @service_object.proposal_commit(params[:name])
-          flash[:notice] = answer[1] if answer[0] >= 300
+          flash[:alert] = answer[1] if answer[0] >= 400
+          flash[:notice] = answer[1] if answer[0] >= 300 and answer[0] < 400
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
           if answer[0] == 202
             flash_msg = answer[1].map { |node_dns|
@@ -416,7 +421,7 @@ class BarclampController < ApplicationController
         end
       else
         Rails.logger.warn "Invalid action #{params[:submit]} for #{params[:id]}"
-        flash[:notice] = "Invalid action #{params[:submit]}"
+        flash[:alert] = "Invalid action #{params[:submit]}"
       end
       redirect_to proposal_barclamp_path(:controller => params[:barclamp], :id => params[:name]) 
     end
@@ -432,15 +437,15 @@ class BarclampController < ApplicationController
     set_flash(answer, 'proposal.actions.delete_%s')
     respond_to do |format|
       format.html {         
-        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
         render :text => answer[1]
       }
       format.xml  {
-        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
         render :xml => answer[1] 
       }
       format.json {
-        return render :text => flash[:notice], :status => answer[0] if answer[0] != 200
+        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
         render :json => answer[1] 
       }
     end
@@ -468,7 +473,7 @@ class BarclampController < ApplicationController
     if answer[0] == 200
       return render :json => {}, :status => answer[0]
     else
-      return render :text => flash[:notice], :status => answer[0]
+      return render :text => flash[:alert], :status => answer[0]
     end
   end
 
@@ -482,8 +487,8 @@ class BarclampController < ApplicationController
     if answer[0] == 200
       flash[:notice] = t(common % success)
     else
-      flash[:notice] = t(common % failure)
-      flash[:notice] += ": " + answer[1].to_s unless answer[1].to_s.empty?
+      flash[:alert] = t(common % failure)
+      flash[:alert] += ": " + answer[1].to_s unless answer[1].to_s.empty?
     end
   end
 end

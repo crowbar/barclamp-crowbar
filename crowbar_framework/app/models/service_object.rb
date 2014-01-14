@@ -805,11 +805,6 @@ class ServiceObject
     end
   end
 
-  # Deprecated in favor of validate_one_for_role
-  def validate_one_role(proposal, role)
-    validate_one_for_role proposal, role
-  end
-
   #
   # Ensure that the proposal contains at least n nodes for role
   #
@@ -819,29 +814,6 @@ class ServiceObject
     if not elements.has_key?(role) or elements[role].length < n
       validation_error("Need at least #{n} #{role} node#{"s" if n > 1}.")
     end
-  end
-
-  #
-  # Look for a database proposal. If :active is specified, then it will
-  # return the first active database proposal, otherwise both active and
-  # inactive are searched, in that order.
-  #
-  def validate_has_database_proposal(kind=nil)
-    databaseService = DatabaseService.new(@logger)
-
-    dbs = databaseService.list_active[1]
-
-    unless kind == :active
-      dbs = databaseService.proposals[1] if dbs.empty?
-    end
-
-    validation_error("A#{"n active" if kind == :active} database proposal is required.") if dbs.blank? || dbs[0].blank?
-
-    dbs[0]
-  end
-
-  def validate_has_active_database_proposal
-    validate_has_database_proposal :active
   end
 
   def validate_dep_proposal_is_active(bc, proposal)

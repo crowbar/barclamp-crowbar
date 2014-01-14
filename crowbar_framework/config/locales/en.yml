@@ -41,6 +41,7 @@ en:
     crowbar_ug: Users Guide
     crowbar_dg: Deployment Guide
     documentation: Documentation
+    dell_add_ug: Dell Additions Users guide
 
   layouts:
     application:

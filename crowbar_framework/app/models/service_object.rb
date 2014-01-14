@@ -627,6 +627,34 @@ class ServiceObject
   end
 
   #
+  # Utility method to find instances for barclamps we depend on
+  #
+  def find_dep_proposal(bc, optional=false)
+    begin
+      const_service = Kernel.const_get("#{bc.camelize}Service")
+    rescue
+      @logger.info "Barclamp \"#{bc}\" is not available."
+      proposals = []
+    else
+      service = const_service.new @logger
+      proposals = service.list_active[1]
+      proposals = service.proposals[1] if proposals.empty?
+    end
+
+    if proposals.empty? || proposals[0].blank?
+      if optional
+        @logger.info "No optional \"#{bc}\" dependency proposal found for \"#{@bc_name}\" proposal."
+      else
+        raise(I18n.t('model.service.dependency_missing', :name => @bc_name, :dependson => bc))
+      end
+    end
+
+    # Return empty string instead of nil, because the attributes referring to
+    # proposals are generally required in the schema
+    proposals[0] || ""
+  end
+
+  #
   # This can be overridden to provide a better creation proposal
   #
   def create_proposal
@@ -703,6 +731,19 @@ class ServiceObject
     end
   end
 
+  def display_name
+    @display_name ||= begin
+      catalog = ServiceObject.barclamp_catalog
+      display = catalog['barclamps'][@bc_name]['display']
+
+      if display.nil? or display.empty?
+        @bc_name.titlecase
+      else
+        display
+      end
+    end
+  end
+
   #
   # This can be overridden.  Specific to node validation.
   #
@@ -754,13 +795,29 @@ class ServiceObject
   end
 
   #
-  # Ensure that the proposal contains exactly one role
+  # Ensure that the proposal contains exactly one node for role
   #
-  def validate_one_role(proposal, role)
+  def validate_one_for_role(proposal, role)
     elements = proposal["deployment"][@bc_name]["elements"]
 
     if not elements.has_key?(role) or elements[role].length != 1
       validation_error("Need one (and only one) #{role} node.")
+    end
+  end
+
+  # Deprecated in favor of validate_one_for_role
+  def validate_one_role(proposal, role)
+    validate_one_for_role proposal, role
+  end
+
+  #
+  # Ensure that the proposal contains at least n nodes for role
+  #
+  def validate_at_least_n_for_role(proposal, role, n)
+    elements = proposal["deployment"][@bc_name]["elements"]
+
+    if not elements.has_key?(role) or elements[role].length < n
+      validation_error("Need at least #{n} #{role} node#{"s" if n > 1}.")
     end
   end
 
@@ -785,6 +842,19 @@ class ServiceObject
 
   def validate_has_active_database_proposal
     validate_has_database_proposal :active
+  end
+
+  def validate_dep_proposal_is_active(bc, proposal)
+    const_service = Kernel.const_get("#{bc.camelize}Service")
+    service = const_service.new @logger
+    proposals = service.list_active[1].to_a
+    unless proposals.include?(proposal)
+      if const_service.allow_multiple_proposals?
+        validation_error("Proposal \"#{proposal}\" for #{service.display_name} is not active yet.")
+      else
+        validation_error("Proposal for #{service.display_name} is not active yet.")
+      end
+    end
   end
 
   def _proposal_update(proposal)

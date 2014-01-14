@@ -13,9 +13,9 @@
     %tbody
       = render :partial => "show_details"
       = render :partial => "show_ips"
+      = render :partial => "show_links"
       = render :partial => "show_barclamps"
       = render :partial => "show_roles"
-      = render :partial => "show_links"
 
   - if @node.bmc_set? or not @node.admin?
     .panel-footer

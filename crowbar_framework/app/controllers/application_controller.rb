@@ -169,7 +169,7 @@ class ApplicationController < ActionController::Base
   end
 
   def flash_and_log_exception(e)
-    flash[:notice] = e.message
+    flash[:alert] = e.message
     log_exception(e)
   end
 

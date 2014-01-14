@@ -67,5 +67,11 @@ table {
     &.nowrap {
       white-space: nowrap;
     }
+
+    &.empty {
+      & *:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 }

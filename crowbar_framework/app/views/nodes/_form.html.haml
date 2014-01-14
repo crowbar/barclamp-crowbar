@@ -68,6 +68,14 @@
         %span.help-block
           = t('.intended_role_hint')
 
+      - if have_openstack
+        .form-group
+          = f.label :availability_zone, t('.availability_zone')
+          = text_field_tag :availability_zone, @node.availability_zone, :class => "form-control"
+
+          %span.help-block
+            = t('.availability_zone_hint')
+
       - if crowbar_options[:show].include? :bios
         .form-group
           = f.label :bios, t('.bios')

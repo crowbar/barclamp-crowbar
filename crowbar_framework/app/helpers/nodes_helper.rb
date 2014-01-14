@@ -302,6 +302,17 @@ module NodesHelper
     )
   end
 
+  def node_wall_list(node)
+    [].tap do |result|
+      if have_openstack
+        result.push [
+          t("model.attributes.node.availability_zone"),
+          dash_or(node.availability_zone)
+        ]
+      end
+    end
+  end
+
   def node_barclamp_list(roles)
     return "" if roles.nil? or roles.empty?
 

@@ -168,6 +168,15 @@ class NodeObject < ChefObject
     @node.set[:target_platform] = value
   end
 
+  def availability_zone
+    @node["crowbar_wall"]["openstack"]["availability_zone"] rescue nil
+  end
+
+  def availability_zone=(value)
+    @node["crowbar_wall"]["openstack"] ||= {}
+    @node["crowbar_wall"]["openstack"]["availability_zone"] = value
+  end
+
   def intended_role
     @node["crowbar_wall"]["intended_role"]
   end

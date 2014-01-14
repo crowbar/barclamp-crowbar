@@ -304,6 +304,22 @@ module NodesHelper
 
   def node_wall_list(node)
     [].tap do |result|
+      intended_roles_text = {
+        "no_role"    => t("nodes.form.no_role"),
+        "controller" => t("nodes.form.controller"),
+        "compute"    => t("nodes.form.compute"),
+        "network"    => t("nodes.form.network"),
+        "storage"    => t("nodes.form.storage")
+      }
+
+      intended_role = node.intended_role
+      intended_role = "no_role" if intended_role.blank?
+
+      result.push [
+        t("model.attributes.node.intended_role"),
+        intended_roles_text[intended_role] || intended_role
+      ]
+
       if have_openstack
         result.push [
           t("model.attributes.node.availability_zone"),

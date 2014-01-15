@@ -23,6 +23,7 @@ class NodesController < ApplicationController
 
   def index
     @sum = 0
+    @groups = {}
     session[:node] = params[:name]
     if params.has_key?(:role)
       result = NodeObject.all #this is not efficient, please update w/ a search!
@@ -32,7 +33,6 @@ class NodesController < ApplicationController
          @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
       end
     else
-      @groups = {}
       @nodes = {}
       raw_nodes = NodeObject.all
       get_node_and_network(params[:selected]) if params[:selected]

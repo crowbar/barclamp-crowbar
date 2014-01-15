@@ -422,7 +422,7 @@ class NodeObject < ChefObject
     # On windows platform there is no block_device chef entry.
     if defined?(@node[:block_device]) and !@node[:block_device].nil?
       @node[:block_device].find_all do |disk,data|
-        disk =~ /^([hsv]d|cciss)/ && data[:removable] == "0"
+        disk =~ /^([hsv]d|cciss)/ && data[:removable] == "0" && !(data[:vendor] == "cinder" && data[:model] =~ /^volume-/)
       end.length
     else
       -1

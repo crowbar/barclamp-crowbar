@@ -81,7 +81,7 @@ class NodesController < ApplicationController
               dirty = false
               node = NodeObject.find_node_by_name node_name
 
-              if node_attributes["allocate"] == "checked" and not node.allocated
+              if node_attributes["allocate"] and not node.allocated
                 node.allocated = true
                 dirty = true
               end

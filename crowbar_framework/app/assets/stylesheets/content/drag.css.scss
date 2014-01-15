@@ -24,6 +24,13 @@
       &.targeted {
         background-color: $gray-lighter;
       }
+
+      .unassign {
+        margin-right: 10px;
+        font-weight: normal;
+        font-size: 14px;
+        text-decoration: none;
+      }
     }
 
     ul {

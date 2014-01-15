@@ -148,6 +148,20 @@
       self.updateJson();
       $node.remove();
     });
+
+    $('.dropzone .unassign').live('click', function(event) {
+      event.preventDefault();
+      var role = $(this).data('id');
+
+      $(
+        'ul[data-droppable=true][data-id={0}]'.format(
+          role
+        )
+      ).html('');
+
+      self.json.elements[role] = [];
+      self.updateJson();
+    });
   };
 
   NodeList.prototype.updateJson = function() {

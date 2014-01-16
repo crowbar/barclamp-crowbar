@@ -251,7 +251,7 @@ class NodesController < ApplicationController
     name = params[:name] || params[:id]
     machine = NodeObject.find_node_by_name name
     if machine.nil?
-      render :text=>"Could not find node '#{name}'", :status => 404
+      render :text=>"Could not find node '#{name}'", :status => 404 and return
     else
       case action
       when 'reinstall', 'reset', 'update', 'delete'
@@ -267,7 +267,7 @@ class NodesController < ApplicationController
       when 'allocate'
         machine.allocate
       else
-        render :text=>"Invalid hit request '#{action}'", :status => 500
+        render :text=>"Invalid hit request '#{action}'", :status => 500 and return
       end
     end
     render :text=>"Attempting '#{action}' for node '#{machine.name}'", :status => 200

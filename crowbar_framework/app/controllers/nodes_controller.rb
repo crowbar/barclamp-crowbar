@@ -277,6 +277,7 @@ class NodesController < ApplicationController
   # GET /nodes/1.xml
   def show
     get_node_and_network(params[:id] || params[:name])
+    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
@@ -313,7 +314,7 @@ class NodesController < ApplicationController
     @node = NodeObject.find_node_by_name(params[:name])
     raise ActionController::RoutingError.new("Node #{params[:name]}: not found") if @node.nil?
     @attribute = @node.to_hash
-    params[:path].each do |element|
+    params[:path].to_a.each do |element|
       @attribute = @attribute[element]
       raise ActionController::RoutingError.new("Node #{params[:name]}: unknown attribute #{params[:path].join('/')}") if @attribute.nil?
     end

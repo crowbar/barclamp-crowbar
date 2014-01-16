@@ -1,0 +1,175 @@
+require 'spec_helper'
+
+describe CrowbarController do
+  integrate_views
+
+  before do
+    CrowbarService.any_instance.stubs(:apply_role).returns(true)
+  end
+
+  describe "GET barclamp_index" do
+    it "renders list of all barclamps" do
+      get :barclamp_index
+      response.should be_success
+      assigns(:barclamps).should include("crowbar")
+    end
+
+    it "returns list of barclamp names as json" do
+      get :barclamp_index, :format => "json"
+      response.should be_success
+      json = JSON.parse(response.body)
+      json.should include("crowbar")
+    end
+  end
+
+  describe "GET versions" do
+    it "returns json with versions" do
+      get :versions
+      json = JSON.parse(response.body)
+      json["versions"].should_not be_empty
+    end
+
+    it "returns plain text message if version fetching fails" do
+      CrowbarService.any_instance.stubs(:versions).returns([404, "Not found"])
+      get :versions
+      response.should be_missing
+      response.body.should == "Not found"
+    end
+  end
+
+  describe "POST transition" do
+    it "transitions the node into desired state" do
+      RoleObject.stubs(:find_roles_by_search).returns([])
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "discovering", :name => "testing"
+      response.should be_success
+    end
+
+    it "returns plain text message if transitioning fails" do
+      CrowbarService.any_instance.stubs(:transition).returns([500, "error"])
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "discovering", :name => "testing"
+      response.should be_server_error
+      response.body.should == "error"
+    end
+  end
+
+  describe "GET show" do
+    describe "format json" do
+      it "returns plain text message if show fails" do
+        CrowbarService.any_instance.stubs(:show_active).returns([500, "Error"])
+        post :show, :id => "default", :format => "json"
+        response.should be_server_error
+        response.body.should == "Error"
+      end
+
+      it "returns a json describing the instance" do
+        get :show, :id => "default", :format => "json"
+        response.should be_success
+        json = JSON.parse(response.body)
+        json["deployment"].should_not be_nil
+      end
+    end
+
+    describe "format html" do
+      it "is successful" do
+        get :show, :id => "default"
+        response.should be_success
+      end
+
+      it "redirects to propsal path on failure" do
+        CrowbarService.any_instance.stubs(:show_active).returns([500, "Error"])
+        get :show, :id => "default"
+        response.should redirect_to(proposal_barclamp_path(:controller => "crowbar", :id => "default"))
+      end
+    end
+  end
+
+  describe "GET elements" do
+    it "returns plain text message if elements fails" do
+      CrowbarService.any_instance.stubs(:elements).returns([500, "Error"])
+      get :elements
+      response.should be_server_error
+      response.body.should == "Error"
+    end
+
+    it "returns a json with list of assignable roles" do
+      get :elements
+      response.should be_success
+      json = JSON.parse(response.body)
+      json.should be_a(Array)
+      json.should_not be_empty
+    end
+  end
+
+  describe "GET element_info" do
+    it "returns plain text message if element_info fails" do
+      CrowbarService.any_instance.stubs(:element_info).returns([500, "Error"])
+      get :element_info
+      response.should be_server_error
+      response.body.should == "Error"
+    end
+
+    it "returns a json with list of assignable nodes for an element" do
+      get :element_info, :id => "dns-client"
+      response.should be_success
+      json = JSON.parse(response.body)
+      json.should == ["admin.crowbar.com", "testing.crowbar.com"]
+    end
+  end
+
+  describe "GET proposals" do
+    it "returns plain text message if proposals fails" do
+      CrowbarService.any_instance.stubs(:proposals).returns([500, "Error"])
+      get :proposals
+      response.should be_server_error
+      response.body.should == "Error"
+    end
+
+    it "is successful" do
+      get :proposals
+      response.should be_success
+    end
+
+    it "returns a list of proposals for a given instance" do
+      get :proposals, :format => "json"
+      json = JSON.parse(response.body)
+      response.should be_success
+      json.should == ["default"]
+    end
+  end
+
+  describe "DELETE delete" do
+    before do
+     CrowbarService.any_instance.stubs(:system).returns(true)
+    end
+
+    it "deletes and deactivates the instance" do
+      CrowbarService.any_instance.expects(:destroy_active).with("default").once
+      delete :delete, :name => "default"
+    end
+
+    it "sets appropriate flash message" do
+      CrowbarService.any_instance.stubs(:destroy_active).returns([200, "Yay!"])
+      delete :delete, :name => "default"
+      flash[:notice].should == I18n.t('proposal.actions.delete_success')
+    end
+
+    it "redirects to barclamp module on success" do
+      delete :delete, :name => "default"
+      response.should redirect_to(barclamp_modules_path(:id => "crowbar"))
+    end
+
+    it "returns 500 on failure for json" do
+      CrowbarService.any_instance.stubs(:destroy_active).returns([500, "Error"])
+      delete :delete, :name => "default", :format => "json"
+      response.should be_server_error
+      response.body.should == "Error"
+    end
+
+    it "sets flash on failure for html" do
+      CrowbarService.any_instance.stubs(:destroy_active).returns([500, "Error"])
+      delete :delete, :name => "default"
+      response.should be_redirect
+      flash[:alert].should_not be_nil
+    end
+  end
+end

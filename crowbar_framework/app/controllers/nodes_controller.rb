@@ -256,16 +256,8 @@ class NodesController < ApplicationController
       case action
       when 'reinstall', 'reset', 'update', 'delete'
         machine.set_state(action)
-      when 'reboot'
-        machine.reboot
-      when 'shutdown'
-        machine.shutdown
-      when 'poweron'
-        machine.poweron
-      when 'identify'
-        machine.identify
-      when 'allocate'
-        machine.allocate
+      when 'reboot', 'shutdown', 'poweron', 'identify', 'allocate'
+        machine.send(action)
       else
         render :text=>"Invalid hit request '#{action}'", :status => 500 and return
       end

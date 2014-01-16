@@ -208,22 +208,18 @@ Curl command to create the node:
 node_samples.json:
 ```
 {
-    "admin": false, 
-    "alias": "simaa", 
+    "alias": "containerX", 
     "alive": true, 
     "allocated": false, 
     "available": true, 
     "bootenv": "local", 
-    "created_at": "2013-12-21T05:49:00Z", 
-    "deployment_id": 1, 
-    "description": "devBDD Testing Only - should be automatically removed", 
-    "discovery": {}, 
-    "hint": "{}", 
+    "description": "devBDD Testing Only", 
+    "hint": "{
+        \"ip\"\: \"<node ip address for crowbar\"
+    }", 
     "id": 41, 
-    "name": "simaa.cr0wbar.com", 
-    "order": 100, 
-    "target_role_id": null, 
-    "updated_at": "2013-12-21T05:49:00Z"
+    "name": "containerN.cr0wbar.com", 
+    "order": 100
 }
 ```
 

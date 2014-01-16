@@ -213,7 +213,7 @@ node_samples.json:
     "allocated": false, 
     "available": true, 
     "bootenv": "local", 
-    "description": "devBDD Testing Only", 
+    "description": "Docker LXC Container", 
     "hint": "{
         \"ip\"\: \"<node ip address for crowbar\"
     }", 

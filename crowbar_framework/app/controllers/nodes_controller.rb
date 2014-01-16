@@ -311,6 +311,7 @@ class NodesController < ApplicationController
   def update
     if request.post?
       get_node_and_network(params[:id] || params[:name])
+      raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
 
       if params[:submit] == t('nodes.form.allocate')
         @node.allocated = true
@@ -321,11 +322,12 @@ class NodesController < ApplicationController
         Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
         flash[:notice] = "Unknown action: #{params[:submit]}"
       end
+      redirect_to nodes_path(:selected => @node.name)
     else
-      Rails.logger.warn "PUT is required to update proposal #{params[:id]}"
-      flash[:notice] = "PUT required"
+      Rails.logger.warn "POST is required to update proposal #{params[:id]}"
+      flash[:notice] = "POST required"
+      redirect_to nodes_path
     end
-    redirect_to nodes_path(:selected => @node.name)
   end
 
   #this code allow us to get values of attributes by path of node
@@ -348,19 +350,21 @@ class NodesController < ApplicationController
       return false
     end
     begin
-      @node.bios_set = params[:bios]
-      @node.raid_set = params[:raid]
-      @node.alias = params[:alias]
-      @node.public_name = params[:public_name]
-      @node.group = params[:group]
-      @node.description = params[:description]
-      @node.intended_role = params[:intended_role]
-      if change_target_platform
+      {
+        :bios_set      => :bios,
+        :raid_set      => :raid,
+        :alias         => :alias,
+        :public_name   => :public_name,
+        :group         => :group,
+        :description   => :description,
+        :intended_role => :intended_role,
+      }.each do |attr, param|
+        @node.send("#{attr}=", params[param]) unless params[param].nil?
+      end
+
+      if change_target_platform && params[:target_platform]
         @node.target_platform = params[:target_platform]
-        @node.license_key = params[:license_key]
-        unless CrowbarService.require_license_key?(@node.target_platform)
-          @node.license_key = ""
-        end
+        @node.license_key = CrowbarService.require_license_key?(params[:target_platform]) ? params[:license_key] : ""
       end
       @node.save
       true

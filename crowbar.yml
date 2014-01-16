@@ -279,6 +279,7 @@ rpms:
       - rubygems
     required_pkgs:
       - libyaml
+      - postgresql93
       - postgresql93-contrib
       - postgresql93-server
       - postgresql93-test

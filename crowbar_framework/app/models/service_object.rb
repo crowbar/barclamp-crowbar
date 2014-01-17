@@ -1191,6 +1191,17 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE and !ran_admin
 
+    begin
+      apply_role_post_chef_call(old_role, role, all_nodes)
+    rescue StandardError => e
+      @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
+      message = "Failed to apply the proposal: exception after calling chef (#{e.message})"
+      update_proposal_status(inst, "failed", message)
+      restore_to_ready(all_nodes)
+      process_queue unless in_queue
+      return [ 405, message ]
+    end
+
     update_proposal_status(inst, "success", "")
     restore_to_ready(all_nodes)
     process_queue unless in_queue
@@ -1198,6 +1209,10 @@ class ServiceObject
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
+    # noop by default.
+  end
+
+  def apply_role_post_chef_call(old_role, role, all_nodes)
     # noop by default.
   end
 

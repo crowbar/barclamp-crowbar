@@ -70,6 +70,10 @@ class NodesController < ApplicationController
     node_action :undebug
   end
 
+  def redeploy
+    node_action :redeploy!
+  end
+
   # RESTfule POST of the node resource
   def create
     params[:deployment_id] = Deployment.find_key(params[:deployment]).id if params.has_key? :deployment

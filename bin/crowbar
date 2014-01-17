@@ -446,6 +446,13 @@ class Node < CrowbarProxy
     self
   end
 
+  def do_redeploy(*rest)
+    obj, res = REST.put("#{self.class.path}/#{id}/redeploy")
+    raise("Could not redeploy #{name}") if res >= 300
+    @blob = obj
+    self
+  end
+
   def do_noderoles(*rest)
     objs,res = REST.get("#{self.class.path}/#{id}/node_roles")
     raise("Could not get noderoles for node #{name}") if res >= 300

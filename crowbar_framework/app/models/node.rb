@@ -248,6 +248,17 @@ class Node < ActiveRecord::Base
     self.reboot
   end
 
+  def redeploy!
+    Node.transaction do
+      self.bootenv = "sledgehammer"
+      node_roles.each do |nr|
+        nr.run_count = 0
+        nr.save!
+      end
+      self.reboot
+    end
+  end
+
   def target
     return target_role
   end

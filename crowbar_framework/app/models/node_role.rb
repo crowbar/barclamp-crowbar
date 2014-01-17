@@ -392,13 +392,13 @@ class NodeRole < ActiveRecord::Base
       unless cstate == TRANSITION
         raise InvalidTransition.new(self,cstate,val)
       end
+      write_attribute("state",val)
+      save!
+      run_hook
       if !node.alive
         block_or_todo
         return self
       end
-      write_attribute("state",val)
-      save!
-      run_hook
       # Immediate children of an ACTIVE node go to TODO
       children.each do |c|
         next unless c.snapshot.committed? && c.activatable?

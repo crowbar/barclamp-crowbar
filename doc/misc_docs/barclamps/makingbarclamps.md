@@ -1,10 +1,80 @@
-## Making a Barclamps work with Crowbar
+## Making a barclamp
 
-This section shows you how to make barclamps.
+This section shows you how to make a barclamp.
+
+### Create a crowbar.yml file
+
+This section shows you how to setup a crowbar.yml file for your barclamp.
+
+**TBD:** Document the minimum settings here.
+
+Click [here](crowbar.yml.md) for full documentation on crowbar.yml.
+
+### Creating the Chef side of the barclamp
+#### Create the cookbooks
+* Create the `<barclamp_name>/chef/cookbooks` directory
+* Copy your custom cookbooks into subdirectories under `<barclamp_name>/chef/cookbooks`
+* Create a symbolic link from `<barclamp_name>/chef-solo` to `<barclamp_name>/chef`
+    * `cd <barclamp_name>`
+    * `ln -s chef chef-solo`
+    * `git add chef-solo`
+#### Create the roles
+* Create the `<barclamp_name>/chef/roles` directory
+* In the `<barclamp_name>/chef/roles` directory, create a file named `<your_role_name>.rb` for each of the roles that your barclamp will have
+* Each file should have content similar to the following:
+    * `name "<your_role_name>"`
+    * `description "Your Role Description"`
+    * `run_list(`
+    * `  "recipe[<your_cookbook_name>::<your_recipe_name>]"`
+    * `)`
+* Update the above appropriately for your roles
+
+#### Use Berkshelf to resolve your cookbook dependencies
+* Create a `Berksfile` file
+    * Create a new file called `Berksfile` in the chef directory
+    * Populate the file with the appropriate sources
+* Run Berkshelf to pull in dependent cookbooks
+    * `cd <barclamp_name>/chef`
+    * `berks install`
+        * Note, if `berks install` hangs, then try switching to http instead of git:
+            * `git config --global url."http://".insteadOf git://`
+* This will install all of the cookbooks into the Berkshelf
+* Use Berkshelf to package the cookbooks
+    * `berks package <your_cookbook_name>`
+* Extract the cookbook package into the `<barclamp_name>/chef` directory
+    * `gunzip <your_cookbook_name>.tar.gz`
+    * `cd cookbooks`
+    * `tar xvf ../<your_cookbook_name>.tar`
+    * `rm ../<your_cookbook_name>.tar`
+* Check in the collection of cookbooks
+    * Make sure you are cded into the cookbooks directory, then run the following to check in the cookbooks
+    * `ls | while read cookbook; do git add $cookbook; done`
+
+### Testing your barclamp
+#### Deploying your barclamp
+* Note, the following instructions assume that the barclamp is resident on an installed Crowbar admin node
+* After bringing up a Crowbar admin node, discover as many nodes as needed
+* In the Crowbar GUI, navigate to Deployments->Deployments
+* Enter the name for a deployment and click Add
+* In the table in the History section, under the Snapshot column, click the name of the snapshot
+* Select one of your roles from the pull down and click Add Role
+* Repeat the above until all of your roles have been added
+* Click Add Nodes
+* Find the nodes you wish to deploy your roles to, for each change the Deployment to the deployment that you created, and click Save
+* Navigate to Deployments->Deployments->your_deployment
+* In the displayed table, click on the cells appropriately to deploy selected roles to selected nodes
+* When done, click Commit
+* At this point, the OS will be installed on your nodes, and then your roles will be deployed as you selected
+* To watch the base Crowbar provisioning happening, navigate to Deployments->Deployments->system
+* Once all the icons are green for your node, navigate to Deployments->Deployments->your_deployment to watch your roles deploying
+* If an icon turns red, then an error has occurred.  Click the red icon to view the log from the Chef run, which should contain the error
+#### Bug fix and retest cycle
+* Make modifications to your recipes on the admin node in the `/opt/dell/barclamps/<barclamp_name>/chef/cookbooks` directory
+* Navigate to Deployments->Deployments->your_deployment, click the red icon, then click Retry
+* Refresh the browser to see the latest results
+
 
 ### Customization Locations
-
-To create a barclamp, you must update many places with the name of your barclamp.  While this seems redundant inside the barclamp, it is essential when your barclamp gets merged into the larger Crowbar framework.  This often means that your barclamp tree will have one or two files inside a [barclamp] subdirectory.  That's normal and you'll be glad of it when you have to troubleshoot your barclamp later.
 
 Locations of Crowbar Components in a typical barclamp
 
@@ -108,12 +178,12 @@ Once you created a barclamp, you can import the barclamp into Crowbar & Chef.
 
 Assuming that you already created the foo barclamp in /barclamps, here are the steps:
 
-1.     From the Crowbar server, become the super admin: sudo –i
+1.     From the Crowbar server, become the super admin: sudo -i
 1.     Run the barclamp install script: /opt/dell/bin/barclamp_install /barclamps/foo
-   1.         “/barclamps/foo” is the path to your barclamp. If could be anything!
+   1.         barclamps/foo is the path to your barclamp. If could be anything!
    1.         The core barclamps are in /opt/dell/barclamps.
    1.         In a vm, you could mount a shared folder to access the barclamp (e.g.: /mnt/hgfs/barclamps)
 
 Your barclamp should now show up in the Crowbar UI! You can also see it in Chef under the Crowbar databag.
 
-While barclamps are generally safe to install multiple times, you can uninstall a barclamp using “barclamp_uninstall.rb /path/to/barclamp”
+While barclamps are generally safe to install multiple times, you can uninstall a barclamp using barclamp_uninstall.rb /path/to/barclamp

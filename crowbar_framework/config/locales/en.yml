@@ -38,8 +38,8 @@ en:
     proposals: Proposals
     help: Help
     crowbar_wiki: Online Help
-    crowbar_ug: Users Guide
-    crowbar_dg: Deployment Guide
+    crowbar_ug: Crowbar Users Guide
+    crowbar_dg: Crowbar Deployment Guide
     documentation: Documentation
     dell_add_ug: Dell Additions Users guide
 

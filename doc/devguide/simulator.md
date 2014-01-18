@@ -10,20 +10,36 @@ You need a working [[devtool-build]] system.
 
     `./dev tests server`
 
-1. In a new window, start erlang
+1. In a new window:
 
-    <pre>'cd ~/crowbar/barclamps/crowbar/BDD'
-    cp example.config default.config
-    [review default.config and update if needed]
-    cp dev.sample dev.config
+    <pre>cd ~/crowbar/barclamps/crowbar/BDD
+    cp example.config default.config</pre>
+    Edit default.config
+    Search for http:
+    Change the IP address in the URL to the IP of your dev system
+    Save the file
+    <pre>cp dev.sample dev.config
     ./linux_compile.sh
     ./linux_sim.sh</pre>
 
 1. Open the Crowbar UI using the URL `http://[dev system IP]:3000`.
-2. You can then explore and even run the Annealer!
+1. You can then explore and even run the Annealer!
 
 ### Interactive Mode
 
-You can also run the simulate interactively from `'erl'` using `'dev:pop().'` to create machines, and `'dev:unpop().'` to remove them.
+You can also run the simulate interactively from 'erl'.  Perform all of the above steps, but instead of running linux_sim.sh, do the following:
 
-You can change the nodes and other information created by the simulator by editing your copy of `'dev.config'`.
+<pre>
+    erl
+    dev:pop().
+</pre>
+
+To remove all of the nodes:
+
+<pre>
+    dev:unpop().
+</pre>
+
+Note that nodes can only be removed with `dev:unpop().` if `dev:pop().` has been used to create the nodes.  You can run `dev:pop().` after running linux_sim.sh, and it will find the nodes instead of creating new ones.
+
+You can change the nodes and other information created by the simulator by editing your copy of `dev.config`.

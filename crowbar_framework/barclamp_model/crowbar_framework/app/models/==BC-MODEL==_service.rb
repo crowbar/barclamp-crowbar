@@ -60,5 +60,12 @@ class ==^BC-MODEL==Service < ServiceObject
     @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: leaving")
   end
 
+  # Similar to above - delete or uncomment for actions to be run after
+  # chef-client runs.
+  # def apply_role_post_chef_call(old_role, role, all_nodes)
+  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: entering #{all_nodes.inspect}")
+  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: leaving")
+  # end
+
 end
 

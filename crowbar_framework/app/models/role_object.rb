@@ -28,7 +28,7 @@ class RoleObject < ChefObject
     full = if barclamp.nil?
       RoleObject.find_roles_by_name "*-config-*"
     else
-      RoleObject.find_roles_by_name "#{barclamp}-config-#{inst}"
+      RoleObject.find_roles_by_name "#{barclamp}-config-#{inst || "*"}"
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }
   end

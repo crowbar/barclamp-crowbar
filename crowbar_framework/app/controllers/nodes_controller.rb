@@ -129,7 +129,7 @@ class NodesController < ApplicationController
               end
 
               unless node.group == node_attributes["group"]
-                unless node_attributes["group"].empty? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
+                unless node_attributes["group"].blank? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
                   raise I18n.t("nodes.list.group_error", :node => node.name)
                 end
 

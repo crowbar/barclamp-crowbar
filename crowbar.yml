@@ -263,6 +263,8 @@ rpms:
       - libecpg6
       - ruby
       - ruby-libs
+      - rubygem-chef-server
+      - rubygem-kwalify
       - rubygem-bigdecimal
       - rubygem-is-console
       - rubygem-json

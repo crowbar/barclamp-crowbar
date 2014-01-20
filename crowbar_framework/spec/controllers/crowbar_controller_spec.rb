@@ -7,6 +7,22 @@ describe CrowbarController do
     CrowbarService.any_instance.stubs(:apply_role).returns(true)
   end
 
+  describe "GET index" do
+
+    it "renders list of services" do
+      get :index
+      response.should be_success
+      assigns(:modules).map { |s| s[0] }.should include("crowbar")
+    end
+
+    it "renders list of active roles as json" do
+      get :index, :format => "json"
+      response.should be_success
+      json = JSON.parse(response.body)
+      json.should == assigns(:service_object).list_active.last
+    end
+  end
+
   describe "GET barclamp_index" do
     it "renders list of all barclamps" do
       get :barclamp_index

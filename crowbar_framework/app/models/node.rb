@@ -231,21 +231,32 @@ class Node < ActiveRecord::Base
   end
 
   def reboot
+    self.alive = false
+    self.save!
     BarclampCrowbar::Jig.ssh("root@#{self.name} reboot")
   end
   
   def debug
-    self.alive = false
     self.bootenv = "sledgehammer"
-    self.target = Role.where(:name => "crowbar-managed-node").first
+    self.available = false
     self.reboot
   end
 
   def undebug
-    self.alive = false
     self.bootenv = "local"
-    self.target = nil
+    self.available = true
     self.reboot
+  end
+
+  def redeploy!
+    Node.transaction do
+      self.bootenv = "sledgehammer"
+      node_roles.each do |nr|
+        nr.run_count = 0
+        nr.save!
+      end
+      self.reboot
+    end
   end
 
   def target

@@ -151,6 +151,7 @@ Crowbar::Application.routes.draw do
             put :reboot
             put :debug
             put :undebug
+            put :redeploy
             put 'move/:deployment_id' => "nodes#move"
           end
           resources :node_roles do

@@ -179,6 +179,7 @@ rpms:
       - zlib-devel
   centos-6.5:
     repos:
+      - rpm http://rbel.frameos.org/rbel6
       - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
       - rpm http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
     build_pkgs:

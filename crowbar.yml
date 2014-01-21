@@ -285,19 +285,7 @@ rpms:
       - postgresql93-test
       - pgdg-centos93
       - pgadmin3-93
-      - libpq5
-      - libossp-uuid16
-      - libecpg6
-      - ruby
-      - ruby-libs
-      - rubygem-bigdecimal
-      - rubygem-is-console
-      - rubygem-json
-      - rubygem-minitest
-      - rubygem-psych
-      - rubygem-rake
-      - rubygem-rdoc
-      - rubygems
+      - libpqxx
     pkgs:
       # openldap stuff
       - openldap

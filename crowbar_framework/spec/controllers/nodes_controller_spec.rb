@@ -67,10 +67,10 @@ describe NodesController do
   end
 
   describe "GET update" do
-    it "warns about being a POST method" do
-      get :update
-      response.should redirect_to(nodes_path)
-      flash[:notice].should == "POST required"
+    it "raises unknown http method" do
+      expect {
+        get :update
+      }.to raise_error(ActionController::UnknownHttpMethod)
     end
   end
 

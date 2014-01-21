@@ -1,5 +1,6 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,104 +14,107 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
-require 'chef'
-
-class MachinesController < ApplicationController
-
+class MachinesController < BarclampController
   self.help_contents = Array.new(superclass.help_contents)
 
   before_filter :set_cloud_domain
-  before_filter :set_name, :except => [:index, :list]
-  before_filter :load_machine_or_render_not_found, :except => [:index, :list]
 
+  before_filter :load_machine_or_render_not_found,
+    :only => [
+      :show,
+      :rename,
+      :identify,
+      :delete,
+      :reinstall,
+      :update,
+      :reset,
+      :shutdown,
+      :reboot,
+      :poweron,
+      :allocate
+    ]
+
+  rescue_from StandardError do |exception|
+    log_exception exception
+    render :json => { :error => exception.message }, :status => 500
+  end
+
+  add_help(:index)
   def index
-    if FileTest.exist? CHEF_CLIENT_KEY
-      begin
-        @app = NodeObject.find_all_nodes
-      rescue
-        flash.now[:alert] = "Could not connect to Chef Server at \"#{CHEF_SERVER_URL}.\""
-        @app = []
-      end
-    else
-      flash.now[:alert] = "Could not find Chef Key at \"#{CHEF_CLIENT_KEY}.\""
+    unless ::File.exist? CHEF_CLIENT_KEY
+      raise "Could not find chef key at #{CHEF_CLIENT_KEY}"
+    end
+
+    @nodes = NodeObject.find_all_nodes.map do |node|
+      {
+        :name => node.name,
+        :alias => node.alias
+      }
     end
 
     respond_to do |format|
-      format.json { render :json => @app.map! { |x| x.name } }
+      format.json { render :json => { :nodes => @nodes }, :status => 200 }
     end
   end
 
-  add_help(:list)
-  def list
-    index
-  end
-
-  add_help(:show,[:name])
+  add_help(:show, [:id])
   def show
     respond_to do |format|
       format.json { render :json => @machine.to_hash }
     end
   end
 
-  add_help(:reinstall,[:name],[:post])
-  def reinstall
-    @machine.set_state("reinstall")
-    render_empty_json
+  add_help(:rename, [:id])
+  def rename
+    @machine.alias = params[:alias]
+    @machine.save
+
+    respond_to do |format|
+      format.json { head :ok }
+    end
   end
 
-  add_help(:update,[:name],[:post])
-  def update
-    @machine.set_state("update")
-    render_empty_json
-  end
-
-  add_help(:reset,[:name],[:post])
-  def reset
-    @machine.set_state("reset")
-    render_empty_json
-  end
-
-  add_help(:identify,[:name],[:post])
+  add_help(:identify, [:id], [:post])
   def identify
     @machine.identify
-    render_empty_json
+
+    respond_to do |format|
+      format.json { head :ok }
+    end
   end
 
-  add_help(:shutdown,[:name],[:post])
-  def shutdown
-    @machine.shutdown
-    render_empty_json
-  end
-
-  add_help(:reboot,[:name],[:post])
-  def reboot
-    @machine.reboot
-    render_empty_json
-  end
-
-  add_help(:poweron,[:name],[:post])
-  def poweron
-    @machine.poweron
-    render_empty_json
-  end
-
-  add_help(:allocate,[:name],[:post])
-  def allocate
-    @machine.allocate
-    render_empty_json
-  end
-
-  add_help(:delete,[:name],[:delete])
+  add_help(:delete, [:id], [:delete])
   def delete
-    @machine.set_state("delete")
-    render_empty_json
+    raise "Not allowed for admin nodes" if @machine.admin?
+    @machine.delete
+
+    respond_to do |format|
+      format.json { head :ok }
+    end
   end
 
-  private
+  [
+    :reinstall,
+    :update,
+    :reset,
+    :shutdown,
+    :reboot,
+    :poweron,
+    :allocate
+  ].each do |action|
+    add_help(action, [:id], [:post])
+    define_method action do
+      raise "Not allowed for admin nodes" if @machine.admin?
+      @machine.send(action)
+
+      respond_to do |format|
+        format.json { head :ok }
+      end
+    end
+  end
+
+  protected
 
   def set_cloud_domain
     if session[:domain].nil?
@@ -118,29 +122,13 @@ class MachinesController < ApplicationController
     end
   end
 
-  def set_name
-    @name = params[:name]
-    @name = "#{@name}.#{session[:domain]}" if @name.split(".").length <= 1
-  end
-
   def load_machine_or_render_not_found
     load_machine || render_not_found
   end
 
   def load_machine
-    @machine = NodeObject.find_node_by_name @name
-  end
-
-  def render_not_found
-    flash.now[:alert] = "Could not find node for name #{@name}"
-    respond_to do |format|
-      format.json { render :json => {:alert => "Host not found"}, :status => 404 }
-    end
-  end
-
-  def render_empty_json
-    respond_to do |format|
-      format.json { render :json => {} }
-    end
+    @machine = NodeObject.find_node_by_name_or_alias(
+      params[:name] || params[:id]
+    )
   end
 end

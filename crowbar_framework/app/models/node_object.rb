@@ -93,6 +93,17 @@ class NodeObject < ChefObject
     end
     return val.nil? ? nil : NodeObject.new(val)
   end
+
+  def self.find_node_by_name_or_alias(name)
+    node = find_node_by_name(name)
+
+    if node.nil?
+      find_node_by_alias(name)
+    else
+      node
+    end
+  end
+
   def self.all
     self.find nil
   end
@@ -994,6 +1005,22 @@ class NodeObject < ChefObject
       end
     end
     results
+  end
+
+  def update
+    set_state("update")
+  end
+
+  def delete
+    set_state("delete")
+  end
+
+  def reinstall
+    set_state("reinstall")
+  end
+
+  def reset
+    set_state("reset")
   end
 
   def reboot

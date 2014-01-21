@@ -110,6 +110,8 @@ en:
       constraint_max: "Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded"
       constraint_unique: "Cannot add Node [0] to Role [1]: Node already added to another role"
       constraint_attribute: "Cannot add Node [0] to Role [1]: Required feature is not available on node"
+      unassign_confirm: "Are you sure that you want to remove all nodes from %{role} role?"
+      unassign_label: "Remove all"
     edit_attributes_raw:
       title: Attributes
     edit_deployment_raw:

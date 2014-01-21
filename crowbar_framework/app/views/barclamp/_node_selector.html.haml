@@ -41,6 +41,9 @@
         - @proposal.all_elements.each do |element|
 
           %h4{ "data-droppable" => "true", "data-id" => element }
+            .pull-right
+              %a.unassign{ :href => "#", "data-id" => element, "data-confirm" => t(".unassign_confirm", :role => element) }
+                = t(".unassign_label")
             = chef_server_role_link element
 
           %ul{ "data-droppable" => "true", "data-id" => element }

@@ -1,6 +1,7 @@
 //= require jquery/jquery
 //= require jquery/ui
 //= require jquery/rails
+//= require jquery/blockui
 //= require jquery/hideShowPassword
 //= require jquery/sparkline
 //= require jquery/spritely

@@ -81,6 +81,21 @@ jQuery(document).ready(function($) {
     ]
   });
 
+  $('[data-blockui]').live('submit', function(event) {
+    $.blockUI({
+      css: {
+        border: 'none',
+        padding: '15px',
+        backgroundColor: '#000',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px',
+        opacity: .5,
+        color: '#fff'
+      },
+      message: $(event.target).data('blockui')
+    });
+  });
+
   $('[data-checkall]').live('change', function(event) {
     var checker = $(event.target).data('checkall');
 

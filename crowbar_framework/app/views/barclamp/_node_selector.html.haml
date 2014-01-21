@@ -33,7 +33,7 @@
         .form-group
           %ul
             - nodes_hash.each do |n, detail|
-              %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-admin" => detail[:admin], :title => (detail[:title] || t("not_set")) }
+              %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-admin" => detail[:admin].to_s, :title => (detail[:title] || t("not_set")) }
                 = detail[:alias]
                 = link_to icon_tag("link"), nodes_path(:selected => detail[:handle]), :title => detail[:alias], :class => "pull-right"
 

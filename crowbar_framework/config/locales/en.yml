@@ -93,6 +93,7 @@ en:
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
+      blockui_message: Processing, please wait...
     node_selector:
       title: Deployment
       hint: Drag nodes for deployment from Available Nodes into the selected Role

@@ -47,7 +47,8 @@ module ProposalsHelper
       :role => "form",
       :id => "update_proposal_form",
       :autocomplete => "off",
-      "data-type" => "html"
+      "data-type" => "html",
+      "data-blockui" => t(".blockui_message")
     }
 
     form_for :proposal, :url => url, :html => html, &block

@@ -113,6 +113,8 @@ en:
       constraint_attribute: "Cannot add Node [0] to Role [1]: Required feature is not available on node"
       unassign_confirm: "Are you sure that you want to remove all nodes from %{role} role?"
       unassign_label: "Remove all"
+      node_link: Show details for %{alias}
+      node_remove: Remove %{alias} from this role
     edit_attributes_raw:
       title: Attributes
     edit_deployment_raw:

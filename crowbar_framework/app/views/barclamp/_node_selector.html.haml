@@ -35,7 +35,7 @@
             - nodes_hash.each do |n, detail|
               %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-admin" => detail[:admin].to_s, :title => (detail[:title] || t("not_set")) }
                 = detail[:alias]
-                = link_to icon_tag("link"), nodes_path(:selected => detail[:handle]), :title => detail[:alias], :class => "pull-right"
+                = link_to icon_tag("link"), nodes_path(:selected => detail[:handle]), :title => t(".node_link", :alias => detail[:alias]), :class => "pull-right"
 
       .col-xs-6.dropzone
         - @proposal.all_elements.each do |element|
@@ -51,7 +51,7 @@
 %script#nodelist-item{ :type => "text/x-handlebars-template" }
   %li{ "data-draggable" => "false", "data-id" => "{{id}}", "data-alias" => "{{alias}}", "data-admin" => "{{admin}}", "data-role" => "{{role}}"  }
     {{alias}}
-    = link_to icon_tag("trash"), "#", :title => "{{alias}}", :class => "pull-right delete"
+    = link_to icon_tag("trash"), "#", :title => t(".node_remove", :alias => "{{alias}}"), :class => "pull-right delete"
 
 %script#nodelist-warning{ :type => "text/x-handlebars-template" }
   .alert.alert-warning.alert-dismissable

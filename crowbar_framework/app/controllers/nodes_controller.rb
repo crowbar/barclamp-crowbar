@@ -149,16 +149,9 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            if CrowbarService.require_license_key? node.target_platform
-              unless node.license_key == node_attributes["license_key"]
-                node.license_key = node_attributes["license_key"]
-                dirty = true
-              end
-            else
-              unless node.license_key == ""
-                node.license_key = ""
-                dirty = true
-              end
+            unless node.license_key == node_attributes["license_key"]
+              node.license_key = node_attributes["license_key"]
+              dirty = true
             end
 
             if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
@@ -362,7 +355,7 @@ class NodesController < ApplicationController
 
       if change_target_platform && params[:target_platform]
         @node.target_platform = params[:target_platform]
-        @node.license_key = CrowbarService.require_license_key?(params[:target_platform]) ? params[:license_key] : ""
+        @node.license_key = params[:license_key]
       end
       @node.save
       true

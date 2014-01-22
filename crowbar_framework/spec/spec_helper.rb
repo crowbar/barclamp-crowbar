@@ -4,6 +4,7 @@ ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','config','environment'))
 require 'spec/autorun'
 require 'spec/rails'
+require 'webmock/rspec'
 
 # Uncomment the next line to use webrat's matchers
 #require 'webrat/integrations/rspec-rails'
@@ -11,6 +12,8 @@ require 'spec/rails'
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
 Dir[File.expand_path(File.join(File.dirname(__FILE__),'support','**','*.rb'))].each {|f| require f}
+
+WebMock.disable_net_connect!(:allow_localhost => false)
 
 Spec::Runner.configure do |config|
   # If you're not using ActiveRecord you should remove these
@@ -51,4 +54,9 @@ Spec::Runner.configure do |config|
   # == Notes
   #
   # For more information take a look at Spec::Runner::Configuration and Spec::Runner
+
+  # Stub http requests with calls to our fake implementation
+  config.append_before(:each) do
+    stub_request(:any, /localhost:4000/).to_rack(OfflineChef)
+  end
 end

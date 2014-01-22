@@ -4,20 +4,248 @@ describe NodesController do
   integrate_views
 
   before do
-    RoleObject.stubs(:find_role_by_name).returns(RoleObject.new(Chef::Role.new))
+    NodeObject.any_instance.stubs(:system).returns(true)
   end
-
-  let(:chef_node) { n = Chef::Node.new; n.name "testing.example.com"; n }
-  let(:node) { NodeObject.new(chef_node) }
 
   describe "GET index" do
     it "is successful" do
-      NodeObject.stubs(:all).returns([node])
+      get :index
+      response.should be_success
+    end
 
-      with_constant("CHEF_ONLINE", true) do
-        get :index
-        response.should be_success
+    it "filters out roles" do
+      get :index, :role => "i dont exist"
+      assigns(:nodes).should == []
+    end
+
+    it "returns specified roles" do
+      get :index, :role => "crowbar-testing_crowbar_com"
+      assigns(:nodes).should_not == []
+    end
+
+    it "is successful as json" do
+      get :index, :format => "json"
+      response.should be_success
+    end
+
+    it "sets a flash notice if no nodes found" do
+      NodeObject.stubs(:all).returns([])
+      get :index
+      flash[:notice].should_not be_empty
+    end
+  end
+
+  describe "POST update" do
+    before do
+      NodeObject.stubs(:find_node_by_public_name).returns(nil)
+      @node = NodeObject.find_node_by_name("admin")
+    end
+
+    describe "coming from the allocate form" do
+      it "updates the node" do
+        post :update, :name => @node.name, :submit => I18n.t('nodes.form.allocate'), :alias => "newname.crowbar.com", :public_name => "newname"
+        flash[:notice].should == I18n.t('nodes.form.allocate_node_success')
+        response.should redirect_to(nodes_path(:selected => @node.name))
       end
+    end
+
+    describe "coming from the save form" do
+      it "updates the node" do
+        post :update, :name => @node.name, :submit => I18n.t('nodes.form.save'), :alias => "newname.crowbar.com", :public_name => "newname"
+        flash[:notice].should == I18n.t('nodes.form.save_node_success')
+        response.should redirect_to(nodes_path(:selected => @node.name))
+      end
+    end
+
+    describe "unknown submit" do
+      it "sets the notice" do
+        post :update, :name => @node.name, :submit => "i dont exist"
+        flash[:notice].should match(/Unknown action/)
+        response.should redirect_to(nodes_path(:selected => @node.name))
+      end
+    end
+  end
+
+  describe "GET update" do
+    it "raises unknown http method" do
+      expect {
+        get :update
+      }.to raise_error(ActionController::UnknownHttpMethod)
+    end
+  end
+
+  describe "GET list" do
+    it "is successful" do
+      get :list
+      response.should be_success
+    end
+  end
+
+  describe "POST bulk" do
+    let(:admin) { NodeObject.find_node_by_name("admin") }
+    let(:node) { NodeObject.find_node_by_name("testing") }
+
+    it "redirects to nodes list on success if return param passed" do
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }, :return => "true"
+      response.should redirect_to(nodes_list_path)
+    end
+
+    it "redirects to unallocated nodes list on success" do
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
+      response.should redirect_to(unallocated_list_path)
+    end
+
+
+    it "reports successful changes" do
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      assigns(:report)[:failed].length.should == 0
+      assigns(:report)[:success].should include(node.name)
+    end
+
+    it "reports duplicate nodes" do
+      post :bulk, :node => { node.name => { "alias" => "newalias" }, admin.name => { "alias" => "newalias" } }
+      assigns(:report)[:duplicate].should == true
+      assigns(:report)[:failed].should include(admin.name)
+    end
+
+    it "reports nodes for which update failed" do
+      NodeObject.any_instance.stubs(:alias=).raises(StandardError)
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      assigns(:report)[:failed].should include(node.name)
+    end
+  end
+
+  describe "GET families" do
+    let(:node) { NodeObject.find_node_by_name("testing") }
+
+    it "is successful" do
+      get :families
+      response.should be_success
+    end
+
+    it "sets populates @families with node descriptions" do
+      get :families
+      assigns(:families).keys.should include(node.family.to_s)
+    end
+  end
+
+  describe "GET status" do
+    it "is successful" do
+      get :status
+      response.should be_success
+    end
+
+    it "renders error if fetch fails" do
+      NodeObject.stubs(:all).raises(Errno::ECONNREFUSED)
+      get :status
+      json = JSON.parse(response.body)
+      json["count"].should == -2
+      json["error"].should_not be_empty
+    end
+  end
+
+  describe "GET show" do
+    it "is successful" do
+      get :show, :id => "testing"
+      response.should be_success
+    end
+
+    it "fails for missing node" do
+      expect {
+        get :show, :id => "missing"
+      }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "renders json" do
+      get :show, :id => "testing", :format => "json"
+      response.should be_success
+    end
+  end
+
+  describe "POST hit" do
+    it "returns 404 for missing node" do
+      post :hit, :req => "identify", :id => "missing"
+      response.should be_missing
+    end
+
+    it "returns 500 for invalid action" do
+      post :hit, :req => "some nonsense", :id => "testing"
+      response.should be_server_error
+    end
+
+    it "sets the machine state" do
+      ["reinstall", "reset", "update", "delete"].each do |action|
+        NodeObject.any_instance.expects(:set_state).with(action).once
+        post :hit, :req => action, :id => "testing"
+      end
+
+      ["reboot", "shutdown", "poweron", "identify", "allocate"].each do |action|
+        NodeObject.any_instance.expects(action.to_sym).once
+        post :hit, :req => action, :id => "testing"
+      end
+    end
+  end
+
+  describe "POST group_change" do
+    before do
+      @node = NodeObject.find_node_by_name("testing")
+    end
+
+    it "returns not found for nonexistent node" do
+      expect {
+        new_group = "new_group"
+        post :group_change, :id => "missing", :group => new_group
+      }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "assigns a node to a group" do
+      NodeObject.stubs(:find_node_by_name).returns(@node)
+
+      new_group = "new_group"
+      post :group_change, :id => @node.name, :group => new_group
+
+      @node.display_set?("group").should be_true
+      @node.group.should == new_group
+    end
+
+    it "sets node group to blank if 'automatic' passed" do
+      NodeObject.stubs(:find_node_by_name).returns(@node)
+
+      new_group = "automatic"
+      post :group_change, :id => @node.name, :group => new_group
+
+      @node.display_set?("group").should be_false
+      @node.group.should == "sw-#{@node.switch}"
+    end
+  end
+
+  describe "GET attribute" do
+    before do
+      @node = NodeObject.find_node_by_name("testing")
+    end
+
+    # FIXME: maybe regular 404 would be better?
+    it "raises for missing node" do
+      expect {
+        get :attribute, :name => "missing", :path => ["name"]
+      }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "raises for nonexistent attribute" do
+      expect {
+        get :attribute, :name => @node.name, :path => ["i dont exist"]
+      }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "renders complete node if no path passed" do
+      get :attribute, :name => @node.name
+      response.body.should == {:value => @node.to_hash}.to_json
+    end
+
+    it "looks up the attribute by path" do
+      get :attribute, :name => @node.name, :path => ["name"]
+      json = JSON.parse(response.body)
+      json["value"].should == @node.name
     end
   end
 end

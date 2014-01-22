@@ -149,16 +149,9 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            if CrowbarService.require_license_key? node.target_platform
-              unless node.license_key == node_attributes["license_key"]
-                node.license_key = node_attributes["license_key"]
-                dirty = true
-              end
-            else
-              unless node.license_key == ""
-                node.license_key = ""
-                dirty = true
-              end
+            unless node.license_key == node_attributes["license_key"]
+              node.license_key = node_attributes["license_key"]
+              dirty = true
             end
 
             if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
@@ -309,21 +302,21 @@ class NodesController < ApplicationController
   end
 
   def update
-    if request.post?
-      get_node_and_network(params[:id] || params[:name])
+    unless request.post?
+      raise ActionController::UnknownHttpMethod.new("POST is required to update proposal #{params[:id]}")
+    end
 
-      if params[:submit] == t('nodes.form.allocate')
-        @node.allocated = true
-        flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
-      elsif params[:submit] == t('nodes.form.save')
-        flash[:notice] = t('nodes.form.save_node_success') if save_node(false)
-      else
-        Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
-        flash[:notice] = "Unknown action: #{params[:submit]}"
-      end
+    get_node_and_network(params[:id] || params[:name])
+    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
+
+    if params[:submit] == t('nodes.form.allocate')
+      @node.allocated = true
+      flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
+    elsif params[:submit] == t('nodes.form.save')
+      flash[:notice] = t('nodes.form.save_node_success') if save_node(false)
     else
-      Rails.logger.warn "PUT is required to update proposal #{params[:id]}"
-      flash[:notice] = "PUT required"
+      Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
+      flash[:notice] = "Unknown action: #{params[:submit]}"
     end
     redirect_to nodes_path(:selected => @node.name)
   end
@@ -348,19 +341,21 @@ class NodesController < ApplicationController
       return false
     end
     begin
-      @node.bios_set = params[:bios]
-      @node.raid_set = params[:raid]
-      @node.alias = params[:alias]
-      @node.public_name = params[:public_name]
-      @node.group = params[:group]
-      @node.description = params[:description]
-      @node.intended_role = params[:intended_role]
+      {
+        :bios_set      => :bios,
+        :raid_set      => :raid,
+        :alias         => :alias,
+        :public_name   => :public_name,
+        :group         => :group,
+        :description   => :description,
+        :intended_role => :intended_role,
+      }.each do |attr, param|
+        @node.send("#{attr}=", params[param]) if params.key?(param)
+      end
+
       if change_target_platform
-        @node.target_platform = params[:target_platform]
+        @node.target_platform = params[:target_platform] || @template.default_platform
         @node.license_key = params[:license_key]
-        unless CrowbarService.require_license_key?(@node.target_platform)
-          @node.license_key = ""
-        end
       end
       @node.save
       true

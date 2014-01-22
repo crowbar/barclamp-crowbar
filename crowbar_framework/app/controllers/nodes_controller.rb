@@ -353,8 +353,8 @@ class NodesController < ApplicationController
         @node.send("#{attr}=", params[param]) if params.key?(param)
       end
 
-      if change_target_platform && params[:target_platform]
-        @node.target_platform = params[:target_platform]
+      if change_target_platform
+        @node.target_platform = params[:target_platform] || @template.default_platform
         @node.license_key = params[:license_key]
       end
       @node.save

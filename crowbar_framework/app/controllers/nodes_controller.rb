@@ -350,7 +350,7 @@ class NodesController < ApplicationController
         :description   => :description,
         :intended_role => :intended_role,
       }.each do |attr, param|
-        @node.send("#{attr}=", params[param]) unless params[param].nil?
+        @node.send("#{attr}=", params[param]) if params.key?(param)
       end
 
       if change_target_platform && params[:target_platform]

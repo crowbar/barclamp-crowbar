@@ -56,10 +56,6 @@ end
   [ [ "--hostname", "-n", GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - Specifies the destination server" ],
   [ [ "--port", "-p", GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - Specifies the destination server port" ],
   [ [ "--timeout", "-t", GetoptLong::REQUIRED_ARGUMENT ], "--timeout <seconds> or -t <seconds> - Timeout in seconds for read HTTP requests" ]
-
-  # maybe reusable if we implement create and update
-  #[ [ "--data", GetoptLong::REQUIRED_ARGUMENT ], "--data <data> - used by create or edit as data (must be in json format)" ],
-  #[ [ "--file", GetoptLong::REQUIRED_ARGUMENT ], "--file <file> - used by create or edit as data when read from a file (must be in json format)" ],
 ]
 
 @commands = {
@@ -358,13 +354,6 @@ def opt_parse
         @port = arg.to_i
       when "--timeout"
         @timeout = arg.to_i
-
-      # maybe reusable if we implement create and update
-      #when "--data"
-      #  @data = arg
-      #when "--file"
-      #  @data = File.read(arg)
-
       else
         found = false
         lsub_options.each do |x|

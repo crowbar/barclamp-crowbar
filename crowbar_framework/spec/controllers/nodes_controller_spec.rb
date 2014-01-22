@@ -81,30 +81,36 @@ describe NodesController do
     end
   end
 
-  describe "POST list" do
+  describe "POST bulk" do
     let(:admin) { NodeObject.find_node_by_name("admin") }
     let(:node) { NodeObject.find_node_by_name("testing") }
 
-    it "is successful" do
-      post :list, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
-      response.should be_success
+    it "redirects to nodes list on success if return param passed" do
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }, :return => "true"
+      response.should redirect_to(nodes_list_path)
     end
 
+    it "redirects to unallocated nodes list on success" do
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
+      response.should redirect_to(unallocated_list_path)
+    end
+
+
     it "reports successful changes" do
-      post :list, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
       assigns(:report)[:failed].length.should == 0
       assigns(:report)[:success].should include(node.name)
     end
 
     it "reports duplicate nodes" do
-      post :list, :node => { node.name => { "alias" => "newalias" }, admin.name => { "alias" => "newalias" } }
+      post :bulk, :node => { node.name => { "alias" => "newalias" }, admin.name => { "alias" => "newalias" } }
       assigns(:report)[:duplicate].should == true
       assigns(:report)[:failed].should include(admin.name)
     end
 
     it "reports nodes for which update failed" do
       NodeObject.any_instance.stubs(:alias=).raises(StandardError)
-      post :list, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
       assigns(:report)[:failed].should include(node.name)
     end
   end

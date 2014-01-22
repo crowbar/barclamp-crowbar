@@ -60,114 +60,7 @@ class NodesController < ApplicationController
   end
 
   def list
-    if request.post?
-      @report = {
-        :success => [],
-        :failed => [],
-        :duplicate => false
-      }.tap do |report|
-        node_aliases = params[:node].values.map { |attributes| attributes["alias"] }
-
-        params[:node].each do |node_name, node_attributes|
-          if node_aliases.grep(node_attributes["alias"]).size > 1
-            report[:duplicate] = true
-            report[:failed].push node_name
-          end
-        end
-
-        unless report[:duplicate]
-          params[:node].each do |node_name, node_attributes|
-            begin
-              dirty = false
-              node = NodeObject.find_node_by_name node_name
-
-              if node_attributes["allocate"] and not node.allocated
-                node.allocated = true
-                dirty = true
-              end
-
-              unless node.description == node_attributes["description"]
-                node.description = node_attributes["description"]
-                dirty = true
-              end
-
-              unless node.alias == node_attributes["alias"]
-                node.alias = node_attributes["alias"]
-                dirty = true
-              end
-
-              unless node.public_name == node_attributes["public_name"]
-                node.public_name = node_attributes["public_name"]
-                dirty = true
-              end
-
-              unless node.target_platform == node_attributes["target_platform"]
-                node.target_platform = node_attributes["target_platform"]
-                dirty = true
-              end
-
-              if CrowbarService.require_license_key? node.target_platform
-                unless node.license_key == node_attributes["license_key"]
-                  node.license_key = node_attributes["license_key"]
-                  dirty = true
-                end
-              else
-                unless node.license_key == ""
-                  node.license_key = ""
-                  dirty = true
-                end
-              end
-
-              if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
-                node.bios_set = node_attributes["bios"]
-                dirty = true
-              end
-
-              if @template.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
-                node.raid_set = node_attributes["raid"]
-                dirty = true
-              end
-
-              unless node.group == node_attributes["group"]
-                unless node_attributes["group"].blank? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
-                  raise I18n.t("nodes.list.group_error", :node => node.name)
-                end
-
-                node.group = node_attributes["group"]
-                dirty = true
-              end
-
-              if dirty
-                node.save
-                report[:success].push node_name
-              end
-            rescue StandardError => e
-              log_exception(e)
-              report[:failed].push node_name
-            end
-          end
-        end
-      end
-
-      if @report[:failed].length > 0
-        node_list = @report[:failed].map do |node_name|
-          node_name.split(".").first
-        end
-
-        flash.now[:alert] = I18n.t(
-          @report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
-          :failed => node_list.to_sentence
-        )
-      elsif @report[:success].length > 0
-        node_list = @report[:success].map do |node_name|
-          node_name.split(".").first
-        end
-
-        flash.now[:notice] = I18n.t("nodes.list.updated", :success => node_list.to_sentence)
-      else
-        flash.now[:info] = I18n.t("nodes.list.nochange")
-      end
-    end
+    @allocated = true
 
     @nodes = {}.tap do |nodes|
       NodeObject.all.each do |node|
@@ -176,15 +69,149 @@ class NodesController < ApplicationController
           node.save
         end
 
-        if params[:allocated].nil? or not node.allocated?
+        nodes[node.handle] = node
+      end
+    end
+
+    respond_to do |format|
+      format.html { render "list" }
+    end
+  end
+
+  def unallocated
+    @allocated = false
+
+    @nodes = {}.tap do |nodes|
+      NodeObject.all.each do |node|
+        if node.target_platform.blank?
+          node.target_platform = @template.default_platform
+          node.save
+        end
+
+        unless node.allocated?
           nodes[node.handle] = node
         end
       end
     end
 
     respond_to do |format|
-      format.html
+      format.html { render "list" }
     end
+  end
+
+  def bulk
+    @report = {
+      :success => [],
+      :failed => [],
+      :duplicate => false
+    }.tap do |report|
+      node_values = params[:node] || {}
+
+      node_aliases = node_values.values.map do |attributes|
+        attributes["alias"]
+      end
+
+      node_values.each do |node_name, node_attributes|
+        if node_aliases.grep(node_attributes["alias"]).size > 1
+          report[:duplicate] = true
+          report[:failed].push node_name
+        end
+      end
+
+      unless report[:duplicate]
+        node_values.each do |node_name, node_attributes|
+          begin
+            dirty = false
+            node = NodeObject.find_node_by_name node_name
+
+            if node_attributes["allocate"] and not node.allocated
+              node.allocated = true
+              dirty = true
+            end
+
+            unless node.description == node_attributes["description"]
+              node.description = node_attributes["description"]
+              dirty = true
+            end
+
+            unless node.alias == node_attributes["alias"]
+              node.alias = node_attributes["alias"]
+              dirty = true
+            end
+
+            unless node.public_name == node_attributes["public_name"]
+              node.public_name = node_attributes["public_name"]
+              dirty = true
+            end
+
+            unless node.target_platform == node_attributes["target_platform"]
+              node.target_platform = node_attributes["target_platform"]
+              dirty = true
+            end
+
+            if CrowbarService.require_license_key? node.target_platform
+              unless node.license_key == node_attributes["license_key"]
+                node.license_key = node_attributes["license_key"]
+                dirty = true
+              end
+            else
+              unless node.license_key == ""
+                node.license_key = ""
+                dirty = true
+              end
+            end
+
+            if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
+              node.bios_set = node_attributes["bios"]
+              dirty = true
+            end
+
+            if @template.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
+              node.raid_set = node_attributes["raid"]
+              dirty = true
+            end
+
+            unless node.group == node_attributes["group"]
+              unless node_attributes["group"].blank? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
+                raise I18n.t("nodes.list.group_error", :node => node.name)
+              end
+
+              node.group = node_attributes["group"]
+              dirty = true
+            end
+
+            if dirty
+              node.save
+              report[:success].push node_name
+            end
+          rescue StandardError => e
+            log_exception(e)
+            report[:failed].push node_name
+          end
+        end
+      end
+    end
+
+    if @report[:failed].length > 0
+      node_list = @report[:failed].map do |node_name|
+        node_name.split(".").first
+      end
+
+      flash[:alert] = I18n.t(
+        @report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
+        :failed => node_list.to_sentence
+      )
+    elsif @report[:success].length > 0
+      node_list = @report[:success].map do |node_name|
+        node_name.split(".").first
+      end
+
+      flash[:notice] = I18n.t("nodes.list.updated", :success => node_list.to_sentence)
+    else
+      flash[:info] = I18n.t("nodes.list.nochange")
+    end
+
+    redirect_to params[:return] != "true" ? unallocated_list_path : nodes_list_path
   end
 
   def families

@@ -19,6 +19,12 @@
     padding: 5px 15px;
     border-bottom: 1px solid #eeeeee;
   }
+
+  .panel-body {
+    .alert.last {
+      margin-bottom: 0;
+    }
+  }
 }
 
 @-moz-document url-prefix() {

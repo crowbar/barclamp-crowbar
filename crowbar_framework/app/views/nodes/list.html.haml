@@ -4,14 +4,13 @@
       = t(".title")
 
       .btn-group.pull-right
-        - if params[:allocated]
-          = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
+        - if @allocated
+          = link_to t(".unallocated"), unallocated_list_path, :class => "btn btn-default"
         - else
-          = link_to t(".unallocated"), nodes_list_path(:allocated => "yes"), :class => "btn btn-default"
+          = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
 
-- form_for :node, :url => nodes_list_path, :html => { :role => "form" } do |f|
-  - if params[:allocated]
-    = hidden_field_tag "allocated", "yes"
+- form_for :node, :url => bulk_nodes_path, :html => { :role => "form" } do |f|
+  = hidden_field_tag "return", @allocated
 
   .panel.panel-default
     .panel-heading
@@ -124,7 +123,7 @@
                       %input.allocate{ :type => "checkbox", :value => "1", :name => "node[#{node.name}][allocate]" }
     - else
       .panel-body
-        .alert.alert-info
+        .alert.alert-info.last
           = t('no_items')
 
     .panel-footer.text-right

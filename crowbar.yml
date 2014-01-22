@@ -45,7 +45,7 @@ nav:
     - [ help, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
   nodes:
     - [ dashboard, dashboard_path ]
-    - [ list, "nodes_list_path(:allocated=>'yes')" ]
+    - [ list, nodes_list_path ]
     - [ families, nodes_families_path if RAILS_ENV == 'development' ]
   barclamps:
     - [ all_bc, barclamp_modules_path ]

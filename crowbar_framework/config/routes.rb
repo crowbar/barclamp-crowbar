@@ -35,7 +35,9 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
               :requirements => { :name => /.*/, :path => /.*/ }, :conditions => { :method => :get }
   map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
-  map.nodes_list 'nodes/list', :controller => 'nodes', :action => 'list'
+  map.nodes_list 'nodes/list.:format', :controller => 'nodes', :action => 'list', :conditions => { :method => :get }
+  map.unallocated_list 'nodes/unallocated.:format', :controller => 'nodes', :action => 'unallocated', :conditions => { :method => :get }
+  map.bulk_nodes 'nodes/bulk.:format', :controller => 'nodes', :action => 'bulk', :conditions => { :method => :post }
   map.nodes_families 'nodes/families', :controller=>'nodes', :action=>'families'
   map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
   map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }

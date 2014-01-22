@@ -34,4 +34,23 @@ describe NodeObject do
       end
     end
   end
+
+  describe "license_key" do
+    describe "assignment" do
+      let(:node) { NodeObject.find_node_by_name("testing") }
+      let(:key) { "a key" }
+
+      it "sets the key if the platform requires one" do
+        CrowbarService.stubs(:require_license_key?).returns(true)
+        node.license_key = key
+        node.license_key.should == key
+      end
+
+      it "leaves it blank if platform does not need a key" do
+        CrowbarService.stubs(:require_license_key?).returns(false)
+        node.license_key = key
+        node.license_key.should be_blank
+      end
+    end
+  end
 end

@@ -118,6 +118,14 @@
                 }
               );
             }
+
+            var text = $(
+              '[data-node-state="{0}"]'.format(key)
+            );
+
+            if (text.html() != val.status) {
+              text.html(val.status).effect('fade').effect('fade');
+            }
           });
         }
 

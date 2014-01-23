@@ -178,7 +178,11 @@ module NodesHelper
 
       result.push [
         t("model.attributes.node.state"),
-        t(node.state, :scope => :state, :default => node.state.titlecase)
+        content_tag(
+          :span,
+          t(node.state, :scope => :state, :default => node.state.titlecase),
+          "data-node-state" => node.handle
+        )
       ]
 
       show_name = if node.switch_name.nil?

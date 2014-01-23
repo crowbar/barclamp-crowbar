@@ -1,7 +1,7 @@
 .panel.panel-default
   .panel-heading
     %h2
-      %span.led{ :class => @node.status, :id => "head_#{@node.handle}", :title => t(@node.state, :scope => "state", :default => @node.state.titlecase) }
+      %span.led{ :class => @node.status, :title => t(@node.state, :scope => "state", :default => @node.state.titlecase), "data-node" => @node.handle }
 
       %a{ :href => node_path(@node.handle), :title => @node.description }
         = @node.alias

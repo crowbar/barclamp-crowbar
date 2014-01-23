@@ -147,4 +147,38 @@ module ProposalsHelper
 
     ""
   end
+
+  def link_to_proposal(barclamp)
+    proposal = retrieve_proposal_for(barclamp)
+
+    link_to(
+      t("proposal.actions.link", :name => proposal.display_name),
+      url_for_proposal(barclamp)
+    )
+  end
+
+  def url_for_proposal(barclamp)
+    proposal = retrieve_proposal_for(barclamp)
+
+    url_for(
+      :controller => proposal.barclamp,
+      :action => "proposal_show",
+      :id => proposal.name
+    )
+  end
+
+  protected
+
+  def retrieve_proposal_for(barclamp)
+    @retrieve_proposal_for ||= {}
+
+    @retrieve_proposal_for[barclamp] ||= begin
+      proposals = ProposalObject.find_proposals(barclamp.to_s)
+
+      raise "Can not find any proposal for #{barclamp}" if proposals.empty?
+      raise "Too many proposals for #{barclamp}" unless proposals.length == 1
+
+      proposals.first
+    end
+  end
 end

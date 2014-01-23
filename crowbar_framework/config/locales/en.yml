@@ -158,6 +158,7 @@ en:
     items:
       default: proposal
     actions:
+      link: %{name} barclamp
       apply: Apply
       save: Save
       edit: Edit      

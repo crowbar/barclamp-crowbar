@@ -1,6 +1,6 @@
 - register_javascripts "barclamps/crowbar/dashboard"
 
-.row
+.row{ "data-ledupdate" => nodes_status_path }
   .col-xs-12
     %h1.page-header
       = t(".title")
@@ -23,7 +23,7 @@
 .alert.alert-info{ "data-id" => "AUTOMATIC", "data-droppable" => "true" }
   = t(".drag_hint")
 
-#nodegroups.row{ "data-ledupdate" => nodes_status_path }
+#nodegroups.row
   - @groups.sort.each do |group_name, group|
     .col-xs-3{ "data-id" => group_name, "data-droppable" => "true", "data-group" => group_name }
       .panel.panel-default

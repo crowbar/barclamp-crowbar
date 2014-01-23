@@ -23,36 +23,44 @@ module NodesHelper
   end
 
   def piechart_for(group)
-    values = [
-      group[:status]["ready"],
-      group[:status]["failed"],
-      group[:status]["unknown"],
-      group[:status]["unready"] + group[:status]["pending"]
-    ]
-
-    if group[:status]["building"]
-      values << values.pop + group[:status]["building"]
-    end
-
-    tooltip = [].tap do |result|
-      result.push content_tag(
-        :strong,
-        t(".status_pie.total", :count => values.sum)
-      )
-
-      result.push t(".status_pie.ready", :count => values[0]) if values[0] > 0
-      result.push t(".status_pie.unknown", :count => values[1]) if values[1] > 0
-      result.push t(".status_pie.unready", :count => values[2]) if values[2] > 0
-      result.push t(".status_pie.pending", :count => values[3]) if values[3] > 0
-    end
+    values = piechart_values(group)
+    tooltip = piechart_tooltip(values)
 
     content_tag(
       :span,
       "",
-      :title => tooltip.join(tag(:br)),
+      :title => tooltip,
       "data-piechart" => values.join(","),
       "data-tooltip" => "true"
     )
+  end
+
+  def piechart_tooltip(values)
+    [].tap do |result|
+      result.push content_tag(
+        :strong,
+        t("total", :count => values.sum, :scope => "nodes.index.status_pie")
+      )
+
+      result.push t("ready", :count => values[0], :scope => "nodes.index.status_pie") if values[0] > 0
+      result.push t("unknown", :count => values[1], :scope => "nodes.index.status_pie") if values[1] > 0
+      result.push t("unready", :count => values[2], :scope => "nodes.index.status_pie") if values[2] > 0
+      result.push t("pending", :count => values[3], :scope => "nodes.index.status_pie") if values[3] > 0
+    end.join(tag(:br))
+  end
+
+  def piechart_values(group)
+    [].tap do |result|
+      result.push group[:status]["ready"]
+      result.push group[:status]["failed"]
+      result.push group[:status]["unknown"]
+
+      if group[:status]["building"]
+        result.push group[:status]["unready"] + group[:status]["pending"] + group[:status]["building"]
+      else
+        result.push group[:status]["unready"] + group[:status]["pending"]
+      end
+    end
   end
 
   def format_memory(kbyte)

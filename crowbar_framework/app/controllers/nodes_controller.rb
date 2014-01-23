@@ -1,5 +1,6 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
-
-require "chef"
 
 class NodesController < ApplicationController
-
   def index
     @sum = 0
     @groups = {}
@@ -43,7 +38,6 @@ class NodesController < ApplicationController
         @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
         @groups[group][:nodes][node.group_order] = node.handle
         @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
-        @groups[group][:parameterized_name] = "#{node.group.parameterize}"
         if node.handle === params[:name]
           @node = node
           get_node_and_network(node.handle)
@@ -246,23 +240,46 @@ class NodesController < ApplicationController
   end
 
   def status
-    nodes = {}
-    groups = {}
-    sum = 0
-    begin
-      result = NodeObject.all
-      result.each do |node|
-        nodes[node.handle] = {:status=>node.status, :raw=>node.state, :state=>(I18n.t node.state, :scope => :state, :default=>node.state.titlecase)}
-        group = groups[node.group] || {"ready"=>0, "failed"=>0, "pending"=>0, "unready"=>0, "building"=>0, "unknown"=>0, "parameterized_name"=>"#{(node.group || I18n.t('unknown')).parameterize}"}
-        group[node.status] = group[node.status] + 1
-        groups[node.group || I18n.t('unknown')] = group
-        sum = sum + node.name.hash
+    @result = {
+      :nodes => {},
+      :groups => {}
+    }.tap do |result|
+      begin
+        NodeObject.all.each do |node|
+          group_name = node.group || I18n.t("unknown")
+
+          result[:groups][group_name] ||= begin
+            {
+              :tooltip => "",
+              :status => {
+                "ready" => 0,
+                "failed" => 0,
+                "pending" => 0,
+                "unready" => 0,
+                "building" => 0,
+                "unknown" => 0
+              }
+            }
+          end
+
+          result[:groups][group_name].tap do |group|
+            group[:status][node.status] = group[:status][node.status] + 1
+            group[:tooltip] = @template.piechart_tooltip(@template.piechart_values(group))
+          end
+
+          result[:nodes][node.handle] = {
+            :class => node.status,
+            :status => I18n.t(node.state, :scope => :state, :default => node.state.titlecase)
+          }
+        end
+      rescue => e
+        log_exception(e)
+        result[:error] = e.message
       end
-      render :inline => {:sum => sum, :nodes=>nodes, :groups=>groups, :count=>nodes.length}.to_json, :cache => false
-    rescue StandardError => e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      Rails.logger.fatal("Failed to iterate over node list due to '#{e.message}'\n#{e.backtrace.join("\n")}")
-      render :inline => {:nodes=>nodes, :groups=>groups, :count=>count, :error=>e.message}.to_json, :cache => false
+    end
+
+    respond_to do |format|
+      format.json { render :json => @result }
     end
   end
 

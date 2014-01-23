@@ -1,5 +1,6 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Dell Crowbar Team
-# Author: SUSE LINUX Products GmbH
-#
 
 module FormHelper
   def platforms_for_select(selected)
@@ -24,6 +22,19 @@ module FormHelper
         [crowbar_service.pretty_target_platform(default_platform), default_platform],
         [crowbar_service.pretty_target_platform("windows-6.2"), "windows-6.2"],
         [crowbar_service.pretty_target_platform("hyperv-6.2"), "hyperv-6.2"]
+      ],
+      selected.to_s
+    )
+  end
+
+  def roles_for_select(selected)
+    options_for_select(
+      [
+        [t(".no_role"), "no_role"], 
+        [t(".controller"), "controller"], 
+        [t(".compute"), "compute"], 
+        [t(".network"), "network"], 
+        [t(".storage"), "storage"]
       ],
       selected.to_s
     )
@@ -98,24 +109,42 @@ module FormHelper
     h = options.clone
 
     if h.nil?
-      h = {
-        t(item, :scope => scope) => item
-      }
+      h = [
+        [t(item, :scope => scope), item]
+      ]
     else
-      i = h.find{ |k, v| v == item }
+      index = h.index do |x|
+        x.last == item
+      end
 
-      if i.nil?
-        if item == ChefObject::NOT_SET or item.nil?
-          h["[#{t(ChefObject::NOT_SET, :scope => scope)}]"] = item || ChefObject::NOT_SET
+      if index.nil?
+        label = if item == ChefObject::NOT_SET or item.nil? or item.empty?
+          t(ChefObject::NOT_SET, :scope => scope)
         else
-          h["[#{item.humanize}]"] = item
+          item.humanize
         end
+
+        h.push [
+          wrap_around(label),
+          item || ChefObject::NOT_SET
+        ]
       else
-        h.delete i[0]
-        h["[#{i[0]}]"] = i[1] unless i[0].start_with?("[")
+        label, value = h[index]
+
+        unless label.start_with?("[")
+          h[index] = [wrap_around(label), value]
+        end
       end
     end
 
     h
+  end
+
+  def wrap_around(value, first = "[", last = "]")
+    [
+      first,
+      value,
+      last
+    ].join
   end
 end

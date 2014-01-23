@@ -56,7 +56,7 @@
 
       .form-group
         = f.label :intended_role, t('.intended_role')
-        = select_tag :intended_role, options_for_select([[t('.no_role'),'no_role'], [t('.controller'), 'controller'], [t('.compute'), 'compute'], [t('.network'), 'network'], [t('.storage'), 'storage']], @node.intended_role), :class => "form-control"
+        = select_tag :intended_role, roles_for_select(@node.intended_role), :class => "form-control"
 
         %span.help-block
           = t('.intended_role_hint')

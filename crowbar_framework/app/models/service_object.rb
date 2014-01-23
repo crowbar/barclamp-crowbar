@@ -1011,8 +1011,8 @@ class ServiceObject
         end
       end
       @logger.debug "nodes_in_batch #{nodes_in_batch.inspect}"
-      @logger.debug "run_order #{run_order.inspect}"
       run_order << nodes_in_batch unless nodes_in_batch.empty?
+      @logger.debug "run_order #{run_order.inspect}"
     end
 
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
@@ -1101,8 +1101,8 @@ class ServiceObject
         non_admin_nodes << node_name
       end
 
-      @logger.debug("AR: Calling knife for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
-      @logger.debug("AR: Calling knife for #{role.name} on admin nodes #{admin_list.join(" ")}")
+      @logger.debug("AR: Calling chef-client for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
+      @logger.debug("AR: Calling chef-client for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       # Only take the actions if we are online
       if CHEF_ONLINE

@@ -370,8 +370,8 @@ en:
       public_name: Public Name
       public_name_hint: The public name is the hostname that users will use to access services on this node. Re-apply proposals on the node to have this setting taken into account immediately, or wait for an automatic update on the node. Any name specified here should already exist in the upstream DNS zones.
       group: Group
-      default: "Using Default: %{group}"
-      override: Override?
+      default: "Using default: %{group}"
+      override: Override group?
       description: Description
       license_key: License Key
       target_platform: Target Platform

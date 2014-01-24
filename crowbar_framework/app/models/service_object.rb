@@ -748,27 +748,36 @@ class ServiceObject
   # This can be overridden.  Specific to node validation.
   #
   def validate_proposal_elements proposal_elements
-      proposal_elements.each do |role_and_elements|
-          elements = role_and_elements[1]
-          uniq_elements = elements.uniq
-          if uniq_elements.length != elements.length
-              raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
-          end
-          uniq_elements.each do |node_name|
-              nodes = NodeObject.find_nodes_by_name node_name
-              if 0 == nodes.length
-                  raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
-              end
-          end
+    proposal_elements.each do |role_and_elements|
+      role, elements = role_and_elements
+      uniq_elements  = elements.uniq
+
+      if uniq_elements.length != elements.length
+        raise I18n.t('proposal.failures.duplicate_elements_in_role') + " " + role
       end
+
+      uniq_elements.each do |node_name|
+        nodes = NodeObject.find_nodes_by_name node_name
+        if nodes.nil? || nodes.empty?
+          raise I18n.t('proposal.failures.unknown_node') + " " + node_name
+        end
+      end
+    end
+  end
+
+  def proposal_schema_directory
+    if CHEF_ONLINE
+      Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
+    else
+      Rails.root.join("schema")
+    end
   end
 
   #
   # This can be overridden to get better validation if needed.
   #
   def validate_proposal proposal
-    path = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
-    path = Rails.root.join("schema") unless CHEF_ONLINE
+    path = proposal_schema_directory
     begin
       validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     rescue StandardError => e

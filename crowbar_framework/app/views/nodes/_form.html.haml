@@ -47,12 +47,19 @@
         = f.label :description, t('.description')
         = text_field_tag :description, @node.description(true), :class => "form-control"
 
-      .form-group
-        = f.label :group, t('.group')
-        - if @node.display_set? 'group'
-          = text_field_tag :group, @node.group, :class => "form-control", :placeholder => @node.group
-        - else
-          = text_field_tag :group, @node.group(true), :class => "form-control", :placeholder => @node.group
+      - if @node.display_set? 'group'
+        .form-group
+          = f.label :group, t('.group')
+          = text_field_tag :group, @node.group, :class => "form-control"
+      - else
+        .form-group
+          = f.label :group, t('.group')
+          %p.form-control-static
+            = t('.default', :group => content_tag(:strong, @node.group))
+
+        .form-group
+          = f.label :group, t('.override')
+          = text_field_tag :group, @node.group(true), :class => "form-control"
 
       .form-group
         = f.label :intended_role, t('.intended_role')

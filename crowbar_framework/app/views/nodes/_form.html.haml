@@ -59,7 +59,7 @@
 
         .form-group
           = f.label :group, t('.override')
-          = text_field_tag :group, @node.group(true), :class => "form-control"
+          = text_field_tag :group, "", :class => "form-control", :placeholder => @node.group(true)
 
       .form-group
         = f.label :intended_role, t('.intended_role')

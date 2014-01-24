@@ -23,6 +23,10 @@ class OfflineChef < Sinatra::Base
     render_json(:role, name)
   end
 
+  post '/data/*' do |data|
+    empty_json
+  end
+
   post '/roles/*' do |role|
     empty_json
   end

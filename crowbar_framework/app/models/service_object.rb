@@ -716,18 +716,25 @@ class ServiceObject
     elsif prop["deployment"][@bc_name]["crowbar-committing"]
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
-      # Put mark on the wall
-      prop["deployment"][@bc_name]["crowbar-committing"] = true
-      prop.save
+      begin
+        # validate_proposal will run in active_update
+        validate_proposal_elements prop
 
-      answer = active_update prop.raw_data, inst, in_queue
+        # Put mark on the wall
+        prop["deployment"][@bc_name]["crowbar-committing"] = true
+        prop.save
 
-      # Unmark the wall
-      prop = ProposalObject.find_proposal(@bc_name, inst)
-      prop["deployment"][@bc_name]["crowbar-committing"] = false
-      prop.save
+        validate_proposal_after_save(prop)
 
-      answer
+        active_update prop.raw_data, inst, in_queue
+      rescue Chef::Exceptions::ValidationFailed => e
+        [400, "Failed to validate proposal: #{e.message}"]
+      ensure
+        # Make sure we unmark the wall
+        prop = ProposalObject.find_proposal(@bc_name, inst)
+        prop["deployment"][@bc_name]["crowbar-committing"] = false
+        prop.save
+      end
     end
   end
 
@@ -846,9 +853,13 @@ class ServiceObject
       data_bag_item.data_bag "crowbar"
 
       validate_proposal proposal
+      validate_proposal_elements proposal
 
       prop = ProposalObject.new data_bag_item
       prop.save
+
+      validate_proposal_after_save prop.raw_data
+
       Rails.logger.info "saved proposal"
       [200, {}]
     rescue Net::HTTPServerException => e

@@ -691,6 +691,13 @@ class ServiceObject
     end
   end
 
+  def save_proposal!(prop)
+    validate_proposal(prop.raw_data)
+    validate_proposal_elements(prop.elements)
+    prop.save
+    validate_proposal_after_save(prop.raw_data)
+  end
+
   def proposal_commit(inst, in_queue = false)
     prop = ProposalObject.find_proposal(@bc_name, inst)
 

@@ -700,7 +700,7 @@ class ServiceObject
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
       begin
-        # validate_proposal will run in active_update
+        validate_proposal prop
         validate_proposal_elements prop
 
         # Put mark on the wall
@@ -1396,7 +1396,6 @@ class ServiceObject
     begin
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
       clean_proposal(proposal)
-      validate_proposal proposal
       apply_role(role, inst, in_queue)
     rescue Net::HTTPServerException => e
       [e.response.code, {}]

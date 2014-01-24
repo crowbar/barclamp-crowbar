@@ -555,23 +555,6 @@ class ServiceObject
     proposal.delete("authenticity_token")
   end
 
-  #
-  # Proposal is a json structure (not a ProposalObject)
-  # Use to create or update an active instance
-  #
-  def active_update(proposal, inst, in_queue)
-    begin
-      role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      clean_proposal(proposal)
-      validate_proposal proposal
-      apply_role(role, inst, in_queue)
-    rescue Net::HTTPServerException => e
-      [e.response.code, {}]
-    rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
-    end
-  end
-
   def destroy_active(inst)
 
     role_name = "#{@bc_name}-config-#{inst}"
@@ -1402,6 +1385,23 @@ class ServiceObject
     rescue
       @logger.error("Error reporting: Couldn't open /var/log/crowbar/chef-client/#{pid}.log ")
       raise "Error reporting: Couldn't open  /var/log/crowbar/chef-client/#{pid}.log"
+    end
+  end
+
+  #
+  # Proposal is a json structure (not a ProposalObject)
+  # Use to create or update an active instance
+  #
+  def active_update(proposal, inst, in_queue)
+    begin
+      role = ServiceObject.proposal_to_role(proposal, @bc_name)
+      clean_proposal(proposal)
+      validate_proposal proposal
+      apply_role(role, inst, in_queue)
+    rescue Net::HTTPServerException => e
+      [e.response.code, {}]
+    rescue Chef::Exceptions::ValidationFailed => e2
+      [400, e2.message]
     end
   end
 end

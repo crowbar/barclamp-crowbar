@@ -4,7 +4,7 @@ describe CrowbarController do
   integrate_views
 
   before do
-    CrowbarService.any_instance.stubs(:apply_role).returns(true)
+    CrowbarService.any_instance.stubs(:apply_role).returns([200, "OK"])
   end
 
   describe "GET index" do
@@ -189,6 +189,32 @@ describe CrowbarController do
       delete :delete, :name => "default"
       response.should be_redirect
       flash[:alert].should_not be_nil
+    end
+  end
+
+  describe "POST proposal_commit" do
+    it "validates a proposal" do
+      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
+      post :proposal_commit, :id => "default"
+    end
+  end
+
+  describe "PUT proposal_create" do
+    it "validates a proposal" do
+      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
+      put :proposal_create, :name => "nonexistent"
+    end
+  end
+
+  describe "PUT proposal_update" do
+    it "validates a proposal from command line" do
+      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
+      put :proposal_update, :name => "default"
+    end
+
+    it "validates a proposal from the UI" do
+      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
+      put :proposal_update, :name => "default", :barclamp => "crowbar", :submit => I18n.t('barclamp.proposal_show.save_proposal'), :proposal_attributes => "{}", :proposal_deployment => "{}"
     end
   end
 end

@@ -252,6 +252,8 @@ en:
         license_key_not_set: Not set
         target_platform: Target Platform
         target_platform_not_set: Not set
+        availability_zone: Availability Zone
+        intended_role: Intended Role
       proposal:
         name: Proposal
         description: Description
@@ -376,6 +378,8 @@ en:
       license_key: License Key
       target_platform: Target Platform
       target_platform_not_set: Not set
+      availability_zone: Availability Zone
+      availability_zone_hint: Availability zones allow to arrange sets of either OpenStack Compute or OpenStack Block Storage hosts into logical groups. If empty, the default availability zone will be used.
       intended_role: Intended Role
       controller: Controller
       compute: Compute

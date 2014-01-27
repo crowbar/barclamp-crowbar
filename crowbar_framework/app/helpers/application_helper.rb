@@ -135,6 +135,12 @@ module ApplicationHelper
     end.join("\n")
   end
 
+  def have_openstack
+    @have_openstack ||= begin
+      defined? OpenstackService
+    end
+  end
+
   # Build a wrapper for the crowbar service options, feels much better
   # within the views to simply call a method for getting the hash
   def crowbar_service

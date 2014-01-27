@@ -358,6 +358,8 @@ class NodesController < ApplicationController
       return false
     end
     begin
+      # if we don't have OpenStack, availability_zone will be empty; which is
+      # okay, because we don't care about this in that case
       {
         :bios_set      => :bios,
         :raid_set      => :raid,
@@ -365,6 +367,7 @@ class NodesController < ApplicationController
         :public_name   => :public_name,
         :group         => :group,
         :description   => :description,
+        :availability_zone => :availability_zone,
         :intended_role => :intended_role,
       }.each do |attr, param|
         @node.send("#{attr}=", params[param]) if params.key?(param)

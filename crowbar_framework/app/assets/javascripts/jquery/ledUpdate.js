@@ -97,40 +97,54 @@
         }
 
         if (response.nodes) {
-          if (Object.keys(response.nodes).length != $('[data-node]').length) {
-            win.location.reload()
-          }
+          var reload = false;
+
+          $('[data-node]').each(function(index, current) {
+            var current_handle = $(current).data('node')
+
+            if (!response.nodes[current_handle]) {
+              reload = true;
+            }
+          });
 
           $.each(response.nodes, function(key, val) {
             var current = $(
               '[data-node="{0}"]'.format(key)
             );
 
-            if(current.hasClass('unknown')) {
-              self.update(
-                current,
-                val.class,
-                val.status
+            if (current) {
+              if(current.hasClass('unknown')) {
+                self.update(
+                  current,
+                  val.class,
+                  val.status
+                );
+              } else {
+                self.update(
+                  current,
+                  val.class,
+                  val.status,
+                  function() {
+                    current.effect('fade').effect('fade');
+                  }
+                );
+              }
+
+              var text = $(
+                '[data-node-state="{0}"]'.format(key)
               );
+
+              if (text.html() != val.status) {
+                text.html(val.status).effect('fade').effect('fade');
+              }
             } else {
-              self.update(
-                current,
-                val.class,
-                val.status,
-                function() {
-                  current.effect('fade').effect('fade');
-                }
-              );
-            }
-
-            var text = $(
-              '[data-node-state="{0}"]'.format(key)
-            );
-
-            if (text.html() != val.status) {
-              text.html(val.status).effect('fade').effect('fade');
+              reload = true;
             }
           });
+
+          if (reload) {
+            win.location.reload();
+          }
         }
 
         if (response.proposals) {

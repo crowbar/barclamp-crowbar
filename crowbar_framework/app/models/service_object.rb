@@ -710,7 +710,9 @@ class ServiceObject
       begin
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
-        save_proposal!(prop)
+        prop.save
+        clean_proposal(prop.raw_data)
+        validate_proposal prop.raw_data
         active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
         [400, "Failed to validate proposal: #{e.message}"]
@@ -836,8 +838,9 @@ class ServiceObject
     begin
       data_bag_item.raw_data = proposal
       data_bag_item.data_bag "crowbar"
+      validate_proposal proposal
       prop = ProposalObject.new data_bag_item
-      save_proposal!(prop)
+      prop.save
 
       Rails.logger.info "saved proposal"
       [200, {}]

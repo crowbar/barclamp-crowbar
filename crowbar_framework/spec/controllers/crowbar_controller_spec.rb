@@ -192,29 +192,36 @@ describe CrowbarController do
     end
   end
 
-  describe "POST proposal_commit" do
-    it "validates a proposal" do
-      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
-      post :proposal_commit, :id => "default"
-    end
-  end
+  describe "proposal updates" do
+    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
 
-  describe "PUT proposal_create" do
-    it "validates a proposal" do
+    before(:each) do
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
-      put :proposal_create, :name => "nonexistent"
-    end
-  end
-
-  describe "PUT proposal_update" do
-    it "validates a proposal from command line" do
-      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
-      put :proposal_update, :name => "default"
+      CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
+      CrowbarService.any_instance.expects(:validate_proposal_after_save).at_least_once
     end
 
-    it "validates a proposal from the UI" do
-      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
-      put :proposal_update, :name => "default", :barclamp => "crowbar", :submit => I18n.t('barclamp.proposal_show.save_proposal'), :proposal_attributes => "{}", :proposal_deployment => "{}"
+    describe "POST proposal_commit" do
+      it "validates a proposal" do
+        post :proposal_commit, :id => "default"
+      end
+    end
+
+    describe "PUT proposal_create" do
+      it "validates a proposal" do
+        put :proposal_create, :name => "nonexistent"
+      end
+    end
+
+    describe "PUT proposal_update" do
+      it "validates a proposal from command line" do
+        prop = JSON.parse(proposal.to_json, :create_additions => false)["item"]["raw_data"].merge("id" => "default")
+        put :proposal_update, prop
+      end
+
+      it "validates a proposal from the UI" do
+        put :proposal_update, :name => "default", :barclamp => "crowbar", :submit => I18n.t('barclamp.proposal_show.save_proposal'), :proposal_attributes => "{}", :proposal_deployment => "{}"
+      end
     end
   end
 end

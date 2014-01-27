@@ -555,23 +555,6 @@ class ServiceObject
     proposal.delete("authenticity_token")
   end
 
-  #
-  # Proposal is a json structure (not a ProposalObject)
-  # Use to create or update an active instance
-  #
-  def active_update(proposal, inst, in_queue)
-    begin
-      role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      clean_proposal(proposal)
-      validate_proposal proposal
-      apply_role(role, inst, in_queue)
-    rescue Net::HTTPServerException => e
-      [e.response.code, {}]
-    rescue Chef::Exceptions::ValidationFailed => e2
-      [400, e2.message]
-    end
-  end
-
   def destroy_active(inst)
 
     role_name = "#{@bc_name}-config-#{inst}"
@@ -692,7 +675,7 @@ class ServiceObject
   end
 
   def proposal_edit(params)
-    params["id"] = "bc-#{@bc_name}-#{params["id"]}"
+    params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
     _proposal_update proposal
@@ -708,6 +691,14 @@ class ServiceObject
     end
   end
 
+  def save_proposal!(prop)
+    clean_proposal(prop.raw_data)
+    validate_proposal(prop.raw_data)
+    validate_proposal_elements(prop.elements)
+    prop.save
+    validate_proposal_after_save(prop.raw_data)
+  end
+
   def proposal_commit(inst, in_queue = false)
     prop = ProposalObject.find_proposal(@bc_name, inst)
 
@@ -716,18 +707,19 @@ class ServiceObject
     elsif prop["deployment"][@bc_name]["crowbar-committing"]
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
-      # Put mark on the wall
-      prop["deployment"][@bc_name]["crowbar-committing"] = true
-      prop.save
-
-      answer = active_update prop.raw_data, inst, in_queue
-
-      # Unmark the wall
-      prop = ProposalObject.find_proposal(@bc_name, inst)
-      prop["deployment"][@bc_name]["crowbar-committing"] = false
-      prop.save
-
-      answer
+      begin
+        # Put mark on the wall
+        prop["deployment"][@bc_name]["crowbar-committing"] = true
+        save_proposal!(prop)
+        active_update prop.raw_data, inst, in_queue
+      rescue Chef::Exceptions::ValidationFailed => e
+        [400, "Failed to validate proposal: #{e.message}"]
+      ensure
+        # Make sure we unmark the wall
+        prop = ProposalObject.find_proposal(@bc_name, inst)
+        prop["deployment"][@bc_name]["crowbar-committing"] = false
+        prop.save
+      end
     end
   end
 
@@ -748,27 +740,36 @@ class ServiceObject
   # This can be overridden.  Specific to node validation.
   #
   def validate_proposal_elements proposal_elements
-      proposal_elements.each do |role_and_elements|
-          elements = role_and_elements[1]
-          uniq_elements = elements.uniq
-          if uniq_elements.length != elements.length
-              raise  I18n.t('proposal.failures.duplicate_elements_in_role')+" "+role_and_elements[0]
-          end
-          uniq_elements.each do |node_name|
-              nodes = NodeObject.find_nodes_by_name node_name
-              if 0 == nodes.length
-                  raise  I18n.t('proposal.failures.unknown_node')+" "+node_name
-              end
-          end
+    proposal_elements.each do |role_and_elements|
+      role, elements = role_and_elements
+      uniq_elements  = elements.uniq
+
+      if uniq_elements.length != elements.length
+        raise I18n.t('proposal.failures.duplicate_elements_in_role') + " " + role
       end
+
+      uniq_elements.each do |node_name|
+        nodes = NodeObject.find_nodes_by_name node_name
+        if nodes.nil? || nodes.empty?
+          raise I18n.t('proposal.failures.unknown_node') + " " + node_name
+        end
+      end
+    end
+  end
+
+  def proposal_schema_directory
+    if CHEF_ONLINE
+      Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
+    else
+      Rails.root.join("schema")
+    end
   end
 
   #
   # This can be overridden to get better validation if needed.
   #
   def validate_proposal proposal
-    path = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
-    path = Rails.root.join("schema") unless CHEF_ONLINE
+    path = proposal_schema_directory
     begin
       validator = CrowbarValidator.new("#{path}/bc-template-#{@bc_name}.schema")
     rescue StandardError => e
@@ -835,11 +836,9 @@ class ServiceObject
     begin
       data_bag_item.raw_data = proposal
       data_bag_item.data_bag "crowbar"
-
-      validate_proposal proposal
-
       prop = ProposalObject.new data_bag_item
-      prop.save
+      save_proposal!(prop)
+
       Rails.logger.info "saved proposal"
       [200, {}]
     rescue Net::HTTPServerException => e
@@ -1382,6 +1381,21 @@ class ServiceObject
     rescue
       @logger.error("Error reporting: Couldn't open /var/log/crowbar/chef-client/#{pid}.log ")
       raise "Error reporting: Couldn't open  /var/log/crowbar/chef-client/#{pid}.log"
+    end
+  end
+
+  #
+  # Proposal is a json structure (not a ProposalObject)
+  # Use to create or update an active instance
+  #
+  def active_update(proposal, inst, in_queue)
+    begin
+      role = ServiceObject.proposal_to_role(proposal, @bc_name)
+      apply_role(role, inst, in_queue)
+    rescue Net::HTTPServerException => e
+      [e.response.code, {}]
+    rescue Chef::Exceptions::ValidationFailed => e2
+      [400, e2.message]
     end
   end
 end

@@ -675,7 +675,7 @@ class ServiceObject
   end
 
   def proposal_edit(params)
-    params["id"] = "bc-#{@bc_name}-#{params["id"]}"
+    params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
     _proposal_update proposal

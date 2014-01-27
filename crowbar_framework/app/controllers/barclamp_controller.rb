@@ -357,7 +357,7 @@ class BarclampController < ApplicationController
       return render :text => ret[1], :status => ret[0] if ret[0] != 200
       return render :json => ret[1]
     else # This is UI.
-      params[:id] = "bc-#{params[:barclamp]}-#{params[:name]}"
+      params[:id] = "bc-#{params[:barclamp]}-#{params[:id] || params[:name]}"
       if params[:submit] == t('barclamp.proposal_show.save_proposal')
         @proposal = ProposalObject.find_proposal_by_id(params[:id])
 

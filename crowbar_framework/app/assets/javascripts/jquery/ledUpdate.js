@@ -97,6 +97,10 @@
         }
 
         if (response.nodes) {
+          if (Object.keys(response.nodes).length != $('[data-node]').length) {
+            win.location.reload()
+          }
+
           $.each(response.nodes, function(key, val) {
             var current = $(
               '[data-node="{0}"]'.format(key)

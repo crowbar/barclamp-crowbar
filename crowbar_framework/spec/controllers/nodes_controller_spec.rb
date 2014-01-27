@@ -139,8 +139,18 @@ describe NodesController do
       NodeObject.stubs(:all).raises(Errno::ECONNREFUSED)
       get :status
       json = JSON.parse(response.body)
-      json["count"].should == -2
       json["error"].should_not be_empty
+    end
+
+    it "returns status of the nodes" do
+      get :status
+      json = JSON.parse(response.body)
+
+      json["nodes"]["admin"].keys.should include("status")
+      json["nodes"]["testing"].keys.should include("status")
+
+      json["nodes"]["admin"]["status"].should == "No Data (Off)"
+      json["nodes"]["testing"]["status"].should == "Discovered"
     end
   end
 

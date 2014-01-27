@@ -348,6 +348,9 @@ rpms:
       - openldap2
       - openldap2-client
       - krb5-client
+      - libpq5
+      - libossp-uuid16
+      - libecpg6
       - libopenssl-devel
       - openssl
       - libssh-devel
@@ -366,6 +369,9 @@ rpms:
       - openldap2
       - openldap2-client
       - krb5-client
+      - libpq5
+      - libossp-uuid16
+      - libecpg6
       - libopenssl-devel
       - openssl
       - libssh-devel
@@ -413,9 +419,6 @@ rpms:
     - screen
     - graphviz
     - libxml2-devel
-    - libpq5
-    - libossp-uuid16
-    - libecpg6
     # openssh stuff
     - openssh
 

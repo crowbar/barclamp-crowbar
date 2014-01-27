@@ -692,6 +692,7 @@ class ServiceObject
   end
 
   def save_proposal!(prop)
+    clean_proposal(prop.raw_data)
     validate_proposal(prop.raw_data)
     validate_proposal_elements(prop.elements)
     prop.save
@@ -1402,7 +1403,6 @@ class ServiceObject
   def active_update(proposal, inst, in_queue)
     begin
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      clean_proposal(proposal)
       apply_role(role, inst, in_queue)
     rescue Net::HTTPServerException => e
       [e.response.code, {}]

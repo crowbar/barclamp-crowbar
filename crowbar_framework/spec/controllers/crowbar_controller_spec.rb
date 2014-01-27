@@ -193,6 +193,8 @@ describe CrowbarController do
   end
 
   describe "proposal updates" do
+    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+
     before(:each) do
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
@@ -213,7 +215,8 @@ describe CrowbarController do
 
     describe "PUT proposal_update" do
       it "validates a proposal from command line" do
-        put :proposal_update, :name => "default"
+        prop = JSON.parse(proposal.to_json, :create_additions => false)["item"]["raw_data"].merge("id" => "default")
+        put :proposal_update, prop
       end
 
       it "validates a proposal from the UI" do

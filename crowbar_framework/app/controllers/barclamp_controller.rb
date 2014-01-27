@@ -364,10 +364,7 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
-          @proposal.save
-          @service_object.validate_proposal_after_save @proposal.raw_data
+          @service_object.save_proposal!(@proposal)
           flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
         rescue StandardError => e
           flash_and_log_exception(e)
@@ -378,11 +375,7 @@ class BarclampController < ApplicationController
         begin
           @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
           @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.validate_proposal @proposal.raw_data
-          @service_object.validate_proposal_elements @proposal.elements
-          @proposal.save
-          @service_object.validate_proposal_after_save @proposal.raw_data
-
+          @service_object.save_proposal!(@proposal)
           answer = @service_object.proposal_commit(params[:name])
           flash[:alert] = answer[1] if answer[0] >= 400
           flash[:notice] = answer[1] if answer[0] >= 300 and answer[0] < 400

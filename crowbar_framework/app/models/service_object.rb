@@ -708,15 +708,9 @@ class ServiceObject
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
       begin
-        validate_proposal prop
-        validate_proposal_elements prop
-
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
-        prop.save
-
-        validate_proposal_after_save(prop)
-
+        save_proposal!(prop)
         active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
         [400, "Failed to validate proposal: #{e.message}"]
@@ -842,14 +836,8 @@ class ServiceObject
     begin
       data_bag_item.raw_data = proposal
       data_bag_item.data_bag "crowbar"
-
-      validate_proposal proposal
-      validate_proposal_elements proposal
-
       prop = ProposalObject.new data_bag_item
-      prop.save
-
-      validate_proposal_after_save prop.raw_data
+      save_proposal!(prop)
 
       Rails.logger.info "saved proposal"
       [200, {}]

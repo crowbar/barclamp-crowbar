@@ -131,7 +131,8 @@ describe CrowbarController do
       get :element_info, :id => "dns-client"
       response.should be_success
       json = JSON.parse(response.body)
-      json.should == ["admin.crowbar.com", "testing.crowbar.com"]
+      nodes = ["admin.crowbar.com", "testing.crowbar.com"]
+      json.sort.should == nodes.sort
     end
   end
 

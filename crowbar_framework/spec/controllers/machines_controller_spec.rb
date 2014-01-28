@@ -80,8 +80,16 @@ describe MachinesController do
     end
 
     context "for existent node" do
-      it "renders node hash" do
+      it "fetches with name" do
         get :show, :name => "testing"
+        json = JSON.parse(response.body)
+
+        json["name"].should be_a(String)
+        json["name"].should eql("testing.crowbar.com")
+      end
+
+      it "works with fqdn" do
+        get :show, :name => "testing.crowbar.com"
         json = JSON.parse(response.body)
 
         json["name"].should be_a(String)
@@ -136,7 +144,7 @@ describe MachinesController do
 
   [
     :reinstall,
-    :hardware,
+    :update,
     :reset,
     :identify,
     :shutdown,

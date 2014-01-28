@@ -189,7 +189,7 @@ class NodeObject < ChefObject
   end
 
   def intended_role
-    @node["crowbar_wall"]["intended_role"]
+    @node["crowbar_wall"]["intended_role"] rescue "no_role"
   end
 
   def intended_role=(value)

@@ -1,11 +1,21 @@
-- node_detail_attributes(@node).each do |row|
+- 0.upto(node_detail_count - 1).each do |row|
   %tr
-    - row.each do |column|
-      - if column.empty?
+    - node_detail_software[row].tap do |software|
+      - if software.nil?
         %td{ :colspan => 2 }
           &nbsp;
       - else
         %th
-          = column.first
+          = software.first
         %td
-          = column.last
+          = software.last
+
+    - node_detail_hardware[row].tap do |hardware|
+      - if hardware.nil?
+        %td{ :colspan => 2 }
+          &nbsp;
+      - else
+        %th
+          = hardware.first
+        %td
+          = hardware.last

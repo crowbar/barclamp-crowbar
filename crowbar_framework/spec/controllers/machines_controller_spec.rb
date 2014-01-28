@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe MachinesController do
   before do
@@ -7,7 +7,7 @@ describe MachinesController do
 
   describe "GET index" do
     before do
-      FileTest.stubs(:exist?).returns(true)
+      File.stubs(:exist?).returns(true)
     end
 
     it "is successful" do
@@ -15,12 +15,56 @@ describe MachinesController do
       response.should be_success
     end
 
-    it "renders json with node names" do
-      get :index
-      assigns(:app).should_not be_empty
-      json = JSON.parse(response.body)
-      json.should be_a(Array)
-      json.should_not be_empty
+    context "with some nodes" do
+      it "renders json" do
+        get :index
+        JSON.parse(response.body).should be_a(Hash)
+      end
+
+      it "results in filled nodes hash" do
+        get :index
+        json = JSON.parse(response.body)
+
+        json["nodes"].should be_a(Array)
+        json["nodes"].should_not be_empty
+      end
+
+      it "contains name keys" do
+        get :index
+        json = JSON.parse(response.body)
+        node = json["nodes"].first
+
+        node.should be_a(Hash)
+        node.should have_key("name")
+      end
+
+      it "contains alias keys" do
+        get :index
+        json = JSON.parse(response.body)
+        node = json["nodes"].first
+
+        node.should be_a(Hash)
+        node.should have_key("alias")
+      end
+    end
+
+    context "without nodes" do
+      before do
+        NodeObject.stubs(:find_all_nodes).returns([])
+      end
+
+      it "renders json" do
+        get :index
+        JSON.parse(response.body).should be_a(Hash)
+      end
+
+      it "results in empty nodes hash" do
+        get :index
+        json = JSON.parse(response.body)
+
+        json["nodes"].should be_a(Array)
+        json["nodes"].should be_empty
+      end
     end
   end
 
@@ -30,102 +74,102 @@ describe MachinesController do
       response.should be_success
     end
 
-    it "renders the node as json hash" do
-      get :show, :name => "testing.crowbar.com"
-      json = JSON.parse(response.body)
-      json["name"].should == "testing.crowbar.com"
+    it "renders json" do
+      get :show, :name => "testing"
+      JSON.parse(response.body).should be_a(Hash)
     end
 
-    it "renders 404 if node not found" do
-      get :show, :name => "nonexistent"
-      response.should be_missing
-    end
-  end
+    context "for existent node" do
+      it "fetches with name" do
+        get :show, :name => "testing"
+        json = JSON.parse(response.body)
 
-  describe "GET list" do
-    it "responds with index" do
-      MachinesController.any_instance.expects(:index).once
-      get :list
-    end
-  end
+        json["name"].should be_a(String)
+        json["name"].should eql("testing.crowbar.com")
+      end
 
-  describe "POST action" do
-    it "assigns @name in a before filter based on param passed" do
-      post :reboot, :name => "testing"
-      assigns(:name).should == "testing.#{session[:domain]}"
-    end
-  end
+      it "works with fqdn" do
+        get :show, :name => "testing.crowbar.com"
+        json = JSON.parse(response.body)
 
-  context "Non existent node" do
-    describe "POST action" do
-      it "fails with JSON when w/ not found" do
-        post :reinstall, :name => "nonexistent"
-        response.should be_missing
-        expect {
-          JSON.parse(response.body)
-        }.to_not raise_error
+        json["name"].should be_a(String)
+        json["name"].should eql("testing.crowbar.com")
       end
     end
 
-=begin
-    FIXME: decide if this is a bug
-      it "fails with a reasonable error when name not passed" do
-        post :reinstall
-        response.should be_bad_request
-      end
-    end
-=end
-
-    ["poweron", "allocate", "delete", "reboot", "shutdown", "identify", "reset", "update", "reinstall"].each do |operation|
-      describe "POST #{operation}" do
-        it "renders error JSON w/ not alert found" do
-          response = post operation, :name => "nonexistent"
-          response.should be_missing
-          JSON.parse(response.body)["alert"].should == "Host not found"
-        end
-
-        it "does not call node operation" do
-          NodeObject.any_instance.expects(operation).never
-        end
+    context "for non-existent node" do
+      it "renders 404" do
+        get :show, :name => "nonexistent"
+        response.status.should eql("404 Not Found")
       end
     end
   end
 
-  context "existing node" do
-    ["reinstall", "update", "reset", "delete"].each do |operation|
-      describe "POST #{operation}" do
-        it "sends #{operation} to the node" do
-          post operation, :name => "testing"
-        end
+  describe "POST rename" do
+    context "for existent node" do
+      it "renames a node to tester" do
+        NodeObject.any_instance.expects(:alias=).with("tester").once
+        NodeObject.any_instance.expects(:save).once
 
-        it "responds with empty json as a response" do
-          post operation, :name => "testing"
-          json = JSON.parse(response.body)
-          json.should == {}
-        end
-
-        it "is successful" do
-          post operation, :name => "testing"
-          response.should be_success
-        end
+        post :rename, :name => "testing", :alias => "tester"
+        response.status.should eql("200 OK")
       end
     end
 
-    ["identify", "shutdown", "reboot", "poweron", "allocate"].each do |operation|
-      describe "POST #{operation}" do
-        it "sends #{operation} to the node" do
-          post operation, :name => "testing"
+    context "for non-existent node" do
+      it "renders 404" do
+        post :rename, :name => "nonexistent"
+        response.status.should eql("404 Not Found")
+      end
+    end
+  end
+
+  describe "DELETE delete" do
+    context "for existent node" do
+      it "invokes delete" do
+        NodeObject.any_instance.expects(:delete).once
+
+        delete :delete, :name => "testing"
+        response.status.should eql("200 OK")
+      end
+    end
+
+    context "for non-existent node" do
+      it "renders 404" do
+        delete :delete, :name => "nonexistent"
+        response.status.should eql("404 Not Found")
+      end
+    end
+  end
+
+  [
+    :reinstall,
+    :update,
+    :reset,
+    :identify,
+    :shutdown,
+    :reboot,
+    :poweron,
+    :allocate
+  ].each do |action|
+    describe "POST #{action}" do
+      context "for existent node" do
+        it "invokes #{action}" do
+          NodeObject.any_instance.expects(action).once
+
+          post action, :name => "testing"
+          response.status.should eql("200 OK")
+        end
+      end
+
+      context "for non-existent node" do
+        it "renders 404" do
+          post action, :name => "nonexistent"
+          response.status.should eql("404 Not Found")
         end
 
-        it "responds with empty json as a response" do
-          post operation, :name => "testing"
-          json = JSON.parse(response.body)
-          json.should == {}
-        end
-
-        it "is successful" do
-          post operation, :name => "testing"
-          response.should be_success
+        it "prevents #{action}" do
+          NodeObject.any_instance.expects(action).never
         end
       end
     end

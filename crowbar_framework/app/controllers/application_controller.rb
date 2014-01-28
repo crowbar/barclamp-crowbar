@@ -177,4 +177,10 @@ class ApplicationController < ActionController::Base
     lines = [ e.message ] + e.backtrace
     Rails.logger.warn lines.join("\n")
   end
+
+  def render_not_found
+    respond_to do |format|
+      format.json { render :json => { :error => "Not found" }, :status => 404 }
+    end
+  end
 end

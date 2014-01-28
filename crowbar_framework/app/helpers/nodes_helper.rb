@@ -102,136 +102,151 @@ module NodesHelper
     end
   end
 
-  def node_detail_attributes(node)
-    raid_data = if crowbar_options[:show].include?(:raid)
-      content_tag(
-        :em,
-        t(node.raid_set, :scope => "raid")
-      )
-    else
-      nil
-    end
+  def node_detail_count
+    @node_detail_count ||= [
+      node_detail_software.count,
+      node_detail_hardware.count
+    ].max
+  end
 
-    [].tap do |result|
-      result.push [
-        t("model.attributes.node.name"),
-        dash_or(node.name)
-      ]
-
-      result.push [
-        t("model.attributes.node.hardware"),
-        dash_or(node.hardware)
-      ]
-
-      result.push [
-        t("model.attributes.node.public_name"),
-        dash_or(node.public_name)
-      ]
-
-      result.push [
-        t("model.attributes.node.asset_tag"),
-        dash_or(node.asset_tag)
-      ]
-
-      result.push [
-        t("model.attributes.node.description"),
-        dash_or(node.description)
-      ]
-
-      result.push [
-        t("model.attributes.node.cpu"),
-        dash_or(node.cpu)
-      ]
-
-      result.push [
-        t("model.attributes.node.target_platform"),
-        dash_or(node.pretty_target_platform)
-      ]
-
-      result.push [
-        t("model.attributes.node.memory"),
-        format_memory(node.memory)
-      ]
-
-      result.push [
-        t("model.attributes.node.uptime"),
-        value_for(node.uptime, t("model.attributes.node.na"), node.ready?)
-      ]
-
-      result.push [
-        t("model.attributes.node.number_of_drives"),
-        [
-          node.pretty_drives,
-          raid_data
-        ].compact.join(" - ")
-      ]
-
-      result.push [
-        t("model.attributes.node.allocated"),
-        value_for(t(".active"), t(".inactive"), node.allocated)
-      ]
-
-      result.push [
-        t("model.attributes.node.mac"),
-        value_for(node.mac, t("unknown"))
-      ]
-
-      result.push [
-        t("model.attributes.node.state"),
-        content_tag(
-          :span,
-          t(node.state, :scope => :state, :default => node.state.titlecase),
-          "data-node-state" => node.handle
-        )
-      ]
-
-      show_name = if node.switch_name.nil?
-        false
-      else
-        node.switch_name >= 0
-      end
-
-      show_port = if node.switch_port.nil?
-        false
-      else
-        node.switch_port >= 0
-      end
-
-      show_unit = if node.switch_unit.nil?
-        false
-      else
-        node.switch_unit >= 0
-      end
-
-      if node.switch_unit.nil?
-        switch_label = [
-          value_for(node.switch_name, t("unknown"), show_name),
-          value_for(node.switch_port, t("unknown"), show_port)
-        ].join(" / ")
-
-        switch_title = t("model.attributes.node.switch_name_port")
-      else
-        switch_label = [
-          value_for(node.switch_name, t("unknown"), show_name),
-          value_for(node.switch_unit, t("unknown"), show_unit),
-          value_for(node.switch_port, t("unknown"), show_port)
-        ].join(" / ")
-
-        switch_title = t("model.attributes.node.switch_name_unit_port")
-      end
-
-      result.push [
-        switch_title,
-        link_to(switch_label, switch_path(:node => node.handle))
-      ]
-
-      if CrowbarService.require_license_key? node.target_platform
+  def node_detail_software
+    @node_detail_software ||= begin
+      [].tap do |result|
         result.push [
-          t("model.attributes.node.license_key"),
-          value_for(node.license_key, t("model.attributes.node.license_key_not_set"))
+          t("model.attributes.node.name"),
+          dash_or(@node.name)
+        ]
+
+        result.push [
+          t("model.attributes.node.public_name"),
+          dash_or(@node.public_name)
+        ]
+
+        result.push [
+          t("model.attributes.node.description"),
+          dash_or(@node.description)
+        ]
+
+        result.push [
+          t("model.attributes.node.target_platform"),
+          dash_or(@node.pretty_target_platform)
+        ]
+
+        if CrowbarService.require_license_key? @node.target_platform
+          result.push [
+            t("model.attributes.node.license_key"),
+            value_for(@node.license_key, t("model.attributes.node.license_key_not_set"))
+          ]
+        end
+
+        result.push [
+          t("model.attributes.node.uptime"),
+          value_for(@node.uptime, t("model.attributes.node.na"), @node.ready?)
+        ]
+
+        result.push [
+          t("model.attributes.node.allocated"),
+          value_for(t(".active"), t(".inactive"), @node.allocated)
+        ]
+
+        result.push [
+          t("model.attributes.node.state"),
+          content_tag(
+            :span,
+            t(@node.state, :scope => :state, :default => @node.state.titlecase),
+            "data-node-state" => @node.handle
+          )
         ]
       end
-    end.in_groups_of(2, "")
+    end
+  end
+
+  def node_detail_hardware
+    @node_detail_hardware ||= begin
+      raid_data = if crowbar_options[:show].include?(:raid)
+        content_tag(
+          :em,
+          t(@node.raid_set, :scope => "raid")
+        )
+      else
+        nil
+      end
+
+      [].tap do |result|
+        result.push [
+          t("model.attributes.node.hardware"),
+          dash_or(@node.hardware)
+        ]
+
+        result.push [
+          t("model.attributes.node.asset_tag"),
+          dash_or(@node.asset_tag)
+        ]
+
+        result.push [
+          t("model.attributes.node.cpu"),
+          dash_or(@node.cpu)
+        ]
+
+        result.push [
+          t("model.attributes.node.memory"),
+          format_memory(@node.memory)
+        ]
+
+        result.push [
+          t("model.attributes.node.number_of_drives"),
+          [
+            @node.pretty_drives,
+            raid_data
+          ].compact.join(" - ")
+        ]
+
+        result.push [
+          t("model.attributes.node.mac"),
+          value_for(@node.mac, t("unknown"))
+        ]
+
+        show_name = if @node.switch_name.nil?
+          false
+        else
+          @node.switch_name >= 0
+        end
+
+        show_port = if @node.switch_port.nil?
+          false
+        else
+          @node.switch_port >= 0
+        end
+
+        show_unit = if @node.switch_unit.nil?
+          false
+        else
+          @node.switch_unit >= 0
+        end
+
+        if @node.switch_unit.nil?
+          switch_label = [
+            value_for(@node.switch_name, t("unknown"), show_name),
+            value_for(@node.switch_port, t("unknown"), show_port)
+          ].join(" / ")
+
+          switch_title = t("model.attributes.node.switch_name_port")
+        else
+          switch_label = [
+            value_for(@node.switch_name, t("unknown"), show_name),
+            value_for(@node.switch_unit, t("unknown"), show_unit),
+            value_for(@node.switch_port, t("unknown"), show_port)
+          ].join(" / ")
+
+          switch_title = t("model.attributes.node.switch_name_unit_port")
+        end
+
+        result.push [
+          switch_title,
+          link_to(switch_label, switch_path(:node => @node.handle))
+        ]
+      end
+    end
   end
 
   def node_ip_list(ips)

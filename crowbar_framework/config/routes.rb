@@ -85,10 +85,10 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :post }
   map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :get }
   map.index_barclamp            'crowbar/:controller/1.0', :action => 'index', :conditions => { :method => :get }
-  map.delete_barclamp           'crowbar/:controller/1.0/:id', :action => 'delete', :conditions => { :method => :delete }
-  map.show_barclamp             'crowbar/:controller/1.0/:id', :action => 'show', :conditions => { :method => :get }
+  map.delete_barclamp           'crowbar/:controller/1.0/:id', :action => 'delete', :conditions => { :method => :delete }, :requirements => { :id => /.*/ }
+  map.show_barclamp             'crowbar/:controller/1.0/:id', :action => 'show', :conditions => { :method => :get }, :requirements => { :id => /.*/ }
   map.versions_barclamp         'crowbar/:controller', :action => 'versions', :conditions => { :method => :get }
-  map.action_barclamp           'crowbar/:controller/1.0/:action/:id', :conditions => { :method => :post }
+  map.action_barclamp           'crowbar/:controller/1.0/:action/:id', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
   map.barclamp_index_barclamp   'crowbar', :controller => 'barclamp', :action => 'barclamp_index', :conditions => { :method => :get }
   map.barclamp_modules 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :conditions => { :method => :get }
 

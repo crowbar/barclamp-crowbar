@@ -132,6 +132,13 @@ module NodesHelper
           dash_or(@node.pretty_target_platform)
         ]
 
+        if CrowbarService.require_license_key? @node.target_platform
+          result.push [
+            t("model.attributes.node.license_key"),
+            value_for(@node.license_key, t("model.attributes.node.license_key_not_set"))
+          ]
+        end
+
         result.push [
           t("model.attributes.node.uptime"),
           value_for(@node.uptime, t("model.attributes.node.na"), @node.ready?)
@@ -150,13 +157,6 @@ module NodesHelper
             "data-node-state" => @node.handle
           )
         ]
-
-        if CrowbarService.require_license_key? @node.target_platform
-          result.push [
-            t("model.attributes.node.license_key"),
-            value_for(@node.license_key, t("model.attributes.node.license_key_not_set"))
-          ]
-        end
       end
     end
   end

@@ -45,7 +45,8 @@ module ApplicationHelper
 
   # Generate the meta title that gets displayed on the page meta information
   def meta_title
-    "#{branding_config[:page_title]}: #{controller.action_name.titleize}"
+    title = [branding_config[:page_title], branding_config[:page_slogan]].compact.join(" ")
+    "#{title}: #{controller.action_name.titleize}"
   end
 
   # This method gets extended in the future to include anywhere registered
@@ -85,14 +86,14 @@ module ApplicationHelper
     [].tap do |output|
       output.push content_tag(
         :span,
-        AppConfig[:branding][:page_title],
+        branding_config[:page_title],
         :class => "title"
       )
 
-      unless AppConfig[:branding][:page_slogan].empty?
+      unless branding_config[:page_slogan].empty?
         output.push content_tag(
           :span,
-          AppConfig[:branding][:page_slogan],
+          branding_config[:page_slogan],
           :class => "slogan"
         )
       end

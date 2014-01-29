@@ -3,3 +3,5 @@ silence_warnings do
   CHEF_CLIENT_KEY = nil
   CHEF_ONLINE     = true
 end
+
+Chef::Config.client_key CHEF_CLIENT_KEY

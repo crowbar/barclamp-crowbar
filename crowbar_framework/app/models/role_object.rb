@@ -70,7 +70,6 @@ class RoleObject < ChefObject
   def self.find_role_by_name(name)
     if CHEF_ONLINE
       begin
-        chef_init
         return RoleObject.new Chef::Role.load(name)
       rescue Net::HTTPServerException => e
         return nil if e.response.code == "404"

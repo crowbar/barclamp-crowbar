@@ -19,7 +19,7 @@ describe ChefObject do
     end
 
     it "returns empty node on failure" do
-      chef_object.stubs(:chef_init).raises(StandardError)
+      Chef::Search::Query.stubs(:new).raises(StandardError)
       chef_object.query_chef.should be_a(Chef::Node)
     end
   end

@@ -51,103 +51,120 @@
 
   LedUpdate.prototype.process = function() {
     var self = this;
+    var ignores = [];
 
     self.destroy();
     self.animate();
 
+    if (this.$el.data('ledignore')) {
+      ignores = this.$el.data('ledignore').split(',');
+    }
+
     try {
       $.getJSON(this.$el.data('ledupdate'), function(response) {
+        var reload = false;
+
         if ($.isFunction(self.options.beforeProcess)) {
           self.options.beforeProcess.call(this, response);
         }
 
-        if (response.groups) {
-          $.each(response.groups, function(key, val) {
-            var current = $(
-              '[data-group="{0}"] [data-piechart]'.format(key)
-            );
+        if (response.groups && $.inArray("groups", ignores) < 0) {
+          $('[data-group]').each(function(index, current) {
+            var current_handle = $(current).data('group');
 
-            var chartVals = [
-              val.status.ready,
-              val.status.failed,
-              val.status.unknown,
-              val.status.unready + val.status.pending
-            ];
-
-            current.attr('title', val.tooltip).tooltip('destroy').tooltip({
-              html: true
-            });
-
-            current.sparkline(
-              chartVals,
-              {
-                type: 'pie',
-                tagValuesAttribute: 'data-piechart',
-                disableTooltips: true,
-                disableHighlight: true,
-                sliceColors: [
-                  '#0f0',
-                  '#f00',
-                  '#999',
-                  '#ff0'
-                ]
-              }
-            );
+            if (!response.groups[current_handle]) {
+              reload = true;
+            }
           });
+
+          if (self.$el.data('ledsingle') == undefined) {
+            $.each(response.groups, function(key, val) {
+              var current = $(
+                '[data-group="{0}"] [data-piechart]'.format(key)
+              );
+
+              if (current.length > 0) {
+                var chartVals = [
+                  val.status.ready,
+                  val.status.failed,
+                  val.status.unknown,
+                  val.status.unready + val.status.pending
+                ];
+
+                current.attr('title', val.tooltip).tooltip('destroy').tooltip({
+                  html: true
+                });
+
+                current.sparkline(
+                  chartVals,
+                  {
+                    type: 'pie',
+                    tagValuesAttribute: 'data-piechart',
+                    disableTooltips: true,
+                    disableHighlight: true,
+                    sliceColors: [
+                      '#0f0',
+                      '#f00',
+                      '#999',
+                      '#ff0'
+                    ]
+                  }
+                );
+              } else {
+                reload = true;
+              }
+            });
+          }
         }
 
-        if (response.nodes) {
-          var reload = false;
-
+        if (response.nodes && $.inArray("nodes", ignores) < 0) {
           $('[data-node]').each(function(index, current) {
-            var current_handle = $(current).data('node')
+            var current_handle = $(current).data('node');
 
             if (!response.nodes[current_handle]) {
               reload = true;
             }
           });
 
-          $.each(response.nodes, function(key, val) {
-            var current = $(
-              '[data-node="{0}"]'.format(key)
-            );
-
-            if (current) {
-              if(current.hasClass('unknown')) {
-                self.update(
-                  current,
-                  val.class,
-                  val.status
-                );
-              } else {
-                self.update(
-                  current,
-                  val.class,
-                  val.status,
-                  function() {
-                    current.effect('fade').effect('fade');
-                  }
-                );
-              }
-
-              var text = $(
-                '[data-node-state="{0}"]'.format(key)
+          if (self.$el.data('ledsingle') == undefined) {
+            $.each(response.nodes, function(key, val) {
+              var current = $(
+                '[data-node="{0}"]'.format(key)
               );
 
-              if (text.html() != val.status) {
-                text.html(val.status).effect('fade').effect('fade');
-              }
-            } else {
-              reload = true;
-            }
-          });
+              if (current.length > 0) {
+                if(current.hasClass('unknown')) {
+                  self.update(
+                    current,
+                    val.class,
+                    val.status
+                  );
+                } else {
+                  self.update(
+                    current,
+                    val.class,
+                    val.status,
+                    function() {
+                      current.effect('fade').effect('fade');
+                    }
+                  );
+                }
 
-          if (reload) {
-            win.location.reload();
+                var text = $(
+                  '[data-node-state="{0}"]'.format(key)
+                );
+
+                if (text.html() != val.status) {
+                  text.html(val.status).effect('fade').effect('fade');
+                }
+              } else {
+                reload = true;
+              }
+            });
           }
         }
 
-        if (response.proposals) {
+        if (response.proposals && $.inArray("proposals", ignores) < 0) {
           $.each(response.proposals, function(key, val) {
             var current = $(
               '#{0}'.format(key)
@@ -178,10 +195,17 @@
         if ($.isFunction(self.options.afterProcess)) {
           self.options.afterProcess.call(this, response);
         }
+
+        if (reload) {
+          if (self.$el.data('ledredirect')) {
+            win.location = self.$el.data('ledredirect');
+          } else {
+            win.location.reload();
+          }
+        }
       });
-    }
-    catch(e) {
-      if (window.console) {
+    } catch(e) {
+      if (win.console) {
         console.log(e)
       }
     }

@@ -24,7 +24,6 @@ class ProposalObject < ChefObject
   
   def self.find_data_bag_item(bag)
     begin
-      chef_init #elimiate
       bag = ProposalObject.new(Chef::DataBag.load bag)  #should use new syntax
       return bag
     rescue

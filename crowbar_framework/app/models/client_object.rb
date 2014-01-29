@@ -20,7 +20,6 @@
 class ClientObject < ChefObject
   def self.find_client_by_name(name)
     begin
-      chef_init
       return ClientObject.new Chef::ApiClient.load(name)
     rescue StandardError => e
       Rails.logger.fatal("Failed to find client: #{name} #{e.message}")

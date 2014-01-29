@@ -40,27 +40,18 @@ class ChefObject
 
   def self.query_chef
     begin
-      chef_init
       return Chef::Search::Query.new
     rescue
       return Chef::Node.new
     end
   end
 
-  def self.chef_init
-    Chef::Config.node_name CHEF_NODE_NAME
-    Chef::Config.client_key CHEF_CLIENT_KEY
-    Chef::Config.chef_server_url CHEF_SERVER_URL
-    puts "CHEF_OFFLINE" unless CHEF_ONLINE
-  end
-  
   def self.chef_escape(str)
     str.gsub("-:") { |c| '\\' + c }
   end
 
   def self.crowbar_node(name)
     begin 
-      chef_init
       return Chef::Node.load(name)
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
@@ -70,7 +61,6 @@ class ChefObject
 
   def self.crowbar_data(bag_item)
     begin 
-      chef_init
       return Chef::DataBag.load "crowbar/#{bag_item}"
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")

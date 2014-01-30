@@ -245,8 +245,8 @@ en:
         number_of_drives: Disk Drives
         description: Description
         description_not_set: Node description not set
-        roles: Roles
-        barclamps: Barclamps
+        roles: Applied Roles
+        barclamps: Applied Barclamps
         asset_tag: Service Tag
         license_key: License Key
         license_key_not_set: Not set

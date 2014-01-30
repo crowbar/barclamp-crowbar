@@ -127,6 +127,10 @@ class ProposalObject < ChefObject
     )
   end
 
+  def category
+    @category ||= ServiceObject.barclamp_category(barclamp)
+  end
+
   def item
     @item
   end

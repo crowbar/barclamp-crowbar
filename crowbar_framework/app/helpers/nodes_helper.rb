@@ -344,30 +344,160 @@ module NodesHelper
     end
   end
 
-  def node_barclamp_list(roles)
-    return "" if roles.nil? or roles.empty?
+  def node_barclamps(node)
+    return [] if node.roles.nil? or node.roles.empty?
 
-    required_roles = roles.delete_if do |role|
+    node.roles.delete_if do |role|
       not role =~ /^.*-config-/
     end
+  end
 
-    map_role_list(
-      required_roles,
-      proc { |role| role.gsub("-config-", " ").titleize },
+  def node_barclamp_list(node)
+    list_items = ActiveSupport::OrderedHash.new.tap do |listing|
+      node_barclamps(node).sort.map do |role|
+        role_split = role.split("-", 3)
+
+        proposal = ProposalObject.find_proposal(
+          role_split.first,
+          role_split.last
+        )
+
+        if proposal.nil?
+          listing["Unknown"] ||= []
+          listing["Unknown"].push role.gsub("-config-", " ").titleize
+        else
+          display_name = if proposal.allow_multiple_proposals?
+            "#{proposal.display_name} (#{proposal.name.titleize})"
+          else
+            proposal.display_name
+          end
+
+          route = proposal_barclamp_path(:controller => proposal.barclamp, :id => proposal.name)
+
+          listing[proposal.category] ||= []
+          listing[proposal.category].push link_to(display_name, route)
+        end
+      end
+    end
+
+    if list_items.empty?
+      list_result = content_tag(
+        :li,
+        t(".no_entry"),
+        :class => "empty"
+      )
+    else
+      list_result = [].tap do |result|
+        list_items.sort.each do |category, proposals|
+          children = proposals.map do |proposal|
+            content_tag(
+              :li,
+              proposal
+            )
+          end
+
+          result.push content_tag(
+            :li,
+            [
+              category,
+              content_tag(
+                :ul,
+                children.join("\n")
+              )
+            ].join("\n")
+          )
+        end
+      end.join("\n")
+    end
+
+    content_tag(
+      :ul,
+      list_result,
       :class => "barclamps"
     )
   end
 
-  def node_role_list(roles)
-    return "" if roles.nil? or roles.empty?
+  def node_roles(node)
+    return [] if node.roles.nil? or node.roles.empty?
 
-    required_roles = roles.delete_if do |role|
+    node.roles.delete_if do |role|
       role =~ /^.*-config-/
     end
+  end
 
-    map_role_list(
-      required_roles,
-      proc { |role| role },
+  def node_role_list(node)
+    list_items = ActiveSupport::OrderedHash.new.tap do |listing|
+      node_roles(node).sort.map do |role|
+        object = RoleObject.find_role_by_name(
+          role
+        )
+
+        next if role =~ /^crowbar-.*_#{ChefObject.cloud_domain.gsub(".", "_")}/
+
+        if object.nil?
+          listing["Unknown"] ||= []
+          listing["Unknown"].push role.titleize
+        else
+          barclamp = node_barclamps(node).select do |barclamp|
+            barclamp.include? object.barclamp
+          end.first
+
+          role_split = barclamp.to_s.split("-", 3)
+
+          proposal = ProposalObject.find_proposal(
+            role_split.first,
+            role_split.last
+          )
+
+          if proposal.nil?
+            listing[object.category] ||= []
+            listing[object.category].push role
+          else
+            route = proposal_barclamp_path(
+              :controller => proposal.barclamp,
+              :id => proposal.name
+            )
+
+            listing[proposal.category] ||= []
+            listing[proposal.category].push link_to(role, route)
+          end
+        end
+      end
+    end
+
+    if list_items.empty?
+      list_result = content_tag(
+        :li,
+        t(".no_entry"),
+        :class => "empty"
+      )
+    else
+      list_result = [].tap do |result|
+        list_items.sort.each do |category, roles|
+          children = roles.map do |role|
+            content_tag(
+              :li,
+              role
+            )
+          end
+
+          result.push content_tag(
+            :li,
+            [
+              category,
+              content_tag(
+                :ul,
+                children.join("\n")
+              )
+            ].join("\n")
+          )
+        end
+      end.join("\n")
+    end
+
+    content_tag(
+      :ul,
+      list_result,
       :class => "roles"
     )
   end
@@ -425,30 +555,9 @@ module NodesHelper
 
   protected
 
-  def map_role_list(roles, proc, options = {})
-    list_items = roles.map do |role|
-      content_tag(
-        :li,
-        link_to(
-          proc.call(role),
-          "#",
-          "data-href" => nodes_path(:role => role, :names_only => true, :format => "json")
-        )
-      )
-    end
-
-    if list_items.empty?
-      list_items.push content_tag(
-        :li,
-        t(".no_entry"),
-        :class => "empty"
-      )
-    end
-
-    content_tag(
-      :ul,
-      list_items,
-      options
-    )
+  def node_role_map
+    {
+      "bmc" => "ipmi"
+    }
   end
 end

@@ -86,7 +86,22 @@ class RoleObject < ChefObject
   end
 
   def barclamp
-    @role.name.split("-")[0]
+    name = @role.name.split("-")[0]
+
+    case name
+    when "switch_config"
+      "network"
+    when "bmc"
+      "ipmi"
+    when "nfs"
+      "nfs_client"
+    else
+      name
+    end
+  end
+
+  def category
+    @category ||= ServiceObject.barclamp_category(barclamp)
   end
 
   def inst

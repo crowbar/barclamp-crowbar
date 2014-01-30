@@ -19,40 +19,6 @@
  */
 
 jQuery(document).ready(function($) {
-  $('#nodedetails .roles a').live('click', function(event) {
-    $.getJSON($(this).data('href'), function(data) {
-      $('a.highlight').removeClass('highlight');
-      $(this).addClass('highlight');
-
-      $('.list-group-item.selected').removeClass('selected');
-
-      if (data['nodes']) {
-        $.each(data['nodes'], function(i, node) {
-          $('[data-id={0}]'.format(node)).addClass('selected');
-        });
-      }
-    });
-
-    event.preventDefault();
-  });
-
-  $('#nodedetails .barclamps a').live('click', function(event) {
-    $.getJSON($(this).data('href'), function(data) {
-      $('a.highlight').removeClass('highlight');
-      $(this).addClass('highlight');
-
-      $('.list-group-item.selected').removeClass('selected');
-
-      if (data['nodes']) {
-        $.each(data['nodes'], function(i, node) {
-          $('[data-id={0}]'.format(node)).addClass('selected');
-        });
-      }
-    });
-
-    event.preventDefault();
-  });
-
   $('.list-group-item a').live('click', function(event) {
     $('.list-group-item').removeClass('selected');
     $(this).parents('.list-group-item').addClass('selected');

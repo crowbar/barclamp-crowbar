@@ -68,7 +68,27 @@ class ServiceObject
   end
 
   def self.barclamp_catalog
-    YAML.load_file(File.join( 'config', 'catalog.yml'))
+    @barclamp_catalog ||= YAML.load_file(File.join( 'config', 'catalog.yml'))
+  end
+
+  def self.barclamp_categories
+    @barclamp_categories ||= begin
+      {}.tap do |result|
+        barclamp_catalog["barclamps"].each do |barclamp, attrs|
+          next if attrs["members"].nil?
+          result[barclamp] = attrs["members"].keys
+        end
+      end
+    end
+  end
+
+  def self.barclamp_category(barclamp)
+    value = barclamp_categories.map do |parent, members|
+      next unless members.include? barclamp
+      barclamp_catalog["barclamps"][parent]["display"]
+    end
+
+    value.compact.first || "Unknown"
   end
 
   def self.all

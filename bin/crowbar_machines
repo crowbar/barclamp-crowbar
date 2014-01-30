@@ -199,7 +199,7 @@ end
 
 def result(message, code, error = nil)
   if error.nil? or error.empty?
-    [message, 1]
+    [message, 0]
   else
     ["#{message}: #{error} #{code >= 200 ? "(#{code})": ""}", 1]
   end

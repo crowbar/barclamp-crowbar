@@ -21,8 +21,6 @@ require 'chef'
 require 'json'
 
 class BarclampController < ApplicationController
-  include BarclampServicesHelper
-
   before_filter :controller_to_barclamp
 
   def controller_to_barclamp
@@ -188,10 +186,10 @@ class BarclampController < ApplicationController
         @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
         @count = -1
         members = {}
-        list = barclamp_members(@bc_name)
-        cat = ServiceObject.barclamp_catalog
+        list = BarclampCatalog.members(@bc_name)
+        barclamps = BarclampCatalog.barclamps
         i = 0
-        (list || {}).each { |bc, order| members[bc] = { 'description' => cat['barclamps'][bc]['description'], 'order'=>order || 99999} if !cat['barclamps'][bc].nil? and cat['barclamps'][bc]['user_managed'] }
+        (list || {}).each { |bc, order| members[bc] = { 'description' => barclamps[bc]['description'], 'order'=>order || 99999} if !barclamps[bc].nil? and barclamps[bc]['user_managed'] }
         @modules = get_proposals_from_barclamps(members).sort_by { |k,v| "%05d%s" % [v[:order], k] }
         render 'barclamp/index' 
       }
@@ -217,7 +215,7 @@ class BarclampController < ApplicationController
   def modules
     @title = I18n.t('barclamp.modules.title')
     @count = 0
-    barclamps = ServiceObject.barclamp_catalog['barclamps'].delete_if { |bc, props| !props['user_managed'] }
+    barclamps = BarclampCatalog.barclamps.dup.delete_if { |bc, props| !props['user_managed'] }
     @modules = get_proposals_from_barclamps(barclamps).sort_by { |k,v| "%05d%s" % [v[:order], k] }
     respond_to do |format|
       format.html { render 'index'}

@@ -85,7 +85,7 @@ class RoleObject < ChefObject
   end
 
   def category
-    @category ||= ServiceObject.barclamp_category(barclamp)
+    @category ||= BarclampCatalog.category(barclamp)
   end
 
   def inst
@@ -97,7 +97,7 @@ class RoleObject < ChefObject
   end
 
   def display_name
-    @display_name ||= ServiceObject.display_name(barclamp)
+    @display_name ||= BarclampCatalog.display_name(barclamp)
   end
 
   def allow_multiple_proposals?

@@ -51,7 +51,7 @@ module BarclampsHelper
       if barclamp.respond_to? :display_name
         barclamp.display_name
       else
-        display_name = ServiceObject.display_name(barclamp)
+        display_name = BarclampCatalog.display_name(barclamp)
       end
     end
   end

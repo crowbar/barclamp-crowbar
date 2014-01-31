@@ -354,7 +354,7 @@ module NodesHelper
 
   def node_barclamp_list(node)
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
-      node_barclamps(node).sort.map do |role|
+      node_barclamps(node).map do |role|
         role_split = role.split("-", 3)
 
         proposal = ProposalObject.find_proposal(
@@ -389,7 +389,7 @@ module NodesHelper
     else
       list_result = [].tap do |result|
         list_items.sort.each do |category, proposals|
-          children = proposals.map do |proposal|
+          children = proposals.sort { |x, y| strip_links(x) <=> strip_links(y) }.map do |proposal|
             content_tag(
               :li,
               proposal
@@ -427,7 +427,7 @@ module NodesHelper
 
   def node_role_list(node)
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
-      node_roles(node).sort.map do |role|
+      node_roles(node).map do |role|
         object = RoleObject.find_role_by_name(
           role
         )
@@ -474,7 +474,7 @@ module NodesHelper
     else
       list_result = [].tap do |result|
         list_items.sort.each do |category, roles|
-          children = roles.map do |role|
+          children = roles.sort { |x, y| strip_links(x) <=> strip_links(y) }.map do |role|
             content_tag(
               :li,
               role

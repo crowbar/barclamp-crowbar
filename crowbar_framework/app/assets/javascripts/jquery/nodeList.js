@@ -175,7 +175,7 @@
   NodeList.prototype.errorMessage = function(message) {
     var self = this;
 
-    self.$root.before(
+    self.$root.after(
       self.errorTemplate({
         message: message
       })
@@ -196,7 +196,7 @@
   NodeList.prototype.successMessage = function(message) {
     var self = this;
 
-    self.$root.before(
+    self.$root.after(
       self.successTemplate({
         message: message
       })

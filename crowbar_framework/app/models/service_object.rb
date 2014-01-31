@@ -56,6 +56,10 @@ class ServiceObject
     return result
   end
 
+  def self.barclamp_catalog
+    BarclampCatalog.catalog
+  end
+
   def self.bc_name
     self.name.underscore[/(.*)_service$/,1]
   end
@@ -63,32 +67,7 @@ class ServiceObject
   # ordered list of barclamps from groups in the crowbar.yml files.
   # Built at barclamp install time by the catalog step
   def self.members
-    cat = barclamp_catalog
-    cat["barclamps"][bc_name].nil? ? [] : cat["barclamps"][bc_name]['members']
-  end
-
-  def self.barclamp_catalog
-    @barclamp_catalog ||= YAML.load_file(File.join( 'config', 'catalog.yml'))
-  end
-
-  def self.barclamp_categories
-    @barclamp_categories ||= begin
-      {}.tap do |result|
-        barclamp_catalog["barclamps"].each do |barclamp, attrs|
-          next if attrs["members"].nil?
-          result[barclamp] = attrs["members"].keys
-        end
-      end
-    end
-  end
-
-  def self.barclamp_category(barclamp)
-    value = barclamp_categories.map do |parent, members|
-      next unless members.include? barclamp
-      barclamp_catalog["barclamps"][parent]["display"]
-    end
-
-    value.compact.first || "Unknown"
+    BarclampCatalog.members(bc_name)
   end
 
   def self.all
@@ -101,25 +80,19 @@ class ServiceObject
   end
 
   def self.run_order(bc, cat = nil)
-    return 1000 if bc == nil
-    cat = barclamp_catalog if cat.nil?
-    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
-    (cat["barclamps"][bc]["run_order"] || order) rescue order
+    BarclampCatalog.run_order(bc)
   end
 
   def run_order
-    ServiceObject.run_order(@bc_name)
+    BarclampCatalog.run_order(@bc_name)
   end
 
   def self.chef_order(bc, cat = nil)
-    return 1000 if bc == nil
-    cat = barclamp_catalog if cat.nil?
-    order = (cat["barclamps"][bc]["order"] || 1000) rescue 1000
-    (cat["barclamps"][bc]["chef_order"] || order) rescue order
+    BarclampCatalog.chef_order(bc)
   end
 
   def chef_order
-    ServiceObject.chef_order(@bc_name)
+    BarclampCatalog.chef_order(@bc_name)
   end
 
   def random_password(size = 12)
@@ -745,19 +718,8 @@ class ServiceObject
     end
   end
 
-  def self.display_name(barclamp)
-    catalog = ServiceObject.barclamp_catalog
-    display = catalog['barclamps'][barclamp]['display']
-
-    if display.nil? or display.empty?
-      barclamp.titlecase
-    else
-      display
-    end
-  end
-
   def display_name
-    @display_name ||= ServiceObject.display_name(@bc_name)
+    @display_name ||= BarclampCatalog.display_name(@bc_name)
   end
 
   #

@@ -1194,7 +1194,7 @@ class ServiceObject
     role_map = prop["deployment"][barclamp]["element_states"] rescue {}
     role_map = {} unless role_map
 
-    local_chef_order = runlist_priority_map[newrole] || ServiceObject.chef_order(barclamp)
+    local_chef_order = runlist_priority_map[newrole] || BarclampCatalog.chef_order(barclamp)
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)

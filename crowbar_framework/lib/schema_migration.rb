@@ -21,7 +21,7 @@ module SchemaMigration
   require "chef"
 
   def self.run
-    ServiceObject.barclamp_catalog["barclamps"].each do |bc_name, details|
+    BarclampCatalog.barclamps.each do |bc_name, details|
       run_for_bc bc_name
     end
   end

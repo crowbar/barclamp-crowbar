@@ -51,13 +51,7 @@ module BarclampsHelper
       if barclamp.respond_to? :display_name
         barclamp.display_name
       else
-        display_name = ServiceObject.barclamp_catalog['barclamps'][barclamp]['display']
-
-        if display_name.nil? or display_name == ""
-          barclamp.titlecase
-        else
-          display_name
-        end
+        display_name = ServiceObject.display_name(barclamp)
       end
     end
   end

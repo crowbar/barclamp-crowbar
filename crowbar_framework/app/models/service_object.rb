@@ -745,17 +745,19 @@ class ServiceObject
     end
   end
 
-  def display_name
-    @display_name ||= begin
-      catalog = ServiceObject.barclamp_catalog
-      display = catalog['barclamps'][@bc_name]['display']
+  def self.display_name(barclamp)
+    catalog = ServiceObject.barclamp_catalog
+    display = catalog['barclamps'][barclamp]['display']
 
-      if display.nil? or display.empty?
-        @bc_name.titlecase
-      else
-        display
-      end
+    if display.nil? or display.empty?
+      barclamp.titlecase
+    else
+      display
     end
+  end
+
+  def display_name
+    @display_name ||= ServiceObject.display_name(@bc_name)
   end
 
   #

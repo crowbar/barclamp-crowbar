@@ -152,16 +152,7 @@ class ProposalObject < ChefObject
   end
 
   def display_name
-    @display_name ||= begin
-      catalog = ServiceObject.barclamp_catalog
-      display = catalog['barclamps'][barclamp]['display']
-
-      if display.nil? or display.empty?
-        barclamp.titlecase
-      else
-        display
-      end
-    end
+    @display_name ||= ServiceObject.display_name(barclamp)
   end
 
   def allow_multiple_proposals?

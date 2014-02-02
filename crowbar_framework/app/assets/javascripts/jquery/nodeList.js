@@ -17,10 +17,6 @@
       $('#nodelist-alert').html()
     );
 
-    this.successTemplate = Handlebars.compile(
-      $('#nodelist-success').html()
-    );
-
     this.warningTemplate = Handlebars.compile(
       $('#nodelist-warning').html()
     );
@@ -134,13 +130,6 @@
       var alias = $node.data('alias');
       var role = $node.data('role');
 
-      self.successMessage(
-        'barclamp.node_selector.removed'.localize().format(
-          alias,
-          role
-        )
-      );
-
       if (self.json.elements[role]) {
         self.json.elements[role].removeValue(id);
       }
@@ -182,27 +171,6 @@
     );
 
     var message = $('.alert-danger.alert-dismissable.disappear:last');
-
-    win.setTimeout(
-      function() {
-        message.slideUp(500, function() {
-          $(this).remove();
-        });
-      },
-      3000
-    );
-  };
-
-  NodeList.prototype.successMessage = function(message) {
-    var self = this;
-
-    self.$root.before(
-      self.successTemplate({
-        message: message
-      })
-    );
-
-    var message = $('.alert-success.alert-dismissable.disappear:last');
 
     win.setTimeout(
       function() {
@@ -317,13 +285,6 @@
     if ($.inArray(id, self.json.elements[role]) < 0) {
       self.json.elements[role].push(id);
       self.updateJson();
-
-      return self.successMessage(
-        'Added {0} to {1}'.format(
-          alias,
-          role
-        )
-      );
     }
 
     return true;

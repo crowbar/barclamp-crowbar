@@ -21,7 +21,6 @@
 if (!String.prototype.localize) {
   String.prototype.localize = function() {
     values = {
-      'barclamp.node_selector.removed': 'Removed {0} from {1}',
       'barclamp.node_selector.duplicate': 'Node {0} is already assigned to {1}',
       'barclamp.node_selector.outdated': 'There have been deleted old nodes removed, please save this deployment.',
       'barclamp.node_selector.no_admin': 'Failed to assign {0} to {1}, no admin nodes allowed',

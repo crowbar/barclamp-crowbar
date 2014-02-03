@@ -347,6 +347,7 @@ en:
       no_entry: No address assigned
     show_links:
       links: Links
+      bmc: IPMI
       no_entry: No links available
     show_roles:
       no_entry: No role assigned

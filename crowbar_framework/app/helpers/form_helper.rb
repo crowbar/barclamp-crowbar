@@ -54,7 +54,10 @@ module FormHelper
     options_for_select(
       [
         [t(".raid_types.single"), "single"],
-        [t(".raid_types.raid1"), "raid1"]
+        [t(".raid_types.raid1"), "raid1"],
+        [t(".raid_types.raid5"), "raid5"],
+        [t(".raid_types.raid6"), "raid6"],
+        [t(".raid_types.raid10"), "raid10"]
       ],
       selected.to_s
     )

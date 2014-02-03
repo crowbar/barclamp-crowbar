@@ -42,7 +42,20 @@ module FormHelper
 
   def booleans_for_select(selected)
     options_for_select(
-      [["true", "true"], ["false", "false"]],
+      [
+        ["true", "true"],
+        ["false", "false"]
+      ],
+      selected.to_s
+    )
+  end
+
+  def raids_for_select(selected)
+    options_for_select(
+      [
+        [t(".raid_types.single"), "single"],
+        [t(".raid_types.raid1"), "raid1"]
+      ],
       selected.to_s
     )
   end

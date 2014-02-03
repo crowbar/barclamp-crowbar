@@ -388,6 +388,11 @@ en:
       network: Network
       no_role: Undecided
       intended_role_hint: Intended Role is the way you intend to use the node in your cloud infrastructure. The value is used to propose the inital node deployment for barclamps.
+      raid_disks: RAID disks
+      raid_type: Software RAID
+      raid_types:
+        single: Singledisk
+        raid1: RAID 1
   
   support:
     index:

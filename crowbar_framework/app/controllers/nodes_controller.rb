@@ -369,6 +369,8 @@ class NodesController < ApplicationController
         :description   => :description,
         :availability_zone => :availability_zone,
         :intended_role => :intended_role,
+        :raid_type     => :raid_type,
+        :raid_disks    => :raid_disks
       }.each do |attr, param|
         @node.send("#{attr}=", params[param]) if params.key?(param)
       end

@@ -196,6 +196,22 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["intended_role"] = value
   end
 
+  def raid_type
+    @node["crowbar_wall"]["raid_type"] || "single"
+  end
+
+  def raid_type=(value)
+    @node["crowbar_wall"]["raid_type"] = value
+  end
+
+  def raid_disks
+    @node["crowbar_wall"]["raid_disks"] || 2
+  end
+
+  def raid_disks=(value)
+    @node["crowbar_wall"]["raid_disks"] = value
+  end
+
   def license_key
     @node[:license_key]
   end

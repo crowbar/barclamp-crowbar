@@ -93,6 +93,22 @@
               = t('na')
           - else
             = select_tag :raid, options_for_select(crowbar_options[:raid], @node.raid_set), :class => "form-control"
+      - else
+        .form-group
+          = f.label :raid_type, t('.raid_type')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :raid_type, raids_for_select(@node.raid_type), :class => "form-control", "data-disabler" => "single", "data-disabler-target" => "#raid_disks", :disabled => @node.allocated
+
+        .form-group
+          = f.label :raid_disks, t('.raid_disks')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = number_field_tag :raid_disks, @node.raid_disks, :class => "form-control", :in => 2.upto(@node.number_of_drives > 2 ? @node.number_of_drives : 2), :disabled => @node.allocated
 
     .panel-footer.text-right
       .btn-group

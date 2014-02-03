@@ -105,10 +105,6 @@ class CrowbarService < ServiceObject
 
       roles.each do |role|
         role.override_attributes.each do |bc, data|
-          jsondata = {
-            "name" => name,
-            "state" => state
-          }
           rname = role.name.gsub("#{bc}-config-","")
           # Need a lock here, because if many nodes are discovered
           # simultaneously, adding them to a proposal can race,

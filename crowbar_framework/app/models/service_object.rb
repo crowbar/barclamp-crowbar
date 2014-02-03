@@ -28,6 +28,7 @@ class ServiceObject
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
 
   attr_accessor :bc_name
+  attr_accessor :logger
 
   def initialize(thelogger)
     @bc_name = 'unknown'

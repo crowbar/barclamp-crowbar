@@ -29,6 +29,7 @@ Rails::Initializer.run do |config|
     config.gem "json"
     config.gem "sprockets-sass"
     config.gem "sprockets-helpers"
+    config.gem "sprockets"
   end
 
   config.time_zone = "UTC"

@@ -254,6 +254,8 @@ en:
         target_platform_not_set: Not set
         availability_zone: Availability Zone
         intended_role: Intended Role
+        raid_type: RAID Type
+        raid_disks: RAID Disks
       proposal:
         name: Proposal
         description: Description

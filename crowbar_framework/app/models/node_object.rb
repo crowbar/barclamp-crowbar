@@ -179,8 +179,12 @@ class NodeObject < ChefObject
     @node.set[:target_platform] = value
   end
 
+  def crowbar_wall
+    @node["crowbar_wall"] || {}
+  end
+
   def availability_zone
-    @node["crowbar_wall"]["openstack"]["availability_zone"] rescue nil
+    crowbar_wall["openstack"]["availability_zone"] rescue nil
   end
 
   def availability_zone=(value)
@@ -189,7 +193,7 @@ class NodeObject < ChefObject
   end
 
   def intended_role
-    @node["crowbar_wall"]["intended_role"] rescue "no_role"
+    crowbar_wall["intended_role"] rescue "no_role"
   end
 
   def intended_role=(value)
@@ -197,7 +201,7 @@ class NodeObject < ChefObject
   end
 
   def raid_type
-    @node["crowbar_wall"]["raid_type"] || "single"
+    crowbar_wall["raid_type"] || "single"
   end
 
   def raid_type=(value)
@@ -205,7 +209,7 @@ class NodeObject < ChefObject
   end
 
   def raid_disks
-    @node["crowbar_wall"]["raid_disks"] || 2
+    crowbar_wall["raid_disks"] || 2
   end
 
   def raid_disks=(value)

@@ -67,6 +67,11 @@ Installation steps:
    The hostname and domain names can be left at the defaults. The apt-get proxy
    can also be left blank.
 
+1. If you create a new VM using VMware GUI and start the server from a iso image as
+   i did, you would want to download the cntlm deb for ubuntu and install it, set up
+   the proxy configuration in the /etc/cntlm.conf. Note, the VM would not have internet
+   access at this poiint, so ftp the deb from your local host to the VM.
+
 1. Once installation is complete, you can shutdown the VM (`sudo poweroff`) and
    subsequently start it in the same way, minus the `-cdrom ...` option. Or
    use the [qemu-kvm/start-vm](https://github.com/crowbar/crowbar/blob/master/dev-setup/qemu-kvm/start-vm))

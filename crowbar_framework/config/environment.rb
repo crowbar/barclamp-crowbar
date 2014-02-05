@@ -1,5 +1,6 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,23 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
 RAILS_GEM_VERSION = "2.3.17" unless defined? RAILS_GEM_VERSION
 require File.expand_path("../boot", __FILE__)
 
 Rails::Initializer.run do |config|
   unless AppConfig[:use_bundler]
-    config.gem "haml"
-    config.gem "sass"
-    config.gem "simple-navigation"
-    config.gem "i18n"
-    config.gem "json"
-    config.gem "sprockets-sass"
-    config.gem "sprockets-helpers"
-    config.gem "sprockets"
+    config.gem "app_config", "1.0.2"
+    config.gem "chef", "10.24.4"
+    config.gem "haml", "3.1.6"
+    config.gem "hike", "1.2.1"
+    config.gem "i18n", "0.4.2"
+    config.gem "json", "1.6.1"
+    config.gem "kwalify", "0.7.2"
+    config.gem "mime-types", "1.18"
+    config.gem "multi_json", "1.0.3"
+    config.gem "rack", "1.1.6"
+    config.gem "sass", "3.2.12"
+    config.gem "simple-navigation", "3.7.0"
+    config.gem "sprockets", "2.10.1"
+    config.gem "sprockets-sass", "1.0.2"
+    config.gem "sprockets-helpers", "1.1.0"
+    config.gem "sqlite3", "1.3.6"
+    config.gem "syslogger", "1.3.0"
+    config.gem "tilt", "1.3.3"
   end
 
   config.time_zone = "UTC"

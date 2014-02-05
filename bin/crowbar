@@ -518,7 +518,12 @@ class Role < CrowbarProxy
 
 end
 
-class NodeRole < CrowbarProxy; end
+class NodeRole < CrowbarProxy
+  def self.path
+    "api/v2/node_roles"
+  end
+end
+
 class Snapshot < CrowbarProxy
 
   def name

@@ -63,6 +63,17 @@ module FormHelper
     )
   end
 
+  def drives_for_select(selected)
+    available = @node.physical_drives.map do |name, drive|
+      ["/dev/#{name} (#{number_to_human_size(drive["size"].to_i * 512)})", "/dev/#{name}"]
+    end.sort
+
+    options_for_select(
+      available,
+      selected
+    )
+  end
+
   def instance_selector_select(bc, name, field, proposal)
     service = eval("#{bc.camelize}Service.new nil")
     options = service.list_active[1] | service.proposals[1]

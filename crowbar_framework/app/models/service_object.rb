@@ -27,6 +27,7 @@ class ServiceObject
   extend CrowbarOffline
 
   attr_accessor :bc_name
+  attr_accessor :logger
 
   def initialize(thelogger)
     @bc_name = 'unknown'

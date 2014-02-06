@@ -193,6 +193,20 @@ module NodesHelper
           format_memory(@node.memory)
         ]
 
+        if suse_system?
+          unless crowbar_options[:show].include?(:raid) or @node.raid_type == "single"
+            result.push [
+              t("model.attributes.node.raid_type"),
+              value_for(t(@node.raid_type, :scope => "nodes.form.raid_types"), t("unknown"))
+            ]
+
+            result.push [
+              t("model.attributes.node.raid_disks"),
+              value_for(@node.raid_disks.length.to_s, t("unknown"))
+            ]
+          end
+        end
+
         result.push [
           t("model.attributes.node.number_of_drives"),
           [
@@ -245,20 +259,6 @@ module NodesHelper
           switch_title,
           link_to(switch_label, switch_path(:node => @node.handle))
         ]
-
-        unless crowbar_options[:show].include? :raid
-          result.push [
-            t("model.attributes.node.raid_type"),
-            value_for(t(@node.raid_type, :scope => "nodes.form.raid_types"), t("unknown"))
-          ]
-
-          unless @node.raid_type == "single"
-            result.push [
-              t("model.attributes.node.raid_disks"),
-              value_for(@node.raid_disks, t("unknown"))
-            ]
-          end
-        end
       end
     end
   end

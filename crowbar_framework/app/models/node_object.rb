@@ -147,6 +147,14 @@ class NodeObject < ChefObject
     I18n.t attrib, :scope => "model.attributes.node"
   end
 
+  def method_missing(method, *args, &block)
+    if @node.respond_to? method
+      @node.send(method, *args, &block)
+    else
+      super
+    end
+  end
+
   def initialize(node)
     @role = RoleObject.find_role_by_name NodeObject.make_role_name(node.name)
     if @role.nil?
@@ -209,7 +217,7 @@ class NodeObject < ChefObject
   end
 
   def raid_disks
-    crowbar_wall["raid_disks"] || 2
+    crowbar_wall["raid_disks"] || []
   end
 
   def raid_disks=(value)
@@ -409,7 +417,7 @@ class NodeObject < ChefObject
   # creates a hash with key attributes of the node from ohai for comparison
   def family
     f = {}
-    f[:drives] = physical_drives
+    f[:drives] = pretty_drives
     f[:ram] = memory
     f[:cpu] = cpu
     f[:hw] = hardware
@@ -460,16 +468,10 @@ class NodeObject < ChefObject
   end
 
   def number_of_drives
-    return -1 if @node[:block_device].nil?
-    # This needs to be kept in sync with the fixed method in
-    # barclamp_library.rb in in the deployer barclamp.
-    # On windows platform there is no block_device chef entry.
-    if defined?(@node[:block_device]) and !@node[:block_device].nil?
-      @node[:block_device].find_all do |disk,data|
-        disk =~ /^([hsv]d|cciss|xvd)/ && data[:removable] == "0" && !(data[:vendor] == "cinder" && data[:model] =~ /^volume-/)
-      end.length
-    else
+    if physical_drives.empty?
       -1
+    else
+      physical_drives.length
     end
   end
 
@@ -482,7 +484,17 @@ class NodeObject < ChefObject
   end
 
   def physical_drives
-    number_of_drives
+    # This needs to be kept in sync with the fixed method in
+    # barclamp_library.rb in in the deployer barclamp.
+    # On windows platform there is no block_device chef entry.
+
+    if @node[:block_device]
+      @node[:block_device].find_all do |disk, data|
+        disk =~ /^([hsv]d|cciss|xvd)/ && data[:removable] == "0" && !(data[:vendor] == "cinder" && data[:model] =~ /^volume-/)
+      end
+    else
+      []
+    end
   end
 
   def [](attrib)
@@ -1092,6 +1104,102 @@ class NodeObject < ChefObject
 
   def export
     NodeObject.dump @node, 'node', name
+  end
+
+  def disk_owner(device)
+    if device
+      crowbar_wall[:claimed_disks][device][:owner] rescue nil
+    else
+      nil
+    end
+  end
+
+  def disk_claim(device, owner)
+    if device
+      crowbar_wall[:claimed_disks] ||= {}
+
+      if (crowbar_wall[:claimed_disks][device][:owner] rescue nil)
+        return crowbar_wall[:claimed_disks][device][:owner] == owner
+      end
+
+      Rails.logger.debug "Claiming #{device} for #{owner}"
+      crowbar_wall[:claimed_disks][device] = { :owner => owner }
+
+      true
+    else
+      Rails.logger.debug "No device for disk claim given"
+      false
+    end
+  end
+
+  def disk_claim!(device, owner)
+    if disk_claim(device, owner)
+      save
+    else
+      false
+    end
+  end
+
+  def disk_release(device, owner)
+    if device
+      crowbar_wall[:claimed_disks] ||= {}
+
+      unless (crowbar_wall[:claimed_disks][device][:owner] rescue "") == owner
+        return false
+      end
+
+      Rails.logger.debug "Releasing #{device} from #{owner}"
+      crowbar_wall[:claimed_disks].delete device
+
+      true
+    else
+      Rails.logger.debug "No device for disk release given"
+      false
+    end
+  end
+
+  def disk_release!(device, owner)
+    if disk_release(device, owner)
+      save
+    else
+      false
+    end
+  end
+
+  def boot_device(device)
+    if device
+      Rails.logger.debug "Set boot device to #{device}"
+      crowbar_wall["boot_device"] = device
+
+      true
+    else
+      Rails.logger.debug "No device for boot given"
+      false
+    end
+  end
+
+  def boot_device!(device)
+    if boot_device(device)
+      save
+    else
+      false
+    end
+  end
+
+  def unique_device_for(device)
+    meta = @node["block_device"][device]
+
+    if meta and meta["disks"]
+      result = %w(by-path by-id by-uuid).map do |type|
+        if meta["disks"][type] and not meta["disks"][type].empty?
+          "#{type}/#{meta["disks"][type].first}"
+        end
+      end
+
+      "/dev/disk/#{result.compact.first}"
+    else
+      nil
+    end
   end
 
   private

@@ -21,26 +21,19 @@ require 'chef/mixin/deep_merge'
 require 'timeout'
 
 class NodeObject < ChefObject
-  extend CrowbarOffline
-
   def self.find(search)
     answer = []
-    if CHEF_ONLINE
-      nodes = if search.nil?
-        ChefObject.query_chef.search "node"
-      else
-        ChefObject.query_chef.search "node", "#{chef_escape(search)}"
-      end
-      if nodes[2] != 0 and !nodes[0].nil?
-        nodes[0].delete_if { |x| x.nil? }
-        answer = nodes[0].map do |x|
-          NodeObject.new x
-        end
-        answer.delete_if { |x| !x.has_chef_server_roles? }
-      end
+    nodes = if search.nil?
+      ChefObject.query_chef.search "node"
     else
-      files = offline_search 'node-', (search.nil? ? '' : search[5..100])
-      answer = files.map! { |f| NodeObject.new(recover_json(f)) }
+      ChefObject.query_chef.search "node", "#{chef_escape(search)}"
+    end
+    if nodes[2] != 0 and !nodes[0].nil?
+      nodes[0].delete_if { |x| x.nil? }
+      answer = nodes[0].map do |x|
+        NodeObject.new x
+      end
+      answer.delete_if { |x| !x.has_chef_server_roles? }
     end
     return answer
   end
@@ -69,11 +62,7 @@ class NodeObject < ChefObject
   end
 
   def self.find_node_by_public_name(name)
-    nodes = if CHEF_ONLINE
-      self.find "crowbar_public_name:#{chef_escape(name)}"
-    else
-      nodes = self.find_all_nodes.keep_if { |n| n.public_name==name }
-    end
+    nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
     if nodes.length == 1
       return nodes[0]
     elsif nodes.length == 0
@@ -84,13 +73,8 @@ class NodeObject < ChefObject
   end
 
   def self.find_node_by_name(name)
-    val = if CHEF_ONLINE
-      name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-      ChefObject.crowbar_node(name)
-    else
-      name += ".#{OFFLINE_DOMAIN || ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-      self.recover_json(self.nfile('node',name))
-    end
+    name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
+    val = ChefObject.crowbar_node(name)
     return val.nil? ? nil : NodeObject.new(val)
   end
 
@@ -114,12 +98,7 @@ class NodeObject < ChefObject
 
   def self.create_new_role(new_name, machine)
     name = make_role_name new_name
-    if CHEF_ONLINE
-      role = RoleObject.new Chef::Role.new
-    else
-      self.create_object 'role', name, "NodeObject Create New Role"
-      role = RoleObject.find_role_by_name(name)
-    end
+    role = RoleObject.new Chef::Role.new
     role.name = name
     role.default_attributes["crowbar"] = {}
     role.default_attributes["crowbar"]["network"] = {} if role.default_attributes["crowbar"]["network"].nil?
@@ -155,7 +134,6 @@ class NodeObject < ChefObject
         @role = NodeObject.create_new_role(node.name, node)
       else
         Rails.logger.fatal("Node exists without role!! #{node.name}")
-        NodeObject.offline_remove('node', node.name) if !CHEF_ONLINE
       end
     end
     # deep clone of @role.default_attributes, used when saving node
@@ -251,7 +229,7 @@ class NodeObject < ChefObject
         set_display "alias", value
         @role.description = chef_description
         # move this to event driven model one day
-        system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
+        system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path)
       end
     end
     return value
@@ -331,7 +309,7 @@ class NodeObject < ChefObject
 
   def state
     return 'unknown' if (@node.nil? or @role.nil?)
-    if self.crowbar['state'] === 'ready' and CHEF_ONLINE and @node['ohai_time']
+    if self.crowbar['state'] === 'ready' and @node['ohai_time']
       since_last = Time.now.to_i-@node['ohai_time'].to_i
       return 'noupdate' if since_last > 1200 # or 20 mins
     end
@@ -576,13 +554,8 @@ class NodeObject < ChefObject
     _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
     Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
 
-    if CHEF_ONLINE
-      @role.save
-      @node.save
-    else
-      NodeObject.offline_cache(@node, NodeObject.nfile('node', @node.name))
-      NodeObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
-    end
+    @role.save
+    @node.save
 
     # update deep clone of @role.default_attributes
     @attrs_last_saved = deep_clone(@role.default_attributes)
@@ -982,15 +955,9 @@ class NodeObject < ChefObject
   end
 
   def set_state(state)
-    if CHEF_ONLINE
-      # use the real transition function for this
-      cb = CrowbarService.new Rails.logger
-      results = cb.transition "default", @node.name, state
-    else
-      puts "Node #{name} Chef State Changed to #{state}"
-      self.crowbar['state'] = state
-      save
-    end
+    # use the real transition function for this
+    cb = CrowbarService.new Rails.logger
+    results = cb.transition "default", @node.name, state
 
     if %w(reset reinstall update).include? state
       # wait with reboot for the finish of configuration update by local chef-client
@@ -1006,12 +973,7 @@ class NodeObject < ChefObject
         Rails.logger.warn("chef client seems to be still running after 5 minutes of wait; going on with the reboot")
       end
 
-      if CHEF_ONLINE
-        bmc_cmd("power cycle")
-      else
-        NodeObject.clear_cache @node
-        puts "Node #{name} to #{state} caused cache object to be deleted."
-      end
+      bmc_cmd("power cycle")
     end
     results
   end
@@ -1034,24 +996,20 @@ class NodeObject < ChefObject
 
   def reboot
     set_state("reboot")
-    return puts "Node #{name} IMPI Reboot call to #{bmc_address}" unless CHEF_ONLINE
     bmc_cmd("power cycle")
   end
 
   def shutdown
     set_state("shutdown")
-    return puts "Node #{name} IMPI Shutdown call to #{bmc_address}" unless CHEF_ONLINE
     bmc_cmd("power off")
   end
 
   def poweron
     set_state("poweron")
-    return puts "Node #{name} IMPI Power On call to #{bmc_address}" unless CHEF_ONLINE
     bmc_cmd("power on")
   end
 
   def identify
-    return puts "Node #{name} IMPI Identify call to #{bmc_address}" unless CHEF_ONLINE
     bmc_cmd("chassis identify")
   end
 

@@ -18,10 +18,8 @@
 #
 
 class ProposalObject < ChefObject
-
-  extend CrowbarOffline
   BC_PREFIX = 'bc-template-'
-  
+
   def self.find_data_bag_item(bag)
     begin
       bag = ProposalObject.new(Chef::DataBag.load bag)  #should use new syntax
@@ -34,17 +32,12 @@ class ProposalObject < ChefObject
   def self.find(search)
     props = [] 
     begin
-      if CHEF_ONLINE
-        arr = ChefObject.query_chef.search("crowbar", "id:#{chef_escape(search)}") 
-        if arr[2] != 0
-          props = arr[0].map do |x| 
-            ProposalObject.new x 
-          end
-          props.delete_if { |x| x.nil? or x.item.nil? }
+      arr = ChefObject.query_chef.search("crowbar", "id:#{chef_escape(search)}") 
+      if arr[2] != 0
+        props = arr[0].map do |x| 
+          ProposalObject.new x 
         end
-      else
-        files = self.offline_search('data_bag_item_crowbar-', search.chop)
-        props = files.map { |file| ProposalObject.new(self.recover_json(file)) }
+        props.delete_if { |x| x.nil? or x.item.nil? }
       end
     rescue StandardError => e
        Rails.logger.error("Could not recover Chef Crowbar data searching for '#{search}' due to '#{e.inspect}'")
@@ -69,11 +62,7 @@ class ProposalObject < ChefObject
   end
 
   def self.find_proposal_by_id(id)
-    val = if CHEF_ONLINE
-      ChefObject.crowbar_data(id)
-    else
-      self.recover_json(self.nfile('data_bag_item_crowbar-bc', id[/bc-(.*)/,1]))
-    end
+    val = ChefObject.crowbar_data(id)
     return val.nil? ? nil : ProposalObject.new(val)
   end
 
@@ -251,11 +240,7 @@ class ProposalObject < ChefObject
       @item["deployment"][barclamp]["crowbar-revision"] = @item["deployment"][barclamp]["crowbar-revision"] + 1
     end
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
-    if CHEF_ONLINE
-      @item.save
-    else
-      ProposalObject.offline_cache(@item, ProposalObject.nfile('data_bag_item_crowbar', @item.id))
-    end
+    @item.save
     Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
   end
 

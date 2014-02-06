@@ -49,7 +49,4 @@ config.action_controller.allow_forgery_protection = false
 CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
 CHEF_NODE_NAME ="crowbar"
 CHEF_SERVER_URL = "http://localhost:4000"
-CHEF_ONLINE = File.exist? CHEF_CLIENT_KEY
 CROWBAR_VERSION = "Test"
-OFFLINE_FILES_DIR = "db"
-#OFFLINE_DOMAIN = "dell.com" # used when the cache domain is not the same as the server domain

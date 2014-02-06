@@ -401,7 +401,6 @@ en:
       delete_hint: Delete File from Export Directory
       delete_succeeded: 'Deleted %{file} successfully'
       delete_failed: 'Failed to delete %{file}'
-      offline_mode: Feature not available in offline mode
       wait: Exporting... Please wait or check back later (screen will automatically update when complete)
     export:
       succeed: Chef Objects Exported
@@ -463,7 +462,6 @@ en:
   feature_na: Feature Not Available
   name: Name
   down: Down
-  offline: Chef Offline
   raw: Raw
   custom: Custom
   clear_msg: clear

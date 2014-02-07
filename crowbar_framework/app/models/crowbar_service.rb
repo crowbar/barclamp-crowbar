@@ -74,11 +74,11 @@ class CrowbarService < ServiceObject
         save_it = true
         pop_it = true
       end
+
+      node.save if save_it
     ensure
       release_lock f
     end
-
-    node.save if save_it
 
     if pop_it
       #

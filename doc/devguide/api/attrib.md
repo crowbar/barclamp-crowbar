@@ -33,4 +33,4 @@ Attribs.value can be customized by subclassing when they are created.  Subclassi
 
 After an attrib is set, you can use it to easily retrieve information from a node using the method missing pattern.  For example, the "asset_tag" attribute can be retrieved on a node using =node.attrib_asset_tag= to return the node's asset tag.
 
-Attibs may return simple strings or complex json hashes depending on how they have been defined.
+Attribs may return simple strings or complex json hashes depending on how they have been defined.

@@ -42,8 +42,35 @@ module FormHelper
 
   def booleans_for_select(selected)
     options_for_select(
-      [["true", "true"], ["false", "false"]],
+      [
+        ["true", "true"],
+        ["false", "false"]
+      ],
       selected.to_s
+    )
+  end
+
+  def raids_for_select(selected)
+    options_for_select(
+      [
+        [t(".raid_types.single"), "single"],
+        [t(".raid_types.raid1"), "raid1"],
+        [t(".raid_types.raid5"), "raid5"],
+        [t(".raid_types.raid6"), "raid6"],
+        [t(".raid_types.raid10"), "raid10"]
+      ],
+      selected.to_s
+    )
+  end
+
+  def drives_for_select(selected)
+    available = @node.physical_drives.map do |name, drive|
+      ["/dev/#{name} (#{number_to_human_size(drive["size"].to_i * 512)})", "/dev/#{name}"]
+    end.sort
+
+    options_for_select(
+      available,
+      selected
     )
   end
 

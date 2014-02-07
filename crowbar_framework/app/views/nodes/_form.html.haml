@@ -32,6 +32,40 @@
           = f.label :license_key, t('.license_key')
           = text_field_tag :license_key, @node.license_key, :class => "form-control"
 
+      - if crowbar_options[:show].include? :bios
+        .form-group
+          = f.label :bios, t('.bios')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :bios, options_for_select(crowbar_options[:bios], @node.bios_set), :class => "form-control"
+
+      - if crowbar_options[:show].include? :raid
+        .form-group
+          = f.label :raid, t('.raid')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :raid, options_for_select(crowbar_options[:raid], @node.raid_set), :class => "form-control"
+      - elsif suse_system?
+        .form-group
+          = f.label :raid_type, t('.raid_type')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :raid_type, raids_for_select(@node.raid_type), :class => "form-control", :disabled => @node.allocated, "data-disabler" => "single", "data-disabler-target" => "#raid_disks"
+
+        .form-group
+          = f.label :raid_disks, t('.raid_disks')
+          - if @node.admin?
+            %span.form-control
+              = t('na')
+          - else
+            = select_tag :raid_disks, drives_for_select(@node.raid_disks), :class => "form-control", :disabled => @node.allocated, :multiple => true, :size => 5
+
       .form-group
         = f.label :alias, t('.alias')
         = text_field_tag :alias, @node.alias(true), :class => "form-control"
@@ -75,24 +109,6 @@
 
           %span.help-block
             = t('.availability_zone_hint')
-
-      - if crowbar_options[:show].include? :bios
-        .form-group
-          = f.label :bios, t('.bios')
-          - if @node.admin?
-            %span.form-control
-              = t('na')
-          - else
-            = select_tag :bios, options_for_select(crowbar_options[:bios], @node.bios_set), :class => "form-control"
-
-      - if crowbar_options[:show].include? :raid
-        .form-group
-          = f.label :raid, t('.raid')
-          - if @node.admin?
-            %span.form-control
-              = t('na')
-          - else
-            = select_tag :raid, options_for_select(crowbar_options[:raid], @node.raid_set), :class => "form-control"
 
     .panel-footer.text-right
       .btn-group

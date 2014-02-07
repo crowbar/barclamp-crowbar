@@ -254,6 +254,8 @@ en:
         target_platform_not_set: Not set
         availability_zone: Availability Zone
         intended_role: Intended Role
+        raid_type: RAID Type
+        raid_disks: RAID Disks
       proposal:
         name: Proposal
         description: Description
@@ -388,6 +390,14 @@ en:
       network: Network
       no_role: Undecided
       intended_role_hint: Intended Role is the way you intend to use the node in your cloud infrastructure. The value is used to propose the inital node deployment for barclamps.
+      raid_disks: RAID disks
+      raid_type: Software RAID
+      raid_types:
+        single: Singledisk
+        raid1: RAID 1
+        raid5: RAID 5
+        raid6: RAID 6
+        raid10: RAID 10
   
   support:
     index:

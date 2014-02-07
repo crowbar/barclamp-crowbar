@@ -53,8 +53,58 @@ class CrowbarService < ServiceObject
         save_it = true
       end
 
+      if state == "readying" and not node.admin?
+        unless node.raid_type == "single"
+          node["filesystem"].each do |device, attributes|
+            if device =~ /\/dev\/(md\d+)$/
+              if ["/", "/boot"].include? attributes["mount"]
+                unique_name = node.unique_device_for(
+                  $1.to_s
+                )
+
+                next if unique_name.nil?
+
+                unless node.disk_owner(unique_name) == "OS"
+                  node.disk_release unique_name, node.disk_owner(unique_name)
+                  node.disk_claim unique_name, "OS"
+                  save_it = true
+                end
+              end
+            else
+              if attributes["fs_type"] == "linux_raid_member"
+                unique_name = node.unique_device_for(
+                  ::File.basename(device.to_s).to_s.gsub(/[0-9]+$/, "")
+                )
+
+                next if unique_name.nil?
+
+                unless node.disk_owner(unique_name) == "Raid"
+                  node.disk_release unique_name, node.disk_owner(unique_name)
+                  node.disk_claim unique_name, "Raid"
+                  save_it = true
+                end
+              end
+            end
+          end
+
+          boot_device = node["filesystem"].sort.map do |device, attributes|
+            if ["/", "/boot"].include? attributes["mount"]
+              node.unique_device_for(
+                ::File.basename(device.to_s)
+              )
+            end
+          end.compact.first
+
+          unless boot_device == node.crowbar_wall["boot_device"]
+            node.boot_device boot_device
+            save_it = true
+          end
+        end
+      end
+
       pop_it = false
-      if (state == "hardware-installing" or state == "hardware-updating" or state == "update") 
+
+      if %w(hardware-installing hardware-updating update).include? state
         @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")
         pop_it = true
       end

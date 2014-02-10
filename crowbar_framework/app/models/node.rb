@@ -216,10 +216,13 @@ class Node < ActiveRecord::Base
   end
 
   def discovery=(arg)
-    arg = JSON.parse(arg) unless arg.is_a? Hash
-    data = discovery.merge arg
-    write_attribute("discovery",JSON.generate(data))
-    data
+    Node.transaction do 
+      arg = JSON.parse(arg) unless arg.is_a? Hash
+      data = discovery.merge arg
+      write_attribute("discovery",JSON.generate(data))
+      save!
+      return data
+    end
   end
 
   def discovery_update(val)

@@ -53,14 +53,14 @@ jQuery(document).ready(function($) {
       if ($(this).val() == 'true') {
         $parent.attr('disabled', 'disabled');
 
-        $('#{0}_certfile'.format(prefix)).val(cert);
-        $('#{0}_keyfile'.format(prefix)).val(key);
-        $('#{0}_insecure'.format(prefix)).val('true');
+        $('#{0}_certfile'.format(prefix)).val(cert).trigger('change');
+        $('#{0}_keyfile'.format(prefix)).val(key).trigger('change');
+        $('#{0}_insecure option'.format(prefix)).removeAttr('selected').siblings('[value=true]').attr('selected', true).trigger('change');
       } else {
         $parent.removeAttr('disabled');
 
         if (afterInit) {
-          $('#{0}_insecure'.format(prefix)).val('false');
+          $('#{0}_insecure option'.format(prefix)).removeAttr('selected').siblings('[value=false]').attr('selected', true).trigger('change');
         }
       }
     }).trigger('change');

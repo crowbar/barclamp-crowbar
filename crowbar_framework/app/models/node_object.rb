@@ -184,6 +184,7 @@ class NodeObject < ChefObject
   end
 
   def availability_zone=(value)
+    @node["crowbar_wall"] ||= {}
     @node["crowbar_wall"]["openstack"] ||= {}
     @node["crowbar_wall"]["openstack"]["availability_zone"] = value
   end
@@ -193,6 +194,7 @@ class NodeObject < ChefObject
   end
 
   def intended_role=(value)
+    @node["crowbar_wall"] ||= {}
     @node["crowbar_wall"]["intended_role"] = value
   end
 

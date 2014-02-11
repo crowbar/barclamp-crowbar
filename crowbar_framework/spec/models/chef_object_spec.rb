@@ -3,10 +3,6 @@ require 'spec_helper'
 describe ChefObject do
   let(:chef_object) { ChefObject }
 
-  before do
-    OFFLINE_DOMAIN = "localdomain" unless defined?(OFFLINE_DOMAIN)
-  end
-
   after do
     if chef_object
       chef_object.class_eval { class_variable_set(:@@CrowbarDomain, nil) }
@@ -45,13 +41,6 @@ describe ChefObject do
 
       chef_object.cloud_domain
       chef_object.cloud_domain
-    end
-
-    it "uses offline domain if chef offline" do
-      ProposalObject.stubs(:find_proposal).raises(StandardError)
-      with_constant("CHEF_ONLINE", false) do
-        chef_object.cloud_domain.should == %x{dnsdomainname}.strip
-      end
     end
   end
 

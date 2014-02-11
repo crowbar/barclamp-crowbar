@@ -18,7 +18,6 @@
 #
 
 class ChefObject
-  extend CrowbarOffline
   @@CrowbarDomain = nil
   
   NOT_SET = 'not_set'
@@ -28,12 +27,12 @@ class ChefObject
       # NOTE: We are using a global here to avoid lookups.  We need to consider some better cache/expiration strategy
       if @@CrowbarDomain.nil?
         bag = ProposalObject.find_proposal('dns', 'default')
-        @@CrowbarDomain = bag[:attributes][:dns][:domain] || (CHEF_ONLINE ? %x{dnsdomainname}.strip : OFFLINE_DOMAIN)
+        @@CrowbarDomain = bag[:attributes][:dns][:domain] || %x{dnsdomainname}.strip
       end
       return @@CrowbarDomain
     rescue StandardError => e
       Rails.logger.warn("Could not lookup domain name from Crowbar DNS barclamp attributes/dns/domain key.  Error #{e.message}.")
-      @@CrowbarDomain = (CHEF_ONLINE ? nil : OFFLINE_DOMAIN) # reset to make sure we do not cache it
+      @@CrowbarDomain = nil # reset to make sure we do not cache it
       return %x{dnsdomainname}.strip
     end
   end

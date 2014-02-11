@@ -125,30 +125,26 @@ class SupportController < ApplicationController
   end
 
   def export_chef
-    if CHEF_ONLINE
-      begin
-        Rails.root.join("db").children.each do |file|
-          file.unlink if file.extname == ".json"
-        end
-
-        NodeObject.all.each { |n| n.export }
-        RoleObject.all.each { |r| r.export }
-        ProposalObject.all.each { |p| p.export }
-
-        filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
-
-        pid = fork do
-          system "tar", "-czf", Rails.root.join("tmp", filename), Rails.root.join("db", "*.json").to_s
-          File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
-        end
-
-        Process.detach(pid)
-        redirect_to utils_url(:waiting => true, :file => filename) and return
-      rescue StandardError => e
-        flash[:alert] = I18n.t("support.export.fail", :error => e.message)
+    begin
+      Rails.root.join("db").children.each do |file|
+        file.unlink if file.extname == ".json"
       end
-    else
-      flash[:alert] = t("support.index.offline_mode")
+
+      NodeObject.all.each { |n| n.export }
+      RoleObject.all.each { |r| r.export }
+      ProposalObject.all.each { |p| p.export }
+
+      filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
+
+      pid = fork do
+        system "tar", "-czf", Rails.root.join("tmp", filename), Rails.root.join("db", "*.json").to_s
+        File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
+      end
+
+      Process.detach(pid)
+      redirect_to utils_url(:waiting => true, :file => filename) and return
+    rescue StandardError => e
+      flash[:alert] = I18n.t("support.export.fail", :error => e.message)
     end
 
     redirect_to utils_url

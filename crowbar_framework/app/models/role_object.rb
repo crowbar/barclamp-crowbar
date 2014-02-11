@@ -18,8 +18,6 @@
 #
 
 class RoleObject < ChefObject
-  extend CrowbarOffline
-
   def self.all
     self.find_roles_by_search(nil)
   end
@@ -35,49 +33,35 @@ class RoleObject < ChefObject
   
   def self.find_roles_by_name(name)
     roles = []
-    if CHEF_ONLINE
-      #TODO this call could be moved to fild_roles_by_search
-      arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
-      if arr[2] != 0
-        roles = arr[0].map { |x| RoleObject.new x }
-        roles.delete_if { |x| x.nil? or x.role.nil? }
-      end
-    else
-      roles = find_roles_by_search name
+    #TODO this call could be moved to fild_roles_by_search
+    arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
+    if arr[2] != 0
+      roles = arr[0].map { |x| RoleObject.new x }
+      roles.delete_if { |x| x.nil? or x.role.nil? }
     end
     roles
   end
 
   def self.find_roles_by_search(search)
     roles = []
-    if CHEF_ONLINE
-      arr = if search.nil?
-        ChefObject.query_chef.search "role"
-      else
-        ChefObject.query_chef.search "role", search
-      end
-      if arr[2] != 0
-        roles = arr[0].map { |x| RoleObject.new x }
-        roles.delete_if { |x| x.nil? or x.role.nil? }
-      end
+    arr = if search.nil?
+      ChefObject.query_chef.search "role"
     else
-      files = offline_search 'role-', search
-      roles = files.map! { |f| RoleObject.new(recover_json(f)) }
+      ChefObject.query_chef.search "role", search
+    end
+    if arr[2] != 0
+      roles = arr[0].map { |x| RoleObject.new x }
+      roles.delete_if { |x| x.nil? or x.role.nil? }
     end
     roles
   end
 
   def self.find_role_by_name(name)
-    if CHEF_ONLINE
-      begin
-        return RoleObject.new Chef::Role.load(name)
-      rescue Net::HTTPServerException => e
-        return nil if e.response.code == "404"
-        raise e
-      end
-    else
-      answer = self.recover_json(self.nfile('role',name))
-      return answer.nil? ? nil : RoleObject.new(answer)
+    begin
+      return RoleObject.new Chef::Role.load(name)
+    rescue Net::HTTPServerException => e
+      return nil if e.response.code == "404"
+      raise e
     end
   end
 
@@ -216,20 +200,16 @@ class RoleObject < ChefObject
     Rails.logger.debug("Saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
     role_lock = acquire_lock "role:#{@role.name}"
     begin
-      if CHEF_ONLINE
-        old_role = RoleObject.find_role_by_name(@role.name)
-        if old_role
-          old_role.override_attributes[barclamp] ||= {}
-          old_rev = old_role.override_attributes[barclamp]["crowbar-revision"]
-          new_rev = @role.override_attributes[barclamp]["crowbar-revision"]
-          if old_rev && old_rev >= new_rev
-            Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{old_rev})")
-          end
+      old_role = RoleObject.find_role_by_name(@role.name)
+      if old_role
+        old_role.override_attributes[barclamp] ||= {}
+        old_rev = old_role.override_attributes[barclamp]["crowbar-revision"]
+        new_rev = @role.override_attributes[barclamp]["crowbar-revision"]
+        if old_rev && old_rev >= new_rev
+          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{old_rev})")
         end
-        @role.save
-      else
-        RoleObject.offline_cache(@role, RoleObject.nfile('role', @role.name))
       end
+      @role.save
     ensure
       release_lock role_lock
     end

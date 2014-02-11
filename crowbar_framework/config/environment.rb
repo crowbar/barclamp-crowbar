@@ -41,8 +41,6 @@ Rails::Initializer.run do |config|
   CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem" unless defined? CHEF_CLIENT_KEY
   CHEF_NODE_NAME ="crowbar" unless defined? CHEF_NODE_NAME
   CHEF_SERVER_URL = "http://localhost:4000" unless defined? CHEF_SERVER_URL
-  CHEF_ONLINE = true unless defined? CHEF_ONLINE
-  OFFLINE_FILES_DIR = "db" unless defined? OFFLINE_FILES_DIR
   CROWBAR_VERSION = "0.0.1" unless defined? CROWBAR_VERSION
 
   CONVERGED_ADMIN = true # flag indicating at we can assume all Crowbar services on a single server

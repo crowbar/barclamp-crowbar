@@ -153,14 +153,6 @@ class RoleObject < ChefObject
     @role = x
   end
 
-  def acquire_lock(name)
-    FileLock.acquire(name)
-  end
-
-  def release_lock(f)
-    FileLock.release(f)
-  end
-
   def save
     @role.override_attributes[barclamp] = {} if @role.override_attributes[barclamp].nil?
     if @role.override_attributes[barclamp]["crowbar-revision"].nil?
@@ -169,7 +161,7 @@ class RoleObject < ChefObject
       @role.override_attributes[barclamp]["crowbar-revision"] = @role.override_attributes[barclamp]["crowbar-revision"] + 1
     end
     Rails.logger.debug("Saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
-    role_lock = acquire_lock "role:#{@role.name}"
+    role_lock = FileLock.acquire "role:#{@role.name}"
     begin
       old_role = RoleObject.find_role_by_name(@role.name)
       if old_role
@@ -182,7 +174,7 @@ class RoleObject < ChefObject
       end
       @role.save
     ensure
-      release_lock role_lock
+      FileLock.release role_lock
     end
     Rails.logger.debug("Done saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
   end

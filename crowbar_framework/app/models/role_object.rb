@@ -153,43 +153,6 @@ class RoleObject < ChefObject
     @role = x
   end
 
-  # Copied from ServiceObject, but with @logger replaced by Rails.logger.
-  # For the record, there's also a very similar pair of locking functions
-  # in chef/cookbooks/utils/providers/line.rb
-  def acquire_lock(name)
-    Rails.logger.debug("Acquire #{name} lock enter as uid #{Process.uid}")
-    path = "tmp/#{name}.lock"
-    begin
-      f = File.new(path, File::RDWR|File::CREAT, 0644)
-    rescue
-      Rails.logger.error("Couldn't open #{path} for locking: #$!")
-      Rails.logger.error("cwd was #{Dir.getwd})")
-      raise "Couldn't open #{path} for locking: #$!"
-    end
-    Rails.logger.debug("Acquiring #{name} lock")
-    rc = false
-    count = 0
-    while rc == false do
-      count = count + 1
-      Rails.logger.debug("Attempt #{name} Lock: #{count}")
-      rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-      sleep 1 if rc == false
-    end
-    Rails.logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-    f
-  end
-
-  def release_lock(f)
-    Rails.logger.debug("Release lock enter: #{f.inspect}")
-    if f
-      f.flock(File::LOCK_UN)
-      f.close
-    else
-      Rails.logger.warn("release_lock called without valid file")
-    end
-    Rails.logger.debug("Release lock exit")
-  end
-
   def save
     @role.override_attributes[barclamp] = {} if @role.override_attributes[barclamp].nil?
     if @role.override_attributes[barclamp]["crowbar-revision"].nil?
@@ -198,7 +161,7 @@ class RoleObject < ChefObject
       @role.override_attributes[barclamp]["crowbar-revision"] = @role.override_attributes[barclamp]["crowbar-revision"] + 1
     end
     Rails.logger.debug("Saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
-    role_lock = acquire_lock "role:#{@role.name}"
+    role_lock = FileLock.acquire "role:#{@role.name}"
     begin
       old_role = RoleObject.find_role_by_name(@role.name)
       if old_role
@@ -211,7 +174,7 @@ class RoleObject < ChefObject
       end
       @role.save
     ensure
-      release_lock role_lock
+      FileLock.release role_lock
     end
     Rails.logger.debug("Done saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
   end

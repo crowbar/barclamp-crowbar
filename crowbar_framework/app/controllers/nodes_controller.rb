@@ -381,9 +381,9 @@ class NodesController < ApplicationController
       true
     rescue StandardError => e
       log_exception(e)
-      flash[:notice] = I18n.t("nodes.form.failed",
-                              :node => @node.name,
-                              :message => e.message)
+      flash[:alert] = I18n.t("nodes.form.failed",
+                             :node => @node.name,
+                             :message => e.message)
       false
     end
   end

@@ -85,7 +85,7 @@ class ServiceObject
   def self.barclamp_category(barclamp)
     value = barclamp_categories.map do |parent, members|
       next unless members.include? barclamp
-      barclamp_catalog["barclamps"][parent]["display"]
+      barclamp_catalog["barclamps"][parent]["display"] rescue nil
     end
 
     value.compact.first || "Unknown"

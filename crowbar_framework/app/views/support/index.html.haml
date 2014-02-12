@@ -6,7 +6,7 @@
       = t(".title")
 
       .btn-group.pull-right
-        - ServiceObject.barclamp_catalog["barclamps"].each do |bc, details|
+        - BarclampCatalog.barclamps.each do |bc, details|
           - if ("#{bc.camelize}Controller".constantize.new.methods.include?("export") rescue false)
             = link_to t("nav.#{bc}_export"), utils_export_path(:controller => bc), :class => "btn btn-default"
 

@@ -117,7 +117,7 @@ class ProposalObject < ChefObject
   end
 
   def category
-    @category ||= ServiceObject.barclamp_category(barclamp)
+    @category ||= BarclampCatalog.category(barclamp)
   end
 
   def item
@@ -141,16 +141,7 @@ class ProposalObject < ChefObject
   end
 
   def display_name
-    @display_name ||= begin
-      catalog = ServiceObject.barclamp_catalog
-      display = catalog['barclamps'][barclamp]['display']
-
-      if display.nil? or display.empty?
-        barclamp.titlecase
-      else
-        display
-      end
-    end
+    @display_name ||= BarclampCatalog.display_name(barclamp)
   end
 
   def allow_multiple_proposals?

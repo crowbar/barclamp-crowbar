@@ -21,6 +21,7 @@ require 'pp'
 require 'chef'
 require 'json'
 require 'hash_only_merge'
+require 'securerandom'
 
 class ServiceObject
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
@@ -107,9 +108,18 @@ class ServiceObject
     BarclampCatalog.chef_order(@bc_name)
   end
 
+  # Approach copied from libraries/secure_password.rb in the openssl cookbook
   def random_password(size = 12)
-    chars = (('a'..'z').to_a + ('0'..'9').to_a) - %w(i o 0 1 l 0)
-    (1..size).collect{|a| chars[rand(chars.size)] }.join
+    pw = String.new
+    while pw.length < size
+      # SecureRandom actually wraps around
+      # OpenSSL::Random.random_bytes (falling back to /dev/urandom),
+      # but it ensures a random seed first.
+      # Note that we only accept (a subset of) ASCII characters; otherwise, we
+      # get unicode characters that chef cannot store.
+      pw << SecureRandom.random_bytes(1).gsub(/[^a-zA-Z0-9\-_]/, '')
+    end
+    pw
   end
 
 #

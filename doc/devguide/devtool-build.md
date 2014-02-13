@@ -42,11 +42,18 @@ During the build process the Dev Tool has to perform certain tasks which require
     # let's install some OS packages
     sudo apt-get update
     sudo apt-get install git rpm ruby rubygems1.8 curl build-essential debootstrap \
-    mkisofs binutils markdown erlang debhelper python-pip \
-    build-essential libopenssl-ruby1.8 libssl-dev zlib1g-dev
+    mkisofs binutils markdown erlang debhelper python-pip build-essential libopenssl-ruby1.8 \
+    libssl-dev zlib1g-dev cabextract libxml2-dev ruby-libxml
 
     # let's install some needed gems next
     sudo gem install json net-http-digest_auth kwalify bundler rake rcov rspec --no-ri --no-rdoc
+
+    # let's install needed pip package
+    sudo pip install pip2pi
+
+    # Download archives required by dell barclamps
+    wget -nc -O ~/SAS2IRCU_P16.zip http://www.lsi.com/downloads/Public/Host%20Bus%20Adapters/Host%20Bus%20Adapters%20Common%20Files/SAS_SATA_6G_P16/SAS2IRCU_P16.zip
+    wget -nc -O ~/8.07.07_MegaCLI.zip http://www.lsi.com/downloads/Public/MegaRAID%20Common%20Files/8.07.07_MegaCLI.zip
 
 #### Put the needed base ISOs in place
 As a starting point for the build process we will need the ISOs [mentioned above](#pre-requisites) placed where the Dev Toll can find them. The Dev Tool will then use them during the build process described below.
@@ -138,8 +145,12 @@ Now we can actually kick off the build.
     ./dev switch hadoop-2.3/hadoop-os-build
     ./dev build --os centos-6.4 --update-cache
 
-    # FOR OPENSTACK
+    # FOR MESA OPENSTACK
     ./dev switch mesa-1.6/openstack-os-build
+    ./dev build --os ubuntu-12.04 --update-cache
+
+    # FOR ROXY OPENSTACK
+    ./dev switch roxy/openstack-os-build
     ./dev build --os ubuntu-12.04 --update-cache
 
 

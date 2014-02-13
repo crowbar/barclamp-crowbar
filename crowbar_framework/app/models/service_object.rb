@@ -508,7 +508,7 @@ class ServiceObject
         bc = item["barclamp"]
         inst = item["inst"]
         service = eval("#{bc.camelize}Service.new @logger")
-        answer = service.proposal_commit(inst, true)
+        answer = service.proposal_commit(inst, true, false)
         @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
         loop_again = true if answer[0] != 202
         $htdigest_reload = true
@@ -666,7 +666,7 @@ class ServiceObject
     prop.raw_data
   end
 
-  def proposal_create(params)
+  def proposal_create(params, validate_after_save = true)
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
@@ -691,14 +691,14 @@ class ServiceObject
     end
 
     clean_proposal(proposal)
-    _proposal_update proposal
+    _proposal_update(proposal, validate_after_save)
   end
 
-  def proposal_edit(params)
+  def proposal_edit(params, validate_after_save = true)
     params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
-    _proposal_update proposal
+    _proposal_update(proposal, validate_after_save)
   end
 
   def proposal_delete(inst)
@@ -713,7 +713,6 @@ class ServiceObject
 
   def save_proposal!(prop, options = {})
     options.reverse_merge!(:validate_after_save => true)
-
     clean_proposal(prop.raw_data)
     validate_proposal(prop.raw_data)
     validate_proposal_elements(prop.elements)
@@ -721,7 +720,7 @@ class ServiceObject
     validate_proposal_after_save(prop.raw_data) if options[:validate_after_save]
   end
 
-  def proposal_commit(inst, in_queue = false)
+  def proposal_commit(inst, in_queue = false, validate_after_save = true)
     prop = ProposalObject.find_proposal(@bc_name, inst)
 
     if prop.nil?
@@ -732,8 +731,7 @@ class ServiceObject
       begin
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
-        # Will be validated in controller action
-        save_proposal!(prop, :validate_after_save => false)
+        save_proposal!(prop, :validate_after_save => validate_after_save)
         active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
         [400, "Failed to validate proposal: #{e.message}"]
@@ -853,7 +851,7 @@ class ServiceObject
     end
   end
 
-  def _proposal_update(proposal)
+  def _proposal_update(proposal, validate_after_save = true)
     data_bag_item = Chef::DataBagItem.new
 
     begin
@@ -861,7 +859,7 @@ class ServiceObject
       data_bag_item.data_bag "crowbar"
 
       prop = ProposalObject.new data_bag_item
-      save_proposal!(prop)
+      save_proposal!(prop, :validate_after_save => validate_after_save)
 
       Rails.logger.info "saved proposal"
       [200, {}]

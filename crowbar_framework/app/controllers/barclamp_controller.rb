@@ -353,6 +353,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_update,[:id],[:post])
   def proposal_update
     if params[:submit].nil?  # This is RESTFul path
+      # This gets validated _proposal_update
       ret = @service_object.proposal_edit params
       return render :text => ret[1], :status => ret[0] if ret[0] != 200
       return render :json => ret[1]
@@ -450,9 +451,7 @@ class BarclampController < ApplicationController
   #
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
-    @proposal = ProposalObject.find_proposal(@bc_name, params[:id])
     ret = @service_object.proposal_commit params[:id]
-    @service_object.validate_proposal_after_save(@proposal)
     return render :text => ret[1], :status => ret[0] if ret[0] >= 210
     render :json => ret[1], :status => ret[0]
   end

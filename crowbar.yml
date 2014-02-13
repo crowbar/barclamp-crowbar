@@ -230,9 +230,9 @@ gems:
   pkgs:
     # bluepill stuff
     - state_machine-0.9.4
-    - bluepill-0.0.51
+    - bluepill-0.0.47
 
-    # crowbar/rails stuff
+    # crowbar stuff
     - rails-2.3.17
     - rake-0.8.7
     - app_config-1.0.2
@@ -254,18 +254,17 @@ gems:
     - syslogger-1.3.0
     - tilt-1.3.3
 
-    # misc stuff
-    - bundler-1.0.21
+    # server stuff
     - eventmachine-1.0.3
     - net-http-digest_auth-1.1.1
     - rainbows-4.3.1
+
+    # install stuff
+    - bundler-1.0.21
     - net-ssh-multi-1.1
     - libxml-ruby-1.1.3
-
-    # unused stuff
-    - xml-simple
-    - builder
-    - sendfile
+    - xml-simple-1.1.3
+    - builder-3.2.2
 
 pips:
   - uwsgi

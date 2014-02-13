@@ -39,6 +39,11 @@ rescue MissingSourceFile
 #{"*" * 80}
 MSG
           end
+
+          # Just a dummy to get relevant informations
+          def task(name)
+            yield
+          end
         end
       end
     end

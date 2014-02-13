@@ -711,12 +711,14 @@ class ServiceObject
     end
   end
 
-  def save_proposal!(prop)
+  def save_proposal!(prop, options = {})
+    options.reverse_merge!(:validate_after_save => true)
+
     clean_proposal(prop.raw_data)
     validate_proposal(prop.raw_data)
     validate_proposal_elements(prop.elements)
     prop.save
-    validate_proposal_after_save(prop.raw_data)
+    validate_proposal_after_save(prop.raw_data) if options[:validate_after_save]
   end
 
   def proposal_commit(inst, in_queue = false)
@@ -730,9 +732,7 @@ class ServiceObject
       begin
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
-        prop.save
-        clean_proposal(prop.raw_data)
-        validate_proposal prop.raw_data
+        save_proposal!(prop, :validate_after_save => false)
         active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
         [400, "Failed to validate proposal: #{e.message}"]
@@ -858,9 +858,9 @@ class ServiceObject
     begin
       data_bag_item.raw_data = proposal
       data_bag_item.data_bag "crowbar"
-      validate_proposal proposal
+
       prop = ProposalObject.new data_bag_item
-      prop.save
+      save_proposal!(prop, :validate_after_save => false)
 
       Rails.logger.info "saved proposal"
       [200, {}]

@@ -120,6 +120,11 @@ class Jig < ActiveRecord::Base
     # Add this noderole's attrib data.
     Rails.logger.info("Jig: Merging attribute data from #{nr.name} for jig run.")
     res.deep_merge!(nr.attrib_data)
+    # Add information about the resource reservations this node has in place
+    unless nr.node.discovery["reservations"]
+      res["crowbar_wall"] ||= Hash.new
+      res["crowbar_wall"]["reservations"] = nr.node.discovery["reservations"]
+    end
     # And we are done.
     res
   end
@@ -136,6 +141,15 @@ class Jig < ActiveRecord::Base
   def finish_run(nr)
     nr.run_count += 1 if nr.active?
     nr.save!
+    # Handle updating our global idea about reservations if our wall has any.
+    if (nr.wall["crowbar_wall"]["reservations"] rescue nil)
+      res = Hash.new
+      nr.node.node_roles.each do |this_nr|
+        next unless (this_nr.wall["crowbar_wall"]["reservations"] rescue nil)
+        res.deep_merge!(this_nr.wall["crowbar_wall"]["reservations"])
+      end
+      nr.node.discovery=({"reservations" => res})
+    end
     return nr
   end
 

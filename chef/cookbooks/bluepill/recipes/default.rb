@@ -22,13 +22,10 @@ gem_package "i18n" do
 end
 
 gem_package "activesupport" do
-  version "3.2.13"
   action :install
 end
 
-
 gem_package "bluepill" do
-  version node["bluepill"]["version"] if node["bluepill"]["version"]
   action :install
 end
 

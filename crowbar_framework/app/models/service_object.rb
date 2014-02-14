@@ -666,7 +666,7 @@ class ServiceObject
     prop.raw_data
   end
 
-  def proposal_create(params, validate_after_save = true)
+  def proposal_create(params)
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
@@ -691,7 +691,11 @@ class ServiceObject
     end
 
     clean_proposal(proposal)
-    _proposal_update(proposal, validate_after_save)
+
+    # When we create a proposal, it might be "invalid", as some roles might be missing
+    # This is OK, as the next step for the user is to add nodes to the roles
+    # But we need to skip the after_save validations in the _proposal_update
+    _proposal_update(proposal, false)
   end
 
   def proposal_edit(params, validate_after_save = true)

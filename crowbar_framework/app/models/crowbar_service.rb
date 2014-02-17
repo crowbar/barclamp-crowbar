@@ -149,7 +149,7 @@ class CrowbarService < ServiceObject
     end
 
     @logger.debug("Crowbar transition leaving: #{name} to #{state}")
-    [200, NodeObject.find_node_by_name(name).to_hash ]
+    [200, { :name => name } ]
   end
 
   def create_proposal

@@ -72,9 +72,13 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    ret = @service_object.transition(id, name, state)
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
+    status, response = @service_object.transition(id, name, state)
+
+    if status != 200 || !response[:name]
+      render :text => response, :status => status
+    else
+      render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+    end
   end
   
   #

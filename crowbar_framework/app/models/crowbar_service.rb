@@ -197,7 +197,7 @@ class CrowbarService < ServiceObject
           else
             unless answer[1].include?(id)
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
-              answer = service.proposal_create JSON.parse(data)
+              answer = service.proposal_create(JSON.parse(data))
               if answer[0] != 200
                 answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
                             "(The error message was: #{answer[1].strip})"
@@ -214,7 +214,7 @@ class CrowbarService < ServiceObject
             else
               unless answer[1].include?(id)
                 @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
-                answer = service.proposal_commit id
+                answer = service.proposal_commit(id, false, false)
                 if answer[0] != 200
                   answer[1] = "Failed to commit proposal '#{id}' for '#{k}' " +
                               "(The error message was: #{answer[1].strip})"

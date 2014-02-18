@@ -74,10 +74,16 @@ class BarclampController < ApplicationController
 
     status, response = @service_object.transition(id, name, state)
 
-    if status != 200 || !response[:name]
+    if status != 200
       render :text => response, :status => status
     else
-      render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+      # Be backward compatible with barclamps returning a node hash, passing
+      # them intact.
+      if response[:name]
+        render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+      else
+        render :json => response
+      end
     end
   end
   

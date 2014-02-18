@@ -69,6 +69,22 @@ describe CrowbarController do
       response.should be_server_error
       response.body.should == "error"
     end
+
+    it "returns node as a hash on success when passed a name" do
+      CrowbarService.any_instance.stubs(:transition).returns([200, { :name => "testing" } ])
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "discovering", :name => "testing"
+      response.should be_success
+      json = JSON.parse(response.body)
+      json["name"].should == "testing.crowbar.com"
+    end
+
+    it "returns node as a hash on success when passed a node (backward compatibility)" do
+      CrowbarService.any_instance.stubs(:transition).returns([200, NodeObject.find_node_by_name("testing").to_hash ])
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "discovering", :name => "testing"
+      response.should be_success
+      json = JSON.parse(response.body)
+      json["name"].should == "testing.crowbar.com"
+    end
   end
 
   describe "GET show" do

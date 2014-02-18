@@ -18,6 +18,8 @@
 #
 
 class ProposalObject < ChefObject
+  self.chef_type = "data_bag_item"
+
   BC_PREFIX = 'bc-template-'
 
   def self.find_data_bag_item(bag)
@@ -242,7 +244,7 @@ class ProposalObject < ChefObject
   end
   
   def export
-    ProposalObject.dump @item, 'data_bag_item_crowbar-bc', @item.name[/bc-(.*)/,1]
+    super("crowbar-bc-#{barclamp}-#{name}")
   end
   
   private

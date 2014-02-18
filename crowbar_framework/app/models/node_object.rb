@@ -21,6 +21,8 @@ require 'chef/mixin/deep_merge'
 require 'timeout'
 
 class NodeObject < ChefObject
+  self.chef_type = "node"
+
   def self.find(search)
     answer = []
     nodes = if search.nil?
@@ -1028,10 +1030,6 @@ class NodeObject < ChefObject
     return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
     return false if @node["crowbar_wall"]["status"]["ipmi"]["address_set"].nil?
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
-  end
-
-  def export
-    NodeObject.dump @node, 'node', name
   end
 
   private

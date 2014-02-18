@@ -209,6 +209,22 @@ describe CrowbarController do
     end
   end
 
+  describe "PUT proposal_create" do
+    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+
+    # We don't validate_proposal_after_save as freshly created proposals can be
+    # missing nodes. However, this is ok, as users will assign roles to them
+    # later.
+    before(:each) do
+      CrowbarService.any_instance.expects(:validate_proposal).at_least_once
+      CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
+    end
+
+    it "validates a proposal" do
+      put :proposal_create, :name => "nonexistent"
+    end
+  end
+
   describe "proposal updates" do
     let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
 
@@ -221,12 +237,6 @@ describe CrowbarController do
     describe "POST proposal_commit" do
       it "validates a proposal" do
         post :proposal_commit, :id => "default"
-      end
-    end
-
-    describe "PUT proposal_create" do
-      it "validates a proposal" do
-        put :proposal_create, :name => "nonexistent"
       end
     end
 

@@ -179,6 +179,9 @@ en:
     snapshot:
       anneal:
         annealling: "Annealing (initiated by user)"
+    node_roles:
+      show:
+        saved: "Node role saved successfully"
   attribs:
     index:
       title: "Attributes from discovered properties"

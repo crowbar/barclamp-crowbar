@@ -442,6 +442,7 @@ gems:
     - highline
     - i18n
     - jquery-rails
+    - jquery-validation-rails
     - json-(~>1.7.0)
     - kwalify
     - launchy

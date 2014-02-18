@@ -11,3 +11,6 @@
 //= require drag_drop_helpers
 //= require jquery.dataTables
 //= require active_scaffold
+
+//= require jquery.validate
+//= require jquery.validate.additional-methods

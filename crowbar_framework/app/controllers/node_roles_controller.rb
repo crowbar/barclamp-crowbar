@@ -14,7 +14,7 @@
 # 
 
 class NodeRolesController < ApplicationController
-
+  respond_to :html, :json
   def index
     @list = (if params.key? :node_id
               Node.find_key(params[:node_id]).node_roles.current
@@ -69,23 +69,26 @@ class NodeRolesController < ApplicationController
     end
     
   end
-
-  def update
+  
+ # update NodeRole
+ #
+ # @return [Object] response
+ def update
     @node_role = NodeRole.find_key params[:id]
     # we can build the data from the input
+    _tmp_hsh = Hash.new
     if params.key? :dataprefix
-      params[:data] ||= {}
       params.each do |k,v|
-        if k.start_with? params[:dataprefix]
-          key = k.sub(params[:dataprefix],"")
-          params[:data][key] = v
+         if k.start_with? params[:dataprefix]
+           _key = k.sub(params[:dataprefix],"")
+           _attrib = @node_role.attribs.where(:name => _key).first
+           if _attrib
+             _val = _attrib.template(v)
+             _tmp_hsh.deep_merge!(_val)
+           end
         end
       end
-    end
-    # if you've been passed data then save it
-    unless params[:data].nil?
-      @node_role.data = params[:data]
-      @node_role.save!
+      @node_role.data_update(_tmp_hsh)
       flash[:notice] = I18n.t 'saved', :scope=>'layouts.node_roles.show'
     end
     respond_to do |format|
@@ -93,6 +96,7 @@ class NodeRolesController < ApplicationController
       format.json { render api_show :node_role, NodeRole, nil, nil, @node_role }
     end
   end
+
 
   def destroy
     unless Rails.env.development?

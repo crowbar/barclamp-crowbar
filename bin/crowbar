@@ -559,6 +559,12 @@ class Network < CrowbarProxy
   def self.path
     "network/api/v2/networks"
   end
+  def do_allocations_Role(*rest)
+    obj,res = REST.get("#{self.class.path}/#{id}/role_allocations?role=#{rest.first.id}")
+    raise("#{name} could not be recalled") if res >= 300
+    @blob = obj
+    self
+  end
 end
 
 opt_parse

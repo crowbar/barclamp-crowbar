@@ -96,7 +96,7 @@ class SupportController < ApplicationController
       base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
       filename = "#{base}.tbz"
 
-      pid = fork do
+      pid = Process.fork do
         begin
           tmp = Rails.root.join("tmp", base).to_s
 
@@ -136,7 +136,7 @@ class SupportController < ApplicationController
 
       filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
 
-      pid = fork do
+      pid = Process.fork do
         system "tar", "-czf", Rails.root.join("tmp", filename), Rails.root.join("db", "*.json").to_s
         File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
       end

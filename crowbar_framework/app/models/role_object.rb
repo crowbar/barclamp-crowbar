@@ -18,10 +18,12 @@
 #
 
 class RoleObject < ChefObject
+  self.chef_type = "role"
+
   def self.all
     self.find_roles_by_search(nil)
   end
-  
+
   def self.active(barclamp = nil, inst = nil)
     full = if barclamp.nil?
       RoleObject.find_roles_by_name "*-config-*"
@@ -182,9 +184,5 @@ class RoleObject < ChefObject
 
   def run_list
     @role.run_list
-  end
-  
-  def export
-    RoleObject.dump @role, 'role', name 
   end
 end

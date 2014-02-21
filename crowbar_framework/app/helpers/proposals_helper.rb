@@ -26,7 +26,6 @@ module ProposalsHelper
     html = {
       :method => :put,
       :role => "form",
-      :id => "create_proposal_form",
       :class => "form-inline",
       :autocomplete => "off",
       "data-type" => "html",
@@ -59,7 +58,7 @@ module ProposalsHelper
       :input,
       :type => "submit",
       :name => "submit",
-      :class => "btn btn-default",
+      :class => "btn btn-default deactivate",
       :value => t(".destroy_active"),
       "data-confirm" => t(".destroy_changes")
     )
@@ -70,7 +69,7 @@ module ProposalsHelper
       :input,
       :type => "submit",
       :name => "submit",
-      :class => "btn btn-default",
+      :class => "btn btn-default delete",
       :value => t(".delete_proposal"),
       "data-confirm" => t(".delete_changes")
     ) unless proposal["deployment"][proposal.barclamp]["crowbar-queued"]
@@ -83,7 +82,7 @@ module ProposalsHelper
       :name => "submit",
       :source => "dequeue1",
       :match => "dequeue2",
-      :class => "btn btn-default",
+      :class => "btn btn-default dequeue",
       :value => t(".dequeue_proposal"),
       "data-remote" => true
     ) if proposal["deployment"][proposal.barclamp]["crowbar-queued"]
@@ -96,7 +95,7 @@ module ProposalsHelper
       :name => "submit",
       :source => "commit1",
       :match => "commit2",
-      :class => "btn btn-default",
+      :class => "btn btn-default apply",
       :value => t(".commit_proposal"),
       "data-confirm" => t(".apply_changes"),
       "data-remote" => true
@@ -110,7 +109,7 @@ module ProposalsHelper
       :name => "submit",
       :source => "save1",
       :match => "save2",
-      :class => "btn btn-default",
+      :class => "btn btn-default save",
       :value => t(".save_proposal"),
       "data-remote" => true
     )
@@ -122,7 +121,7 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
-    link_to t('raw'), proposal_barclamp_path(parameters)
+    link_to t('raw'), proposal_barclamp_path(parameters), :class => "rawview"
   end
 
   def proposal_custom_button(proposal, options = {})
@@ -131,7 +130,7 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
-    link_to t('custom'), proposal_barclamp_path(parameters)
+    link_to t('custom'), proposal_barclamp_path(parameters), :class => "customview"
   end
 
   def attributes_for(proposal, &block)
@@ -154,7 +153,8 @@ module ProposalsHelper
     unless proposal.nil?
       link_to(
         t("proposal.actions.link", :name => proposal.display_name),
-        url_for_proposal(barclamp)
+        url_for_proposal(barclamp),
+        :class => "proposal #{barclamp}"
       )
     else
       t("proposal.actions.link", :name => display_name_for(barclamp))

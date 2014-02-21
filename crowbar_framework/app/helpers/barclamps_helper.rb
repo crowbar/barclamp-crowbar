@@ -57,15 +57,15 @@ module BarclampsHelper
   end
 
   def show_barclamp_button(barclamp, inst, options = {})
-    link_to t(".show"), "/crowbar/#{barclamp}/1.0/#{inst}", { :class => "btn btn-default" }.merge(options)
+    link_to t(".show"), "/crowbar/#{barclamp}/1.0/#{inst}", { :class => "btn btn-default show" }.merge(options)
   end
 
   def edit_barclamp_button(barclamp, inst, options = {})
-    link_to t(".edit"), "/crowbar/#{barclamp}/1.0/proposals/#{inst}", { :class => "btn btn-default" }.merge(options)
+    link_to t(".edit"), "/crowbar/#{barclamp}/1.0/proposals/#{inst}", { :class => "btn btn-default edit" }.merge(options)
   end
 
   def cancel_barclamp_button(barclamp)
-    link_to t("cancel"), barclamp_modules_path(:id => barclamp), :class => "btn btn-default"
+    link_to t("cancel"), barclamp_modules_path(:id => barclamp), :class => "btn btn-default cancel"
   end
 
   def render_barclamp_show_attributes(barclamp, raw)

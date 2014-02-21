@@ -1,6 +1,6 @@
 %tbody
   - @modules.each do |barclamp_name, barclamp|
-    %tr.barclamp
+    %tr.barclamp{ :id => barclamp_name.parameterize }
       - if not barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
         %td.col-xs-1.status
           - if barclamp[:proposals].length > 0
@@ -12,7 +12,7 @@
           = display_name_for(barclamp_name)
         %td.col-xs-8
           = barclamp[:description]
-        %td.col-xs-1
+        %td.col-xs-1.actions
           - if barclamp[:proposals].length == 0
             - create_proposal_form_for(barclamp_name) do
               = hidden_field_tag :barclamp, barclamp_name
@@ -32,7 +32,7 @@
           = display_name_for(barclamp_name)
         %td.col-xs-8
           = barclamp[:description]
-        %td.col-xs-1
+        %td.col-xs-1.actions
           = link_to t("proposal.actions.edit"), "#toggle", :class => (params[:id] == barclamp_name or barclamp[:expand]) ? "btn btn-default btn-block expanded" : "btn btn-default btn-block", "data-toggle-action" => barclamp_name
 
     - if barclamp[:allow_multiple_proposals] and not barclamp[:proposals].length == 0
@@ -51,7 +51,7 @@
                       = t(".failed", :message => proposal[:message])
                     - else
                       = proposal[:description].capitalize
-                  %td.col-xs-1
+                  %td.col-xs-1.actions
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
               - create_proposal_form_for(barclamp_name) do
                 %tr
@@ -61,6 +61,6 @@
                     = text_field_tag :name, t("proposal.items.default"), :class => "form-control input-sm"
                   %td.col-xs-8
                     = text_field_tag :description, t(".created_on", :date => l(Time.now)), :class => "form-control input-sm"
-                  %td.col-xs-1
+                  %td.col-xs-1.actions
                     = hidden_field_tag :barclamp, barclamp_name
                     %input.btn.btn-default.btn-block{ :type => "submit", :value => t("proposal.actions.create") }

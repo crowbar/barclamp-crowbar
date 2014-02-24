@@ -17,4 +17,3 @@
 #
 
 SimpleNavigation.registered_renderers[:bootstrap] = Utils::BootstrapNavigation
-

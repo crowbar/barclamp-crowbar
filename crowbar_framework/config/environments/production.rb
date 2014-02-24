@@ -32,7 +32,7 @@ Crowbar::Application.configure do
   config.assets.compile = false
   config.assets.digest = true
   config.assets.version = "1.0"
-  config.assets.precompile += %w(application.js branding.js ie.js)
+  config.assets.precompile += %w(application.js application.css ie.js ie.css)
 
   config.action_dispatch.show_exceptions = false
   config.action_controller.perform_caching = true

@@ -83,7 +83,7 @@ class ProposalObject < ChefObject
 
   def pretty_attributes
     @pretty_attributes ||= begin
-      Utils::ExtendedHash.new(
+      Hashie::Mash.new(
         raw_attributes.dup
       )
     end
@@ -105,7 +105,7 @@ class ProposalObject < ChefObject
 
   def pretty_deployment
     @pretty_deployment ||= begin
-      Utils::ExtendedHash.new(
+      Hashie::Mash.new(
         raw_data["deployment"][barclamp].dup
       )
     end

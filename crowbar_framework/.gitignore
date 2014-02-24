@@ -1,6 +1,4 @@
-*~
-
-.DS_Store
-.beam
 .rvmrc
 .bundle
+
+Gemfile.lock

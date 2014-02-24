@@ -16,9 +16,14 @@
 # limitations under the License.
 #
 
-Chef::Config.tap do |config|
-  config.node_name ENV["CHEF_NODE_NAME"]
-  config.client_key ENV["CHEF_CLIENT_KEY"]
-  config.chef_server_url ENV["CHEF_SERVER_URL"]
-end
+begin
+  require "chef"
 
+  Chef::Config.tap do |config|
+    config.node_name ENV["CHEF_NODE_NAME"]
+    config.client_key ENV["CHEF_CLIENT_KEY"]
+    config.chef_server_url ENV["CHEF_SERVER_URL"]
+  end
+rescue LoadError => e
+  Rails.logger.warn "Failed to load chef"
+end

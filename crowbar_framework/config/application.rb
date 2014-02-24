@@ -40,4 +40,3 @@ module Crowbar
     ]
   end
 end
-

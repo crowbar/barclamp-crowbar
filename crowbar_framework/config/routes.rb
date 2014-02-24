@@ -132,4 +132,3 @@ Crowbar::Application.routes.draw do
   end
   get "crowbar/:barclamp", controller: "barclamp", action: "versions" 
 end
-

@@ -17,4 +17,3 @@
 #
 
 Crowbar::Application.config.secret_key_base = "f73341be7eecafadfbe7c96b5f20ae948ebe4895965e1d5d19f27cb9d98e93b3018bee1e872137505a26b877af23b3241c71e392063d4af3706e44499ee5cd15"
-

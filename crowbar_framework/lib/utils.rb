@@ -16,7 +16,4 @@
 # limitations under the License.
 #
 
-require "utils/extended_hash"
 require "utils/bootstrap_navigation"
-require "utils/sprockets_environment"
-

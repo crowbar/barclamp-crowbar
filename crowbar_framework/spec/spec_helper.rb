@@ -28,4 +28,3 @@ RSpec.configure do |config|
     stub_request(:any, /localhost:4000/).to_rack(OfflineChef)
   end
 end
-

@@ -34,7 +34,7 @@ class SupportController < ApplicationController
   end
 
   def index
-    @export = Utils::ExtendedHash.new({
+    @export = Hashie::Mash.new({
       :waiting => params[:waiting] == "true" || params[:format] == "json",
       :counter => 0,
       :current => params["file"].to_s.gsub("-DOT-", "."),

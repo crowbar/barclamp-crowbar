@@ -21,7 +21,6 @@ require File.expand_path("../boot", __FILE__)
 Rails::Initializer.run do |config|
   unless AppConfig[:use_bundler]
     config.gem "app_config", :version => "1.0.2"
-    config.gem "chef", :version => "10.24.4"
     config.gem "haml", :version => "3.1.6"
     config.gem "hike", :version => "1.2.1"
     config.gem "i18n", :version => "0.4.2"

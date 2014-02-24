@@ -1,6 +1,6 @@
 %tbody
   - @modules.each do |barclamp_name, barclamp|
-    %tr.barclamp
+    %tr.barclamp{ :id => barclamp_name.parameterize }
       %td.col-xs-1.status
         - if barclamp[:proposals].length > 0
           - barclamp[:proposals].sort.each do |proposal_name, proposal|
@@ -31,7 +31,7 @@
                       = t(".failed", :message => proposal[:message])
                     - else
                       = proposal[:description].capitalize
-                  %td.col-xs-1
+                  %td.col-xs-1.actions
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
 
             - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
@@ -43,6 +43,6 @@
                     = text_field_tag :name, t("proposal.items.default"), :class => "form-control input-sm"
                   %td.col-xs-8
                     = text_field_tag :description, t(".created_on", :date => l(Time.now)), :class => "form-control input-sm"
-                  %td.col-xs-1
+                  %td.col-xs-1.actions
                     = hidden_field_tag :barclamp, barclamp_name
                     %input.btn.btn-default.btn-block{ :type => "submit", :value => t("proposal.actions.create") }

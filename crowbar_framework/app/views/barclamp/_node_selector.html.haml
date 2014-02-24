@@ -46,7 +46,7 @@
                 = t(".unassign_label")
             = chef_server_role_link element
 
-          %ul{ "data-droppable" => "true", "data-id" => element }
+          %ul{ :id => element, "data-droppable" => "true", "data-id" => element }
 
 %script#nodelist-item{ :type => "text/x-handlebars-template" }
   %li{ "data-draggable" => "false", "data-id" => "{{id}}", "data-alias" => "{{alias}}", "data-admin" => "{{admin}}", "data-role" => "{{role}}"  }

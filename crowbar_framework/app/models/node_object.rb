@@ -1095,11 +1095,7 @@ class NodeObject < ChefObject
   end
 
   def disk_claim!(device, owner)
-    if disk_claim(device, owner)
-      save
-    else
-      false
-    end
+    disk_claim(device, owner) and save
   end
 
   def disk_release(device, owner)
@@ -1121,11 +1117,7 @@ class NodeObject < ChefObject
   end
 
   def disk_release!(device, owner)
-    if disk_release(device, owner)
-      save
-    else
-      false
-    end
+    disk_release(device, owner) and save
   end
 
   def boot_device(device)
@@ -1141,11 +1133,7 @@ class NodeObject < ChefObject
   end
 
   def boot_device!(device)
-    if boot_device(device)
-      save
-    else
-      false
-    end
+    boot_device(device) and save
   end
 
   def unique_device_for(device)

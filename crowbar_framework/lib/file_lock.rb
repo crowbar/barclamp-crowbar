@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class FileLock
   def self.acquire(name, options = {})
     logger = options.fetch(:logger) { self.logger }

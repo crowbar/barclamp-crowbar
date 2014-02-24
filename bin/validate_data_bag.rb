@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #!/usr/bin/ruby
 # Copyright 2011, Dell
 #

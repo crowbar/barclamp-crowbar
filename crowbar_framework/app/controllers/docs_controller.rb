@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Copyright 2011-2013, Dell
 # Copyright 2013, SUSE LINUX Products GmbH
 #
@@ -195,3 +196,4 @@ class DocsController < ApplicationController
     end
   end
 end
+

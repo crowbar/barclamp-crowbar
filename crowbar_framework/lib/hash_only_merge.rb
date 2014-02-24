@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Copyright 2009, Opscode, Inc.
 # Copyright 2008, Steve Midgley
 #

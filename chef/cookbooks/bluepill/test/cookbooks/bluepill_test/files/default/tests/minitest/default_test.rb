@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require_relative "./support/helpers"
 
 describe_recipe 'bluepill_test::default' do

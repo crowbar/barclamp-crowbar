@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #
 # Cookbook Name:: ruby
 # Recipe:: 1.9.1

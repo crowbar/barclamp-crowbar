@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Copyright 2011-2013, Dell
 # Copyright 2013, SUSE LINUX Products GmbH
 #
@@ -75,3 +76,4 @@ class ChefObject
     File.open(file, "w") { |f| f.write(self.to_json) }
   end
 end
+

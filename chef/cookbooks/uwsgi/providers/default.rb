@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 action :enable do
 
   # install pip and developer headers

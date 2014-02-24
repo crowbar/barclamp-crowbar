@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #
 # Cookbook Name:: rails
 # Recipe:: default

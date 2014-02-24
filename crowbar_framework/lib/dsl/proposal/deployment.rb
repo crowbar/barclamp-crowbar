@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dsl
   module Proposal
     class Deployment

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 maintainer       "Dell Crowbar Team"
 maintainer_email "openstack@dell.com"
 license          "Apache 2"

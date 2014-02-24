@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 def with_constant(const_sym, val, scope = Object)
   old_val   = scope.const_get(const_sym)
 

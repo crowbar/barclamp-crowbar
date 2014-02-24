@@ -67,3 +67,4 @@ class BarclampCatalog
     end
   end
 end
+

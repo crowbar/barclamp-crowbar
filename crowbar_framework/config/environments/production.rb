@@ -1,11 +1,12 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,36 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
-# The production environment is meant for finished, "live" apps.
-# Code is not reloaded between requests
-config.cache_classes = true
+Crowbar::Application.configure do
+  config.cache_classes = true
+  config.eager_load = true
+  config.consider_all_requests_local = false
 
-# Full error reports are disabled and caching is turned on
-config.action_controller.consider_all_requests_local = false
-config.action_controller.perform_caching = true
-config.action_view.cache_template_loading = true
-config.action_view.debug_rjs = false
+  config.log_level = :info
 
-# Log error messages when you accidentally call methods on nil.
-config.whiny_nils = false
+  config.i18n.fallbacks = true
 
-# Set a verbose log level to get the informations we need
-config.log_level = :debug
+  config.serve_static_assets = false
+  config.assets.debug = false
+  config.assets.js_compressor = :uglifier
+  config.assets.css_compressor = :sass
+  config.assets.compile = false
+  config.assets.digest = true
+  config.assets.version = "1.0"
+  config.assets.precompile += %w(application.js branding.js ie.js)
 
-# Don't care if the mailer can't send
-config.action_mailer.raise_delivery_errors = false
+  config.action_dispatch.show_exceptions = false
+  config.action_controller.perform_caching = true
+  config.action_controller.allow_forgery_protection = true
+  config.action_mailer.raise_delivery_errors = false
+  config.active_support.deprecation = :notify
+  config.active_record.migration_error = :page_load
 
-# Enable request forgery protection in production environment
-config.action_controller.allow_forgery_protection = true
+  config.logger = ActiveSupport::TaggedLogging.new(
+    Logger.new File.join(ENV["CROWBAR_LOG_DIR"], "production.log") # SyslogLogger.new
+  )
 
-# Enable threaded mode
-#config.threadsafe!
+  #config.logger.formatter = ::Logger::Formatter.new
+end
 
-CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-CHEF_NODE_NAME ="crowbar"
-CHEF_SERVER_URL = "http://localhost:4000"
-CROWBAR_VERSION = "Production"

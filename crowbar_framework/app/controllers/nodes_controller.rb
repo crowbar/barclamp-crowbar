@@ -16,50 +16,13 @@
 #
 
 class NodesController < ApplicationController
-  def index
-    @sum = 0
-    @groups = {}
-    session[:node] = params[:name]
-    if params.has_key?(:role)
-      result = NodeObject.all #this is not efficient, please update w/ a search!
-      @nodes = result.find_all { |node| node.role? params[:role] }
-      if params.has_key?(:names_only)
-         names = @nodes.map { |node| node.handle }
-         @nodes = {:role=>params[:role], :nodes=>names, :count=>names.count}
-      end
-    else
-      @nodes = {}
-      raw_nodes = NodeObject.all
-      get_node_and_network(params[:selected]) if params[:selected]
-      raw_nodes.each do |node|
-        @sum = @sum + node.name.hash
-        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
-        group = node.group
-        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
-        @groups[group][:nodes][node.group_order] = node.handle
-        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
-        if node.handle === params[:name]
-          @node = node
-          get_node_and_network(node.handle)
-        end
-      end
-      flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
-    end
-
-    respond_to do |format|
-      format.html
-      format.xml { render :xml => @nodes }
-      format.json { render :json => @nodes }
-    end
-  end
-
   def list
     @allocated = true
 
     @nodes = {}.tap do |nodes|
       NodeObject.all.each do |node|
         if node.target_platform.blank?
-          node.target_platform = @template.default_platform
+          node.target_platform = view_context.default_platform
           node.save
         end
 
@@ -78,7 +41,7 @@ class NodesController < ApplicationController
     @nodes = {}.tap do |nodes|
       NodeObject.all.each do |node|
         if node.target_platform.blank?
-          node.target_platform = @template.default_platform
+          node.target_platform = view_context.default_platform
           node.save
         end
 
@@ -148,12 +111,12 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
+            if view_context.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
               node.bios_set = node_attributes["bios"]
               dirty = true
             end
 
-            if @template.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
+            if view_context.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
               node.raid_set = node_attributes["raid"]
               dirty = true
             end
@@ -198,7 +161,7 @@ class NodesController < ApplicationController
       flash[:info] = I18n.t("nodes.list.nochange")
     end
 
-    redirect_to params[:return] != "true" ? unallocated_list_path : nodes_list_path
+    redirect_to params[:return] != "true" ? unallocated_nodes_url : list_nodes_url
   end
 
   def families
@@ -222,7 +185,7 @@ class NodesController < ApplicationController
     end
   end
 
-  def group_change
+  def group
     NodeObject.find_node_by_name(params[:id]).tap do |node|
       raise ActionController::RoutingError.new('Not Found') if node.nil?
 
@@ -264,7 +227,7 @@ class NodesController < ApplicationController
 
           result[:groups][group_name].tap do |group|
             group[:status][node.status] = group[:status][node.status] + 1
-            group[:tooltip] = @template.piechart_tooltip(@template.piechart_values(group))
+            group[:tooltip] = view_context.piechart_tooltip(view_context.piechart_values(group))
           end
 
           result[:nodes][node.handle] = {
@@ -376,7 +339,7 @@ class NodesController < ApplicationController
       end
 
       if change_target_platform
-        @node.target_platform = params[:target_platform] || @template.default_platform
+        @node.target_platform = params[:target_platform] || view_context.default_platform
         @node.license_key = params[:license_key]
       end
       @node.save
@@ -396,7 +359,7 @@ class NodesController < ApplicationController
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
       if @node.target_platform.blank?
-        @node.target_platform = @template.default_platform
+        @node.target_platform = view_context.default_platform
         @node.save
       end
       # If we're in discovery mode, then we have a temporary DHCP IP address.

@@ -1,11 +1,12 @@
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Dell Crowbar Team
-# Author: SUSE LINUX Products GmbH
-#
 
-namespace :brakeman do
-  desc "Run Brakeman"
-  task :run, :output_files do |t, args|
-    require "brakeman"
+unless Rails.env.production?
+  require "brakeman"
 
-    files = args[:output_files].split(" ") if args[:output_files]
-    Brakeman.run :app_path => ".", :output_files => files, :print_report => true
+  namespace :brakeman do
+    desc "Run brakeman"
+    task :run, :output_file do |t, args|
+      files = args[:output_files].split(" ") if args[:output_files]
+      Brakeman.run :app_path => ".", :output_files => files, :print_report => true
+    end
   end
 end

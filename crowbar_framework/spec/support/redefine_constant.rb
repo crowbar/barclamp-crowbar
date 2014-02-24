@@ -6,3 +6,4 @@ def with_constant(const_sym, val, scope = Object)
 ensure
   silence_warnings { scope.const_set(const_sym, old_val) }
 end
+

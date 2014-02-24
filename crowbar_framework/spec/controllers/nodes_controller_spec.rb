@@ -92,7 +92,7 @@ describe NodesController do
 
     it "redirects to unallocated nodes list on success" do
       post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
-      response.should redirect_to(unallocated_list_path)
+      response.should redirect_to(unallocated_nodes_url)
     end
 
 
@@ -259,3 +259,4 @@ describe NodesController do
     end
   end
 end
+

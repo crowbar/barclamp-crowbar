@@ -37,3 +37,4 @@ describe SupportController do
     end
   end
 end
+

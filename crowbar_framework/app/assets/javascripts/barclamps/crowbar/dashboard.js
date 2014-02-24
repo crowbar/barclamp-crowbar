@@ -148,11 +148,10 @@ jQuery(document).ready(function($) {
 
       if ($.inArray($node.data('id'), inserted) < 0) {
         $.post(
-          decodeURI(
-            $node.data('update')
-          ).format(
-              $group.data('id')
-            ),
+          $node.data('update'),
+          {
+            group: $group.data('id')
+          },
           function() {
             if ($group.data('id') == 'AUTOMATIC') {
               location.reload();

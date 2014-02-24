@@ -60,3 +60,4 @@ describe ChefObject do
     end
   end
 end
+

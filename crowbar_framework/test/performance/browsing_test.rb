@@ -7,3 +7,4 @@ class BrowsingTest < ActionController::PerformanceTest
     get '/'
   end
 end
+

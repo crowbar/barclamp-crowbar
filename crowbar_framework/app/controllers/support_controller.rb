@@ -152,7 +152,7 @@ class SupportController < ApplicationController
 
   def restart
     @init = false
-    @log = Rails.root.join("public", "export", "#{SERVER_PID}.import.log")
+    @log = Rails.root.join("public", "export", "#{Crowbar::Application::SERVER_PID}.import.log")
 
     if params[:id].nil?
       render
@@ -162,9 +162,9 @@ class SupportController < ApplicationController
     elsif params[:id].eql? "in_process"
       %x[sudo bluepill crowbar-webserver restart] unless Rails.env.development?
       render :json => true
-    elsif params[:id].eql? SERVER_PID
+    elsif params[:id].eql? Crowbar::Application::SERVER_PID
       render :json => false
-    elsif !params[:id].eql? SERVER_PID
+    elsif !params[:id].eql? Crowbar::Application::SERVER_PID
       render :json => true
     else
       render

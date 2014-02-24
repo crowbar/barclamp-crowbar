@@ -54,3 +54,4 @@ describe RoleObject do
     end
   end
 end
+

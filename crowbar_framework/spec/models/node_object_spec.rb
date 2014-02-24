@@ -54,3 +54,4 @@ describe NodeObject do
     end
   end
 end
+

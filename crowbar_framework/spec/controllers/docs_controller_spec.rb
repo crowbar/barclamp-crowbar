@@ -8,3 +8,4 @@ describe DocsController do
     end
   end
 end
+

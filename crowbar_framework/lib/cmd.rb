@@ -7,3 +7,4 @@ class Cmd
     stdout.read
   end
 end
+

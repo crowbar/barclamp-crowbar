@@ -1,0 +1,64 @@
+- register_javascripts "barclamps/crowbar/dashboard"
+
+.row{ data: { ledupdate: status_nodes_path, ledredirect: dashboard_path, ledignore: "proposals" } }
+  .col-xs-12
+    %h1.page-header
+      = t(".title")
+
+      .badge{ title: t(".extended_nodes", count: @nodes.count) }
+        = t(".simple_nodes", count: @nodes.count)
+
+      .col-xs-3.pull-right
+        %form.form-inline{ role: "form", data: { group: { add: true } } }
+          .input-group
+            = text_field_tag :group, "", placeholder: t(".default_new"), class: "form-control input-sm"
+
+            .input-group-btn
+              = submit_tag t(".add"), class: "btn btn-default input-sm"
+
+#nodedetails
+  - if @node
+    = render partial: "show"
+
+.alert.alert-info{ data: { id: "AUTOMATIC", droppable: "true" } }
+  = t(".drag_hint").html_safe
+
+#nodegroups.row
+  - @groups.sort.each do |group_name, group|
+    .col-xs-3{ data: { id: group_name, droppable: "true", group: group_name } }
+      .panel.panel-default
+        .panel-heading
+          %h2
+            = piechart_for group
+            = truncate(group_name || t("unknown"), length: 25)
+
+        %ul.list-group
+          - group[:nodes].values.sort_by { |handle| @nodes[handle][:alias] }.each do |handle|
+            - @nodes[handle].tap do |node|
+              %li.list-group-item{ data: { id: handle.parameterize, draggable: "true", update: group_node_path(handle.parameterize) } }
+                %span.led{ class: node[:status], title: t(node[:state], scope: "state", default: node[:state].titlecase), data: { node: handle } }
+
+                %a{ href: "#", title: node[:description], data: { href: node_path(handle) } }
+                  = truncate(node[:alias], length: 25)
+
+%script#group-panel{ type: "text/x-handlebars-template" }
+  .col-xs-3.group-panel{ data: { id: "{{group}}", droppable: "true" } }
+    .panel.panel-default
+      .panel-heading
+        %h2
+          = link_to icon_tag("trash"), "#", data: { group: { delete: "true" } }
+
+          %span
+            {{group}}
+
+      %ul.list-group
+        %li.list-group-item.empty
+          = t(".new_drag")
+
+%script#group-invalid{ type: "text/x-handlebars-template" }
+  .alert.alert-danger.alert-dismissable.group-invalid
+    %button.close{ type: "button", data: { dismiss: "alert" }, aria: { hidden: true } }
+      &times;
+
+    = t(".add_group_error")
+

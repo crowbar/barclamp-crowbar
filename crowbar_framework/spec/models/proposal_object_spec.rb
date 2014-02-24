@@ -73,3 +73,4 @@ describe ProposalObject do
     end
   end
 end
+

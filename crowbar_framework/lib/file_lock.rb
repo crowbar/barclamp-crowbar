@@ -40,3 +40,4 @@ class FileLock
     defined?(Rails) ? Rails.logger : Logger.new(STDERR)
   end
 end
+

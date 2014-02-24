@@ -252,3 +252,4 @@ describe CrowbarController do
     end
   end
 end
+

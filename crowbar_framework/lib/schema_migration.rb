@@ -179,3 +179,4 @@ module SchemaMigration
     role.save
   end
 end
+

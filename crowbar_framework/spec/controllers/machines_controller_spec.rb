@@ -175,3 +175,4 @@ describe MachinesController do
     end
   end
 end
+

@@ -56,7 +56,7 @@ module TagHelper
         :class => "glyphicon glyphicon-#{icon}"
       ),
       text
-    ].flatten.join("\n")
+    ].flatten.join("\n").html_safe
   end
 
   def badge_tag(text, clazz = nil)
@@ -64,6 +64,7 @@ module TagHelper
       :div,
       text,
       :class => "badge #{clazz}".strip
-    )
+    ).html_safe
   end
 end
+

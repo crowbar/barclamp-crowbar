@@ -18,6 +18,8 @@
 #
 
 class CrowbarService < ServiceObject
+  attr_accessor :save_it
+
   #
   # Below are the parts to handle transition requests.
   #
@@ -25,7 +27,7 @@ class CrowbarService < ServiceObject
   # It will create a node and assign it an admin address.
   #
   def transition(inst, name, state)
-    save_it = false
+    self.save_it = false
 
     return [404, "No state specified"] if state.nil?
     # FIXME: validate state
@@ -50,56 +52,11 @@ class CrowbarService < ServiceObject
       if state == "discovering" and node.allocated.nil?
         @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
         node.allocated = false
-        save_it = true
+        self.save_it = true
       end
 
-      if state == "readying" and not node.admin?
-        unless node.raid_type == "single"
-          node["filesystem"].each do |device, attributes|
-            if device =~ /\/dev\/(md\d+)$/
-              if ["/", "/boot"].include? attributes["mount"]
-                unique_name = node.unique_device_for(
-                  $1.to_s
-                )
-
-                next if unique_name.nil?
-
-                unless node.disk_owner(unique_name) == "OS"
-                  node.disk_release unique_name, node.disk_owner(unique_name)
-                  node.disk_claim unique_name, "OS"
-                  save_it = true
-                end
-              end
-            else
-              if attributes["fs_type"] == "linux_raid_member"
-                unique_name = node.unique_device_for(
-                  ::File.basename(device.to_s).to_s.gsub(/[0-9]+$/, "")
-                )
-
-                next if unique_name.nil?
-
-                unless node.disk_owner(unique_name) == "Raid"
-                  node.disk_release unique_name, node.disk_owner(unique_name)
-                  node.disk_claim unique_name, "Raid"
-                  save_it = true
-                end
-              end
-            end
-          end
-
-          boot_device = node["filesystem"].sort.map do |device, attributes|
-            if ["/", "/boot"].include? attributes["mount"]
-              node.unique_device_for(
-                ::File.basename(device.to_s)
-              )
-            end
-          end.compact.first
-
-          unless boot_device == node.crowbar_wall["boot_device"]
-            node.boot_device boot_device
-            save_it = true
-          end
-        end
+      if state == "readying"
+        transition_to_readying inst, name, state, node
       end
 
       pop_it = false
@@ -121,7 +78,7 @@ class CrowbarService < ServiceObject
 
         node.crowbar["state"] = state
         node.crowbar["state_change_time"] = Time.new.to_s
-        save_it = true
+        self.save_it = true
         pop_it = true
       end
     ensure
@@ -344,5 +301,74 @@ class CrowbarService < ServiceObject
     [
       "suse-11.3"
     ]
+  end
+
+  protected
+
+  def transition_to_readying(inst, name, state, node = nil)
+    only_unless_admin node do
+      process_raid_claims node
+    end
+  end
+
+  def process_raid_claims(node)
+    unless node.raid_type == "single"
+      node["filesystem"].each do |device, attributes|
+        if device =~ /\/dev\/(md\d+)$/
+          process_raid_device node, device, attributes
+        else
+          process_raid_member node, device, attributes
+        end
+      end
+
+      process_raid_boot node
+    end
+  end
+
+  def process_raid_device(node, device, attributes)
+    if ["/", "/boot"].include? attributes["mount"]
+      unique_name = node.unique_device_for(
+        $1.to_s
+      )
+
+      next if unique_name.nil?
+
+      unless node.disk_owner(unique_name) == "OS"
+        node.disk_release unique_name, node.disk_owner(unique_name)
+        node.disk_claim unique_name, "OS"
+        self.save_it = true
+      end
+    end
+  end
+
+  def process_raid_member(node, device, attributes)
+    if attributes["fs_type"] == "linux_raid_member"
+      unique_name = node.unique_device_for(
+        ::File.basename(device.to_s).to_s.gsub(/[0-9]+$/, "")
+      )
+
+      next if unique_name.nil?
+
+      unless node.disk_owner(unique_name) == "Raid"
+        node.disk_release unique_name, node.disk_owner(unique_name)
+        node.disk_claim unique_name, "Raid"
+        self.save_it = true
+      end
+    end
+  end
+
+  def process_raid_boot(node)
+    boot_device = node["filesystem"].sort.map do |device, attributes|
+      if ["/", "/boot"].include? attributes["mount"]
+        node.unique_device_for(
+          ::File.basename(device.to_s)
+        )
+      end
+    end.compact.first
+
+    unless boot_device == node.crowbar_wall["boot_device"]
+      node.boot_device boot_device
+      self.save_it = true
+    end
   end
 end

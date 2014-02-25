@@ -35,5 +35,5 @@
     * Contains a list of barclamps that your barclamp is dependent on
     * For example:
 <pre>            requires:
-               - os-base
+               - openstack-base
                - messaging</pre>

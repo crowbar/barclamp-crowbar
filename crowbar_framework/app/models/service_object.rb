@@ -1,12 +1,13 @@
 # -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,13 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
-require 'pp'
-require 'chef'
-require 'json'
 require 'hash_only_merge'
 require 'securerandom'
 
@@ -1338,7 +1333,7 @@ class ServiceObject
         non_admin_nodes.each do |node|
           nobj = NodeObject.find_node_by_name(node)
           unless nobj[:platform] == "windows"
-            filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+            filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "chef-client", filename)
             pids[pid] = node
           end
@@ -1351,7 +1346,7 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+              filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node
             end
@@ -1374,7 +1369,7 @@ class ServiceObject
 
       unless admin_list.empty?
         admin_list.each do |node|
-          filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+          filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
           pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
           pids[node] = pid
         end
@@ -1386,7 +1381,7 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+              filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
               pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
               pids[pid] = node
             end
@@ -1632,4 +1627,3 @@ class ServiceObject
     yield unless node.admin?
   end
 end
-

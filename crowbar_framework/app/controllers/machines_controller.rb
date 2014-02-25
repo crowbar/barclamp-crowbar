@@ -43,8 +43,8 @@ class MachinesController < BarclampController
 
   add_help(:index)
   def index
-    unless ::File.exist? CHEF_CLIENT_KEY
-      raise "Could not find chef key at #{CHEF_CLIENT_KEY}"
+    unless ::File.exist? ENV["CHEF_CLIENT_KEY"]
+      raise "Could not find chef key at #{ENV["CHEF_CLIENT_KEY"]}"
     end
 
     @nodes = NodeObject.find_all_nodes.map do |node|
@@ -133,4 +133,3 @@ class MachinesController < BarclampController
     )
   end
 end
-

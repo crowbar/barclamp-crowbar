@@ -190,10 +190,13 @@ class NodesController < ApplicationController
     NodeObject.find_node_by_name(params[:id]).tap do |node|
       raise ActionController::RoutingError.new('Not Found') if node.nil?
 
-      if params[:group].downcase.eql? 'automatic'
+
+Rails.logger.debug params.inspect
+
+      if params[:group].to_s.downcase.eql? 'automatic'
         node.group = ""
       else
-        node.group = params[:group]
+        node.group = params[:group].to_s
       end
 
       node.save

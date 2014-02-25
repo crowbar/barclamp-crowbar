@@ -20,7 +20,52 @@ require File.expand_path("../boot", __FILE__)
 require "rails/all"
 require "sprockets/railtie"
 
-Bundler.require(:default, Rails.env)
+if ENV["USE_BUNDLER"]
+  Bundler.require(:default, Rails.env)
+else
+  #
+  # This needs to be in sync with the Gemfile. First we activate 
+  # specific versions for the gems, and afterwards we require all 
+  # gems. That's the best workaround for the usage of bundler.
+  #
+
+  gem "json", version: "1.7.7"
+  gem "rack", version: "~> 1.5.2"
+  gem "dotenv-rails", version: "~> 0.9.0"
+  gem "haml-rails", version: "~> 0.5.3"
+  gem "sass-rails", version: "~> 4.0.1"
+  gem "jbuilder", version: "~> 2.0.3"
+  gem "bcrypt", version: "~> 3.1.2"
+  gem "kwalify", version: "~> 0.7.2"
+  gem "simple-navigation", version: "~> 3.11.0"
+  gem "sqlite3", version: "~> 1.3.8"
+  gem "gli", version: "~> 2.9.0"
+  gem "cocaine", version: "~> 0.5.3"
+  gem "hashie", version: "~> 2.0.5"
+  gem "activerecord-session_store", version: "~> 0.1.0"
+  gem "chef", version: "~> 10.30.4"
+
+  gem "uglifier", version: "~> 2.2.1"
+  gem "therubyracer", version: "~> 0.12.1"
+
+  require "json"
+  require "rack"
+  require "dotenv-rails"
+  require "haml-rails"
+  require "sass-rails"
+  require "jbuilder"
+  require "bcrypt"
+  require "kwalify"
+  require "simple-navigation"
+  require "sqlite3"
+  require "gli"
+  require "cocaine"
+  require "hashie"
+  require "chef"
+  require "uglifier"
+  require "therubyracer"
+  require "activerecord/session_store"
+end
 
 module Crowbar
   class Application < Rails::Application

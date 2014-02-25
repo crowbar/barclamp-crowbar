@@ -15,8 +15,18 @@
 # limitations under the License.
 #
 
+#
+# This needs to be in sync with the application.rb. First we activate 
+# specific versions for the gems, and afterwards we require all gems. 
+# That's the best workaround for the usage of bundler.
+#
+
 source "https://rubygems.org"
 gem "rails", "4.0.2"
+
+# chef requires json <= 1.7.7 
+# rubocop requires json >= 1.7.7
+gem "json", "1.7.7"
 
 gem "rack", "~> 1.5.2"
 gem "dotenv-rails", "~> 0.9.0"
@@ -36,10 +46,6 @@ gem "chef", "~> 10.30.4"
 gem "uglifier", "~> 2.2.1"
 gem "therubyracer", "~> 0.12.1"
 
-# chef requires json <= 1.7.7 
-# rubocop requires json >= 1.7.7
-gem "json", "1.7.7"
-
 group :development, :test do
   gem "debugger", "~> 1.6.5"
   gem "rspec-rails", "~> 2.14.1"
@@ -52,8 +58,8 @@ gem "chef"
 
 group :development do
   gem "guard", "~> 2.4.0"
-  gem "binding_of_caller", "~> 0.7.2"
   gem "better_errors", "~> 1.1.0"
+  gem "binding_of_caller", "~> 0.7.2"
   gem "meta_request", "~> 0.2.8"
   gem "quiet_assets", "~> 1.0.2"
   gem "pry-rails", "~> 0.3.2"

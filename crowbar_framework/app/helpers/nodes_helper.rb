@@ -386,7 +386,7 @@ module NodesHelper
             proposal.display_name
           end
 
-          route = proposal_barclamp_path(:controller => proposal.barclamp, :id => proposal.name)
+          route = proposal_show_path(:controller => proposal.barclamp, :id => proposal.name)
 
           listing[proposal.category] ||= []
           listing[proposal.category].push link_to(display_name, route)
@@ -467,7 +467,7 @@ module NodesHelper
             listing[object.category] ||= []
             listing[object.category].push role
           else
-            route = proposal_barclamp_path(
+            route = proposal_show_path(
               :controller => proposal.barclamp,
               :id => proposal.name
             )

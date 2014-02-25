@@ -120,7 +120,7 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
-    link_to t('raw'), proposal_barclamp_path(parameters), :class => "rawview"
+    link_to t('raw'), proposal_show_path(parameters), :class => "rawview"
   end
 
   def proposal_custom_button(proposal, options = {})
@@ -129,7 +129,7 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
-    link_to t('custom'), proposal_barclamp_path(parameters), :class => "customview"
+    link_to t('custom'), proposal_show_path(parameters), :class => "customview"
   end
 
   def attributes_for(proposal, &block)
@@ -164,10 +164,9 @@ module ProposalsHelper
     proposal = retrieve_proposal_for(barclamp)
 
     unless proposal.nil?
-      url_for(
-        :controller => proposal.barclamp,
-        :action => "proposal_show",
-        :id => proposal.name
+      proposal_show_path(
+        controller: proposal.barclamp,
+        id: proposal.name
       )
     else
       ""

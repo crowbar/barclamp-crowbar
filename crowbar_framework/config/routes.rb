@@ -67,7 +67,7 @@ Crowbar::Application.routes.draw do
 
     resources :docs, only: [:index] do
       collection do
-        get "*id" => "docs#show"
+        get "*id" => "docs#show", as: :topic
       end
     end
   end

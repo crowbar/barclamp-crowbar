@@ -17,17 +17,15 @@
 #
 
 module ApplicationHelper
-  include Sprockets::Helpers
-
   # Check if we are using a quite old bad internet explorer, currently used for
   # disableing drag and drop for this old browser
   def bad_explorer?
-    request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
+    @bad_explorer ||= request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
   end
 
   # Check if we are running on a suse system
   def suse_system?
-    @@suse_system ||= File.exist?("/etc/SuSE-release")
+    @suse_system ||= File.exist?("/etc/SuSE-release")
   end
 
   # A simple wrapper to access the branding configuration directly, looks much
@@ -46,7 +44,11 @@ module ApplicationHelper
 
   # Generate the meta title that gets displayed on the page meta information
   def meta_title
-    title = [branding_config.page_title, branding_config.page_slogan].compact.join(" ")
+    title = [
+      branding_config.page_title, 
+      branding_config.page_slogan
+    ].compact.join(" ").strip
+
     "#{title}: #{controller.action_name.titleize}"
   end
 
@@ -172,7 +174,7 @@ module ApplicationHelper
     is_empty = if condition.nil?
       value.nil? or value.empty?
     else
-      ! condition
+      not condition
     end
 
     if is_empty

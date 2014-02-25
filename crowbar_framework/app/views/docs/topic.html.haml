@@ -10,7 +10,7 @@
         = link_to icon_tag("home"), docs_path, :title => t(".root"), :class => "btn btn-default"
 
         - if @parent
-          = link_to icon_tag("arrow-up"), docs_topic_path(:id => @parent_link.chomp("+")), :title => t(".parent", :title => @parent["topic_meta_data"]["title"]), :class => "btn btn-default"
+          = link_to icon_tag("arrow-up"), topic_docs_path(:id => @parent_link.chomp("+")), :title => t(".parent", :title => @parent["topic_meta_data"]["title"]), :class => "btn btn-default"
 
 - if @text
   .panel.panel-default

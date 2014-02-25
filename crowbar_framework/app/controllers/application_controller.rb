@@ -22,68 +22,69 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   helper :all
 
-
-
-  @@users = nil
-  
-  before_filter :digest_authenticate, :if => :need_to_auth?
+  layout Proc.new { |controller| 
+    if controller.request.xhr?
+      false
+    else
+      "application"
+    end
+  }
 
   class << self
     def help_contents
       @help_contents ||= []
     end
 
-    def add_help(method, args=[], http_method = [:get])
-      http_method.each { |m|
-        help_contents.push({
+    def add_help(method, args = [], http_method = [:get])
+      http_method.each do |m|
+        help_contents.push(
           method => {
             "args" => args,
             "http_method" => m
           }
-        })
-      }
+        )
+      end
     end
   end
 
-  
+  add_help(:help)
+  def help
+    render json: { 
+      self.controller_name => self.help_contents.collect do |m|
+        {}.tap do |res|
+          m.each do |k, v|
+            basically = { 
+              controller: self.controller_name,
+              action: k,
+            }
 
-  def self.set_layout(template = "application")
-    layout proc { |controller| 
-      if controller.is_ajax? 
-        nil
-      else
-        template
+            injected = v["args"].inject({}) do |acc, x|
+              acc.merge({x.to_s => "(#{x.to_s})"})
+            end
+
+            url = URI::unescape(
+              url_for(
+                basically.merge(injected)
+              )
+            )
+
+            res.merge!({ k.to_s => v.merge({ "url" => url })})
+          end
+        end
       end
     }
   end
-  
-  def is_ajax?
-    request.xhr?
-  end
-  
-  add_help(:help)
-  def help
-    render :json => { self.controller_name => self.help_contents.collect { |m|
-        res = {}
-        m.each { |k,v|
-          # sigh, we cannot resolve url_for at class definition time.
-          # I suppose we have to do it at runtime.
-          url=URI::unescape(url_for({ :action => k,
-                        :controller => self.controller_name,
-            
-          }.merge(v["args"].inject({}) {|acc,x|
-            acc.merge({x.to_s => "(#{x.to_s})"})
-          }
-          )
-          ))
-          res.merge!({ k.to_s => v.merge({"url" => url})})
-        }
-        res
-      }
-    }
-  end
-  set_layout
-  
+
+
+
+
+
+
+
+
+  @@users = nil
+  before_filter :digest_authenticate, :if => :need_to_auth?
+
   #########################
   # private stuff below.
   
@@ -152,19 +153,25 @@ class ApplicationController < ActionController::Base
     ret
   end
 
-  def flash_and_log_exception(e)
-    flash[:alert] = e.message
-    log_exception(e)
-  end
+
+
+
+
+  protected
 
   def log_exception(e)
     lines = [ e.message ] + e.backtrace
     Rails.logger.warn lines.join("\n")
   end
 
+  def flash_exception(e)
+    flash[:alert] = e.message
+    log_exception(e)
+  end
+
   def render_not_found
     respond_to do |format|
-      format.json { render :json => { :error => "Not found" }, :status => 404 }
+      format.json { render json: { error: "Not found" }, status: 404 }
     end
   end
 end

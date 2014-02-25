@@ -16,5 +16,7 @@
 # limitations under the License.
 #
 
-ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
-require "bundler/setup" if File.exists?(ENV["BUNDLE_GEMFILE"])
+if ENV["USE_BUNDLER"]
+  ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
+  require "bundler/setup" if File.exists?(ENV["BUNDLE_GEMFILE"])
+end

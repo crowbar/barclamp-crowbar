@@ -177,6 +177,93 @@ class ServiceObject
   end
 
 #
+# Helper related to clusters
+#
+
+  # There's no way to have the core of crowbar not know about clusters. This
+  # means that we have a loose dependency (in terms of architecture) on the
+  # barclamps defining clusters (eg, Pacemaker) here.
+
+  # Returns: list of available clusters
+  def available_clusters
+    @available_clusters ||= begin
+      clusters = {}
+      if defined?(PacemakerServiceObject)
+        clusters.merge!(PacemakerServiceObject.available_clusters)
+      end
+      clusters
+    end
+  end
+
+  # Returns: name of the barclamp and of the proposal for this cluster
+  def cluster_get_barclamp_and_proposal(element)
+    result = nil
+
+    if defined?(PacemakerServiceObject)
+      result ||= PacemakerServiceObject.cluster_get_barclamp_and_proposal(element)
+    end
+
+    result ||= [nil, nil]
+  end
+
+  def is_cluster?(element)
+    result = false
+
+    if defined?(PacemakerServiceObject)
+      result ||= PacemakerServiceObject.is_cluster?(element)
+    end
+
+    result
+  end
+
+  # Returns: name of the cluster, or nil if it's not a cluster
+  def cluster_name(element)
+    name = nil
+
+    if defined?(PacemakerServiceObject)
+      name ||= PacemakerServiceObject.cluster_name(element)
+    end
+
+    name
+  end
+
+  def cluster_exists?(element)
+    !available_clusters[element].nil?
+  end
+
+  # Returns: a list with two things:
+  #  - the list of all nodes in items; if item contains clusters, these
+  #    clusters will be expanded to the list of nodes they're made of
+  #    For instance [ node1, cluster1 ] will be expanded to [node1,
+  #    node1-of-cluster1, node2-of-cluster1]
+  #  - the list of items that are not nodes but that we failed to expand. This
+  #    can be used for knowing that expansion partially failed matters.
+  def expand_nodes_for_all(items)
+    nodes = []
+    failures = []
+
+    items.each do |item|
+      expanded = nil
+
+      if is_cluster? item
+        if defined?(PacemakerServiceObject)
+          expanded = PacemakerServiceObject.expand_nodes(item)
+        end
+
+        if expanded.nil?
+          failures << item
+        else
+          nodes.concat(expanded)
+        end
+      else
+        nodes << item
+      end
+    end
+
+    [nodes, failures]
+  end
+
+#
 # Helper routines for queuing
 #
 
@@ -184,6 +271,11 @@ class ServiceObject
   def elements_to_nodes_to_roles_map(elements)
     nodes_map = {}
     elements.each do |role_name, nodes|
+      nodes, failures = expand_nodes_for_all(nodes)
+      unless failures.nil? || failures.empty?
+        @logger.debug "elements_to_nodes_to_roles_map: skipping items that we failed to expand: #{failures.join(", ")}"
+      end
+
       nodes.each do |node_name|
         if NodeObject.find_node_by_name(node_name).nil?
           @logger.debug "elements_to_nodes_to_roles_map: skipping deleted node #{node_name}"
@@ -476,7 +568,7 @@ class ServiceObject
           end
           next if queue_me
 
-          nodes_map = elements_to_nodes_to_roles_map(elements)
+          nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"])
           delay, pre_cached_nodes = elements_not_ready(nodes_map.keys)
           list << item if delay.empty?
         end
@@ -586,6 +678,7 @@ class ServiceObject
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes
       dep[@bc_name]["elements"] = {}
+      dep[@bc_name].delete("elements_expanded")
       @logger.debug "#{inst} proposal has a crowbar-committing key" if dep[@bc_name]["config"].has_key? "crowbar-committing"
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
@@ -773,10 +866,16 @@ class ServiceObject
         raise I18n.t('proposal.failures.duplicate_elements_in_role') + " " + role
       end
 
-      uniq_elements.each do |node_name|
-        nodes = NodeObject.find_nodes_by_name node_name
-        if nodes.nil? || nodes.empty?
-          raise I18n.t('proposal.failures.unknown_node') + " " + node_name
+      uniq_elements.each do |element|
+        if is_cluster? element
+          unless cluster_exists? element
+            raise I18n.t('proposal.failures.unknown_cluster') + " " + cluster_name(element)
+          end
+        else
+          nodes = NodeObject.find_nodes_by_name element
+          if nodes.nil? || nodes.empty?
+            raise I18n.t('proposal.failures.unknown_node') + " " + element
+          end
         end
       end
     end
@@ -999,13 +1098,40 @@ class ServiceObject
 
     @logger.debug "delay empty - running proposal"
 
+    # expand items in elements that are not nodes
+    expanded_new_elements = {}
+    new_deployment["elements"].each do |role_name, nodes|
+      expanded_new_elements[role_name], failures = expand_nodes_for_all(nodes)
+      unless failures.nil? || failures.empty?
+        @logger.fatal("apply_role: Failed to expand items #{failures.inspect} for role \"#{role_name}\"")
+        message = "Failed to apply the proposal: cannot expand list of nodes for role \"#{role_name}\", following items do not exist: #{failures.join(", ")}"
+        update_proposal_status(inst, "failed", message)
+        process_queue unless in_queue
+        return [ 405, message ]
+      end
+    end
+    new_elements = expanded_new_elements
+
+    # save list of expanded elements, as this is needed when we look at the
+    # old role
+    if new_elements != new_deployment["elements"]
+      new_deployment["elements_expanded"] = new_elements
+    else
+      new_deployment.delete("elements_expanded")
+    end
+
     # make sure the role is saved
     role.save
 
     # Build a list of old elements
     old_elements = {}
     old_deployment = old_role.override_attributes[@bc_name] unless old_role.nil?
-    old_elements = old_deployment["elements"] unless old_deployment.nil?
+    unless old_deployment.nil?
+      old_elements = old_deployment["elements_expanded"]
+      if old_elements.nil?
+        old_elements = old_deployment["elements"]
+      end
+    end
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     @logger.debug "old_deployment #{old_deployment.pretty_inspect}"

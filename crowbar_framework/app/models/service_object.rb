@@ -168,6 +168,23 @@ class ServiceObject
 # Helper routines for queuing
 #
 
+  # Create map with nodes and their element list
+  def elements_to_nodes_to_roles_map(elements)
+    nodes_map = {}
+    elements.each do |role_name, nodes|
+      nodes.each do |node_name|
+        if NodeObject.find_node_by_name(node_name).nil?
+          @logger.debug "elements_to_nodes_to_roles_map: skipping deleted node #{node_name}"
+          next
+        end
+        nodes_map[node_name] = [] if nodes_map[node_name].nil?
+        nodes_map[node_name] << role_name
+      end
+    end
+
+    nodes_map
+  end
+
   # Assumes the BA-LOCK is held
   def elements_not_ready(nodes, pre_cached_nodes = {})
     # Check to see if we should delay our commit until nodes are ready.
@@ -183,18 +200,7 @@ class ServiceObject
   end
 
   def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
-    # Create map with nodes and their element list
-    all_new_nodes = {}
-    elements.each do |role_name, nodes|
-      nodes.each do |node_name|
-        if NodeObject.find_node_by_name(node_name).nil?
-          @logger.debug "add_pending_elements: skipping deleted node #{node_name}"
-          next
-        end
-        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
-        all_new_nodes[node_name] << role_name
-      end
-    end
+    nodes_map = elements_to_nodes_to_roles_map(elements)
 
     f = acquire_lock "BA-LOCK"
     delay = []
@@ -202,14 +208,14 @@ class ServiceObject
     begin
       # Check for delays and build up cache
       if queue_me
-        delay = all_new_nodes.keys
+        delay = nodes_map.keys
       else
-        delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys, pre_cached_nodes)
+        delay, pre_cached_nodes = elements_not_ready(nodes_map.keys, pre_cached_nodes)
       end
 
       # Add the entries to the nodes.
       if delay.empty?
-        all_new_nodes.each do |node_name, val|
+        nodes_map.each do |node_name, val|
           node = pre_cached_nodes[node_name]
 
           # Nothing to delay so mark them applying.
@@ -218,7 +224,7 @@ class ServiceObject
           node.save
         end
       else
-        all_new_nodes.each do |node_name, val|
+        nodes_map.each do |node_name, val|
           # Make sure we have a node.
           node = pre_cached_nodes[node_name]
           node = NodeObject.find_node_by_name(node_name) if node.nil?
@@ -242,23 +248,12 @@ class ServiceObject
   end
 
   def remove_pending_elements(bc, inst, elements)
-    # Create map with nodes and their element list
-    all_new_nodes = {}
-    elements.each do |role_name, nodes|
-      nodes.each do |node_name|
-        if NodeObject.find_node_by_name(node_name).nil?
-          @logger.debug "remove_pending_elements: skipping deleted node #{node_name}"
-          next
-        end
-        all_new_nodes[node_name] = [] if all_new_nodes[node_name].nil?
-        all_new_nodes[node_name] << role_name
-      end
-    end
+    nodes_map = elements_to_nodes_to_roles_map(elements)
 
     # Remove the entries from the nodes.
     f = acquire_lock "BA-LOCK"
     begin
-      all_new_nodes.each do |node_name, data|
+      nodes_map.each do |node_name, data|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
         unless node.crowbar["crowbar"]["pending"].nil? or node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"].nil?
@@ -469,15 +464,8 @@ class ServiceObject
           end
           next if queue_me
 
-          # Create map with nodes and their element list
-          all_new_nodes = {}
-          prop["deployment"][item["barclamp"]]["elements"].each do |role_name, nodes|
-            nodes.each do |node|
-              all_new_nodes[node] = [] if all_new_nodes[node].nil?
-              all_new_nodes[node] << role_name
-            end
-          end
-          delay, pre_cached_nodes = elements_not_ready(all_new_nodes.keys)
+          nodes_map = elements_to_nodes_to_roles_map(elements)
+          delay, pre_cached_nodes = elements_not_ready(nodes_map.keys)
           list << item if delay.empty?
         end
 

@@ -45,7 +45,7 @@ roles:
     ```
     messaging/crowbar_engine/barclamp_messaging/app/views/barclamp_messaging/node_roles/_messaging-server.name.html.haml
     ```
-    The partial is made up of four main components, the form, the validation rules, the validation messages and the read-only view. The template for the the overall partial should follow this pattern:
+    The partial is made up of four main components, the form, the validation rules, the validation messages and the read-only view. The template for the overall partial should follow this pattern:
 
   ```haml
   - data_nil_empty = (data.nil? || data=={})
@@ -172,7 +172,7 @@ A typical front-to-back testing scenario is outlined below, using the Messaging 
             password: the_password
     ```
 
-11. If the information looks correct in the model commit the Deployment in the UI.  While the the node is executing parent roles like installing the operating system etc, you can take a look at the read-only node role view by clicking the grey circle icon (indicating blocked state) at the intersection of the node and role.  This will take you to the read-only node role view. Validate the fields and data correct.
+11. If the information looks correct in the model commit the Deployment in the UI.  While the parent node is executing parent roles like installing the operating system etc, you can take a look at the read-only node role view by clicking the grey circle icon (indicating blocked state) at the intersection of the node and role.  This will take you to the read-only node role view. Validate the fields and data correct.
 12. When the Deployment is finished and active the last step is to verify the settings set in the UI actually made it to the target node and configured the service correctly.  The validation steps will be different for each role. For the Messaging Server role the following should be verified:
   1. SSH into the target node and verify that the service is running
   ```

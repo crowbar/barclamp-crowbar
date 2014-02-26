@@ -36,7 +36,7 @@ roles:
 ```
 2. Create the view for the role
 
-    Crowbar expects a the view to file location and name to follow the convention:
+    Crowbar expects the view file location and name to follow the convention:
     ```
     [barclamp_name]/crowbar_engine/barclamp_[barclamp_name]/app/views/barclamp_[barclamp_name]/node_roles/_[@role.name].html.haml
     ```

@@ -187,6 +187,7 @@ en:
       No success information for proposal: No success information for proposal
       duplicate_elements_in_role: Duplicate elements detected in role
       unknown_node: Unable to find any node named 
+      unknown_cluster: Unable to find any cluster named 
 
   docs:
     root: Master Index

@@ -165,6 +165,129 @@ class ServiceObject
   end
 
 #
+# Helper related to clusters
+#
+
+  # There's no way to have the core of crowbar not know about clusters. This
+  # means that we have a loose dependency (in terms of architecture) on the
+  # pacemaker barclamp here.
+  #
+  # Some of this could probably be moved to pacemaker_service.rb and then we'd
+  # call it from here. But that still wouldn't be really clean.
+
+  def pacemaker_clusters
+    @pacemaker_clusters ||= begin
+      clusters = {}
+      RoleObject.find_roles_by_name("pacemaker-config-*").each do |role|
+        clusters[role.inst] = role
+      end
+      clusters
+    end
+  end
+
+  def is_cluster?(element)
+    element.start_with? "cluster:"
+  end
+
+  def cluster_name(element)
+    if is_cluster? element
+      element.gsub("cluster:", "")
+    else
+      nil
+    end
+  end
+
+  def cluster_exists?(element)
+    if is_cluster? element
+      clusters = pacemaker_clusters
+      exists = !clusters[cluster_name(element)].nil?
+    else
+      exists = false
+    end
+
+    exists
+  end
+
+  def expand_nodes(items)
+    nodes = []
+    failures = []
+
+    clusters = pacemaker_clusters
+
+    items.each do |item|
+      if is_cluster? item
+        unless cluster_exists? item
+          failures << item
+        else
+          name = cluster_name(item)
+          %w(pacemaker-cluster-founder pacemaker-cluster-member).each do |role_name|
+            cluster_nodes = clusters[name].override_attributes["pacemaker"]["elements"][role_name] rescue []
+            nodes = nodes.concat(cluster_nodes)
+          end
+        end
+      else
+        nodes << item
+      end
+    end
+
+    [nodes, failures]
+  end
+
+  ## Helpers to use in apply_role_pre_chef_call
+
+  def role_expand_elements(role, role_name)
+    nodes = role.override_attributes[@bc_name]["elements"][role_name] rescue []
+    expanded_nodes = role.override_attributes[@bc_name]["elements_expanded"][role_name] rescue []
+    nodes ||= []
+    expanded_nodes ||= []
+
+    if nodes.empty? || expanded_nodes.empty?
+      has_expanded = false
+      all_nodes = nodes
+    else
+      has_expanded = (expanded_nodes.sort != nodes.sort)
+      all_nodes = expanded_nodes
+    end
+
+    [nodes, all_nodes, has_expanded]
+  end
+
+  def allocate_virtual_ips_for_networks(name, domain, networks)
+    return if networks.nil? || networks.empty?
+
+    net_svc = NetworkService.new @logger
+
+    networks.each do |network|
+      net_svc.allocate_virtual_ip "default", network, "host", "#{name}.#{domain}"
+    end
+  end
+
+  def allocate_cluster_virtual_ips_for_networks(cluster, networks)
+    nodes, failures = expand_nodes(cluster)
+    n = NodeObject.find_node_by_name(nodes.first)
+
+    allocate_virtual_ips_for_networks("cluster-#{cluster_name(cluster)}", n[:domain], networks)
+  end
+
+  def ensure_dns_uptodate
+    # We need to make sure DNS is updated in some cases (if a recipe has code
+    # to contact the virtual name, for instance)
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
+  end
+
+  def prepare_role_for_cluster_vip_networks(role, networks)
+    role.default_attributes["pacemaker"] ||= {}
+    role.default_attributes["pacemaker"]["haproxy"] ||= {}
+    role.default_attributes["pacemaker"]["haproxy"]["networks"] ||= {}
+
+    networks.each do |network|
+      role.default_attributes["pacemaker"]["haproxy"]["networks"][network] = true
+    end
+
+    role.default_attributes["pacemaker"]["haproxy"]["enabled"] = true
+  end
+
+#
 # Helper routines for queuing
 #
 
@@ -172,6 +295,11 @@ class ServiceObject
   def elements_to_nodes_to_roles_map(elements)
     nodes_map = {}
     elements.each do |role_name, nodes|
+      nodes, failures = expand_nodes(nodes)
+      unless failures.nil? || failures.empty?
+        @logger.debug "elements_to_nodes_to_roles_map: skipping items that we failed to expand: #{failures.join(", ")}"
+      end
+
       nodes.each do |node_name|
         if NodeObject.find_node_by_name(node_name).nil?
           @logger.debug "elements_to_nodes_to_roles_map: skipping deleted node #{node_name}"
@@ -574,6 +702,7 @@ class ServiceObject
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes
       dep[@bc_name]["elements"] = {}
+      dep[@bc_name].delete("elements_expanded")
       @logger.debug "#{inst} proposal has a crowbar-committing key" if dep[@bc_name]["config"].has_key? "crowbar-committing"
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
@@ -761,10 +890,16 @@ class ServiceObject
         raise I18n.t('proposal.failures.duplicate_elements_in_role') + " " + role
       end
 
-      uniq_elements.each do |node_name|
-        nodes = NodeObject.find_nodes_by_name node_name
-        if nodes.nil? || nodes.empty?
-          raise I18n.t('proposal.failures.unknown_node') + " " + node_name
+      uniq_elements.each do |element|
+        if is_cluster? element
+          unless cluster_exists? element
+            raise I18n.t('proposal.failures.unknown_cluster') + " " + cluster_name(element)
+          end
+        else
+          nodes = NodeObject.find_nodes_by_name element
+          if nodes.nil? || nodes.empty?
+            raise I18n.t('proposal.failures.unknown_node') + " " + element
+          end
         end
       end
     end
@@ -919,13 +1054,40 @@ class ServiceObject
 
     @logger.debug "delay empty - running proposal"
 
+    # expand items in elements that are not nodes
+    expanded_new_elements = {}
+    new_deployment["elements"].each do |role_name, nodes|
+      expanded_new_elements[role_name], failures = expand_nodes(nodes)
+      unless failures.nil? || failures.empty?
+        @logger.fatal("apply_role: Failed to expand items #{failures.inspect} for role \"#{role_name}\"")
+        message = "Failed to apply the proposal: cannot expand list of nodes for role \"#{role_name}\", following items do not exist: #{failures.join(", ")}"
+        update_proposal_status(inst, "failed", message)
+        process_queue unless in_queue
+        return [ 405, message ]
+      end
+    end
+    new_elements = expanded_new_elements
+
+    # save list of expanded elements, as this is needed when we look at the
+    # old role
+    if new_elements != new_deployment["elements"]
+      new_deployment["elements_expanded"] = new_elements
+    else
+      new_deployment.delete("elements_expanded")
+    end
+
     # make sure the role is saved
     role.save
 
     # Build a list of old elements
     old_elements = {}
     old_deployment = old_role.override_attributes[@bc_name] unless old_role.nil?
-    old_elements = old_deployment["elements"] unless old_deployment.nil?
+    unless old_deployment.nil?
+      old_elements = old_deployment["elements_expanded"]
+      if old_elements.nil?
+        old_elements = old_deployment["elements"]
+      end
+    end
     element_order = old_deployment["element_order"] if (!old_deployment.nil? and element_order.nil?)
 
     @logger.debug "old_deployment #{old_deployment.pretty_inspect}"

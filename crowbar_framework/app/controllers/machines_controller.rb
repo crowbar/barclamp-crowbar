@@ -17,8 +17,6 @@
 #
 
 class MachinesController < BarclampController
-  self.help_contents = Array.new(superclass.help_contents)
-
   before_filter :set_cloud_domain
 
   before_filter :load_machine_or_render_not_found,

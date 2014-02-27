@@ -19,7 +19,7 @@
  */
 
 jQuery(document).ready(function($) {
-  $('.list-group-item a').live('click', function(event) {
+  $('.list-group-item a').on('click', function(event) {
     $('.list-group-item').removeClass('selected');
     $(this).parents('.list-group-item').addClass('selected');
 
@@ -28,7 +28,7 @@ jQuery(document).ready(function($) {
     );
   });
 
-  $('[data-group-add]').live('submit', function(event) {
+  $('[data-group-add]').on('submit', function(event) {
     var $el = $(event.target);
     var $input = $el.find('input[name=group]');
 
@@ -66,11 +66,10 @@ jQuery(document).ready(function($) {
 
           if ($.inArray($node.data('id'), inserted) < 0) {
             $.post(
-              decodeURI(
-                $node.data('update')
-              ).format(
-                  $group.data('id')
-                ),
+              $node.data('update'),
+              {
+                group: $group.data('id')
+              },
               function() {
                 if ($group.data('id') == 'AUTOMATIC') {
                   location.reload();
@@ -115,7 +114,7 @@ jQuery(document).ready(function($) {
     event.preventDefault();
   });
 
-  $('[data-group-delete]').live('click', function(event) {
+  $('[data-group-delete]').on('click', function(event) {
     var $el = $(event.target);
     var $panel = $el.parents('.group-panel');
 

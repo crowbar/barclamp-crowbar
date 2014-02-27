@@ -257,7 +257,7 @@ module NodesHelper
 
         result.push [
           switch_title,
-          link_to(switch_label, switch_path(:node => @node.handle))
+          link_to(switch_label, switch_network_path(:id => @node.handle))
         ]
       end
     end

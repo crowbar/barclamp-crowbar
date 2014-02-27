@@ -21,9 +21,6 @@ unless Rails.env.production?
   namespace :rubocop do
     desc "Run rubocop"
     Rubocop::RakeTask.new(:run) do |task|
-      #task.patterns = ['lib/**/*.rb']
-      #task.formatters = ['files']
-      #task.fail_on_error = false
     end
   end
 end

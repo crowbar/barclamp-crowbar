@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
 
   $('[data-default]').each(function() {
     $(this).val(
-      $(this).attr('data-default')
+      $(this).data('default')
     );
   });
 
@@ -31,7 +31,7 @@ jQuery(document).ready(function($) {
     var key = $(this).data('sslkey');
     var cert = $(this).data('sslcert');
 
-    $(switcher).live('change', function() {
+    $(switcher).on('change', function() {
       var val = $(this).val();
 
       if (val == true || val == 'true' || val == 'https') {
@@ -41,7 +41,7 @@ jQuery(document).ready(function($) {
       }
     }).trigger('change');
 
-    $(target).live('change', function() {
+    $(target).on('change', function() {
       var $parent = $(
         '#{0}_certfile, #{1}_keyfile, #{2}_insecure'.format(
           prefix,
@@ -81,7 +81,7 @@ jQuery(document).ready(function($) {
     ]
   });
 
-  $('[data-blockui]').live('submit', function(event) {
+  $('[data-blockui]').on('submit', function(event) {
     $.blockUI({
       css: {
         border: 'none',
@@ -96,7 +96,7 @@ jQuery(document).ready(function($) {
     });
   });
 
-  $('[data-checkall]').live('change', function(event) {
+  $('[data-checkall]').on('change', function(event) {
     var checker = $(event.target).data('checkall');
 
     if (event.target.checked) {
@@ -106,7 +106,7 @@ jQuery(document).ready(function($) {
     }
   });
 
-  $('[data-showit]').live('change keyup', function(event) {
+  $('[data-showit]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('showit-target').toString().split(';');
@@ -130,7 +130,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-hideit]').live('change keyup', function(event) {
+  $('[data-hideit]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('hideit-target').toString().split(';');
@@ -154,7 +154,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-enabler]').live('change keyup', function(event) {
+  $('[data-enabler]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('enabler-target').toString().split(';');
@@ -174,7 +174,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-disabler]').live('change keyup', function(event) {
+  $('[data-disabler]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('disabler-target').toString().split(';');
@@ -194,7 +194,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-toggle-action]').live('click', function(e) {
+  $('[data-toggle-action]').on('click', function(e) {
     var target = '[data-toggle-target="{0}"]'.format(
       $(this).data('toggle-action')
     );

@@ -34,6 +34,7 @@ gem 'delayed_job'
 gem 'delayed_job_active_record'
 
 gem 'jquery-rails'
+gem 'jquery-validation-rails'
 
 group :development do
   gem "rails-erd"

@@ -194,15 +194,33 @@ class NodeRole < ActiveRecord::Base
     Rails.logger.info("Role: Binding parent #{new_parent.name} to #{self.name}")
     parents << new_parent
   end
-
+  
+  # Return the current user modified data.
+  # If we are in proposed state and current data is nil
+  # prepopulate the data from the template.
+  # 
+  # Otherwise return parsed raw data if possible or {}
+  # 
+  # @return [Hash] current user data hash 
   def data
     raw = current_data
-    raw.nil? ? {} : JSON.parse(raw.data)
+    _data = {}
+    if (raw.nil? && self.proposed?)
+       _data = (self.data  = self.role.template)
+    elsif (!raw.nil?)
+       _data =  JSON.parse(raw.data)
+    end
+    _data
   end
-
+  
+  # User data mutator 
+  # 
+  # @param [Hash, #arg] contents the contents to reverse 
+  # @return [Hash] the contents reversed lexically 
+  # @raise [Exception] If not in proposed state or system deployment, or if parsing fails
   def data=(arg)
-    raise I18n.t('node_role.cannot_edit_data') unless snapshot.proposed?
-    arg = JSON.generate(arg) if arg.is_a? Hash
+    raise I18n.t('node_role.cannot_edit_data') unless self.snapshot.proposed? || self.deployment.system?
+    arg = JSON.generate(arg) if arg.is_a? Hash #TODO if arg is a hash seems a to a bit of shuffling between hashes and json strings
     ## TODO Validate the config file
     raise I18n.t('node_role.data_parse_error') unless true
     new_data(:data, arg)
@@ -210,9 +228,9 @@ class NodeRole < ActiveRecord::Base
 
   def data_update(val)
     NodeRole.transaction do
-      d = data
+      d = self.data
       d.deep_merge!(val)
-      data = d
+      self.data = d
     end
   end
 

@@ -14,7 +14,7 @@
         = link_to t('.retry'), node_role_retry_path(@node_role.id), :class => 'button', :method=>:put
 
 
-= form_for :node_role, :'data-remote' => true, :url => node_role_path(:id=>@node_role), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic" } do |f|
+= form_for :node_role, :'data-remote' => true, :url => node_role_path(:id=>@node_role), :html => { :method=>:put, :'data-type' => 'html',  :class => "formtastic", :id => "frm_node_role" } do |f|
   - if @node_role.proposed?
     %p{:style => 'float:right'}
       %input.button{:type => "submit", :name => "save", :value => t('.save')}
@@ -54,3 +54,18 @@
 
 %h3= t '.runlog'
 %pre= @node_role.runlog
+- if @node_role.proposed?
+  :javascript
+    $(function() {
+      $("#frm_node_role").validate({
+        rules: rules,
+        messages: messages
+      });
+      
+      $.validator.addMethod("validate_password",
+        function(value, element) {
+          return /^[A-Za-z0-9\d=!\-@._*]*$/.test(value); // consists of only these
+          // && /[a-z]/.test(value) // has a lowercase letter
+          //  && /\d/.test(value) // has a digit
+      });
+    });

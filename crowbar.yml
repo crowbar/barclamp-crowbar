@@ -38,25 +38,42 @@ crowbar:
 
 nav:
   primary:
-    - [ nodes, root_path ]
-    - [ network, network_path ]
-    - [ barclamps, barclamp_modules_path ]
-    - [ utils, utils_path ]
-    - [ help, '/crowbar_users_guide.pdf' ]
+    nodes:
+      route: dashboard_path
+    network:
+      route: switch_network_path
+      params:
+        id: default
+    barclamps:
+      route: crowbar_barclamps_path
+    utils:
+      route: utils_path
+    help:
+      route: docs_path
   nodes:
-    - [ dashboard, dashboard_path ]
-    - [ list, nodes_list_path ]
-    - [ families, nodes_families_path ]
+    dashboard:
+      route: dashboard_path
+    list:
+      route: list_nodes_path
+    families:
+      route: families_nodes_path
   barclamps:
-    - [ all_bc, barclamp_modules_path ]
-    - [ crowbar_bc, crowbar_barclamp_path ]
+    all_bc:
+      route: crowbar_barclamps_path
+    crowbar_bc:
+      route: barclamps_path
+      params:
+        controller: crowbar
   utils:
-    - [ util_logs, utils_path ]
+    util_logs:
+      route: utils_path
   help:
-    - [ crowbar_wiki, 'https://github.com/crowbar/crowbar/wiki/' ]
-    - [ crowbar_ug, '/crowbar_users_guide.pdf' ]
-    - [ crowbar_dg, '/crowbar_deployment_guide.pdf' ]
-    - [ documentation, docs_path ]
+    documentation:
+      route: docs_path
+    crowbar_wiki:
+      path: https://github.com/crowbar/crowbar/wiki/
+    crowbar_ug:
+      path: /docs/crowbar_users_guide.pdf
 
 debs:
   ubuntu-12.04:

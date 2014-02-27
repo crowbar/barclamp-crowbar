@@ -43,7 +43,7 @@ module TagHelper
           )
         end
       end
-    )
+    ).html_safe
   end
 
   # Directly generate a tag for the glyphicons web font icons

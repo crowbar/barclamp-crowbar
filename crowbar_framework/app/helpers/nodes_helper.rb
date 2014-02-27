@@ -257,7 +257,7 @@ module NodesHelper
 
         result.push [
           switch_title,
-          link_to(switch_label, switch_network_path(:id => @node.handle))
+          link_to(switch_label.html_safe, switch_network_path(:id => @node.handle))
         ]
       end
     end
@@ -296,7 +296,7 @@ module NodesHelper
                     :li,
                     "#{key}: #{addresses[key]}"
                   )
-                }.join("\n")
+                }.join("\n").html_safe
               )
             end
 
@@ -306,7 +306,7 @@ module NodesHelper
                 network
               ),
               address_list
-            ].join("\n")
+            ].join("\n").html_safe
           end
 
           result.push content_tag(
@@ -322,23 +322,23 @@ module NodesHelper
         :li,
         t(".no_entry"),
         :class => "empty"
-      )
+      ).html_safe
     end
 
     content_tag(
       :ul,
-      entries.join("\n")
-    )
+      entries.join("\n").html_safe
+    ).html_safe
   end
 
   def node_wall_list(node)
     [].tap do |result|
       intended_roles_text = {
-        "no_role"    => t("nodes.form.no_role"),
+        "no_role" => t("nodes.form.no_role"),
         "controller" => t("nodes.form.controller"),
-        "compute"    => t("nodes.form.compute"),
-        "network"    => t("nodes.form.network"),
-        "storage"    => t("nodes.form.storage")
+        "compute" => t("nodes.form.compute"),
+        "network" => t("nodes.form.network"),
+        "storage" => t("nodes.form.storage")
       }
 
       intended_role = node.intended_role
@@ -407,7 +407,7 @@ module NodesHelper
             content_tag(
               :li,
               proposal
-            )
+            ).html_safe
           end
 
           result.push content_tag(
@@ -416,17 +416,17 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
-          )
+            ].join("\n").html_safe
+          ).html_safe
         end
       end.join("\n")
     end
 
     content_tag(
       :ul,
-      list_result,
+      list_result.html_safe,
       :class => "barclamps"
     )
   end
@@ -492,7 +492,7 @@ module NodesHelper
             content_tag(
               :li,
               role
-            )
+            ).html_safe
           end
 
           result.push content_tag(
@@ -501,17 +501,17 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
-          )
+            ].join("\n").html_safe
+          ).html_safe
         end
       end.join("\n")
     end
 
     content_tag(
       :ul,
-      list_result,
+      list_result.html_safe,
       :class => "roles"
     )
   end
@@ -527,7 +527,7 @@ module NodesHelper
             t(".bmc"),
             "https://#{path}"
           )
-        )
+        ).html_safe
       end
 
       unless node["crowbar"]["links"].nil?
@@ -539,7 +539,7 @@ module NodesHelper
               link,
               :target => "_blank"
             )
-          )
+          ).html_safe
         end
       end
     end
@@ -549,12 +549,12 @@ module NodesHelper
         :li,
         t(".no_entry"),
         :class => "empty"
-      )
+      ).html_safe
     end
 
     content_tag(
       :ul,
-      link_list.join("\n")
+      link_list.join("\n").html_safe
     )
   end
 

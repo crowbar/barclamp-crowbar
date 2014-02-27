@@ -1,14 +1,14 @@
-.navbar.navbar-inverse.navbar-fixed-top{ :role => "navigation" }
+.navbar.navbar-inverse.navbar-fixed-top{ role: "navigation" }
   .container
     .navbar-header
-      %button.navbar-toggle{ "data-toggle" => "collapse", "data-target" => ".navbar-collapse" }
+      %button.navbar-toggle{ data: { toggle: "collapse", target: ".navbar-collapse" } }
         %span.sr-only
           Navigation
         %span.icon-bar
         %span.icon-bar
         %span.icon-bar
 
-      = link_to page_title, root_path, :class => "navbar-brand"
+      = link_to page_title, root_path, class: "navbar-brand"
 
     .collapse.navbar-collapse.navbar-right
       = render_navigation expand_all: true, skip_if_empty: true, renderer: Utils::BootstrapNavigation

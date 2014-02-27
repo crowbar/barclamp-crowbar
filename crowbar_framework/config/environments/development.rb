@@ -17,6 +17,8 @@
 #
 
 Crowbar::Application.configure do
+  config.reload_classes_only_on_change = false
+
   config.cache_classes = false
   config.eager_load = false
   config.consider_all_requests_local = true

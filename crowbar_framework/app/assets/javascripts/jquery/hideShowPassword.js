@@ -19,7 +19,7 @@
         show: 'infer',
 
         // Set to true to create an inner toggle for this input.
-        innerToggle: true,
+        innerToggle: false,
 
         // Specify an event for the input that should make the innerToggle
         // visible. If false, the toggle will be immediately visible.
@@ -41,10 +41,18 @@
         // When innerToggle is true, the input needs to be wrapped in
         // a containing element. You can specify the class name of this
         // element here. Useful for custom styles.
-        wrapperClass: 'toggle-password-wrapper',
+        wrapperClass: 'hideShowPassword-wrapper',
+
+        // If innerToggle is true, this will set the wrapper's width.
+        // If true, it will be set to the input element's computed width
+        // only if that width differs from its own.
+        // If any other non-false or non-null value, the width will be
+        // set to the value.
+        // If false, the width will never be set.
+        wrapperWidth: true,
 
         // Class name for the inner toggle.
-        toggleClass: 'toggle-password',
+        toggleClass: 'hideShowPassword-toggle',
 
         // The states object includes settings specific to the "shown"
         // or "hidden" states of the input field.
@@ -55,13 +63,13 @@
           shown: {
 
             // Class to apply to the input element.
-            inputClass: 'toggle-password-shown',
+            inputClass: 'hideShowPassword-shown',
 
             // Event to trigger on the input.
             eventName: 'passwordShown',
 
             // Class to apply to the toggle.
-            toggleClass: 'toggle-password-hide',
+            toggleClass: 'hideShowPassword-toggle-hide',
 
             // Text of the toggle element.
             toggleText: 'Hide',
@@ -78,9 +86,9 @@
 
           // Settings when text is hidden (show: false).
           hidden: {
-            inputClass: 'toggle-password-hidden',
+            inputClass: 'hideShowPassword-hidden',
             eventName: 'passwordHidden',
-            toggleClass: 'toggle-password-show',
+            toggleClass: 'hideShowPassword-toggle-show',
             toggleText: 'Show',
             attr: { 'type': 'password' }
           }
@@ -190,14 +198,16 @@
             marginLeft: 0
           }
         , eventName = ''
-        , elWidth
         , wrapper
         , toggle;
 
       el.wrap($('<div />').addClass(options.wrapperClass).css(wrapperCSS));
       wrapper = el.parent();
-      if (wrapper[options.widthMethod]() !== elWidth) {
+
+      if (options.wrapperWidth === true && wrapper[options.widthMethod]() !== elWidth) {
         wrapper.css('width', elWidth);
+      } else if (options.wrapperWidth !== false && options.wrapperWidth !== null) {
+        wrapper.css('width', options.wrapperWidth);
       }
 
       toggle = $('<div />').addClass(options.toggleClass);

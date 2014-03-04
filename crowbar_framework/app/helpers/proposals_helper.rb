@@ -175,6 +175,30 @@ module ProposalsHelper
     end
   end
 
+  def link_to_proposal_with_name(barclamp, proposal)
+    if proposal.nil?
+      t("proposal.actions.link", :name => display_name_for(barclamp))
+    else
+      link_to(
+        t("proposal.actions.link", :name => proposal),
+        url_for_proposal_with_name(barclamp, proposal),
+        :class => "proposal #{barclamp}"
+      )
+    end
+  end
+
+  def url_for_proposal_with_name(barclamp, proposal)
+    if proposal.nil?
+      ""
+    else
+      url_for(
+        :controller => barclamp,
+        :action => "proposal_show",
+        :id => proposal
+      )
+    end
+  end
+
   protected
 
   def retrieve_proposal_for(barclamp)

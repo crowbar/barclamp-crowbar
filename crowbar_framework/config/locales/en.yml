@@ -91,6 +91,7 @@ en:
       delete_proposal_success: Successfully deleted the proposal
       delete_proposal_failure: Failed to delete the proposal
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
+      available_clusters: Available Clusters
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
       blockui_message: Processing, please wait...

@@ -1,5 +1,6 @@
 #nodelist {
-  .dragzone {
+  .dragzone,
+  .dropzone {
     ul {
       margin: 0;
       padding: 0;
@@ -8,15 +9,26 @@
         margin-bottom: 15px;
         vertical-align: middle;
 
-        .glyphicon {
-          font-size: 17px;
-        }
-
         &:last-child {
           margin-bottom: 0;
         }
+
+        .glyphicon {
+          font-size: 17px;
+          vertical-align: middle;
+
+          &.glyphicon-cloud,
+          &.glyphicon-hdd {
+            margin-right: 5px;
+            color: #888888;
+          }
+        }
       }
     }
+  }
+
+  .dragzone {
+
   }
 
   .dropzone {
@@ -34,8 +46,6 @@
     }
 
     ul {
-      margin: 0;
-      padding: 0;
       list-style-type: none;
       min-height: 30px;
       display: block;
@@ -56,16 +66,6 @@
 
       li {
         padding: ($padding-base-vertical - 1px) $padding-base-horizontal;
-        margin-bottom: 15px;
-        vertical-align: middle;
-
-        .glyphicon {
-          font-size: 15px;
-        }
-
-        &:last-child {
-          margin-bottom: 0;
-        }
       }
     }
   }

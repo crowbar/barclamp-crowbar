@@ -151,6 +151,9 @@ debs:
     #- sun-java6-jre
     - dpkg-dev
     - screen
+    - libssl-dev
+    - libpcre3
+    - libpcre3-dev
     - alien
 #    - cabextract
 #    - expect
@@ -233,6 +236,9 @@ rpms:
     - ruby-shadow
     # sudo stuff
     - sudo
+    - openssl-devel
+    - pcre
+    - pcre-devel
     - screen
 #    - expect
 #    - cabextract
@@ -269,4 +275,4 @@ gems:
     - kwalify
 
 pips:
-  - uwsgi==1.9
+  - uwsgi>=1.9.11

@@ -21,12 +21,14 @@
 if (!String.prototype.localize) {
   String.prototype.localize = function() {
     values = {
-      'barclamp.node_selector.duplicate': 'Node {0} is already assigned to {1}',
-      'barclamp.node_selector.outdated': 'There have been deleted old nodes removed, please save this deployment.',
+      'barclamp.node_selector.node_duplicate': 'Node {0} is already assigned to {1}',
+      'barclamp.node_selector.cluster_duplicate': 'Cluster {0} is already assigned to {1}',
+      'barclamp.node_selector.outdated': 'There have been deleted old nodes removed, please save this proposal.',
       'barclamp.node_selector.no_admin': 'Failed to assign {0} to {1}, no admin nodes allowed',
+      'barclamp.node_selector.no_cluster': 'Failed to assign {0} to {1}, no clusters allowed',
       'barclamp.node_selector.unique': 'Failed to assign {0} to {1}, it\'s already assigned to another role',
       'barclamp.node_selector.zero': 'Failed to assign {0} to {1}, no assignment allowed',
-      'barclamp.node_selector.max_count': 'Failed to assign {0} to {1}, maximum of allowed nodes reached'
+      'barclamp.node_selector.max_count': 'Failed to assign {0} to {1}, maximum of allowed nodes/clusters reached'
     };
 
     if (values[this]) {

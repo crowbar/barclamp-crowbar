@@ -70,6 +70,7 @@
             node,
             source.data('alias'),
             source.data('admin'),
+            source.data('cluster'),
             true
           );
         } else {
@@ -113,6 +114,7 @@
           $node.data('id'),
           $node.data('alias'),
           $node.data('admin'),
+          $node.data('cluster'),
           false
         );
       }
@@ -182,7 +184,7 @@
     );
   };
 
-  NodeList.prototype.insertNode = function(role, id, alias, admin, initial) {
+  NodeList.prototype.insertNode = function(role, id, alias, admin, cluster, initial) {
     var self = this;
     var $role = $(self.dataBag.roleTarget.format(role));
 
@@ -198,8 +200,14 @@
 
     if (!initial) {
       if ($.inArray(id, self.json.elements[role]) >= 0) {
+        if (cluster) {
+          var key = 'barclamp.node_selector.cluster_duplicate';
+        } else {
+          var key = 'barclamp.node_selector.node_duplicate';
+        }
+
         return self.errorMessage(
-          'barclamp.node_selector.duplicate'.localize().format(
+          key.localize().format(
             alias,
             role
           )
@@ -212,6 +220,17 @@
         if (admin) {
           return self.errorMessage(
             'barclamp.node_selector.no_admin'.localize().format(
+              alias,
+              role
+            )
+          );
+        }
+      }
+
+      if (constraints.cluster == undefined || !constraints.cluster) {
+        if (cluster) {
+          return self.errorMessage(
+            'barclamp.node_selector.no_cluster'.localize().format(
               alias,
               role
             )
@@ -272,7 +291,8 @@
         role: role,
         id: id,
         alias: alias,
-        admin: admin
+        admin: admin,
+        cluster: cluster
       })
     );
 

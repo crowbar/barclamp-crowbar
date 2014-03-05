@@ -98,7 +98,13 @@ module BarclampsHelper
     if raw
       render :partial => 'barclamp/edit_attributes_raw'
     else
-      render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
+      if Rails.root.join("app", "views", "barclamp", proposal.barclamp, "_edit_attributes.html.haml").file?
+        render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
+      else
+        # Currently this view does not exist, but should be the 
+        # fallback way to show a generic form or message
+        render :partial => "barclamp/general/edit_attributes"
+      end
     end
   rescue ::ActionView::MissingTemplate
     render :partial => "barclamp/edit_attributes_raw"
@@ -116,7 +122,11 @@ module BarclampsHelper
     if raw
       render :partial => 'barclamp/edit_deployment_raw'
     else
-      render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
+      if Rails.root.join("app", "views", "barclamp", proposal.barclamp, "_edit_deployment.html.haml").file?
+        render :partial => "barclamp/#{proposal.barclamp}/edit_deployment"
+      else
+        render :partial => "barclamp/general/edit_deployment"
+      end
     end
   rescue ::ActionView::MissingTemplate
     render :partial => "barclamp/edit_deployment_raw"

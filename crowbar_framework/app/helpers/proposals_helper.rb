@@ -18,7 +18,7 @@
 
 module ProposalsHelper
   def create_proposal_form_for(proposal, &block)
-    url = create_proposal_barclamp_path(
+    url = proposal_create_path(
       :controller => proposal
     )
 
@@ -35,7 +35,7 @@ module ProposalsHelper
   end
 
   def update_proposal_form_for(proposal, &block)
-    url = update_proposal_barclamp_path(
+    url = proposal_update_path(
       :id => proposal.name,
       :controller => proposal.barclamp
     )

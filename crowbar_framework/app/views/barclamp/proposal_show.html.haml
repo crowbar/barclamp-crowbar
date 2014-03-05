@@ -1,7 +1,7 @@
 .row
   .col-xs-12
     %h1.page-header
-      = display_led_for(:unknown, @proposal.prop, status_proposals_barclamp_path(:id => @proposal.prop, :barclamp => @proposal.barclamp, :name => @proposal.name))
+      = display_led_for(:unknown, @proposal.prop, proposal_status_path(:id => @proposal.prop, :controller => @proposal.barclamp, :name => @proposal.name))
 
       = t(".title")
 

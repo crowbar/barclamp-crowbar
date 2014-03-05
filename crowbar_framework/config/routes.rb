@@ -58,7 +58,7 @@ Crowbar::Application.routes.draw do
       end
     end
 
-    resources :networks, only: [] do
+    resources :networks, only: [], controller: :network do
       member do 
         get :switch
         get :vlan
@@ -80,7 +80,7 @@ Crowbar::Application.routes.draw do
   match "network/:controller/1.0", action: "network", as: :network_barclamp, via: [:get, :post]
   match "docs/:controller/1.0", action: "docs", as: :docs_barclamp, via: [:get, :post]
 
-  constraints(id: /.*/ ) do
+  constraints(id: /[^\/]/ ) do
     get "crowbar/:controller/1.0", action: :index, as: :barclamps
     get "crowbar/:controller/1.0/:id", action: :show, as: :barclamp_show
     delete "crowbar/:controller/1.0/:id", action: :delete, as: :barclamp_delete
@@ -91,12 +91,13 @@ Crowbar::Application.routes.draw do
     match "help", action: "help", as: :help, via: [:get]
 
     match "proposals", action: "proposals", as: :proposals, via: [:get]
+    match "proposals/status", action: "proposal_status", as: :proposals_status, via: [:get]
     match "proposals", action: "proposal_create", as: :proposal_create, via: [:put]
     match "proposals/:id", action: "proposal_update", as: :proposal_update, via: [:post]
     match "proposals/:id", action: "proposal_show", as: :proposal_show, via: [:get]
+    match "proposals/status/:id/:name", action: "proposal_status", as: :proposal_status, via: [:get]
     match "proposals/delete/:id", action: "proposal_delete", as: :proposal_delete, via: [:get]
     match "proposals/dequeue/:id", action: "proposal_dequeue", as: :proposal_dequeue, via: [:get]
-    match "proposals/status/:id", action: "proposal_status", as: :proposal_status, via: [:get]
     match "proposals/commit/:id", action: "proposal_commit", as: :proposal_commit, via: [:post]
 
     match "elements", action: "elements", as: :elements, via: [:get]

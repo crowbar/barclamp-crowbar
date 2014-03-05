@@ -25,14 +25,14 @@
                     - if proposal[:active]
                       = link_to proposal_name.titlecase, show_barclamp_path(:controller => barclamp_name, :id => proposal_name)
                     - else
-                      = link_to proposal_name.titlecase, proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name)
+                      = link_to proposal_name.titlecase, proposal_show_path(:controller => barclamp_name, :id => proposal_name)
                   %td.col-xs-8
                     - if proposal[:status] == "failed"
                       = t(".failed", :message => proposal[:message])
                     - else
                       = proposal[:description]
                   %td.col-xs-1.actions
-                    = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
+                    = link_to t("proposal.actions.edit"), proposal_show_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
 
             - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
               - create_proposal_form_for(barclamp_name) do

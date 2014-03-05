@@ -131,7 +131,7 @@ describe CrowbarController do
       it "redirects to propsal path on failure" do
         CrowbarService.any_instance.stubs(:show_active).returns([500, "Error"])
         get :show, :id => "default"
-        response.should redirect_to(proposal_barclamp_path(:controller => "crowbar", :id => "default"))
+        response.should redirect_to(proposal_show_path(:controller => "crowbar", :id => "default"))
       end
     end
   end

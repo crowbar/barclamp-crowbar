@@ -38,13 +38,13 @@ module NodesHelper
     [].tap do |result|
       result.push content_tag(
         :strong,
-        t("total", :count => values.sum, :scope => "nodes.index.status_pie")
+        t("total", :count => values.sum, :scope => "dashboard.index.status_pie")
       )
 
-      result.push t("ready", :count => values[0], :scope => "nodes.index.status_pie") if values[0] > 0
-      result.push t("unknown", :count => values[1], :scope => "nodes.index.status_pie") if values[1] > 0
-      result.push t("unready", :count => values[2], :scope => "nodes.index.status_pie") if values[2] > 0
-      result.push t("pending", :count => values[3], :scope => "nodes.index.status_pie") if values[3] > 0
+      result.push t("ready", :count => values[0], :scope => "dashboard.index.status_pie") if values[0] > 0
+      result.push t("unknown", :count => values[1], :scope => "dashboard.index.status_pie") if values[1] > 0
+      result.push t("unready", :count => values[2], :scope => "dashboard.index.status_pie") if values[2] > 0
+      result.push t("pending", :count => values[3], :scope => "dashboard.index.status_pie") if values[3] > 0
     end.join(tag(:br))
   end
 

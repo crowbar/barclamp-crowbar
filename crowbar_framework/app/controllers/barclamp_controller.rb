@@ -188,7 +188,7 @@ class BarclampController < ApplicationController
   def index
     respond_to do |format|
       format.html { 
-        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
+        @title ||= "#{@bc_name.titlecase}" 
         @count = -1
         members = {}
         list = BarclampCatalog.members(@bc_name)
@@ -295,13 +295,14 @@ class BarclampController < ApplicationController
   def proposal_status
     proposals = {}
     i18n = {}
+
     begin
-      active = RoleObject.active(params[:barclamp], params[:name])
+      active = RoleObject.active(params[:controller], params[:name])
       result = if params[:id].nil? 
         result = ProposalObject.all 
         result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
       else
-        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
+        [ProposalObject.find_proposal(params[:controller], params[:name])]
       end
       result.each do |prop|
         prop_id = "#{prop.barclamp}_#{prop.name}"

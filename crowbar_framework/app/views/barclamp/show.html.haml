@@ -1,7 +1,7 @@
 .row
   .col-xs-12
     %h1.page-header
-      = display_led_for(:unknown, @role.prop, status_proposals_barclamp_path(:id => @role.prop, :barclamp => @role.barclamp, :name => @role.inst))
+      = display_led_for(:unknown, @role.prop, proposal_status_path(:id => @role.prop, :controller => @role.barclamp, :name => @role.inst))
 
       - if @service_object.simple_proposal_ui? and not @role.allow_multiple_proposals?
         = link_to @role.display_name, barclamp_modules_path(:id => @role.barclamp)

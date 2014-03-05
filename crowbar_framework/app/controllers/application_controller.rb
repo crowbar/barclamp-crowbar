@@ -21,14 +21,7 @@ require 'uri'
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   helper :all
-
-  layout Proc.new { |controller| 
-    if controller.request.xhr?
-      false
-    else
-      "application"
-    end
-  }
+  layout :detect_layout
 
   class << self
     def help_contents
@@ -158,6 +151,14 @@ class ApplicationController < ActionController::Base
 
 
   protected
+
+  def detect_layout
+    if request.xhr?
+      false
+    else
+      "application"
+    end
+  end
 
   def log_exception(e)
     lines = [ e.message ] + e.backtrace

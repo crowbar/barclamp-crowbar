@@ -16,4 +16,7 @@
               %b
                 = chef_server_role_link name
           %td
-            = node_links_for(value).join(", ")
+            - clusters = value.select {|n| @service_object.is_cluster? n}
+            - nodes = value - clusters
+            - cluster_links = clusters.map {|c| link_to_proposal_with_name(:pacemaker, @service_object.cluster_name(c))}
+            = [cluster_links, node_links_for(value)].flatten.join(", ")

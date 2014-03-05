@@ -209,19 +209,19 @@ module NodesHelper
         show_name = if @node.switch_name.nil?
           false
         else
-          @node.switch_name >= 0
+          @node.switch_name.to_i != -1
         end
 
         show_port = if @node.switch_port.nil?
           false
         else
-          @node.switch_port >= 0
+          @node.switch_port.to_i != -1
         end
 
         show_unit = if @node.switch_unit.nil?
           false
         else
-          @node.switch_unit >= 0
+          @node.switch_unit.to_i != -1
         end
 
         if @node.switch_unit.nil?

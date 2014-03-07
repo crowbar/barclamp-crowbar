@@ -860,6 +860,17 @@ class ServiceObject
     end
   end
 
+  #
+  # Ensure that the proposal contains an odd number of nodes for role
+  #
+  def validate_count_as_odd_for_role(proposal, role)
+    elements = proposal["deployment"][@bc_name]["elements"]
+
+    if not elements.has_key?(role) or elements[role].length.to_i.even?
+      validation_error("Need an odd number of #{role} nodes.")
+    end
+  end
+
   def validate_dep_proposal_is_active(bc, proposal)
     const_service = Kernel.const_get("#{bc.camelize}Service")
     service = const_service.new @logger

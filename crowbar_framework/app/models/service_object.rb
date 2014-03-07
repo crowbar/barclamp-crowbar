@@ -23,6 +23,8 @@ require 'json'
 require 'hash_only_merge'
 
 class ServiceObject
+  extend Forwardable
+
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
   extend CrowbarOffline
 
@@ -37,6 +39,22 @@ class ServiceObject
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false
+  end
+
+  def_delegator self, :role_constraints
+
+  class << self
+    def role_constraints
+      # We are using this single assignment to define this hash really 
+      # only once. This surrounding block allows two things:
+      #   - we can modify the constraints from somewhere else, and the
+      #     changes will stay available
+      #   - we can add expensive calls too that get only executed once.
+      # This method should be extended from subclassing service objects.
+      @role_constraint ||= begin
+        {}
+      end
+    end
   end
 
   def validation_error message

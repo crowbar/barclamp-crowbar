@@ -15,7 +15,7 @@ module Dsl
         )
       end
 
-      def attributes_field
+      def deployments_field
         tag(
           :input,
           :id => "proposal_attributes",

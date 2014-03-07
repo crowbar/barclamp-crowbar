@@ -46,9 +46,11 @@ class ServiceObject
   class << self
     def role_constraints
       # We are using this single assignment to define this hash really 
-      # only once. And with this surrounding block we can add expensive 
-      # calls too that get only executed once. Feel free to extend this 
-      # method within your service objects.
+      # only once. This surrounding block allows two things:
+      #   - we can modify the constraints from somewhere else, and the
+      #     changes will stay available
+      #   - we can add expensive calls too that get only executed once.
+      # This method should be extended from subclassing service objects.
       @role_constraint ||= begin
         {}
       end

@@ -832,10 +832,67 @@ class ServiceObject
   # saved. This should be used if the errors are easy to fix in the proposal.
   #
   # This can be overridden to get better validation if needed. Call it
-  # after your overriden method for error handling.
+  # after your overriden method for error handling and constraints validation.
   #
   def validate_proposal_after_save proposal
+    validate_proposal_constraints proposal
     handle_validation_errors
+  end
+
+  #
+  # Ensure that the proposal respects constraints defined for the roles
+  #
+  def validate_proposal_constraints proposal
+    elements = proposal["deployment"][@bc_name]["elements"]
+    nodes_is_admin = {}
+
+    role_constraints.keys.each do |role|
+      next unless elements.has_key?(role)
+
+      if role_constraints[role].has_key?("count")
+        len = elements[role].length
+        max_count = role_constraints[role]["count"]
+        if max_count >= 0 && len > max_count
+	  validation_error("Role #{role} can accept up to #{max_count} elements only.")
+        end
+      end
+
+      if role_constraints[role]["unique"]
+        issue = false
+        elements[role].each do |element|
+          elements.keys.each do |loop_role|
+            next if loop_role == role
+            if elements[loop_role].include? element
+	      validation_error("Elements assigned to #{role} cannot be assigned to another role.")
+              issue = true
+              break
+            end
+          end
+          break if issue
+        end
+      end
+
+      unless role_constraints[role]["admin"]
+        elements[role].each do |element|
+          next if is_cluster? element
+          unless nodes_is_admin.has_key? element
+            node = NodeObject.find_node_by_name(element)
+            nodes_is_admin[element] = (!node.nil? && node.admin?)
+          end
+          if nodes_is_admin[element]
+	    validation_error("Role #{role} does not accept admin nodes.")
+            break
+          end
+        end
+      end
+
+      unless role_constraints[role]["cluster"]
+        clusters = elements[role].select {|e| is_cluster? e}
+	unless clusters.empty?
+	  validation_error("Role #{role} does not accept clusters.")
+	end
+      end
+    end
   end
 
   #

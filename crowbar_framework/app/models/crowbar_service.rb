@@ -314,7 +314,7 @@ class CrowbarService < ServiceObject
   def process_raid_claims(node)
     unless node.raid_type == "single"
       node["filesystem"].each do |device, attributes|
-        if device =~ /\/dev\/(md\d+)$/
+        if device =~ /\/dev\/md\d+$/
           process_raid_device node, device, attributes
         else
           process_raid_member node, device, attributes
@@ -328,7 +328,7 @@ class CrowbarService < ServiceObject
   def process_raid_device(node, device, attributes)
     if ["/", "/boot"].include? attributes["mount"]
       unique_name = node.unique_device_for(
-        $1.to_s
+        ::File.basename(device.to_s).to_s
       )
 
       next if unique_name.nil?

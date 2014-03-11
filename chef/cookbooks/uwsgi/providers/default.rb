@@ -20,7 +20,7 @@ action :enable do
   proxy_addr = provisioner[:fqdn]
   proxy_port = provisioner[:provisioner][:web_port]
 
-  execute "pip install --index-url http://#{proxy_addr}:#{proxy_port}/files/pip_cache/simple/ uwsgi<2.0.0" do
+  execute "pip install --index-url http://#{proxy_addr}:#{proxy_port}/files/pip_cache/simple/ 'uwsgi<2.0.0'" do
     not_if "pip freeze 2>&1 | grep -i uwsgi"
   end
 

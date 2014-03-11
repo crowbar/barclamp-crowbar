@@ -18,7 +18,7 @@
 #
 
 class CrowbarService < ServiceObject
-  attr_accessor :save_it
+  attr_accessor :transition_save_node
 
   #
   # Below are the parts to handle transition requests.
@@ -27,7 +27,7 @@ class CrowbarService < ServiceObject
   # It will create a node and assign it an admin address.
   #
   def transition(inst, name, state)
-    self.save_it = false
+    self.transition_save_node = false
 
     return [404, "No state specified"] if state.nil?
     # FIXME: validate state
@@ -52,7 +52,7 @@ class CrowbarService < ServiceObject
       if state == "discovering" and node.allocated.nil?
         @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
         node.allocated = false
-        self.save_it = true
+        self.transition_save_node = true
       end
 
       if state == "readying"
@@ -78,11 +78,11 @@ class CrowbarService < ServiceObject
 
         node.crowbar["state"] = state
         node.crowbar["state_change_time"] = Time.new.to_s
-        self.save_it = true
+        self.transition_save_node = true
         pop_it = true
       end
 
-      node.save if save_it
+      node.save if transition_save_node
     ensure
       release_lock f
     end
@@ -335,7 +335,7 @@ class CrowbarService < ServiceObject
       unless node.disk_owner(unique_name) == "OS"
         node.disk_release unique_name, node.disk_owner(unique_name)
         node.disk_claim unique_name, "OS"
-        self.save_it = true
+        self.transition_save_node = true
       end
     end
   end
@@ -351,7 +351,7 @@ class CrowbarService < ServiceObject
       unless node.disk_owner(unique_name) == "Raid"
         node.disk_release unique_name, node.disk_owner(unique_name)
         node.disk_claim unique_name, "Raid"
-        self.save_it = true
+        self.transition_save_node = true
       end
     end
   end
@@ -367,7 +367,7 @@ class CrowbarService < ServiceObject
 
     unless boot_device == node.crowbar_wall["boot_device"]
       node.boot_device boot_device
-      self.save_it = true
+      self.transition_save_node = true
     end
   end
 end

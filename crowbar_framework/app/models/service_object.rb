@@ -28,6 +28,7 @@ class ServiceObject
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
 
   attr_accessor :bc_name
+  attr_accessor :logger
 
   def initialize(thelogger)
     @bc_name = 'unknown'
@@ -1439,5 +1440,13 @@ class ServiceObject
     rescue Chef::Exceptions::ValidationFailed => e2
       [400, e2.message]
     end
+  end
+
+  def only_if_admin(node)
+    yield if node.admin?
+  end
+
+  def only_unless_admin(node)
+    yield unless node.admin?
   end
 end

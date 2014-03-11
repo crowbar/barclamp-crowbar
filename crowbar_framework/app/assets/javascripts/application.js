@@ -108,66 +108,90 @@ jQuery(document).ready(function($) {
 
   $('[data-showit]').live('change keyup', function(event) {
     var $el = $(event.target);
-    var $target = $($el.data('showit-target'));
-    var values = $el.data('showit').toString().split(',');
 
-    if (!$el.data('showit-direct')) {
-      $target = $target.parent();
-    }
+    var targets = $el.data('showit-target').toString().split(';');
+    var values = $el.data('showit').toString().split(';');
 
-    if ($target) {
-      if ($.inArray($el.val(), values) >= 0) {
-        $target.show(100).removeAttr('disabled');
-      } else {
-        $target.hide(100).attr('disabled', 'disabled');
+    $.each(targets, function(index, target) {
+      var selects = values[index].toString().split(',');
+      var $target = $(target);
+
+      if (!$el.data('showit-direct')) {
+        $target = $target.parent();
       }
-    }
+
+      if ($target) {
+        if ($.inArray($el.val(), selects) >= 0) {
+          $target.show(100).removeAttr('disabled');
+        } else {
+          $target.hide(100).attr('disabled', 'disabled');
+        }
+      }
+    });
   }).trigger('change');
 
   $('[data-hideit]').live('change keyup', function(event) {
     var $el = $(event.target);
-    var $target = $($el.data('hideit-target'));
-    var values = $el.data('hideit').toString().split(',');
 
-    if (!$el.data('hideit-direct')) {
-      $target = $target.parent();
-    }
+    var targets = $el.data('hideit-target').toString().split(';');
+    var values = $el.data('hideit').toString().split(';');
 
-    if ($target) {
-      if ($.inArray($el.val(), values) >= 0) {
-        $target.hide(100).attr('disabled', 'disabled');
-      } else {
-        $target.show(100).removeAttr('disabled');
+    $.each(targets, function(index, target) {
+      var selects = values[index].toString().split(',');
+      var $target = $(target);
+
+      if (!$el.data('hideit-direct')) {
+        $target = $target.parent();
       }
-    }
+
+      if ($target) {
+        if ($.inArray($el.val(), selects) >= 0) {
+          $target.hide(100).attr('disabled', 'disabled');
+        } else {
+          $target.show(100).removeAttr('disabled');
+        }
+      }
+    });
   }).trigger('change');
 
   $('[data-enabler]').live('change keyup', function(event) {
     var $el = $(event.target);
-    var $target = $($el.data('enabler-target'));
-    var values = $el.data('enabler').toString().split(',');
 
-    if ($target) {
-      if ($.inArray($el.val(), values) >= 0) {
-        $target.removeAttr('disabled');
-      } else {
-        $target.attr('disabled', 'disabled');
+    var targets = $el.data('enabler-target').toString().split(';');
+    var values = $el.data('enabler').toString().split(';');
+
+    $.each(targets, function(index, target) {
+      var selects = values[index].toString().split(',');
+      var $target = $(target);
+
+      if ($target) {
+        if ($.inArray($el.val(), selects) >= 0) {
+          $target.removeAttr('disabled');
+        } else {
+          $target.attr('disabled', 'disabled');
+        }
       }
-    }
+    });
   }).trigger('change');
 
   $('[data-disabler]').live('change keyup', function(event) {
     var $el = $(event.target);
-    var $target = $($el.data('disabler-target'));
-    var values = $el.data('disabler').toString().split(',');
 
-    if ($target) {
-      if ($.inArray($el.val(), values) >= 0) {
-        $target.attr('disabled', 'disabled');
-      } else {
-        $target.removeAttr('disabled');
+    var targets = $el.data('disabler-target').toString().split(';');
+    var values = $el.data('disabler').toString().split(';');
+
+    $.each(targets, function(index, target) {
+      var selects = values[index].toString().split(',');
+      var $target = $(target);
+
+      if ($target) {
+        if ($.inArray($el.val(), selects) >= 0) {
+          $target.attr('disabled', 'disabled');
+        } else {
+          $target.removeAttr('disabled');
+        }
       }
-    }
+    });
   }).trigger('change');
 
   $('[data-toggle-action]').live('click', function(e) {

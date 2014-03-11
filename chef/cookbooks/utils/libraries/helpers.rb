@@ -1,8 +1,8 @@
 module CrowbarHelper
   def self.get_host_for_admin_url(node, use_cluster = false)
-    if use_cluster && defined?(PacemakerHelper)
+    if use_cluster && defined?(CrowbarPacemakerHelper)
       # loose dependency on the pacemaker cookbook
-      cluster_vhostname = PacemakerHelper.cluster_vhostname(node)
+      cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
       "admin.#{cluster_vhostname}.#{node[:domain]}"
     else
       node[:fqdn]
@@ -10,9 +10,9 @@ module CrowbarHelper
   end
 
   def self.get_host_for_public_url(node, use_ssl, use_cluster = false)
-    if use_cluster && defined?(PacemakerHelper)
+    if use_cluster && defined?(CrowbarPacemakerHelper)
       # loose dependency on the pacemaker cookbook
-      cluster_vhostname = PacemakerHelper.cluster_vhostname(node)
+      cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
 
       public_name = nil
       public_fqdn = "public.#{cluster_vhostname}.#{node[:domain]}"

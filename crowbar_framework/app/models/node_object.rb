@@ -215,6 +215,7 @@ class NodeObject < ChefObject
   end
 
   def raid_type=(value)
+    @node["crowbar_wall"] ||= {}
     @node["crowbar_wall"]["raid_type"] = value
   end
 
@@ -223,6 +224,7 @@ class NodeObject < ChefObject
   end
 
   def raid_disks=(value)
+    @node["crowbar_wall"] ||= {}
     @node["crowbar_wall"]["raid_disks"] = value
   end
 
@@ -1104,13 +1106,9 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
-  def export
-    NodeObject.dump @node, 'node', name
-  end
-
   def disk_owner(device)
     if device
-      crowbar_wall[:claimed_disks][device][:owner] rescue nil
+      crowbar_wall[:claimed_disks][device][:owner] rescue ""
     else
       nil
     end
@@ -1120,12 +1118,14 @@ class NodeObject < ChefObject
     if device
       crowbar_wall[:claimed_disks] ||= {}
 
-      if (crowbar_wall[:claimed_disks][device][:owner] rescue nil)
-        return crowbar_wall[:claimed_disks][device][:owner] == owner
+      unless disk_owner(device).to_s.empty?
+        return disk_owner(device) == owner
       end
 
       Rails.logger.debug "Claiming #{device} for #{owner}"
-      crowbar_wall[:claimed_disks][device] = { :owner => owner }
+
+      crowbar_wall[:claimed_disks][device] ||= {}
+      crowbar_wall[:claimed_disks][device][:owner] = owner
 
       true
     else
@@ -1142,12 +1142,12 @@ class NodeObject < ChefObject
     if device
       crowbar_wall[:claimed_disks] ||= {}
 
-      unless (crowbar_wall[:claimed_disks][device][:owner] rescue "") == owner
+      unless disk_owner(device) == owner
         return false
       end
 
       Rails.logger.debug "Releasing #{device} from #{owner}"
-      crowbar_wall[:claimed_disks].delete device
+      crowbar_wall[:claimed_disks][device][:owner] = nil
 
       true
     else

@@ -23,8 +23,6 @@ require 'json'
 require 'hash_only_merge'
 
 class ServiceObject
-  extend Forwardable
-
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
 
   attr_accessor :bc_name
@@ -41,19 +39,15 @@ class ServiceObject
     false
   end
 
-  def_delegator self, :role_constraints
+  def role_constraints
+    self.class.role_constraints
+  end
 
   class << self
+    # This method should be overriden from subclassing service objects 
+    # and return the constraints related to this specific service.
     def role_constraints
-      # We are using this single assignment to define this hash really 
-      # only once. This surrounding block allows two things:
-      #   - we can modify the constraints from somewhere else, and the
-      #     changes will stay available
-      #   - we can add expensive calls too that get only executed once.
-      # This method should be extended from subclassing service objects.
-      @role_constraint ||= begin
-        {}
-      end
+      {}
     end
   end
 

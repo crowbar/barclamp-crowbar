@@ -117,9 +117,9 @@ class ServiceObject
       # but it ensures a random seed first.
       # Note that we only accept (a subset of) ASCII characters; otherwise, we
       # get unicode characters that chef cannot store.
-      pw << SecureRandom.random_bytes(1).gsub(/[^a-zA-Z0-9\-_]/, '')
+      pw << SecureRandom.base64(size).gsub("=", "")
     end
-    pw
+    pw[-size,size]
   end
 
 #

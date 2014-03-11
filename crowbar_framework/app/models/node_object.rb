@@ -1140,7 +1140,9 @@ class NodeObject < ChefObject
     meta = @node["block_device"][device]
 
     if meta and meta["disks"]
-      result = %w(by-path by-id by-uuid).map do |type|
+      # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name 
+      # within the deployer barclamp To return always similar values.
+      result = %w(by-id by-path).map do |type|
         if meta["disks"][type] and not meta["disks"][type].empty?
           "#{type}/#{meta["disks"][type].first}"
         end

@@ -95,7 +95,8 @@ module NodesHelper
             :alias => node.alias,
             :title => node.description(false, true),
             :admin => node.admin?,
-            :group => node.group
+            :group => node.group,
+            :cluster => false
           } if node.group == group or group.nil?
         end
       end.sort_by{ |k, v| v[:alias] }

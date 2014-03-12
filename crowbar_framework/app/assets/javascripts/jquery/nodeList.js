@@ -60,11 +60,11 @@
       var toRemove = [];
 
       $.each(nodes, function(index, node) {
-        if ($.inArray(node, self.handles) >= 0) {
-          var source = self.$root.find(
-            '.dragzone li[data-id=\'{0}\']'.format(node)
-          );
+        var source = self.$root.find(
+          '.dragzone li[data-id=\'{0}\']'.format(node)
+        );
 
+        if ($.inArray(node, self.handles) >= 0) {
           self.insertNode(
             role,
             node,
@@ -73,6 +73,7 @@
             true
           );
         } else {
+          $.event.trigger('nodeListNodeUnallocated', { role: role, id: id, alias: source.data('alias') });
           toRemove.push(index);
         }
       });
@@ -131,6 +132,7 @@
       var role = $node.data('role');
 
       if (self.json.elements[role]) {
+        $.event.trigger('nodeListNodeUnallocated', { role: role, id: id, alias: alias });
         self.json.elements[role].removeValue(id);
       }
 
@@ -142,12 +144,23 @@
       event.preventDefault();
       var role = $(this).data('id');
 
-      $(
+      var $role = $(
         'ul[data-droppable=true][data-id={0}]'.format(
           role
         )
-      ).html('');
+      );
 
+      var nodes = $role.find('[data-role={0}]'.format(role));
+
+      $.each(nodes, function(index, node) {
+        var $node = $(node);
+        var id = $node.data('id');
+        var alias = $node.data('alias');
+
+        $.event.trigger('nodeListNodeUnallocated', { role: role, id: id, alias: alias });
+      });
+
+      $role.html('');
       self.json.elements[role] = [];
       self.updateJson();
     });
@@ -286,6 +299,8 @@
       self.json.elements[role].push(id);
       self.updateJson();
     }
+
+    $.event.trigger('nodeListNodeAllocated', { role: role, id: id, alias: alias });
 
     return true;
   };

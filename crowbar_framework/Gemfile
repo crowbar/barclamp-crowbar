@@ -54,14 +54,25 @@ gem "therubyracer", "~> 0.12.1"
 gem "chef"
 
 group :development, :test do
+  platforms :ruby_19 do
+    gem "debugger", "~> 1.6.5"
+  end
+
+  platforms :ruby_20 do
+    gem "byebug", "~> 2.7.0"
+  end
+
   gem "debugger", "~> 1.6.5"
   gem "rspec-rails", "~> 2.14.1"
 end
 
 group :development do
+  platforms :ruby do
+    gem "binding_of_caller", "~> 0.7.2"
+  end
+
   gem "guard", "~> 2.4.0"
   gem "better_errors", "~> 1.1.0"
-  gem "binding_of_caller", "~> 0.7.2"
   gem "meta_request", "~> 0.2.8"
   gem "quiet_assets", "~> 1.0.2"
   gem "pry-rails", "~> 0.3.2"

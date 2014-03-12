@@ -41,20 +41,22 @@ gem "gli", "~> 2.9.0"
 gem "cocaine", "~> 0.5.3"
 gem "hashie", "~> 2.0.5"
 gem "activerecord-session_store", "~> 0.1.0"
-gem "chef", "~> 10.30.4"
 
+# These gems maybe only used for Ubuntu or something like that. For SLES 
+# we need to add it as a build dependency to precompile the assets before 
+# packaging the barclamps itself.
 gem "uglifier", "~> 2.2.1"
 gem "therubyracer", "~> 0.12.1"
-
-group :development, :test do
-  gem "debugger", "~> 1.6.5"
-  gem "rspec-rails", "~> 2.14.1"
-end
 
 # We are not adding any version here because the SLES and Ubuntu chef 
 # packaging differ for the version, but we need this to load the chef 
 # gem correctly within the initializer.
 gem "chef"
+
+group :development, :test do
+  gem "debugger", "~> 1.6.5"
+  gem "rspec-rails", "~> 2.14.1"
+end
 
 group :development do
   gem "guard", "~> 2.4.0"

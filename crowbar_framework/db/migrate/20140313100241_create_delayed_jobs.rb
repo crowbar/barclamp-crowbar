@@ -16,16 +16,22 @@
 # limitations under the License.
 #
 
-class CreateSessions < ActiveRecord::Migration
+class CreateDelayedJobs < ActiveRecord::Migration
   def change
-    create_table :sessions, force: true do |t|
-      t.string :session_id, null: false
-      t.text :data
+    create_table :delayed_jobs, force: true do |t|
+      t.integer :priority, default: 0, null: false
+      t.integer :attempts, default: 0, null: false
+      t.string :queue, null: true
+      t.text :handler, null: false
+      t.text :last_error, null: true
+      t.string :locked_by, null: true
+      t.datetime :run_at
+      t.datetime :locked_at
+      t.datetime :failed_at
 
       t.timestamps
     end
 
-    add_index :sessions, :session_id, unique: true
-    add_index :sessions, :updated_at
+    add_index :delayed_jobs, [:priority, :run_at], name: "delayed_jobs_priority"
   end
 end

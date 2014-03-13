@@ -30,7 +30,7 @@
                     - if proposal[:status] == "failed"
                       = t(".failed", :message => proposal[:message])
                     - else
-                      = proposal[:description].capitalize
+                      = proposal[:description]
                   %td.col-xs-1.actions
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
 

@@ -40,6 +40,12 @@ class ServiceObject
     false
   end
 
+  # This provides the suggested name for new proposals.
+  # OVERRIDE AS NEEDED!
+  def self.suggested_proposal_name
+    I18n.t("proposal.items.default")
+  end
+
   def role_constraints
     self.class.role_constraints
   end

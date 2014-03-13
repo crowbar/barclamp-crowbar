@@ -26,6 +26,9 @@ class ==^BC-MODEL==Service < ServiceObject
   
   #if barclamp allows multiple proposals OVERRIDE
   # def self.allow_multiple_proposals?
+
+  #if barclamp should have a suggested name different than "proposal" for new proposals, OVERRIDE
+  # def self.suggested_proposal_name
   
   def create_proposal
     @logger.debug("==*BC-MODEL== create_proposal: entering")

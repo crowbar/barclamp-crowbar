@@ -243,13 +243,11 @@ class BarclampController < ApplicationController
     barclamps.each do |name, details|
       props = ProposalObject.find_proposals name
       modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
-      begin
-        modules[name][:allow_multiple_proposals] = Kernel.const_get("#{name.camelize}Service").method(:allow_multiple_proposals?).call
-      rescue
-        Rails.logger.debug "WARNING: could not resolve barclamp #{name}.  Please correct the naming to be the object name when camelized"
-        modules[name][:allow_multiple_proposals] = false
-        modules[name][:description] = "#{modules[name][:description]} !Dev Mode Note: Barlcamp does not have matching #{name.camelize}Service object.  You may want to set 'barclamp:\\user_managed: false' in the crowbar.yml file" if RAILS_ENV === 'development'
-      end
+
+      bc_service = @template.barclamp_service(name)
+      modules[name][:allow_multiple_proposals] = bc_service.send(:allow_multiple_proposals?)
+      suggested_proposal_name = bc_service.send(:suggested_proposal_name)
+
       ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
         status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
@@ -262,8 +260,7 @@ class BarclampController < ApplicationController
       end
 
       # find a free proposal name for what would be the next proposal
-      modules[name][:suggested_proposal_name] = I18n.t("proposal.items.default")
-      suggested_proposal_name = I18n.t("proposal.items.default")
+      modules[name][:suggested_proposal_name] = suggested_proposal_name
       (1..20).each do |x|
         possible_name = "#{suggested_proposal_name}_#{x}"
         next if active.include?("#{name}_#{possible_name}")

@@ -251,6 +251,22 @@
         }
       }
 
+      if (constraints.conflicts_with !== undefined && constraints.conflicts_with) {
+        var conflicts = $.grep(constraints.conflicts_with, function(conflicting_role) {
+          return !!self.json.elements[conflicting_role] && ($.inArray(id, self.json.elements[conflicting_role]) >= 0);
+        });
+
+        if (conflicts.length > 0) {
+          return self.errorMessage(
+            'barclamp.node_selector.conflicting_roles'.localize().format(
+              alias,
+              role,
+              constraints.conflicts_with.join(', ')
+            )
+          );
+        }
+      }
+
       if (constraints.unique !== undefined && constraints.unique)  {
         var inserted = $.unique(
           $.map(

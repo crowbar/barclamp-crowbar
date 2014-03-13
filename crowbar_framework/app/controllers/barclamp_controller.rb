@@ -259,7 +259,18 @@ class BarclampController < ApplicationController
           modules[name][:proposals][prop.name][:message] = prop.fail_reason 
           modules[name][:expand] = true
         end
-      end        
+      end
+
+      # find a free proposal name for what would be the next proposal
+      modules[name][:suggested_proposal_name] = I18n.t("proposal.items.default")
+      suggested_proposal_name = I18n.t("proposal.items.default")
+      (1..20).each do |x|
+        possible_name = "#{suggested_proposal_name}_#{x}"
+        next if active.include?("#{name}_#{possible_name}")
+        next if modules[name][:proposals].keys.include?(possible_name)
+        modules[name][:suggested_proposal_name] = possible_name
+        break
+      end if modules[name][:allow_multiple_proposals]
     end
     modules
   end

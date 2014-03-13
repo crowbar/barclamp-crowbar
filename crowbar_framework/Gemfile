@@ -41,6 +41,7 @@ gem "gli", "~> 2.9.0"
 gem "cocaine", "~> 0.5.3"
 gem "hashie", "~> 2.0.5"
 gem "activerecord-session_store", "~> 0.1.0"
+gem "delayed_job_active_record", "~> 4.0.0"
 
 # These gems maybe only used for Ubuntu or something like that. For SLES 
 # we need to add it as a build dependency to precompile the assets before 
@@ -62,7 +63,6 @@ group :development, :test do
     gem "byebug", "~> 2.7.0"
   end
 
-  gem "debugger", "~> 1.6.5"
   gem "rspec-rails", "~> 2.14.1"
 end
 

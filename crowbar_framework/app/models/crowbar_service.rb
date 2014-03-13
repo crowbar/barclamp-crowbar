@@ -331,7 +331,7 @@ class CrowbarService < ServiceObject
         ::File.basename(device.to_s).to_s
       )
 
-      next if unique_name.nil?
+      return if unique_name.nil?
 
       unless node.disk_owner(unique_name) == "OS"
         node.disk_release unique_name, node.disk_owner(unique_name)
@@ -347,7 +347,7 @@ class CrowbarService < ServiceObject
         ::File.basename(device.to_s).to_s.gsub(/[0-9]+$/, "")
       )
 
-      next if unique_name.nil?
+      return if unique_name.nil?
 
       unless node.disk_owner(unique_name) == "Raid"
         node.disk_release unique_name, node.disk_owner(unique_name)

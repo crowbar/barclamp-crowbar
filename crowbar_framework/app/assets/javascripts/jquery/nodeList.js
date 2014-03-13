@@ -96,7 +96,7 @@
     this.$root.find("[data-draggable=true]").draggable({
       opacity: 0.7,
       helper: "clone",
-      revert: "valid"
+      revert: "invalid"
     });
   };
 

@@ -6,13 +6,13 @@
       = t(".title")
 
       .btn-group.pull-right
-        - BarclampCatalog.barclamps.each do |bc, details|
-          - if ("#{bc.camelize}Controller".constantize.new.methods.include?("export") rescue false)
-            = link_to t("nav.#{bc}_export"), utils_export_path(:controller => bc), :class => "btn btn-default"
+        - BarclampCatalog.barclamps.each do |barclamp, details|
+          - if ("#{barclamp.camelize}Controller".constantize.new.methods.include?("export") rescue false)
+            = link_to t("nav.#{barclamp}_export"), export_barclamp_path(:controller => barclamp), :class => "btn btn-default"
 
-        = link_to t("nav.util_chef"), export_chef_path, :class => "btn btn-default"
+        = link_to t("nav.util_chef"), chef_utils_path, :class => "btn btn-default"
         - if suse_system?
-          = link_to t("nav.util_supportconfig"), export_supportconfig_path, :class => "btn btn-default"
+          = link_to t("nav.util_supportconfig"), supportconfig_utils_path, :class => "btn btn-default"
 
 - if @export.waiting
   .alert.alert-success
@@ -30,11 +30,11 @@
           - files.sort.reverse.each do |file|
             %li.list-group-item
               - if @export.current == file
-                = link_to "#{file} #{badge_tag(t("new"))}", "/export/#{file}"
+                = link_to "#{file} #{badge_tag(t("new"))}".html_safe, "/export/#{file}"
               - else
                 = link_to file, "/export/#{file}"
 
-              = link_to icon_tag("trash"), utils_files_path(:id => file), :title => t(".delete_hint"), :class => "pull-right"
+              = link_to icon_tag("trash"), util_path(:id => file), :method => :delete, :title => t(".delete_hint"), :class => "pull-right"
 - else
   .alert.alert-info
     = t(".none_exported")

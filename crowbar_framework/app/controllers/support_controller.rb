@@ -35,12 +35,12 @@ class SupportController < ApplicationController
       :counter => 0,
       :current => params["file"].to_s.gsub("-DOT-", "."),
       :files => {
-        :logs => [],
+        :log => [],
         :cli => [],
         :chef => [],
         :other => [],
-        :support_configs => [],
-        :bc_import => []
+        :supportconfig => [],
+        :import => []
       }
     })
 
@@ -52,15 +52,15 @@ class SupportController < ApplicationController
       elsif filename =~ /^KEEP_THIS.*/
         next
       elsif filename =~ /^crowbar-logs-.*/
-        @export.files.logs.push filename
+        @export.files.log.push filename
       elsif filename =~ /^crowbar-cli-.*/
         @export.files.cli.push filename
       elsif filename =~ /^crowbar-chef-.*/
         @export.files.chef.push filename
       elsif filename =~ /(.*).import.log$/
-        @export.files.bc_import.push filename
+        @export.files.import.push filename
       elsif filename =~ /^supportconfig.*/
-        @export.files.support_configs.push filename
+        @export.files.supportconfig.push filename
       else
         @export.files.other.push filename
       end
@@ -88,61 +88,82 @@ class SupportController < ApplicationController
     redirect_to utils_url
   end
 
-  def export_supportconfig
-    begin
-      base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
-      filename = "#{base}.tbz"
+  def supportconfig
+    base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
+    filename = "#{base}.tbz"
 
-      pid = Process.fork do
-        begin
-          tmp = Rails.root.join("tmp", base).to_s
+    pid = Process.fork do
+      export = Cocaine::CommandLine.new("sudo", "-i supportconfig -Q -R :destination")
+      chown = Cocaine::CommandLine.new("sudo", "-i chown -R #{Process.uid}:#{Process.gid} :destination")
 
-          supportconfig = ["sudo", "-i", "supportconfig", "-Q", "-R", tmp]
-          chown = ["sudo", "-i", "chown", "-R", "#{Process.uid}:#{Process.gid}", tmp]
+      begin
+        export.run(
+          destination: Rails.root.join("tmp", base).to_s
+        )
 
-          ok  = system(*supportconfig)
-          ok &= system(*chown)
+        chown.run(
+          destination: Rails.root.join("tmp", base).to_s
+        )
 
-          tarball = Dir.glob("#{tmp}/*.tbz").first
-          File.rename tarball, export_dir.join(filename) if tarball && ok
-        rescue => e
-          Rails.logger.warn(e.message)
-        ensure
-          FileUtils.rm_rf(tmp)
-        end
+        File.rename Dir[Rails.root.join("tmp", base, "*.tbz").to_s].first, export_dir.join(filename).to_s
+      rescue Cocaine::ExitStatusError => e
+        flash[:alert] = t("support.export.fail", :error => e.message)
+      rescue => e
+        log_exception e
+      ensure
+        FileUtils.rm_rf Rails.root.join("tmp", base).to_s
       end
-
-      Process.detach(pid)
-      redirect_to utils_url(:waiting => true, :file => filename) and return
-    rescue StandardError => e
-      flash[:alert] = t("support.export.fail", :error => e.message)
     end
+
+    Process.detach(pid)
+    redirect_to utils_url(:waiting => true, :file => filename)
+  rescue StandardError => e
+    log_exception e
+    flash[:alert] = t("support.export.fail", :error => e.message)
 
     redirect_to utils_url
   end
 
-  def export_chef
-    begin
-      Rails.root.join("db").children.each do |file|
-        file.unlink if file.extname == ".json"
-      end
-
-      NodeObject.all.each { |n| n.export }
-      RoleObject.all.each { |r| r.export }
-      ProposalObject.all.each { |p| p.export }
-
-      filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
-
-      pid = Process.fork do
-        system "tar", "-czf", Rails.root.join("tmp", filename), Rails.root.join("db", "*.json").to_s
-        File.rename Rails.root.join("tmp", filename), export_dir.join(filename)
-      end
-
-      Process.detach(pid)
-      redirect_to utils_url(:waiting => true, :file => filename) and return
-    rescue StandardError => e
-      flash[:alert] = I18n.t("support.export.fail", :error => e.message)
+  def chef
+    Rails.root.join("db").children.each do |file|
+      file.unlink if file.extname == ".json"
     end
+
+    NodeObject.all.map(&:export)
+    RoleObject.all.map(&:export)
+    ProposalObject.all.map(&:export)
+
+    base = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
+    filename = "#{base}.tgz"
+
+    pid = Process.fork do
+      sources = Rails.root.join("db").children.map do |file|
+        file.basename if file.extname == ".json"
+      end.compact
+
+      export = Cocaine::CommandLine.new("tar", "-C :path -czf :destination #{sources.join(" ")}")
+
+      begin
+        export.run(
+          path: Rails.root.join("db").to_s, 
+          destination: Rails.root.join("tmp", filename).to_s
+        )
+
+        File.rename Rails.root.join("tmp", filename).to_s, export_dir.join(filename).to_s
+      rescue Cocaine::ExitStatusError => e
+        flash[:alert] = t("support.export.fail", :error => e.message)
+      rescue => e
+        log_exception e
+      ensure
+        FileUtils.rm_rf Rails.root.join("tmp", filename).to_s
+      end
+    end
+
+    Process.detach(pid)
+    redirect_to utils_url(:waiting => true, :file => filename)
+  rescue StandardError => e
+    log_exception e
+    flash[:alert] = I18n.t("support.export.fail", :error => e.message)
 
     redirect_to utils_url
   end

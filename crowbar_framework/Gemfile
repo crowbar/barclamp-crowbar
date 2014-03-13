@@ -52,7 +52,7 @@ gem "therubyracer", "~> 0.12.1"
 # We are not adding any version here because the SLES and Ubuntu chef 
 # packaging differ for the version, but we need this to load the chef 
 # gem correctly within the initializer.
-gem "chef"
+gem "chef", "~> 10.24.4"
 
 group :development, :test do
   platforms :ruby_19 do

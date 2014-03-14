@@ -50,7 +50,7 @@
                     - if proposal[:status] == "failed"
                       = t(".failed", :message => proposal[:message])
                     - else
-                      = proposal[:description].capitalize
+                      = proposal[:description]
                   %td.col-xs-1.actions
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
               - create_proposal_form_for(barclamp_name) do
@@ -58,7 +58,7 @@
                   %td.col-xs-1.status
                     %span.glyphicon.glyphicon-plus
                   %td.col-xs-2
-                    = text_field_tag :name, t("proposal.items.default"), :class => "form-control input-sm"
+                    = text_field_tag :name, barclamp[:suggested_proposal_name], :class => "form-control input-sm"
                   %td.col-xs-8
                     = text_field_tag :description, t(".created_on", :date => l(Time.now)), :class => "form-control input-sm"
                   %td.col-xs-1.actions

@@ -59,4 +59,54 @@ describe ServiceObject do
       service_object.instance_variable_get(:@validation_errors).should be_empty
     end
   end
+
+  describe "validate proposal constraints" do
+    let(:dns_proposal) { ProposalObject.find_proposal("dns", "default") }
+    let(:dns_service)  { so = ServiceObject.new(Logger.new("/dev/null")); so.bc_name = "dns"; so }
+
+    describe "count" do
+      it "limits the number of elements in a role" do
+        dns_service.stubs(:role_constraints).returns({ "dns-client" => { "count" => 0, "admin" => true } })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/accept up to 0 elements only/)
+      end
+    end
+
+    describe "admin" do
+      it "does not allow admin nodes to be assigned by default" do
+        dns_service.stubs(:role_constraints).returns({ "dns-client" => { } })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/does not accept admin nodes/)
+      end
+    end
+
+    describe "unique" do
+      it "limits the number of roles for an element to one" do
+        dns_service.stubs(:role_constraints).returns({ "dns-client" => { "unique" => true, "admin" => true } })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/cannot be assigned to another role/)
+      end
+    end
+
+    describe "cluster" do
+      it "does not allow clusters of nodes to be assigned" do
+        dns_service.stubs(:role_constraints).returns({ "dns-client" => { "cluster" => false, "admin" => true } })
+        dns_service.stubs(:is_cluster?).returns(true)
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/does not accept clusters/)
+      end
+    end
+
+    describe "conflicts_with" do
+      it "does not allow a node to be assigned to conflicting roles" do
+        dns_service.stubs(:role_constraints).returns({
+          "dns-server" => { "conflicts_with" => ["dns-client", "hawk-server"], "admin" => true },
+          "dns-client" => { "conflicts_with" => ["dns-server", "hawk-server"], "admin" => true },
+        })
+
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/cannot be assigned to both role/)
+      end
+    end
+  end
 end

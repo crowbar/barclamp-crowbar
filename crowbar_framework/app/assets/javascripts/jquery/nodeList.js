@@ -48,7 +48,7 @@
   };
 
   NodeList.prototype.retrieveInput = function() {
-    this.input = $('#proposal_development');
+    this.input = $('#proposal_deployment');
     this.json = JSON.parse(this.input.val());
   };
 

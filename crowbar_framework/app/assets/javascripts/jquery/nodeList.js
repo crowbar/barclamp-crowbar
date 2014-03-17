@@ -74,7 +74,7 @@
             true
           );
         } else {
-          $.event.trigger('nodeListNodeUnallocated', { role: role, id: id, alias: source.data('alias') });
+          $.event.trigger('nodeListNodeUnallocated', { role: role, id: source.data('id'), alias: source.data('alias') });
           toRemove.push(index);
         }
       });

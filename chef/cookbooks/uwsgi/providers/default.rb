@@ -6,15 +6,21 @@ action :enable do
   case node[:platform]
   when "debian", "ubuntu"
    package "python-dev"
+   package "libpcre3"
+   package "libpcre3-dev"
+   package "libssl-dev"
   else
    package "python-devel"
+   package "pcre"
+   package "pcre-devel"
+   package "openssl-devel"
   end  
 
   provisioner = search(:node, "roles:provisioner-server").first
   proxy_addr = provisioner[:fqdn]
   proxy_port = provisioner[:provisioner][:web_port]
 
-  execute "pip install --index-url http://#{proxy_addr}:#{proxy_port}/files/pip_cache/simple/ uwsgi==1.9" do
+  execute "pip install --index-url http://#{proxy_addr}:#{proxy_port}/files/pip_cache/simple/ 'uwsgi<2.0.0'" do
     not_if "pip freeze 2>&1 | grep -i uwsgi"
   end
 

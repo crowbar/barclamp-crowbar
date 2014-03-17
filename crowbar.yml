@@ -151,6 +151,9 @@ debs:
     #- sun-java6-jre
     - dpkg-dev
     - screen
+    - libssl-dev
+    - libpcre3
+    - libpcre3-dev
     - alien
 #    - cabextract
 #    - expect
@@ -233,6 +236,9 @@ rpms:
     - ruby-shadow
     # sudo stuff
     - sudo
+    - openssl-devel
+    - pcre
+    - pcre-devel
     - screen
 #    - expect
 #    - cabextract
@@ -247,8 +253,8 @@ gems:
     - rake
     - json-1.5.2
     - syslogger
-    - sass
-    - simple-navigation
+    - sass-(~>3.2.5)
+    - simple-navigation-3.11.0
     - haml-(~>3.1)
     - net-http-digest_auth
     - rails-2.3.18
@@ -269,4 +275,4 @@ gems:
     - kwalify
 
 pips:
-  - uwsgi==1.9
+  - uwsgi<2.0.0

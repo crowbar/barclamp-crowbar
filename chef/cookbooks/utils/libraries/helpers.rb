@@ -3,7 +3,7 @@ module CrowbarHelper
     if use_cluster && defined?(CrowbarPacemakerHelper)
       # loose dependency on the pacemaker cookbook
       cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
-      "admin.#{cluster_vhostname}.#{node[:domain]}"
+      "#{cluster_vhostname}.#{node[:domain]}"
     else
       node[:fqdn]
     end

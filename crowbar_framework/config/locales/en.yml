@@ -91,6 +91,7 @@ en:
       delete_proposal_success: Successfully deleted the proposal
       delete_proposal_failure: Failed to delete the proposal
       confirm_delete_proposal: Are you sure you wish to delete this proposal?
+      available_clusters: Available Clusters
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
       blockui_message: Processing, please wait...
@@ -187,6 +188,7 @@ en:
       No success information for proposal: No success information for proposal
       duplicate_elements_in_role: Duplicate elements detected in role
       unknown_node: Unable to find any node named 
+      unknown_cluster: Unable to find any cluster named 
 
   docs:
     root: Master Index

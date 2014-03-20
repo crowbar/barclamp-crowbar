@@ -24,16 +24,33 @@
 
     .row#nodelist{ "data-constraints" => local_assigns[:constraints].to_json }
       .col-xs-6.dragzone
+        - unless @service_object.available_clusters.empty?
+          %h4
+            = t("barclamp.proposal_show.available_clusters")
+
+          .form-group
+            %input.form-control.input-sm{ :type => "search", :placeholder => "Search", "data-listsearch" => "#nodelist .dragzone ul.clusters", :title => t(".filter") }
+
+          .form-group
+            %ul.clusters
+              - @service_object.available_clusters.each do |cluster_name, role|
+                - cluster_barclamp, cluster_proposal = @service_object.cluster_get_barclamp_and_proposal(cluster_name)
+                %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => cluster_name, "data-alias" => cluster_proposal, "data-cluster" => "true", "data-admin" => "false", :title => cluster_proposal }
+                  = icon_tag :cloud
+                  = cluster_proposal
+                  = link_to icon_tag("link"), url_for_proposal_with_name(cluster_barclamp, cluster_proposal), :title => t(".node_link", :alias => cluster_proposal), :class => "pull-right"
+
         %h4
-          = link_to t("barclamp.proposal_show.available_nodes"), dashboard_path, :title => t(".filter")
+          = t("barclamp.proposal_show.available_nodes")
 
         .form-group
-          %input.form-control.input-sm{ :type => "search", :placeholder => "Search", "data-listsearch" => "#nodelist .dragzone ul" }
+          %input.form-control.input-sm{ :type => "search", :placeholder => "Search", "data-listsearch" => "#nodelist .dragzone ul.nodes", :title => t(".filter") }
 
         .form-group
-          %ul
+          %ul.nodes
             - nodes_hash.each do |n, detail|
-              %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-admin" => detail[:admin].to_s, :title => (detail[:title] || t("not_set")) }
+              %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-cluster" => "false", "data-admin" => detail[:admin].to_s, :title => (detail[:title] || t("not_set")) }
+                = icon_tag :hdd
                 = detail[:alias]
                 = link_to icon_tag("link"), nodes_path(:selected => detail[:handle]), :title => t(".node_link", :alias => detail[:alias]), :class => "pull-right"
 
@@ -50,6 +67,12 @@
 
 %script#nodelist-item{ :type => "text/x-handlebars-template" }
   %li{ "data-draggable" => "false", "data-id" => "{{id}}", "data-alias" => "{{alias}}", "data-admin" => "{{admin}}", "data-role" => "{{role}}"  }
+    {{#if cluster}}
+    = icon_tag :cloud
+    {{else}}
+    = icon_tag :hdd
+    {{/if}}
+
     {{alias}}
     = link_to icon_tag("trash"), "#", :title => t(".node_remove", :alias => "{{alias}}"), :class => "pull-right delete"
 

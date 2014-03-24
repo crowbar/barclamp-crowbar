@@ -16,12 +16,11 @@
 # limitations under the License.
 #
 
-require 'uri'
-
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
-  helper :all
   layout :detect_layout
+
+  before_action :authenticate, if: :authenticate?
 
   class << self
     def help_contents
@@ -38,12 +37,65 @@ class ApplicationController < ActionController::Base
         )
       end
     end
+
+    def digest_users
+      if digest_valid?
+        @digest_users ||= digest_loader
+      else
+        @digest_users = digest_loader
+      end
+    end
+
+    def digest_realm
+      @digest_realm ||= "Crowbar"
+    end
+
+    def digest_realm=(value)
+      @digest_realm = value
+    end
+
+    def digest_stamp
+      @digest_stamp ||= Time.now
+    end
+
+    def digest_stamp=(value)
+      @digest_stamp = value
+    end
+
+    def digest_database
+      @digest_database ||= Rails.root.join("htdigest")
+    end
+
+    def digest_loader
+      {}.tap do |users|
+        digest_database.open("r") do |file|
+          file.each_line do |line|
+            next if line.strip.empty?
+            next if line.strip[0] == "#"
+
+            user, realm, password = line.split(":", 3).map(&:strip)
+
+            users[user] = {
+              realm: realm,
+              password: password
+            }  
+          end
+        end
+
+        self.digest_stamp = digest_database.mtime
+        self.digest_realm = users.values.first[:realm] rescue "Crowbar"
+      end
+    end
+
+    def digest_valid?
+      digest_database.mtime == digest_stamp
+    end
   end
 
   add_help(:help)
   def help
     render json: { 
-      self.controller_name => self.help_contents.collect do |m|
+      self.controller_name => self.class.help_contents.collect do |m|
         {}.tap do |res|
           m.each do |k, v|
             basically = { 
@@ -68,89 +120,33 @@ class ApplicationController < ActionController::Base
     }
   end
 
-
-
-
-
-
-
-
-  @@users = nil
-  before_filter :digest_authenticate, :if => :need_to_auth?
-
-  #########################
-  # private stuff below.
-  
-  private  
-  
-  @@auth_load_mutex = Mutex.new
-  @@realm = ""
-  
-  def need_to_auth?()
-    return false unless File::exists? "htdigest"
-    ip = session[:ip_address] rescue nil
-    return false if ip == request.remote_addr
-    return true
-  end
-  
-  def digest_authenticate
-    load_users()    
-    authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
-    ## only create the session if we're authenticated
-    if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
-      session[:ip_address] = request.remote_addr
-    end
-  end
-  
-  def find_user(username) 
-    return false if !@@users || !username
-    user = @@users[username]
-    return false unless user
-    return user[:password] || false   
-  end
-  
-  ##
-  # load the ""user database"" but be careful about thread contention.
-  # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
-  $htdigest_reload =true
-  $htdigest_timestamp = Time.now()
-  def load_users
-    unless $htdigest_reload
-      f = File.new("htdigest")
-      if $htdigest_timestamp != f.mtime
-        $htdigest_timestamp = f.mtime
-        $htdigest_reload = true
-      end
-    end
-    return if @@users and !$htdigest_reload  
-
-    ## only 1 thread should load stuff..(and reset the flag)
-    @@auth_load_mutex.synchronize  do
-      $htdigest_reload = false if $htdigest_reload   
-    end
-
-    ret = {}
-    data = IO.readlines("htdigest")
-    data.each { |entry|
-      next if entry.strip.length ==0
-      list = entry.split(":") ## format: user : realm : hashed pass
-      user = list[0].strip rescue nil
-      password = list[2].strip rescue nil
-      realm = list[1].strip rescue nil
-      ret[user] ={:realm => realm, :password => password}  
-    }
-    @@auth_load_mutex.synchronize  do 
-        @@users = ret.dup
-        @@realm = @@users.values[0][:realm]
-    end
-    ret
-  end
-
-
-
-
-
   protected
+
+  def authenticate?
+    return false unless self.class.digest_database.file?
+
+    if session[:ip_address] == request.remote_addr
+      false
+    else
+      true
+    end
+  end
+
+  def authenticate
+    self.class.digest_users
+
+    authed = authenticate_or_request_with_http_digest(
+      self.class.digest_realm
+    ) do |username, password|
+      self.class.digest_users[username][:password] rescue false
+    end
+
+    if authed
+      session[:ip_address] = request.remote_addr
+    else
+      request_http_digest_authentication(self.class.digest_realm, "Authentication failed")
+    end
+  end
 
   def detect_layout
     if request.xhr?

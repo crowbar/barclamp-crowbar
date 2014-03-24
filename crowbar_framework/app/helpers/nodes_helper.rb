@@ -50,14 +50,14 @@ module NodesHelper
 
   def piechart_values(group)
     [].tap do |result|
-      result.push group[:status]["ready"]
-      result.push group[:status]["failed"]
-      result.push group[:status]["unknown"]
+      result.push group[:status][:ready]
+      result.push group[:status][:failed]
+      result.push group[:status][:unknown]
 
-      if group[:status]["building"]
-        result.push group[:status]["unready"] + group[:status]["pending"] + group[:status]["building"]
+      if group[:status][:building]
+        result.push group[:status][:unready] + group[:status][:pending] + group[:status][:building]
       else
-        result.push group[:status]["unready"] + group[:status]["pending"]
+        result.push group[:status][:unready] + group[:status][:pending]
       end
     end
   end

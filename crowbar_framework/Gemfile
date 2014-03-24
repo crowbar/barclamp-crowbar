@@ -16,38 +16,42 @@
 #
 
 #
-# This needs to be in sync with the application.rb. First we activate 
+# This needs to be in sync with the boot.rb. First we activate 
 # specific versions for the gems, and afterwards we require all gems. 
-# That's the best workaround for the usage of bundler.
+# That's the best workaround for the usage of bundler. This Gemfile
+# is used for a simple gem installation only, we are not using 
+# bundle exec anymore on this project!
 #
 
 source "https://rubygems.org"
 gem "rails", "4.0.3"
 
-# chef requires json <= 1.7.7 
-# rubocop requires json >= 1.7.7
-gem "json", "1.7.7"
-
 gem "rack", "~> 1.5.2"
-gem "dotenv-rails", "~> 0.9.0"
+gem "dotenv-rails", "~> 0.10.0"
 gem "haml-rails", "~> 0.5.3"
-gem "sass-rails", "~> 4.0.1"
-gem "jbuilder", "~> 2.0.3"
-gem "bcrypt", "~> 3.1.2"
+gem "sass-rails", "~> 4.0.2"
+gem "bcrypt", "~> 3.1.7"
 gem "kwalify", "~> 0.7.2"
-gem "simple-navigation", "~> 3.11.0"
-gem "sqlite3", "~> 1.3.8"
+gem "simple-navigation", "~> 3.12.2"
+gem "simple_navigation_renderers", "~> 1.0.2"
+gem "sqlite3", "~> 1.3.9"
 gem "gli", "~> 2.9.0"
 gem "cocaine", "~> 0.5.3"
 gem "hashie", "~> 2.0.5"
 gem "activerecord-session_store", "~> 0.1.0"
 gem "delayed_job_active_record", "~> 4.0.0"
+gem "faye-rails", "~> 2.0.0"
+gem "thin", "~> 1.6.2"
+gem "uglifier", "~> 2.2.1"
 
 # These gems maybe only used for Ubuntu or something like that. For SLES 
-# we need to add it as a build dependency to precompile the assets before 
-# packaging the barclamps itself.
-gem "uglifier", "~> 2.2.1"
+# we are adding nodejs as the platform to precompile the assets before
+# packaging the barclamp itself.
 gem "therubyracer", "~> 0.12.1"
+
+# The chef gem requires json <= 1.7.7 and the rubocop gem requires 
+# json >= 1.7.7, so we are currently stuck on this json version.
+gem "json", "1.7.7"
 
 # We are not adding any version here because the SLES and Ubuntu chef 
 # packaging differ for the version, but we need this to load the chef 
@@ -55,13 +59,13 @@ gem "therubyracer", "~> 0.12.1"
 gem "chef", "~> 10.24.4"
 
 group :development, :test do
-  platforms :ruby_19 do
-    gem "debugger", "~> 1.6.5"
-  end
+  #platforms :ruby_19 do
+  #  gem "debugger", "~> 1.6.6"
+  #end
 
-  platforms :ruby_20 do
-    gem "byebug", "~> 2.7.0"
-  end
+  #platforms :ruby_20 do
+  #  gem "byebug", "~> 2.7.0"
+  #end
 
   gem "rspec-rails", "~> 2.14.1"
 end
@@ -71,18 +75,18 @@ group :development do
     gem "binding_of_caller", "~> 0.7.2"
   end
 
-  gem "guard", "~> 2.4.0"
+  gem "guard", "~> 2.5.1"
   gem "better_errors", "~> 1.1.0"
   gem "meta_request", "~> 0.2.8"
   gem "quiet_assets", "~> 1.0.2"
   gem "pry-rails", "~> 0.3.2"
-  gem "brakeman", "~> 2.4.0", require: false
+  gem "brakeman", "~> 2.4.3", require: false
   gem "rubocop", "~> 0.18.1", require: false
 end
 
 group :test do
   gem "mocha", "~> 1.0.0"
-  gem "webmock", "~> 1.17.3"
+  gem "webmock", "~> 1.17.4"
   gem "sinatra", "~> 1.4.4"
   gem "cucumber-rails", "~> 1.4.0", require: false
   gem "simplecov", "~> 0.8.2", require: false

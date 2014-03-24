@@ -16,11 +16,13 @@
 # limitations under the License.
 #
 
-SimpleNavigation::Configuration.run do |navigation|  
+SimpleNavigation::Configuration.run do |navigation|
+  navigation.renderer = SimpleNavigationRenderers::Bootstrap3
+
   navigation.selected_class = "active"
   navigation.active_leaf_class = "leaf"
 
   navigation.items do |primary|
-  	primary.dom_class = "nav navbar-nav"
+    primary.dom_class = "nav navbar-nav"
   end
 end

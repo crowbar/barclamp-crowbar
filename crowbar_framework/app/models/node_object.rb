@@ -1157,7 +1157,16 @@ class NodeObject < ChefObject
     end
   end
 
-  private
+  def to_h
+    { 
+      alias: self.alias, 
+      description: self.description, 
+      status: self.status, 
+      state: self.state 
+    }
+  end
+
+  protected
 
   # Used for cloning role's default attributes.
   def deep_clone object, options = {}

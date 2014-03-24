@@ -285,7 +285,11 @@ en:
         barclamp: 'Barclamp'
 
   dashboard:
+    errors:
+      no_nodes: 'Can not find any node'
+
     index:
+
       new_node: 'Add node'
       title: 'Dashboard'
       extended_nodes:
@@ -556,11 +560,6 @@ en:
     Virtualization: 'Virtualization Flag Enabled'
     Storage: 'Storage (Virt Off)'
     not_set: 'Not Set'
-
-  # Error messages, etc.
-  error:
-    warning: 'Warning'
-    no_nodes_found: 'No nodes found'
 
   state:
     unknown: 'Unknown'

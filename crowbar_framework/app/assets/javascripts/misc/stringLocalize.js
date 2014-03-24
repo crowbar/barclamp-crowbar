@@ -28,7 +28,8 @@ if (!String.prototype.localize) {
       'barclamp.node_selector.no_cluster': 'Failed to assign {0} to {1}, no clusters allowed',
       'barclamp.node_selector.unique': 'Failed to assign {0} to {1}, it\'s already assigned to another role',
       'barclamp.node_selector.zero': 'Failed to assign {0} to {1}, no assignment allowed',
-      'barclamp.node_selector.max_count': 'Failed to assign {0} to {1}, maximum of allowed nodes/clusters reached'
+      'barclamp.node_selector.max_count': 'Failed to assign {0} to {1}, maximum of allowed nodes/clusters reached',
+      'barclamp.node_selector.conflicting_roles': 'Node {0} cannot be assigned to both {1} and any of these roles: {2}'
     };
 
     if (values[this]) {

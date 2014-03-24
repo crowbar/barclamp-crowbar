@@ -48,7 +48,7 @@
   };
 
   NodeList.prototype.retrieveInput = function() {
-    this.input = $('#proposal_development');
+    this.input = $('#proposal_deployment');
     this.json = JSON.parse(this.input.val());
   };
 
@@ -74,7 +74,7 @@
             true
           );
         } else {
-          $.event.trigger('nodeListNodeUnallocated', { role: role, id: id, alias: source.data('alias') });
+          $.event.trigger('nodeListNodeUnallocated', { role: role, id: source.data('id'), alias: source.data('alias') });
           toRemove.push(index);
         }
       });
@@ -246,6 +246,22 @@
             'barclamp.node_selector.no_cluster'.localize().format(
               alias,
               role
+            )
+          );
+        }
+      }
+
+      if (constraints.conflicts_with !== undefined && constraints.conflicts_with) {
+        var conflicts = $.grep(constraints.conflicts_with, function(conflicting_role) {
+          return !!self.json.elements[conflicting_role] && ($.inArray(id, self.json.elements[conflicting_role]) >= 0);
+        });
+
+        if (conflicts.length > 0) {
+          return self.errorMessage(
+            'barclamp.node_selector.conflicting_roles'.localize().format(
+              alias,
+              role,
+              constraints.conflicts_with.join(', ')
             )
           );
         }

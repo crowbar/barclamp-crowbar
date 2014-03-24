@@ -28,6 +28,7 @@ class ServiceObject
 
   attr_accessor :bc_name
   attr_accessor :logger
+  attr_accessor :validation_errors
 
   def initialize(thelogger)
     @bc_name = 'unknown'
@@ -38,6 +39,12 @@ class ServiceObject
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false
+  end
+
+  # This provides the suggested name for new proposals.
+  # OVERRIDE AS NEEDED!
+  def self.suggested_proposal_name
+    I18n.t("proposal.items.default")
   end
 
   def role_constraints
@@ -117,7 +124,7 @@ class ServiceObject
       # but it ensures a random seed first.
       # Note that we only accept (a subset of) ASCII characters; otherwise, we
       # get unicode characters that chef cannot store.
-      pw << SecureRandom.base64(size).gsub("=", "")
+      pw << SecureRandom.base64(size).gsub(/[\+\/=]/, "")
     end
     pw[-size,size]
   end
@@ -894,6 +901,18 @@ class ServiceObject
             end
           end
           break if issue
+        end
+      end
+
+      if role_constraints[role]["conflicts_with"]
+        conflicts = role_constraints[role]["conflicts_with"].select do |conflicting_role|
+          elements[role].any? do |element|
+            elements[conflicting_role] && elements[conflicting_role].include?(element)
+          end
+        end
+        if conflicts.count > 0
+          validation_error("Element cannot be assigned to both role #{role} and any of these roles: #{role_constraints[role]["conflicts_with"].join(", ")}")
+          break
         end
       end
 

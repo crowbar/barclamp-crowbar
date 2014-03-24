@@ -245,8 +245,8 @@ class BarclampController < ApplicationController
       modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
 
       bc_service = @template.barclamp_service(name)
-      modules[name][:allow_multiple_proposals] = bc_service.send(:allow_multiple_proposals?)
-      suggested_proposal_name = bc_service.send(:suggested_proposal_name)
+      modules[name][:allow_multiple_proposals] = bc_service.allow_multiple_proposals?
+      suggested_proposal_name = bc_service.suggested_proposal_name
 
       ProposalObject.find_proposals(name).each do |prop|        
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.

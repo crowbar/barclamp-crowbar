@@ -3,6 +3,7 @@
 //= require jquery/rails
 //= require jquery/blockui
 //= require jquery/hideShowPassword
+//= require jquery/hideShowClusterConf
 //= require jquery/sparkline
 //= require jquery/spritely
 //= require jquery/ledUpdate

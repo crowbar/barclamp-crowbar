@@ -236,6 +236,7 @@ jQuery(document).ready(function($) {
   $('[data-change]').updateAttribute();
   $('[data-listsearch]').listSearch();
   $('[data-ledupdate]').ledUpdate();
+  $('[data-show-for-clusters-only="true"]').hideShowClusterConf();
 
   $('#nodelist').nodeList();
   $('input[type=password]').hideShowPassword();

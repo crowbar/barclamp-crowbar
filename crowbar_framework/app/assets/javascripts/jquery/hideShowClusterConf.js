@@ -50,5 +50,3 @@
     });
   }
 }(jQuery, document, window));
-
-$('[data-show-for-clusters-only="true"]').hideShowClusterConf();

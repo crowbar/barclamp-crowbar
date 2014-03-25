@@ -10,9 +10,9 @@
           - if ("#{barclamp.camelize}Controller".constantize.new.methods.include?("export") rescue false)
             = link_to t("nav.#{barclamp}_export"), export_barclamp_path(:controller => barclamp), :class => "btn btn-default"
 
-        = link_to t("nav.util_chef"), chef_utils_path, :class => "btn btn-default"
+        = link_to t("nav.util_chef"), export_barclamp_path(controller: "chef"), :class => "btn btn-default"
         - if suse_system?
-          = link_to t("nav.util_supportconfig"), supportconfig_utils_path, :class => "btn btn-default"
+          = link_to t("nav.util_supportconfig"), export_barclamp_path(controller: "supportconfig"), :class => "btn btn-default"
 
 - if @export.waiting
   .alert.alert-success

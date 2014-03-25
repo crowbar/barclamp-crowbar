@@ -76,7 +76,7 @@ class SupportController < ApplicationController
   end
 
   def destroy
-    file = check_dir("export").join(params[:id])
+    file = export_dir.join(params[:id])
 
     begin
       file.unlink
@@ -84,86 +84,6 @@ class SupportController < ApplicationController
     rescue
       flash[:alert] = t("support.index.delete_failed", :file => file.basename)
     end
-
-    redirect_to utils_url
-  end
-
-  def supportconfig
-    base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
-    filename = "#{base}.tbz"
-
-    pid = Process.fork do
-      export = Cocaine::CommandLine.new("sudo", "-i supportconfig -Q -R :destination")
-      chown = Cocaine::CommandLine.new("sudo", "-i chown -R #{Process.uid}:#{Process.gid} :destination")
-
-      begin
-        export.run(
-          destination: Rails.root.join("tmp", base).to_s
-        )
-
-        chown.run(
-          destination: Rails.root.join("tmp", base).to_s
-        )
-
-        File.rename Dir[Rails.root.join("tmp", base, "*.tbz").to_s].first, export_dir.join(filename).to_s
-      rescue Cocaine::ExitStatusError => e
-        flash[:alert] = t("support.export.fail", :error => e.message)
-      rescue => e
-        log_exception e
-      ensure
-        FileUtils.rm_rf Rails.root.join("tmp", base).to_s
-      end
-    end
-
-    Process.detach(pid)
-    redirect_to utils_url(:waiting => true, :file => filename)
-  rescue StandardError => e
-    log_exception e
-    flash[:alert] = t("support.export.fail", :error => e.message)
-
-    redirect_to utils_url
-  end
-
-  def chef
-    Rails.root.join("db").children.each do |file|
-      file.unlink if file.extname == ".json"
-    end
-
-    NodeObject.all.map(&:export)
-    RoleObject.all.map(&:export)
-    ProposalObject.all.map(&:export)
-
-    base = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
-    filename = "#{base}.tgz"
-
-    pid = Process.fork do
-      sources = Rails.root.join("db").children.map do |file|
-        file.basename if file.extname == ".json"
-      end.compact
-
-      export = Cocaine::CommandLine.new("tar", "-C :path -czf :destination #{sources.join(" ")}")
-
-      begin
-        export.run(
-          path: Rails.root.join("db").to_s, 
-          destination: Rails.root.join("tmp", filename).to_s
-        )
-
-        File.rename Rails.root.join("tmp", filename).to_s, export_dir.join(filename).to_s
-      rescue Cocaine::ExitStatusError => e
-        flash[:alert] = t("support.export.fail", :error => e.message)
-      rescue => e
-        log_exception e
-      ensure
-        FileUtils.rm_rf Rails.root.join("tmp", filename).to_s
-      end
-    end
-
-    Process.detach(pid)
-    redirect_to utils_url(:waiting => true, :file => filename)
-  rescue StandardError => e
-    log_exception e
-    flash[:alert] = I18n.t("support.export.fail", :error => e.message)
 
     redirect_to utils_url
   end
@@ -190,10 +110,6 @@ class SupportController < ApplicationController
   end
 
   protected
-
-  def import_dir
-    check_dir "import"
-  end
 
   def export_dir
     check_dir "export"

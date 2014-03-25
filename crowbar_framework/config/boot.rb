@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+gem "rails", version: "4.0.4"
+
 require "rails/all"
 require "sprockets/railtie"
 

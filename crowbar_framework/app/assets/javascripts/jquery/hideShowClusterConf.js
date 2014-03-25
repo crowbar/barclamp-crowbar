@@ -18,7 +18,7 @@
   // HUGE FIXME: refactor this into a pacemaker JS plugin that exposes an API
   // for working with clusters.
   HideShowClusterConf.prototype.isCluster = function(node_id) {
-     return !!node_id.match(/^cluster:/);
+     return !!node_id.match(/:/);
   };
 
   HideShowClusterConf.prototype.initialize = function() {

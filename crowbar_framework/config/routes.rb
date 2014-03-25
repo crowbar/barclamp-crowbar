@@ -46,11 +46,6 @@ Crowbar::Application.routes.draw do
     end
 
     resources :utils, only: [:index, :destroy], controller: :support do
-      collection do
-        get :chef # maybe move into custom export controller? export_barclamp_path(controller: "chef")
-        get :supportconfig # maybe move into custom export controller? export_barclamp_path(controller: "supportconfig")
-      end
-
       member do
         get :restart
         post :import

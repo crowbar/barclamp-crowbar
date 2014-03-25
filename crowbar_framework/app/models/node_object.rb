@@ -467,6 +467,10 @@ class NodeObject < ChefObject
     end
   end
 
+  def unclaimed_physical_drives
+    physical_drives.select { |disk| disk_owner(disk).blank? }
+  end
+
   def physical_drives
     # This needs to be kept in sync with the fixed method in
     # barclamp_library.rb in in the deployer barclamp.

@@ -103,7 +103,7 @@ module FormHelper
   end
 
   def render_instance_selector(bc, name, label, field, proposal)
-    return unless Kernel.const_get("#{bc.camelize}Service").method(:allow_multiple_proposals?).call
+    return unless ServiceObject.get_service(bc).allow_multiple_proposals?
 
     render :partial => "barclamp/instance_selector", :locals => {
       :field => field,

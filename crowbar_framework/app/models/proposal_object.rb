@@ -147,7 +147,7 @@ class ProposalObject < ChefObject
   end
 
   def allow_multiple_proposals?
-    Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
+    ServiceObject.get_service(barclamp).allow_multiple_proposals?
   end
 
   #NOTE: Status is NOT accurate if the proposal has been deactivated!  You must check the role.

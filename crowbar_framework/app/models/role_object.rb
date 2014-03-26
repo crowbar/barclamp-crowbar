@@ -103,7 +103,7 @@ class RoleObject < ChefObject
   end
 
   def allow_multiple_proposals?
-    Kernel.const_get("#{barclamp.camelize}Service").method(:allow_multiple_proposals?).call
+    ServiceObject.get_service(barclamp).allow_multiple_proposals?
   end
 
   def role

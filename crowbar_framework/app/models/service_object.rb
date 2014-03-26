@@ -36,6 +36,10 @@ class ServiceObject
     @validation_errors = []
   end
 
+  def self.get_service(name)
+    Kernel.const_get("#{name.camelize}Service")
+  end
+
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false
@@ -691,7 +695,7 @@ class ServiceObject
   #
   def find_dep_proposal(bc, optional=false)
     begin
-      const_service = Kernel.const_get("#{bc.camelize}Service")
+      const_service = self.class.get_service(bc)
     rescue
       @logger.info "Barclamp \"#{bc}\" is not available."
       proposals = []
@@ -973,7 +977,7 @@ class ServiceObject
   end
 
   def validate_dep_proposal_is_active(bc, proposal)
-    const_service = Kernel.const_get("#{bc.camelize}Service")
+    const_service = self.class.get_service(bc)
     service = const_service.new @logger
     proposals = service.list_active[1].to_a
     unless proposals.include?(proposal)

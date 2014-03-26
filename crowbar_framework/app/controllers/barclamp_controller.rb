@@ -244,7 +244,7 @@ class BarclampController < ApplicationController
       props = ProposalObject.find_proposals name
       modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
 
-      bc_service = @template.barclamp_service(name)
+      bc_service = ServiceObject.get_service(name)
       modules[name][:allow_multiple_proposals] = bc_service.allow_multiple_proposals?
       suggested_proposal_name = bc_service.suggested_proposal_name
 

@@ -36,6 +36,10 @@ class ServiceObject
     @validation_errors = []
   end
 
+  def self.get_service(name)
+    Kernel.const_get("#{name.camelize}Service")
+  end
+
   # OVERRIDE AS NEEDED! true if barclamp can have multiple proposals
   def self.allow_multiple_proposals?
     false

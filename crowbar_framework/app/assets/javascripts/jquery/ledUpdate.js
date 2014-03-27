@@ -68,6 +68,42 @@
           self.options.beforeProcess.call(this, response);
         }
 
+        if (response.proposals && $.inArray("proposals", ignores) < 0) {
+          $.each(response.proposals, function(barclamp, proposals) {
+            $.each(proposals, function(key, proposal) {
+              var current = $(
+                '[data-ledupdate-controller={0}][data-ledupdate-proposal={1}]'.format(barclamp, key)
+              );
+
+              if(current.hasClass('unknown')) {
+                self.update(
+                  current,
+                  proposal.state,
+                  proposal.status
+                );
+              } else {
+                self.update(
+                  current,
+                  proposal.state,
+                  proposal.status,
+                  function() {
+                    current.effect('fade').effect('fade');
+                  }
+                );
+              }
+            });
+          });
+        }
+
+
+
+
+
+
+
+
+
+
         if (response.groups && $.inArray("groups", ignores) < 0) {
           $('[data-group]').each(function(index, current) {
             var current_handle = $(current).data('group');
@@ -164,30 +200,28 @@
           }
         }
 
-        if (response.proposals && $.inArray("proposals", ignores) < 0) {
-          $.each(response.proposals, function(key, val) {
-            var current = $(
-              '#{0}'.format(key)
-            );
 
-            if(current.hasClass('unknown')) {
-              self.update(
-                current,
-                val,
-                response['i18n'][key]['status']
-              );
-            } else {
-              self.update(
-                current,
-                val,
-                response['i18n'][key]['status'],
-                function() {
-                  current.effect('fade').effect('fade');
-                }
-              );
-            }
-          });
-        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         self.destroy();
         self.animate();

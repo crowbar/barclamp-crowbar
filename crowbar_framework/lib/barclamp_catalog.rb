@@ -67,7 +67,7 @@ class BarclampCatalog
   end
 
   def display_name(barclamp)
-    display = barclamps[barclamp]["display"]
+    display = barclamps[barclamp]["display"] rescue nil
 
     if display.nil? or display.empty?
       barclamp.titlecase

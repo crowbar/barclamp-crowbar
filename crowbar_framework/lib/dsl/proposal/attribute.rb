@@ -49,7 +49,7 @@ module Dsl
           :type => "hidden",
           :name => "proposal_attributes",
           :value => attrs.to_json
-        )
+        ).html_safe
       end
 
       def select_field(attribute, options = {})
@@ -74,7 +74,7 @@ module Dsl
                 "data-change" => changer("string")
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -104,7 +104,7 @@ module Dsl
                 "data-change" => changer("boolean")
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -167,7 +167,7 @@ module Dsl
               ),
               :class => "pull-right"
             )
-          ].join("\n")
+          ].join("\n").html_safe
         )
       end
 
@@ -220,7 +220,7 @@ module Dsl
           [
             labeling,
             send(field, *parameters)
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -229,7 +229,7 @@ module Dsl
           :div,
           yield,
           { :class => "form-group" }.merge(options || {})
-        )
+        ).html_safe
       end
 
       def defaults
@@ -246,7 +246,7 @@ module Dsl
           :label,
           t(translation_key.join(".")),
           :for => attribute
-        )
+        ).html_safe
       end
 
       def changer(type_cast)

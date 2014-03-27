@@ -123,6 +123,10 @@ class RoleObject < ChefObject
     @display_name ||= BarclampCatalog.display_name(barclamp)
   end
 
+  def multi_name
+    "#{display_name}: #{inst.titlecase}"
+  end
+
   def allow_multiple_proposals?
     ServiceObject.get_service(barclamp).allow_multiple_proposals?
   end

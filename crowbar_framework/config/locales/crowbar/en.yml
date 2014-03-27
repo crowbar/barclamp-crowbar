@@ -23,146 +23,148 @@ en:
     network: 'Network'
     utils: 'Utilities'
     util_logs: 'Exported Items'
-    util_chef: 'Chef Export'
-    util_supportconfig: 'Supportconfig Export'
-    util_import: 'Import Barclamps'
-    list: 'Bulk Edit'
+    util_chef: 'Chef export'
+    util_supportconfig: 'Supportconfig export'
+    list: 'Bulkedit'
     barclamps: 'Barclamps'
     crowbar_bc: 'Crowbar'
-    all_bc: 'All Barclamps'
-    roles: 'Active Roles'
-    proposals: 'Proposals'
+    all_bc: 'All barclamps'
     help: 'Help'
     crowbar_wiki: 'Online Help'
     crowbar_ug: 'Users Guide'
     crowbar_dg: 'Deployment Guide'
     documentation: 'Documentation'
 
-  layouts:
-    application:
-      foo: 'Bar'
-
   shared:
     footer:
       provided_by: 'Provided by %{provider}'
 
   barclamp:
-    show_index:
-      created_on: 'Created on %{date}'
-      failed: 'Error: %{message}'
-    show_simplified_index:
-      created_on: 'Created on %{date}'
-      failed: 'Error: %{message}'
-    modules:
-      title: 'All Barclamps'
-    index:
-      proposals: '%{count} Proposals'
-      members: 'Members'
-      barclamp: 'Name'
-      status: 'Status'
-      description: 'Description'
-      in_process: 'Processing...'
-      failed: 'Error'
-      proposal: 'Proposal'
-      confirm_dequeue: 'Are you sure you wish to dequeue this proposal?'
-      confirm_recall: 'Are you sure you wish to deactivate this proposal?'
-      confirm_delete: 'Are you sure you wish to delete this proposal?'
-      no_action: 'No Action for'
-    proposal_show:
-      title: 'Edit Proposal'
-      apply_changes: 'Apply changes now?'
-      create_proposal_success: 'Successfully created the proposal'
-      commit_proposal: 'Apply'
-      commit_proposal_success: 'Successfully applied the proposal'
-      commit_proposal_queued: 'Successfully queued the proposal until the following become ready'
-      save_proposal: 'Save'
-      save_proposal_success: 'Successfully saved changes to the proposal'
-      dequeue_proposal: 'Dequeue'
-      dequeue_proposal_success: 'Successfully dequeued the proposal'
-      dequeue_proposal_failure: 'Failed to dequeue the proposal'
-      destroy_changes: 'Deactivate proposal now?'
-      destroy_active: 'Deactivate'
-      destroy_active_success: 'Successfully deactivated the proposal'
-      destroy_active_failure: 'Failed to deactivate the proposal'
-      delete_changes: 'Delete proposal now?'
-      delete_proposal: 'Delete'
-      delete_proposal_success: 'Successfully deleted the proposal'
-      delete_proposal_failure: 'Failed to delete the proposal'
-      confirm_delete_proposal: 'Are you sure you wish to delete this proposal?'
-      available_clusters: 'Available Clusters'
-      available_nodes: 'Available Nodes'
-      ui_advice: 'Drag nodes from Available Nodes into desired deployment list(s).'
-      blockui_message: 'Processing, please wait...'
-      current_revision_applied: 'No change in proposal since last deployment.'
-      current_revision_not_applied: 'The proposal has been changed since last deployment.'
-    node_selector:
-      title: 'Deployment'
-      hint: 'Drag nodes for deployment from Available Nodes into the selected Role'
-      msie_fail: 'Drag and Drop Feature is not supported on this version of Microsoft Internet Explorer.'
-      remove: 'Remove Node'
-      add: 'Drop Node here to add to Role'
-      filter: 'Filter available node list by entering the first letters of the node name'
-      no_dup: 'No action taken: An instance of Node [0] already exists in Role [1]'
-      added: 'Added Node [0] to Role [1]'
-      removed: 'Removed Node [0] from Role [1]'
-      node_deleted: 'WARNING: Deleted'
-      node_deleted_title: 'You must remove this node in order to save the proposal.'
-      error: 'Cannot add Node [0] to Role [1]. Error [2]'
-      constraint_admin: 'Cannot add Node [0] to Role [1]: Cannot add Crowbar Admin to this node'
-      constraint_max: 'Cannot add Node [0] to Role [1]: Maximum number of nodes exceeded'
-      constraint_unique: 'Cannot add Node [0] to Role [1]: Node already added to another role'
-      constraint_attribute: 'Cannot add Node [0] to Role [1]: Required feature is not available on node'
-      unassign_confirm: 'Are you sure that you want to remove all nodes from %{role} role?'
-      unassign_label: 'Remove all'
-      node_link: 'Show details for %{alias}'
-      node_remove: 'Remove %{alias} from this role'
-    edit_attributes_raw:
-      title: 'Attributes'
-    edit_deployment_raw:
-      title: 'Deployment'
-    show:
-      edit: 'Edit'
-      deployment: 'Deployment'
-      attributes: 'Attributes'
-      role: 'Role'
-      key: 'Key'
-    show_attributes_raw:
-      key: 'Key'
-    show_deployment_raw:
-      role: 'Role'
-      nodes: 'Nodes'
-      none: 'No nodes deployed'
-    proposals:
-      title: 'Proposals: %{barclamp}'
-      show: 'Edit'
-
-    crowbar:
-      index:
-        instructions: 'These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.'
-        hint: ''
-      edit_attributes:
-        attributes: 'Attributes'
-        simple_proposal_ui: 'Streamlined interface for proposals'
-      edit_deployment:
-        deployment: 'Deployment'
-        noconfig: 'No configuration options'
-
     attributes: 'Attributes'
     deployment: 'Deployment'
 
-  crowbar:
-    instructions: 'These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.'
-    details: 'Details'
-    details_by: 'updated by'
+    show_deployment_raw:
+      none: 'No nodes deployed'
+      role: 'Role'
+      nodes: 'Nodes'
+
+    errors:
+      proposal_find_failed: 'Failed to find the requested proposal'
+      proposal_deactivated: 'Successfully deactivated %{proposal} proposal for %{barclamp}'
+      proposal_deactivate_failed: 'Failed to deactivate the proposal with error: %{error}'
+      proposal_deleted: 'Successfully deleted %{proposal} proposal for %{barclamp}'
+      proposal_delete_failed: 'Failed to delete the proposal with error: %{error}'
+      proposal_dequeued: 'Successfully dequeued %{proposal} proposal for %{barclamp}'
+      proposal_dequeue_failed: 'Failed to dequeue the proposal with error: %{error}'
+      proposal_commited: 'Successfully applied %{proposal} proposal for %{barclamp}'
+      proposal_commit_failed: 'Failed to commit the proposal with error: %{error}'
+      proposal_created: 'Successfully created %{proposal} proposal for %{barclamp}'
+      proposal_create_failed: 'Failed to create the proposal with error: %{error}'
+      proposal_updated: 'Successfully updated %{proposal} proposal for %{barclamp}'
+      proposal_update_failed: 'Failed to update the proposal with error: %{error}'
+      proposal_saved: 'Successfully updated %{proposal} proposal for %{barclamp}'
+      proposal_save_failed: 'Failed to update the proposal with error: %{error}'
+      proposal_applied: 'Successfully applied %{proposal} proposal for %{barclamp}'
+      proposal_apply_failed: 'Failed to apply the proposal with error: %{error}'
+      proposal_queued: 'Successfully queued %{proposal} proposal for %{barclamp}, but we need to get these nodes ready: %{nodes}'
+
+    modules:
+      title: 'Barclamps'
+
+    index:
+      proposals: '%{count} proposals'
+
+    proposal_index:
+      title: 'Proposals: %{barclamp}'
+      show: 'Show'
+      edit: 'Edit'
+
+    proposal_show:
+      edit: 'Edit'
+      role: 'Role'
+      key: 'Key'
+      deployment: 'Deployment'
+      attributes: 'Attributes'
+
+    proposal_edit:
+      blockui_message: 'Processing, please wait...'
+      title: 'Edit proposal'
+      save_proposal: 'Save'
+      apply_proposal: 'Apply'
+      deactivate_proposal: 'Deactivate'
+      delete_proposal: 'Delete'
+      dequeue_proposal: 'Dequeue'
+      apply_confirm: 'Apply proposal now?'
+      deactivate_confirm: 'Deactivate proposal now?'
+      delete_confirm: 'Delete proposal now?'
+
+    general:
+      index:
+        status: 'Status'
+        barclamp: 'Name'
+        description: 'Description'
+
+      index_complex:
+        create: 'Create'
+        edit: 'Edit'
+        created_on: 'Created on %{date}'
+        failed: 'Error: %{message}'
+        blockui_message: 'Processing, please wait...'
+
+      index_simple:
+        create: 'Create'
+        edit: 'Edit'
+        created_on: 'Created on %{date}'
+        failed: 'Error: %{message}'
+        blockui_message: 'Processing, please wait...'
+
+      node_selector:
+        msie_fail: 'Drag and drop feature is not supported on this version of Microsoft Internet Explorer.'
+        dnd_hint: 'Drag nodes for deployment from the available nodes into the selected role'
+        filter_hint: 'Filter available node list by entering the first letters of the node name'
+        available_clusters: 'Available clusters'
+        available_nodes: 'Available nodes'
+        node_link: 'Show details for %{alias}'
+        node_remove: 'Remove %{alias} from this role'
+        unassign_label: 'Remove all'
+        unassign_confirm: 'Are you sure that you want to remove all nodes from %{role} role?'
+
+    crowbar:
+      index:
+        title: 'Crowbar'
+        instructions: 'These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.'
+        hint: ''
+      edit_attributes:
+        simple_proposal_ui: 'Streamlined interface for proposals'
+      edit_deployment:
+        noconfig: 'No configuration options'
 
   proposal:
-    items:
-      default: 'proposal'
+    status:
+      hold: 'User review'
+      ready: 'Active'
+      unready: 'In progress'
+      pending: 'Pending'
+      building: 'Building'
+      failed: 'Failed'
+      none: 'No proposal'
+      unknown: 'Unknown, requesting status...'
+
+
+
+
+
+
+
+
+
+
+
     actions:
+      edit: 'Edit'
       link: '%{name} barclamp'
       apply: 'Apply'
       save: 'Save'
-      edit: 'Edit'      
       dequeue: 'Dequeue'
       dequeue_failure: 'Error, could not dequeue proposal.'
       dequeue_success: 'Successfully dequeued proposal.'
@@ -173,15 +175,16 @@ en:
       create_success: 'Successfully created proposal'
       recall: 'Deactivate'
       recall_success: 'Successfully deactivated proposal'
-    status:
-      hold: 'User Review'
-      ready: 'Active'
-      unready: 'In Progress'
-      pending: 'Pending'
-      building: 'Building'
-      failed: 'Failed'
-      none: 'No Proposal'
-      unknown: 'Unknown, requesting status...'
+
+
+
+
+
+
+
+
+    items:
+      default: 'proposal'
     failures:
       Failed to apply the proposal to: 'Failed to apply proposal'
       Did not fail.  Successfully applied: 'Did not fail.  Successfully applied'
@@ -217,17 +220,6 @@ en:
       duplicate_public_name: 'Public name not saved because a node already has the same alias'
     proposal: 'Proposal'
     service:
-<<<<<<< HEAD
-      name_exists: Name already exists. Please choose another.
-      too_short: Invalid name.  Name must have some characters.
-      illegal_chars: Invalid service name '%{name}'.  Please limit name to [A-z0-9_] without spaces.
-      illegal_name: Illegal proposal name '%{name}'.  Please choose another proposal name.
-      already_commit: Proposal already being applied.
-      cannot_find: Failed to find proposal
-      template_missing: Failed to load proposal template for barclamp '%{name}'.
-      dependency_missing: Cannot create a proposal for '%{name}', please create a '%{dependson}' proposal first.
-      would_break_dependency: Cannot deactivate a proposal for '%{name}', as it breaks dependencies of '%{dependson}'.
-=======
       name_exists: 'Name already exists. Please choose another.'
       too_short: 'Invalid name.  Name must have some characters.'
       illegal_chars: 'Invalid service name %{name}.  Please limit name to [A-z0-9_] without spaces.'
@@ -236,7 +228,7 @@ en:
       cannot_find: 'Failed to find proposal'
       template_missing: 'Failed to load proposal template for barclamp %{name}.'
       dependency_missing: 'Cannot create a proposal for %{name}, please create a %{dependson} proposal first.'
->>>>>>> Added colons to all i18n entries
+      would_break_dependency: 'Cannot deactivate a proposal for \'%{name}\', as it breaks dependencies of \'%{dependson}\'.'
     attributes:
       node:
         name: 'Full Name'
@@ -317,32 +309,6 @@ en:
       failed: 'Failed to save the nodes %{failed}'
       duplicates: 'Failed to save the nodes %{failed} because there are duplicate aliases. Nothing got changed!'
       group_error: 'Failed to save the group for %{node}, should start with a letter and only contain letters, digits, -, _, ., or :.'
-<<<<<<< HEAD
-      name: Name
-      group: Group
-      alias: Alias  
-      public_name: Public Name
-      hw_description: Hardware
-      description: Description
-      bios: BIOS
-      intended_role: Intended Role
-      controller: Controller
-      compute: Compute
-      storage: Storage
-      network: Network
-      no_role: Undecided
-      raid: RAID
-      admin: Crowbar Server
-      title: Bulk edit
-      title_all: All available nodes
-      title_unallocated: Unallocated nodes only
-      unallocated: Show unallocated
-      all: Show all
-      nochange: No Changes
-      license_key: License
-      target_platform: Platform
-      target_platform_not_set: Not set
-=======
       name: 'Name'
       group: 'Group'
       alias: 'Alias'  
@@ -351,6 +317,12 @@ en:
       description: 'Description'
       bios: 'BIOS'
       raid: 'RAID'
+      intended_role: 'Intended Role'
+      controller: 'Controller'
+      compute: 'Compute'
+      storage: 'Storage'
+      network: 'Network'
+      no_role: 'Undecided'
       admin: 'Crowbar Server'
       title: 'Bulk edit'
       title_all: 'All available nodes'
@@ -361,7 +333,6 @@ en:
       license_key: 'License'
       target_platform: 'Platform'
       target_platform_not_set: 'Not set'
->>>>>>> Added colons to all i18n entries
       hint: 'Note: <i>group italics</i> indicates group is set automatically by system'
       allocate_all: 'Allocate?'
       save: 'Save'
@@ -504,66 +475,40 @@ en:
       two_words_connector: ' and '
       last_word_connector: ' and '
 
-  # Global
-  overview: 'Overview'
-  show: 'View'
-  all: 'All'
-  destroy: 'Remove'
-  back: 'Go Back'
-  cancel: 'Cancel'
-  edit: 'Edit'
-  actions: 'Actions'
-  are_you_sure: 'Are you sure?'
-  unknown: 'Unknown'
-  not_set: 'Not set'
-  undetermined: 'Undetermined'
-  na: 'N/A'
-  feature_na: 'Feature Not Available'
-  name: 'Name'
-  down: 'Down'
-  raw: 'Raw'
-  custom: 'Custom'
-  clear_msg: 'clear'
-  created_on: 'Created On'
-  no_items: 'No Items'
-  complete: 'Complete'
-  'yes': 'Yes'
-  'no': 'No'
-  maybe: 'Maybe'
-  updating: 'Updating...'
-  note: 'Note'
-  hint: 'Hint'
-  help: 'Help'
-  virtual: 'Virtual'
-  new: 'New Item!'
-  next: 'Next'
-  prev: 'Previous'
 
 
 
-  # node.raid_set
+
+
+
+
+
+
+
+
+
+
   raid:
     JBODOnly: 'JBOD'
     SingleRaid10: 'RAID 10'
-    SingleRaid1: 'RAID 1 span'
+    SingleRaid1: 'RAID 1 SPAN'
     SingleRaid5: 'RAID 5'
     SingleRaid6: 'RAID 6'
-    Raid0: 'RAID 0 span'
-    Raid1: 'RAID 1 mirror'
+    Raid0: 'RAID 0 SPAN'
+    Raid1: 'RAID 1 Mirror'
     Raid5: 'RAID 5'
     Raid6: 'RAID 6'
     Raid10: 'Raid 10'
-    not_set: 'Not Set'
+    not_set: 'Not set'
 
-  # node.bios_set
   bios:
-    Virtualization: 'Virtualization Flag Enabled'
+    Virtualization: 'Virtualization flag enabled'
     Storage: 'Storage (Virt Off)'
-    not_set: 'Not Set'
+    not_set: 'Not set'
 
   state:
     unknown: 'Unknown'
-    noupdate: 'No Data (Off)'
+    noupdate: 'No data (Off)'
     ready: 'Ready'
     readying: 'Readying'
     applying: 'Applying'
@@ -572,20 +517,54 @@ en:
     installed: 'Installed'
     discovering: 'Discovering'
     discovered: 'Discovered'
-    hardware-installed: 'Hardware Installed'
-    hardware-installing: 'Hardware Installing'
-    hardware-updated: 'Hardware Updated'
-    hardware-updating: 'Hardware Updating'
-    update: 'Hardware Update'
+    hardware-installed: 'Hardware installed'
+    hardware-installing: 'Hardware installing'
+    hardware-updated: 'Hardware updated'
+    hardware-updating: 'Hardware updating'
+    update: 'Hardware update'
     reset: 'Reset'
     reinstall: 'Reinstall'
     allocate: 'Allocate'
     allocated: 'Allocated'
     recovering: 'Recovering'
     problem: 'Problem'
-    delete: 'Information Deleted'
-    shutdown: 'Power Off'
-    reboot: 'Power Restart'
-    poweron: 'Power On'
+    delete: 'Information deleted'
+    shutdown: 'Power off'
+    reboot: 'Restart'
+    poweron: 'Power on'
     pending: 'Pending'
     building: 'Building'
+
+  overview: 'Overview'
+  show: 'View'
+  all: 'All'
+  destroy: 'Remove'
+  back: 'Go back'
+  cancel: 'Cancel'
+  edit: 'Edit'
+  actions: 'Actions'
+  are_you_sure: 'Are you sure?'
+  unknown: 'Unknown'
+  not_set: 'Not set'
+  undetermined: 'Undetermined'
+  na: 'N/A'
+  feature_na: 'Feature not available'
+  name: 'Name'
+  down: 'Down'
+  raw: 'Raw'
+  custom: 'Custom'
+  clear_msg: 'Clear'
+  created_on: 'Created on'
+  no_items: 'No items'
+  complete: 'Complete'
+  maybe: 'Maybe'
+  updating: 'Updating...'
+  note: 'Note'
+  hint: 'Hint'
+  help: 'Help'
+  virtual: 'Virtual'
+  new: 'New'
+  next: 'Next'
+  prev: 'Previous'
+  'yes': 'Yes'
+  'no': 'No'

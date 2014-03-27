@@ -36,11 +36,11 @@ module Dsl
       def deployments_field
         tag(
           :input,
-          :id => "proposal_attributes",
+          :id => "proposal_deployment",
           :type => "hidden",
-          :name => "proposal_attributes",
+          :name => "proposal_deployment",
           :value => attrs.to_json
-        )
+        ).html_safe
       end
 
       def header(dep_raw = true, attr_raw = false)
@@ -56,7 +56,7 @@ module Dsl
               ),
               :class => "pull-right"
             )
-          ].join("\n")
+          ].join("\n").html_safe
         )
       end
 

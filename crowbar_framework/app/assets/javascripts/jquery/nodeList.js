@@ -132,7 +132,7 @@
   NodeList.prototype.registerEvents = function() {
     var self = this;
 
-    $('.dropzone .delete').live('click', function(event) {
+    $('.dropzone .delete').on('click', function(event) {
       event.preventDefault();
       var $node = $(this).parent();
 
@@ -149,7 +149,7 @@
       $node.remove();
     });
 
-    $('.dropzone .unassign').live('click', function(event) {
+    $('.dropzone .unassign').on('click', function(event) {
       event.preventDefault();
       var role = $(this).data('id');
 

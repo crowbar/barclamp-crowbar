@@ -1,0 +1,35 @@
+.row
+  .col-xs-12
+    %h1.page-header
+      = t(".title", barclamp: display_name_for(current_barclamp))
+
+.panel.panel-default{ data: { ledupdate: status_proposal_path(controller: current_barclamp, id: current_barclamp, format: :json) } }
+  %table.table.table-hover.barclamp-list
+    %thead
+      %tr
+        %th
+          = ProposalObject.human_attribute_name :status
+        %th
+          = ProposalObject.human_attribute_name :barclamp
+        %th
+          = ProposalObject.human_attribute_name :name
+        %th
+          = ProposalObject.human_attribute_name :description
+        %th
+
+    %tbody
+      - @proposals.each do |proposal|
+        %tr
+          %td.col-xs-1.status
+            = display_led_for(proposal.status, controller: proposal.barclamp.parameterize, proposal: proposal.name.parameterize)
+          %td
+            = proposal.barclamp.titlecase
+          %td
+            = proposal.name
+          %td
+            = proposal.description
+          %td.col-xs-1
+            - if @service_object.list_active.last.include? proposal.name
+              = show_barclamp_button(proposal.barclamp, proposal.name, class: "btn btn-default btn-block")
+            - else
+              = edit_barclamp_button(proposal.barclamp, proposal.name, class: "btn btn-default btn-block")

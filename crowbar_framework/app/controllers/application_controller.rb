@@ -24,7 +24,7 @@ class ApplicationController < ActionController::Base
 
   class << self
     def help_contents
-      @help_contents ||= []
+      @@help_contents ||= []
     end
 
     def add_help(method, args = [], http_method = [:get])
@@ -94,7 +94,7 @@ class ApplicationController < ActionController::Base
 
   add_help(:help)
   def help
-    render json: { 
+    response = { 
       self.controller_name => self.class.help_contents.collect do |m|
         {}.tap do |res|
           m.each do |k, v|
@@ -107,17 +107,33 @@ class ApplicationController < ActionController::Base
               acc.merge({x.to_s => "(#{x.to_s})"})
             end
 
-            url = URI::unescape(
+            route = if k =~ /_(path|url)$/
+              send(k, injected)
+            else
               url_for(
                 basically.merge(injected)
               )
+            end
+
+            url = URI::unescape(
+              route
             )
 
-            res.merge!({ k.to_s => v.merge({ "url" => url })})
+            res.merge!({ 
+              k.to_s.gsub(/_(path|url)$/, "") => v.merge({ 
+                "url" => url 
+              })
+            })
           end
         end
       end
     }
+
+    respond_to do |format|
+      format.html { render json: response }
+      format.json { render json: response }
+      format.xml { render xml: response }
+    end
   end
 
   protected

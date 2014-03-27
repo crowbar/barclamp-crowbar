@@ -9,7 +9,7 @@
       {
         disabledSubmits: 'input[source=commit1], input[source=save1]',
         storage: '#proposal_attributes',
-        namespace: this.root.data('namespace'),
+        path: this.root.data('namespace'),
         entries: this.root.data('dynamic'),
         invalid: this.root.data('invalid'),
         duplicate: this.root.data('duplicate'),
@@ -68,23 +68,23 @@
     );
 
     var data = this.json;
-    var namespace = this.options.namespace.split('/');
+    var path = this.options.path.split('/');
 
     $.event.trigger({
       type: 'dynamicTableBeforeDuplicate',
       input: input,
       json: data,
-      namespace: namespace
+      path: path
     });
 
-    while (namespace.length > 0) {
-      var current_namespace = namespace.shift();
+    while (path.length > 0) {
+      var current_path = path.shift();
 
-      if (!data[current_namespace]) {
-        data[current_namespace] = {};
+      if (!data[current_path]) {
+        data[current_path] = {};
       }
 
-      data = data[current_namespace];
+      data = data[current_path];
     }
 
     if (data[$(input).val()]) {
@@ -92,7 +92,7 @@
         type: 'dynamicTableGotDuplicate',
         input: input,
         json: data,
-        namespace: namespace
+        path: path
       });
 
       return true;
@@ -140,7 +140,7 @@
   DynamicTable.prototype.registerEvents = function() {
     var self = this;
 
-    self.root.find('[data-add]').live('click', function(event) {
+    self.root.find('[data-add]').on('click', function(event) {
       self.prepareJson();
       event.preventDefault();
 
@@ -171,7 +171,7 @@
       var inputs = self.root.find('tfoot input');
 
       var data = self.json;
-      var namespace = self.options.namespace.split('/');
+      var path = self.options.path.split('/');
       var values = {};
 
       var currentKey = false;
@@ -193,20 +193,20 @@
         }
       });
 
-      while (namespace.length > 1) {
-        var current_namespace = namespace.shift();
+      while (path.length > 1) {
+        var current_path = path.shift();
 
-        if (!data[current_namespace]) {
-          data[current_namespace] = {};
+        if (!data[current_path]) {
+          data[current_path] = {};
         }
 
-        data = data[current_namespace];
+        data = data[current_path];
       }
 
       if (currentKey) {
-        data[namespace.shift()][currentValue] = values;
+        data[path.shift()][currentValue] = values;
       } else {
-        data[namespace.shift()] = values;
+        data[path.shift()] = values;
       }
 
       self.writeJson();
@@ -214,7 +214,7 @@
       $.event.trigger({
         type: 'dynamicTableAddedEntry',
         json: data,
-        namespace: namespace,
+        path: path,
         values: values,
         inputs: inputs
       });
@@ -224,48 +224,48 @@
       inputs.val('');
     });
 
-    self.root.find('tfoot input').live('keydown', function(event) {
+    self.root.find('tfoot input').on('keydown', function(event) {
       if (event.keyCode == 13) {
         event.preventDefault();
         self.root.find('tfoot [data-add]').trigger('click');
       }
     });
 
-    self.root.find('[data-remove]').live('click', function(event) {
+    self.root.find('[data-remove]').on('click', function(event) {
       self.prepareJson();
       event.preventDefault();
 
       var data = self.json;
-      var namespace = self.options.namespace.split('/');
+      var path = self.options.path.split('/');
 
-      while (namespace.length > 1) {
-        var current_namespace = namespace.shift();
+      while (path.length > 1) {
+        var current_path = path.shift();
 
-        if (!data[current_namespace]) {
-          data[current_namespace] = {};
+        if (!data[current_path]) {
+          data[current_path] = {};
         }
 
-        data = data[current_namespace];
+        data = data[current_path];
       }
 
-      delete data[namespace.shift()][$(this).data('remove')];
+      delete data[path.shift()][$(this).data('remove')];
 
       self.writeJson();
 
       $.event.trigger({
         type: 'dynamicTableRemovedEntry',
         json: data,
-        namespace: namespace
+        path: path
       });
 
       self.renderEntries();
     });
 
-    self.root.find('tbody input').live('change', function(event) {
+    self.root.find('tbody input').on('change', function(event) {
       self.prepareJson();
 
       var data = self.json;
-      var namespace = $(this).data('update').toString().split('/');
+      var path = $(this).data('update').toString().split('/');
 
       var optionals = self.options.optional.toString().split(',');
 
@@ -283,17 +283,17 @@
         $(self.options.disabledSubmits).removeAttr('disabled');
       }
 
-      while (namespace.length > 1) {
-        var current_namespace = namespace.shift();
+      while (path.length > 1) {
+        var current_path = path.shift();
 
-        if (!data[current_namespace]) {
-          data[current_namespace] = {};
+        if (!data[current_path]) {
+          data[current_path] = {};
         }
 
-        data = data[current_namespace];
+        data = data[current_path];
       }
 
-      data[namespace.shift()] = self.parseValue(
+      data[path.shift()] = self.parseValue(
         $(this).data('type'),
         $(this).val()
       );
@@ -303,7 +303,7 @@
       $.event.trigger({
         type: 'dynamicTableUpdatedEntry',
         json: data,
-        namespace: namespace,
+        path: path,
         optionals: optionals
       });
     });
@@ -313,29 +313,29 @@
     var self = this;
 
     var data = self.json;
-    var namespace = self.options.namespace.split('/');
+    var path = self.options.path.split('/');
     var entries = null;
 
-    while (namespace.length > 1) {
-      var current_namespace = namespace.shift();
+    while (path.length > 1) {
+      var current_path = path.shift();
 
-      if (!data[current_namespace]) {
-        data[current_namespace] = {};
+      if (!data[current_path]) {
+        data[current_path] = {};
       }
 
-      data = data[current_namespace];
+      data = data[current_path];
     }
 
     try {
       if (self.options.key != false) {
-        entries = $.map(data[namespace.shift()], function(values, key) {
+        entries = $.map(data[path.shift()], function(values, key) {
           return $.extend(
             self.clone(values),
             { name: key }
           );
         });
       } else {
-        entries = data[namespace.shift()]
+        entries = data[path.shift()]
       }
     } catch(e) {
       entries = {};
@@ -352,7 +352,7 @@
     $.event.trigger({
       type: 'dynamicTableRenderedEntry',
       json: data,
-      namespace: namespace,
+      path: path,
       entries: entries
     });
   };

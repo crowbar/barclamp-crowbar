@@ -78,8 +78,19 @@ module NodesHelper
   end
 
   def node_links_for(value)
-    node_list_for(value).map do |name, node|
-      link_to node[:alias], nodes_path(:selected => node[:handle]), :title => node[:title]
+    [].tap do |result|
+      clusters = value.select do |n| 
+        @service_object.is_cluster? n
+      end
+
+      clusters.each do |c| 
+        bc, prop = @service_object.cluster_get_barclamp_and_proposal(c)
+        result.push link_to(icon_tag(:cloud, prop), url_for_proposal_with_name(bc, prop), title: prop)
+      end
+
+      node_list_for(value).each do |name, node|
+        result.push link_to(icon_tag(:hdd, node[:alias]), dashboard_path(selected: node[:handle]), title: node[:title])
+      end
     end
   end
 

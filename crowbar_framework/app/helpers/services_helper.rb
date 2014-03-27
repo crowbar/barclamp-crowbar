@@ -16,14 +16,12 @@
 # limitations under the License.
 #
 
-SimpleNavigation::Configuration.run do |navigation|
-  navigation.renderer = SimpleNavigationRenderers::Bootstrap3
-  navigation.consider_item_names_as_safe = true
+module ServicesHelper
+  def barclamp_service(barclamp)
+    Kernel.const_get("#{barclamp.camelize}Service")
+  end
 
-  navigation.selected_class = "active"
-  navigation.active_leaf_class = "leaf"
-
-  navigation.items do |primary|
-    primary.dom_class = "nav navbar-nav"
+  def barclamp_members(barclamp)
+    barclamp_service(barclamp).method(:members).call
   end
 end

@@ -1,51 +1,28 @@
 .row
   .col-xs-12
     %h1.page-header
-      = display_led_for(:unknown, @proposal.prop, proposal_status_path(:id => @proposal.prop, :controller => @proposal.barclamp, :name => @proposal.name))
+      = display_led_for(@proposal.status, controller: @role.barclamp, proposal: @role.prop, url: status_proposal_path(controller: @role.barclamp, id: @role.inst, format: :json))
 
-      = t(".title")
+      - if @service_object.simple_proposal_ui? and not @role.allow_multiple_proposals?
+        = link_to @role.display_name, available_barclamps_path(selected: @role.barclamp)
+      - else
+        = link_to @role.multi_name, available_barclamps_path(selected: @role.barclamp)
 
-- update_proposal_form_for @proposal do |f|
-  %input#barclamp{ :type => "hidden", :name => "barclamp", :value => @proposal.barclamp }
-  %input#name{ :type => "hidden", :name => "name", :value => @proposal.name }
+.panel.panel-default
+  .panel-heading
+    %h2
+      = t(".attributes")
 
-  .panel.panel-default
-    .panel-heading
-      %h2
-        - if @service_object.simple_proposal_ui? and not @proposal.allow_multiple_proposals?
-          = link_to @proposal.display_name, barclamp_modules_path(:id => @proposal.barclamp)
-        - else
-          = link_to "#{@proposal.display_name}: #{@proposal.name.titlecase}", barclamp_modules_path(:id => @proposal.barclamp)
+      .btn-group.pull-right
+        = edit_barclamp_button(@role.barclamp, @role.inst)
 
-        - if @proposal.latest_applied?
-          %span.glyphicon.glyphicon-ok-sign{ :title => t('.current_revision_applied') }
-        - else
-          %span.glyphicon.glyphicon-exclamation-sign{ :title => t('.current_revision_not_applied') }
+  = render_barclamp_show_attributes @role.barclamp, @attr_raw
 
-        .btn-group.pull-right
-          - unless @proposal.pretty_deployment.crowbar_committing
-            = save_proposal_button(@proposal)
-            = apply_proposal_button(@proposal)
-            = dequeue_proposal_button(@proposal)
-            - if @active
-              = deactivate_proposal_button(@proposal)
-            - else
-              = delete_proposal_button(@proposal)
+  .panel-heading
+    %h2
+      = t(".deployment")
 
-          = cancel_barclamp_button(@proposal.barclamp)
+      .btn-group.pull-right
+        = edit_barclamp_button(@role.barclamp, @role.inst)
 
-    = render_barclamp_edit_attributes(@proposal, @attr_raw)
-    = render_barclamp_edit_deployment(@proposal, @dep_raw)
-
-    .panel-footer.text-right
-      .btn-group
-        - unless @proposal.pretty_deployment.crowbar_committing
-          = save_proposal_button(@proposal)
-          = apply_proposal_button(@proposal)
-          = dequeue_proposal_button(@proposal)
-          - if @active
-            = deactivate_proposal_button(@proposal)
-          - else
-            = delete_proposal_button(@proposal)
-
-        = cancel_barclamp_button(@proposal.barclamp)
+  = render_barclamp_show_deployment @role.barclamp, @dep_raw

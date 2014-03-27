@@ -106,11 +106,18 @@ module FormHelper
   def render_instance_selector(bc, name, label, field, proposal)
     return unless ServiceObject.get_service(bc).allow_multiple_proposals?
 
-    render :partial => "barclamp/instance_selector", :locals => {
-      :field => field,
-      :label => label,
-      :select_tag => instance_selector_select(bc, name, field, proposal)
-    }
+    content_tag(
+      :div,
+      [
+        content_tag(
+          :label,
+          label,
+          for: field
+        ),
+        instance_selector_select(bc, name, field, proposal)
+      ].join("\n").html_safe,
+      class: "form-group"
+    )
   end
 
   def number_field_tag(name, value = nil, options = {})

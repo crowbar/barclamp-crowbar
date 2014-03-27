@@ -20,7 +20,8 @@
 # specific versions for the gems, and afterwards we require all gems. 
 # That's the best workaround for the usage of bundler. This Gemfile
 # is used for a simple gem installation only, we are not using 
-# bundle exec anymore on this project!
+# bundle exec anymore on this project! Maybe only on Ubuntu to install 
+# the required gems...
 #
 
 source "https://rubygems.org"

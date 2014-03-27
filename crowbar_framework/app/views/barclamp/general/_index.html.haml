@@ -10,6 +10,6 @@
       %th
 
   - if @service_object.simple_proposal_ui?
-    = render :partial => "barclamp/show_simplified_index"
+    = render partial: "barclamp/general/index_simple"
   - else
-    = render :partial => "barclamp/show_index"
+    = render partial: "barclamp/general/index_complex"

@@ -1,12 +1,11 @@
 .row
   .col-xs-12
     %h1.page-header
-      &= @title
+      = @title
 
-      - if @count >= 0
-        .pull-right
-          %span.badge
-            = t(".proposals", :count => @count)
+      .pull-right
+        %span.badge
+          = t(".proposals", count: @count)
 
-.panel.panel-default{ "data-ledupdate" => proposals_status_path }
-  = render_barclamp_index(@bc_name)
+.panel.panel-default{ data: { ledupdate: status_barclamp_path(controller: params[:action] == "modules" ? "modules" : current_barclamp, format: :json) } }
+  = render_barclamp_index(current_barclamp)

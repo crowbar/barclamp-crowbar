@@ -19,31 +19,47 @@
 module TagHelper
   # Convert a hash into a multidimensional unordered list
   def hash_to_ul(hash)
-    content_tag(
-      :ul,
-      [].tap do |output|
-        hash.each do |key, value|
-          content = []
+    if hash.empty?
+      "&mdash;".html_safe
+    else
+      content_tag(
+        :ul,
+        [].tap do |output|
+          hash.each do |key, value|
+            content = []
 
-          if key.is_a? Hash
-            content.push hash_to_ul(key)
-          else
-            content.push content_tag(:em, key)
+            if key.is_a? Hash
+              content.push hash_to_ul(key)
+            else
+              content.push content_tag(:em, key)
+            end
+
+            if value.is_a? Hash
+              content.push hash_to_ul(value)
+            else
+              if value.is_a? Array
+                content.push content_tag(
+                  :ul,
+                  value.map do |v|
+                    content_tag(
+                      :li,
+                      v
+                    )
+                  end.join("\n").html_safe
+                )
+              else
+                content.push value == nil ? "" : "#{content.pop}: #{value}"
+              end
+            end
+
+            output.push content_tag(
+              :li,
+              content.map(&:strip).join("\n").html_safe
+            )
           end
-
-          if value.is_a? Hash
-            content.push hash_to_ul(value)
-          else
-            content.push value == nil ? "" : ": #{value}"
-          end
-
-          output.push content_tag(
-            :li,
-            content.join("\n")
-          )
-        end
-      end
-    ).html_safe
+        end.join("\n").html_safe
+      )
+    end
   end
 
   # Directly generate a tag for the glyphicons web font icons

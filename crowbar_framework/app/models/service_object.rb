@@ -679,7 +679,7 @@ class ServiceObject
   end
 
   def proposals_raw
-    ProposalObject.find_proposals(@bc_name)
+    ProposalObject.find_proposals(@bc_name).sort_by{ |n| "#{n.barclamp}/#{n.name}" }
   end
 
   def proposals

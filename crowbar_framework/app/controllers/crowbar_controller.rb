@@ -17,8 +17,14 @@
 #
 
 class CrowbarController < BarclampController
-  def initialize
-    super()
-    @service_object = CrowbarService.new(logger)
+  def index
+    @title = I18n.t("title", scope: "barclamp.crowbar.index")
+    super
+  end
+
+  protected
+
+  def initialize_service
+    @service_object = CrowbarService.new logger
   end
 end

@@ -5,7 +5,7 @@
         %td.col-xs-1.status
           - if barclamp[:proposals].length > 0
             - barclamp[:proposals].sort.each do |proposal_name, proposal|
-              = display_led_for(proposal[:status], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
+              = display_led_for(proposal[:state], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
           - else
             = display_led_for(:none, controller: barclamp_name.parameterize, proposal: "none")
 
@@ -22,11 +22,11 @@
               - barclamp[:proposals].sort.each do |proposal_name, proposal|
                 %tr
                   %td.col-xs-1.status
-                    = display_led_for(proposal[:status], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
+                    = display_led_for(proposal[:state], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
                   %td.col-xs-2
                     = proposal_name.titlecase
                   %td.col-xs-8
-                    - if proposal[:status] == "failed"
+                    - if proposal[:state] == "failed"
                       = simple_format t(".failed", message: proposal[:message])
                     - else
                       = proposal[:description]
@@ -47,7 +47,7 @@
         %td.col-xs-1.status
           - if barclamp[:proposals].length > 0
             - barclamp[:proposals].sort.each do |proposal_name, proposal|
-              = display_led_for(proposal[:status], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
+              = display_led_for(proposal[:state], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
           - else
             = display_led_for(:none, controller: barclamp_name.parameterize, proposal: "none")
 

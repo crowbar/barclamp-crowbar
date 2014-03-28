@@ -75,7 +75,7 @@ class BarclampController < ApplicationController
             name: proposal.name,
             title: proposal.name.humanize,
             state: status,
-            status: t(status.to_s, scope: "proposal.status")
+            status: I18n.t(status.to_s, scope: "proposal.status")
           }
         end
       end
@@ -563,7 +563,7 @@ class BarclampController < ApplicationController
           name: proposal.name,
           title: proposal.name.humanize,
           state: status,
-          status: t(status.to_s, scope: "proposal.status")
+          status: I18n.t(status.to_s, scope: "proposal.status")
         }
       end
     end
@@ -664,45 +664,58 @@ class BarclampController < ApplicationController
   def barclamp_listing
     @count = 0
 
+    @modules = {}.tap do |modules|
+      active = RoleObject.active
 
+      @barclamps.each do |name, details|
+        service = ServiceObject.get_service(name)
 
-    @modules = {}
-    active = RoleObject.active
-    @barclamps.each do |name, details|
-      props = ProposalObject.find_proposals name
-      @modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+        members = details["members"].length rescue 0
+        description = details["description"] || I18n.t("not_set")
 
-      bc_service = ServiceObject.get_service(name)
-      @modules[name][:allow_multiple_proposals] = bc_service.allow_multiple_proposals?
-      suggested_proposal_name = bc_service.suggested_proposal_name
+        modules[name] = {
+          members: members,
+          description: description,
+          order: details["order"],
+          allow_multiple_proposals: service.allow_multiple_proposals?,
+          suggested_proposal_name: service.suggested_proposal_name,
+          expand: false,
+          proposals: {}
+        }
 
-      ProposalObject.find_proposals(name).each do |prop|        
-        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
-        @count += 1
-        @modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
-        if prop.status === "failed"
-          @modules[name][:proposals][prop.name][:message] = prop.fail_reason 
-          @modules[name][:expand] = true
+        ProposalObject.find_proposals(name).each do |proposal|
+          status = if active.include? proposal.prop or %w(unready pending).include? proposal.status
+            proposal.status
+          else
+            "hold"
+          end
+
+          modules[name][:proposals][proposal.name] = {
+            id:  proposal.id, 
+            description: proposal.description, 
+            state: status,
+            status: I18n.t(status.to_s, scope: "proposal.status")
+          }
+
+          if proposal.status == "failed"
+            modules[name][:proposals][proposal.name][:message] = proposal.fail_reason 
+            modules[name][:expand] = true
+          end
+
+          @count += 1
         end
+
+        (1..20).each do |x|
+          possible_name = "#{service.suggested_proposal_name}_#{x}"
+
+          next if active.include? "#{name}_#{possible_name}"
+          next if modules[name][:proposals].keys.include? possible_name
+
+          modules[name][:suggested_proposal_name] = possible_name
+          break
+        end if service.allow_multiple_proposals?
       end
-
-      # find a free proposal name for what would be the next proposal
-      @modules[name][:suggested_proposal_name] = suggested_proposal_name
-      (1..20).each do |x|
-        possible_name = "#{suggested_proposal_name}_#{x}"
-        next if active.include?("#{name}_#{possible_name}")
-        next if @modules[name][:proposals].keys.include?(possible_name)
-        @modules[name][:suggested_proposal_name] = possible_name
-        break
-      end if @modules[name][:allow_multiple_proposals]
-    end
-
-
-
-    @modules = @modules.sort_by do |k, v| 
-      "%05d%s" % [v[:order], k]
-    end
+    end.sort_by { |k, v| "%05d%s" % [v[:order], k] }
 
     respond_to do |format|
       format.html { render "barclamp/index" }

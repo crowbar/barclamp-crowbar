@@ -59,9 +59,9 @@ nav:
       route: families_nodes_path
   barclamps:
     all_bc:
-      route: crowbar_barclamps_path
+      route: available_barclamps_path
     crowbar_bc:
-      route: barclamps_path
+      route: grouped_barclamps_path
       params:
         controller: crowbar
   utils:

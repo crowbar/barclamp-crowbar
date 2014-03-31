@@ -74,7 +74,14 @@
             true
           );
         } else {
-          $.event.trigger('nodeListNodeUnallocated', { role: role, id: source.data('id'), alias: source.data('alias') });
+          // We need to handle the case when the referenced node has been
+          // removed by another proposal, and there is no corresponding element
+          // in the node list. In that case, the alias is no longer available.
+          if (source.length == 0) {
+            $.event.trigger('nodeListNodeUnallocated', { role: role, id: node, alias: undefined });
+          } else {
+            $.event.trigger('nodeListNodeUnallocated', { role: role, id: source.data('id'), alias: source.data('alias') });
+          }
           toRemove.push(index);
         }
       });

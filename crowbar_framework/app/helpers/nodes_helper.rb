@@ -49,6 +49,8 @@ module NodesHelper
   end
 
   def piechart_values(group)
+    group.deep_symbolize_keys!
+
     [].tap do |result|
       result.push group[:status][:ready]
       result.push group[:status][:failed]

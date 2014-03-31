@@ -1,7 +1,0 @@
-- unless id == "topic_meta_data"
-  = prefix unless prefix.nil?
-  = link_to meta["title"], topic_docs_path(:id => "#{parent.chomp("+")}#{id.length > 0 ? "+" : ""}#{id}"), :title => t(".details", :date => meta["date"], :author => meta["author"])
-
-  - if not show_children and children > 0
-    .badge
-      = children

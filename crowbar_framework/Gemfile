@@ -43,6 +43,8 @@ gem "activerecord-session_store", "~> 0.1.0"
 gem "delayed_job_active_record", "~> 4.0.0"
 gem "faye-rails", "~> 2.0.0"
 gem "thin", "~> 1.6.2"
+gem "redcarpet", "~> 3.1.1"
+gem "nokogiri", "~> 1.6.1"
 gem "uglifier", "~> 2.2.1"
 
 # These gems maybe only used for Ubuntu or something like that. For SLES 

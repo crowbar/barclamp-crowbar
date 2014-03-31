@@ -38,6 +38,8 @@ requirements = {}.tap do |deps|
   deps["delayed_job_active_record"] = { version: "~> 4.0.0" }
   deps["faye-rails"] = { version: "~> 2.0.0" }
   deps["thin"] = { version: "~> 1.6.2" }
+  deps["redcarpet"] = { version: "~> 3.1.1" }
+  deps["nokogiri"] = { version: "~> 1.6.1" }
   deps["uglifier"] = { version: "~> 2.2.1" }
   deps["chef"] = { version: "~> 10.24.4" }
 

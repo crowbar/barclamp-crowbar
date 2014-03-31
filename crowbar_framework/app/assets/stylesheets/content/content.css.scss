@@ -34,6 +34,24 @@
       margin-bottom: 0;
     }
   }
+
+  .list-tree {
+    ul {
+      padding-left: 10px;
+
+      li {
+        border: 0;
+
+        &.list-group-item {
+          padding: 5px 10px;
+
+          &:first-child {
+            padding-top: 7px;
+          }
+        }
+      }
+    }
+  }
 }
 
 @-moz-document url-prefix() {

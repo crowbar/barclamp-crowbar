@@ -17,7 +17,7 @@
 #
 
 class DocsController < ApplicationController
-  before_filter :generate_books
+  before_action :generate_books
 
   def index
     @index = YAML.load_file(
@@ -25,77 +25,47 @@ class DocsController < ApplicationController
     )
   end
 
-  def topic
-    begin 
+  def show
+    @index = YAML.load_file(
+      docs_index
+    )
 
+    @topic = @index
 
-
-      all = YAML.load_file File.join('config', 'docs.yml')
-      @path = params[:id]
-      id = @path.split('+')
-      case id.length
-      when 1
-        @parent = nil
-        @parent_link = nil
-        @topic = nil
-      when 2 
-        @parent = nil
-        @parent_link = nil
-        @topic = all[id[1]]
-      when 3 
-        @parent = all[id[1]]
-        @parent_link = id[0..1].join('+')
-        @topic = all[id[1]][id[2]]
-      when 4
-        @parent_link = id[0..2].join('+')
-        @parent = all[id[1]][id[2]]
-        @topic = all[id[1]][id[2]][id[3]]
-      when 5
-        @parent_link = id[0..3].join('+')
-        @parent = all[id[1]][id[2]][id[3]]
-        @topic = all[id[1]][id[2]][id[3]][id[4]]
-      when 6
-        @parent_link = id[0..4].join('+')
-        @parent = all[id[1]][id[2]][id[3]][id[4]]
-        @topic = all[id[1]][id[2]][id[3]][id[4]][id[5]]
-      else
-        raise "documentation nested to too many levels, max is 6"
-      end
-          
-      @meta = @topic['topic_meta_data']
-      file = @meta['file']
-      @index = {}
-      # navigation items
-      @next = 'foo' #all[@topic['nexttopic']] if @topic['nexttopic']
-      @prev =  'foo' #@topic['prevtopic']
-      @children = @topic.delete_if { |k, v| k == META }
-      from = @meta['file']  
-      raw = if File.exist? file
-        Cmd.run(['markdown', from])
-      else
-        I18n.t '.topic_missing', :scope=>'docs.topic'
-      end
-      #File.open(@topic['source'], 'r').each do |s|
-      #  raw += s
-      #end
-      #markdown = Redcarpet.new "raw", []
-      @text = raw #markdown.to_html
-
-
-
-    rescue
-      flash.now[:alert] = I18n.t("docs.topic.topic_missing")
+    params[:id].split("/").each do |segment|
+      @parent = @topic
+      @topic = @topic["topics"][segment]
     end
+
+    if @topic["file"]
+      @topic["file"] = Rails.root.join(@topic["file"])
+
+      @markdown = Documentation::Generator.render(
+        @topic["file"].readlines.join,
+      )
+
+      @topic.deep_merge! @markdown.metadata
+    else
+      @markdown = false
+    end
+  rescue
+    flash[:alert] = I18n.t("docs.show.topic_missing")
+    redirect_to docs_url
   end
   
   protected
   
   def docs_index
-    Rails.root.join("config", "docs.yml")
+    Rails.root.join(
+      "config", 
+      "docs.yml"
+    )
   end
 
   def docs_path
-    Rails.root.join("doc")
+    Rails.root.join(
+      "doc"
+    )
   end
 
   def generate_books
@@ -103,16 +73,23 @@ class DocsController < ApplicationController
 
     @books = {}.tap do |books|
       meta_root = {
-        "author" => "Multiple Authors", 
+        "author" => "Multiple authors", 
         "license" => "Apache 2", 
-        "copyright" => "2012 by Dell, Inc", 
+        "copyright" => "#{Date.today.strftime("%Y")} by Dell, Inc", 
         "date" => I18n.t("unknown"), 
         "order" => "alpha", 
         "url" => "/", 
         "format" => "markdown" 
       }
 
-      docs_path.children.each do |book|
+      crowbar_path = docs_path.join("crowbar.yml")
+
+      templates = [
+        docs_path.children.delete(crowbar_path),
+        docs_path.children
+      ].flatten.compact
+
+      templates.each do |book|
         next unless book.extname == ".yml"
 
         begin
@@ -125,17 +102,12 @@ class DocsController < ApplicationController
         
         next if content["root"].nil?
 
-        barclamp = book.basename(".yml")
         topic = content["root"]
-        meta_data = meta_root.merge! topic["topic_meta_data"]
-        children = topic.delete_if { |k, v| k == "topic_meta_data" }
+        meta_data = meta_root.deep_merge topic["topic_meta_data"]
+        barclamp = book.basename(".yml").to_s.gsub("-", "_")
+        children = topic.reject { |k, v| k == "topic_meta_data" }
 
-
-
-        generate_topics books, meta_data, barclamp, 'root', children
-
-
-
+        generate_topics books, meta_data, barclamp, [], children
       end
     end
 
@@ -144,51 +116,81 @@ class DocsController < ApplicationController
     end
   end
 
-
-
   def generate_topics(books, meta_data, barclamp, parent, topics)
     return if topics.nil?
+
     topics.each do |id, details|
-      if id != 'topic_meta_data'
-        topic_meta_data = ((details.nil? or details['topic_meta_data'].nil?) ? meta_data : meta_data.merge!(details['topic_meta_data']))
-        source = topic_meta_data['source'] || barclamp
-        file = docs_path.join 'default', source, id+'.md'
-        if File.exist? file
-          title = File.open(file, 'r').readline rescue id.humanize
-          title = title[/(#*)(.*)/,2].strip rescue id.humanize
-          # build the new topic
-          t = { 'topic_meta_data' => {} }
-          t['topic_meta_data']['title'] = title
-          t['topic_meta_data']['file'] = file
-          order = ("%06d" % topic_meta_data['order'].to_i) rescue "009999"
-          t['topic_meta_data']['sort'] = order + title
-          topic_meta_data.each { |k, v| t['topic_meta_data'][k] = v } 
-          # walk the tree
-        else
-          t = { 'topic_meta_data'=> {'title'=>"topic pending", 'sort'=>"999999"  }}
-        end
-        p = parent.split('+')
-        case p.length
-        when 1
-          books[id] = t
-        when 2
-          books[p[1]][id] = t
-        when 3
-          books[p[1]][p[2]][id] = t
-        when 4
-          books[p[1]][p[2]][p[3]][id] = t
-        when 5 
-          books[p[1]][p[2]][p[3]][p[4]][id] = t
-        when 6
-          books[p[1]][p[2]][p[3]][p[4]][p[5]][id] = t
-        when 7
-          books[p[1]][p[2]][p[3]][p[4]][p[5]][p[6]][id] = t
-        else
-          raise "documentation nested to too many levels, max is 7"
-        end
-        # recurse the children
-        generate_topics books, meta_data, barclamp, "#{parent}+#{id}", details
+      next if id == "topic_meta_data"
+
+      topic_meta_data = if details["topic_meta_data"].is_a? Hash
+        meta_data.deep_merge details["topic_meta_data"]
+      else
+        meta_data
       end
+
+      documentation = docs_path.join("default", barclamp, "#{topic_meta_data["file"] || id}.md")
+
+      path = parent.dup
+      path.push id
+
+      if documentation.file?
+        title = File.open(
+          documentation, 
+          "r"
+        ).readline[/(#*)(.*)/, 2].strip rescue id.humanize
+
+        order = if topic_meta_data["order"].nil?
+          "%06d %s" % [
+            9999,
+            title
+          ]
+        else
+          "%06d %s" % [
+            topic_meta_data["order"].to_i,
+            title
+          ]
+        end
+
+        t = { 
+          "id" => id,
+          "title" => title,
+          "file" => documentation.to_s.gsub("#{Rails.root}/", ""),
+          "path" => path.join("/"),
+          "sort" => order
+        }
+      else
+        t = {
+          "id" => id,
+          "title" => "File is missing",
+          "path" => path.join("/"),
+          "sort" => "999999"
+        } 
+      end
+
+      topic_meta_data.deep_merge! t
+      reference = books
+
+      path.each do |segment|
+        reference["topics"] ||= {}
+        reference["topics"][segment] ||= {}
+
+        reference = reference["topics"][segment]
+      end
+
+      %w(id title path sort).each do |key|
+        topic_meta_data.delete(key) if reference.keys.include? key
+      end
+
+      reference.deep_merge! topic_meta_data
+
+      children = details.reject { |k, v| k == "topic_meta_data" }
+      generate_topics books, meta_data, barclamp, path, children
+
+      sorted = books["topics"].to_a.sort do |x, y| 
+        x.last["sort"] <=> y.last["sort"]
+      end
+
+      books["topics"] = Hash[sorted]
     end
   end
 end

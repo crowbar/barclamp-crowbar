@@ -16,50 +16,59 @@
 #
 
 root:
-  topic_meta_data:  
-    author: Multiple Authors
-    license: Apache 2
-    copyright: 2014 by Dell, Inc
-    date: Feb 18, 2014
-    order: alpha
+  topic_meta_data:
+    author: 'Multiple authors'
+    license: 'Apache 2'
+    copyright: '2014 by Dell, Inc'
+    date: 'Feb 18, 2014'
+    order: 'alpha'
     url: '/'
-    format: markdown
+    format: 'markdown'
 
-  book-gettingstarted:
+  getting_started:
     topic_meta_data:
       order: 100
+      url: '/'
 
-  book-userguide:
+  user_guide:
     topic_meta_data:
       order: 1000
-    ui-general:
+      url: '/docs'
+
+    ui_general:
       topic_meta_data:
         order:  10
-      ui-nodes:
+        url: '/'
+
+      ui_nodes:
         topic_meta_data:
           url: '/dashboard'
-    ui-utilities:
+
+    utils:
       topic_meta_data:
         order: 100
         url: '/utils'
-      utils-export:
+
+      utils_export:
         topic_meta_data:
-          url: '/utils/index'
+          url: '/utils'
 
-  book-barclamps:
+  deploy_guide:
     topic_meta_data:
-      order: 2500
+      order: 2000
+      url: '/docs'
 
-  book-deployguide:
-    topic_meta_data:
-      order: 5000
-
-  book-documentation:
+  documentation:
     topic_meta_data:
       order: 6000
       url:  '/docs'
 
-  book-licenses:
+  barclamps:
     topic_meta_data:
-      order: 99999
+      order: 7000
+      url: '/crowbar/modules/1.0'
+
+  licenses:
+    topic_meta_data:
+      order: 9999
       url: '/docs'

@@ -274,6 +274,7 @@ jQuery(document).ready(function($) {
   $('[data-ledupdate]').ledUpdate();
   $('[data-show-for-clusters-only="true"]').hideShowClusterConf();
 
+  $('.navbar .dropdown-toggle').dropdownHover();
   $('#nodelist').nodeList();
   $('input[type=password]').hideShowPassword();
 

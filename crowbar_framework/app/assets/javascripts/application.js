@@ -3,6 +3,7 @@
 //= require misc
 //= require codemirror
 //= require bootstrap
+//= require faye
 //= require_self
 //= require branding
 
@@ -25,6 +26,22 @@
  */
 
 jQuery(document).ready(function($) {
+  var faye = new Faye.Client(
+    $('body').data('faye-host')
+  );
+
+  faye.subscribe('/general/flash', function (data) {
+    alert(data);
+  });
+
+  faye.subscribe('/status/node', function (data) {
+    alert(data);
+  });
+
+  faye.subscribe('/status/proposal', function (data) {
+    alert(data);
+  });
+
   $('textarea.editor').each(function() {
     CodeMirror.fromTextArea(this, {
       lineNumbers: true,

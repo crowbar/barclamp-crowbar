@@ -275,8 +275,9 @@ jQuery(document).ready(function($) {
   $('[data-show-for-clusters-only="true"]').hideShowClusterConf();
 
   $('.navbar .dropdown-toggle').dropdownHover();
-  $('#nodelist').nodeList();
+  $('select').selectpicker();
   $('input[type=password]').hideShowPassword();
+  $('#nodelist').nodeList();
 
   setInterval(
     function() {

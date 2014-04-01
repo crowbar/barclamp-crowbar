@@ -12,6 +12,7 @@
 //= require bootstrap/tooltip
 //= require bootstrap/popover
 //= require bootstrap/hover-dropdown
+//= require bootstrap/select
 
 /**
  * Copyright 2011-2013, Dell

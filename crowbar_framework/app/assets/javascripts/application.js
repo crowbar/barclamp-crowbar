@@ -31,15 +31,16 @@ jQuery(document).ready(function($) {
   );
 
   faye.subscribe('/general/flash', function (data) {
-    alert(data);
-  });
-
-  faye.subscribe('/status/node', function (data) {
-    alert(data);
-  });
-
-  faye.subscribe('/status/proposal', function (data) {
-    alert(data);
+    $.bootstrapGrowl(data.message, {
+      type: data.type ? data.type : 'info',
+      allow_dismiss: data.dismiss ? data.dismiss : false,
+      width: 400,
+      delay: 5000,
+      offset: {
+        from: 'top', 
+        amount: 70
+      }
+    });
   });
 
   $('textarea.editor').each(function() {
@@ -123,11 +124,12 @@ jQuery(document).ready(function($) {
         border: 'none',
         padding: '15px',
         backgroundColor: '#000',
-        '-webkit-border-radius': '10px',
-        '-moz-border-radius': '10px',
         opacity: .5,
-        color: '#fff'
+        color: '#fff',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px'
       },
+      baseZ: 9000,
       message: $(event.target).data('blockui')
     });
   });

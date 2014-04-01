@@ -13,6 +13,7 @@
 //= require bootstrap/popover
 //= require bootstrap/hover-dropdown
 //= require bootstrap/select
+//= require bootstrap/growl
 
 /**
  * Copyright 2011-2013, Dell

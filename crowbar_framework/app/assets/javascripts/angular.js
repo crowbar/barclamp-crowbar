@@ -1,3 +1,8 @@
+//= require_self
+//= require angular/angular
+//= require angular/touch
+//= require angular/resource
+
 /**
  * Copyright 2011-2013, Dell
  * Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -15,22 +20,3 @@
  * limitations under the License.
  *
  */
-
-@import "variables";
-
-@import "jquery";
-@import "angular";
-@import "misc";
-@import "codemirror";
-@import "bootstrap";
-
-@import "content/global";
-@import "content/alert";
-@import "content/header";
-@import "content/content";
-@import "content/form";
-@import "content/drag";
-@import "content/table";
-@import "content/footer";
-
-@import "branding";

@@ -45,7 +45,7 @@ nav:
       params:
         id: default
     barclamps:
-      route: crowbar_barclamps_path
+      route: available_barclamps_path
     utils:
       route: utils_path
     help:

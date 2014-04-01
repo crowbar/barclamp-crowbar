@@ -24,9 +24,9 @@ jQuery(document).ready(function($) {
       function() {
         var meta = $('.row[data-update]');
 
-        $.getJSON(meta.data('update').replace('FILENAME', $.queryString['file']), function(data) {
+        $.getJSON(meta.data('update').replace('FILENAME', meta.data('file')), function(data) {
           if (data['waiting'] == false) {
-            location.href = meta.data('redirect').replace('FILENAME', $.queryString['file']);
+            location.href = meta.data('redirect').replace('FILENAME', meta.data('file'));
           }
         });
       },

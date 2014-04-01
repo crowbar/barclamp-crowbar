@@ -36,7 +36,7 @@ class SupportconfigController < ApplicationController
 
         File.rename Dir[Rails.root.join("tmp", base, "*.tbz").to_s].first, export_dir.join(filename).to_s
       rescue Cocaine::ExitStatusError => e
-        flash[:alert] = t("support.export.fail", :error => e.message)
+        flash[:alert] = t("support.export.fail", error: e.message)
       rescue => e
         log_exception e
       ensure
@@ -45,10 +45,10 @@ class SupportconfigController < ApplicationController
     end
 
     Process.detach(pid)
-    redirect_to utils_url(:waiting => true, :file => filename)
+    redirect_to file_utils_url(waiting: true, file: filename)
   rescue StandardError => e
     log_exception e
-    flash[:alert] = t("support.export.fail", :error => e.message)
+    flash[:alert] = t("support.export.fail", error: e.message)
 
     redirect_to utils_url
   end

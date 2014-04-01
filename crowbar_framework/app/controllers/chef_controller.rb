@@ -44,7 +44,7 @@ class ChefController < ApplicationController
 
         File.rename Rails.root.join("tmp", filename).to_s, export_dir.join(filename).to_s
       rescue Cocaine::ExitStatusError => e
-        flash[:alert] = t("support.export.fail", :error => e.message)
+        flash[:alert] = t("support.export.fail", error: e.message)
       rescue => e
         log_exception e
       ensure
@@ -53,10 +53,10 @@ class ChefController < ApplicationController
     end
 
     Process.detach(pid)
-    redirect_to utils_url(:waiting => true, :file => filename)
+    redirect_to file_utils_url(waiting: true, file: filename)
   rescue StandardError => e
     log_exception e
-    flash[:alert] = I18n.t("support.export.fail", :error => e.message)
+    flash[:alert] = I18n.t("support.export.fail", error: e.message)
 
     redirect_to utils_url
   end

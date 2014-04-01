@@ -165,16 +165,6 @@ en:
       none: 'No proposal'
       unknown: 'Unknown, requesting status...'
 
-
-
-
-
-
-
-
-
-
-
     actions:
       edit: 'Edit'
       link: '%{name} barclamp'
@@ -190,6 +180,8 @@ en:
       create_success: 'Successfully created proposal'
       recall: 'Deactivate'
       recall_success: 'Successfully deactivated proposal'
+
+
 
 
 
@@ -277,33 +269,6 @@ en:
         proposal_count: 'Proposals'
         status: 'Status'
         barclamp: 'Barclamp'
-
-  dashboard:
-    errors:
-      no_nodes: 'Can not find any node'
-
-    index:
-
-      new_node: 'Add node'
-      title: 'Dashboard'
-      extended_nodes:
-        one: 'There is %{count} node available in the system'
-        other: 'There are %{count} nodes available in the system'
-      simple_nodes:
-        one: '%{count} node'
-        other: '%{count} nodes'
-      status_pie:
-        total: 'Total %{count}'
-        ready: '%{count} Ready'
-        unknown: '%{count} Unknown'
-        unready: '%{count} Not Ready'
-        pending: '%{count} Pending'
-      default_new: 'New group'
-      add: 'Add'
-      add_group_error: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
-      hide: 'Hide Group'
-      drag_hint: 'You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.'
-      new_drag: 'To move nodes, drag onto this box'
 
   nodes:
     list:
@@ -420,75 +385,78 @@ en:
         raid6: RAID 6
         raid10: RAID 10
 
-  support:
+
+
+
+
+
+  utils:
     index:
-      title: 'Exported Files'
+      title: 'Exported files'
       none_exported: 'There are no exported files to download'
-      other: 'Other Files'
-      chef: 'Chef Objects'
-      import: 'Import Logs'
-      cli: 'CLI Utilities'
-      log: 'Log Files'
+      other: 'Other files'
+      chef: 'Chef objects'
+      import: 'Import logs'
+      cli: 'CLI utilities'
+      log: 'Log files'
       supportconfig: 'Supportconfigs'
-      delete_hint: 'Delete File from Export Directory'
+      delete_hint: 'Delete file from export directory'
       delete_succeeded: 'Deleted %{file} successfully'
       delete_failed: 'Failed to delete %{file}'
-      wait: 'Exporting... Please wait or check back later (screen will automatically update when complete)'
-    export:
-      succeed: 'Chef Objects Exported'
-      fail: 'Chef export failed with %{error}'
-    import:
-      title: 'Barclamp Import'
-      title_all: 'Barclamp Import (installed and pending)'
-      pending: 'Pending Only'
-      admin_os: 'Crowbar Operating System'
-      installed: 'Installed'
-      user: 'User Managed'
-      name: 'Name'
-      order: 'Order'
-      version: 'Date'
-      commit: 'Commit GUID'
-      notes: 'Notes'
-      install: 'Install?'
-      import: 'Import'
-      error_file_missing: 'Error! Barclamp not found.'
-      error_import: 'Error! Import failed.'
-      error_yml: 'Error! Could not parse Crowbar.yml'
-      success: 'Success. Barclamp Imported!'
-      missing_prereq: 'Missing Prerequisits'
-      select_files: 'Select Files to Upload'
-      upload: 'Upload'
-      delete_hint: 'Delete File from Import Directory'
-    upload:
-      succeeded: 'Upload Succeeded'
-      failed: 'Upload Failed'
-      no_file: 'No File for Upload'
-    restart:
-      title: 'Restart Crowbar'
-      in_process: 'Restart in process...'
-      dev_restart: 'DEV MODE: You must manually restart the web server to complete this action (it may not be needed).'
-      restarting: 'Restart request sent...'
-      server_down: 'Process stopped. Restarting...'
-      complete: 'Crowbar Ready!'
-      button: 'Restart Crowbar Server'
-      import_log: 'Import log: %{file}'
+      delete_confirm: 'Are you sure?'
+      wait: 'Exporting, please wait or check back later (screen will automatically update when complete)'
+
+  dashboard:
+    errors:
+      no_nodes: 'Can not find any node'
+
+
+
+
+
+
+
+
+
+    index:
+      new_node: 'Add node'
+      title: 'Dashboard'
+      extended_nodes:
+        one: 'There is %{count} node available in the system'
+        other: 'There are %{count} nodes available in the system'
+      simple_nodes:
+        one: '%{count} node'
+        other: '%{count} nodes'
+      status_pie:
+        total: 'Total %{count}'
+        ready: '%{count} Ready'
+        unknown: '%{count} Unknown'
+        unready: '%{count} Not Ready'
+        pending: '%{count} Pending'
+      default_new: 'New group'
+      add: 'Add'
+      add_group_error: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
+      hide: 'Hide Group'
+      drag_hint: 'You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.'
+      new_drag: 'To move nodes, drag onto this box'
+
+
+
+
+
+
+
+
+
+
+
+
+
+  support:
     array:
       words_connector: ', '
       two_words_connector: ' and '
       last_word_connector: ' and '
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   raid:
     JBODOnly: 'JBOD'

@@ -31,8 +31,20 @@ Crowbar::Application.routes.draw do
   match "network/:controller/1.0", action: :network, as: :network_barclamp, via: [:get, :post]
   match "export/:controller/1.0", action: :export, as: :export_barclamp, via: [:get, :post]
 
-  constraints(id: /.*/ ) do
+  constraints(id: /[^\/]+/) do
     get "dashboard" => "dashboard#index", as: :dashboard
+
+    resources :utils, only: [:index, :destroy] do
+      collection do
+        get ":file" => "utils#index", as: :file, constraints: { file: /[^\/]+/}
+      end
+    end
+
+    resources :docs, only: [:index] do
+      collection do
+        get "*id" => "docs#show", as: :topic
+      end
+    end
 
     resources :nodes, only: [:edit, :update, :show] do
       collection do
@@ -52,24 +64,10 @@ Crowbar::Application.routes.draw do
       end
     end
 
-    resources :utils, only: [:index, :destroy], controller: :support do
-      member do
-        get :restart
-        post :import
-        post :upload
-      end
-    end
-
     resources :networks, only: [], controller: :network do
       member do 
         get :switch
         get :vlan
-      end
-    end
-
-    resources :docs, only: [:index] do
-      collection do
-        get "*id" => "docs#show", as: :topic
       end
     end
   end
@@ -95,7 +93,7 @@ Crowbar::Application.routes.draw do
     match "elements/:id", action: :element_show, as: :show_element, via: [:get]
   end
 
-  constraints(id: /[^\/]+/ ) do
+  constraints(id: /[^\/]+/) do
     match "crowbar/:controller/1.0", action: :index, as: :grouped_barclamps, via: [:get]
     match "crowbar/:controller/1.0/:action/:id", as: :on_barclamp, via: [:post]
   end

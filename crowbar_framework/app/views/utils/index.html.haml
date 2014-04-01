@@ -1,13 +1,13 @@
-- register_javascripts "barclamps/crowbar/support"
+- register_javascripts "barclamps/crowbar/utils"
 
-.row{ "data-update" => utils_path(:format => :json, :file => "FILENAME"), "data-counter" => @export.counter, "data-redirect" => utils_path(:file => "FILENAME") }
+.row{ data: { file: params[:file], update: file_utils_path(format: :json, file: "FILENAME"), counter: @export.counter, redirect: file_utils_path(file: "FILENAME") } }
   .col-xs-12
     %h1.page-header
       = t(".title")
 
       .btn-group.pull-right
         - BarclampCatalog.barclamps.each do |barclamp, details|
-          - if ("#{barclamp.camelize}Controller".constantize.new.methods.include?("export") rescue false)
+          - if ("#{barclamp.camelize}Controller".constantize.instance_methods.include?(:export) rescue false)
             = link_to t("nav.#{barclamp}_export"), export_barclamp_path(controller: barclamp), class: "btn btn-default"
 
         = link_to t("nav.util_chef"), export_barclamp_path(controller: "chef"), class: "btn btn-default"
@@ -35,7 +35,7 @@
               - else
                 = link_to file, "/export/#{file}"
 
-              = link_to icon_tag("trash"), util_path(id: file), method: :delete, title: t(".delete_hint"), class: "pull-right"
+              = link_to icon_tag("trash"), util_path(id: file), method: :delete, title: t(".delete_hint"), class: "pull-right", data: { confirm: t(".delete_confirm") }
 - else
   .alert.alert-info
     = t(".none_exported")

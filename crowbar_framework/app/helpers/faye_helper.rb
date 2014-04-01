@@ -23,4 +23,16 @@ module FayeHelper
       "faye"
     ].join
   end
+
+  def broadcast(channel, &block)
+    message = {
+      channel: channel, 
+      data: capture(&block)
+    }
+
+    Net::HTTP.post_form(
+      URI.parse(faye_host), 
+      message: message.to_json
+    )
+  end
 end

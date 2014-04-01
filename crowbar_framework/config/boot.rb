@@ -20,6 +20,7 @@ gem "rails", version: "4.0.4"
 
 require "rails/all"
 require "sprockets/railtie"
+require "net/http"
 
 requirements = {}.tap do |deps|
   deps["dotenv-rails"] = { version: "~> 0.10.0" }

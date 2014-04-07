@@ -1,8 +1,3 @@
-//= require_self
-//= require misc/html5shiv
-//= require misc/respond
-//= require misc/iefix
-
 //
 // Copyright 2011-2013, Dell
 // Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -19,3 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
+angular
+  .module(
+    'controller.application', 
+    [
+
+    ]
+  )
+
+  .controller(
+    'ApplicationCtrl', 
+    [
+      '$scope',
+      function ($scope) {
+        'use strict';
+
+
+
+      }
+    ]
+  );

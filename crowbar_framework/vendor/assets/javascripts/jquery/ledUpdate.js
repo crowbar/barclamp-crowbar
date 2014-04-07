@@ -232,9 +232,11 @@
 
         if (reload) {
           if (self.$el.data('ledredirect')) {
-            win.location = self.$el.data('ledredirect');
+            console.log('redirect to ' + self.$el.data('ledredirect'));
+            //win.location = self.$el.data('ledredirect');
           } else {
-            win.location.reload();
+            console.log('reload page for led update')
+            //win.location.reload();
           }
         }
       });

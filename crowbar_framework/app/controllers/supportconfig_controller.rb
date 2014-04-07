@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-class SupportconfigController < ApplicationController
+class SupportconfigController < CrowbarController
   def export
     base = "supportconfig-#{Time.now.strftime("%Y%m%d-%H%M%S")}"
     filename = "#{base}.tbz"

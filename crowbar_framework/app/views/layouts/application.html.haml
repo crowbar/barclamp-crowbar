@@ -1,5 +1,5 @@
 !!!
-%html{ lang: I18n.locale, ng: { app: "" } }
+%html{ lang: I18n.locale, ng: { app: "crowbar" } }
   %head
     %title
       = meta_title
@@ -21,10 +21,11 @@
       = stylesheet_link_tag "ie"
       = javascript_include_tag "ie"
 
-  %body{ class: params[:controller], data: { faye_host: faye_host } }
+  %body{ class: params[:controller], ng: { controller: "ApplicationCtrl" }, data: { faye_host: faye_host } }
     = render partial: "shared/header"
 
     .container#content
+      {{'helpers.select.prompt'|i18n}} 
       = render partial: "shared/flashes"
 
       = yield

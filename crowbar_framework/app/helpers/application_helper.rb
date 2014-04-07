@@ -56,9 +56,29 @@ module ApplicationHelper
   # stylesheets to get the stylesheets more dynamic included
   def registered_stylesheets
     @registered_stylesheets ||= begin
-      [
+      files = [
         "application"
       ]
+
+      barclamp_name = if @service_object
+        @service_object.barclamp rescue "crowbar"
+      else
+        "crowbar"
+      end
+
+      barclamp_path = Rails.root.join(
+        "app",
+        "assets",
+        "stylesheets",
+        "barclamps",
+        "#{barclamp_name}.css.scss"
+      )
+
+      if barclamp_path.file?
+        files.push "barclamps/#{barclamp_name}"
+      end
+
+      files
     end
   end
 
@@ -72,9 +92,29 @@ module ApplicationHelper
   # javascripts to get the javascripts more dynamic included
   def registered_javascripts
     @registered_javascripts ||= begin
-      [
+      files = [
         "application"
       ]
+
+      barclamp_name = if @service_object
+        @service_object.barclamp rescue "crowbar"
+      else
+        "crowbar"
+      end
+
+      barclamp_path = Rails.root.join(
+        "app",
+        "assets",
+        "javascripts",
+        "barclamps",
+        "#{barclamp_name}.js"
+      )
+
+      if barclamp_path.file?
+        files.push "barclamps/#{barclamp_name}"
+      end
+
+      files
     end
   end
 

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-class ChefController < ApplicationController
+class ChefController < CrowbarController
   def export
     Rails.root.join("db").children.each do |file|
       file.unlink if file.extname == ".json"

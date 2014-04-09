@@ -661,10 +661,14 @@ class ServiceObject
     [200, roles]
   end
 
-  def element_info
-    nodes = NodeObject.find_all_nodes
-    nodes.map! { |n| n.name } unless nodes.empty?
-    [200, nodes]
+  def element_info(role = nil)
+    if role && !ProposalObject.find_barclamp(@bc_name).all_elements.include?(role)
+      [400, "No role #{role} found for #{@bc_name}."]
+    else
+      nodes = NodeObject.find_all_nodes
+      nodes.map! { |n| n.name } unless nodes.empty?
+      [200, nodes]
+    end
   end
 
   def proposals_raw

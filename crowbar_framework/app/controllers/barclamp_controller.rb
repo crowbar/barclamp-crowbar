@@ -161,7 +161,7 @@ class BarclampController < ApplicationController
   #
   add_help(:element_info,[:id])
   def element_info
-    ret = @service_object.element_info
+    ret = @service_object.element_info(params[:id])
     return render :text => ret[1], :status => ret[0] if ret[0] != 200
     render :json => ret[1]
   end

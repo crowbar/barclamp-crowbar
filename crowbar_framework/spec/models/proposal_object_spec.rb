@@ -1,6 +1,30 @@
 require 'spec_helper'
 
 describe ProposalObject do
+  describe "barclamp" do
+    it "returns barclamp for regular proposals" do
+      proposal = ProposalObject.find_proposal_by_id("bc-crowbar-default")
+      proposal.barclamp.should == 'crowbar'
+    end
+
+    it "returns barclamp for templates" do
+      proposal = ProposalObject.find_barclamp("crowbar")
+      proposal.barclamp.should == 'crowbar'
+    end
+  end
+
+  describe "name" do
+    it "returns name for regular proposals" do
+      proposal = ProposalObject.find_proposal_by_id("bc-crowbar-default")
+      proposal.name.should == 'default'
+    end
+
+    it "returns name for templates" do
+      proposal = ProposalObject.find_barclamp("crowbar")
+      proposal.name.should == 'template'
+    end
+  end
+
   describe "finders" do
     describe "find" do
       it "returns proposals matching a search" do

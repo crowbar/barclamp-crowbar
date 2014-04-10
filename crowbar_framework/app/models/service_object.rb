@@ -654,11 +654,7 @@ class ServiceObject
   end
 
   def elements
-    roles = RoleObject.find_roles_by_name("#{@bc_name}-*")
-    cull_roles = RoleObject.find_roles_by_name("#{@bc_name}-config-*")
-    roles.delete_if { |r| cull_roles.include?(r) } unless roles.empty?
-    roles.map! { |r| r.name } unless roles.empty?
-    [200, roles]
+    [200, ProposalObject.find_barclamp(@bc_name).all_elements]
   end
 
   def element_info(role = nil)

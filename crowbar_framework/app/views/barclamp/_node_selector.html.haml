@@ -33,7 +33,7 @@
 
           .form-group
             %ul.clusters
-              - @service_object.available_clusters.each do |cluster_name, role|
+              - @service_object.available_clusters.sort.each do |cluster_name, role|
                 - cluster_barclamp, cluster_proposal = @service_object.cluster_get_barclamp_and_proposal(cluster_name)
                 %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => cluster_name, "data-alias" => cluster_proposal, "data-cluster" => "true", "data-admin" => "false", :title => cluster_proposal }
                   = icon_tag :cloud

@@ -658,13 +658,22 @@ class ServiceObject
   end
 
   def element_info(role = nil)
-    if role && !ProposalObject.find_barclamp(@bc_name).all_elements.include?(role)
-      [400, "No role #{role} found for #{@bc_name}."]
-    else
-      nodes = NodeObject.find_all_nodes
-      nodes.map! { |n| n.name } unless nodes.empty?
-      [200, nodes]
+    nodes = NodeObject.find_all_nodes.map(&:name)
+
+    return [200, nodes] unless role
+
+    valid_roles = ProposalObject.find_barclamp(@bc_name).all_elements
+    return [400, "No role #{role} found for #{@bc_name}."] if !valid_roles.include?(role)
+
+    # FIXME: we could try adding each node in turn to existing proposal's 'elements' and removing it
+    # from the nodes list in the case the new proposal would not be valid, so
+    # nodes that can't be added at all would not be returned.
+    nodes.reject! do |node|
+      elements = { role.to_s => [node] }
+      violates_admin_constraint?(elements, role) || violates_cluster_constraint?(elements, role)
     end
+
+    [200, nodes]
   end
 
   def proposals_raw

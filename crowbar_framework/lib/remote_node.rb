@@ -73,7 +73,9 @@ module RemoteNode
   end
 
   def self.ssh_cmd(host_or_ip, cmd)
-    system("sudo", "-i", "-u", "root", "--", "ssh", "root@#{host_or_ip}", cmd)
+    ssh = ["sudo", "-i", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{host_or_ip}"]
+    ssh << cmd
+    system(*ssh)
   end
 
   def self.port_open?(ip, port)

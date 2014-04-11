@@ -1574,17 +1574,21 @@ class ServiceObject
       #   node[:reboot] = "complete"
       # end
 
-      exit(1) unless system("sudo", "-u", "root", "--", "ssh", "root@#{node}", command)
+      ssh = ["sudo", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{node}"]
+      ssh_cmd = ssh.dup << command
+      ssh_reboot = ssh.dup << "reboot"
+
+      exit(1) unless system(*ssh_cmd)
 
       nobj = NodeObject.find_node_by_name(node)
       attempt=0
       while nobj[:reboot] == "require" and attempt <= 3
         attempt += 1
         puts "going to reboot #{node} due to #{nobj[:reboot]} attempt #{attempt}"
-        system("sudo", "-u", "root", "--", "ssh", "root@#{node}", "reboot")
+        system(*ssh_reboot)
         if RemoteNode.ready?(node, 1200)
           3.times do
-            if system("sudo", "-u", "root", "--", "ssh", "root@#{node}", command)
+            if system(*ssh_cmd)
               nobj = NodeObject.find_node_by_name(node)
               break
             else

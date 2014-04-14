@@ -306,6 +306,12 @@ en:
       hw_description: Hardware
       description: Description
       bios: BIOS
+      intended_role: Intended Role
+      controller: Controller
+      compute: Compute
+      storage: Storage
+      network: Network
+      no_role: Undecided
       raid: RAID
       admin: Crowbar Server
       title: Bulk edit

@@ -30,15 +30,13 @@
             %th
               = t(".name")
             %th
-              = t(".alias")
-            %th
-              = t(".public_name")
-            %th
               = t(".hw_description")
             %th
-              = t(".description")
+              = t(".alias")
             %th
               = t(".group")
+            %th
+              = t(".intended_role")
             - if crowbar_options[:show].include? :bios
               %th
                 = t(".bios")
@@ -61,16 +59,14 @@
                 = link_to node.name.split(".").first, node_path(node.handle), :title => node.ip
 
               - if node.admin?
-                %td
-                  = text_field_tag "node[#{node.name}][alias]", node.alias(true) || t(".admin"), :class => "form-control"
-                %td
-                  = text_field_tag "node[#{node.name}][public_name]", node.public_name(true), :class => "form-control"
                 %td.nowrap
                   = "#{node.hardware}, #{format_memory(node.memory)}, #{node.nics} Nics"
                 %td
-                  = text_field_tag "node[#{node.name}][description]", node.description(true) || "", :class => "form-control"
+                  = text_field_tag "node[#{node.name}][alias]", node.alias(true) || t(".admin"), :class => "form-control"
                 %td
                   = text_field_tag "node[#{node.name}][group]", node.group, :class => "form-control"
+                %td
+                  = t("na")
                 - if crowbar_options[:show].include? :bios
                   %td
                     = t("na")
@@ -85,16 +81,14 @@
                   = t "na"
 
               - else
-                %td
-                  = text_field_tag "node[#{node.name}][alias]", node.alias(true), :class => "form-control"
-                %td
-                  = text_field_tag "node[#{node.name}][public_name]", node.public_name(true), :class => "form-control"
                 %td.nowrap
                   = "#{node.hardware}, #{format_memory(node.memory)}, #{node.nics} Nics"
                 %td
-                  = text_field_tag "node[#{node.name}][description]", node.description(true) || "", :class => "form-control"
+                  = text_field_tag "node[#{node.name}][alias]", node.alias(true), :class => "form-control"
                 %td
                   = text_field_tag "node[#{node.name}][group]", node.group(true), :class => "form-control"
+                %td
+                  = select_tag "node[#{node.name}][intended_role]", roles_for_select(node.intended_role), :class => "form-control"
                 - if crowbar_options[:show].include? :bios
                   %td
                     = select_tag "node[#{node.name}][bios]", options_for_select(crowbar_options[:bios], node.bios_set), :class => "form-control"

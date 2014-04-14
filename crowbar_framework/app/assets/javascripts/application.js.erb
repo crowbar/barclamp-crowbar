@@ -1,9 +1,3 @@
-//= require vendor
-//= require service/localization
-//= require service/websocket
-//= require controller/application
-//= require_self
-
 //
 // Copyright 2011-2013, Dell
 // Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -21,25 +15,31 @@
 // limitations under the License.
 //
 
+//= require variables
+//= require vendor
+
+//= require controllers/application
+//= require directives/websocket
+//= require directives/notification
+
+//= require branding
+
 angular
   .module(
     'crowbar', 
     [
-      'service.localization',
-      'service.websocket',
-      'controller.application'
+      'pascalprecht.translate',
+      'crowbar.directives',
+      'crowbar.controllers'
     ]
   )
 
   .config(
     [
-      'localizeProvider',
-      'websocketProvider',
-      function (localizeProvider, websocketProvider) {
-        'use strict';
-
-console.log(websocketProvider.$get[2]);
-
+      '$translateProvider',
+      function($translateProvider) {
+        $translateProvider.useUrlLoader('/translations.json');
+        $translateProvider.preferredLanguage('en');
       }
     ]
   );

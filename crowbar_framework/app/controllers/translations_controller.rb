@@ -17,17 +17,19 @@
 #
 
 class TranslationsController < ApplicationController
-  def show
+  def index
     respond_to do |format|
-      format.json { render json: translations(params[:id]) }
+      format.json { render json: translations }
     end
   end
 
   protected
 
-  def translations(locale)
+  def translations
     I18n.backend.load_translations
+
     values = I18n.backend.send(:translations)
+    locale = params[:lang] || I18n.locale
 
     flattening(
       values[locale.to_sym]
@@ -42,7 +44,12 @@ class TranslationsController < ApplicationController
         if value.is_a? Hash
           result.merge! flattening(value, path)
         else
-          result[path.join(".")] = value
+
+          result[path.join(".")] = if value.is_a? Array
+            value.compact.map { |v| v.gsub(/%{(.*)}/, "{{\\1}}") }
+          else
+            value.to_s.gsub(/%{(.*)}/, "{{\\1}}")
+          end
         end
       end
     end

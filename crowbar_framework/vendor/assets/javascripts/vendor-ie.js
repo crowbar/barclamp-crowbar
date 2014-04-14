@@ -15,16 +15,6 @@
 // limitations under the License.
 //
 
-@import "variables";
-@import "vendor";
-
-@import "content/global";
-@import "content/alert";
-@import "content/header";
-@import "content/content";
-@import "content/form";
-@import "content/drag";
-@import "content/table";
-@import "content/footer";
-
-@import "branding";
+//= require misc/html5shiv
+//= require misc/respond
+//= require misc/iefix

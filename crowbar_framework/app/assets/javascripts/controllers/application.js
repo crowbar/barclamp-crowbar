@@ -15,16 +15,19 @@
 // limitations under the License.
 //
 
-@import "variables";
-@import "vendor";
+angular
+  .module(
+    'crowbar.controllers', 
+    []
+  )
 
-@import "content/global";
-@import "content/alert";
-@import "content/header";
-@import "content/content";
-@import "content/form";
-@import "content/drag";
-@import "content/table";
-@import "content/footer";
-
-@import "branding";
+  .controller(
+    'ApplicationCtrl', 
+    [
+      '$translate',
+      '$scope',
+      function($translate, $scope) {
+        console.log($scope);
+      }
+    ]
+  );

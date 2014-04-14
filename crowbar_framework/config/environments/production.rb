@@ -27,12 +27,11 @@ Crowbar::Application.configure do
 
   config.serve_static_assets = false
   config.assets.debug = false
-  config.assets.js_compressor = :uglifier
+  config.assets.js_compressor = :closure
   config.assets.css_compressor = :sass
-  config.assets.compile = false
+  config.assets.compile = true
   config.assets.digest = true
   config.assets.version = "1.0"
-  config.assets.precompile += %w(application.js application.css ie.js ie.css)
 
   config.action_dispatch.show_exceptions = false
   config.action_controller.perform_caching = true
@@ -47,4 +46,3 @@ Crowbar::Application.configure do
 
   #config.logger.formatter = ::Logger::Formatter.new
 end
-

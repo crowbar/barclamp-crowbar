@@ -41,7 +41,10 @@ requirements = {}.tap do |deps|
   deps["thin"] = { version: "~> 1.6.2" }
   deps["redcarpet"] = { version: "~> 3.1.1" }
   deps["nokogiri"] = { version: "~> 1.6.1" }
-  deps["uglifier"] = { version: "~> 2.2.1" }
+  deps["bootstrap-sass"] = { version: "~> 3.1.1" }
+  deps["font-awesome-rails"] = { version: "~> 4.0.3" }
+  deps["closure-compiler"] = { version: "~> 1.1.10" }
+  deps["js-routes"] = { version: "~> 0.9.7" }
   deps["chef"] = { version: "~> 10.24.4" }
 
   deps["activerecord-session_store"] = { 

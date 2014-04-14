@@ -15,16 +15,17 @@
 // limitations under the License.
 //
 
-@import "variables";
-@import "vendor";
+angular
+  .module(
+    'crowbar.directives', 
+    []
+  )
 
-@import "content/global";
-@import "content/alert";
-@import "content/header";
-@import "content/content";
-@import "content/form";
-@import "content/drag";
-@import "content/table";
-@import "content/footer";
-
-@import "branding";
+  .factory(
+    'websocket', 
+    [
+      function() {
+        return {};
+      }
+    ]
+  );

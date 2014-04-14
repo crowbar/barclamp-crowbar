@@ -34,12 +34,48 @@ angular
     ]
   )
 
+  .constant(
+    'FAYE_ROUTE',
+    '<%= faye_host %>'
+  )
+
   .config(
     [
       '$translateProvider',
       function($translateProvider) {
-        $translateProvider.useUrlLoader('/translations.json');
-        $translateProvider.preferredLanguage('en');
+        $translateProvider.useUrlLoader(
+          Routes.translations_path({
+            format: 'json'
+          })
+        );
+
+        $translateProvider.preferredLanguage(
+          'en'
+        );
+      }
+    ]
+  )
+
+  .run(
+    [
+      'FAYE_ROUTE',
+      function(fayeRoute) {
+        var client = new Faye.Client(
+          fayeRoute
+        );
+
+        client.subscribe('/general/flash', function (data) {
+          $.bootstrapGrowl(data.message, {
+            type: data.type ? data.type : 'info',
+            allow_dismiss: data.dismiss ? data.dismiss : false,
+            width: 400,
+            delay: 5000,
+            offset: {
+              from: 'top',
+              amount: 70
+            }
+          });
+        });
       }
     ]
   );
@@ -49,23 +85,6 @@ angular
 
 
 jQuery(document).ready(function($) {
-  var faye = new Faye.Client(
-    $('body').data('faye-host')
-  );
-
-  faye.subscribe('/general/flash', function (data) {
-    $.bootstrapGrowl(data.message, {
-      type: data.type ? data.type : 'info',
-      allow_dismiss: data.dismiss ? data.dismiss : false,
-      width: 400,
-      delay: 5000,
-      offset: {
-        from: 'top', 
-        amount: 70
-      }
-    });
-  });
-
   $('textarea.editor').each(function() {
     CodeMirror.fromTextArea(this, {
       lineNumbers: true,

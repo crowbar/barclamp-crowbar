@@ -17,7 +17,7 @@
 #
 
 Crowbar::Application.configure do
-  config.reload_classes_only_on_change = false
+  config.reload_classes_only_on_change = true
 
   config.cache_classes = false
   config.eager_load = false
@@ -29,7 +29,7 @@ Crowbar::Application.configure do
 
   config.serve_static_assets = true
   config.assets.debug = true
-  config.assets.js_compressor = :uglifier
+  config.assets.js_compressor = :closure
   config.assets.css_compressor = :sass
   config.assets.compile = true
   config.assets.digest = false
@@ -48,4 +48,3 @@ Crowbar::Application.configure do
 
   #config.logger.formatter = ::Logger::Formatter.new
 end
-

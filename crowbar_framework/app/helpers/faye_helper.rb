@@ -18,10 +18,7 @@
 
 module FayeHelper
   def faye_host
-    [
-      root_url,
-      "faye"
-    ].join
+    "/faye"
   end
 
   def broadcast(channel, &block)

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-;(function($, doc, win) {
+;(function ($, doc, win) {
   'use strict';
 
   function LedUpdate(el, options) {
@@ -33,23 +33,23 @@
     this.init();
   }
 
-  LedUpdate.prototype.init = function() {
+  LedUpdate.prototype.init = function () {
     var self = this;
 
     self.animate();
     self.process();
 
-    if ($.queryString['nopoll'] == undefined) {
+    if ($.queryString['nopoll'] === undefined) {
       setInterval(
-        function() {
-          self.process()
+        function () {
+          self.process();
         },
         30000
       );
     }
   };
 
-  LedUpdate.prototype.process = function() {
+  LedUpdate.prototype.process = function () {
     var self = this;
     var ignores = [];
 
@@ -61,7 +61,7 @@
     }
 
     try {
-      $.getJSON(this.$el.data('ledupdate'), function(response) {
+      $.getJSON(this.$el.data('ledupdate'), function (response) {
         var reload = false;
 
         if ($.isFunction(self.options.beforeProcess)) {
@@ -69,13 +69,13 @@
         }
 
         if (response.proposals && $.inArray("proposals", ignores) < 0) {
-          $.each(response.proposals, function(barclamp, proposals) {
-            $.each(proposals, function(key, proposal) {
+          $.each(response.proposals, function (barclamp, proposals) {
+            $.each(proposals, function (key, proposal) {
               var current = $(
                 '[data-ledupdate-controller={0}][data-ledupdate-proposal={1}]'.format(barclamp, key)
               );
 
-              if(current.hasClass('unknown')) {
+              if (current.hasClass('unknown')) {
                 self.update(
                   current,
                   proposal.state,
@@ -86,7 +86,7 @@
                   current,
                   proposal.state,
                   proposal.status,
-                  function() {
+                  function () {
                     current.effect('fade').effect('fade');
                   }
                 );
@@ -105,7 +105,7 @@
 
 
         if (response.groups && $.inArray("groups", ignores) < 0) {
-          $('[data-group]').each(function(index, current) {
+          $('[data-group]').each(function (index, current) {
             var current_handle = $(current).data('group');
 
             if (!response.groups[current_handle]) {
@@ -113,8 +113,8 @@
             }
           });
 
-          if (self.$el.data('ledsingle') == undefined) {
-            $.each(response.groups, function(key, val) {
+          if (self.$el.data('ledsingle') === undefined) {
+            $.each(response.groups, function (key, val) {
               var current = $(
                 '[data-group="{0}"] [data-piechart]'.format(key)
               );
@@ -154,7 +154,7 @@
         }
 
         if (response.nodes && $.inArray("nodes", ignores) < 0) {
-          $('[data-node]').each(function(index, current) {
+          $('[data-node]').each(function (index, current) {
             var current_handle = $(current).data('node');
 
             if (!response.nodes[current_handle]) {
@@ -162,8 +162,8 @@
             }
           });
 
-          if (self.$el.data('ledsingle') == undefined) {
-            $.each(response.nodes, function(key, val) {
+          if (self.$el.data('ledsingle') === undefined) {
+            $.each(response.nodes, function (key, val) {
               var current = $(
                 '[data-node="{0}"]'.format(key)
               );
@@ -172,15 +172,15 @@
                 if(current.hasClass('unknown')) {
                   self.update(
                     current,
-                    val.class,
+                    val.clazz,
                     val.status
                   );
                 } else {
                   self.update(
                     current,
-                    val.class,
+                    val.clazz,
                     val.status,
-                    function() {
+                    function () {
                       current.effect('fade').effect('fade');
                     }
                   );
@@ -190,7 +190,7 @@
                   '[data-node-state="{0}"]'.format(key)
                 );
 
-                if (text.html() != val.status) {
+                if (text.html() !== val.status) {
                   text.html(val.status).effect('fade').effect('fade');
                 }
               } else {
@@ -235,19 +235,19 @@
             console.log('redirect to ' + self.$el.data('ledredirect'));
             //win.location = self.$el.data('ledredirect');
           } else {
-            console.log('reload page for led update')
+            console.log('reload page for led update');
             //win.location.reload();
           }
         }
       });
     } catch(e) {
       if (win.console) {
-        console.log(e)
+        console.log(e);
       }
     }
   };
 
-  LedUpdate.prototype.update = function(element, clazz, title, callback) {
+  LedUpdate.prototype.update = function (element, clazz, title, callback) {
     if (!element.hasClass(clazz)) {
       element.attr(
         'title',
@@ -265,19 +265,19 @@
     }
   };
 
-  LedUpdate.prototype.animate = function() {
+  LedUpdate.prototype.animate = function () {
     $('.led.unready, .led.in_process, .led.spin').sprite({
       fps: 6,
       no_of_frames: 8
     }).active();
   };
 
-  LedUpdate.prototype.destroy = function() {
+  LedUpdate.prototype.destroy = function () {
     $('.led.unready, .led.in_process, .led.spin').destroy();
   };
 
-  $.fn.ledUpdate = function(options) {
-    return this.each(function() {
+  $.fn.ledUpdate = function (options) {
+    return this.each(function () {
       new LedUpdate(this, options);
     });
   };

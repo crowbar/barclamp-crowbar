@@ -45,12 +45,10 @@ gem "faye-rails", "~> 2.0.0"
 gem "thin", "~> 1.6.2"
 gem "redcarpet", "~> 3.1.1"
 gem "nokogiri", "~> 1.6.1"
-gem "uglifier", "~> 2.2.1"
-
-# These gems maybe only used for Ubuntu or something like that. For SLES 
-# we are adding nodejs as the platform to precompile the assets before
-# packaging the barclamp itself.
-gem "therubyracer", "~> 0.12.1"
+gem "bootstrap-sass", "~> 3.1.1"
+gem "font-awesome-rails", "~> 4.0.3"
+gem "closure-compiler", "~> 1.1.10"
+gem "js-routes", "~> 0.9.7"
 
 # The chef gem requires json <= 1.7.7 and the rubocop gem requires 
 # json >= 1.7.7, so we are currently stuck on this json version.

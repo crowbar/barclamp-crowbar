@@ -35,6 +35,21 @@ module Crowbar
       Rails.root.join("config", "locales", "**", "*.{rb,yml}").to_s
     ]
 
+    config.assets.precompile = [
+      /application.(css|js)$/,
+      /ie.(css|js)$/,
+      /branding.(css|js)$/
+    ]
+
+    config.generators do |g|
+      g.assets false
+      g.helper false
+      g.orm :active_record
+      g.template_engine :haml
+      g.test_framework :rspec, fixture: true
+      g.fallbacks[:rspec] = :test_unit
+    end
+
     config.middleware.delete Rack::Lock
     config.middleware.use FayeRails::Middleware, mount: "/faye", timeout: 25
   end

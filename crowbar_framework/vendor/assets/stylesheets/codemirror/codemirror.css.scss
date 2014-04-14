@@ -1,0 +1,75 @@
+.CodeMirror {
+  margin: 1em 0;
+  background: #3a3e40;
+  overflow: auto;
+  max-height: 300px;
+  line-height: 1em;
+  font-family: monospace;
+  border-radius: 5px;
+}
+
+.CodeMirror-gutter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #333;
+  border-right: 1px solid #555;
+  min-width: 2em;
+  height: 100%;
+  border-radius: 5px, 0, 5px, 0;
+}
+
+.CodeMirror-gutter-text {
+  text-align: right;
+  padding: .4em .2em .4em .4em;
+
+  pre {
+    color: #777 !important;
+  }
+}
+
+.CodeMirror-lines {
+  padding: .4em;
+  color: #fff;
+}
+
+.CodeMirror pre {
+  border-radius: 0;
+  border-width: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: inherit;
+  color: #fff;
+  white-space: pre;
+  word-wrap: normal;
+}
+
+.CodeMirror-cursor {
+  z-index: 10;
+  position: absolute;
+  visibility: hidden;
+  border-left: 1px solid #eee !important
+}
+
+.CodeMirror-focused
+.CodeMirror-cursor {
+  visibility: visible;
+}
+
+span.CodeMirror-selected {
+  background: #ccc !important;
+  color: HighlightText !important;
+}
+
+.CodeMirror-focused span.CodeMirror-selected {
+  background: Highlight !important;
+}
+
+.CodeMirror-matchingbracket {
+  color: #0f0 !important;
+}
+
+.CodeMirror-nonmatchingbracket {
+  color: #f22 !important;
+}

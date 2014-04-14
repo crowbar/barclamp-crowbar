@@ -71,11 +71,12 @@ module ApplicationHelper
         "assets",
         "stylesheets",
         "barclamps",
-        "#{barclamp_name}.css.scss"
+        barclamp_name,
+        "application.css.scss"
       )
 
       if barclamp_path.file?
-        files.push "barclamps/#{barclamp_name}"
+        files.push "barclamps/#{barclamp_name}/application"
       end
 
       files
@@ -107,11 +108,12 @@ module ApplicationHelper
         "assets",
         "javascripts",
         "barclamps",
-        "#{barclamp_name}.js"
+        barclamp_name,
+        "application.js"
       )
 
       if barclamp_path.file?
-        files.push "barclamps/#{barclamp_name}"
+        files.push "barclamps/#{barclamp_name}/application"
       end
 
       files

@@ -27,7 +27,7 @@ angular
       '$translate',
       '$scope',
       function($translate, $scope) {
-        console.log($scope);
+
       }
     ]
   );

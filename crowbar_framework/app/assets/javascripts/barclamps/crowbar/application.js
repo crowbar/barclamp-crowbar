@@ -17,7 +17,7 @@
 
 angular
   .module(
-    'crowbar.controllers',
+    'crowbar.barclamps',
     []
   )
 
@@ -27,6 +27,18 @@ angular
       '$scope',
       function($scope) {
  
+      }
+    ]
+  )
+
+  .controller(
+    'DashboardCtrl',
+    [
+      '$scope',
+      function($scope) {
+
+        console.log($scope);
+
       }
     ]
   );

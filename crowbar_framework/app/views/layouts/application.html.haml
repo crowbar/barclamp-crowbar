@@ -21,7 +21,7 @@
       = stylesheet_link_tag "ie"
       = javascript_include_tag "ie"
 
-  %body{ class: params[:controller], ng: { controller: "ApplicationCtrl" }, data: { faye_host: faye_host } }
+  %body{ class: params[:controller], ng: { controller: "ApplicationCtrl" } }
     = render partial: "shared/header"
 
     .container#content

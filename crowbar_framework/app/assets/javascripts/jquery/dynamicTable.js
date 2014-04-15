@@ -141,6 +141,7 @@
     var self = this;
 
     self.root.find('[data-add]').live('click', function(event) {
+      self.prepareJson();
       event.preventDefault();
 
       if (self.invalidEntry()) {
@@ -231,6 +232,7 @@
     });
 
     self.root.find('[data-remove]').live('click', function(event) {
+      self.prepareJson();
       event.preventDefault();
 
       var data = self.json;
@@ -260,6 +262,8 @@
     });
 
     self.root.find('tbody input').live('change', function(event) {
+      self.prepareJson();
+
       var data = self.json;
       var namespace = $(this).data('update').toString().split('/');
 

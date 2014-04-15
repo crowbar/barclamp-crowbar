@@ -128,6 +128,11 @@ class NodesController < ApplicationController
               dirty = true
             end
 
+            unless node.public_name == node_attributes["public_name"]
+              node.public_name = node_attributes["public_name"]
+              dirty = true
+            end
+
             unless node.target_platform == node_attributes["target_platform"]
               node.target_platform = node_attributes["target_platform"]
               dirty = true

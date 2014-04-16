@@ -123,11 +123,6 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            unless node.description == node_attributes["description"]
-              node.description = node_attributes["description"]
-              dirty = true
-            end
-
             unless node.alias == node_attributes["alias"]
               node.alias = node_attributes["alias"]
               dirty = true
@@ -145,6 +140,11 @@ class NodesController < ApplicationController
 
             unless node.license_key == node_attributes["license_key"]
               node.license_key = node_attributes["license_key"]
+              dirty = true
+            end
+
+            unless node.intended_role == node_attributes["intended_role"]
+              node.intended_role = node_attributes["intended_role"]
               dirty = true
             end
 

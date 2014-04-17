@@ -1,62 +1,61 @@
-.row{ ng: { controller: "DashboardCtrl" } }
-  .col-xs-12
-    %h1.page-header
-      = t(".title")
+%div{ data: { ng_controller: "DashboardCtrl" } }
+  .row
+    .col-xs-12
+      %h1.page-header
+        = t(".title")
 
-      .badge{ title: t(".extended_nodes", count: @nodes.count) }
-        = t(".simple_nodes", count: @nodes.count)
+        .badge{ data: { ng_show: "counter" } }
+          {{counter}}
 
-      .col-xs-3.pull-right
-        %form.form-inline{ role: "form", data: { group: { add: true } } }
-          .input-group
-            = text_field_tag :group, "", placeholder: t(".default_new"), class: "form-control input-sm"
+        .col-xs-3.pull-right
+          %form.form-inline{ role: "form", name: "addGroupForm", data: { ng_submit: "addGroup()" } }
+            .input-group
+              = text_field_tag :groupName, "", placeholder: t(".default.group"), class: "form-control input-sm", data: { ng_model: "group.name", ng_pattern: "/^[a-zA-Z][a-zA-Z0-9._:-]+$/" }
 
-            .input-group-btn
-              = submit_tag t(".add"), class: "btn btn-default input-sm"
+              .input-group-btn
+                = submit_tag t(".add"), class: "btn btn-default input-sm"
 
-#nodedetails.row
-  - if @node
-    = render partial: "show"
 
-.alert.alert-info{ data: { id: "AUTOMATIC", droppable: "true" } }
-  = t(".drag_hint").html_safe
 
-#nodegroups.row
-  - @groups.sort.each do |group_name, group|
-    .col-xs-3{ data: { id: group_name, droppable: "true", group: group_name } }
-      .panel.panel-default
+
+
+
+
+
+
+
+  #nodedetails.row
+    - if @node
+      = render partial: "show"
+
+
+
+
+
+
+
+
+
+
+
+
+  .alert.alert-info{ data: { droppable: "true", id: "AUTOMATIC", on_drop: "onDrop(source, target)", on_activate: "onActivate(source, target)", on_deactivate: "onDeactivate(source, target)" } }
+    = t(".hint.auto_drop").html_safe
+
+  .row
+    .col-xs-3{ data: { ng_repeat: "(group_name, group) in groups" } }
+      .panel.panel-default{ data: { droppable: "true", id: "{{group.handle}}", on_drop: "onDrop(source, target)", on_activate: "onActivate(source, target)", on_deactivate: "onDeactivate(source, target)" } }
         .panel-heading
-          %h2
-            = piechart_for group
-            = truncate(group_name || t("unknown"), length: 25)
+          %h2.nowrap
+            = link_to icon_tag("trash"), "", class: "noline", data: { ng_hide: "group.nodes | nonEmpty", ng_click: "removeGroup(group.handle)" }
+            %span{ data: { ng_show: "group.nodes | nonEmpty", piechart: "{{group.chart.values.join(',')}}", tooltip: "{{group.chart.tooltip}}" } }
+            {{group.title}}
 
         %ul.list-group
-          - group[:nodes].values.sort_by { |handle| @nodes[handle][:alias] }.each do |handle|
-            - @nodes[handle].tap do |node|
-              %li.list-group-item{ data: { id: handle.parameterize, draggable: "true", update: group_node_path(handle.parameterize) } }
-                %span.led{ class: node[:status], title: t(node[:state], scope: "state", default: node[:state].titlecase), data: { node: handle } }
+          %li.list-group-item{ data: { ng_repeat: "(node_name, node) in group.nodes", draggable: "true", id: "{{node.handle}}", parent: "{{group.handle}}" } }
+            %span.led{ class: "{{node.status}}", title: "{{node.state}}", data: { node_status: "{{node.handle}}" } }
+            = link_to "{{node.alias}}", "", title: "{{node.description}}", class: "noline"
 
-                %a{ href: "#", title: node[:description], data: { href: node_path(handle) } }
-                  = truncate(node[:alias], length: 25)
-
-%script#group-panel{ type: "text/x-handlebars-template" }
-  .col-xs-3.group-panel{ data: { id: "{{group}}", droppable: "true" } }
-    .panel.panel-default
-      .panel-heading
-        %h2
-          = link_to icon_tag("trash"), "#", data: { group: { delete: "true" } }
-
-          %span
-            {{group}}
-
-      %ul.list-group
-        %li.list-group-item.empty
-          = t(".new_drag")
-
-%script#group-invalid{ type: "text/x-handlebars-template" }
-  .alert.alert-danger.alert-dismissable.group-invalid
-    %button.close{ type: "button", data: { dismiss: "alert" }, aria: { hidden: true } }
-      &times;
-
-    = t(".add_group_error")
-
+          %li.list-group-item.empty{ data: { ng_hide: "group.nodes | nonEmpty" } }
+            %span.led{ class: "none", title: "" }
+            = t(".hint.drop_here")

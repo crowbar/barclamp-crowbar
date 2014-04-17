@@ -17,15 +17,17 @@
 
 angular
   .module(
-    'crowbar.directives', 
+    'crowbar.filters', 
     []
   )
 
-  .factory(
-    'websocket', 
+  .filter(
+    'nonEmpty',
     [
       function() {
-        return {};
+        return function(value) {
+          return angular.isObject(value) && Object.keys(value).length;
+        }
       }
     ]
   );

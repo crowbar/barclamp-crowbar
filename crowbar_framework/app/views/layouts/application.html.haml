@@ -29,12 +29,3 @@
 
       = yield
       = render partial: "shared/footer"
-
-    %script#message-template{ type: "text/x-handlebars-template" }
-      .alert{ class: "{{classes}}" }
-        {{#if dismiss}}
-        %button.close{ type: "button", data: { dismiss: "alert" }, aria: { hidden: true } } 
-          &times;
-        {{/if}}
-
-        {{message}}

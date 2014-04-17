@@ -18,9 +18,12 @@
 //= require variables
 //= require vendor
 
+//= require filters/nonempty
+//= require directives/dragdrop
+//= require directives/status
+//= require providers/websocket
+//= require factories/notification
 //= require controllers/application
-//= require directives/websocket
-//= require directives/notification
 
 //= require branding
 
@@ -29,15 +32,14 @@ angular
     'crowbar', 
     [
       'pascalprecht.translate',
+      'igTruncate',
+      'crowbar.filters',
       'crowbar.directives',
+      'crowbar.providers',
+      'crowbar.factories',
       'crowbar.controllers',
       'crowbar.barclamps'
     ]
-  )
-
-  .constant(
-    'FAYE_ROUTE',
-    '<%= faye_host %>'
   )
 
   .config(
@@ -57,26 +59,16 @@ angular
     ]
   )
 
-  .run(
+  .config(
     [
-      'FAYE_ROUTE',
-      function(fayeRoute) {
-        var client = new Faye.Client(
-          fayeRoute
+      '$websocketProvider',
+      function($websocketProvider) {
+        $websocketProvider.setHost(
+          sprintf(
+            'http://%s:9292/faye', 
+            window.location.hostname
+          )
         );
-
-        client.subscribe('/general/flash', function (data) {
-          $.bootstrapGrowl(data.message, {
-            type: data.type ? data.type : 'info',
-            allow_dismiss: data.dismiss ? data.dismiss : false,
-            width: 400,
-            delay: 5000,
-            offset: {
-              from: 'top',
-              amount: 70
-            }
-          });
-        });
       }
     ]
   );

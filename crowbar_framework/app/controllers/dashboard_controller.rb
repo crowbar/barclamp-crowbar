@@ -24,6 +24,8 @@ class DashboardController < ApplicationController
           nodes[node.handle] = node.to_h
 
           groups[node.group] ||= {
+            handle: node.group,
+            title: view_context.truncate(node.group || t("unknown"), length: 25),
             automatic: !node.display_set?("group"),
             nodes: {},
             status: {
@@ -35,9 +37,28 @@ class DashboardController < ApplicationController
             }
           }
 
-          groups[node.group][:nodes][node.group_order] = node.handle
+          groups[node.group][:nodes][node.handle] = node.to_h
           groups[node.group][:status][node.status.to_sym] += 1
         end
+
+
+
+
+
+        # groups.each do |name, attrs|
+        #   values = view_context.piechart_values(attrs)
+        #   tooltip = view_context.piechart_tooltip(values)
+
+        #   attrs[:chart] = {
+        #     values: values,
+        #     tooltip: tooltip
+        #   }
+        # end
+
+
+
+
+
       end
     end
 
@@ -47,14 +68,8 @@ class DashboardController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.xml { render :xml => @nodes }
-      format.json { render :json => @nodes }
-    end
-  end
-
-  def show
-    respond_to do |format|
-      format.html
+      format.xml { render :xml => @groups }
+      format.json { render :json => @groups }
     end
   end
 end

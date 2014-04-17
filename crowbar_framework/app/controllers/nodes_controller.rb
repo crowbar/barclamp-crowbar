@@ -188,18 +188,20 @@ class NodesController < ApplicationController
 
   def group
     NodeObject.find_node_by_name(params[:id]).tap do |node|
-      raise ActionController::RoutingError.new('Not Found') if node.nil?
+      raise ActionController::RoutingError.new("Node #{params[:id]} not found") if node.nil?
 
-      if params[:group].to_s.downcase.eql? 'automatic'
+      if params[:group].to_s.downcase.eql? "automatic"
         node.group = ""
       else
         node.group = params[:group].to_s
       end
 
       node.save
+      logger.info "Changed group of #{node.name} to #{node.group}"
 
-      Rails.logger.info "Node #{node.name} (#{node.alias}) changed its group to be #{node.group || "automatic"}."
-      render :inline => "Added #{node.name} to #{node.group}.", :cache => false
+      respond_to do |format|
+        format.json { render json: { group: node.group }, status: 200 }
+      end
     end
   end
 

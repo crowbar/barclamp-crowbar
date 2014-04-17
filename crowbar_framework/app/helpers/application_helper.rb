@@ -94,6 +94,7 @@ module ApplicationHelper
   def registered_javascripts
     @registered_javascripts ||= begin
       files = [
+        faye_script,
         "application"
       ]
 

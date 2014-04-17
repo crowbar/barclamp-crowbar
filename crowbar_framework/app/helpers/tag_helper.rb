@@ -63,22 +63,30 @@ module TagHelper
   end
 
   # Directly generate a tag for the glyphicons web font icons
-  def icon_tag(icon, text = nil)
+  def icon_tag(icon, text = nil, options = {})
+    defaults = {
+      class: "glyphicon glyphicon-#{icon}"
+    }
+
     [
       content_tag(
         :span,
         "",
-        :class => "glyphicon glyphicon-#{icon}"
+        defaults.merge(options)
       ),
       text
     ].flatten.join("\n").html_safe
   end
 
-  def badge_tag(text, clazz = nil)
+  def badge_tag(text, clazz = nil, options = {})
+    defaults = {
+      class: "badge #{clazz}".strip
+    }
+    
     content_tag(
       :div,
       text,
-      :class => "badge #{clazz}".strip
+      defaults.merge(options)
     ).html_safe
   end
 end

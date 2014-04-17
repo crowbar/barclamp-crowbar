@@ -17,15 +17,38 @@
 
 angular
   .module(
-    'crowbar.directives', 
+    'crowbar.providers', 
     []
   )
 
-  .factory(
-    'notification', 
+  .provider(
+    '$websocket', 
     [
       function() {
-        return {};
+        var fayeHost = '';
+
+        this.setHost = function(host) {
+          this.fayeHost = host;
+        }
+
+        this.getClient = function() {
+          return new Faye.Client(
+            this.fayeHost
+          );
+        }
+
+        this.$get = function() {
+          var self = this;
+
+          return {
+            subscribe: function(channel, handler) {
+              self.getClient().subscribe(channel, handler);
+            },
+            broadcast: function(channel, payload) {
+              self.getClient().publish(channel, payload);
+            }
+          }
+        }
       }
     ]
   );

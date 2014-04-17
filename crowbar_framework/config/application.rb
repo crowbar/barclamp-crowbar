@@ -50,7 +50,7 @@ module Crowbar
       g.fallbacks[:rspec] = :test_unit
     end
 
-    config.middleware.delete Rack::Lock
-    config.middleware.use FayeRails::Middleware, mount: "/faye", timeout: 25
+    #config.middleware.delete Rack::Lock
+    #config.middleware.use FayeRails::Middleware, mount: "/faye", timeout: 15
   end
 end

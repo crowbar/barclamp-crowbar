@@ -20,6 +20,8 @@ require 'hash_only_merge'
 require 'securerandom'
 
 class ServiceObject
+  include FayeHelper
+
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
 
   attr_accessor :bc_name

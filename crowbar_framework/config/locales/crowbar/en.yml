@@ -271,6 +271,13 @@ en:
         barclamp: 'Barclamp'
 
   nodes:
+    errors:
+      node_transition: 'Node `%{node}` transitioned to state `%{state}`'
+
+
+
+
+
     list:
       updated: 'Updated successfully the nodes %{success}'
       failed: 'Failed to save the nodes %{failed}'
@@ -409,36 +416,33 @@ en:
   dashboard:
     errors:
       no_nodes: 'Can not find any node'
-
-
-
-
-
-
-
-
+      invalid_group: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
+      existing_group: 'A group with this name already exists.'
 
     index:
-      new_node: 'Add node'
       title: 'Dashboard'
-      extended_nodes:
-        one: 'There is %{count} node available in the system'
-        other: 'There are %{count} nodes available in the system'
-      simple_nodes:
+      add: 'Add'
+      default:
+        group: 'New group'
+      hint:
+        drop_here: 'Drop nodes here'
+        auto_drop: 'You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.'
+      nodes:
         one: '%{count} node'
         other: '%{count} nodes'
+
+
+
+
+
       status_pie:
         total: 'Total %{count}'
         ready: '%{count} Ready'
         unknown: '%{count} Unknown'
         unready: '%{count} Not Ready'
         pending: '%{count} Pending'
-      default_new: 'New group'
-      add: 'Add'
-      add_group_error: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
-      hide: 'Hide Group'
-      drag_hint: 'You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.'
-      new_drag: 'To move nodes, drag onto this box'
+
+
 
 
 

@@ -15,5 +15,4 @@
 // limitations under the License.
 //
 
-//= require faye
 //= require js-routes

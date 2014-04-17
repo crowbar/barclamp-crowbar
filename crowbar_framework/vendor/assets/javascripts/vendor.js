@@ -41,6 +41,7 @@
 //= require angular/resource
 //= require angular/translate
 //= require angular/translate-loader-url
+//= require angular/truncate
 
 //= require codemirror/codemirror
 //= require codemirror/javascript

@@ -18,18 +18,67 @@
 
 module FayeHelper
   def faye_host
+    "http://#{ENV["CROWBAR_HOST"] || "localhost"}:9292"
+  end
+
+  def faye_path
     "/faye"
   end
 
+  def faye_url
+    [
+      faye_host,
+      faye_path
+    ].join
+  end
+
+  def faye_script
+    [
+      faye_url,
+      "client.js"
+    ].join("/")
+  end
+
   def broadcast(channel, &block)
+    payload = yield
+
     message = {
       channel: channel, 
-      data: capture(&block)
+      data: payload
     }
 
-    Net::HTTP.post_form(
-      URI.parse(faye_host), 
-      message: message.to_json
-    )
+    begin
+      response = Net::HTTP.post_form(
+        URI.parse(faye_url), 
+        message: message.to_json
+      )
+
+      case response.code
+      when 404
+        logger.debug "Faye not found at #{faye_url}!"
+      end
+    rescue Timeout::Error
+      logger.debug "Timeout while connecting to #{faye_url}!"
+    end
+
+    pid = Process.fork do
+      begin
+        response = Net::HTTP.post_form(
+          URI.parse(faye_url), 
+          message: message.to_json
+        )
+
+        case response.code
+        when 404
+          logger.debug "Faye not found at #{faye_url}!"
+        end
+      rescue Timeout::Error
+        logger.debug "Timeout while connecting to faye at #{faye_url}!"
+      rescue => e
+        logger.debug "Communication to faye failed with #{e.message}"
+      end
+    end
+
+    Process.detach(pid)
   end
 end

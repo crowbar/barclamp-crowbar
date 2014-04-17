@@ -21,6 +21,7 @@ class ApplicationController < ActionController::Base
   layout :detect_layout
 
   before_action :authenticate, if: :authenticate?
+  after_action :xsrf_cookie
 
   class << self
     def help_contents
@@ -170,6 +171,17 @@ class ApplicationController < ActionController::Base
     else
       "application"
     end
+  end
+
+  def xsrf_cookie
+    cookies['XSRF-TOKEN'] = form_authenticity_token if protect_against_forgery?
+  end
+
+  def verified_request?
+    valid_token = form_authenticity_token == request.headers['X-XSRF-TOKEN']
+    valid_ctype = %w(application/json application/xml text/xml).include? request.content_type
+
+    super || valid_token || valid_ctype
   end
 
   def log_exception(e)

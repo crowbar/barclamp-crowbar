@@ -82,6 +82,13 @@ class CrowbarService < ServiceObject
       end
 
       node.save if transition_save_node
+
+      broadcast "/nodes/status" do
+        {
+          transition: state,
+          node: node.to_h
+        }
+      end
     ensure
       release_lock f
     end

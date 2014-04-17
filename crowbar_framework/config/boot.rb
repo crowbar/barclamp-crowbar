@@ -37,7 +37,7 @@ requirements = {}.tap do |deps|
   deps["cocaine"] = { version: "~> 0.5.3" }
   deps["hashie"] = { version: "~> 2.0.5" }
   deps["delayed_job_active_record"] = { version: "~> 4.0.0" }
-  deps["faye-rails"] = { version: "~> 2.0.0" }
+  deps["faye"] = { version: "~> 1.0.1" }
   deps["thin"] = { version: "~> 1.6.2" }
   deps["redcarpet"] = { version: "~> 3.1.1" }
   deps["nokogiri"] = { version: "~> 1.6.1" }
@@ -46,6 +46,11 @@ requirements = {}.tap do |deps|
   deps["closure-compiler"] = { version: "~> 1.1.10" }
   deps["js-routes"] = { version: "~> 0.9.7" }
   deps["chef"] = { version: "~> 10.24.4" }
+
+  deps["activeresource"] = { 
+    version: "~> 4.0.0",
+    require: "active_resource" 
+  }
 
   deps["activerecord-session_store"] = { 
     version: "~> 0.1.0", 

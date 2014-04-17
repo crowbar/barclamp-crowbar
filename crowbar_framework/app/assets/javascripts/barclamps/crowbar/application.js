@@ -35,48 +35,212 @@ angular
     'DashboardCtrl',
     [
       '$scope',
-      function($scope) {
+      '$translate',
+      '$notification',
+      '$websocket',
+      '$dashboard',
+      function($scope, $translate, $notification, $websocket, $dashboard) {
+        // $websocket.subscribe('/nodes/status', function(data) {
+        //   $dashboard.pushNode(data.node)
+        //     .then(function(data) {
+        //       $scope.groups = data;
+        //     });
+        // });
 
-        console.log($scope);
+        $dashboard.getGroups()
+          .then(function(data) {
+            $scope.groups = data;
+          });
 
+        $dashboard.countNodes()
+          .then(function(data) {
+            $scope.counter = data;
+          });
+
+        $scope.addGroup = function() {
+          if (
+            $scope.addGroupForm.groupName.$dirty 
+            && 
+            $scope.addGroupForm.groupName.$invalid
+          ) {
+            $translate('dashboard.errors.invalid_group').then(function(val) {
+              $notification.alertMessage(val);
+            });
+
+            return false;
+          }
+
+          if (
+            $scope.addGroupForm.groupName.$dirty 
+            && 
+            $scope.groups[$scope.group.name]
+          ) {
+            $translate('dashboard.errors.existing_group').then(function(val) {
+              $notification.alertMessage(val);
+            });
+
+            return false;
+          }
+
+          $dashboard.addGroup($scope.group);
+          $scope.group.name = '';
+        }
+
+        $scope.removeGroup = function(handle) {
+          $dashboard.removeGroup(handle);
+        }
+
+        $scope.onActivate = function(source, target) {
+          angular.element(target).addClass('droppable');
+        }
+
+        $scope.onDeactivate = function(source, target) {
+          angular.element(target).removeClass('droppable');
+        }
+
+        $scope.onDrop = function(source, target) {
+          var node = angular.element(source);
+          var nodeId = node.data('id');
+
+          var group = angular.element(target);
+          var groupId = group.data('id');
+
+          var oldId = node.data('parent');
+
+          $dashboard.moveNode(nodeId, oldId, groupId)
+            .then(function(data) {
+              $scope.groups = data;
+            });
+        }
+      }
+    ]
+  )
+
+  .factory(
+    '$dashboard',
+    [
+      '$q',
+      '$http',
+      '$translate',
+      function($q, $http, $translate) {
+        var service = {
+          _groups: null,
+
+          getGroups: function() {
+            var d = $q.defer();
+
+            $http.get(Routes.dashboard_path({ format: 'json' }))
+              .success(function(data, status) {
+                service._groups = data;
+                d.resolve(service._groups);
+              })
+              .error(function(data, status) {
+                d.reject(data);
+              });
+
+            return d.promise;
+          },
+          addGroup: function(values) {
+            service._groups[values.name] = {
+              handle: values.name,
+              title: values.name,
+              automatic: false,
+              nodes: {},
+              status: {
+                ready: 0,
+                failed: 0,
+                unknown: 0,
+                unready: 0,
+                pending: 0
+              }
+            };
+          },
+          removeGroup: function(handle) {
+            delete service._groups[handle];
+          },
+          moveNode: function(node, oldGroup, newGroup) {
+            var d = $q.defer();
+
+            $http.post(Routes.group_node_path(node, { format: 'json' }), { group: newGroup })
+              .success(function(data, status) {
+                values = service._groups[oldGroup]['nodes'][node];
+                delete service._groups[oldGroup]['nodes'][node];
+
+                if (service._groups[data.group]) {
+                  service._groups[data.group]['nodes'][node] = values;
+                } else {
+                  service.addGroup({ name: data.group })
+                  service._groups[data.group]['nodes'][node] = values;
+                }
+
+                d.resolve(service._groups);
+              })
+              .error(function(data, status) {
+                d.reject(data);
+              });
+
+            return d.promise;
+          },
+          pushNode: function(node) {
+            var d = $q.defer();
+
+            service.getGroups()
+              .then(function(data) {
+                var nodeId = node.handle;
+                var groupId = node.group;
+
+                if (!service._groups[groupId]) {
+                  service.addGroup({ name: node.group });
+                }
+
+                if (!service._groups[groupId]['nodes'][nodeId]) {
+                  service._groups[groupId]['nodes'][node.handle] = node;
+                }
+
+                service._groups[groupId]['nodes'][node.handle]['state'] = node.state;
+                service._groups[groupId]['nodes'][node.handle]['status'] = node.status;
+
+                d.resolve(service._groups);
+              });
+
+            return d.promise;
+          },
+          countNodes: function() {
+            var d = $q.defer();
+
+            service.getGroups()
+              .then(function(data) {
+                var counter = 0;
+
+                angular.forEach(data, function(group, key) {
+                  counter += Object.keys(group.nodes).length;
+                });
+
+                switch(counter) {
+                  case 1:
+                    $translate('dashboard.index.nodes.one', { count: counter }).then(function(val) {
+                      d.resolve(val);
+                    });
+                    break;
+                  default:
+                    $translate('dashboard.index.nodes.other', { count: counter }).then(function(val) {
+                      d.resolve(val);
+                    });
+                    break;
+                }
+              });
+
+            return d.promise;
+          }
+        };
+
+        return service;
       }
     ]
   );
 
 
 
-// jQuery(document).ready(function($) {
-//   $('.list-group-item a').on('click', function(event) {
-//     $('.list-group-item').removeClass('selected');
-//     $(this).parents('.list-group-item').addClass('selected');
-
-//     $('#nodedetails').load(
-//       '{0} .panel'.format($(this).data('href'))
-//     );
-//   });
-
-//   $('[data-group-add]').on('submit', function(event) {
-//     var $el = $(event.target);
-//     var $input = $el.find('input[name=group]');
-
-//     $('.group-invalid').remove();
-
-//     var groupTemplate = Handlebars.compile(
-//       $('#group-panel').html()
-//     );
-
-//     var invalidTemplate = Handlebars.compile(
-//       $('#group-invalid').html()
-//     );
-
-//     if ($input.val().match(/^[a-zA-Z][a-zA-Z0-9._:-]+$/)) {
-//       $('#nodegroups').append(
-//         groupTemplate({
-//           group: $input.val()
-//         })
-//       );
-
-//       $input.val('');
 
 //       $('[data-droppable=true]:last').droppable({
 //         hoverClass: 'targeted',
@@ -132,26 +296,21 @@ angular
 //           return false;
 //         }
 //       });
-//     } else {
-//       $('#content').prepend(
-//         invalidTemplate()
-//       );
-//     }
 
-//     event.preventDefault();
-//   });
 
-//   $('[data-group-delete]').on('click', function(event) {
-//     var $el = $(event.target);
-//     var $panel = $el.parents('.group-panel');
 
-//     var nodes = $panel.find('ul').children(':not(.empty)');
 
-//     if (nodes.length <= 0) {
-//       $panel.hide();
-//     }
 
-//     event.preventDefault();
+
+
+// jQuery(document).ready(function($) {
+//   $('.list-group-item a').on('click', function(event) {
+//     $('.list-group-item').removeClass('selected');
+//     $(this).parents('.list-group-item').addClass('selected');
+
+//     $('#nodedetails').load(
+//       '{0} .panel'.format($(this).data('href'))
+//     );
 //   });
 
 //   $("[data-draggable=true]").draggable({

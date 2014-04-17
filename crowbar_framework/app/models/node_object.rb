@@ -1159,10 +1159,16 @@ class NodeObject < ChefObject
 
   def to_h
     { 
+      handle: self.handle,
       alias: self.alias, 
       description: self.description, 
-      status: self.status, 
-      state: self.state 
+      status: self.status,
+      group: self.group,
+      state: I18n.t(
+        self.state, 
+        scope: "state", 
+        default: self.state.titlecase
+      )
     }
   end
 

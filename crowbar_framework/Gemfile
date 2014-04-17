@@ -41,7 +41,7 @@ gem "cocaine", "~> 0.5.3"
 gem "hashie", "~> 2.0.5"
 gem "activerecord-session_store", "~> 0.1.0"
 gem "delayed_job_active_record", "~> 4.0.0"
-gem "faye-rails", "~> 2.0.0"
+gem "faye", "~> 1.0.1"
 gem "thin", "~> 1.6.2"
 gem "redcarpet", "~> 3.1.1"
 gem "nokogiri", "~> 1.6.1"
@@ -49,6 +49,7 @@ gem "bootstrap-sass", "~> 3.1.1"
 gem "font-awesome-rails", "~> 4.0.3"
 gem "closure-compiler", "~> 1.1.10"
 gem "js-routes", "~> 0.9.7"
+gem "activeresource", "~> 4.0.0"
 
 # The chef gem requires json <= 1.7.7 and the rubocop gem requires 
 # json >= 1.7.7, so we are currently stuck on this json version.

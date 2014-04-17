@@ -46,9 +46,9 @@ class TranslationsController < ApplicationController
         else
 
           result[path.join(".")] = if value.is_a? Array
-            value.compact.map { |v| v.gsub(/%{(.*)}/, "{{\\1}}") }
+            value.compact.map { |v| v.gsub(/%{([^}]+)}/, "{{\\1}}") }
           else
-            value.to_s.gsub(/%{(.*)}/, "{{\\1}}")
+            value.to_s.gsub(/%{([^}]+)}/, "{{\\1}}")
           end
         end
       end

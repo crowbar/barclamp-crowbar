@@ -42,6 +42,18 @@ body {
   padding-bottom: 0;
 }
 
+a {
+  &.noline {
+    text-decoration: none;
+  }
+}
+
+.nowrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;  
+}
+
 .bootstrap-growl {
   z-index: 5000 !important;
 

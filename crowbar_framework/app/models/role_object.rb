@@ -24,6 +24,24 @@ class RoleObject < ChefObject
     self.find_roles_by_search(nil)
   end
 
+  def self.all_dependencies
+    active_roles = RoleObject.find_roles_by_name("*-config-*")
+    dependencies = {}
+    active_roles.map do |role|
+       service = ServiceObject.get_service(role.barclamp).new(Rails.logger)
+       dependencies[role.name] = service.proposal_dependencies(role).map { |dep| "#{dep['barclamp']}-config-#{dep['inst']}" }
+    end
+    dependencies
+  end
+
+  def self.dependencies(service)
+    all_dependencies[service]
+  end
+
+  def self.reverse_dependencies(service)
+    Hash[all_dependencies.select { |s, r| r.include?(service) }].keys
+  end
+
   def self.active(barclamp = nil, inst = nil)
     full = if barclamp.nil?
       RoleObject.find_roles_by_name "*-config-*"

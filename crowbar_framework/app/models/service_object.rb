@@ -640,8 +640,10 @@ class ServiceObject
     role_name = "#{@bc_name}-config-#{inst}"
     @logger.debug "Trying to deactivate role #{role_name}"
     role = RoleObject.find_role_by_name(role_name)
-    if role.nil?
-      [404, {}]
+    return [404, {}] if role.nil?
+    reverse_deps = RoleObject.reverse_dependencies(role_name)
+    if !reverse_deps.empty?
+      raise(I18n.t('model.service.would_break_dependency', :name => @bc_name, :dependson => reverse_deps.to_sentence))
     else
       # By nulling the elements, it functions as a remove
       dep = role.override_attributes

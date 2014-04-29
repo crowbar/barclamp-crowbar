@@ -660,16 +660,25 @@ class ServiceObject
   end
 
   def elements
-    roles = RoleObject.find_roles_by_name("#{@bc_name}-*")
-    cull_roles = RoleObject.find_roles_by_name("#{@bc_name}-config-*")
-    roles.delete_if { |r| cull_roles.include?(r) } unless roles.empty?
-    roles.map! { |r| r.name } unless roles.empty?
-    [200, roles]
+    [200, ProposalObject.find_barclamp(@bc_name).all_elements]
   end
 
-  def element_info
-    nodes = NodeObject.find_all_nodes
-    nodes.map! { |n| n.name } unless nodes.empty?
+  def element_info(role = nil)
+    nodes = NodeObject.find_all_nodes.map(&:name)
+
+    return [200, nodes] unless role
+
+    valid_roles = ProposalObject.find_barclamp(@bc_name).all_elements
+    return [400, "No role #{role} found for #{@bc_name}."] if !valid_roles.include?(role)
+
+    # FIXME: we could try adding each node in turn to existing proposal's 'elements' and removing it
+    # from the nodes list in the case the new proposal would not be valid, so
+    # nodes that can't be added at all would not be returned.
+    nodes.reject! do |node|
+      elements = { role.to_s => [node] }
+      violates_admin_constraint?(elements, role) || violates_cluster_constraint?(elements, role)
+    end
+
     [200, nodes]
   end
 
@@ -877,70 +886,95 @@ class ServiceObject
     handle_validation_errors
   end
 
+  def violates_count_constraint?(elements, role)
+    if role_constraints[role].has_key?("count")
+      len = elements[role].length
+      max_count = role_constraints[role]["count"]
+      max_count >= 0 && len > max_count
+    else
+      false
+    end
+  end
+
+  def violates_uniqueness_constraint?(elements, role)
+    if role_constraints[role]["unique"]
+      elements[role].each do |element|
+        elements.keys.each do |loop_role|
+          next if loop_role == role
+          return true if elements[loop_role].include? element
+        end
+      end
+    end
+    false
+  end
+
+  def violates_conflicts_constraint?(elements, role)
+    if role_constraints[role]["conflicts_with"]
+      conflicts = role_constraints[role]["conflicts_with"].select do |conflicting_role|
+        elements[role].any? do |element|
+          elements[conflicting_role] && elements[conflicting_role].include?(element)
+        end
+      end
+      return true if conflicts.count > 0
+    end
+    false
+  end
+
+  def violates_admin_constraint?(elements, role, nodes_is_admin = {})
+    unless role_constraints[role]["admin"]
+      elements[role].each do |element|
+        next if is_cluster? element
+        unless nodes_is_admin.has_key? element
+          node = NodeObject.find_node_by_name(element)
+          nodes_is_admin[element] = (!node.nil? && node.admin?)
+        end
+        return true if nodes_is_admin[element]
+      end
+    end
+    false
+  end
+
+  def violates_cluster_constraint?(elements, role)
+    unless role_constraints[role]["cluster"]
+      clusters = elements[role].select {|e| is_cluster? e}
+      unless clusters.empty?
+        return true
+      end
+    end
+    false
+  end
+
   #
   # Ensure that the proposal respects constraints defined for the roles
   #
-  def validate_proposal_constraints proposal
+  def validate_proposal_constraints(proposal)
     elements = proposal["deployment"][@bc_name]["elements"]
     nodes_is_admin = {}
 
     role_constraints.keys.each do |role|
       next unless elements.has_key?(role)
 
-      if role_constraints[role].has_key?("count")
-        len = elements[role].length
-        max_count = role_constraints[role]["count"]
-        if max_count >= 0 && len > max_count
-	  validation_error("Role #{role} can accept up to #{max_count} elements only.")
-        end
+      if violates_count_constraint?(elements, role)
+        validation_error("Role #{role} can accept up to #{role_constraints[role]["count"]} elements only.")
       end
 
-      if role_constraints[role]["unique"]
-        issue = false
-        elements[role].each do |element|
-          elements.keys.each do |loop_role|
-            next if loop_role == role
-            if elements[loop_role].include? element
-	      validation_error("Elements assigned to #{role} cannot be assigned to another role.")
-              issue = true
-              break
-            end
-          end
-          break if issue
-        end
+      if violates_uniqueness_constraint?(elements, role)
+        validation_error("Elements assigned to #{role} cannot be assigned to another role.")
+        break
       end
 
-      if role_constraints[role]["conflicts_with"]
-        conflicts = role_constraints[role]["conflicts_with"].select do |conflicting_role|
-          elements[role].any? do |element|
-            elements[conflicting_role] && elements[conflicting_role].include?(element)
-          end
-        end
-        if conflicts.count > 0
-          validation_error("Element cannot be assigned to both role #{role} and any of these roles: #{role_constraints[role]["conflicts_with"].join(", ")}")
-          break
-        end
+      if violates_conflicts_constraint?(elements, role)
+        validation_error("Element cannot be assigned to both role #{role} and any of these roles: #{role_constraints[role]["conflicts_with"].join(", ")}")
+        break
       end
 
-      unless role_constraints[role]["admin"]
-        elements[role].each do |element|
-          next if is_cluster? element
-          unless nodes_is_admin.has_key? element
-            node = NodeObject.find_node_by_name(element)
-            nodes_is_admin[element] = (!node.nil? && node.admin?)
-          end
-          if nodes_is_admin[element]
-	    validation_error("Role #{role} does not accept admin nodes.")
-            break
-          end
-        end
+      if violates_admin_constraint?(elements, role, nodes_is_admin)
+        validation_error("Role #{role} does not accept admin nodes.")
+        break
       end
 
-      unless role_constraints[role]["cluster"]
-        clusters = elements[role].select {|e| is_cluster? e}
-	unless clusters.empty?
-	  validation_error("Role #{role} does not accept clusters.")
-	end
+      if violates_cluster_constraint?(elements, role)
+        validation_error("Role #{role} does not accept clusters.")
       end
     end
   end

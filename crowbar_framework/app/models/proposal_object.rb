@@ -199,11 +199,22 @@ class ProposalObject < ChefObject
   def all_elements
     @item.raw_data['deployment'][self.barclamp]["element_order"].flatten.uniq
   end
-  
+
+  def role
+    RoleObject.find_role_by_name("#{barclamp}-config-#{name}")
+  end
+
+  def revision
+    @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
+  end
+
+  def latest_applied?
+    r = role
+    revision > 0 && r && r.revision == revision
+  end
+
   def active?
-    inst = "#{barclamp}-config-#{name}"
-    role = RoleObject.find_role_by_name(inst)
-    return role.nil?
+    role.nil?
   end
 
   def raw_data

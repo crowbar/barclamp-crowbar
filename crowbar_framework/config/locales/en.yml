@@ -95,6 +95,8 @@ en:
       available_nodes: Available Nodes
       ui_advice: Drag nodes from Available Nodes into desired deployment list(s).
       blockui_message: Processing, please wait...
+      current_revision_applied: No change in proposal since last deployment.
+      current_revision_not_applied: The proposal has been changed since last deployment.
     node_selector:
       title: Deployment
       hint: Drag nodes for deployment from Available Nodes into the selected Role

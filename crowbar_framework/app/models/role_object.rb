@@ -116,6 +116,10 @@ class RoleObject < ChefObject
     [barclamp, inst].join("_")
   end
 
+  def revision
+    @role.override_attributes[barclamp]["crowbar-revision"].to_i rescue 0
+  end
+
   def display_name
     @display_name ||= BarclampCatalog.display_name(barclamp)
   end

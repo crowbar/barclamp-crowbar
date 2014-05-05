@@ -21,7 +21,7 @@
 //= require filters/nonempty
 //= require directives/dragdrop
 //= require directives/status
-//= require providers/websocket
+//= require providers/serverevent
 //= require factories/notification
 //= require controllers/application
 
@@ -61,14 +61,14 @@ angular
 
   .config(
     [
-      '$websocketProvider',
-      function($websocketProvider) {
-        $websocketProvider.setHost(
-          sprintf(
-            'http://%s:9292/faye', 
-            window.location.hostname
-          )
-        );
+      '$servereventProvider',
+      function($servereventProvider) {
+        // $servereventProvider.setHost(
+        //   sprintf(
+        //     'http://%s:9292/faye', 
+        //     window.location.hostname
+        //   )
+        // );
       }
     ]
   );

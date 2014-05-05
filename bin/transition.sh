@@ -25,11 +25,12 @@ fi
 HOST="127.0.0.1"
 
 post_state() {
+  local hostname=`echo $1 | awk -F. '{ print $1 }'`
   local curlargs=(-o "/var/log/crowbar/$1-$2.json" --connect-timeout 60 -s \
-      -L -X POST --data-binary "{ \"name\": \"$1\", \"state\": \"$2\" }" \
+      -L -X POST --data-binary "{ \"name\": \"${hostname}\", \"state\": \"${2}\" }" \
       -H "Accept: application/json" -H "Content-Type: application/json")
   [[ $CROWBAR_KEY ]] && curlargs+=(-u "$CROWBAR_KEY" --digest --anyauth)
-  curl "${curlargs[@]}" "http://${HOST}:3000/crowbar/crowbar/1.0/transition/default"
+  curl "${curlargs[@]}" "http://${HOST}:3000/crowbar/crowbar/1.0/transition/default.json"
 }
 
 if [ "$1" == "" ]

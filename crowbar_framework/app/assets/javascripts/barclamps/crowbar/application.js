@@ -37,10 +37,10 @@ angular
       '$scope',
       '$translate',
       '$notification',
-      '$websocket',
+      '$serverevent',
       '$dashboard',
-      function($scope, $translate, $notification, $websocket, $dashboard) {
-        // $websocket.subscribe('/nodes/status', function(data) {
+      function($scope, $translate, $notification, $serverevent, $dashboard) {
+        // $serverevent.subscribe('/nodes/status', function(data) {
         //   $dashboard.pushNode(data.node)
         //     .then(function(data) {
         //       $scope.groups = data;

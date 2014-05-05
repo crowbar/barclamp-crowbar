@@ -16,100 +16,109 @@
 # limitations under the License.
 #
 
-gem "rails", version: "4.0.4"
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
 
-require "rails/all"
-require "sprockets/railtie"
+require "uri"
 require "net/http"
 
-requirements = {}.tap do |deps|
-  deps["dotenv-rails"] = { version: "~> 0.10.0" }
-  deps["json"] = { version: "1.7.7" }
-  deps["rack"] = { version: "~> 1.5.2" }
-  deps["haml-rails"] = { version: "~> 0.5.3" }
-  deps["sass-rails"] = { version: "~> 4.0.2" }
-  deps["bcrypt"] = { version: "~> 3.1.7" }
-  deps["kwalify"] = { version: "~> 0.7.2" }
-  deps["simple-navigation"] = { version: "~> 3.12.2" }
-  deps["simple_navigation_renderers"] = { version: "~> 1.0.2" }
-  deps["sqlite3"] = { version: "~> 1.3.9" }
-  deps["gli"] = { version: "~> 2.9.0" }
-  deps["cocaine"] = { version: "~> 0.5.3" }
-  deps["hashie"] = { version: "~> 2.0.5" }
-  deps["delayed_job_active_record"] = { version: "~> 4.0.0" }
-  deps["faye"] = { version: "~> 1.0.1" }
-  deps["thin"] = { version: "~> 1.6.2" }
-  deps["redcarpet"] = { version: "~> 3.1.1" }
-  deps["nokogiri"] = { version: "~> 1.6.1" }
-  deps["bootstrap-sass"] = { version: "~> 3.1.1" }
-  deps["font-awesome-rails"] = { version: "~> 4.0.3" }
-  deps["closure-compiler"] = { version: "~> 1.1.10" }
-  deps["js-routes"] = { version: "~> 0.9.7" }
-  deps["chef"] = { version: "~> 10.24.4" }
+if File.exists? ENV["BUNDLE_GEMFILE"]
+  require "bundler/setup"
+  require "rails/all"
+  require "sprockets/railtie"
 
-  deps["activeresource"] = { 
-    version: "~> 4.0.0",
-    require: "active_resource" 
-  }
+  Bundler.require(:default, Rails.env)
+else
+  #
+  # WARNING, this content between these markers gets replaced by the rake 
+  # task crowbar:generate:dependencies! Don't update it manually!
+  #
 
-  deps["activerecord-session_store"] = { 
-    version: "~> 0.1.0", 
-    require: "activerecord/session_store" 
-  }
+  # RAILSINCLUDE START
+  gem "rails", version: "4.1.0"
+  require "rails/all"
+  # RAILSINCLUDE END
 
-  case Rails.env.to_sym
-  when :test
-    deps["rspec-rails"] = { version: "~> 2.14.1" }
-    deps["mocha"] = { version: "~> 1.0.0" }
-    deps["webmock"] = { version: "~> 1.17.4" }
-    deps["sinatra"] = { version: "~> 1.4.4" }
+  #
+  # WARNING, this content between these markers gets replaced by the rake 
+  # task crowbar:generate:dependencies! Don't update it manually!
+  #
 
-    deps["cucumber-rails"] = { 
-      version: "~> 1.4.0", 
-      require: false 
-    }
+  # DEPENDENCIES START
+  gem "dotenv-rails", version: "~> 0.10.0"
+  require "dotenv-rails"
 
-    deps["simplecov"] = { 
-      version: "~> 0.8.2", 
-      require: false 
-    }
-  when :development
-    #deps["debugger"] = { version: "~> 1.6.6" }
-    #deps["byebug"] = { version: "~> 2.7.0" }
+  gem "haml-rails", version: "~> 0.5.3"
+  require "haml-rails"
 
-    deps["rspec-rails"] = { version: "~> 2.14.1" }
-    deps["guard"] = { version: "~> 2.5.1" }
-    deps["better_errors"] = { version: "~> 1.1.0" }
-    deps["meta_request"] = { version: "~> 0.2.8" }
-    deps["quiet_assets"] = { version: "~> 1.0.2" }
-    deps["pry-rails"] = { version: "~> 0.3.2" }
+  gem "sass-rails", version: "~> 4.0.3"
+  require "sass-rails"
 
-    deps["brakeman"] = { 
-      version: "~> 2.4.3", 
-      require: false 
-    }
+  gem "rack", version: "~> 1.5.2"
+  require "rack"
 
-    deps["rubocop"] = { 
-      version: "~> 0.18.1", 
-      require: false 
-    }
+  gem "bcrypt", version: "~> 3.1.7"
+  require "bcrypt"
 
-    case RUBY_ENGINE
-    when "ruby"
-      deps["binding_of_caller"] = { version: "~> 0.7.2" }
-    end
-  end
-end
+  gem "kwalify", version: "~> 0.7.2"
+  require "kwalify"
 
-requirements.each do |name, options|
-  required = options.delete(:require) || true
-  gem name, options
+  gem "simple-navigation", version: "~> 3.12.2"
+  require "simple-navigation"
 
-  if required == true
-    require name
-  else
-    if required.is_a? String
-      require required
-    end
-  end
+  gem "simple_navigation_renderers", version: "~> 1.0.2"
+  require "simple_navigation_renderers"
+
+  gem "sqlite3", version: "~> 1.3.9"
+  require "sqlite3"
+
+  gem "gli", version: "~> 2.9.0"
+  require "gli"
+
+  gem "cocaine", version: "~> 0.5.4"
+  require "cocaine"
+
+  gem "hashie", version: "~> 2.0.5"
+  require "hashie"
+
+  gem "delayed_job_active_record", version: "~> 4.0.1"
+  require "delayed_job_active_record"
+
+  gem "unicorn-rails", version: "~> 2.0.0"
+  require "unicorn-rails"
+
+  gem "redcarpet", version: "~> 3.1.1"
+  require "redcarpet"
+
+  gem "nokogiri", version: "~> 1.6.1"
+  require "nokogiri"
+
+  gem "bootstrap-sass", version: "~> 3.1.1"
+  require "bootstrap-sass"
+
+  gem "font-awesome-rails", version: "~> 4.0.3"
+  require "font-awesome-rails"
+
+  gem "closure-compiler", version: "~> 1.1.10"
+  require "closure-compiler"
+
+  gem "cells", version: "~> 3.10.0"
+  require "cells"
+
+  gem "js-routes", version: "~> 0.9.7"
+  require "js-routes"
+
+  gem "json", version: "~> 1.8.1"
+  require "json"
+
+  gem "pry-rails", version: "~> 0.3.2"
+  require "pry-rails"
+
+  gem "activeresource", version: "~> 4.0.0"
+  require "active_resource"
+
+  gem "activerecord-session_store", version: "~> 0.1.0"
+  require "activerecord/session_store"
+  # DEPENDENCIES END
+
+  require "sprockets/railtie"
 end

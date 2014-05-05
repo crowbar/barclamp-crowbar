@@ -1,6 +1,6 @@
 #
 # Copyright 2011-2013, Dell
-# Copyright 2013-2014 SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
 # limitations under the License.
 #
 
-#require ::File.expand_path("../config/environment",  __FILE__)
-#run Faye::RackAdapter.new(mount: '/faye', timeout: 45)
+namespace :crowbar do
+  namespace :generate do
+    desc "Update dependencies for boot"
+    task :dependencies do
+      require "crowbar/generate/dependencies"
 
-gem "faye", version: "~> 1.0.1"
-require "faye"
+      generator = Crowbar::Generate::Dependencies.new(
+        Rails.root.join("config", "boot.rb")
+      )
 
-gem "thin", version: "~> 1.6.2"
-require "thin"
-
-run Faye::RackAdapter.new(mount: '/faye', timeout: 45)
+      generator.process
+    end
+  end
+end

@@ -27,16 +27,16 @@ angular
       '$scope',
       '$translate',
       '$notification',
-      '$websocket',
-      function($scope, $translate, $notification, $websocket) {
-        $websocket.subscribe('/general/flash', function(data) {
+      '$serverevent',
+      function($scope, $translate, $notification, $serverevent) {
+        $serverevent.subscribe('/general/flash', function(data) {
           $notification.genericMessage(data.message, {
             type: data.type ? data.type : 'info',
             allow_dismiss: data.dismiss ? data.dismiss : false
           });
         });
 
-        $websocket.subscribe('/nodes/status', function(data) {
+        $serverevent.subscribe('/nodes/status', function(data) {
           $translate(
             'nodes.errors.node_transition', 
             { node: data.node.alias, state: data.node.state }

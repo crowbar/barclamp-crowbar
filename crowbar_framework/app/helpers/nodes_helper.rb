@@ -281,11 +281,20 @@ module NodesHelper
       ips.each do |network, addresses|
         unless network == "~notconnected" and addresses.nil?
           network_list = if ["[not managed]", "[dhcp]"].include? network
-            address_list = addresses.to_a.map do |address|
-              content_tag(
-                :li,
-                address
-              )
+            address_list = if addresses.is_a? String
+              [
+                content_tag(
+                  :li,
+                  addresses
+                )
+              ]
+            else
+              addresses.to_a.map do |address|
+                content_tag(
+                  :li,
+                  address
+                )
+              end
             end
 
             [
@@ -295,9 +304,9 @@ module NodesHelper
               ),
               content_tag(
                 :ul,
-                address_list.join("\n")
+                address_list.join("\n").html_safe
               )
-            ].join("\n")
+            ].join("\n").html_safe
           else
             address_list = if addresses.is_a? String
               addresses
@@ -399,7 +408,7 @@ module NodesHelper
             proposal.display_name
           end
 
-          route = proposal_show_path(:controller => proposal.barclamp, :id => proposal.name)
+          route = show_proposal_path(:controller => proposal.barclamp, :id => proposal.name)
 
           listing[proposal.category] ||= []
           listing[proposal.category].push link_to(display_name, route)
@@ -480,7 +489,7 @@ module NodesHelper
             listing[object.category] ||= []
             listing[object.category].push role
           else
-            route = proposal_show_path(
+            route = show_proposal_path(
               :controller => proposal.barclamp,
               :id => proposal.name
             )

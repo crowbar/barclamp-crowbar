@@ -20,7 +20,7 @@ require 'hash_only_merge'
 require 'securerandom'
 
 class ServiceObject
-  include FayeHelper
+  include EventHelper
 
   FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
 

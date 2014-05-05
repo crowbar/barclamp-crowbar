@@ -33,7 +33,7 @@ Crowbar::Application.routes.draw do
 
   resources :translations, only: [:index]
 
-  constraints(id: /[^\/]+/) do
+  constraints(id: /[^\/\.]+/) do
     get "dashboard" => "dashboard#index", as: :dashboard
 
     resources :utils, only: [:index, :destroy] do
@@ -95,9 +95,9 @@ Crowbar::Application.routes.draw do
     match "elements/:id", action: :element_show, as: :show_element, via: [:get]
   end
 
-  constraints(id: /[^\/]+/) do
+  constraints(id: /[^\/\.]+/) do
     match "crowbar/:controller/1.0", action: :index, as: :grouped_barclamps, via: [:get]
-    match "crowbar/:controller/1.0/:action/:id", as: :on_barclamp, via: [:post]
+    match "crowbar/:controller/1.0/:action/:id(.:format)", as: :on_barclamp, via: [:get, :post]
   end
 
   get "crowbar/:controller", action: :versions
@@ -123,9 +123,9 @@ Crowbar::Application.routes.draw do
     match "elements/:id", action: :element_show, via: [:get]
   end
 
-  constraints(id: /[^\/]+/ ) do
+  constraints(id: /[^\/\.]+/ ) do
     match "crowbar/:barclamp/1.0", controller: :barclamp, action: :index, via: [:get]
-    match "crowbar/:barclamp/1.0/:action/:id", controller: :barclamp, via: [:post]
+    match "crowbar/:barclamp/1.0/:action/:id", controller: :barclamp, via: [:get, :post]
   end
 
   get "crowbar/:barclamp", controller: :barclamp, action: :versions

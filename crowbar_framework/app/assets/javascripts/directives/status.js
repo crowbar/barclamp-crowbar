@@ -25,12 +25,12 @@ angular
     'nodeStatus', 
     [
       '$rootScope',
-      '$websocket',
-      function($rootScope, $websocket) {
+      '$serverevent',
+      function($rootScope, $serverevent) {
         return {
           restrict: 'A',
           link: function(scope, el, attrs, controller) {
-            $websocket.subscribe('/nodes/status', function(data) {
+            $serverevent.subscribe('/nodes/status', function(data) {
               if (data.node.handle === attrs.nodeStatus) {
                 scope.node.state = data.node.state;
                 scope.node.status = data.node.status;

@@ -3,18 +3,22 @@
     %h1.page-header
       = t(".title")
 
-%h2
-  = t(".clusters")
+      .badge{ :title => t(".extended_clusters", :count => @clusters.count) }
+        = t(".simple_clusters", :count => @clusters.count)
 
-- @clusters.each do |element, cluster|
-  = render :partial => "dashboard", :locals => { :element => element, :status => ServiceObject.cluster_status(element)}
+.row
+  .col-xs-12
+    %h2
+      = t(".clusters")
 
-%h2
-  = t(".unallocated_nodes")
+.row
+  .col-xs-12
+  - @clusters.sort.each_slice(2) do |cluster_pair|
+    .row
+    - cluster_pair.each do |element, cluster|
+      .col-md-6.col-xs-12
+        = render :partial => "dashboard", :locals => { :element => element, :status => ServiceObject.cluster_status(element)}
 
-= render :partial => "unallocated_nodes"
-
-%h2
-  = t(".unassigned_nodes")
-
-= render :partial => "unassigned_nodes"
+.row
+  = render :partial => "unallocated_nodes"
+  = render :partial => "unassigned_nodes"

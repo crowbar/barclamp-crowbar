@@ -1,17 +1,25 @@
-%h2
-  = render :partial => "cluster_link", :locals => { :element => element, :status => status, :name => ServiceObject.cluster_name(element) }
+.row
+  .col-xs-12
+    %h2
+      = render :partial => "cluster_link", :locals => { :element => element, :status => status, :name => ServiceObject.cluster_name(element) }
 
 .row
-  .col-xs-6
-    %h3
-    = t(".nodes")
-    - ServiceObject.nodes_in_cluster(element).each do |node|
-      %div
-        = render :partial => "node_link", :locals => { :node => node }
+  .col-md-6.col-xs-12
+    .panel.panel-default
+      .panel-heading
+        %h3
+          = t(".nodes")
+      %ul.list-group
+        - ServiceObject.nodes_in_cluster(element).each do |node|
+          %li.list-group-item
+            = render :partial => "node_link", :locals => { :node => node }
 
-  .col-xs-6
-    %h3
-    = t(".roles")
-    - ServiceObject.roles_in_cluster(element).map(&:proposal).uniq.each do |proposal|
-      %div
-        = render :partial => "proposal_link", :locals => { :proposal => proposal }
+  .col-md-6.col-xs-12
+    .panel.panel-default
+      .panel-heading
+        %h3
+          = t(".roles")
+      %ul.list-group
+        - ServiceObject.roles_in_cluster(element).map(&:proposal).uniq.each do |proposal|
+          %li.list-group-item
+            = render :partial => "proposal_link", :locals => { :proposal => proposal }

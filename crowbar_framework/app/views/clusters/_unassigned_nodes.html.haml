@@ -1,3 +1,15 @@
-- NodeObject.all.select(&:core_roles_only?).each do |node|
-  %div
-    = render :partial => "node_link", :locals => { :node => node }
+.col-md-6.col-xs-12
+  .row
+    .col-md-6.col-xs-12
+      %h2
+        = t(".unassigned_nodes")
+  .row
+    .col-md-6.col-xs-12
+      .panel.panel-default
+        .panel-heading
+          %h3
+            = t(".nodes")
+        %ul.list-group
+          - NodeObject.all.select(&:core_roles_only?).each do |node|
+            %li.list-group-item
+              = render :partial => "node_link", :locals => { :node => node }

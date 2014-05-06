@@ -1,0 +1,52 @@
+{ 
+  "allocated": {
+    "192.168.124.10": {
+      "address": "192.168.124.10",
+      "machine": "crowbar.site",
+      "interface": "intf0"
+    }
+  },
+  "id": "admin_network",
+  "network": {
+    "broadcast": "192.168.124.255",
+    "subnet": "192.168.124.0",
+    "add_bridge": false,
+    "conduit": "intf0",
+    "ranges": {
+      "switch": {
+        "start": "192.168.124.241",
+        "end": "192.168.124.250"
+      },
+      "admin": {
+        "start": "192.168.124.10",
+        "end": "192.168.124.11"
+      },
+      "dhcp": {
+        "start": "192.168.124.21",
+        "end": "192.168.124.80"
+      },
+      "host": {
+        "start": "192.168.124.81",
+        "end": "192.168.124.160"
+      }
+    },
+    "netmask": "255.255.255.0",
+    "vlan": 100,
+    "use_vlan": false,
+    "router": "192.168.124.1",
+    "router_pref": 10
+  },
+  "allocated_by_name": {
+    "crowbar.site": {
+      "address": "192.168.124.10",
+      "machine": "crowbar.site",
+      "interface": "intf0"
+    }
+  },
+  "deployment": {
+    "network": {
+      "crowbar-revision": 1,
+      "crowbar-applied": false
+    }
+  }
+}

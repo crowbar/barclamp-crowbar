@@ -1,0 +1,5 @@
+.col-xs-12
+  - RoleObject.find_roles_by_name("nova-multi-compute-*").sort_by { |r| r.name }.group_by { |r| r.name.split("-").last }.each do |hypervisor, roles|
+    .row
+      .col-xs-12
+        = render :partial => "compute_node", :locals => { :hypervisor => hypervisor, :nodes => roles.first.elements.map { |n| NodeObject.find_node_by_name(n) } }

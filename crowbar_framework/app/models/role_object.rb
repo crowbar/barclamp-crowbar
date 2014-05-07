@@ -29,6 +29,14 @@ class RoleObject < ChefObject
     self.class.core_role?(name)
   end
 
+  def self.compute_roles(roles = nil)
+    if roles
+      roles.select { |r| !r.proposal? && r.name =~ /^nova\-multi\-compute/ }
+    else
+      self.find_role_by_name("nova-multi-compute-*").reject { |r| r.proposal? }
+    end
+  end
+
   # FIXME: there is currently an ambiguity whether 'assigned' means 'saved' +
   # 'applied' or just 'saved' proposal This code is assuming the former. The
   # latter would require iterating over proposals instead of proposal roles.

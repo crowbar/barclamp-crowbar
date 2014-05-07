@@ -468,7 +468,8 @@ class NodeObject < ChefObject
   end
 
   def unclaimed_physical_drives
-    physical_drives.select { |disk| disk_owner(disk).blank? }
+    unique_drives = physical_drives.map { |disk, data| unique_device_for(disk) }
+    unique_drives.select { |disk| disk_owner(disk).blank? }.compact
   end
 
   def physical_drives

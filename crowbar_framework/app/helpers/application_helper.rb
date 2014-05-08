@@ -66,6 +66,10 @@ module ApplicationHelper
         "crowbar"
       end
 
+      if barclamp_name == "barclamp"
+        barclamp_name = "crowbar"
+      end
+
       barclamp_path = Rails.root.join(
         "app",
         "assets",
@@ -101,6 +105,10 @@ module ApplicationHelper
         @service_object.barclamp rescue "crowbar"
       else
         "crowbar"
+      end
+
+      if barclamp_name == "barclamp"
+        barclamp_name = "crowbar"
       end
 
       barclamp_path = Rails.root.join(

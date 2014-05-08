@@ -35,6 +35,9 @@ class ServiceObject
   attr_accessor :validation_errors
 
   def initialize(logger)
+    # Temporary name
+    @bc_name = "unknown"
+
     self.bc_name = barclamp
     self.logger = logger
 
@@ -60,7 +63,7 @@ class ServiceObject
   end
 
   def barclamp
-    @barclamp ||= "unknown"
+    @bc_name #@barclamp ||= "unknown"
   end
 
   def self.get_service(name)

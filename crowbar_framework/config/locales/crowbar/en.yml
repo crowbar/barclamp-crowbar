@@ -112,6 +112,8 @@ en:
       apply_confirm: 'Apply proposal now?'
       deactivate_confirm: 'Deactivate proposal now?'
       delete_confirm: 'Delete proposal now?'
+      current_revision_applied: 'No change in proposal since last deployment.'
+      current_revision_not_applied: 'The proposal has been changed since last deployment.'
 
     general:
       index:

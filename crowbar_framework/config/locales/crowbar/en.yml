@@ -222,7 +222,7 @@ en:
       cannot_find: 'Failed to find proposal'
       template_missing: 'Failed to load proposal template for barclamp %{name}.'
       dependency_missing: 'Cannot create a proposal for %{name}, please create a %{dependson} proposal first.'
-      would_break_dependency: 'Cannot deactivate a proposal for \'%{name}\', as it breaks dependencies of \'%{dependson}\'.'
+      would_break_dependency: 'Cannot deactivate a proposal for %{name}, as it breaks dependencies of %{dependson}.'
     attributes:
       node:
         name: 'Full Name'

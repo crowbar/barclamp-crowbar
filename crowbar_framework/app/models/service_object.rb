@@ -22,16 +22,45 @@ require 'securerandom'
 class ServiceObject
   include EventHelper
 
-  FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
+  FORBIDDEN_PROPOSAL_NAMES = [
+    "template",
+    "nodes",
+    "commit",
+    "status"
+  ]
 
   attr_accessor :bc_name
+  attr_accessor :barclamp
   attr_accessor :logger
   attr_accessor :validation_errors
 
-  def initialize(thelogger)
-    @bc_name = 'unknown'
-    @logger = thelogger
+  def initialize(logger)
+    self.bc_name = barclamp
+    self.logger = logger
+
     @validation_errors = []
+  end
+
+  def debug(part, message)
+    self.logger.debug(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def info(part, message)
+    self.logger.info(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def error(part, message)
+    self.logger.error(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def barclamp
+    @barclamp ||= "unknown"
   end
 
   def self.get_service(name)
@@ -731,8 +760,10 @@ class ServiceObject
   # This can be overridden to provide a better creation proposal
   #
   def create_proposal
+    debug("create_proposal", "entering")
     prop = ProposalObject.find_proposal("template", @bc_name)
     raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
+    debug("create_proposal", "leaving base")
     prop.raw_data
   end
 

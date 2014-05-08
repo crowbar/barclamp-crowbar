@@ -154,6 +154,10 @@ class NodeObject < ChefObject
     !@node.nil?
   end
 
+  def supports_xen?
+    @node[:platform] == "suse"
+  end
+
   def target_platform
     @node[:target_platform]
   end
@@ -164,6 +168,13 @@ class NodeObject < ChefObject
 
   def target_platform=(value)
     @node.set[:target_platform] = value
+  end
+
+  def add_link(key, value)
+    @node.crowbar["crowbar"] ||= {}
+    @node.crowbar["crowbar"]["links"] ||= {}
+
+    @node.crowbar["crowbar"]["links"][key] = value
   end
 
   def crowbar_wall

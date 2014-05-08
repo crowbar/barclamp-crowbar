@@ -1,4 +1,3 @@
-# -*- encoding : utf-8 -*-
 #
 # Copyright 2011-2013, Dell
 # Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -16,15 +15,19 @@
 # limitations under the License.
 #
 
-module ==^BC-MODEL==BarclampHelper
-  def ==BC-MODEL==_contraints
-    {
-      "==BC-MODEL==-server" => {
-        "unique" => false,
-        "count" => 1,
-        "admin" => false
-      }
-    }
-  end
-end
+root:
+  topic_meta_data:
+    author: 'Multiple authors'
+    license: 'Apache 2'
+    copyright: '2014 by Dell, Inc'
+    date: 'June 1, 2012'
+    order: 'alpha'
+    url: '/crowbar/modules/1.0'
+    format: 'markdown'
 
+  barclamps:
+    ==BC-MODEL==:
+      topic_meta_data:
+        file: 'index'
+        url: '/crowbar/modules/1.0?selected===BC-MODEL=='
+        order: 100

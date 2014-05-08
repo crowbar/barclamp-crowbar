@@ -17,9 +17,21 @@
 #
 
 class ==^BC-MODEL==Service < ServiceObject
-  def initialize(logger)
+  def initialize(thelogger)
     @bc_name = "==BC-MODEL=="
-    @logger = logger
+    @logger = thelogger
+  end
+
+  class << self
+    def role_constraints
+      {
+        "==BC-MODEL==-server" => {
+          "unique" => false,
+          "count" => 1,
+          "admin" => false
+        }
+      }
+    end
   end
 
   # if barclamp should have a suggested name different than "proposal" for new proposals

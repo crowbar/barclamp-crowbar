@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-# Copyright 2011, Dell
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +16,11 @@
 # limitations under the License.
 #
 
-$LOAD_PATH.unshift(File.expand_path("../../crowbar_framework/lib", __FILE__))
+#
+#
+# TODO: Needs to be replaced by https://github.com/basecamp/sub
+#
+#
 
 require "rubygems"
 require "net/http"

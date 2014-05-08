@@ -16,18 +16,12 @@
 #
 
 barclamp:
-  name: crowbar
-  display: Crowbar
-  description: Self-referential barclamp enabling other barclamps
-  online_help: 'https://github.com/crowbar/crowbar/wiki'
+  name: 'crowbar'
+  display: 'Crowbar'
+  description: 'Self-referential barclamp enabling other barclamps'
   version: 0
-  proposal_schema_version: 1
   member:
-    - crowbar
-  os_support:
-    - redhat-6.4
-    - centos-6.4
-    - ubuntu-12.04
+    - 'crowbar'
 
 crowbar:
   layout: 1
@@ -39,211 +33,211 @@ crowbar:
 nav:
   primary:
     nodes:
-      route: dashboard_path
+      route: 'dashboard_path'
     network:
-      route: switch_network_path
+      route: 'switch_network_path'
       params:
-        id: default
+        id: 'default'
     barclamps:
-      route: available_barclamps_path
+      route: 'available_barclamps_path'
     utils:
-      route: utils_path
+      route: 'utils_path'
     help:
-      route: docs_path
+      route: 'docs_path'
   nodes:
     dashboard:
-      route: dashboard_path
+      route: 'dashboard_path'
     list:
-      route: list_nodes_path
+      route: 'list_nodes_path'
     families:
-      route: families_nodes_path
+      route: 'families_nodes_path'
   barclamps:
     all_bc:
-      route: available_barclamps_path
+      route: 'available_barclamps_path'
     crowbar_bc:
-      route: grouped_barclamps_path
+      route: 'grouped_barclamps_path'
       params:
-        controller: crowbar
+        controller: 'crowbar'
   utils:
     util_logs:
-      route: utils_path
+      route: 'utils_path'
   help:
     documentation:
-      route: docs_path
+      route: 'docs_path'
     crowbar_wiki:
-      path: https://github.com/crowbar/crowbar/wiki/
+      path: 'https://github.com/crowbar/crowbar/wiki/'
     crowbar_ug:
-      path: /docs/crowbar_users_guide.pdf
+      path: '/docs/crowbar_users_guide.pdf'
 
 debs:
   ubuntu-12.04:
     repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu precise partner
-      - deb-src http://archive.canonical.com/ubuntu precise partner
-      - deb http://extras.ubuntu.com/ubuntu precise main
-      - deb-src http://extras.ubuntu.com/ubuntu precise main
-      - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ precise-0.10 main
+      - 'deb http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse'
+      - 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse'
+      - 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse'
+      - 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse'
+      - 'deb http://archive.canonical.com/ubuntu precise partner'
+      - 'deb-src http://archive.canonical.com/ubuntu precise partner'
+      - 'deb http://extras.ubuntu.com/ubuntu precise main'
+      - 'deb-src http://extras.ubuntu.com/ubuntu precise main'
+      - 'deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse'
+      - 'deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse'
+      - 'deb http://apt.opscode.com/ precise-0.10 main'
   build_pkgs:
-    - ruby1.9-dev
-    - rubygems1.9
-    - build-essential
-    - libsqlite3-dev
-    - dpkg-dev
-    - libxml2-dev
-    - zlib1g-dev
+    - 'ruby1.9-dev'
+    - 'rubygems1.9'
+    - 'build-essential'
+    - 'libsqlite3-dev'
+    - 'dpkg-dev'
+    - 'libxml2-dev'
+    - 'zlib1g-dev'
   pkgs:
-    - apache2
-    - apache2-prefork-dev
-    - libopkele-dev
-    - libopkele3
-    - libapache2-svn
-    - libapache2-mod-fcgid
-    - libapache2-mod-php5
-    - libapache2-mod-python
-    - libapache2-mod-wsgi
-    - apt-cacher
-    - build-essential
-    - binutils-doc
-    - autoconf
-    - flex
-    - bison
-    - patch
-    - curl
-    - sqlite3
-    - libsqlite3-dev
-    - libshadow-ruby1.8
-    - chef
-    - chef-server
-    - chef-server-webui
-    - kwalify
-    - libcurl4-gnutls-dev
-    - minicom
-    - nscd
-    - libnss-ldap
-    - libpam-ldap
-    - ldap-utils
-    - db4.8-util
-    - slapd
-    - openssh-client
-    - openssh-server
-    - markdown
-    - ruby1.9
-    - ruby1.9-dev
-    - ruby-dev
-    - rubygems
-    - rubygems1.9
-    - runit
-    - sudo
-    - dpkg-dev
-    - screen
-    - alien
-    - cabextract
-    - expect
+    - 'apache2'
+    - 'apache2-prefork-dev'
+    - 'libopkele-dev'
+    - 'libopkele3'
+    - 'libapache2-svn'
+    - 'libapache2-mod-fcgid'
+    - 'libapache2-mod-php5'
+    - 'libapache2-mod-python'
+    - 'libapache2-mod-wsgi'
+    - 'apt-cacher'
+    - 'build-essential'
+    - 'binutils-doc'
+    - 'autoconf'
+    - 'flex'
+    - 'bison'
+    - 'patch'
+    - 'curl'
+    - 'sqlite3'
+    - 'libsqlite3-dev'
+    - 'libshadow-ruby1.8'
+    - 'chef'
+    - 'chef-server'
+    - 'chef-server-webui'
+    - 'kwalify'
+    - 'libcurl4-gnutls-dev'
+    - 'minicom'
+    - 'nscd'
+    - 'libnss-ldap'
+    - 'libpam-ldap'
+    - 'ldap-utils'
+    - 'db4.8-util'
+    - 'slapd'
+    - 'openssh-client'
+    - 'openssh-server'
+    - 'markdown'
+    - 'ruby1.9'
+    - 'ruby1.9-dev'
+    - 'ruby-dev'
+    - 'rubygems'
+    - 'rubygems1.9'
+    - 'runit'
+    - 'sudo'
+    - 'dpkg-dev'
+    - 'screen'
+    - 'alien'
+    - 'cabextract'
+    - 'expect'
 
 rpms:
   redhat-6.4:
     repos:
-      - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+      - 'rpm http://rbel.frameos.org/rbel6'
+      - 'rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm'
     build_pkgs:
-      - libcurl-devel
-      - yum-plugin-downloadonly
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
+      - 'libcurl-devel'
+      - 'yum-plugin-downloadonly'
+      - 'createrepo'
+      - 'libxml2-devel'
+      - 'zlib-devel'
   centos-6.4:
     repos:
-      - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+      - 'rpm http://rbel.frameos.org/rbel6'
+      - 'rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm'
     build_pkgs:
-      - libcurl-devel
-      - yum-plugin-downloadonly
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
+      - 'libcurl-devel'
+      - 'yum-plugin-downloadonly'
+      - 'createrepo'
+      - 'libxml2-devel'
+      - 'zlib-devel'
   build_pkgs:
-    - rubygems
-    - ruby-devel
-    - make
-    - gcc
-    - kernel-devel
-    - sqlite-devel
-    - mysql-devel
+    - 'rubygems'
+    - 'ruby-devel'
+    - 'make'
+    - 'gcc'
+    - 'kernel-devel'
+    - 'sqlite-devel'
+    - 'mysql-devel'
   pkgs:
-    - httpd
-    - httpd-devel
-    - mod_fcgid
-    - php
-    - mod_python
-    - mod_ssl
-    - mod_wsgi
-    - gcc
-    - gcc-c++
-    - kernel-devel
-    - make
-    - autoconf
-    - flex
-    - bison
-    - patch
-    - e2fsprogs
-    - curl
-    - sqlite
-    - sqlite-devel
-    - rubygem-chef-server
-    - rubygem-kwalify
-    - createrepo
-    - minicom
-    - nscd
-    - python-markdown
-    - nss
-    - nss-tools
-    - openldap
-    - openldap-servers
-    - openldap-clients
-    - krb5-workstation
-    - openssh-clients
-    - openssh-server
-    - openssh
-    - ruby
-    - ruby-devel
-    - ruby-shadow
-    - sudo
-    - screen
-    - expect
-    - cabextract
+    - 'httpd'
+    - 'httpd-devel'
+    - 'mod_fcgid'
+    - 'php'
+    - 'mod_python'
+    - 'mod_ssl'
+    - 'mod_wsgi'
+    - 'gcc'
+    - 'gcc-c++'
+    - 'kernel-devel'
+    - 'make'
+    - 'autoconf'
+    - 'flex'
+    - 'bison'
+    - 'patch'
+    - 'e2fsprogs'
+    - 'curl'
+    - 'sqlite'
+    - 'sqlite-devel'
+    - 'rubygem-chef-server'
+    - 'rubygem-kwalify'
+    - 'createrepo'
+    - 'minicom'
+    - 'nscd'
+    - 'python-markdown'
+    - 'nss'
+    - 'nss-tools'
+    - 'openldap'
+    - 'openldap-servers'
+    - 'openldap-clients'
+    - 'krb5-workstation'
+    - 'openssh-clients'
+    - 'openssh-server'
+    - 'openssh'
+    - 'ruby'
+    - 'ruby-devel'
+    - 'ruby-shadow'
+    - 'sudo'
+    - 'screen'
+    - 'expect'
+    - 'cabextract'
 
 gems:
   pkgs:
-    - bluepill
-    - rainbows
-    - net-http-digest_auth
-    - bundler
+    - 'bluepill'
+    - 'rainbows'
+    - 'net-http-digest_auth'
+    - 'bundler'
 
-    - rails-4.0.2
-    - rack-1.5.2
-    - dotenv-rails-0.9.0
-    - haml-rails-0.5.3
-    - sass-rails-4.0.1
-    - jbuilder-2.0.3
-    - bcrypt-3.1.2
-    - kwalify-0.7.2
-    - simple-navigation-3.11.0
-    - sqlite3-1.3.8
-    - gli-2.9.0
-    - cocaine-0.5.3
-    - hashie-2.0.5
-    - activerecord-session_store-0.1.0
-    - chef-10.24.4
-    - json-1.7.7
+    - 'rails-4.0.2'
+    - 'rack-1.5.2'
+    - 'dotenv-rails-0.9.0'
+    - 'haml-rails-0.5.3'
+    - 'sass-rails-4.0.1'
+    - 'jbuilder-2.0.3'
+    - 'bcrypt-3.1.2'
+    - 'kwalify-0.7.2'
+    - 'simple-navigation-3.11.0'
+    - 'sqlite3-1.3.8'
+    - 'gli-2.9.0'
+    - 'cocaine-0.5.3'
+    - 'hashie-2.0.5'
+    - 'activerecord-session_store-0.1.0'
+    - 'chef-10.24.4'
+    - 'json-1.7.7'
 
-    - uglifier-2.2.1
-    - therubyracer-0.12.1
+    - 'uglifier-2.2.1'
+    - 'therubyracer-0.12.1'
 
 pips:
-  - uwsgi
+  - 'uwsgi'

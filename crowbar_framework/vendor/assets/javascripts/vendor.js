@@ -30,6 +30,7 @@
 //= require jquery/updateAttribute
 //= require jquery/messages
 //= require jquery/dynamicTable
+//= require jquery/hideShowClusterConf
 
 //= require bootstrap
 //= require bootstrap/hover-dropdown

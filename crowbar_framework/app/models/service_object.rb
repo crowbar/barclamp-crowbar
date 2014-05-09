@@ -304,7 +304,7 @@ class ServiceObject
           pre_cached_nodes[node_name] = node
 
           # Make sure the node is allocated
-          node.allocated = true
+          node.allocate!
           node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
           node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
           node.save

@@ -377,6 +377,18 @@ class NodeObject < ChefObject
     end
   end
 
+  def allocate!
+    return if @node.nil?
+    return if @role.nil?
+    return if self.allocated?
+    self.allocated = true
+    save
+  end
+
+  def allocate
+    allocate!
+  end
+
   def allocated=(value)
     return false if @role.nil?
     Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
@@ -1049,14 +1061,6 @@ class NodeObject < ChefObject
 
   def identify
     bmc_cmd("chassis identify")
-  end
-
-  def allocate
-    return if @node.nil?
-    return if @role.nil?
-    return if self.allocated?
-    self.allocated = true
-    save
   end
 
   def bmc_set?

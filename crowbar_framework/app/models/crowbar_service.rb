@@ -89,7 +89,7 @@ class CrowbarService < ServiceObject
 
     if pop_it
       #
-      # If we are discovering the node and it is an admin, 
+      # If we are discovering the node and it is an admin,
       # make sure that we add the crowbar config
       #
       if state == "discovering" and node.admin?
@@ -100,7 +100,7 @@ class CrowbarService < ServiceObject
 
       roles = RoleObject.find_roles_by_search "transitions:true AND (transition_list:all OR transition_list:#{ChefObject.chef_escape(state)})"
       # Sort rules for transition order (deployer should be near the beginning if not first).
-      roles.sort! do |x,y| 
+      roles.sort! do |x,y|
         xname = x.name.gsub(/-config-.*$/, "")
         yname = y.name.gsub(/-config-.*$/, "")
 
@@ -125,7 +125,7 @@ class CrowbarService < ServiceObject
           bc_lock = acquire_lock "#{bc}:#{rname}"
           begin
             svc_name = "#{bc.camelize}Service"
-            @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")            
+            @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")
             service = eval("#{svc_name}.new @logger")
             answer = service.transition(rname, name, state)
             if answer[0] != 200
@@ -180,7 +180,7 @@ class CrowbarService < ServiceObject
         @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
           id = "default"
-          data = "{\"id\":\"#{id}\"}" 
+          data = "{\"id\":\"#{id}\"}"
           @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
 
           if v != "default"
@@ -256,10 +256,10 @@ class CrowbarService < ServiceObject
     }
     #sort by the order value (x,y are an array with the value of
     #the hash entry
-    t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] } 
+    t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] }
     @logger.fatal("ordered instances: #{t.inspect}")
     t
-  end 
+  end
 
   def self.read_options
     # read in default proposal, to make some vaules avilable

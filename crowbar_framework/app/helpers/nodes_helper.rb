@@ -147,7 +147,7 @@ module NodesHelper
 
         result.push [
           t("model.attributes.node.allocated"),
-          value_for(t(".active"), t(".inactive"), @node.allocated)
+          value_for(t(".active"), t(".inactive"), @node.allocated?)
         ]
 
         result.push [

@@ -377,10 +377,6 @@ class NodeObject < ChefObject
     end
   end
 
-  def allocated
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
-  end
-
   def allocated=(value)
     return false if @role.nil?
     Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")

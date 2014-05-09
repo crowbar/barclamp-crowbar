@@ -101,7 +101,7 @@
                 - if crowbar_options[:show].include? :raid
                   %td
                     = select_tag "node[#{node.name}][raid]", options_for_select(crowbar_options[:raid], node.raid_set), :class => "form-control"
-                - if node.allocated
+                - if node.allocated?
                   %td
                     = node.pretty_target_platform
                   - if crowbar_service.require_license_key? node.target_platform
@@ -116,7 +116,7 @@
                   %td
                     = text_field_tag "node[#{node.name}][license_key]", node.license_key, :class => "form-control"
                 %td
-                  - if node.allocated
+                  - if node.allocated?
                     = t "complete"
                   - else
                     %label

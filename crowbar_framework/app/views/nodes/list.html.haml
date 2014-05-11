@@ -15,10 +15,10 @@
   .panel.panel-default
     .panel-heading
       %h2
-        - if params[:allocated]
-          = t(".title_unallocated")
-        - else
+        - if @allocated
           = t(".title_all")
+        - else
+          = t(".title_unallocated")
 
         .btn-group.pull-right
           %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }

@@ -1158,8 +1158,14 @@ class NodeObject < ChefObject
 
     if meta and meta["disks"]
       # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name
-      # within the deployer barclamp To return always similar values.
-      result = %w(by-id by-path).map do |type|
+      # within the deployer barclamp to return always similar values.
+      disk_lookups = ["by-path"]
+      # VirtualBox does not provide stable disk ids, so we cannot rely on them
+      # in that case.
+      unless @node[:dmi][:system][:product_name] =~ /VirtualBox/i
+        disk_lookups.unshift "by-id"
+      end
+      result = disk_lookups.map do |type|
         if meta["disks"][type] and not meta["disks"][type].empty?
           "#{type}/#{meta["disks"][type].first}"
         end

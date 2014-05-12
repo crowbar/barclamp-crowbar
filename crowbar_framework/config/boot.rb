@@ -83,8 +83,8 @@ else
   gem "delayed_job_active_record", version: "~> 4.0.1"
   require "delayed_job_active_record"
 
-  gem "unicorn-rails", version: "~> 2.0.0"
-  require "unicorn-rails"
+  gem "rainbows-rails", version: "~> 1.0.1"
+  require "rainbows-rails"
 
   gem "redcarpet", version: "~> 3.1.1"
   require "redcarpet"

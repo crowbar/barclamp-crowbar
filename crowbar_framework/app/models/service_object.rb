@@ -1613,6 +1613,7 @@ class ServiceObject
   def handle_validation_errors
     if @validation_errors && @validation_errors.length > 0
       Rails.logger.info "validation errors in proposal #{@bc_name}"
+      Rails.logger.info @validation_errors.join("\n")
       raise Chef::Exceptions::ValidationFailed.new("#{@validation_errors.join("\n")}\n")
     end
   end

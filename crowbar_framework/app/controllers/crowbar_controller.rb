@@ -27,4 +27,8 @@ class CrowbarController < BarclampController
   def initialize_service
     @service_object = CrowbarService.new logger
   end
+
+  def permitted_params
+    params.require(:crowbar)
+  end
 end

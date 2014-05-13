@@ -166,7 +166,7 @@ def post_json(path, data)
 
   puts "DEBUG: (post) hostname: #{uri.host}:#{uri.port}" if @debug
   puts "DEBUG: (post) request: #{uri.path}" if @debug
-  puts "DEBUG: (post) data: #{@data}" if @debug
+  puts "DEBUG: (post) data: #{data}" if @debug
   puts "DEBUG: (post) return code: #{res.code}" if @debug
   puts "DEBUG: (post) return body: #{res.body}" if @debug
 
@@ -179,7 +179,7 @@ def put_json(path, data)
 
   puts "DEBUG: (put) hostname: #{uri.host}:#{uri.port}" if @debug
   puts "DEBUG: (put) request: #{uri.path}" if @debug
-  puts "DEBUG: (put) data: #{@data}" if @debug
+  puts "DEBUG: (put) data: #{data}" if @debug
   puts "DEBUG: (put) return code: #{res.code}" if @debug
   puts "DEBUG: (put) return body: #{res.body}" if @debug
 

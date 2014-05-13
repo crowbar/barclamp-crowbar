@@ -367,7 +367,7 @@ class BarclampController < ApplicationController
       {
         id: params[:name],
         description: params[:description]
-      }.deep_merge(params).stringify_keys
+      }.with_indifferent_access.deep_merge(permitted_params)
     )
 
     case status
@@ -625,6 +625,10 @@ class BarclampController < ApplicationController
   end
 
   protected
+
+  def permitted_params
+    params
+  end
 
   def initialize_service
     @service_object = ServiceObject.new logger

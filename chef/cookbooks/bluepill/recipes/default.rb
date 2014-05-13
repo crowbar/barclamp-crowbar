@@ -20,17 +20,17 @@
 
 gem_package "i18n" do
   action :install
+  version "0.6.9"
 end
 
 gem_package "activesupport" do
-  version "2.3.17"
   action :install
+  version "4.1.0"
 end
 
-
 gem_package "bluepill" do
-  version node["bluepill"]["version"] if node["bluepill"]["version"]
   action :install
+  version node["bluepill"]["version"]
 end
 
 [

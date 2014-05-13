@@ -18,45 +18,30 @@
 # limitations under the License.
 #
 
-if node[:platform] != "suse"
-  include_recipe "bluepill"
+node["crowbar"]["recipes"].each do |name|
+  include_recipe name
 end
 
-pkglist=()
-rainbows_path=""
+node["crowbar"]["packages"].each do |name|
+  name, ver = name.split("-", 2).last
+
+  package name do
+    action :install
+    version ver
+  end
+end
+
+node["crowbar"]["gems"].each do |name|
+  name, ver = name.split("-", 2).last
+
+  gem_package name do
+    action :install
+    version ver
+  end
+end
+
 logdir = "/var/log/crowbar"
 crowbar_home = "/home/crowbar"
-
-case node[:platform]
-when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
-  rainbows_path="/var/lib/gems/1.8/bin/"
-when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown}
-  rainbows_path=""
-when "suse"
-  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
-      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
-      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
-      rubygem-ruby-shadow }
-end
-
-pkglist.each {|p|
-  package p do
-    action :install
-  end
-}
-
-if node[:platform] != "suse"
-  gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rails rainbows }
-
-  gemlist.each {|g|
-    gem_package g do
-      action :install
-    end
-  }
-end
 
 group "crowbar"
 

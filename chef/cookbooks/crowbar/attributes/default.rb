@@ -57,7 +57,7 @@ when "suse"
     rubygem-simple_navigation_renderers
     rubygem-sqlite3
     rubygem-net-http-digest_auth
-    rubygem-shadow
+    rubygem-ruby-shadow
   )
 when "debian", "ubuntu"
   default["crowbar"]["recipes"] = %w(

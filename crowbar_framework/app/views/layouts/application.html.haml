@@ -1,5 +1,5 @@
 !!!
-%html{ lang: I18n.locale, ng: { app: "crowbar" } }
+%html{ lang: I18n.locale, data: { ng_app: "crowbar" } }
   %head
     %title
       = meta_title
@@ -21,7 +21,7 @@
       = stylesheet_link_tag "ie"
       = javascript_include_tag "ie"
 
-  %body{ class: params[:controller], ng: { controller: "ApplicationCtrl" } }
+  %body{ class: params[:controller], data: { ng_controller: "ApplicationCtrl" } }
     = render partial: "shared/header"
 
     .container#content

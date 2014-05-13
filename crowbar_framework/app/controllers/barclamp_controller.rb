@@ -367,7 +367,7 @@ class BarclampController < ApplicationController
       {
         id: params[:name],
         description: params[:description]
-      }.stringify_keys
+      }.deep_merge(params).stringify_keys
     )
 
     case status

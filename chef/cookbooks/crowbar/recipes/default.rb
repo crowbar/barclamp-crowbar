@@ -173,13 +173,6 @@ bash "set permissions" do
   not_if "ls -al /opt/dell/crowbar_framework/README | grep -q crowbar"
 end
 
-cookbook_file "/opt/dell/crowbar_framework/config.ru" do
-  source "config.ru"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-end
-
 template "/opt/dell/crowbar_framework/rainbows.cfg" do
   source "rainbows.cfg.erb"
   owner "crowbar"
@@ -268,13 +261,13 @@ end
 # The below code swiped from:
 # https://github.com/opscode-cookbooks/chef-server/blob/chef10/recipes/default.rb
 # It will automaticaly compact the couchdb database when it gets too large.
-require 'open-uri'
 
 http_request "compact chef couchDB" do
   action :post
   url "#{Chef::Config[:couchdb_url]}/chef/_compact"
   only_if do
     begin
+      require 'open-uri'
       open("#{Chef::Config[:couchdb_url]}/chef")
       JSON::parse(open("#{Chef::Config[:couchdb_url]}/chef").read)["disk_size"] > 100_000_000
     rescue OpenURI::HTTPError
@@ -290,6 +283,7 @@ end
     url "#{Chef::Config[:couchdb_url]}/chef/_compact/#{view}"
     only_if do
       begin
+        require 'open-uri'
         open("#{Chef::Config[:couchdb_url]}/chef/_design/#{view}/_info")
         JSON::parse(open("#{Chef::Config[:couchdb_url]}/chef/_design/#{view}/_info").read)["view_index"]["disk_size"] > 100_000_000
       rescue OpenURI::HTTPError

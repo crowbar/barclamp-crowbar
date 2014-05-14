@@ -147,6 +147,15 @@ class ApplicationController < ActionController::Base
     else
       true
     end
+
+    #
+    # IMPORTANT!!!
+    # We need to fix the auth in production
+    # Installation fails with unauthorized 
+    # even if the password comparsion seems ok
+    #
+
+    false
   end
 
   def authenticate

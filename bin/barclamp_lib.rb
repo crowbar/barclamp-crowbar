@@ -76,20 +76,21 @@ end
   "delete" => [ "proposal_delete ARGV.shift", "delete <name> - delete a proposal" ],
   "commit" => [ "proposal_commit ARGV.shift", "commit <name> - Commit a proposal to active" ],
   "dequeue" => [ "proposal_dequeue ARGV.shift", "dequeue <name> - Dequeue a proposal to active" ]
+  #
+  # TBD
+  # * status
+  # * deactivate
+  #
 }
 
 @commands = {
   "help" => [ "help", "help - this page" ],
   "api_help" => [ "api_help", "crowbar API help - help for this barclamp." ],
-  "list" => [ "list", "list - show a list of current configs" ],
-  "show" => [ "show ARGV.shift", "show <name> - show a specific config" ],
-  "delete" => [ "delete ARGV.shift", "delete <name> - delete a config" ],
   "proposal" => [ "run_sub_command(@proposal_commands, ARGV.shift)", "proposal - Proposal sub-commands", @proposal_commands ],
   "elements" => [ "elements", "elements - List elements of a #{@barclamp} deploy" ],
-  "element_node" => [ "element_node ARGV.shift", "element_node <name> - List nodes that could be that element" ],
+  "element" => [ "element_node ARGV.shift", "element_node <name> - List nodes that could be that element" ],
   "transition" => [ "transition(ARGV.shift,ARGV.shift)", "transition <name> <state> - Transition machine named name to state" ]
 }
-
 
 def print_commands(cmds, spacer = "  ")
   cmds.each do |key, command|
@@ -198,24 +199,6 @@ def delete_json(path)
   [res.body, res.code.to_i ]
 end
 
-
-def list
-  struct = get_json("/")
-
-  if struct[1] != 200
-    [ "Failed to talk to service list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty? 
-    [ "No current configurations", 0 ]
-  else
-    out = ""
-    struct[0].each do |name|
-      out = out + "\n" if out != ""
-      out = out + "#{name}"
-    end
-    [ out, 0 ]
-  end
-end
-
 def api_help
   struct=get_json("/help")
   if struct[1] != 200
@@ -227,36 +210,8 @@ def api_help
   end
 end
 
-def show(name)
-  usage -1 if name.nil? or name == ""
-
-  struct = get_json("/#{name}")
-
-  if struct[1] == 200
-    [ "#{JSON.pretty_generate(struct[0])}", 0 ]
-  elsif struct[1] == 404
-    [ "No current configuration for #{name}", 1 ]
-  else
-    [ "Failed to talk to service show: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-
-def delete(name)
-  usage -1 if name.nil? or name == ""
- 
-  struct = delete_json("/#{name}")
-
-  if struct[1] == 200
-    [ "Deleted #{name}", 0 ]
-  elsif struct[1] == 404
-    [ "Delete failed for #{name}: Not Found", 1 ] 
-  else
-    [ "Failed to talk to service delete: #{struct[1]}: #{struct[0]}", 1 ]
-  end
-end
-
 def proposal_list
-  struct = get_json("/proposals/")
+  struct = get_json("/proposals.json")
 
   if struct[1] != 200
     [ "Failed to talk to service proposal list: #{struct[1]}: #{struct[0]}", 1 ]
@@ -275,7 +230,7 @@ end
 def proposal_show(name)
   usage -1 if name.nil? or name == ""
 
-  struct = get_json("/proposals/#{name}")
+  struct = get_json("/proposals/#{name}.json")
 
   if struct[1] == 200
     [ "#{JSON.pretty_generate(struct[0])}", 0 ]
@@ -291,7 +246,7 @@ def proposal_create(name)
 
   @data = "{\"id\":\"#{name}\"}" if @data.nil? or @data == ""
 
-  struct = put_json("/proposals", @data)
+  struct = put_json("/proposals.json", @data)
 
   if struct[1] == 200
     [ "Created #{name}", 0 ]
@@ -304,7 +259,7 @@ def proposal_edit(name)
   usage -1 if name.nil? or name == ""
 
   if @data.nil? or @data == ""
-    struct = get_json("/proposals/#{name}")
+    struct = get_json("/proposals/#{name}.json")
 
     if struct[1] == 200
       require 'tempfile'
@@ -321,7 +276,6 @@ def proposal_edit(name)
 
       begin
         file.open
-        #@data = JSON.pretty_generate(file.read)
         @data = JSON.pretty_generate(JSON.parse(file.read))
       ensure
         file.close
@@ -334,7 +288,7 @@ def proposal_edit(name)
     end
   end
 
-  struct = post_json("/proposals/#{name}", @data)
+  struct = post_json("/proposals/#{name}.json", @data)
 
   if struct[1] == 200
     [ "Edited #{name}", 0 ]
@@ -350,7 +304,7 @@ end
 def proposal_delete(name)
   usage -1 if name.nil? or name == ""
 
-  struct = delete_json("/proposals/#{name}")
+  struct = delete_json("/proposals/delete/#{name}.json")
 
   if struct[1] == 200
     [ "Deleted #{name}", 0 ]
@@ -364,7 +318,7 @@ end
 def proposal_commit(name)
   usage -1 if name.nil? or name == ""
 
-  struct = post_json("/proposals/commit/#{name}", @data)
+  struct = post_json("/proposals/commit/#{name}.json", @data)
 
   if struct[1] == 200
     [ "Committed #{name}", 0 ]
@@ -378,7 +332,7 @@ end
 def proposal_dequeue(name)
   usage -1 if name.nil? or name == ""
 
-  struct = delete_json("/proposals/dequeue/#{name}")
+  struct = delete_json("/proposals/dequeue/#{name}.json")
 
   if struct[1] == 200
     [ "Dequeued #{name}", 0 ]
@@ -388,7 +342,7 @@ def proposal_dequeue(name)
 end
 
 def elements
-  struct = get_json("/elements")
+  struct = get_json("/elements.json")
 
   if struct[1] != 200
     [ "Failed to talk to service elements: #{struct[1]}: #{struct[0]}", 1 ]
@@ -407,7 +361,7 @@ end
 def element_node(element)
   usage -1 if element.nil? or element == ""
 
-  struct = get_json("/elements/#{element}")
+  struct = get_json("/elements/#{element}.json")
 
   if struct[1] != 200
     [ "Failed to talk to service element_node: #{struct[1]}: #{struct[0]}", 1 ]
@@ -430,7 +384,7 @@ def transition(name, state)
     "name" => name,
     "state" => state
   }
-  struct = post_json("/transition/default", data.to_json)
+  struct = post_json("/transition/default.json", data.to_json)
 
   if struct[1] == 200
     [ "Transitioned #{name}", 0 ]

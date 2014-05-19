@@ -189,7 +189,7 @@ end
 
 def delete_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
-  res = authenticate(Net::HTTP::Delete,uri)
+  res = authenticate(Net::HTTP::Get,uri)
 
   puts "DEBUG: (d) hostname: #{uri.host}:#{uri.port}" if @debug
   puts "DEBUG: (d) request: #{uri.path}" if @debug

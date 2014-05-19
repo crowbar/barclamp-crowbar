@@ -16,5 +16,5 @@ working_directory "<%= @app_location %>"
 <% if node[:platform] == "suse" -%>
 pid "/var/run/crowbar/crowbar.pid"
 <% else -%>
-pid "tmp/crowbar.pid"
+pid "tmp/pids/crowbar.pid"
 <% end -%>

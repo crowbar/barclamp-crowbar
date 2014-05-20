@@ -185,18 +185,18 @@ class CrowbarService < ServiceObject
       ordered_bcs.each do |k, plist|
         @logger.fatal("Deploying proposal - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
-          @logger.fatal("Deploying proposal - id: #{k}, name: #{v.inspect}")
+          @logger.fatal("Deploying proposal - id: #{k}, name: #{v}")
 
           if v != "default"
             data = JSON.parse(
               File.read(v)
-            )
+            ).with_indifferent_access
 
             id = data["id"].gsub("bc-#{k}-", "")
           else
             data = {
               id: "default"
-            }
+            }.with_indifferent_access
 
             id = "default"
           end
@@ -204,7 +204,7 @@ class CrowbarService < ServiceObject
           @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
 
           # Create a service to talk to.
-          service = eval("#{k.camelize}Service.new @logger")
+          service = "#{k.camelize}Service".constantize.new @logger
 
           @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{id}")
           answer = service.proposals
@@ -213,7 +213,7 @@ class CrowbarService < ServiceObject
           else
             unless answer[1].include?(id)
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
-              answer = service.proposal_create(JSON.parse(data))
+              answer = service.proposal_create(data)
               if answer[0] != 200
                 answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
                             "(The error message was: #{answer[1].strip})"

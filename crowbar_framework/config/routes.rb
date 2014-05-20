@@ -117,7 +117,7 @@ Crowbar::Application.routes.draw do
     match "proposals/deactivate/:id", action: :proposal_deactivate, via: [:get]
     match "proposals/delete/:id", action: :proposal_delete, via: [:get]
     match "proposals/dequeue/:id", action: :proposal_dequeue, via: [:get]
-    match "proposals/commit/:id", action: :proposal_commit, via: [:post]
+    match "proposals/commit/:id", action: :proposal_commit, via: [:get]
 
     match "elements", action: :element_index, via: [:get]
     match "elements/:id", action: :element_show, via: [:get]

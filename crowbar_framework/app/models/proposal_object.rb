@@ -131,12 +131,22 @@ class ProposalObject < ChefObject
 
   def name
     match = @item.name.match(/crowbar_bc-(.*)-(.*)$/)
-    match[1] == 'template' ? match[1] : match[2]
+
+    if match
+      match[1] == 'template' ? match[1] : match[2]
+    else
+      @item.name
+    end
   end
 
   def barclamp
     match = @item.name.match(/crowbar_bc-(.*)-(.*)$/)
-    match[1] == 'template' ? match[2] : match[1]
+
+    if match
+      match[1] == 'template' ? match[2] : match[1]
+    else
+      @item.name
+    end
   end
 
   def prop

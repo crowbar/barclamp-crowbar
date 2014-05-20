@@ -147,14 +147,19 @@ def get_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Get,uri)
 
-  puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (g) request: #{uri.path}" if @debug
-  puts "DEBUG: (g) return code: #{res.code}" if @debug
-  puts "DEBUG: (g) return body: #{res.body}" if @debug
+  puts "DEBUG: (get) hostname: #{uri.host}:#{uri.port}" if @debug
+  puts "DEBUG: (get) request: #{uri.path}" if @debug
+  puts "DEBUG: (get) return code: #{res.code}" if @debug
+  puts "DEBUG: (get) return body: #{res.body}" if @debug
 
   return [res.body, res.code.to_i ] if res.code.to_i != 200
 
-  struct = JSON.parse(res.body)
+  struct = case res
+  when Net::HTTPOK
+    {}
+  else
+    JSON.parse(res.body)
+  end
 
   puts "DEBUG: (g) JSON parse structure = #{struct.inspect}" if @debug
 
@@ -191,10 +196,10 @@ def delete_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Get,uri)
 
-  puts "DEBUG: (d) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (d) request: #{uri.path}" if @debug
-  puts "DEBUG: (d) return code: #{res.code}" if @debug
-  puts "DEBUG: (d) return body: #{res.body}" if @debug
+  puts "DEBUG: (delete) hostname: #{uri.host}:#{uri.port}" if @debug
+  puts "DEBUG: (delete) request: #{uri.path}" if @debug
+  puts "DEBUG: (delete) return code: #{res.code}" if @debug
+  puts "DEBUG: (delete) return body: #{res.body}" if @debug
 
   [res.body, res.code.to_i ]
 end
@@ -318,7 +323,7 @@ end
 def proposal_commit(name)
   usage -1 if name.nil? or name == ""
 
-  struct = post_json("/proposals/commit/#{name}.json", @data)
+  struct = get_json("/proposals/commit/#{name}.json")
 
   if struct[1] == 200
     [ "Committed #{name}", 0 ]

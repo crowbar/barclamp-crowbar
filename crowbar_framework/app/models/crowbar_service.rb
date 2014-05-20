@@ -182,19 +182,15 @@ class CrowbarService < ServiceObject
     unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
-      ordered_bcs.each do |k, plist |
-        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+      ordered_bcs.each do |k, plist|
+        @logger.fatal("Deploying proposal - name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
           id = "default"
           data = "{\"id\":\"#{id}\"}" 
           @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
 
           if v != "default"
-            file = File.open(v, "r")
-            data = file.readlines.to_s
-            file.close
-
-            struct = JSON.parse(data)
+            struct = JSON.parse(File.read(v))
             id = struct["id"].gsub("bc-#{k}-", "")
           end
 
@@ -257,12 +253,15 @@ class CrowbarService < ServiceObject
   def order_instances(bcs)
     tmp = {}
     bcs.each { |bc_name,instances|
+      real_instances = instances.compact.reject(&:empty?)
+      next if real_instances.empty?
+
       order = BarclampCatalog.run_order(bc_name)
-      tmp[bc_name] = {:order =>order, :instances =>instances}
+      tmp[bc_name] = {:order =>order, :instances =>real_instances}
     }
     #sort by the order value (x,y are an array with the value of
     #the hash entry
-    t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] } 
+    t = Hash[tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] }]
     @logger.fatal("ordered instances: #{t.inspect}")
     t
   end 

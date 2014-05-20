@@ -161,6 +161,12 @@ def get_json(path)
     JSON.parse(res.body)
   end
 
+  struct = begin
+    JSON.parse(res.body)
+  rescue
+    nil
+  end
+
   puts "DEBUG: (g) JSON parse structure = #{struct.inspect}" if @debug
 
   return [struct, 200]

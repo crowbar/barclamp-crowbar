@@ -25,7 +25,7 @@ Crowbar::Application.configure do
 
   config.i18n.fallbacks = true
 
-  config.serve_static_assets = false
+  config.serve_static_assets = true
   config.assets.debug = false
   config.assets.js_compressor = :closure
   config.assets.css_compressor = :sass

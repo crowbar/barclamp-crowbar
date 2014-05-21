@@ -17,6 +17,7 @@
 
 //= require variables
 //= require vendor
+//= require routes
 
 //= require filters/nonempty
 //= require directives/dragdrop

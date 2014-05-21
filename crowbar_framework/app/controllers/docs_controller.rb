@@ -186,11 +186,11 @@ class DocsController < ApplicationController
       children = details.reject { |k, v| k == "topic_meta_data" }
       generate_topics books, meta_data, barclamp, path, children
 
-      sorted = books["topics"].to_a.sort do |x, y| 
+      sorted = reference["topics"].to_a.sort do |x, y|
         x.last["sort"] <=> y.last["sort"]
       end
 
-      books["topics"] = Hash[sorted]
+      reference["topics"] = Hash[sorted]
     end
   end
 end

@@ -118,8 +118,8 @@ class NodesController < ApplicationController
             dirty = false
             node = NodeObject.find_node_by_name node_name
 
-            if node_attributes["allocate"] and not node.allocated
-              node.allocated = true
+            if node_attributes["allocate"] and not node.allocated?
+              node.allocate!
               dirty = true
             end
 
@@ -327,7 +327,7 @@ class NodesController < ApplicationController
     raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
 
     if params[:submit] == t('nodes.form.allocate')
-      @node.allocated = true
+      @node.allocate!
       flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
     elsif params[:submit] == t('nodes.form.save')
       flash[:notice] = t('nodes.form.save_node_success') if save_node(false)

@@ -50,7 +50,7 @@ class RoleObject < ChefObject
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }
   end
-  
+
   def self.find_roles_by_name(name)
     roles = []
     #TODO this call could be moved to fild_roles_by_search

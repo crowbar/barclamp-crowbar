@@ -12,7 +12,7 @@
             %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".allocate") }
 
     .panel-body
-      - if @node.allocated
+      - if @node.allocated?
         .form-group
           = f.label :target_platform, t('.target_platform')
           %span.form-control{ :disabled => "disabled" }
@@ -57,7 +57,7 @@
               %span.form-control
                 = t('na')
             - else
-              = select_tag :raid_type, raids_for_select(@node.raid_type), :class => "form-control", :disabled => @node.allocated, "data-disabler" => "single", "data-disabler-target" => "#raid_disks"
+              = select_tag :raid_type, raids_for_select(@node.raid_type), :class => "form-control", :disabled => @node.allocated?, "data-disabler" => "single", "data-disabler-target" => "#raid_disks"
 
           - if @node.raid_type != "single" or not @node.allocated?
             .form-group
@@ -66,7 +66,7 @@
                 %span.form-control
                   = t('na')
               - else
-                = select_tag :raid_disks, drives_for_select(@node.raid_disks), :class => "form-control", :disabled => @node.allocated, :multiple => true, :size => 5
+                = select_tag :raid_disks, drives_for_select(@node.raid_disks), :class => "form-control", :disabled => @node.allocated?, :multiple => true, :size => 5
 
       .form-group
         = f.label :alias, t('.alias')

@@ -246,11 +246,11 @@ class NodeObject < ChefObject
   def alias=(value)
     return value if self.alias==value
     value = value.strip.sub(/\s/,'-')
-    # valid DNS Name 
+    # valid DNS Name
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
       raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
-    elsif value.length>63 || value.length+ChefObject.cloud_domain.length>254  
+    elsif value.length>63 || value.length+ChefObject.cloud_domain.length>254
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit or it's length (#{value.length}) will cause the total DNS max of 255 to be exeeded."
       raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     else
@@ -377,8 +377,16 @@ class NodeObject < ChefObject
     end
   end
 
-  def allocated
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+  def allocate!
+    return if @node.nil?
+    return if @role.nil?
+    return if self.allocated?
+    self.allocated = true
+    save
+  end
+
+  def allocate
+    allocate!
   end
 
   def allocated=(value)
@@ -1055,14 +1063,6 @@ class NodeObject < ChefObject
     bmc_cmd("chassis identify")
   end
 
-  def allocate
-    return if @node.nil?
-    return if @role.nil?
-    return if self.allocated?
-    self.allocated = true
-    save
-  end
-
   def bmc_set?
     return false if @node.nil? or @node["crowbar_wall"].nil? or @node["crowbar_wall"]["status"].nil?
     return false if @node["crowbar_wall"]["status"]["ipmi"].nil?
@@ -1144,7 +1144,7 @@ class NodeObject < ChefObject
     meta = @node["block_device"][device]
 
     if meta and meta["disks"]
-      # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name 
+      # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name
       # within the deployer barclamp To return always similar values.
       result = %w(by-id by-path).map do |type|
         if meta["disks"][type] and not meta["disks"][type].empty?

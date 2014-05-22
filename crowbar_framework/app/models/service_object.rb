@@ -56,7 +56,7 @@ class ServiceObject
   end
 
   class << self
-    # This method should be overriden from subclassing service objects 
+    # This method should be overriden from subclassing service objects
     # and return the constraints related to this specific service.
     def role_constraints
       {}
@@ -304,7 +304,7 @@ class ServiceObject
           pre_cached_nodes[node_name] = node
 
           # Make sure the node is allocated
-          node.allocated = true
+          node.allocate!
           node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
           node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
           node.save

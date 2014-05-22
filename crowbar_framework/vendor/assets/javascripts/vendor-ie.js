@@ -18,3 +18,4 @@
 //= require misc/html5shiv
 //= require misc/respond
 //= require misc/iefix
+//= require misc/eventsource

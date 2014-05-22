@@ -31,6 +31,7 @@ Crowbar::Application.routes.draw do
   match "network/:controller/1.0", action: :network, as: :network_barclamp, via: [:get, :post]
   match "export/:controller/1.0", action: :export, as: :export_barclamp, via: [:get, :post]
 
+  resources :notifications, only: [:index, :create]
   resources :translations, only: [:index]
 
   constraints(id: /[^\/\.]+/) do

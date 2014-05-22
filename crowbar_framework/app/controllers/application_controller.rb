@@ -183,6 +183,7 @@ class ApplicationController < ActionController::Base
   end
 
   def xsrf_cookie
+    return if %w(text/event-stream).include? response.content_type
     cookies['XSRF-TOKEN'] = form_authenticity_token if protect_against_forgery?
   end
 

@@ -1,8 +1,0 @@
-en:
-  nav:
-    ==BC-MODEL==: ==*BC-MODEL==
-
-  barclamp:
-    ==BC-MODEL==:
-      edit_attributes:
-        foo: Comic Choice

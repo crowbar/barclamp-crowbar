@@ -1,20 +1,19 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
 #
 
 class RoleObject < ChefObject
@@ -48,32 +47,35 @@ class RoleObject < ChefObject
     else
       RoleObject.find_roles_by_name "#{barclamp}-config-#{inst || "*"}"
     end
-    full.map { |x| "#{x.barclamp}_#{x.inst}" }
+
+    full.map do |x| 
+      "#{x.barclamp}_#{x.inst}"
+    end
   end
   
   def self.find_roles_by_name(name)
-    roles = []
-    #TODO this call could be moved to fild_roles_by_search
-    arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
-    if arr[2] != 0
-      roles = arr[0].map { |x| RoleObject.new x }
-      roles.delete_if { |x| x.nil? or x.role.nil? }
-    end
-    roles
+    find_roles_by_search "name:#{chef_escape(name)}"
   end
 
-  def self.find_roles_by_search(search)
-    roles = []
-    arr = if search.nil?
-      ChefObject.query_chef.search "role"
-    else
-      ChefObject.query_chef.search "role", search
+  def self.find_roles_by_search(search = nil)
+    [].tap do |roles|
+      result, start, total = if search.nil?
+        ChefObject.query_chef.search "role"
+      else
+        ChefObject.query_chef.search "role", search
+      end
+
+      if total > 0
+        result.each do |x|
+          RoleObject.new(x).tap do |y|
+            next if y.nil?
+            next if y.role.nil?
+
+            roles.push y
+          end
+        end
+      end
     end
-    if arr[2] != 0
-      roles = arr[0].map { |x| RoleObject.new x }
-      roles.delete_if { |x| x.nil? or x.role.nil? }
-    end
-    roles
   end
 
   def self.find_role_by_name(name)
@@ -122,6 +124,10 @@ class RoleObject < ChefObject
 
   def display_name
     @display_name ||= BarclampCatalog.display_name(barclamp)
+  end
+
+  def multi_name
+    "#{display_name}: #{inst.titlecase}"
   end
 
   def allow_multiple_proposals?

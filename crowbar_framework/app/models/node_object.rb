@@ -1,20 +1,19 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
 #
 
 require 'chef/mixin/deep_merge'
@@ -155,6 +154,10 @@ class NodeObject < ChefObject
     !@node.nil?
   end
 
+  def supports_xen?
+    @node[:platform] == "suse"
+  end
+
   def target_platform
     @node[:target_platform]
   end
@@ -165,6 +168,13 @@ class NodeObject < ChefObject
 
   def target_platform=(value)
     @node.set[:target_platform] = value
+  end
+
+  def add_link(key, value)
+    @node.crowbar["crowbar"] ||= {}
+    @node.crowbar["crowbar"]["links"] ||= {}
+
+    @node.crowbar["crowbar"]["links"][key] = value
   end
 
   def crowbar_wall
@@ -1158,7 +1168,22 @@ class NodeObject < ChefObject
     end
   end
 
-  private
+  def to_h
+    { 
+      handle: self.handle,
+      alias: self.alias, 
+      description: self.description, 
+      status: self.status,
+      group: self.group,
+      state: I18n.t(
+        self.state, 
+        scope: "state", 
+        default: self.state.titlecase
+      )
+    }
+  end
+
+  protected
 
   # Used for cloning role's default attributes.
   def deep_clone object, options = {}

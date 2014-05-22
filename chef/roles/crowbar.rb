@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 
 name "crowbar"
 description "Crowbar role - Setups the rails app"

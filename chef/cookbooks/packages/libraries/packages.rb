@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Yay for helpers!
 
 class Chef

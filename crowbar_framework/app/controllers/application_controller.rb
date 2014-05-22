@@ -1,176 +1,197 @@
-# Copyright 2011, Dell 
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0 
-# 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
-# 
-# Author: RobHirschfeld 
-# 
+# -*- encoding : utf-8 -*-
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
-require 'uri'
-
-# Filters added to this controller apply to all controllers in the application.
-# Likewise, all the methods added will be available for all controllers.
 class ApplicationController < ActionController::Base
+  protect_from_forgery with: :exception
+  layout :detect_layout
 
-  @@users = nil
-  
-  before_filter :digest_authenticate, :if => :need_to_auth?
-  
-  
-  # Basis for the reflection/help system.
-  
-  # First, a place to stash the help contents.  
-  # Using a class_inheritable_accessor ensures that 
-  # these contents are inherited by children, but can be 
-  # overridden or appended to by child classes without messing up 
-  # the contents we are building here.
-  class_inheritable_accessor :help_contents
-  self.help_contents = []
-  
-  # Class method for adding method-specific help/API information 
-  # for each method we are going to expose to the CLI.
-  # Since it is a class method, it will not be bothered by the Rails
-  # trying to expose it to everything else, and we can call it to build
-  # up our help contents at class creation time instead of instance creation
-  # time, so there is minimal overhead.
-  # Since we are just storing an arrray of singleton hashes, adding more
-  # user-oriented stuff (descriptions, exmaples, etc.) should not be a problem.
-  def self.add_help(method,args=[],http_method=[:get])
-    # if we were passed multiple http_methods, build an entry for each.
-    # This assumes that they all take the same parameters, if they do not
-    # you should call add_help for each different set of parameters that the
-    # method/http_method combo can take.
-    http_method.each { |m|
-      self.help_contents = self.help_contents.push({
-        method => {
-                                             "args" => args,
-                                             "http_method" => m
-        }
-      })
-    }
-  end
-  
-  helper :all
-  
-  protect_from_forgery # See ActionController::RequestForgeryProtection for details
-  
-  def self.set_layout(template = "application")
-    layout proc { |controller| 
-      if controller.is_ajax? 
-        nil
-      else
-        template
+  before_action :authenticate, if: :authenticate?
+  after_action :xsrf_cookie
+
+  class << self
+    def help_contents
+      @@help_contents ||= []
+    end
+
+    def add_help(method, args = [], http_method = [:get])
+      http_method.each do |m|
+        help_contents.push(
+          method => {
+            "args" => args,
+            "http_method" => m
+          }
+        )
       end
-    }
+    end
+
+    def digest_users
+      if digest_valid?
+        @digest_users ||= digest_loader
+      else
+        @digest_users = digest_loader
+      end
+    end
+
+    def digest_realm
+      @digest_realm ||= "Crowbar"
+    end
+
+    def digest_realm=(value)
+      @digest_realm = value
+    end
+
+    def digest_stamp
+      @digest_stamp ||= Time.now
+    end
+
+    def digest_stamp=(value)
+      @digest_stamp = value
+    end
+
+    def digest_database
+      @digest_database ||= Rails.root.join("htdigest")
+    end
+
+    def digest_loader
+      {}.tap do |users|
+        digest_database.open("r") do |file|
+          file.each_line do |line|
+            next if line.strip.empty?
+            next if line.strip[0] == "#"
+
+            user, realm, password = line.split(":", 3).map(&:strip)
+
+            users[user] = {
+              realm: realm,
+              password: password
+            }  
+          end
+        end
+
+        self.digest_stamp = digest_database.mtime
+        self.digest_realm = users.values.first[:realm] rescue "Crowbar"
+      end
+    end
+
+    def digest_valid?
+      digest_database.mtime == digest_stamp
+    end
   end
-  
-  def is_ajax?
-    request.xhr?
-  end
-  
+
   add_help(:help)
   def help
-    render :json => { self.controller_name => self.help_contents.collect { |m|
-        res = {}
-        m.each { |k,v|
-          # sigh, we cannot resolve url_for at class definition time.
-          # I suppose we have to do it at runtime.
-          url=URI::unescape(url_for({ :action => k,
-                        :controller => self.controller_name,
-            
-          }.merge(v["args"].inject({}) {|acc,x|
-            acc.merge({x.to_s => "(#{x.to_s})"})
-          }
-          )
-          ))
-          res.merge!({ k.to_s => v.merge({"url" => url})})
-        }
-        res
-      }
-    }
-  end
-  set_layout
-  
-  #########################
-  # private stuff below.
-  
-  private  
-  
-  @@auth_load_mutex = Mutex.new
-  @@realm = ""
-  
-  def need_to_auth?()
-    return false unless File::exists? "htdigest"
-    ip = session[:ip_address] rescue nil
-    return false if ip == request.remote_addr
-    return true
-  end
-  
-  def digest_authenticate
-    load_users()    
-    authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
-    ## only create the session if we're authenticated
-    if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
-      session[:ip_address] = request.remote_addr
-    end
-  end
-  
-  def find_user(username) 
-    return false if !@@users || !username
-    user = @@users[username]
-    return false unless user
-    return user[:password] || false   
-  end
-  
-  ##
-  # load the ""user database"" but be careful about thread contention.
-  # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
-  $htdigest_reload =true
-  $htdigest_timestamp = Time.now()
-  def load_users
-    unless $htdigest_reload
-      f = File.new("htdigest")
-      if $htdigest_timestamp != f.mtime
-        $htdigest_timestamp = f.mtime
-        $htdigest_reload = true
+    response = { 
+      self.controller_name => self.class.help_contents.collect do |m|
+        {}.tap do |res|
+          m.each do |k, v|
+            basically = { 
+              controller: self.controller_name,
+              action: k,
+            }
+
+            injected = v["args"].inject({}) do |acc, x|
+              acc.merge({x.to_s => "(#{x.to_s})"})
+            end
+
+            route = if k =~ /_(path|url)$/
+              send(k, injected)
+            else
+              url_for(
+                basically.merge(injected)
+              )
+            end
+
+            url = URI::unescape(
+              route
+            )
+
+            res.merge!({ 
+              k.to_s.gsub(/_(path|url)$/, "") => v.merge({ 
+                "url" => url 
+              })
+            })
+          end
+        end
       end
-    end
-    return if @@users and !$htdigest_reload  
-
-    ## only 1 thread should load stuff..(and reset the flag)
-    @@auth_load_mutex.synchronize  do
-      $htdigest_reload = false if $htdigest_reload   
-    end
-
-    ret = {}
-    data = IO.readlines("htdigest")
-    data.each { |entry|
-      next if entry.strip.length ==0
-      list = entry.split(":") ## format: user : realm : hashed pass
-      user = list[0].strip rescue nil
-      password = list[2].strip rescue nil
-      realm = list[1].strip rescue nil
-      ret[user] ={:realm => realm, :password => password}  
     }
-    @@auth_load_mutex.synchronize  do 
-        @@users = ret.dup
-        @@realm = @@users.values[0][:realm]
+
+    respond_to do |format|
+      format.html { render json: response }
+      format.json { render json: response }
+      format.xml { render xml: response }
     end
-    ret
   end
 
-  def flash_and_log_exception(e)
-    flash[:alert] = e.message
-    log_exception(e)
+  protected
+
+  def authenticate?
+    return false unless self.class.digest_database.file?
+
+    if session[:ip_address] == request.remote_addr
+      false
+    else
+      true
+    end
+
+    #
+    # IMPORTANT!!!
+    # We need to fix the auth in production
+    # Installation fails with unauthorized 
+    # even if the password comparsion seems ok
+    #
+
+    false
+  end
+
+  def authenticate
+    self.class.digest_users
+
+    authed = authenticate_or_request_with_http_digest(
+      self.class.digest_realm
+    ) do |username, password|
+      self.class.digest_users[username][:password] rescue false
+    end
+
+    if authed
+      session[:ip_address] = request.remote_addr
+    else
+      request_http_digest_authentication(self.class.digest_realm, "Authentication failed")
+    end
+  end
+
+  def detect_layout
+    if request.xhr?
+      false
+    else
+      "application"
+    end
+  end
+
+  def xsrf_cookie
+    return if %w(text/event-stream).include? response.content_type
+    cookies['XSRF-TOKEN'] = form_authenticity_token if protect_against_forgery?
+  end
+
+  def verified_request?
+    valid_token = form_authenticity_token == request.headers['X-XSRF-TOKEN']
+    valid_ctype = %w(application/json application/xml text/xml).include? request.content_type
+
+    super || valid_token || valid_ctype
   end
 
   def log_exception(e)
@@ -178,9 +199,14 @@ class ApplicationController < ActionController::Base
     Rails.logger.warn lines.join("\n")
   end
 
+  def flash_exception(e)
+    flash[:alert] = e.message
+    log_exception(e)
+  end
+
   def render_not_found
     respond_to do |format|
-      format.json { render :json => { :error => "Not found" }, :status => 404 }
+      format.json { render json: { error: "Not found" }, status: 404 }
     end
   end
 end

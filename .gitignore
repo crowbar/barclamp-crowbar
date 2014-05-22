@@ -1,8 +1,2 @@
+.DS_Store
 *~
-
-erl_crash.dump
-trace_*.txt
-*.beam
-
-/crowbar_framework/Gemfile.lock
-/crowbar_framework/db/node_description.yml

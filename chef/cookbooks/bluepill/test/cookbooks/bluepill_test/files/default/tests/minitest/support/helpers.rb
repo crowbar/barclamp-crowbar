@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'chef/mixin/shell_out'
 
 module BluepillTestHelpers

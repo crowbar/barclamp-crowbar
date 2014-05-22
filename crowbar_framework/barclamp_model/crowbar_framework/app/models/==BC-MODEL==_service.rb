@@ -1,11 +1,13 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,29 +15,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Dell Crowbar Team
-# Author: SUSE LINUX Products GmbH
-#
 
 class ==^BC-MODEL==Service < ServiceObject
-
   def initialize(thelogger)
     @bc_name = "==BC-MODEL=="
     @logger = thelogger
   end
-  
-  #if barclamp allows multiple proposals OVERRIDE
-  # def self.allow_multiple_proposals?
 
-  #if barclamp should have a suggested name different than "proposal" for new proposals, OVERRIDE
-  # def self.suggested_proposal_name
-  
+  class << self
+    def role_constraints
+      {
+        "==BC-MODEL==-server" => {
+          "unique" => false,
+          "count" => 1,
+          "admin" => false
+        }
+      }
+    end
+  end
+
+  # if barclamp should have a suggested name different than "proposal" for new proposals
+  #def self.suggested_proposal_name
+  #  "proposal"
+  #end
+
+  # if barclamp allows multiple proposals you should uncomment this method definition
+  #def self.allow_multiple_proposals?
+  #  true
+  #end
+
   def create_proposal
     @logger.debug("==*BC-MODEL== create_proposal: entering")
     base = super
 
     nodes = NodeObject.all
     nodes.delete_if { |n| n.nil? or n.admin? }
+
     if nodes.size >= 1
       base["deployment"]["==BC-MODEL=="]["elements"] = {
         "==BC-MODEL==-server" => [ nodes.first[:fqdn] ]
@@ -60,15 +75,13 @@ class ==^BC-MODEL==Service < ServiceObject
 
       node.save
     end
+
     @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: leaving")
   end
 
-  # Similar to above - delete or uncomment for actions to be run after
-  # chef-client runs.
-  # def apply_role_post_chef_call(old_role, role, all_nodes)
-  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: entering #{all_nodes.inspect}")
-  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: leaving")
-  # end
-
+  #def apply_role_post_chef_call(old_role, role, all_nodes)
+  #  @logger.debug("==*BC-MODEL== apply_role_post_chef_call: entering #{all_nodes.inspect}")
+  #  @logger.debug("==*BC-MODEL== apply_role_post_chef_call: leaving")
+  #end
 end
 

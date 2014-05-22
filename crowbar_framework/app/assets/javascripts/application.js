@@ -1,9 +1,106 @@
-//= require jquery
-//= require misc
-//= require codemirror
-//= require bootstrap
-//= require_self
+//
+// Copyright 2011-2013, Dell
+// Copyright 2013-2014, SUSE LINUX Products GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+//= require variables
+//= require vendor
+//= require routes
+
+//= require filters/nonempty
+//= require directives/dragdrop
+//= require directives/status
+//= require providers/serverevent
+//= require factories/notification
+//= require controllers/application
+
 //= require branding
+
+angular
+  .module(
+    'crowbar.barclamps',
+    []
+  );
+
+angular
+  .module(
+    'crowbar', 
+    [
+      'pascalprecht.translate',
+      'igTruncate',
+      'crowbar.filters',
+      'crowbar.directives',
+      'crowbar.providers',
+      'crowbar.factories',
+      'crowbar.controllers',
+      'crowbar.barclamps'
+    ]
+  )
+
+  .config(
+    [
+      '$translateProvider',
+      function($translateProvider) {
+        $translateProvider.useUrlLoader(
+          Routes.translations_path({
+            format: 'json'
+          })
+        );
+
+        $translateProvider.preferredLanguage(
+          'en'
+        );
+      }
+    ]
+  )
+
+  .config(
+    [
+      '$servereventProvider',
+      function($servereventProvider) {
+        // $servereventProvider.setHost(
+        //   sprintf(
+        //     'http://%s:9292/faye', 
+        //     window.location.hostname
+        //   )
+        // );
+      }
+    ]
+  )
+
+  .run(function() {
+
+//var es = new EventSource('/notifications');
+//
+//es.onopen = function(e) { 
+//  console.log(e);
+//};
+//
+//es.onmessage = function(e) { 
+//  console.log(e);
+//};
+//
+//es.onerror = function(e) { 
+//  console.log(e);
+//};
+
+  });
+
+
+
+
 
 jQuery(document).ready(function($) {
   $('textarea.editor').each(function() {
@@ -16,7 +113,7 @@ jQuery(document).ready(function($) {
 
   $('[data-default]').each(function() {
     $(this).val(
-      $(this).attr('data-default')
+      $(this).data('default')
     );
   });
 
@@ -31,7 +128,7 @@ jQuery(document).ready(function($) {
     var key = $(this).data('sslkey');
     var cert = $(this).data('sslcert');
 
-    $(switcher).live('change', function() {
+    $(switcher).on('change', function() {
       var val = $(this).val();
 
       if (val == true || val == 'true' || val == 'https') {
@@ -41,7 +138,7 @@ jQuery(document).ready(function($) {
       }
     }).trigger('change');
 
-    $(target).live('change', function() {
+    $(target).on('change', function() {
       var $parent = $(
         '#{0}_certfile, #{1}_keyfile, #{2}_insecure'.format(
           prefix,
@@ -81,22 +178,23 @@ jQuery(document).ready(function($) {
     ]
   });
 
-  $('[data-blockui]').live('submit', function(event) {
+  $('[data-blockui]').on('submit', function(event) {
     $.blockUI({
       css: {
         border: 'none',
         padding: '15px',
         backgroundColor: '#000',
-        '-webkit-border-radius': '10px',
-        '-moz-border-radius': '10px',
         opacity: .5,
-        color: '#fff'
+        color: '#fff',
+        '-webkit-border-radius': '10px',
+        '-moz-border-radius': '10px'
       },
+      baseZ: 9000,
       message: $(event.target).data('blockui')
     });
   });
 
-  $('[data-checkall]').live('change', function(event) {
+  $('[data-checkall]').on('change', function(event) {
     var checker = $(event.target).data('checkall');
 
     if (event.target.checked) {
@@ -106,7 +204,7 @@ jQuery(document).ready(function($) {
     }
   });
 
-  $('[data-showit]').live('change keyup', function(event) {
+  $('[data-showit]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('showit-target').toString().split(';');
@@ -130,7 +228,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-hideit]').live('change keyup', function(event) {
+  $('[data-hideit]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('hideit-target').toString().split(';');
@@ -154,7 +252,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-enabler]').live('change keyup', function(event) {
+  $('[data-enabler]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('enabler-target').toString().split(';');
@@ -174,7 +272,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-disabler]').live('change keyup', function(event) {
+  $('[data-disabler]').on('change keyup', function(event) {
     var $el = $(event.target);
 
     var targets = $el.data('disabler-target').toString().split(';');
@@ -194,7 +292,7 @@ jQuery(document).ready(function($) {
     });
   }).trigger('change');
 
-  $('[data-toggle-action]').live('click', function(e) {
+  $('[data-toggle-action]').on('click', function(e) {
     var target = '[data-toggle-target="{0}"]'.format(
       $(this).data('toggle-action')
     );
@@ -238,8 +336,10 @@ jQuery(document).ready(function($) {
   $('[data-ledupdate]').ledUpdate();
   $('[data-show-for-clusters-only="true"]').hideShowClusterConf();
 
-  $('#nodelist').nodeList();
+  $('.navbar .dropdown-toggle').dropdownHover();
+  $('select').selectpicker();
   $('input[type=password]').hideShowPassword();
+  $('#nodelist').nodeList();
 
   setInterval(
     function() {

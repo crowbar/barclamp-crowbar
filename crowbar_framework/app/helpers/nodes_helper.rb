@@ -1,20 +1,19 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
 #
 
 module NodesHelper
@@ -39,26 +38,28 @@ module NodesHelper
     [].tap do |result|
       result.push content_tag(
         :strong,
-        t("total", :count => values.sum, :scope => "nodes.index.status_pie")
+        t("total", :count => values.sum, :scope => "dashboard.index.status_pie")
       )
 
-      result.push t("ready", :count => values[0], :scope => "nodes.index.status_pie") if values[0] > 0
-      result.push t("unknown", :count => values[1], :scope => "nodes.index.status_pie") if values[1] > 0
-      result.push t("unready", :count => values[2], :scope => "nodes.index.status_pie") if values[2] > 0
-      result.push t("pending", :count => values[3], :scope => "nodes.index.status_pie") if values[3] > 0
+      result.push t("ready", :count => values[0], :scope => "dashboard.index.status_pie") if values[0] > 0
+      result.push t("unknown", :count => values[1], :scope => "dashboard.index.status_pie") if values[1] > 0
+      result.push t("unready", :count => values[2], :scope => "dashboard.index.status_pie") if values[2] > 0
+      result.push t("pending", :count => values[3], :scope => "dashboard.index.status_pie") if values[3] > 0
     end.join(tag(:br))
   end
 
   def piechart_values(group)
-    [].tap do |result|
-      result.push group[:status]["ready"]
-      result.push group[:status]["failed"]
-      result.push group[:status]["unknown"]
+    group.deep_symbolize_keys!
 
-      if group[:status]["building"]
-        result.push group[:status]["unready"] + group[:status]["pending"] + group[:status]["building"]
+    [].tap do |result|
+      result.push group[:status][:ready]
+      result.push group[:status][:failed]
+      result.push group[:status][:unknown]
+
+      if group[:status][:building]
+        result.push group[:status][:unready] + group[:status][:pending] + group[:status][:building]
       else
-        result.push group[:status]["unready"] + group[:status]["pending"]
+        result.push group[:status][:unready] + group[:status][:pending]
       end
     end
   end
@@ -79,8 +80,19 @@ module NodesHelper
   end
 
   def node_links_for(value)
-    node_list_for(value).map do |name, node|
-      link_to node[:alias], nodes_path(:selected => node[:handle]), :title => node[:title]
+    [].tap do |result|
+      clusters = value.select do |n| 
+        @service_object.is_cluster? n
+      end
+
+      clusters.each do |c| 
+        bc, prop = @service_object.cluster_get_barclamp_and_proposal(c)
+        result.push link_to(icon_tag(:cloud, prop), url_for_proposal_with_name(bc, prop), title: prop)
+      end
+
+      node_list_for(value).each do |name, node|
+        result.push link_to(icon_tag(:hdd, node[:alias]), dashboard_path(selected: node[:handle]), title: node[:title])
+      end
     end
   end
 
@@ -258,7 +270,7 @@ module NodesHelper
 
         result.push [
           switch_title,
-          link_to(switch_label, switch_path(:node => @node.handle))
+          link_to(switch_label.html_safe, switch_network_path(:id => @node.handle))
         ]
       end
     end
@@ -269,11 +281,20 @@ module NodesHelper
       ips.each do |network, addresses|
         unless network == "~notconnected" and addresses.nil?
           network_list = if ["[not managed]", "[dhcp]"].include? network
-            address_list = addresses.to_a.map do |address|
-              content_tag(
-                :li,
-                address
-              )
+            address_list = if addresses.is_a? String
+              [
+                content_tag(
+                  :li,
+                  addresses
+                )
+              ]
+            else
+              addresses.to_a.map do |address|
+                content_tag(
+                  :li,
+                  address
+                )
+              end
             end
 
             [
@@ -283,9 +304,9 @@ module NodesHelper
               ),
               content_tag(
                 :ul,
-                address_list.join("\n")
+                address_list.join("\n").html_safe
               )
-            ].join("\n")
+            ].join("\n").html_safe
           else
             address_list = if addresses.is_a? String
               addresses
@@ -297,7 +318,7 @@ module NodesHelper
                     :li,
                     "#{key}: #{addresses[key]}"
                   )
-                }.join("\n")
+                }.join("\n").html_safe
               )
             end
 
@@ -307,7 +328,7 @@ module NodesHelper
                 network
               ),
               address_list
-            ].join("\n")
+            ].join("\n").html_safe
           end
 
           result.push content_tag(
@@ -323,23 +344,23 @@ module NodesHelper
         :li,
         t(".no_entry"),
         :class => "empty"
-      )
+      ).html_safe
     end
 
     content_tag(
       :ul,
-      entries.join("\n")
-    )
+      entries.join("\n").html_safe
+    ).html_safe
   end
 
   def node_wall_list(node)
     [].tap do |result|
       intended_roles_text = {
-        "no_role"    => t("nodes.form.no_role"),
+        "no_role" => t("nodes.form.no_role"),
         "controller" => t("nodes.form.controller"),
-        "compute"    => t("nodes.form.compute"),
-        "network"    => t("nodes.form.network"),
-        "storage"    => t("nodes.form.storage")
+        "compute" => t("nodes.form.compute"),
+        "network" => t("nodes.form.network"),
+        "storage" => t("nodes.form.storage")
       }
 
       intended_role = node.intended_role
@@ -387,7 +408,7 @@ module NodesHelper
             proposal.display_name
           end
 
-          route = proposal_barclamp_path(:controller => proposal.barclamp, :id => proposal.name)
+          route = show_proposal_path(:controller => proposal.barclamp, :id => proposal.name)
 
           listing[proposal.category] ||= []
           listing[proposal.category].push link_to(display_name, route)
@@ -408,7 +429,7 @@ module NodesHelper
             content_tag(
               :li,
               proposal
-            )
+            ).html_safe
           end
 
           result.push content_tag(
@@ -417,17 +438,17 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
-          )
+            ].join("\n").html_safe
+          ).html_safe
         end
       end.join("\n")
     end
 
     content_tag(
       :ul,
-      list_result,
+      list_result.html_safe,
       :class => "barclamps"
     )
   end
@@ -468,7 +489,7 @@ module NodesHelper
             listing[object.category] ||= []
             listing[object.category].push role
           else
-            route = proposal_barclamp_path(
+            route = show_proposal_path(
               :controller => proposal.barclamp,
               :id => proposal.name
             )
@@ -493,7 +514,7 @@ module NodesHelper
             content_tag(
               :li,
               role
-            )
+            ).html_safe
           end
 
           result.push content_tag(
@@ -502,17 +523,17 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
-          )
+            ].join("\n").html_safe
+          ).html_safe
         end
       end.join("\n")
     end
 
     content_tag(
       :ul,
-      list_result,
+      list_result.html_safe,
       :class => "roles"
     )
   end
@@ -528,7 +549,7 @@ module NodesHelper
             t(".bmc"),
             "https://#{path}"
           )
-        )
+        ).html_safe
       end
 
       unless node["crowbar"]["links"].nil?
@@ -540,7 +561,7 @@ module NodesHelper
               link,
               :target => "_blank"
             )
-          )
+          ).html_safe
         end
       end
     end
@@ -550,12 +571,12 @@ module NodesHelper
         :li,
         t(".no_entry"),
         :class => "empty"
-      )
+      ).html_safe
     end
 
     content_tag(
       :ul,
-      link_list.join("\n")
+      link_list.join("\n").html_safe
     )
   end
 

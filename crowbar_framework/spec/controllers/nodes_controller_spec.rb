@@ -1,7 +1,25 @@
-require 'spec_helper'
+# -*- encoding : utf-8 -*-
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require "spec_helper"
 
 describe NodesController do
-  integrate_views
+  render_views
 
   before do
     NodeObject.any_instance.stubs(:system).returns(true)
@@ -92,7 +110,7 @@ describe NodesController do
 
     it "redirects to unallocated nodes list on success" do
       post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
-      response.should redirect_to(unallocated_list_path)
+      response.should redirect_to(unallocated_nodes_url)
     end
 
 
@@ -259,3 +277,4 @@ describe NodesController do
     end
   end
 end
+

@@ -1,0 +1,56 @@
+//
+// Copyright 2011-2013, Dell
+// Copyright 2013-2014, SUSE LINUX Products GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+@import "jquery/jquery";
+@import "jquery/ui";
+@import "jquery/rails";
+@import "jquery/blockui";
+@import "jquery/hideShowPassword";
+@import "jquery/sparkline";
+@import "jquery/spritely";
+@import "jquery/ledUpdate";
+@import "jquery/queryString";
+@import "jquery/listSearch";
+@import "jquery/nodeList";
+@import "jquery/jsonAttribute";
+@import "jquery/updateAttribute";
+@import "jquery/messages";
+@import "jquery/dynamicTable";
+
+@import "bootstrap";
+@import "bootstrap/hover-dropdown";
+@import "bootstrap/select";
+@import "bootstrap/growl";
+
+@import "angular/angular";
+@import "angular/touch";
+@import "angular/resource";
+@import "angular/translate";
+@import "angular/translate-loader-url";
+@import "angular/truncate";
+
+@import "codemirror/codemirror";
+@import "codemirror/javascript";
+
+@import "misc/sprintf";
+@import "misc/format";
+@import "misc/arrayRemove";
+@import "misc/stringLocalize";
+@import "misc/localizedValue";
+@import "misc/handlebars";
+
+@import "gems";

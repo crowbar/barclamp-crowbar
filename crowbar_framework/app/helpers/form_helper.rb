@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #
 # Copyright 2011-2013, Dell
 # Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -6,7 +7,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -105,11 +106,18 @@ module FormHelper
   def render_instance_selector(bc, name, label, field, proposal)
     return unless ServiceObject.get_service(bc).allow_multiple_proposals?
 
-    render :partial => "barclamp/instance_selector", :locals => {
-      :field => field,
-      :label => label,
-      :select_tag => instance_selector_select(bc, name, field, proposal)
-    }
+    content_tag(
+      :div,
+      [
+        content_tag(
+          :label,
+          label,
+          for: field
+        ),
+        instance_selector_select(bc, name, field, proposal)
+      ].join("\n").html_safe,
+      class: "form-group"
+    )
   end
 
   def number_field_tag(name, value = nil, options = {})

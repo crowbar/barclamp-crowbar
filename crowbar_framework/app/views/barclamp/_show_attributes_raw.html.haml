@@ -4,7 +4,7 @@
       %tr
         %th.col-xs-4
           %em
-            = t(".#{key}", :default => "#{key}:")
+            = t(".#{key}", default: "#{key}:")
         %td
           - if value.is_a? Enumerable and not value.is_a? String
             = hash_to_ul(value)

@@ -1,0 +1,546 @@
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+en:
+  nav:
+    nodes: 'Nodes'
+    dashboard: 'Dashboard'
+    families: 'Family Groups'
+    network: 'Network'
+    utils: 'Utilities'
+    util_logs: 'Exported Items'
+    util_chef: 'Chef export'
+    util_supportconfig: 'Supportconfig export'
+    list: 'Bulkedit'
+    barclamps: 'Barclamps'
+    crowbar_bc: 'Crowbar'
+    all_bc: 'All barclamps'
+    help: 'Help'
+    crowbar_wiki: 'Online Help'
+    crowbar_ug: 'Users Guide'
+    crowbar_dg: 'Deployment Guide'
+    documentation: 'Documentation'
+
+  shared:
+    footer:
+      provided_by: 'Provided by %{provider}'
+
+  docs:
+    index:
+      title: 'Documentation'
+      details: 'Updated at %{date} by %{author}'
+      index: 'Topics'
+
+    show:
+      title: 'Documentation'
+      details: 'Updated at %{date} by %{author}'
+      root: 'Back to index'
+      parent: 'One page up'
+      index: 'Topics'
+      parse_failed: 'Failed to parse the documentation'
+      topic_missing: 'Failed to find the requested topic'
+
+  barclamp:
+    attributes: 'Attributes'
+    deployment: 'Deployment'
+
+    show_deployment_raw:
+      none: 'No nodes deployed'
+      role: 'Role'
+      nodes: 'Nodes'
+
+    errors:
+      proposal_find_failed: 'Failed to find the requested proposal'
+      proposal_deactivated: 'Successfully deactivated %{proposal} proposal for %{barclamp}'
+      proposal_deactivate_failed: 'Failed to deactivate the proposal with error: %{error}'
+      proposal_deleted: 'Successfully deleted %{proposal} proposal for %{barclamp}'
+      proposal_delete_failed: 'Failed to delete the proposal with error: %{error}'
+      proposal_dequeued: 'Successfully dequeued %{proposal} proposal for %{barclamp}'
+      proposal_dequeue_failed: 'Failed to dequeue the proposal with error: %{error}'
+      proposal_commited: 'Successfully applied %{proposal} proposal for %{barclamp}'
+      proposal_commit_failed: 'Failed to commit the proposal with error: %{error}'
+      proposal_created: 'Successfully created %{proposal} proposal for %{barclamp}'
+      proposal_create_failed: 'Failed to create the proposal with error: %{error}'
+      proposal_updated: 'Successfully updated %{proposal} proposal for %{barclamp}'
+      proposal_update_failed: 'Failed to update the proposal with error: %{error}'
+      proposal_saved: 'Successfully updated %{proposal} proposal for %{barclamp}'
+      proposal_save_failed: 'Failed to update the proposal with error: %{error}'
+      proposal_applied: 'Successfully applied %{proposal} proposal for %{barclamp}'
+      proposal_apply_failed: 'Failed to apply the proposal with error: %{error}'
+      proposal_queued: 'Successfully queued %{proposal} proposal for %{barclamp}, but we need to get these nodes ready: %{nodes}'
+
+    modules:
+      title: 'Barclamps'
+
+    index:
+      proposals: '%{count} proposals'
+
+    proposal_index:
+      title: 'Proposals: %{barclamp}'
+      show: 'Show'
+      edit: 'Edit'
+
+    proposal_show:
+      edit: 'Edit'
+      role: 'Role'
+      key: 'Key'
+      deployment: 'Deployment'
+      attributes: 'Attributes'
+
+    proposal_edit:
+      blockui_message: 'Processing, please wait...'
+      title: 'Edit proposal'
+      save_proposal: 'Save'
+      apply_proposal: 'Apply'
+      deactivate_proposal: 'Deactivate'
+      delete_proposal: 'Delete'
+      dequeue_proposal: 'Dequeue'
+      apply_confirm: 'Apply proposal now?'
+      deactivate_confirm: 'Deactivate proposal now?'
+      delete_confirm: 'Delete proposal now?'
+      current_revision_applied: 'No change in proposal since last deployment.'
+      current_revision_not_applied: 'The proposal has been changed since last deployment.'
+
+    general:
+      index:
+        status: 'Status'
+        barclamp: 'Name'
+        description: 'Description'
+
+      index_complex:
+        create: 'Create'
+        edit: 'Edit'
+        created_on: 'Created on %{date}'
+        failed: 'Error: %{message}'
+        blockui_message: 'Processing, please wait...'
+
+      index_simple:
+        create: 'Create'
+        edit: 'Edit'
+        created_on: 'Created on %{date}'
+        failed: 'Error: %{message}'
+        blockui_message: 'Processing, please wait...'
+
+      node_selector:
+        msie_fail: 'Drag and drop feature is not supported on this version of Microsoft Internet Explorer.'
+        dnd_hint: 'Drag nodes for deployment from the available nodes into the selected role'
+        filter_hint: 'Filter available node list by entering the first letters of the node name'
+        available_clusters: 'Available clusters'
+        available_nodes: 'Available nodes'
+        node_link: 'Show details for %{alias}'
+        node_remove: 'Remove %{alias} from this role'
+        unassign_label: 'Remove all'
+        unassign_confirm: 'Are you sure that you want to remove all nodes from %{role} role?'
+
+    crowbar:
+      index:
+        title: 'Crowbar'
+        instructions: 'These barclamps are included with the core Crowbar Framework and should be enabled with proposals by default.'
+        hint: ''
+      edit_attributes:
+        simple_proposal_ui: 'Streamlined interface for proposals'
+      edit_deployment:
+        noconfig: 'No configuration options'
+
+  proposal:
+    status:
+      hold: 'User review'
+      ready: 'Active'
+      unready: 'In progress'
+      pending: 'Pending'
+      building: 'Building'
+      failed: 'Failed'
+      none: 'No proposal'
+      unknown: 'Unknown, requesting status...'
+
+    actions:
+      edit: 'Edit'
+      link: '%{name} barclamp'
+      apply: 'Apply'
+      save: 'Save'
+      dequeue: 'Dequeue'
+      dequeue_failure: 'Error, could not dequeue proposal.'
+      dequeue_success: 'Successfully dequeued proposal.'
+      delete: 'Delete'
+      delete_success: 'Successfully deleted proposal.'
+      delete_failure: 'Error, could not delete proposal.'
+      create: 'Create'
+      create_success: 'Successfully created proposal'
+      recall: 'Deactivate'
+      recall_success: 'Successfully deactivated proposal'
+
+
+
+
+
+
+
+
+
+
+    items:
+      default: 'proposal'
+    failures:
+      Failed to apply the proposal to: 'Failed to apply proposal'
+      Did not fail.  Successfully applied: 'Did not fail.  Successfully applied'
+      No success information for proposal: 'No success information for proposal'
+      duplicate_elements_in_role: 'Duplicate elements detected in role'
+      unknown_node: 'Unable to find any node named'
+      unknown_cluster: 'Unable to find any cluster named'
+
+
+
+  model:
+    node:
+      multiple_node_alias: 'Multiple nodes responded to alias request'
+      multiple_node_public_name: 'Multiple nodes responded to public name request'
+      invalid_dns_alias: 'Alias not saved because it did not conform to valid DNS hostnames'
+      too_long_dns_alias: 'Alias not saved because it exceeds FQDN 63 character length'
+      duplicate_alias: 'Alias not saved because a node already has the same alias'
+      invalid_dns_public_name: 'Public name not saved because it did not conform to valid DNS hostnames'
+      too_long_dns_public_name: 'Public name not saved because it exceeds FQDN 255 character length'
+      duplicate_public_name: 'Public name not saved because a node already has the same alias'
+    proposal: 'Proposal'
+    service:
+      name_exists: 'Name already exists. Please choose another.'
+      too_short: 'Invalid name.  Name must have some characters.'
+      illegal_chars: 'Invalid service name %{name}.  Please limit name to [A-z0-9_] without spaces.'
+      illegal_name: 'Illegal proposal name %{name}.  Please choose another proposal name.'
+      already_commit: 'Proposal already being applied.'
+      cannot_find: 'Failed to find proposal'
+      template_missing: 'Failed to load proposal template for barclamp %{name}.'
+      dependency_missing: 'Cannot create a proposal for %{name}, please create a %{dependson} proposal first.'
+      would_break_dependency: 'Cannot deactivate a proposal for %{name}, as it breaks dependencies of %{dependson}.'
+    attributes:
+      node:
+        name: 'Full Name'
+        public_name: 'Public Name'
+        mac: 'MAC Address'
+        allocated: 'Allocated'
+        ip: 'IP Address'
+        status: 'Status'
+        state: 'State'
+        hardware: 'Hardware'
+        switch_name: 'Switch Name'
+        switch_port: 'Switch Port'
+        switch_unit: 'Switch Unit'
+        switch_name_unit_port: 'Switch/Unit/Port'
+        switch_name_port: 'Switch Name/Port'
+        uptime: 'Uptime'
+        na: 'Unavailable'
+        memory: 'Memory'
+        cpu: 'CPU'
+        number_of_drives: 'Disk Drives'
+        description: 'Description'
+        description_not_set: 'Node description not set'
+        roles: 'Applied Roles'
+        barclamps: 'Applied Barclamps'
+        asset_tag: 'Service Tag'
+        license_key: 'License Key'
+        license_key_not_set: 'Not set'
+        target_platform: 'Target Platform'
+        target_platform_not_set: 'Not set'
+        availability_zone: 'Availability Zone'
+        intended_role: 'Intended Role'
+        raid_type: 'RAID Type'
+        raid_disks: 'RAID Disks'
+      proposal:
+        name: 'Proposal'
+        description: 'Description'
+        status: 'Status'
+        barclamp: 'Barclamp'
+        data: 'JSON Data'
+        proposal_count: 'Proposals'
+      role:
+        name: 'Proposal'
+        description: 'Description'
+        proposal_count: 'Proposals'
+        status: 'Status'
+        barclamp: 'Barclamp'
+
+  nodes:
+    errors:
+      node_transition: 'Node `%{node}` transitioned to state `%{state}`'
+
+
+
+
+
+    list:
+      updated: 'Updated successfully the nodes %{success}'
+      failed: 'Failed to save the nodes %{failed}'
+      duplicates: 'Failed to save the nodes %{failed} because there are duplicate aliases. Nothing got changed!'
+      group_error: 'Failed to save the group for %{node}, should start with a letter and only contain letters, digits, -, _, ., or :.'
+      name: 'Name'
+      group: 'Group'
+      alias: 'Alias'  
+      public_name: 'Public Name'
+      hw_description: 'Hardware'
+      description: 'Description'
+      bios: 'BIOS'
+      raid: 'RAID'
+      intended_role: 'Intended Role'
+      controller: 'Controller'
+      compute: 'Compute'
+      storage: 'Storage'
+      network: 'Network'
+      no_role: 'Undecided'
+      admin: 'Crowbar Server'
+      title: 'Bulk edit'
+      title_all: 'All available nodes'
+      title_unallocated: 'Unallocated nodes only'
+      unallocated: 'Show unallocated'
+      all: 'Show all'
+      nochange: 'No Changes'
+      license_key: 'License'
+      target_platform: 'Platform'
+      target_platform_not_set: 'Not set'
+      hint: 'Note: <i>group italics</i> indicates group is set automatically by system'
+      allocate_all: 'Allocate?'
+      save: 'Save'
+    families:
+      title: 'Node Hardware Families'
+      name: 'Nodes'
+      units: 'Units'
+      ram: 'Memory'
+      drives: 'Drives'
+      raid: 'RAID'
+      nics: 'NICs'
+      cpu: 'CPU Type'
+      hardware: 'Platform'
+    new:
+      title: 'Add node'
+    edit:
+      title: 'Edit node'
+    show:
+      title: 'Node'
+      ganglia: 'Ganglia'
+      nagios: 'Nagios'
+      bmc: 'IP Mgmt Interface'
+      chef: 'Chef'
+      raid: 'RAID'
+      license_key: 'License Key'
+      target_platform: 'Target Platform'
+      target_platform_not_set: 'Not set'
+    show_details:
+      active: 'Allocated'
+      inactive: 'Not Allocated'
+    show_ips:
+      no_entry: 'No address assigned'
+    show_links:
+      links: 'Links'
+      bmc: 'IPMI'
+      no_entry: 'No links available'
+    show_roles:
+      no_entry: 'No role assigned'
+    show_barclamps:
+      no_entry: 'No barclamp assigned'
+    buttons_chef:
+      confirm_hw_update: 'WARNING!  This will reboot the node in order to apply BIOS updates.  Proceed?'
+      confirm_reinstall: 'WARNING!  This will rebuild the node to a pristine state using its current deployment profile.  Any data on the node will be lost.  Proceed?'
+      confirm_deallocate: 'WARNING!  This will remove the current allocation from the node.  Any subsequent allocation will rebuild the node from scratch, causing any data to be lost.  Proceed?'
+      confirm_forget: 'This will remove all records of the node from the Crowbar / Chef database.  It will be rediscovered if it reboots.  Proceed?'
+      hw_update_tooltip: 'Reboot the node in order to apply BIOS/RAID updates'
+      reinstall_tooltip: 'Rebuild the node to a pristine state using its current deployment profile'
+      deallocate_tooltip: 'Remove the current allocation from the node'
+      forget_tooltip: 'Remove all records of the node from the Crowbar / Chef database'
+    form:
+      allocate: 'Allocate'
+      save: 'Save'
+      raid: 'RAID'
+      bios: 'BIOS'
+      save_node_success: 'Node saved successfully'
+      allocate_node_success: 'Node allocated successfully'
+      alias: 'Alias'
+      public_name: 'Public Name'
+      public_name_hint: 'The public name is the hostname that users will use to access services on this node. Re-apply proposals on the node to have this setting taken into account immediately, or wait for an automatic update on the node. Any name specified here should already exist in the upstream DNS zones.'
+      group: 'Group'
+      default: 'Using default: %{group}'
+      override: 'Override group?'
+      description: 'Description'
+      license_key: 'License Key'
+      target_platform: 'Target Platform'
+      target_platform_not_set: 'Not set'
+      availability_zone: 'Availability Zone'
+      availability_zone_hint: 'Availability zones allow to arrange sets of either OpenStack Compute or OpenStack Block Storage hosts into logical groups. If empty, the default availability zone will be used.'
+      intended_role: 'Intended Role'
+      controller: 'Controller'
+      compute: 'Compute'
+      storage: 'Storage'
+      network: 'Network'
+      no_role: 'Undecided'
+      intended_role_hint: 'Intended Role is the way you intend to use the node in your cloud infrastructure. The value is used to propose the inital node deployment for barclamps.'
+      failed: 'Failed to save %{node}: %{message}'
+      raid_disks: RAID disks
+      raid_type: Software RAID
+      raid_types:
+        single: Single disk
+        raid1: RAID 1
+        raid5: RAID 5
+        raid6: RAID 6
+        raid10: RAID 10
+
+
+
+
+
+
+  utils:
+    index:
+      title: 'Exported files'
+      none_exported: 'There are no exported files to download'
+      other: 'Other files'
+      chef: 'Chef objects'
+      import: 'Import logs'
+      cli: 'CLI utilities'
+      log: 'Log files'
+      supportconfig: 'Supportconfigs'
+      delete_hint: 'Delete file from export directory'
+      delete_succeeded: 'Deleted %{file} successfully'
+      delete_failed: 'Failed to delete %{file}'
+      delete_confirm: 'Are you sure?'
+      wait: 'Exporting, please wait or check back later (screen will automatically update when complete)'
+
+  dashboard:
+    errors:
+      no_nodes: 'Can not find any node'
+      invalid_group: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
+      existing_group: 'A group with this name already exists.'
+
+    index:
+      title: 'Dashboard'
+      add: 'Add'
+      default:
+        group: 'New group'
+      hint:
+        drop_here: 'Drop nodes here'
+        auto_drop: 'You may regroup nodes by dragging a node into the desired group.  You may drop a node [here] to reset to <i>automatic grouping</i>.'
+      nodes:
+        one: '%{count} node'
+        other: '%{count} nodes'
+
+
+
+
+
+      status_pie:
+        total: 'Total %{count}'
+        ready: '%{count} Ready'
+        unknown: '%{count} Unknown'
+        unready: '%{count} Not Ready'
+        pending: '%{count} Pending'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  support:
+    array:
+      words_connector: ', '
+      two_words_connector: ' and '
+      last_word_connector: ' and '
+
+  raid:
+    JBODOnly: 'JBOD'
+    SingleRaid10: 'RAID 10'
+    SingleRaid1: 'RAID 1 SPAN'
+    SingleRaid5: 'RAID 5'
+    SingleRaid6: 'RAID 6'
+    Raid0: 'RAID 0 SPAN'
+    Raid1: 'RAID 1 Mirror'
+    Raid5: 'RAID 5'
+    Raid6: 'RAID 6'
+    Raid10: 'Raid 10'
+    not_set: 'Not set'
+
+  bios:
+    Virtualization: 'Virtualization flag enabled'
+    Storage: 'Storage (Virt Off)'
+    not_set: 'Not set'
+
+  state:
+    unknown: 'Unknown'
+    noupdate: 'No data (Off)'
+    ready: 'Ready'
+    readying: 'Readying'
+    applying: 'Applying'
+    install: 'Install'
+    installing: 'Installing'
+    installed: 'Installed'
+    discovering: 'Discovering'
+    discovered: 'Discovered'
+    hardware-installed: 'Hardware installed'
+    hardware-installing: 'Hardware installing'
+    hardware-updated: 'Hardware updated'
+    hardware-updating: 'Hardware updating'
+    update: 'Hardware update'
+    reset: 'Reset'
+    reinstall: 'Reinstall'
+    allocate: 'Allocate'
+    allocated: 'Allocated'
+    recovering: 'Recovering'
+    problem: 'Problem'
+    delete: 'Information deleted'
+    shutdown: 'Power off'
+    reboot: 'Restart'
+    poweron: 'Power on'
+    pending: 'Pending'
+    building: 'Building'
+
+  overview: 'Overview'
+  show: 'View'
+  all: 'All'
+  destroy: 'Remove'
+  back: 'Go back'
+  cancel: 'Cancel'
+  edit: 'Edit'
+  actions: 'Actions'
+  are_you_sure: 'Are you sure?'
+  unknown: 'Unknown'
+  not_set: 'Not set'
+  undetermined: 'Undetermined'
+  na: 'N/A'
+  feature_na: 'Feature not available'
+  name: 'Name'
+  down: 'Down'
+  raw: 'Raw'
+  custom: 'Custom'
+  clear_msg: 'Clear'
+  created_on: 'Created on'
+  no_items: 'No items'
+  complete: 'Complete'
+  maybe: 'Maybe'
+  updating: 'Updating...'
+  note: 'Note'
+  hint: 'Hint'
+  help: 'Help'
+  virtual: 'Virtual'
+  new: 'New'
+  next: 'Next'
+  prev: 'Previous'
+  'yes': 'Yes'
+  'no': 'No'

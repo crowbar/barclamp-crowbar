@@ -2,20 +2,20 @@
   %tr
     - node_detail_software[row].tap do |software|
       - if software.nil?
-        %td{ :colspan => 2 }
+        %td{ colspan: 2 }
           &nbsp;
       - else
         %th
-          = software.first
+          = software.first.html_safe
         %td
-          = software.last
+          = software.last.html_safe
 
     - node_detail_hardware[row].tap do |hardware|
       - if hardware.nil?
-        %td{ :colspan => 2 }
+        %td{ colspan: 2 }
           &nbsp;
       - else
         %th
-          = hardware.first
+          = hardware.first.html_safe
         %td
-          = hardware.last
+          = hardware.last.html_safe

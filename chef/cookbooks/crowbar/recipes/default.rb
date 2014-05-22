@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #
 # Cookbook Name:: crowbar
 # Recipe:: default
@@ -17,45 +18,30 @@
 # limitations under the License.
 #
 
-if node[:platform] != "suse"
-  include_recipe "bluepill"
+node["crowbar"]["recipes"].each do |name|
+  include_recipe name
 end
 
-pkglist=()
-rainbows_path=""
+node["crowbar"]["packages"].each do |name|
+  name, ver = name.split("-", 2).last
+
+  package name do
+    action :install
+    version ver
+  end
+end
+
+node["crowbar"]["gems"].each do |name|
+  name, ver = name.split("-", 2).last
+
+  gem_package name do
+    action :install
+    version ver
+  end
+end
+
 logdir = "/var/log/crowbar"
 crowbar_home = "/home/crowbar"
-
-case node[:platform]
-when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
-  rainbows_path="/var/lib/gems/1.8/bin/"
-when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown}
-  rainbows_path=""
-when "suse"
-  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
-      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
-      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
-      rubygem-ruby-shadow }
-end
-
-pkglist.each {|p|
-  package p do
-    action :install
-  end
-}
-
-if node[:platform] != "suse"
-  gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rails rainbows }
-
-  gemlist.each {|g|
-    gem_package g do
-      action :install
-    end
-  }
-end
 
 group "crowbar"
 
@@ -187,13 +173,6 @@ bash "set permissions" do
   not_if "ls -al /opt/dell/crowbar_framework/README | grep -q crowbar"
 end
 
-cookbook_file "/opt/dell/crowbar_framework/config.ru" do
-  source "config.ru"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-end
-
 template "/opt/dell/crowbar_framework/rainbows.cfg" do
   source "rainbows.cfg.erb"
   owner "crowbar"
@@ -206,21 +185,6 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :group => "crowbar",
             :logdir => logdir,
             :logname => "production",
-            :app_location => "/opt/dell/crowbar_framework")
-end
-
-template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
-  source "rainbows.cfg.erb"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-  variables(:web_host => "0.0.0.0", 
-            :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logdir => logdir,
-            :logname => "development",
             :app_location => "/opt/dell/crowbar_framework")
 end
 
@@ -282,13 +246,13 @@ end
 # The below code swiped from:
 # https://github.com/opscode-cookbooks/chef-server/blob/chef10/recipes/default.rb
 # It will automaticaly compact the couchdb database when it gets too large.
-require 'open-uri'
 
 http_request "compact chef couchDB" do
   action :post
   url "#{Chef::Config[:couchdb_url]}/chef/_compact"
   only_if do
     begin
+      require 'open-uri'
       open("#{Chef::Config[:couchdb_url]}/chef")
       JSON::parse(open("#{Chef::Config[:couchdb_url]}/chef").read)["disk_size"] > 100_000_000
     rescue OpenURI::HTTPError
@@ -304,6 +268,7 @@ end
     url "#{Chef::Config[:couchdb_url]}/chef/_compact/#{view}"
     only_if do
       begin
+        require 'open-uri'
         open("#{Chef::Config[:couchdb_url]}/chef/_design/#{view}/_info")
         JSON::parse(open("#{Chef::Config[:couchdb_url]}/chef/_design/#{view}/_info").read)["view_index"]["disk_size"] > 100_000_000
       rescue OpenURI::HTTPError

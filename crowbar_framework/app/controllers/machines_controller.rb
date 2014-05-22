@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 #
 # Copyright 2011-2013, Dell
 # Copyright 2013-2014, SUSE LINUX Products GmbH
@@ -16,8 +17,6 @@
 #
 
 class MachinesController < BarclampController
-  self.help_contents = Array.new(superclass.help_contents)
-
   before_filter :set_cloud_domain
 
   before_filter :load_machine_or_render_not_found,
@@ -42,8 +41,8 @@ class MachinesController < BarclampController
 
   add_help(:index)
   def index
-    unless ::File.exist? CHEF_CLIENT_KEY
-      raise "Could not find chef key at #{CHEF_CLIENT_KEY}"
+    unless ::File.exist? ENV["CHEF_CLIENT_KEY"]
+      raise "Could not find chef key at #{ENV["CHEF_CLIENT_KEY"]}"
     end
 
     @nodes = NodeObject.find_all_nodes.map do |node|

@@ -1,0 +1,52 @@
+.row
+  .col-xs-12
+    %h1.page-header
+      = display_led_for(@proposal.status, controller: @proposal.barclamp, proposal: @proposal.prop, url: status_proposal_path(controller: @proposal.barclamp, id: @proposal.name, format: :json))
+      = t(".title")
+
+= update_proposal_form_for @proposal do |f|
+  %input#barclamp{ type: "hidden", name: "barclamp", value: @proposal.barclamp }
+  %input#name{ type: "hidden", name: "name", value: @proposal.name }
+  %input#name{ type: "hidden", name: "dep_raw", value: @dep_raw.to_s }
+  %input#name{ type: "hidden", name: "attr_raw", value: @attr_raw.to_s }
+
+  .panel.panel-default
+    .panel-heading
+      %h2
+        - if @service_object.simple_proposal_ui? and not @proposal.allow_multiple_proposals?
+          = link_to @proposal.display_name, available_barclamps_path(selected: @proposal.barclamp)
+        - else
+          = link_to "#{@proposal.display_name}: #{@proposal.name.titlecase}", available_barclamps_path(selected: @proposal.barclamp)
+
+        - if @proposal.latest_applied?
+          = icon_tag "ok-sign", nil, title: t(".current_revision_applied")
+        - else
+          = icon_tag "exclamation-sign", nil, title: t(".current_revision_not_applied")
+
+        .btn-group.pull-right
+          - unless @proposal.pretty_deployment.crowbar_committing
+            = save_proposal_button(@proposal)
+            = apply_proposal_button(@proposal)
+            = dequeue_proposal_button(@proposal)
+            - if @active
+              = deactivate_proposal_button(@proposal)
+            - else
+              = delete_proposal_button(@proposal)
+
+          = cancel_barclamp_button(@proposal.barclamp)
+
+    = render_barclamp_edit_attributes(@proposal, @dep_raw, @attr_raw)
+    = render_barclamp_edit_deployment(@proposal, @dep_raw, @attr_raw)
+
+    .panel-footer.text-right
+      .btn-group
+        - unless @proposal.pretty_deployment.crowbar_committing
+          = save_proposal_button(@proposal)
+          = apply_proposal_button(@proposal)
+          = dequeue_proposal_button(@proposal)
+          - if @active
+            = deactivate_proposal_button(@proposal)
+          - else
+            = delete_proposal_button(@proposal)
+
+        = cancel_barclamp_button(@proposal.barclamp)

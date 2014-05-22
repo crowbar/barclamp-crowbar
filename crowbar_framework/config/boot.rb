@@ -1,11 +1,13 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,143 +15,110 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
-require "thread"
-require "rubygems"
-require "pathname"
-require "app_config"
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
 
-RAILS_ROOT = File.expand_path("../..", __FILE__) unless defined?(RAILS_ROOT)
+require "uri"
+require "net/http"
 
-module Rails
-  class << self
-    def root
-      ::Pathname.new RAILS_ROOT
-    end
+if File.exists? ENV["BUNDLE_GEMFILE"]
+  require "bundler/setup"
+  require "rails/all"
+  require "sprockets/railtie"
 
-    def boot!
-      unless booted?
-        preinitialize
-        pick_boot.run
-      end
-    end
+  Bundler.require(:default, Rails.env)
+else
+  #
+  # WARNING, this content between these markers gets replaced by the rake 
+  # task crowbar:generate:dependencies! Don't update it manually!
+  #
 
-    def booted?
-      defined? Rails::Initializer
-    end
+  # RAILSINCLUDE START
+  gem "rails", version: "4.1.0"
+  require "rails/all"
+  # RAILSINCLUDE END
 
-    def pick_boot
-      (vendor_rails? ? VendorBoot : GemBoot).new
-    end
+  #
+  # WARNING, this content between these markers gets replaced by the rake 
+  # task crowbar:generate:dependencies! Don't update it manually!
+  #
 
-    def vendor_rails?
-      self.root.join("vendor", "rails").directory?
-    end
+  # DEPENDENCIES START
+  gem "dotenv-rails", version: "~> 0.10.0"
+  require "dotenv-rails"
 
-    def preinitialize
-      load(preinitializer_path) if preinitializer_path.file?
-    end
+  gem "haml-rails", version: "~> 0.5.3"
+  require "haml-rails"
 
-    def preinitializer_path
-      self.root.join("config", "preinitializer.rb")
-    end
-  end
+  gem "sass-rails", version: "~> 4.0.3"
+  require "sass-rails"
 
-  class Boot
-    def run
-      load_initializer
-      Rails::Initializer.run(:set_load_path)
-    end
-  end
+  gem "rack", version: "~> 1.5.2"
+  require "rack"
 
-  class VendorBoot < Boot
-    def load_initializer
-      require Rails.root.join("vendor", "rails", "railties", "lib", "initializer")
+  gem "bcrypt", version: "~> 3.1.7"
+  require "bcrypt"
 
-      Rails::Initializer.run(:install_gem_spec_stubs)
-      Rails::GemDependency.add_frozen_gem_path
-    end
-  end
+  gem "kwalify", version: "~> 0.7.2"
+  require "kwalify"
 
-  class GemBoot < Boot
-    def load_initializer
-      self.class.load_rubygems
-      load_rails_gem
+  gem "simple-navigation", version: "~> 3.12.2"
+  require "simple-navigation"
 
-      require "initializer"
-    end
+  gem "simple_navigation_renderers", version: "~> 1.0.2"
+  require "simple_navigation_renderers"
 
-    def load_rails_gem
-      if version = self.class.gem_version
-        gem "rails", version
-      else
-        gem "rails"
-      end
-    rescue Gem::LoadError => load_error
-      $stderr.puts %(Missing the Rails #{version} gem. Please `gem install -v=#{version} rails`, update your RAILS_GEM_VERSION setting in config/environment.rb for the Rails version you do have installed, or comment out RAILS_GEM_VERSION to use the latest version installed.)
-      exit 1
-    end
+  gem "sqlite3", version: "~> 1.3.9"
+  require "sqlite3"
 
-    class << self
-      def rubygems_version
-        Gem::RubyGemsVersion rescue nil
-      end
+  gem "gli", version: "~> 2.9.0"
+  require "gli"
 
-      def gem_version
-        if defined? RAILS_GEM_VERSION
-          RAILS_GEM_VERSION
-        elsif ENV.include?("RAILS_GEM_VERSION")
-          ENV["RAILS_GEM_VERSION"]
-        else
-          parse_gem_version(read_environment_rb)
-        end
-      end
+  gem "cocaine", version: "~> 0.5.4"
+  require "cocaine"
 
-      def load_rubygems
-        min_version = "1.3.2"
+  gem "hashie", version: "~> 2.0.5"
+  require "hashie"
 
-        unless rubygems_version >= min_version
-          $stderr.puts %Q(Rails requires RubyGems >= #{min_version} (you have #{rubygems_version}). Please `gem update --system` and try again.)
-          exit 1
-        end
-      rescue LoadError
-        $stderr.puts %Q(Rails requires RubyGems >= #{min_version}. Please install RubyGems and try again: http://rubygems.rubyforge.org)
-        exit 1
-      end
+  gem "delayed_job_active_record", version: "~> 4.0.1"
+  require "delayed_job_active_record"
 
-      def parse_gem_version(text)
-        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*["']([!~<>=]*\s*[\d.]+)["']/
-      end
+  gem "rainbows-rails", version: "~> 1.0.1"
+  require "rainbows-rails"
 
-      private
-        def read_environment_rb
-          File.read(Rails.root.join("config", "environment.rb"))
-        end
-    end
-  end
+  gem "redcarpet", version: "~> 3.1.1"
+  require "redcarpet"
+
+  gem "nokogiri", version: "~> 1.6.1"
+  require "nokogiri"
+
+  gem "bootstrap-sass", version: "~> 3.1.1"
+  require "bootstrap-sass"
+
+  gem "font-awesome-rails", version: "~> 4.0.3"
+  require "font-awesome-rails"
+
+  gem "closure-compiler", version: "~> 1.1.10"
+  require "closure-compiler"
+
+  gem "cells", version: "~> 3.10.0"
+  require "cells"
+
+  gem "js-routes", version: "~> 0.9.7"
+  require "js-routes"
+
+  gem "json", version: "~> 1.8.1"
+  require "json"
+
+  gem "pry-rails", version: "~> 0.3.2"
+  require "pry-rails"
+
+  gem "activeresource", version: "~> 4.0.0"
+  require "active_resource"
+
+  gem "activerecord-session_store", version: "~> 0.1.0"
+  require "activerecord/session_store"
+  # DEPENDENCIES END
+
+  require "sprockets/railtie"
 end
-
-AppConfig.setup(
-  :yaml => Rails.root.join("config", "app_config.yml")
-)
-
-if AppConfig[:use_bundler]
-  class Rails::Boot
-    def run
-      load_initializer
-
-      Rails::Initializer.class_eval do
-        def load_gems
-          @bundler_loaded ||= Bundler.require :default, Rails.env
-        end
-      end
-
-      Rails::Initializer.run(:set_load_path)
-    end
-  end
-end
-
-Rails.boot!

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 actions :enable, :disable
 
 default_action :enable

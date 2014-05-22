@@ -1,0 +1,91 @@
+- if bad_explorer?
+  = render partial: "barclamp/edit_deployment_raw"
+
+  .panel-body
+    .alert.alert-danger
+      %p
+        = t(".msie_fail")
+
+- else
+  %input#proposal_deployment{ type: "hidden", name: "proposal_deployment", value: @proposal.raw_deployment.to_json }
+
+  .panel-sub
+    %h3
+      = t("barclamp.deployment")
+
+      .pull-right
+        %small
+          = proposal_raw_button @proposal, dep_raw: true, attr_raw: @attr_raw
+
+  .panel-body
+    .alert.alert-info
+      %p
+        = t(".dnd_hint")
+
+    .row#nodelist{ data: { constraints: local_assigns[:constraints].to_json } }
+      .col-xs-6.dragzone
+        - unless @service_object.available_clusters.empty?
+          %h4
+            = t(".available_clusters")
+
+          .form-group
+            %input.form-control.input-sm{ type: "search", placeholder: "Search", title: t(".filter_hint"), data: { listsearch: "#nodelist .dragzone ul.clusters" } }
+
+          .form-group
+            %ul.clusters
+              - @service_object.available_clusters.each do |cluster_name, role|
+                - cluster_barclamp, cluster_proposal = @service_object.cluster_get_barclamp_and_proposal(cluster_name)
+                %li.form-control.input-sm.available{ title: cluster_proposal, data: { draggable: "true", id: cluster_name, alias: cluster_proposal, cluster: "true", admin: "false" } }
+                  = icon_tag :cloud
+                  = cluster_proposal
+                  = link_to icon_tag(:link), url_for_proposal_with_name(cluster_barclamp, cluster_proposal), title: t(".node_link", alias: cluster_proposal), class: "pull-right"
+
+        %h4
+          = t(".available_nodes")
+
+        .form-group
+          %input.form-control.input-sm{ type: "search", placeholder: "Search", title: t(".filter_hint"), data: { listsearch: "#nodelist .dragzone ul.nodes" } }
+
+        .form-group
+          %ul.nodes
+            - nodes_hash.each do |n, detail|
+              %li.form-control.input-sm.available{ title: (detail[:title] || t("not_set")), data: { draggable: "true", id: n, alias: detail[:alias], cluster: "false", admin: detail[:admin].to_s } }
+                = icon_tag :hdd
+                = detail[:alias]
+                = link_to icon_tag("link"), dashboard_path(selected: detail[:handle]), title: t(".node_link", alias: detail[:alias]), class: "pull-right"
+
+      .col-xs-6.dropzone
+        - @proposal.all_elements.each do |element|
+
+          %h4{ data: { droppable: "true", id: element } }
+            .pull-right
+              %a.unassign{ href: "#", data: { id: element, confirm: t(".unassign_confirm", role: element) } }
+                = t(".unassign_label")
+            = chef_server_role_link element
+
+          %ul{ id: element, data: { droppable: "true", id: element } }
+
+%script#nodelist-item{ type: "text/x-handlebars-template" }
+  %li{ data: { draggable: "false", id: "{{id}}", alias: "{{alias}}", admin: "{{admin}}", role: "{{role}}" } }
+    {{#if cluster}}
+    = icon_tag :cloud
+    {{else}}
+    = icon_tag :hdd
+    {{/if}}
+
+    {{alias}}
+    = link_to icon_tag("trash"), "#", title: t(".node_remove", alias: "{{alias}}"), class: "pull-right delete"
+
+%script#nodelist-warning{ type: "text/x-handlebars-template" }
+  .alert.alert-warning.alert-dismissable
+    %button.close{ type: "button", data: { dismiss: "alert" }, aria: { hidden: true } }
+      &times;
+
+    {{message}}
+
+%script#nodelist-alert{ type: "text/x-handlebars-template" }
+  .alert.alert-danger.alert-dismissable.disappear
+    %button.close{ type: "button", data: { dismiss: "alert" }, aria: { hidden: true } }
+      &times;
+
+    {{message}}

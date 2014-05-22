@@ -5,20 +5,20 @@
 
       .btn-group.pull-right
         - if @allocated
-          = link_to t(".unallocated"), unallocated_list_path, :class => "btn btn-default"
+          = link_to t(".unallocated"), unallocated_nodes_path, :class => "btn btn-default"
         - else
-          = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
+          = link_to t(".all"), list_nodes_path, :class => "btn btn-default"
 
-- form_for :node, :url => bulk_nodes_path, :html => { :role => "form" } do |f|
+= form_for :node, :url => bulk_nodes_path, :html => { :role => "form" } do |f|
   = hidden_field_tag "return", @allocated
 
   .panel.panel-default
     .panel-heading
       %h2
-        - if params[:allocated]
-          = t(".title_unallocated")
-        - else
+        - if @allocated
           = t(".title_all")
+        - else
+          = t(".title_unallocated")
 
         .btn-group.pull-right
           %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }

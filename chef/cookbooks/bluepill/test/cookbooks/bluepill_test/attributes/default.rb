@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'securerandom'
 
 default['bluepill_test']['service_name'] = "test_app"

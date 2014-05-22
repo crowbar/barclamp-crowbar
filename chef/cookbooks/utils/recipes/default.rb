@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Copyright (c) 2011 Dell Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

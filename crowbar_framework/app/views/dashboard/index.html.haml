@@ -1,0 +1,61 @@
+%div{ data: { ng_controller: "DashboardCtrl" } }
+  .row
+    .col-xs-12
+      %h1.page-header
+        = t(".title")
+
+        .badge{ data: { ng_show: "counter" } }
+          {{counter}}
+
+        .col-xs-3.pull-right
+          %form.form-inline{ role: "form", name: "addGroupForm", data: { ng_submit: "addGroup()" } }
+            .input-group
+              = text_field_tag :groupName, "", placeholder: t(".default.group"), class: "form-control input-sm", data: { ng_model: "group.name", ng_pattern: "/^[a-zA-Z][a-zA-Z0-9._:-]+$/" }
+
+              .input-group-btn
+                = submit_tag t(".add"), class: "btn btn-default input-sm"
+
+
+
+
+
+
+
+
+
+
+  #nodedetails.row
+    - if @node
+      = render partial: "show"
+
+
+
+
+
+
+
+
+
+
+
+
+  .alert.alert-info{ data: { droppable: "true", id: "AUTOMATIC", on_drop: "onDrop(source, target)", on_activate: "onActivate(source, target)", on_deactivate: "onDeactivate(source, target)" } }
+    = t(".hint.auto_drop").html_safe
+
+  .row
+    .col-xs-3{ data: { ng_repeat: "(group_name, group) in groups" } }
+      .panel.panel-default{ data: { droppable: "true", id: "{{group.handle}}", on_drop: "onDrop(source, target)", on_activate: "onActivate(source, target)", on_deactivate: "onDeactivate(source, target)" } }
+        .panel-heading
+          %h2.nowrap
+            = link_to icon_tag("trash"), "", class: "noline", data: { ng_hide: "group.nodes | nonEmpty", ng_click: "removeGroup(group.handle)" }
+            %span{ data: { ng_show: "group.nodes | nonEmpty", piechart: "{{group.chart.values.join(',')}}", tooltip: "{{group.chart.tooltip}}" } }
+            {{group.title}}
+
+        %ul.list-group
+          %li.list-group-item{ data: { ng_repeat: "(node_name, node) in group.nodes", draggable: "true", id: "{{node.handle}}", parent: "{{group.handle}}" } }
+            %span.led{ class: "{{node.status}}", title: "{{node.state}}", data: { node_status: "{{node.handle}}" } }
+            = link_to "{{node.alias}}", "", title: "{{node.description}}", class: "noline"
+
+          %li.list-group-item.empty{ data: { ng_hide: "group.nodes | nonEmpty" } }
+            %span.led{ class: "none", title: "" }
+            = t(".hint.drop_here")

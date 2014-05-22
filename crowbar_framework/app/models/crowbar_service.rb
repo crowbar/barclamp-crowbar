@@ -1,20 +1,19 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: Dell Crowbar Team
-# Author: SUSE LINUX Products GmbH
 #
 
 class CrowbarService < ServiceObject
@@ -83,6 +82,13 @@ class CrowbarService < ServiceObject
       end
 
       node.save if transition_save_node
+
+      # broadcast "/nodes/status" do
+      #   {
+      #     transition: state,
+      #     node: node.to_h
+      #   }
+      # end
     ensure
       release_lock f
     end
@@ -176,26 +182,29 @@ class CrowbarService < ServiceObject
     unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
-      ordered_bcs.each do |k, plist |
-        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+      ordered_bcs.each do |k, plist|
+        @logger.fatal("Deploying proposal - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
-          id = "default"
-          data = "{\"id\":\"#{id}\"}" 
-          @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
+          @logger.fatal("Deploying proposal - id: #{k}, name: #{v}")
 
           if v != "default"
-            file = File.open(v, "r")
-            data = file.readlines.to_s
-            file.close
+            data = JSON.parse(
+              File.read(v)
+            ).with_indifferent_access
 
-            struct = JSON.parse(data)
-            id = struct["id"].gsub("bc-#{k}-", "")
+            id = data["id"].gsub("bc-#{k}-", "")
+          else
+            data = {
+              id: "default"
+            }.with_indifferent_access
+
+            id = "default"
           end
 
           @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
 
           # Create a service to talk to.
-          service = eval("#{k.camelize}Service.new @logger")
+          service = "#{k.camelize}Service".constantize.new @logger
 
           @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{id}")
           answer = service.proposals
@@ -204,7 +213,7 @@ class CrowbarService < ServiceObject
           else
             unless answer[1].include?(id)
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
-              answer = service.proposal_create(JSON.parse(data))
+              answer = service.proposal_create(data)
               if answer[0] != 200
                 answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
                             "(The error message was: #{answer[1].strip})"
@@ -251,12 +260,15 @@ class CrowbarService < ServiceObject
   def order_instances(bcs)
     tmp = {}
     bcs.each { |bc_name,instances|
+      real_instances = instances.compact.reject(&:empty?)
+      next if real_instances.empty?
+
       order = BarclampCatalog.run_order(bc_name)
-      tmp[bc_name] = {:order =>order, :instances =>instances}
+      tmp[bc_name] = {:order =>order, :instances =>real_instances}
     }
     #sort by the order value (x,y are an array with the value of
     #the hash entry
-    t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] } 
+    t = Hash[tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] }]
     @logger.fatal("ordered instances: #{t.inspect}")
     t
   end 

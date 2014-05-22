@@ -1,4 +1,22 @@
-require 'sinatra/base'
+# -*- encoding : utf-8 -*-
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require "sinatra/base"
 
 class OfflineChef < Sinatra::Base
   @@cache = {}
@@ -7,39 +25,39 @@ class OfflineChef < Sinatra::Base
     content_type :json
   end
 
-  get '/search/*' do |type|
+  get "/search/*" do |type|
     render_search_json(type, params[:q])
   end
 
-  get '/data/*' do |bag|
+  get "/data/*" do |bag|
     render_json(:data_bag_item, bag.gsub("/", "-"))
   end
 
-  get '/nodes/:fqdn' do |fqdn|
+  get "/nodes/:fqdn" do |fqdn|
     render_json(:node, fqdn)
   end
 
-  get '/roles/:name' do |name|
+  get "/roles/:name" do |name|
     render_json(:role, name)
   end
 
-  post '/data/*' do |data|
+  post "/data/*" do |data|
     empty_json
   end
 
-  post '/roles/*' do |role|
+  post "/roles/*" do |role|
     empty_json
   end
 
-  put '/roles/*' do |role|
+  put "/roles/*" do |role|
     empty_json
   end
 
-  post '/nodes/*' do |node|
+  post "/nodes/*" do |node|
     empty_json
   end
 
-  put '/nodes/*' do |node|
+  put "/nodes/*" do |node|
     empty_json
   end
 
@@ -54,13 +72,13 @@ class OfflineChef < Sinatra::Base
   end
 
   def render_search_json(type, query)
-    type      = "data_bag_item_#{type}" if search_data_bags?(type)
+    type = "data_bag_item_#{type}" if search_data_bags?(type)
     cache_key = "#{type} #{query}"
 
     logger.debug "[OFFLINE_CHEF] searching for #{cache_key} among fixtures matching #{type}*.json"
 
     @@cache.fetch(cache_key) do
-      jsons   = read_fixtures(type)
+      jsons = read_fixtures(type)
       matches = search(type, query, jsons)
       logger.debug "[OFFLINE_CHEF] matching fixtures/results: #{jsons.count}/#{matches.count}"
 
@@ -92,7 +110,7 @@ class OfflineChef < Sinatra::Base
   end
 
   def search_data_bags?(type)
-    !["node", "role"].include?(type)
+    not ["node", "role"].include?(type)
   end
 
   def read_fixtures(type)

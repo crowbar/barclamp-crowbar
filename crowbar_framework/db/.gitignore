@@ -1,0 +1,5 @@
+*.sqlite3
+*.json
+
+schema.rb
+node_description.yml

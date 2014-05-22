@@ -1,3 +1,21 @@
+/**
+ * Copyright 2011-2013, Dell
+ * Copyright 2013-2014, SUSE LINUX Products GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @-moz-viewport {
   width: device-width;
 }
@@ -22,4 +40,40 @@ body {
   cursor: default;
   padding-top: 70px;
   padding-bottom: 0;
+}
+
+a {
+  &.noline {
+    text-decoration: none;
+  }
+}
+
+.nowrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;  
+}
+
+.bootstrap-growl {
+  z-index: 5000 !important;
+
+  &.alert-success {
+    box-shadow: 0px 0px 10px $alert-success-border;
+    border-color: $alert-success-text;
+  }
+
+  &.alert-info {
+    box-shadow: 0px 0px 10px $alert-info-border;
+    border-color: $alert-info-text;
+  }
+
+  &.alert-warning {
+    box-shadow: 0px 0px 10px $alert-warning-border;
+    border-color: $alert-warning-text;
+  }
+
+  &.alert-danger {
+    box-shadow: 0px 0px 10px $alert-danger-border;
+    border-color: $alert-danger-text;
+  }
 }

@@ -1,11 +1,13 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,493 +15,716 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
-
-require 'chef'
-require 'json'
 
 class BarclampController < ApplicationController
-  before_filter :controller_to_barclamp
+  before_action :initialize_service
+  before_action :controller_barclamp
 
-  def controller_to_barclamp
+  helper_method :current_barclamp
+
+  #
+  # List barclamps  /crowbar/modules/<version>  GET  List all available barclamps
+  #
+  add_help(:available_barclamps_url)
+  def modules
+    @title ||= I18n.t("barclamp.modules.title")
+    @barclamps ||= available_barclamps
+
+    barclamp_listing
+  end
+
+  #
+  # List instances  /crowbar/<barclamp-name>/<version>  GET  List all grouped barclamps
+  #
+  add_help(:grouped_barclamps_url)
+  def index
+    @title ||= view_context.display_name_for(current_barclamp)
+    @barclamps ||= selected_barclamps
+
+    barclamp_listing
+  end
+
+  #
+  # Barclamp status  /crowbar/<barclamp-name>/<version>/status  GET  Get status for all barclamps
+  #
+  add_help(:status_barclamp_url)
+  def state
+    @proposals = {}.tap do |proposals|
+      active = RoleObject.active
+
+      barclamps = case current_barclamp
+      when "modules"
+        available_barclamps
+      else
+        selected_barclamps
+      end
+
+      barclamps.each do |barclamp_name, barclamp|
+        ProposalObject.find_proposals(
+          barclamp_name
+        ).each do |proposal|
+          status = if active.include?(proposal.prop) or %w(unready pending).include?(proposal.status)
+            proposal.status
+          else
+            "hold"
+          end
+
+          proposals[proposal.barclamp] ||= {}
+
+          proposals[proposal.barclamp][proposal.name] = {
+            name: proposal.name,
+            title: proposal.name.humanize,
+            state: status,
+            status: I18n.t(status.to_s, scope: "proposal.status")
+          }
+        end
+      end
+    end
+
+    respond_to do |format|
+      format.xml { render xml: { proposals: @proposals } }
+      format.json { render json: { proposals: @proposals } }
+    end
+  rescue StandardError => e
+    log_exception(e)
+
+    respond_to do |format|
+      format.xml { render xml: { error: e.message }, status: 500 }
+      format.json { render json: { error: e.message }, status: 500 }
+    end
+  end
+
+  #
+  # Transition  /crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name>  POST  Informs the barclamp instance of a change of state in the specified node 
+  # Transition  /crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name>?name=<hostname>&state=<state>  GET  Informs the barclamp instance of a change of state in the specified node. 
+  #
+  add_help(:transition_barclamp_url, [:id, :name, :state], [:get, :post])
+  def transition
+    status, response = @service_object.transition(
+      params[:id], 
+      params[:name], 
+      params[:state]
+    )
+
+    respond_to do |format|
+      format.xml { render xml: response, status: status }
+      format.json { render json: response, status: status }
+    end
+  end
+
+  #
+  # List proposals  /crowbar/<barclamp-name>/<version>/proposals  GET  Returns a json list of proposals for instances 
+  #
+  add_help(:proposals_url)
+  def proposal_index
+    status, response = @service_object.proposals
+
+    case status
+    when 200
+      @proposals = response.map! do |p| 
+        ProposalObject.find_proposal(current_barclamp, p)
+      end
+
+      respond_to do |format|
+        format.html do
+          render "barclamp/proposal_index"
+        end
+
+        format.xml { render xml: @proposals, status: status }
+        format.json { render json: @proposals, status: status }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          redirect_to available_barclamps_url(selected: current_barclamp)
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Show proposal  /crowbar/<barclamp-name>/<version>/proposals/show/<barclamp-instance-name>  GET  Returns a json document describing the proposal 
+  #
+  add_help(:show_proposal_url, [:id], [:get])
+  def proposal_show
+    status, response = @service_object.show_active(
+      params[:id]
+    )
+
+    case status
+    when 200
+      @role = response
+
+      @proposal = ProposalObject.find_proposal(
+        current_barclamp,
+        params[:id]
+      )
+
+      respond_to do |format|
+        format.html do
+          render "barclamp/proposal_show"
+        end
+
+        format.xml { render xml: @proposal.raw_data, status: status }
+        format.json { render json: @proposal.raw_data, status: status }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_find_failed")
+          redirect_to proposals_path(controller: current_barclamp)
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Edit proposal  /crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name>  GET  Returns a json document for the specificed proposal 
+  #
+  add_help(:edit_proposal_url, [:id], [:get])
+  def proposal_edit
+    status, response = @service_object.proposal_show(
+      params[:id]
+    )
+
+    case status
+    when 200
+      @proposal = response
+      @attr_raw = params[:attr_raw] == "true"
+      @dep_raw = params[:dep_raw] == "true"
+
+      @active = RoleObject.active(
+        params[:controller], 
+        params[:id]
+      ).length > 0 rescue false
+
+      respond_to do |format|
+        format.html do
+          flash.now[:alert] = @proposal.fail_reason if @proposal.failed?
+          render "barclamp/proposal_edit"
+        end
+
+        format.xml { render xml: @proposal.raw_data, status: status }
+        format.json { render json: @proposal.raw_data, status: status }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_find_failed")
+          redirect_to proposals_path(controller: current_barclamp)
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Deactivate proposal  /crowbar/<barclamp-name>/<version>/proposals/deactivate/<barclamp-instance-name>  GET  Deactivate a proposal 
+  #
+  add_help(:deactivate_proposal_url, [:id], [:get])
+  def proposal_deactivate
+    status, response = @service_object.destroy_active(
+      params[:id]
+    )
+
+    case status
+    when 200
+      respond_to do |format|
+        format.html do
+          flash[:success] = I18n.t("barclamp.errors.proposal_deactivated", barclamp: @service_object.display_name, proposal: params[:id])
+          redirect_to available_barclamps_url(selected: current_barclamp)
+        end
+
+        format.xml { head :ok }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_deactivate_failed", error: response)
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Delete proposal  /crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name>  DELETE  Delete a proposal
+  #
+  add_help(:delete_proposal_url, [:id], [:get])
+  def proposal_delete
+    status, response = @service_object.proposal_delete(
+      params[:id]
+    )
+
+    case status
+    when 200
+      respond_to do |format|
+        format.html do
+          flash[:success] = I18n.t("barclamp.errors.proposal_deleted", barclamp: @service_object.display_name, proposal: params[:id])
+          redirect_to available_barclamps_url(selected: current_barclamp)
+        end
+
+        format.xml { head :ok }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_delete_failed", error: response)
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Dequeue proposal  /crowbar/<barclamp-name>/<version>/proposals/dequeue/<barclamp-instance-name>   GET  This action will dequeue an existing proposal.
+  #
+  add_help(:dequeue_proposal_url, [:id], [:get])
+  def proposal_dequeue
+    status, response = @service_object.dequeue_proposal(
+      params[:id]
+    )
+
+    case status
+    when 200
+      respond_to do |format|
+        format.html do
+          flash[:success] = I18n.t("barclamp.errors.proposal_dequeued", barclamp: @service_object.display_name, proposal: params[:id])
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { head :ok }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_dequeue_failed", error: response)
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Commit proposal  /crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name>  GET  Commit a proposal
+  #
+  add_help(:commit_proposal_url, [:id], [:get])
+  def proposal_commit
+    status, response = @service_object.proposal_commit(
+      params[:id]
+    )
+
+    case status
+    when 200
+      respond_to do |format|
+        format.html do
+          flash[:success] = I18n.t("barclamp.errors.proposal_commited", barclamp: @service_object.display_name, proposal: params[:id])
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { head :ok }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_commit_failed", error: response)
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:id])
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  end
+
+  #
+  # Create proposal  /crowbar/<barclamp-name>/<version>/proposals  PUT  Create proposal 
+  #
+  add_help(:create_proposal_url, [:name], [:put])
+  def proposal_create
+    status, response = @service_object.proposal_create(
+      {
+        id: params[:name],
+        description: params[:description]
+      }.with_indifferent_access.deep_merge(permitted_params)
+    )
+
+    case status
+    when 200
+      respond_to do |format|
+        format.html do
+          flash[:success] = I18n.t("barclamp.errors.proposal_created", barclamp: @service_object.display_name, proposal: params[:name])
+          redirect_to edit_proposal_url(controller: current_barclamp, id: params[:name])
+        end
+
+        format.xml { render xml: { created: params[:name] }, status: status }
+        format.json { render json: { created: params[:name] }, status: status }
+      end
+    else
+      respond_to do |format|
+        format.html do
+          flash[:alert] = I18n.t("barclamp.errors.proposal_create_failed", error: response)
+          redirect_to available_barclamps_url(selected: current_barclamp)
+        end
+
+        format.xml { render xml: { error: response }, status: status }
+        format.json { render json: { error: response }, status: status }
+      end
+    end
+  rescue StandardError => e
+    log_exception(e)
+
+    respond_to do |format|
+      format.html do
+        flash[:alert] = I18n.t("barclamp.errors.proposal_create_failed", error: e.message)
+        redirect_to available_barclamps_url(selected: current_barclamp)
+      end
+
+      format.xml { render xml: { error: e.message }, status: 500 }
+      format.json { render json: { error: e.message }, status: 500 }
+    end
+  end
+
+  #
+  # Edit proposal  /crowbar/<barclamp-name>/<version>/propsosals/<barclamp-instance-name>  POST  Update a proposal
+  #
+  add_help(:update_proposal_url, [:id], [:post])
+  def proposal_update
+    case
+    when params[:submit]
+      begin
+        @proposal = ProposalObject.find_proposal_by_id("bc-#{params[:barclamp]}-#{params[:id]}")
+
+        @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
+        @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
+        @service_object.save_proposal!(@proposal)
+
+        respond_to do |format|
+          format.html do
+            flash[:success] = I18n.t("barclamp.errors.proposal_saved", barclamp: @service_object.display_name, proposal: params[:id])
+            redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil))
+          end
+
+          format.xml { render xml: { updated: params[:id] }, status: status }
+          format.json { render json: { updated: params[:id] }, status: status }
+        end
+      rescue StandardError => e
+        log_exception(e)
+
+        respond_to do |format|
+          format.html do
+            flash[:alert] = I18n.t("barclamp.errors.proposal_save_failed", error: e.message)
+            # Maybe we can avoid this redirect in future versions and display the errors directly?
+            redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil))
+          end
+
+          format.xml { render xml: { error: e.message }, status: 500 }
+          format.json { render json: { error: e.message }, status: 500 }
+        end
+      end
+    when params[:apply]
+      begin
+        @proposal = ProposalObject.find_proposal_by_id("bc-#{params[:barclamp]}-#{params[:id]}")
+
+        @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
+        @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
+        @service_object.save_proposal!(@proposal)
+
+        status, response = @service_object.proposal_commit(params[:id])
+
+        case status
+        when 202
+          nodes = response.map do |node_dns|
+            NodeObject.find_node_by_name(node_dns).alias
+          end.join(", ")
+
+          respond_to do |format|
+            format.html do
+              flash[:notice] = I18n.t("barclamp.errors.proposal_queued", barclamp: @service_object.display_name, proposal: params[:id], nodes: nodes)
+              redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil)) 
+            end
+
+            format.xml { render json: { queued: nodes }, status: status }
+            format.json { render json: { queued: nodes }, status: status }
+          end
+        when 200
+          respond_to do |format|
+            format.html do
+              flash[:success] = I18n.t("barclamp.errors.proposal_applied", barclamp: @service_object.display_name, proposal: params[:id])
+              redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil)) 
+            end
+
+          format.xml { render xml: { applied: params[:id] }, status: status }
+          format.json { render json: { applied: params[:id] }, status: status }
+          end
+        else
+          respond_to do |format|
+            format.html do
+              flash[:alert] = I18n.t("barclamp.errors.proposal_apply_failed", error: response)
+              # Maybe we can avoid this redirect in future versions and display the errors directly?
+              redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil))
+            end
+
+            format.xml { render xml: { error: response }, status: status }
+            format.json { render json: { error: response }, status: status }
+          end
+        end
+      rescue StandardError => e
+        log_exception(e)
+
+        respond_to do |format|
+          format.html do
+            flash[:alert] = I18n.t("barclamp.errors.proposal_apply_failed", error: e.message)
+            # Maybe we can avoid this redirect in future versions and display the errors directly?
+            redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil))
+          end
+
+          format.xml { render xml: { error: e.message }, status: 500 }
+          format.json { render json: { error: e.message }, status: 500 }
+        end
+      end
+    else
+      status, response = @service_object.proposal_edit(
+        params
+      )
+
+      case status
+      when 200
+        respond_to do |format|
+          format.html do
+            flash[:success] = I18n.t("barclamp.errors.proposal_updated", barclamp: @service_object.display_name, proposal: params[:id])
+            redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil)) 
+          end
+
+          format.xml { render xml: { updated: params[:id] }, status: status }
+          format.json { render json: { updated: params[:id] }, status: status }
+        end
+      else
+        respond_to do |format|
+          format.html do
+            flash[:alert] = I18n.t("barclamp.errors.proposal_update_failed", error: response)
+            # Maybe we can avoid this redirect in future versions and display the errors directly?
+            redirect_to edit_proposal_url(controller: params[:barclamp], id: params[:id], dep_raw: (params[:dep_raw] == "true" || nil), attr_raw: (params[:attr_raw] == "true" || nil))
+          end
+
+          format.xml { render xml: { error: response }, status: status }
+          format.json { render json: { error: response }, status: status }
+        end
+      end
+    end
+  end
+
+  #
+  # Proposal status  /crowbar/<barclamp-name>/<version>/proposals/status/<barclamp-instance-name>  GET  Status for proposal
+  #
+  add_help(:status_proposal_url, [:id], [:get])
+  def proposal_status
+    @proposals = {}.tap do |proposals|
+      case params[:id]
+      when current_barclamp
+        active = RoleObject.active(params[:controller], "*")
+        result = ProposalObject.find_proposals(params[:controller]).compact
+      else
+        active = RoleObject.active(params[:controller], params[:id])
+        result = [ProposalObject.find_proposal(params[:controller], params[:id])].compact
+      end
+
+      result.each do |proposal|
+        status = if active.include? proposal.prop or %w(unready pending).include? proposal.status
+          proposal.status
+        else
+          "hold"
+        end
+
+        proposals[proposal.barclamp] ||= {}
+
+        proposals[proposal.barclamp][proposal.name] = {
+          name: proposal.name,
+          title: proposal.name.humanize,
+          state: status,
+          status: I18n.t(status.to_s, scope: "proposal.status")
+        }
+      end
+    end
+
+    respond_to do |format|
+      format.xml { render xml: { proposals: @proposals } }
+      format.json { render json: { proposals: @proposals } }
+    end
+  rescue StandardError => e
+    log_exception(e)
+
+    respond_to do |format|
+      format.xml { render xml: { error: e.message }, status: 500 }
+      format.json { render json: { error: e.message }, status: 500 }
+    end
+  end
+
+  #
+  # List elements  /crowbar/<barclamp-name>/<version>/elements  GET  Returns a json list of roles that a node could be assigned to 
+  #
+  add_help(:elements_url)
+  def element_index
+    status, response = @service_object.elements
+
+    respond_to do |format|
+      format.html { render json: response, status: status }
+      format.json { render json: response, status: status }
+      format.xml { render xml: response, status: status }
+    end
+  end
+
+  #
+  # List nodes available for element  /crowbar/<barclamp-name>/<version>/elements/<barclamp-instance-name>  GET  Returns a json list of nodes that can be assigned to that element 
+  #
+  add_help(:show_element_url, [:id])
+  def element_show
+    status, response = @service_object.element_info(params[:id])
+
+    respond_to do |format|
+      format.html { render json: response, status: status }
+      format.json { render json: response, status: status }
+      format.xml { render xml: response, status: status }
+    end
+  end
+
+
+  #
+  # List versions  /crowbar/<barclamp-name>  GET  Returns a json list of strings for the versions 
+  #
+  add_help(:versions)
+  def versions
+    status, response = @service_object.versions
+
+    respond_to do |format|
+      format.html { render json: response, status: status }
+      format.json { render json: response, status: status }
+      format.xml { render xml: response, status: status }
+    end
+  end
+
+  protected
+
+  def permitted_params
+    params
+  end
+
+  def initialize_service
+    @service_object = ServiceObject.new logger
+  end
+
+  def controller_barclamp
     @bc_name = params[:barclamp] || params[:controller]
     @service_object.bc_name = @bc_name
   end
 
-  self.help_contents = Array.new(superclass.help_contents)
-  def initialize
-    super()
-    @service_object = ServiceObject.new logger
+  def current_barclamp
+    @bc_name
   end
 
-  #
-  # Barclamp List (generic)
-  #
-  # Provides the restful api call for
-  # List Barclamps 	/crowbar 	GET 	Returns a json list of string names for barclamps 
-  #
-  add_help(:barclamp_index)
-  def barclamp_index
-    @barclamps = ServiceObject.all
-    respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_index' }
-      format.xml  { render :xml => @barclamps }
-      format.json { render :json => @barclamps }
-    end
-  end
+  def available_barclamps
+    @available_barclamps ||= begin
+      member_barclamps = BarclampCatalog.barclamps
 
-  #
-  # Provides the restful api call for
-  # List Versions 	/crowbar/<barclamp-name> 	GET 	Returns a json list of string names for the versions 
-  #
-  add_help(:versions)
-  def versions
-    ret = @service_object.versions
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
-  end
-
-  #
-  # Provides the restful api call for
-  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name> 	POST 	Informs the barclamp instance of a change of state in the specified node 
-  # Transition 	/crowbar/<barclamp-name>/<version>/transition/<barclamp-instance-name>?state=<state>&name=<hostname> 	GET 	Informs the barclamp instance of a change of state in the specified node - The get is supported here to allow for the limited function environment of the installation system. 
-  #
-  add_help(:transition, [:id, :name, :state], [:get,:post])
-  def transition
-    id = params[:id]       # Provisioner id
-    state = params[:state] # State of node transitioning
-    name = params[:name] # Name of node transitioning
-
-    status, response = @service_object.transition(id, name, state)
-
-    if status != 200
-      render :text => response, :status => status
-    else
-      # Be backward compatible with barclamps returning a node hash, passing
-      # them intact.
-      if response[:name]
-        render :json => NodeObject.find_node_by_name(response[:name]).to_hash
-      else
-        render :json => response
+      member_barclamps.select do |name, props| 
+        props["user_managed"]
       end
     end
   end
-  
-  #
-  # Provides the restful api call for
-  # Show Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	GET 	Returns a json document describing the instance 
-  #
-  add_help(:show,[:id])
-  def show
-    ret = @service_object.show_active params[:id]
-    @role = ret[1]
-    Rails.logger.debug "Role #{ret.inspect}"
-    respond_to do |format|
-      format.html {
-        return redirect_to proposal_barclamp_path :controller=>@bc_name, :id=>params[:id] if ret[0] != 200
-        render :template => 'barclamp/show' 
-      }
-      format.xml  { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :xml => ServiceObject.role_to_proposal(@role, @bc_name)
-      }
-      format.json { 
-        return render :text => @role, :status => ret[0] if ret[0] != 200
-        render :json => ServiceObject.role_to_proposal(@role, @bc_name)
-      }
+
+  def selected_barclamps
+    @selected_barclamps ||= begin
+      member_barclamps = BarclampCatalog.members(
+        current_barclamp
+      )
+
+      available_barclamps.select do |name, props| 
+        member_barclamps.has_key? name
+      end
     end
   end
 
-  #
-  # Provides the restful api call for
-  # Destroy Instance 	/crowbar/<barclamp-name>/<version>/<barclamp-instance-name> 	DELETE 	Delete will deactivate and remove the instance 
-  #
-  add_help(:delete,[:id],[:delete])
-  def delete
-    params[:id] = params[:id] || params[:name]
-    ret = [500, "Server Problem"]
-    begin
-      ret = @service_object.destroy_active(params[:id])
-      set_flash(ret, 'proposal.actions.delete_%s')
-    rescue StandardError => e
-      Rails.logger.error "Failed to deactivate proposal: #{e.message}\n#{e.backtrace.join("\n")}"
-      flash[:alert] = t('proposal.actions.delete_failure') + e.message
-      ret = [500, flash[:alert] ]
-    end
-
-    respond_to do |format|
-      format.html {
-        redirect_to barclamp_modules_path(:id => @bc_name)
-      }
-      format.xml  { 
-        return render :text => ret[1], :status => ret[0] if ret[0] != 200
-        render :xml => {}
-      }
-      format.json { 
-        return render :text => ret[1], :status => ret[0] if ret[0] != 200
-        render :json => {}
-      }
-    end
-  end
-
-  #
-  # Provides the restful api call for
-  # List Elements 	/crowbar/<barclamp-name>/<version>/elements 	GET 	Returns a json list of roles that a node could be assigned to 
-  #
-  add_help(:elements)
-  def elements
-    ret = @service_object.elements
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
-  end
-
-  #
-  # Provides the restful api call for
-  # List Nodes Available for Element 	/crowbar/<barclamp-name>/<version>/elements/<barclamp-instance-name> 	GET 	Returns a json list of nodes that can be assigned to that element 
-  #
-  add_help(:element_info,[:id])
-  def element_info
-    ret = @service_object.element_info(params[:id])
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    render :json => ret[1]
-  end
-
-  #
-  # Provides the restful api call for
-  # List Proposals 	/crowbar/<barclamp-name>/<version>/proposals 	GET 	Returns a json list of proposals for instances 
-  #
-  add_help(:proposals)
-  def proposals
-    ret = @service_object.proposals
-    @proposals = ret[1]
-    return render :text => @proposals, :status => ret[0] if ret[0] != 200
-    respond_to do |format|
-      format.html { 
-        @proposals.map! { |p| ProposalObject.find_proposal(@bc_name, p) }
-        render :template => 'barclamp/proposals'
-      }
-      format.xml  { render :xml => @proposals }
-      format.json { render :json => @proposals }
-    end
-  end
-  
-  #
-  # Provides the restful api call for
-  # List Instances 	/crowbar/<barclamp-name>/<version> 	GET 	Returns a json list of string names for the ids of instances 
-  #
-  add_help(:index)
-  def index
-    respond_to do |format|
-      format.html { 
-        @title ||= "#{@bc_name.titlecase} #{t('barclamp.index.members')}" 
-        @count = -1
-        members = {}
-        list = BarclampCatalog.members(@bc_name)
-        barclamps = BarclampCatalog.barclamps
-        i = 0
-        (list || {}).each { |bc, order| members[bc] = { 'description' => barclamps[bc]['description'], 'order'=>order || 99999} if !barclamps[bc].nil? and barclamps[bc]['user_managed'] }
-        @modules = get_proposals_from_barclamps(members).sort_by { |k,v| "%05d%s" % [v[:order], k] }
-        render 'barclamp/index' 
-      }
-      format.xml  { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :xml => @roles 
-      }
-      format.json { 
-        ret = @service_object.list_active
-        @roles = ret[1]
-        return render :text => @roles, :status => ret[0] if ret[0] != 200
-        render :json => @roles 
-      }
-    end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  add_help(:modules)
-  def modules
-    @title = I18n.t('barclamp.modules.title')
+  def barclamp_listing
     @count = 0
-    barclamps = BarclampCatalog.barclamps.dup.delete_if { |bc, props| !props['user_managed'] }
-    @modules = get_proposals_from_barclamps(barclamps).sort_by { |k,v| "%05d%s" % [v[:order], k] }
-    respond_to do |format|
-      format.html { render 'index'}
-      format.xml  { render :xml => @modules }
-      format.json { render :json => @modules }
-    end
-  end
 
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  def get_proposals_from_barclamps(barclamps)
-    modules = {}
-    active = RoleObject.active
-    barclamps.each do |name, details|
-      props = ProposalObject.find_proposals name
-      modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
+    @modules = {}.tap do |modules|
+      active = RoleObject.active
 
-      bc_service = ServiceObject.get_service(name)
-      modules[name][:allow_multiple_proposals] = bc_service.allow_multiple_proposals?
-      suggested_proposal_name = bc_service.suggested_proposal_name
+      @barclamps.each do |name, details|
+        service = ServiceObject.get_service(name)
 
-      ProposalObject.find_proposals(name).each do |prop|        
-        # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
-        status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
-        @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1
-        modules[name][:proposals][prop.name] = {:id=>prop.id, :description=>prop.description, :status=>(status ? prop.status : "hold"), :active=>status}
-        if prop.status === "failed"
-          modules[name][:proposals][prop.name][:message] = prop.fail_reason 
-          modules[name][:expand] = true
-        end
-      end
+        members = details["members"].length rescue 0
+        description = details["description"] || I18n.t("not_set")
 
-      # find a free proposal name for what would be the next proposal
-      modules[name][:suggested_proposal_name] = suggested_proposal_name
-      (1..20).each do |x|
-        possible_name = "#{suggested_proposal_name}_#{x}"
-        next if active.include?("#{name}_#{possible_name}")
-        next if modules[name][:proposals].keys.include?(possible_name)
-        modules[name][:suggested_proposal_name] = possible_name
-        break
-      end if modules[name][:allow_multiple_proposals]
-    end
-    modules
-  end
+        modules[name] = {
+          members: members,
+          description: description,
+          order: details["order"],
+          allow_multiple_proposals: service.allow_multiple_proposals?,
+          suggested_proposal_name: service.suggested_proposal_name,
+          expand: false,
+          proposals: {}
+        }
 
-  #
-  # Provides the restful api call for
-  # Show Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	GET 	Returns a json document for the specificed proposal 
-  #
-  add_help(:proposal_show,[:id])
-  def proposal_show
-    ret = @service_object.proposal_show params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
-    @proposal = ret[1]
-    @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
-    flash.now[:alert] = @proposal.fail_reason if @proposal.failed?
-    @attr_raw = params[:attr_raw] || false
-    @dep_raw = params[:dep_raw] || false
-
-    respond_to do |format|
-      format.html { render :template => 'barclamp/proposal_show' }
-      format.xml  { render :xml => @proposal.raw_data }
-      format.json { render :json => @proposal.raw_data }
-    end
-  end
-
-  #
-  # Currently, A UI ONLY METHOD
-  #
-  add_help(:proposal_status,[:id, :barclamp, :name],[:get])
-  def proposal_status
-    proposals = {}
-    i18n = {}
-    begin
-      active = RoleObject.active(params[:barclamp], params[:name])
-      result = if params[:id].nil? 
-        result = ProposalObject.all 
-        result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
-      else
-        [ProposalObject.find_proposal(params[:barclamp], params[:name])]
-      end
-      result.each do |prop|
-        prop_id = "#{prop.barclamp}_#{prop.name}"
-        status = (["unready", "pending"].include?(prop.status) or active.include?(prop_id))
-        proposals[prop_id] = (status ? prop.status : "hold")
-        i18n[prop_id] = {:proposal=>prop.name.humanize, :status=>t("proposal.status.#{proposals[prop_id]}", :default=>proposals[prop_id])}
-      end
-      render :inline => {:proposals=>proposals, :i18n=>i18n, :count=>proposals.length}.to_json, :cache => false
-    rescue StandardError => e
-      count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
-      lines = [ "Failed to iterate over proposal list due to '#{e.message}'" ] + e.backtrace
-      Rails.logger.fatal(lines.join("\n"))
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
-    end
-  end
-
-  #
-  # Provides the restful api call for
-  # Create Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals 	PUT 	Putting a json document will create a proposal 
-  #
-  add_help(:proposal_create,[:name],[:put])
-  def proposal_create
-    Rails.logger.info "Proposal Create starting. Params #{params.inspect}"    
-    controller = params[:controller]
-    orig_id = params[:name] || params[:id]
-    params[:id] = orig_id
-    answer = [ 500, "Server issue" ]
-    begin
-      Rails.logger.info "asking for proposal of: #{params.inspect}"
-      answer = @service_object.proposal_create params
-      Rails.logger.info "proposal is: #{answer.inspect}"
-      if answer[0] == 200
-        flash[:notice] =  t('proposal.actions.create_success')
-      else
-        flash[:alert] = answer[1]
-      end
-    rescue StandardError => e
-      flash_and_log_exception(e)
-    end
-    respond_to do |format|
-      format.html { 
-        return redirect_to barclamp_modules_path :id => params[:controller] if answer[0] != 200
-        redirect_to proposal_barclamp_path :controller=> controller, :id=>orig_id
-      }
-      format.xml  {
-        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
-        render :xml => answer[1] 
-      }
-      format.json {
-        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
-        render :json => answer[1] 
-      }
-    end
-  end
-
-  #
-  # Provides the restful api call for
-  # Edit Proposal Instance 	/crowbar/<barclamp-name>/<version>/propsosals/<barclamp-instance-name> 	POST 	Posting a json document will replace the current proposal 
-  #
-  add_help(:proposal_update,[:id],[:post])
-  def proposal_update
-    if params[:submit].nil?  # This is RESTFul path
-      # This gets validated _proposal_update
-      ret = @service_object.proposal_edit params
-      return render :text => ret[1], :status => ret[0] if ret[0] != 200
-      return render :json => ret[1]
-    else # This is UI.
-      params[:id] = "bc-#{params[:barclamp]}-#{params[:id] || params[:name]}"
-      if params[:submit] == t('barclamp.proposal_show.save_proposal')
-        @proposal = ProposalObject.find_proposal_by_id(params[:id])
-
-        begin
-          @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
-          @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.save_proposal!(@proposal)
-          flash[:notice] = t('barclamp.proposal_show.save_proposal_success')
-        rescue StandardError => e
-          flash_and_log_exception(e)
-        end
-      elsif params[:submit] == t('barclamp.proposal_show.commit_proposal')
-        @proposal = ProposalObject.find_proposal_by_id(params[:id])
- 
-        begin
-          @proposal["attributes"][params[:barclamp]] = JSON.parse(params[:proposal_attributes])
-          @proposal["deployment"][params[:barclamp]] = JSON.parse(params[:proposal_deployment])
-          @service_object.save_proposal!(@proposal)
-          answer = @service_object.proposal_commit(params[:name])
-          flash[:alert] = answer[1] if answer[0] >= 400
-          flash[:notice] = answer[1] if answer[0] >= 300 and answer[0] < 400
-          flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
-          if answer[0] == 202
-            flash_msg = answer[1].map { |node_dns|
-                 NodeObject.find_node_by_name(node_dns).alias
-            }.join ", "
-            flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
+        ProposalObject.find_proposals(name).each do |proposal|
+          status = if active.include? proposal.prop or %w(unready pending).include? proposal.status
+            proposal.status
+          else
+            "hold"
           end
-        rescue StandardError => e
-          flash_and_log_exception(e)
+
+          modules[name][:proposals][proposal.name] = {
+            id:  proposal.id, 
+            description: proposal.description, 
+            state: status,
+            status: I18n.t(status.to_s, scope: "proposal.status")
+          }
+
+          if proposal.status == "failed"
+            modules[name][:proposals][proposal.name][:message] = proposal.fail_reason 
+            modules[name][:expand] = true
+          end
+
+          @count += 1
         end
-      elsif params[:submit] == t('barclamp.proposal_show.delete_proposal')
-        begin
-          answer = @service_object.proposal_delete(params[:name])
-          set_flash(answer, 'barclamp.proposal_show.delete_proposal_%s')
-        rescue StandardError => e
-          flash_and_log_exception(e)
-        end
-        redirect_to barclamp_modules_path(:id=>(params[:barclamp] || ''))
-        return
-      elsif params[:submit] == t('barclamp.proposal_show.destroy_active')
-        begin
-          answer = @service_object.destroy_active(params[:name])
-          set_flash(answer, 'barclamp.proposal_show.destroy_active_%s')
-        rescue StandardError => e
-          flash_and_log_exception(e)
-        end
-      elsif params[:submit] == t('barclamp.proposal_show.dequeue_proposal')
-        begin
-          answer = @service_object.dequeue_proposal(params[:name])
-          set_flash(answer, 'barclamp.proposal_show.dequeue_proposal_%s')
-        rescue StandardError => e
-          flash_and_log_exception(e)
-        end
-      else
-        Rails.logger.warn "Invalid action #{params[:submit]} for #{params[:id]}"
-        flash[:alert] = "Invalid action #{params[:submit]}"
+
+        (1..20).each do |x|
+          possible_name = "#{service.suggested_proposal_name}_#{x}"
+
+          next if active.include? "#{name}_#{possible_name}"
+          next if modules[name][:proposals].keys.include? possible_name
+
+          modules[name][:suggested_proposal_name] = possible_name
+          break
+        end if service.allow_multiple_proposals?
       end
-      redirect_to proposal_barclamp_path(:controller => params[:barclamp], :id => params[:name]) 
-    end
-  end
+    end.sort_by { |k, v| "%05d%s" % [v[:order], k] }
 
-  #
-  # Provides the restful api call for
-  # Destroy Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/<barclamp-instance-name> 	DELETE 	Delete will remove a proposal 
-  #
-  add_help(:proposal_delete,[:id],[:delete])
-  def proposal_delete
-    answer = @service_object.proposal_delete params[:id]
-    set_flash(answer, 'proposal.actions.delete_%s')
     respond_to do |format|
-      format.html {         
-        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
-        render :text => answer[1]
-      }
-      format.xml  {
-        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
-        render :xml => answer[1] 
-      }
-      format.json {
-        return render :text => flash[:alert], :status => answer[0] if answer[0] != 200
-        render :json => answer[1] 
-      }
-    end
-  end
-
-  #
-  # Provides the restful api call for
-  # Commit Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/commit/<barclamp-instance-name> 	POST 	This action will create a new instance based upon this proposal. If the instance already exists, it will be edited and replaced
-  #
-  add_help(:proposal_commit,[:id],[:post])
-  def proposal_commit
-    ret = @service_object.proposal_commit params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] >= 210
-    render :json => ret[1], :status => ret[0]
-  end
-
-  #
-  # Provides the restful api call for
-  # Dequeue Proposal Instance 	/crowbar/<barclamp-name>/<version>/proposals/dequeue/<barclamp-instance-name> 	DELETE 	This action will dequeue an existing proposal.
-  #
-  add_help(:proposal_dequeue,[:id],[:delete])
-  def proposal_dequeue
-    answer = @service_object.dequeue_proposal params[:id]
-    set_flash(answer, 'proposal.actions.dequeue_%s')
-    if answer[0] == 200
-      return render :json => {}, :status => answer[0]
-    else
-      return render :text => flash[:alert], :status => answer[0]
-    end
-  end
-
-  add_help(:nodes,[],[:get]) 
-  def nodes
-    #Empty method to override if your barclamp has a "nodes" view.
-  end
-
-  private
-  def set_flash(answer, common, success='success', failure='failure')
-    if answer[0] == 200
-      flash[:notice] = t(common % success)
-    else
-      flash[:alert] = t(common % failure)
-      flash[:alert] += ": " + answer[1].to_s unless answer[1].to_s.empty?
+      format.html { render "barclamp/index" }
+      format.xml { render xml: @modules }
+      format.json { render json: @modules }
     end
   end
 end
-

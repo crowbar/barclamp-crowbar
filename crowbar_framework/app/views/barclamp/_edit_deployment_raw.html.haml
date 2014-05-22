@@ -1,16 +1,16 @@
 .panel-sub
   %h3
-    = t('.title')
+    = t("barclamp.deployment")
 
     .pull-right
       %small
-        = proposal_custom_button @proposal, :dep_raw => false, :attr_raw => @attr_raw
+        = proposal_custom_button @proposal, dep_raw: false, attr_raw: @attr_raw
 
 .panel-body
   .form-group
-    - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7')
-      %textarea#proposal_deployment{ :name => "proposal_deployment", :rows => 30, :cols => 80 }
+    - if bad_explorer?
+      %textarea#proposal_deployment{ name: "proposal_deployment", rows: 30, cols: 80 }
         = @proposal.pretty_deployment_json
     - else
-      %textarea#proposal_deployment.editor{ :name => "proposal_deployment" }
+      %textarea#proposal_deployment.editor{ name: "proposal_deployment" }
         = @proposal.pretty_deployment_json

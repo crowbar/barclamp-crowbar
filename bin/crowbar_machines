@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-# Copyright 2011, Dell
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +16,11 @@
 # limitations under the License.
 #
 
-$LOAD_PATH.unshift(File.expand_path("../../crowbar_framework/lib", __FILE__))
+#
+#
+# TODO: Needs to be replaced by https://github.com/basecamp/sub
+#
+#
 
 require "rubygems"
 require "net/http"
@@ -22,7 +28,7 @@ require "net/http/digest_auth"
 require "uri"
 require "json"
 require "getoptlong"
-require "utils/extended_hash"
+require "hashie"
 
 @debug = false
 @hostname = ENV["CROWBAR_IP"] || "127.0.0.1"
@@ -188,7 +194,7 @@ def get_json(path)
     body = JSON.parse(res.body)
 
     unless body.is_a? Array
-      body = Utils::ExtendedHash.new(body)
+      body = Hashie::Mash.new(body)
     end
 
     [body, 200]
@@ -218,7 +224,7 @@ def list
     end
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service index", status, body.error)
   end
 end
@@ -236,7 +242,7 @@ def aliases
     end
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service index", status, body.error)
   end
 end
@@ -270,7 +276,7 @@ def show(name, field = nil)
     result("Failed to find node #{name}", status)
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service show", status, body.error)
   end
 end
@@ -286,7 +292,7 @@ def delete(name)
     result("Failed to find node #{name}", status)
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service delete", status, body.error)
   end
 end
@@ -303,7 +309,7 @@ def action(exec, name, data = {})
     result("Failed to find node #{name}", status)
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service #{exec}", status, body.error)
   end
 end
@@ -327,7 +333,7 @@ def api_help
     end
   else
     # todo: Should be replaced when get_json gets refactored
-    body = Utils::ExtendedHash.new(JSON.parse(body))
+    body = Hashie::Mash.new(JSON.parse(body))
     result("Failed to talk to service help", status, body.error)
   end
 end

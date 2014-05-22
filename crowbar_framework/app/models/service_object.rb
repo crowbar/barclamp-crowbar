@@ -1,11 +1,13 @@
+# -*- encoding : utf-8 -*-
+#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2014, SUSE LINUX Products GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,27 +15,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: Rob Hirschfeld
-# Author: SUSE LINUX Products GmbH
-#
 
-require 'pp'
-require 'chef'
-require 'json'
 require 'hash_only_merge'
 require 'securerandom'
 
 class ServiceObject
-  FORBIDDEN_PROPOSAL_NAMES=["template","nodes","commit","status"]
+  include EventHelper
+
+  FORBIDDEN_PROPOSAL_NAMES = [
+    "template",
+    "nodes",
+    "commit",
+    "status"
+  ]
 
   attr_accessor :bc_name
+  attr_accessor :barclamp
   attr_accessor :logger
   attr_accessor :validation_errors
 
-  def initialize(thelogger)
-    @bc_name = 'unknown'
-    @logger = thelogger
+  def initialize(logger)
+    # Temporary name
+    @bc_name = "unknown"
+
+    self.bc_name = barclamp
+    self.logger = logger
+
     @validation_errors = []
+  end
+
+  def debug(part, message)
+    self.logger.debug(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def info(part, message)
+    self.logger.info(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def error(part, message)
+    self.logger.error(
+      "#{self.class.to_s.gsub("Service", "")} -> #{part}: #{message}"
+    )
+  end
+
+  def barclamp
+    @bc_name #@barclamp ||= "unknown"
   end
 
   def self.get_service(name)
@@ -683,7 +713,7 @@ class ServiceObject
   end
 
   def proposals_raw
-    ProposalObject.find_proposals(@bc_name)
+    ProposalObject.find_proposals(@bc_name).sort_by{ |n| "#{n.barclamp}/#{n.name}" }
   end
 
   def proposals
@@ -733,8 +763,10 @@ class ServiceObject
   # This can be overridden to provide a better creation proposal
   #
   def create_proposal
+    debug("create_proposal", "entering")
     prop = ProposalObject.find_proposal("template", @bc_name)
     raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
+    debug("create_proposal", "leaving base")
     prop.raw_data
   end
 
@@ -1337,7 +1369,7 @@ class ServiceObject
         non_admin_nodes.each do |node|
           nobj = NodeObject.find_node_by_name(node)
           unless nobj[:platform] == "windows"
-            filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+            filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "chef-client", filename)
             pids[pid] = node
           end
@@ -1350,7 +1382,7 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+              filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node
             end
@@ -1373,8 +1405,8 @@ class ServiceObject
 
       unless admin_list.empty?
         admin_list.each do |node|
-          filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-          pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
+          filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
+          pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s, filename)
           pids[node] = pid
         end
         status = Process.waitall
@@ -1385,8 +1417,8 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-              pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
+              filename = "#{ENV["CROWBAR_LOG_DIR"]}/chef-client/#{node}.log"
+              pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s, filename)
               pids[pid] = node
             end
             status = Process.waitall
@@ -1408,7 +1440,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) and !ran_admin
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) and !ran_admin
 
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
@@ -1581,6 +1613,7 @@ class ServiceObject
   def handle_validation_errors
     if @validation_errors && @validation_errors.length > 0
       Rails.logger.info "validation errors in proposal #{@bc_name}"
+      Rails.logger.info @validation_errors.join("\n")
       raise Chef::Exceptions::ValidationFailed.new("#{@validation_errors.join("\n")}\n")
     end
   end

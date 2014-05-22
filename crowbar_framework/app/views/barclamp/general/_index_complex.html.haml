@@ -1,0 +1,48 @@
+%tbody
+  - @modules.each do |barclamp_name, barclamp|
+    %tr.barclamp{ id: barclamp_name.parameterize }
+      %td.col-xs-1.status
+        - if barclamp[:proposals].length > 0
+          - barclamp[:proposals].sort.each do |proposal_name, proposal|
+            = display_led_for(proposal[:state], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
+        - else
+          = display_led_for(:none, controller: barclamp_name.parameterize, proposal: "none")
+
+      %td.col-xs-2
+        = link_to barclamp_collapse_list(display_name_for(barclamp_name), (params[:selected] == barclamp_name or barclamp[:expand])), "#toggle", class: (params[:id] == barclamp_name or barclamp[:expand]) ? "expanded" : nil, data: { toggle_action: barclamp_name }
+      %td.col-xs-9{ colspan: 2 }
+        = barclamp[:description]
+
+    %tr{ class: (params[:selected] == barclamp_name or barclamp[:expand]) ? "proposal visible" : "proposal hidden", data: { toggle_target: barclamp_name } }
+      %td{ colspan: "4" }
+        %table.table.table-condensed
+          %tbody
+            - if barclamp[:proposals].length > 0
+              - barclamp[:proposals].sort.each do |proposal_name, proposal|
+                %tr
+                  %td.col-xs-1.status
+                    = display_led_for(proposal[:state], controller: barclamp_name.parameterize, proposal: proposal_name.parameterize)
+                  %td.col-xs-2
+                    - if proposal[:active]
+                      = link_to proposal_name.titlecase, show_proposal_path(controller: barclamp_name, id: proposal_name)
+                    - else
+                      = link_to proposal_name.titlecase, edit_proposal_path(controller: barclamp_name, id: proposal_name)
+                  %td.col-xs-8
+                    - if proposal[:state] == "failed"
+                      = simple_format t(".failed", message: proposal[:message])
+                    - else
+                      = proposal[:description]
+                  %td.col-xs-1.actions
+                    = link_to t(".edit"), show_proposal_path(controller: barclamp_name, id: proposal_name), class: "btn btn-default btn-block"
+
+            - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
+              = create_proposal_form_for(barclamp_name) do
+                %tr
+                  %td.col-xs-1.status
+                    %span.glyphicon.glyphicon-plus
+                  %td.col-xs-2
+                    = text_field_tag :name, barclamp[:suggested_proposal_name], class: "form-control input-sm"
+                  %td.col-xs-8
+                    = text_field_tag :description, t(".created_on", date: l(Time.now)), class: "form-control input-sm"
+                  %td.col-xs-1.actions
+                    %input.btn.btn-default.btn-block{ type: "submit", value: t(".create") }

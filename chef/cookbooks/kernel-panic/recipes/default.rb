@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # Tell the kernel to reboot after 10 seconds on panic, if we want it to.
 # This applies to linux distributions, not to Windows.
 unless node[:platform] == "windows"

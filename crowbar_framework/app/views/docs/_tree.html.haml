@@ -1,0 +1,7 @@
+- topics.each do |id, topic|
+  %li.list-group-item
+    = link_to topic["title"], topic_docs_path(id: topic["path"])
+
+    - if topic["topics"]
+      %ul
+        = render partial: "tree", locals: { topics: topic["topics"] }

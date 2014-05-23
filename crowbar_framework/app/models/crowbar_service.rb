@@ -46,7 +46,7 @@ class CrowbarService < ServiceObject
         return [404, "Node not found"]
       end
 
-      if state == "discovering" and node.allocated.nil?
+      if state == "discovering" and node.allocated?.nil?
         @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
         node.allocated = false
         self.transition_save_node = true

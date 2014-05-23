@@ -72,7 +72,7 @@ describe CrowbarService do
         NodeObject.stubs(:find_node_by_name).returns(@node)
         @node.allocated = nil
         crowbar.transition("default", "testing", "discovering")
-        @node.allocated.should == false
+        @node.allocated?.should == false
       end
     end
 

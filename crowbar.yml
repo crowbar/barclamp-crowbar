@@ -27,6 +27,7 @@ barclamp:
   os_support:
     - redhat-6.4
     - centos-6.4
+    - centos-6.5
     - ubuntu-12.04
 
 crowbar:
@@ -179,6 +180,54 @@ rpms:
       - createrepo
       - libxml2-devel
       - zlib-devel
+  centos-6.5:
+    repos:
+      - rpm http://rbel.frameos.org/rbel6
+      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+      - rpm http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
+    build_pkgs:
+      - libcurl-devel
+      - yum-plugin-downloadonly
+      - yum-plugin-priorities
+      - createrepo
+      - libxml2-devel
+      - mysql-devel
+      - zlib-devel
+      - rubygems
+    required_pkgs:
+      - libyaml
+      - postgresql93
+      - postgresql93-contrib
+      - postgresql93-server
+      - postgresql93-test
+      - pgdg-centos93
+      - pgadmin3-93
+      - libpq5
+      - libossp-uuid16
+      - libecpg6
+      - ruby
+      - ruby-libs
+      - rubygem-chef-server
+      - rubygem-kwalify
+      - rubygem-bigdecimal
+      - rubygem-is-console
+      - rubygem-json
+      - rubygem-minitest
+      - rubygem-psych
+      - rubygem-rake
+      - rubygem-rdoc
+      - rubygems
+    pkgs:
+      # openldap stuff
+      - openldap
+      - openldap-servers
+      - openldap-clients
+      - krb5-workstation
+      # openssh stuff
+      - openssh-clients
+      - openssh-server
+      - openssl-devel
+      - vim-enhanced
   build_pkgs:
     - rubygems
     - ruby-devel

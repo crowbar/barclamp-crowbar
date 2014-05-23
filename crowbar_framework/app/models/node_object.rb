@@ -596,17 +596,21 @@ class NodeObject < ChefObject
     end
   end
 
+  def sync_role_and_node
+    _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
+    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
+    # update deep clone of @role.default_attributes
+    @attrs_last_saved = deep_clone(@role.default_attributes)
+  end
+
   def save
     Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision}")
 
-    _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
-    Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
+    increment_crowbar_revision!
+    sync_role_and_node
 
     @role.save
     @node.save
-
-    # update deep clone of @role.default_attributes
-    @attrs_last_saved = deep_clone(@role.default_attributes)
 
     Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision}")
   end

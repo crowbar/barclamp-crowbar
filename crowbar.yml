@@ -299,7 +299,7 @@ gems:
     - state_machine-0.9.4
     - bluepill-0.0.51
     # crowbar stuff
-    - rake
+    - rake-10.2.2
     - json-1.5.2
     - syslogger
     - sass-(~>3.2.5)

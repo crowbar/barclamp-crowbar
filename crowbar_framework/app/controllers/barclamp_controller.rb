@@ -361,13 +361,13 @@ class BarclampController < ApplicationController
   #
   # Create proposal  /crowbar/<barclamp-name>/<version>/proposals  PUT  Create proposal 
   #
-  add_help(:create_proposal_url, [:name], [:put])
+  add_help(:create_proposal_url, [:name, :description], [:put])
   def proposal_create
     status, response = @service_object.proposal_create(
       {
-        id: params[:name],
+        name: params[:name],
         description: params[:description]
-      }.with_indifferent_access.deep_merge(permitted_params)
+      }.with_indifferent_access
     )
 
     case status
@@ -625,10 +625,6 @@ class BarclampController < ApplicationController
   end
 
   protected
-
-  def permitted_params
-    params
-  end
 
   def initialize_service
     @service_object = ServiceObject.new logger

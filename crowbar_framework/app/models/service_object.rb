@@ -771,8 +771,8 @@ class ServiceObject
   end
 
   def proposal_create(params)
-    base_id = params["id"]
-    params["id"] = "bc-#{@bc_name}-#{params["id"]}"
+    base_id = params[:id] || params[:name]
+    params["id"] = "bc-#{@bc_name}-#{base_id}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
       return [403,I18n.t('model.service.illegal_name', :name => base_id)]
     end

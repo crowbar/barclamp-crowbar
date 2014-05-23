@@ -78,25 +78,7 @@ angular
         // );
       }
     ]
-  )
-
-  .run(function() {
-
-//var es = new EventSource('/notifications');
-//
-//es.onopen = function(e) { 
-//  console.log(e);
-//};
-//
-//es.onmessage = function(e) { 
-//  console.log(e);
-//};
-//
-//es.onerror = function(e) { 
-//  console.log(e);
-//};
-
-  });
+  );
 
 
 

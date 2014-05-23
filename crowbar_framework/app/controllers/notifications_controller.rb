@@ -23,29 +23,32 @@ class NotificationsController < ApplicationController
     response.content_type = "text/event-stream"
 
     begin
-      loop do
-        logger.debug "Sending event"
-        broadcast({ time: Time.now }, { foo: "testing.bar" })
-        sleep 1
-      end
+
+      #loop do
+      #  logger.debug "Sending event"
+      #  broadcast({ time: Time.now }, { foo: "testing.bar" })
+      #  sleep 1
+      #end
+
+      # EventObject.retrieve do |delivery_info, metadata, payload|
+      #   puts delivery_info.inspect
+      #   puts metadata.inspect
+      #   puts "Received #{payload.inspect}"
+
+      #   broadcast payload
+      # end
+
     rescue IOError => e
       logger.debug "Client #{request.remote_addr} closed SSE connection"
     ensure
       response.stream.close
+      EventObject.disconnect
     end
-  end
-
-  def create
-    raise "Not implemented!"
   end
 
   protected
 
-  def broadcast(data, options = {})
-    options.each do |k, v|
-      response.stream.write "#{k}: #{v}\n"
-    end
-
+  def broadcast(data)
     response.stream.write "data: #{JSON.dump(data)}\n\n"
   end
 end

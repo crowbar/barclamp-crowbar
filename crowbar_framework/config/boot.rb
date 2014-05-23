@@ -53,6 +53,9 @@ else
   gem "sass-rails", version: "~> 4.0.3"
   require "sass-rails"
 
+  gem "pry-rails", version: "~> 0.3.2"
+  require "pry-rails"
+
   gem "rack", version: "~> 1.5.2"
   require "rack"
 
@@ -110,14 +113,14 @@ else
   gem "json", version: "~> 1.8.1"
   require "json"
 
-  gem "pry-rails", version: "~> 0.3.2"
-  require "pry-rails"
-
   gem "activeresource", version: "~> 4.0.0"
   require "active_resource"
 
   gem "activerecord-session_store", version: "~> 0.1.0"
   require "activerecord/session_store"
+
+  gem "chef", version: "~> 10.32.2"
+  require "chef"
   # DEPENDENCIES END
 
   require "sprockets/railtie"

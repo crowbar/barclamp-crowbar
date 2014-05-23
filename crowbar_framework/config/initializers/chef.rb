@@ -17,8 +17,6 @@
 #
 
 begin
-  require "chef"
-
   Chef::Config.tap do |config|
     config.node_name ENV["CHEF_NODE_NAME"]
     config.client_key ENV["CHEF_CLIENT_KEY"]

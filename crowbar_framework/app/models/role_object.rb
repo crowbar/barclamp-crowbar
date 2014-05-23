@@ -181,15 +181,18 @@ class RoleObject < ChefObject
     end
   end
 
-  def save
+  def save(options = {})
+    sync_role = options.fetch(:sync) { false }
+
     Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
     role_lock = FileLock.acquire "role:#{@role.name}"
     begin
-      if block_given?
+      if sync_role
         upstream_role = RoleObject.find_role_by_name(@role.name)
         @role = upstream_role.role
-        yield(@role)
       end
+
+      yield(@role) if block_given?
 
       increment_crowbar_revision!
       @role.save

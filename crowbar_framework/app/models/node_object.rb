@@ -384,7 +384,7 @@ class NodeObject < ChefObject
   def allocated=(value)
     return false if @role.nil?
     Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    @role.save do |role|
+    @role.save(:sync => true) do |role|
       role.default_attributes["crowbar"]["allocated"] = value
     end
     value

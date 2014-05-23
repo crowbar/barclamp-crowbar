@@ -185,14 +185,12 @@ class RoleObject < ChefObject
     Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
     role_lock = FileLock.acquire "role:#{@role.name}"
     begin
-      old_role = RoleObject.find_role_by_name(@role.name)
-      if old_role
-        old_rev = old_role.crowbar_revision
-        new_rev = crowbar_revision
-        if old_rev && old_rev >= new_rev
-          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{old_rev})")
-        end
+      if block_given?
+        upstream_role = RoleObject.find_role_by_name(@role.name)
+        @role = upstream_role.role
+        yield(@role)
       end
+
       increment_crowbar_revision!
       @role.save
     ensure
@@ -203,7 +201,12 @@ class RoleObject < ChefObject
 
   def destroy
     Rails.logger.debug("Destroying role: #{@role.name} - #{crowbar_revision}")
-    @role.destroy
+    role_lock = FileLock.acquire "role:#{@role.name}"
+    begin
+      @role.destroy
+    ensure
+      FileLock.release role_lock
+    end
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end
 

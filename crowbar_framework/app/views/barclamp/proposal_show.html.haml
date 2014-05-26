@@ -18,9 +18,9 @@
           = link_to "#{@proposal.display_name}: #{@proposal.name.titlecase}", barclamp_modules_path(:id => @proposal.barclamp)
 
         - if @proposal.latest_applied?
-          %span.glyphicon.glyphicon-ok-sign{ :title => t('.current_revision_applied') }
+          = icon_tag("ok-sign", nil, :title => t('.current_revision_applied'))
         - else
-          %span.glyphicon.glyphicon-exclamation-sign{ :title => t('.current_revision_not_applied') }
+          = icon_tag("exclamation-sign", nil, :title => t('.current_revision_not_applied'))
 
         .btn-group.pull-right
           - unless @proposal.pretty_deployment.crowbar_committing

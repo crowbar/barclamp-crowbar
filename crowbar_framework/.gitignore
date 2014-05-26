@@ -1,11 +1,2 @@
 .bundle
-db/*.sqlite3
-db/*.json
-log/*.log
-log/*.html
-tmp/
-.rvmrc
-config/database.yml
-*~
-.beam
-vendor/cache
+Gemfile.lock

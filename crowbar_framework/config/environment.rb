@@ -40,6 +40,12 @@ Rails::Initializer.run do |config|
     config.gem "mime-types", :version => "1.18", :lib => "mime/types"
   end
 
+  config.i18n.default_locale = :en
+
+  config.i18n.load_path += Dir[
+    Rails.root.join("config", "locales", "**", "*.{rb,yml}").to_s
+  ]
+
   config.time_zone = "UTC"
 
   CROWBAR_LOG_DIR = "/var/log/crowbar" unless defined? CROWBAR_LOG_DIR

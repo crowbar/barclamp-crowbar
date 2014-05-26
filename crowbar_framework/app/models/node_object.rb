@@ -476,7 +476,10 @@ class NodeObject < ChefObject
   end
 
   def unclaimed_physical_drives
-    physical_drives.select { |disk| disk_owner(disk).blank? }
+    physical_drives.select do |disk, data|
+      device = unique_device_for(disk)
+      device && disk_owner(device).blank?
+    end
   end
 
   def physical_drives

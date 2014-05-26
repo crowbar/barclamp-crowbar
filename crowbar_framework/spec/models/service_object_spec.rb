@@ -9,6 +9,12 @@ describe ServiceObject do
       ["dns",     ["admin", "testing"] ],
     ]}
 
+  describe "service object" do
+    it "responds to include cluster method" do
+      service_object.should respond_to(:available_clusters)
+    end
+  end
+
   describe "validate_proposal_elements" do
     it "raises on duplicate nodes" do
       pe = proposal_elements

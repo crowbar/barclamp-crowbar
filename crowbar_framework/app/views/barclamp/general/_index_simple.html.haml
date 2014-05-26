@@ -14,7 +14,7 @@
         %td.col-xs-8
           = barclamp[:description]
         %td.col-xs-1.actions
-          = link_to t(".edit"), "#toggle", class: (params[:selected] == barclamp_name or barclamp[:expand]) ? "btn btn-default btn-block expanded" : "btn btn-default btn-block", data: { toggle_action: barclamp_name }
+          = link_to t(".show"), "#toggle", class: (params[:selected] == barclamp_name or barclamp[:expand]) ? "btn btn-default btn-block expanded" : "btn btn-default btn-block", data: { toggle_action: barclamp_name }
       %tr{ class: (params[:selected] == barclamp_name or barclamp[:expand]) ? "proposal visible" : "proposal hidden", data: { toggle_target: barclamp_name } }
         %td{ colspan: "4" }
           %table.table.table-condensed

@@ -68,12 +68,6 @@ class ProposalObject < ChefObject
     return val.nil? ? nil : ProposalObject.new(val)
   end
 
-  def self.human_attribute_name(attrib)
-    #remove if possible, do in the view
-    Rails.logger.info("please rewrite to not using I18n in models!  Use in views.")
-    I18n.t attrib, :scope => "model.attributes.proposal"
-  end
-
   def raw_attributes
     @raw_attributes ||= begin
       raw_data["attributes"][barclamp] || {}
@@ -232,7 +226,7 @@ class ProposalObject < ChefObject
   def []=(attrib, value)
     @item[attrib] = value
   end
-  
+
   def initialize(x)
     @item = x
   end

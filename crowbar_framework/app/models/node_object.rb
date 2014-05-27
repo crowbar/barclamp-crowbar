@@ -122,12 +122,6 @@ class NodeObject < ChefObject
     NodeObject.new machine
   end
 
-  # depricate!  This is not a good way to do this!
-  def self.human_attribute_name(attrib)
-    Rails.logger.info("please change call to human_attribute_name for #{attrib} this call is depricated!")
-    I18n.t attrib, :scope => "model.attributes.node"
-  end
-
   def method_missing(method, *args, &block)
     if @node.respond_to? method
       @node.send(method, *args, &block)
@@ -149,10 +143,6 @@ class NodeObject < ChefObject
     # deep clone of @role.default_attributes, used when saving node
     @attrs_last_saved = deep_clone(@role.default_attributes)
     @node = node
-  end
-
-  def has_node?
-    !@node.nil?
   end
 
   def target_platform

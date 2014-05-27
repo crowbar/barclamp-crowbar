@@ -8,13 +8,13 @@
     %thead
       %tr
         %th
-          = ProposalObject.human_attribute_name :status
+          = t(:status, :scope => "model.attributes.proposal")
         %th
-          = ProposalObject.human_attribute_name :barclamp
+          = t(:barclamp, :scope => "model.attributes.proposal")
         %th
-          = ProposalObject.human_attribute_name :name
+          = t(:name, :scope => "model.attributes.proposal")
         %th
-          = ProposalObject.human_attribute_name :description
+          = t(:description, :scope => "model.attributes.proposal")
         %th
 
     %tbody

@@ -85,10 +85,6 @@ class RoleObject < ChefObject
     end
   end
 
-  def self.human_attribute_name(attrib)
-    I18n.t attrib, :scope => "model.attributes.role"
-  end
-
   def barclamp
     name = @role.name.split("-")[0]
 

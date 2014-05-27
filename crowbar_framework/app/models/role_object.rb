@@ -179,13 +179,22 @@ class RoleObject < ChefObject
     Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
     role_lock = FileLock.acquire "role:#{@role.name}"
     begin
-      old_role = RoleObject.find_role_by_name(@role.name)
-      if old_role
-        old_rev = old_role.crowbar_revision
+      upstream_role = RoleObject.find_role_by_name(@role.name)
+      ### We assume that if we can not find the role, it has just
+      # been created. TODO: If it was actually deleted meanwhile,
+      # this might not work as expected.
+      if upstream_role
+        upstream_rev = upstream_role.crowbar_revision
         new_rev = crowbar_revision
-        if old_rev && old_rev >= new_rev
-          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{old_rev})")
+        if upstream_rev && upstream_rev >= new_rev
+          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{upstream_rev})")
         end
+        if block_given?
+          @role = upstream_role.role
+        end
+      end
+      if block_given?
+        yield(@role)
       end
       increment_crowbar_revision!
       @role.save
@@ -197,7 +206,12 @@ class RoleObject < ChefObject
 
   def destroy
     Rails.logger.debug("Destroying role: #{@role.name} - #{crowbar_revision}")
-    @role.destroy
+    begin
+      role_lock = FileLock.acquire "role:#{@role.name}"
+      @role.destroy
+    ensure
+      FileLock.release role_lock
+    end
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end
 

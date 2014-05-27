@@ -151,10 +151,6 @@ class NodeObject < ChefObject
     @node = node
   end
 
-  def has_node?
-    !@node.nil?
-  end
-
   def target_platform
     @node[:target_platform]
   end

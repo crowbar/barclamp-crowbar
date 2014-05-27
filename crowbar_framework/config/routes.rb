@@ -25,9 +25,9 @@ ActionController::Routing::Routes.draw do |map|
 
   map.root :controller => "nodes", :action=>'index'
 
-  # documentation / help
-  map.docs 'docs', :controller=>'docs', :action=>'index', :conditions => { :method => :get }
-  map.docs_topic 'docs/topic/:id', :controller=>'docs', :action=>'topic', :conditions => { :method => :get }
+  map.docs 'docs', :controller => 'docs', :action => 'index', :conditions => { :method => :get }
+  map.topic_docs 'docs/*id', :controller => 'docs', :action => 'show', :conditions => { :method => :get }
+
   map.docs_barclamp 'docs/:controller/:id', :action=>'docs', :conditions => { :method => :get }
 
   # nodes

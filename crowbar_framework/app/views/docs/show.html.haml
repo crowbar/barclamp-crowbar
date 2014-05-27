@@ -1,0 +1,29 @@
+.row
+  .col-xs-12
+    %h1.page-header
+      = t(".title")
+
+      %small
+        = t(".details", :date => @topic["date"], :author => @topic["author"])
+
+        .btn-group.pull-right
+          = link_to icon_tag("home"), docs_path, :title => t(".root"), :class => "btn btn-default"
+          = link_to icon_tag("arrow-up"), @parent["path"] ? topic_docs_path(:id => @parent["path"]) : docs_path, :title => t(".parent"), :class => "btn btn-default"
+
+.row
+  .col-xs-8
+    .panel.panel-default
+      - if @markdown
+        = raw @markdown.output
+      - else
+        .alert.alert-danger
+          = t(".parse_failed")
+
+  .col-xs-4
+    .panel.panel-default
+      .panel-heading
+        %h2
+          = t(".index")
+
+      %ul.list-group.list-tree
+        = render :partial => "tree", :locals => { :topics => @index["topics"] }

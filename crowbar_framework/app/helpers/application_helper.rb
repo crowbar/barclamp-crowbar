@@ -23,12 +23,12 @@ module ApplicationHelper
   # Check if we are using a quite old bad internet explorer, currently used for
   # disableing drag and drop for this old browser
   def bad_explorer?
-    request.env['HTTP_USER_AGENT'].downcase =~ /msie ([1-8])/
+    @bad_explorer ||= request.env["HTTP_USER_AGENT"].downcase =~ /msie ([1-8])/
   end
 
   # Check if we are running on a suse system
   def suse_system?
-    @@suse_system ||= File.exist?("/etc/SuSE-release")
+    @suse_system ||= File.exist?("/etc/SuSE-release")
   end
 
   # Added this helper method to access app config, maybe we need some wrapping
@@ -53,9 +53,34 @@ module ApplicationHelper
   # stylesheets to get the stylesheets more dynamic included
   def registered_stylesheets
     @registered_stylesheets ||= begin
-      [
+      files = [
         "application"
       ]
+
+      barclamp_name = if @service_object
+        @service_object.bc_name rescue "crowbar"
+      else
+        "crowbar"
+      end
+
+      if barclamp_name == "barclamp"
+        barclamp_name = "crowbar"
+      end
+
+      barclamp_path = Rails.root.join(
+        "app",
+        "assets",
+        "stylesheets",
+        "barclamps",
+        barclamp_name,
+        "application.css.scss"
+      )
+
+      if barclamp_path.file?
+        files.push "barclamps/#{barclamp_name}/application"
+      end
+
+      files
     end
   end
 
@@ -69,9 +94,34 @@ module ApplicationHelper
   # javascripts to get the javascripts more dynamic included
   def registered_javascripts
     @registered_javascripts ||= begin
-      [
+      files = [
         "application"
       ]
+
+      barclamp_name = if @service_object
+        @service_object.bc_name rescue "crowbar"
+      else
+        "crowbar"
+      end
+
+      if barclamp_name == "barclamp"
+        barclamp_name = "crowbar"
+      end
+
+      barclamp_path = Rails.root.join(
+        "app",
+        "assets",
+        "javascripts",
+        "barclamps",
+        barclamp_name,
+        "application.js"
+      )
+
+      if barclamp_path.file?
+        files.push "barclamps/#{barclamp_name}/application"
+      end
+
+      files
     end
   end
 

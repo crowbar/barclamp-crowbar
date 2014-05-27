@@ -191,19 +191,19 @@ en:
       unknown_cluster: 'Unable to find any cluster named'
 
   docs:
-    root: 'Master Index'
     index:
-      title: 'System Documentation'
-      details: 'Updated: %{date} by %{author}'
-    topic:
-      root: 'Index'
-      parent: 'Parent: %{title}'
-      authored: 'Updated at %{date} by %{author}'
-      children: 'Children'
-      nav: 'Navigation'
-      topic_missing: 'Error, generated HTML page for topic not found'
-      details: 'Topic Updated'
-      details_by: 'by'
+      title: 'Documentation'
+      details: 'Updated at %{date} by %{author}'
+      index: 'Topics'
+
+    show:
+      title: 'Documentation'
+      details: 'Updated at %{date} by %{author}'
+      root: 'Back to index'
+      parent: 'One page up'
+      index: 'Topics'
+      parse_failed: 'Failed to parse the documentation'
+      topic_missing: 'Failed to find the requested topic'
 
   model:
     node:

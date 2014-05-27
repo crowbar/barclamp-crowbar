@@ -1,6 +1,6 @@
 /**
  * Copyright 2011-2013, Dell
- * Copyright 2013, SUSE LINUX Products GmbH
+ * Copyright 2013-2014, SUSE LINUX Products GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Author: Dell Crowbar Team
- * Author: SUSE LINUX Products GmbH
  */
 
 jQuery(document).ready(function($) {
@@ -188,4 +185,19 @@ jQuery(document).ready(function($) {
       return false;
     }
   });
+
+  if ($.queryString['waiting'] != undefined) {
+    setInterval(
+      function() {
+        var meta = $('.row[data-update]');
+
+        $.getJSON(meta.data('update').replace('FILENAME', $.queryString['file']), function(data) {
+          if (data['waiting'] == false) {
+            location.href = meta.data('redirect').replace('FILENAME', $.queryString['file']);
+          }
+        });
+      },
+      10000
+    );
+  }
 });

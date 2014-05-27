@@ -398,7 +398,7 @@ class NodeObject < ChefObject
   end
 
   def allocated?
-    (@node.nil? or @role.nil?) ? false : self.crowbar["crowbar"]["allocated"]
+    (@node.nil? or @role.nil?) ? false : !!self.crowbar["crowbar"]["allocated"]
   end
 
   def ipmi_enabled?

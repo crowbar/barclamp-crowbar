@@ -48,6 +48,7 @@ describe CrowbarService do
     describe "to testing" do
       it "creates new node if not found" do
         NodeObject.expects(:create_new).with("missing").returns(nil).once
+        @node.expects(:allocated=).once
         crowbar.transition("default", "missing", "testing")
       end
     end
@@ -64,7 +65,8 @@ describe CrowbarService do
 
       it "creates new node if not found" do
         NodeObject.stubs(:find_node_by_name).returns(nil)
-        NodeObject.expects(:create_new).returns(nil).once
+        NodeObject.expects(:create_new).returns(@node).once
+        @node.expects(:allocated=).once
         crowbar.transition("default", "missing", "discovering")
       end
 

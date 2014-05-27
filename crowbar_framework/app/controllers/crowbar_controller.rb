@@ -18,8 +18,11 @@
 #
 
 class CrowbarController < BarclampController
-  def initialize
-    @service_object = CrowbarService.new(logger)
+
+  protected
+
+  def initialize_service
+    @service_object = CrowbarService.new logger
   end
 end
 

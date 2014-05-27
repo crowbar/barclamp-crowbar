@@ -4,24 +4,9 @@
       = t(".title")
 
 .panel.panel-default
-  - @books.delete_if { |k, v| k == 'topic_meta_data' }.sort_by { |k, v| v['topic_meta_data']['sort'] }.each do |book, book_details|
-    - book_meta = book_details['topic_meta_data']
-    - book_children = book_details.delete_if { |k, v| k=='topic_meta_data' }
+  .panel-heading
+    %h2
+      = t(".index")
 
-    .panel-heading
-      %h2
-        = render "docs/#{book_meta['barclamp']}/#{book}" rescue (render :partial => 'index', :locals => {:id => book, :parent => 'root', :children => book_children.length, :meta => book_meta, :show_children => true, :prefix => nil})
-
-    .panel-body
-      %ol
-        - book_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |section, section_details|
-          - section_meta = section_details['topic_meta_data']
-          - section_children = section_details.delete_if { |k, v| k=='topic_meta_data' }
-          %li
-            = render :partial => 'index', :locals=>{:id=>section, :parent=>"root+#{book}", :children=>section_children.length, :meta=>section_meta, :show_children=>true, :prefix=>nil}
-          %ol
-            - section_children.sort_by{ |k, v| v['topic_meta_data']['sort'] }.each do |topic, topic_details|
-              - topic_meta = topic_details['topic_meta_data']
-              - topic_children = topic_details.delete_if { |k, v| k=='topic_meta_data' }
-              %li
-                = render :partial => 'index', :locals=>{:id=>topic, :parent=>"root+#{book}+#{section}", :children=>topic_children.length, :meta=>topic_meta, :show_children=>false, :prefix=>nil}
+  %ul.list-group.list-tree
+    = render :partial => "tree", :locals => { :topics => @index["topics"] }

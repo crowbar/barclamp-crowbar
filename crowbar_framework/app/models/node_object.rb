@@ -374,24 +374,20 @@ class NodeObject < ChefObject
     return if @node.nil?
     return if @role.nil?
     return if self.allocated?
-    self.allocated = true
-    save
+    Rails.logger.info("Allocating node #{@node.name}")
+    @role.save do |r|
+      r.default_attributes["crowbar"]["allocated"] = true
+    end
   end
 
   def allocate
     allocate!
   end
 
-  def allocated=(value)
-    return false if @role.nil?
-    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    self.crowbar["crowbar"]["allocated"] = value
-    @role.save
-    value
-  end
-
   def allocated?
-    (@node.nil? or @role.nil?) ? false : !!self.crowbar["crowbar"]["allocated"]
+    return false if (@node.nil? or @role.nil?)
+    return false if self.crowbar["crowbar"].nil?
+    return !!@role.default_attributes["crowbar"]["allocated"]
   end
 
   def ipmi_enabled?

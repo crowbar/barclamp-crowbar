@@ -18,11 +18,6 @@
 class ProposalObject < ChefObject
   attr_reader :item
 
-  class << self
-    include ChefFinders
-    include Deprecate
-  end
-
   def self.chef_type
     "crowbar"
   end

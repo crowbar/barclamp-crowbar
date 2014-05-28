@@ -21,11 +21,6 @@ require 'timeout'
 class NodeObject < ChefObject
   attr_reader :node, :role
 
-  class << self
-    include ChefFinders
-    include Deprecate
-  end
-
   def self.chef_class
     Chef::Node
   end

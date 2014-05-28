@@ -18,11 +18,6 @@
 class RoleObject < ChefObject
   attr_reader :role
 
-  class << self
-    include Deprecate
-    include ChefFinders
-  end
-
   def self.chef_type
     "role"
   end

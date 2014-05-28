@@ -18,9 +18,9 @@ module Dsl
       def deployments_field
         tag(
           :input,
-          :id => "proposal_attributes",
+          :id => "proposal_deployment",
           :type => "hidden",
-          :name => "proposal_attributes",
+          :name => "proposal_deployment",
           :value => attrs.to_json
         )
       end

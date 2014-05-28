@@ -2,9 +2,14 @@ require 'spec_helper'
 
 describe ClientObject do
   describe "finders" do
-    describe "interface" do
-      it "responds to find_client_by_name" do
+    describe "find_client_by_name" do
+      it "responds to it" do
         ClientObject.should respond_to(:find_client_by_name)
+      end
+
+      it "prints a deprecation warning" do
+        ClientObject.expects(:deprecate_warning).once
+        ClientObject.find_client_by_name("test")
       end
     end
   end

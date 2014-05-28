@@ -18,8 +18,10 @@
 #
 
 class ==^BC-MODEL==Controller < BarclampController
-  def initialize
+
+  protected
+
+  def initialize_service
     @service_object = ==^BC-MODEL==Service.new logger
   end
 end
-

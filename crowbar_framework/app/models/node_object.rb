@@ -51,7 +51,7 @@ class NodeObject < ChefObject
       answer = nodes[0].map do |x|
         NodeObject.new x
       end
-      answer.delete_if { |x| @role.nil? }
+      answer.delete_if { |x| x.role.nil? }
     end
     return answer
   end

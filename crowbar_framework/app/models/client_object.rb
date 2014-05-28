@@ -18,11 +18,6 @@
 class ClientObject < ChefObject
   attr_reader :client
 
-  class << self
-    include ChefFinders
-    include Deprecate
-  end
-
   def initialize(client)
     @client = client
   end

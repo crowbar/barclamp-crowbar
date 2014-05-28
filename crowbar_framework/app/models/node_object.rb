@@ -76,7 +76,12 @@ class NodeObject < ChefObject
 
   def self.find_node_by_name(name)
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-    val = ChefObject.crowbar_node(name)
+    val = begin
+      Chef::Node.load(name)
+    rescue StandardError => e
+      Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
+      nil
+    end
     return val.nil? ? nil : NodeObject.new(val)
   end
 

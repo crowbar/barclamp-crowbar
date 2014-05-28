@@ -51,24 +51,6 @@ class ChefObject
     str.gsub("-:") { |c| '\\' + c }
   end
 
-  def self.crowbar_node(name)
-    begin 
-      return Chef::Node.load(name)
-    rescue StandardError => e
-      Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
-      return nil
-    end
-  end
-
-  def self.crowbar_data(bag_item)
-    begin 
-      return Chef::DataBag.load "crowbar/#{bag_item}"
-    rescue StandardError => e
-      Rails.logger.warn("Could not recover Chef Crowbar Data on load #{bag_item}: #{e.inspect}")
-      return nil
-    end
-  end
-
   def export(name = nil)
     name ||= self.respond_to?(:name) ? self.name : "unknown"
     file   = Rails.root.join("db", "#{self.chef_type}_#{name}.json")

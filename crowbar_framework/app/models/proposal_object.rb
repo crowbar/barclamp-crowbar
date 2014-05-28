@@ -64,7 +64,12 @@ class ProposalObject < ChefObject
   end
 
   def self.find_proposal_by_id(id)
-    val = ChefObject.crowbar_data(id)
+    val = begin
+      Chef::DataBag.load "crowbar/#{id}"
+    rescue StandardError => e
+      Rails.logger.warn("Could not recover Chef Crowbar Data on load #{id}: #{e.inspect}")
+      nil
+    end
     return val.nil? ? nil : ProposalObject.new(val)
   end
 

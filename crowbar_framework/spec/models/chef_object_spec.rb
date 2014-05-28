@@ -43,20 +43,4 @@ describe ChefObject do
       chef_object.cloud_domain
     end
   end
-
-  describe "crowbar_node" do
-    it "looks up a node by name" do
-      node = chef_object.crowbar_node("testing.crowbar.com")
-      node.should be_a(Chef::Node)
-      node.name.should == "testing.crowbar.com"
-    end
-  end
-
-  describe "crowbar_data" do
-    it "looks up a data bag in crowbar namespace" do
-      data_bag = chef_object.crowbar_data("bc-crowbar-default")
-      data_bag.should be_a(Chef::DataBagItem)
-      data_bag.id.should == "bc-crowbar-default"
-    end
-  end
 end

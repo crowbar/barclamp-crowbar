@@ -19,6 +19,19 @@ require 'spec_helper'
 
 describe RoleObject do
   describe "finders" do
+    describe "interface" do
+      [
+        :all,
+        :find_roles_by_name,
+        :find_roles_by_search,
+        :find_role_by_name,
+      ].each do |method|
+        it "responds to #{method}" do
+          RoleObject.should respond_to(method)
+        end
+      end
+    end
+
     describe "all" do
       it "returns all roles" do
         roles = RoleObject.all

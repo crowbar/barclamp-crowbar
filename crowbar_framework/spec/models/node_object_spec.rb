@@ -19,6 +19,23 @@ require 'spec_helper'
 
 describe NodeObject do
   describe "finders" do
+    describe "interface" do
+      [
+        :all,
+        :find,
+        :find_all_nodes,
+        :find_nodes_by_name,
+        :find_node_by_alias,
+        :find_node_by_public_name,
+        :find_node_by_name,
+        :find_node_by_name_or_alias,
+      ].each do |method|
+        it "responds to #{method}" do
+          NodeObject.should respond_to(method)
+        end
+      end
+    end
+
     describe "all" do
       it "returns all nodes" do
         nodes = NodeObject.all

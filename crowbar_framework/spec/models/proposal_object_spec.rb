@@ -26,6 +26,22 @@ describe ProposalObject do
   end
 
   describe "finders" do
+    describe "interface" do
+      [
+        :all,
+        :find_data_bag_item,
+        :find,
+        :find_proposals,
+        :find_barclamp,
+        :find_proposal,
+        :find_proposal_by_id,
+      ].each do |method|
+        it "responds to #{method}" do
+          ProposalObject.should respond_to(method)
+        end
+      end
+    end
+
     describe "find" do
       it "returns proposals matching a search" do
         proposals = ProposalObject.find("bc-crowbar-*")

@@ -21,6 +21,7 @@ require 'chef'
 require 'json'
 
 class BarclampController < ApplicationController
+  before_filter :initialize_service
   before_filter :controller_to_barclamp
 
   def controller_to_barclamp
@@ -29,10 +30,6 @@ class BarclampController < ApplicationController
   end
 
   self.help_contents = Array.new(superclass.help_contents)
-  def initialize
-    super()
-    @service_object = ServiceObject.new logger
-  end
 
   #
   # Barclamp List (generic)
@@ -501,5 +498,10 @@ class BarclampController < ApplicationController
       flash[:alert] += ": " + answer[1].to_s unless answer[1].to_s.empty?
     end
   end
-end
 
+  protected
+
+  def initialize_service
+    @service_object = ServiceObject.new logger
+  end
+end

@@ -32,17 +32,6 @@ describe ChefObject do
     end
   end
 
-  describe "query chef" do
-    it "returns new query" do
-      chef_object.query_chef.should be_a(Chef::Search::Query)
-    end
-
-    it "returns empty node on failure" do
-      Chef::Search::Query.stubs(:new).raises(StandardError)
-      chef_object.query_chef.should be_a(Chef::Node)
-    end
-  end
-
   describe "cloud domain" do
     it "looks up the proposal object" do
       domain = "localdomain"

@@ -178,9 +178,9 @@ class RoleObject < ChefObject
     deprecate_warning("find_all_by_name(name) or where(:name => name)", __FILE__, __LINE__)
     roles = []
     arr = if search.nil?
-      ChefObject.query_chef.search "role"
+      query_object.search "role"
     else
-      ChefObject.query_chef.search "role", search
+      query_object.search "role", search
     end
     if arr[2] != 0
       roles = arr[0].map { |x| RoleObject.new x }

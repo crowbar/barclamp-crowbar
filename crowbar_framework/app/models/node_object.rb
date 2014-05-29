@@ -37,9 +37,9 @@ class NodeObject < ChefObject
     deprecate_warning("where(:key => 'value1', :another => 'value2') or find_by_key_and_another(value1, value2)", __FILE__, __LINE__)
     answer = []
     nodes = if search.nil?
-      ChefObject.query_chef.search "node"
+      query_object.search "node"
     else
-      ChefObject.query_chef.search "node", "#{chef_escape(search)}"
+      query_object.search "node", "#{chef_escape(search)}"
     end
 
     if nodes.is_a?(Array) and nodes[2] != 0 and !nodes[0].nil?

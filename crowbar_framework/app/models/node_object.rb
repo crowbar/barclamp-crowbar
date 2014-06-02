@@ -385,8 +385,9 @@ class NodeObject < ChefObject
   def allocated=(value)
     return false if @role.nil?
     Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    self.crowbar["crowbar"]["allocated"] = value
-    @role.save
+    @role.save(:sync => true) do |role|
+      role.default_attributes["crowbar"]["allocated"] = value
+    end
     value
   end
 
@@ -574,46 +575,55 @@ class NodeObject < ChefObject
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
 
-  def save
+  def crowbar_revision
+    @role.default_attributes ? @role.default_attributes["crowbar-revision"].to_i : 0
+  end
+
+  def increment_crowbar_revision!
     if @role.default_attributes["crowbar-revision"].nil?
       @role.default_attributes["crowbar-revision"] = 0
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - unset")
     else
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
-      @role.default_attributes["crowbar-revision"] = @role.default_attributes["crowbar-revision"] + 1
+      @role.default_attributes["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+  end
 
-    # helper function to remove from node elements that were removed from the
-    # role attributes; this is something that
-    # Chef::Mixin::DeepMerge::deep_merge doesn't do
-    def _remove_elements_from_node(old, new, from_node)
-      old.each_key do |k|
-        if not new.has_key?(k)
-          from_node.delete(k) unless from_node[k].nil?
-        elsif old[k].is_a?(Hash) and new[k].is_a?(Hash) and from_node[k].is_a?(Hash)
-          _remove_elements_from_node(old[k], new[k], from_node[k])
-        end
+  # helper function to remove from node elements that were removed from the
+  # role attributes; this is something that
+  # Chef::Mixin::DeepMerge::deep_merge doesn't do
+  def _remove_elements_from_node(old, new, from_node)
+    old.each_key do |k|
+      if not new.has_key?(k)
+        from_node.delete(k) unless from_node[k].nil?
+      elsif old[k].is_a?(Hash) and new[k].is_a?(Hash) and from_node[k].is_a?(Hash)
+        _remove_elements_from_node(old[k], new[k], from_node[k])
       end
     end
+  end
 
+  def sync_role_and_node
     _remove_elements_from_node(@attrs_last_saved, @role.default_attributes, @node.normal_attrs)
     Chef::Mixin::DeepMerge::deep_merge!(@role.default_attributes, @node.normal_attrs, {})
+    # update deep clone of @role.default_attributes
+    @attrs_last_saved = deep_clone(@role.default_attributes)
+  end
+
+  def save
+    Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision}")
+
+    increment_crowbar_revision!
+    sync_role_and_node
 
     @role.save
     @node.save
 
-    # update deep clone of @role.default_attributes
-    @attrs_last_saved = deep_clone(@role.default_attributes)
-
-    Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Destroying node: #{@node.name} - #{crowbar_revision}")
     @role.destroy
     @node.destroy
-    Rails.logger.debug("Done with removal of node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done with removal of node: #{@node.name} - #{crowbar_revision}")
   end
 
   def networks

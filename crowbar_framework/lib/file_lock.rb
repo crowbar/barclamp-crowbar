@@ -16,6 +16,13 @@
 #
 
 class FileLock
+  def self.with_lock(name, options = {})
+    flock = acquire(name, options)
+    yield if block_given?
+  ensure
+    release(flock, options) if flock
+  end
+
   def self.acquire(name, options = {})
     logger = options.fetch(:logger) { self.logger }
 

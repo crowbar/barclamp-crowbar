@@ -48,9 +48,15 @@ Rails::Initializer.run do |config|
 
   config.time_zone = "UTC"
 
-  CROWBAR_LOG_DIR = "/var/log/crowbar" unless defined? CROWBAR_LOG_DIR
+  unless defined?(CROWBAR_LOG_DIR)
+    if RAILS_ENV == "test"
+      CROWBAR_LOG_DIR = "#{RAILS_ROOT}/log"
+    else
+      CROWBAR_LOG_DIR = "/var/log/crowbar"
+    end
+  end
 
-  config.logger = Logger.new("/var/log/crowbar/#{RAILS_ENV}.log")
+  config.logger = Logger.new("#{CROWBAR_LOG_DIR}/#{RAILS_ENV}.log")
   config.logger.formatter = Logger::Formatter.new
 
   CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem" unless defined? CHEF_CLIENT_KEY

@@ -20,6 +20,12 @@ require 'spec_helper'
 describe ChefObject do
   let(:chef_object) { ChefObject }
 
+  before do
+    if chef_object
+      chef_object.class_eval { class_variable_set(:@@CrowbarDomain, nil) }
+    end
+  end
+
   after do
     if chef_object
       chef_object.class_eval { class_variable_set(:@@CrowbarDomain, nil) }

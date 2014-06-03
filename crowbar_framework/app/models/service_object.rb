@@ -800,7 +800,7 @@ class ServiceObject
   end
 
   def violates_count_constraint?(elements, role)
-    if role_constraints[role].has_key?("count")
+    if role_constraints[role] && role_constraints[role].has_key?("count")
       len = elements[role].length
       max_count = role_constraints[role]["count"]
       max_count >= 0 && len > max_count
@@ -810,7 +810,7 @@ class ServiceObject
   end
 
   def violates_uniqueness_constraint?(elements, role)
-    if role_constraints[role]["unique"]
+    if role_constraints[role] && role_constraints[role]["unique"]
       elements[role].each do |element|
         elements.keys.each do |loop_role|
           next if loop_role == role
@@ -822,7 +822,7 @@ class ServiceObject
   end
 
   def violates_conflicts_constraint?(elements, role)
-    if role_constraints[role]["conflicts_with"]
+    if role_constraints[role] && role_constraints[role]["conflicts_with"]
       conflicts = role_constraints[role]["conflicts_with"].select do |conflicting_role|
         elements[role].any? do |element|
           elements[conflicting_role] && elements[conflicting_role].include?(element)
@@ -834,7 +834,7 @@ class ServiceObject
   end
 
   def violates_admin_constraint?(elements, role, nodes_is_admin = {})
-    unless role_constraints[role]["admin"]
+    if role_constraints[role] && !role_constraints[role]["admin"]
       elements[role].each do |element|
         next if is_cluster? element
         unless nodes_is_admin.has_key? element
@@ -848,7 +848,7 @@ class ServiceObject
   end
 
   def violates_cluster_constraint?(elements, role)
-    unless role_constraints[role]["cluster"]
+    if role_constraints[role] && !role_constraints[role]["cluster"]
       clusters = elements[role].select {|e| is_cluster? e}
       unless clusters.empty?
         return true

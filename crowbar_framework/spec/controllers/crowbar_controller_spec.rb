@@ -25,13 +25,6 @@ describe CrowbarController do
   end
 
   describe "GET index" do
-
-    it "renders list of services" do
-      get :index
-      response.should be_success
-      assigns(:modules).map { |s| s[0] }.should include("crowbar")
-    end
-
     it "renders list of active roles as json" do
       get :index, :format => "json"
       response.should be_success
@@ -161,7 +154,7 @@ describe CrowbarController do
     end
 
     it "returns a json with list of assignable nodes for an element" do
-      get :element_info, :id => "dns-client"
+      get :element_info, :id => "crowbar"
       response.should be_success
       json = JSON.parse(response.body)
       nodes = ["admin.crowbar.com", "testing.crowbar.com"]
@@ -246,6 +239,7 @@ describe CrowbarController do
     let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
 
     before(:each) do
+      ProposalObject.any_instance.stubs(:save).returns(true)
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_after_save).at_least_once

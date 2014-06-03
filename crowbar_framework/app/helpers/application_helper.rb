@@ -248,10 +248,6 @@ module ApplicationHelper
   end
 
   def default_platform
-    NodeObject.find('role:crowbar').each do |node|
-      return "#{node[:platform]}-#{node[:platform_version]}" if node.admin?
-    end
-
-    ""
+    NodeObject.default_platform
   end
 end

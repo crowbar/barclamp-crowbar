@@ -161,7 +161,7 @@ describe CrowbarController do
     end
 
     it "returns a json with list of assignable nodes for an element" do
-      get :element_info, :id => "dns-client"
+      get :element_info, :id => "crowbar"
       response.should be_success
       json = JSON.parse(response.body)
       nodes = ["admin.crowbar.com", "testing.crowbar.com"]

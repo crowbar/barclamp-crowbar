@@ -8,6 +8,7 @@ describe ClientObject do
       end
 
       it "prints a deprecation warning" do
+        ClientObject.stubs(:load).returns(true)
         ClientObject.expects(:deprecate_warning).once
         ClientObject.find_client_by_name("test")
       end

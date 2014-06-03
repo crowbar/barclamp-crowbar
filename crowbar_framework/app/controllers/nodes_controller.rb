@@ -58,11 +58,6 @@ class NodesController < ApplicationController
 
     @nodes = {}.tap do |nodes|
       NodeObject.all.each do |node|
-        if node.target_platform.blank?
-          node.target_platform = @template.default_platform
-          node.save
-        end
-
         nodes[node.handle] = node
       end
     end
@@ -77,11 +72,6 @@ class NodesController < ApplicationController
 
     @nodes = {}.tap do |nodes|
       NodeObject.all.each do |node|
-        if node.target_platform.blank?
-          node.target_platform = @template.default_platform
-          node.save
-        end
-
         unless node.allocated?
           nodes[node.handle] = node
         end
@@ -395,10 +385,6 @@ class NodesController < ApplicationController
     @network = []
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
-      if @node.target_platform.blank?
-        @node.target_platform = @template.default_platform
-        @node.save
-      end
       # If we're in discovery mode, then we have a temporary DHCP IP address.
       if not ['discovering', 'discovered', 'hardware-installing', 'hardware-installed'].include? @node.state
         intf_if_map = @node.build_node_map

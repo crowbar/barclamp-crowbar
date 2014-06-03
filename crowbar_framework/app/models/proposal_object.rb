@@ -16,59 +16,55 @@
 #
 
 class ProposalObject < ChefObject
-  self.chef_type = "data_bag_item"
+  attr_reader :item
+
+  def self.chef_type
+    "crowbar"
+  end
+
+  def self.chef_class
+    Chef::DataBag
+  end
+
+  def self.after_find_filter(proposals)
+    proposals.compact.reject { |p| p.item.nil? }
+  end
 
   BC_PREFIX = 'bc-template-'
 
   def self.find_data_bag_item(bag)
-    begin
-      bag = ProposalObject.new(Chef::DataBag.load bag)  #should use new syntax
-      return bag
-    rescue
-      return nil
-    end
-  end
-  
-  def self.find(search)
-    props = [] 
-    begin
-      arr = ChefObject.query_chef.search("crowbar", "id:#{chef_escape(search)}") 
-      if arr[2] != 0
-        props = arr[0].map do |x| 
-          ProposalObject.new x 
-        end
-        props.delete_if { |x| x.nil? or x.item.nil? }
-      end
-    rescue StandardError => e
-       Rails.logger.error("Could not recover Chef Crowbar data searching for '#{search}' due to '#{e.inspect}'")
-    end
-    return props
-  end
-    
-  def self.all
-    self.find 'bc-*'
-  end
-  
-  def self.find_proposals(barclamp)
-    self.find "bc-#{barclamp}-*"
+    deprecate_warning("load(bag)", __FILE__, __LINE__)
+    load(bag)
   end
 
-  def self.find_barclamp(barclamp)
-    self.find_proposal_by_id "bc-template-#{barclamp}"
+  def self.find(search)
+    deprecate_warning("where(:id => search)", __FILE__, __LINE__)
+    where(:id => search)
+  end
+
+  def self.all
+    where(:id => 'bc-*')
+  end
+
+  def self.find_proposals(barclamp)
+    where(:id => "bc-#{barclamp}-*")
   end
 
   def self.find_proposal(barclamp, name)
-    self.find_proposal_by_id "bc-#{barclamp}-#{name}"
+    load("crowbar/bc-#{barclamp}-#{name}")
+  end
+
+  def self.find_barclamps
+    where(:id => "bc-tempate-*")
+  end
+
+  def self.find_barclamp(barclamp)
+    load("crowbar/bc-template-#{barclamp}")
   end
 
   def self.find_proposal_by_id(id)
-    val = begin
-      Chef::DataBag.load "crowbar/#{id}"
-    rescue StandardError => e
-      Rails.logger.warn("Could not recover Chef Crowbar Data on load #{id}: #{e.inspect}")
-      nil
-    end
-    return val.nil? ? nil : ProposalObject.new(val)
+    deprecate_warning('load("crowbar/#{id}")', __FILE__, __LINE__)
+    load("crowbar/#{id}")
   end
 
   def raw_attributes
@@ -117,10 +113,6 @@ class ProposalObject < ChefObject
 
   def category
     @category ||= BarclampCatalog.category(barclamp)
-  end
-
-  def item
-    @item
   end
 
   def id

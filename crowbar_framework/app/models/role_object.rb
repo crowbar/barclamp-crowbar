@@ -16,10 +16,18 @@
 #
 
 class RoleObject < ChefObject
-  self.chef_type = "role"
+  attr_reader :role
 
-  def self.all
-    self.find_roles_by_search(nil)
+  def self.chef_type
+    "role"
+  end
+
+  def self.chef_class
+    Chef::Role
+  end
+
+  def self.after_find_filter(roles)
+    roles.compact.reject { |r| r.role.nil? }
   end
 
   def self.all_dependencies
@@ -42,30 +50,25 @@ class RoleObject < ChefObject
 
   def self.active(barclamp = nil, inst = nil)
     full = if barclamp.nil?
-      RoleObject.find_roles_by_name "*-config-*"
+      where(:name => "*-config-*")
     else
-      RoleObject.find_roles_by_name "#{barclamp}-config-#{inst || "*"}"
+      where(:name => "#{barclamp}-config-#{inst || "*"}")
     end
     full.map { |x| "#{x.barclamp}_#{x.inst}" }
   end
 
   def self.find_roles_by_name(name)
-    roles = []
-    #TODO this call could be moved to fild_roles_by_search
-    arr = ChefObject.query_chef.search "role", "name:#{chef_escape(name)}"
-    if arr[2] != 0
-      roles = arr[0].map { |x| RoleObject.new x }
-      roles.delete_if { |x| x.nil? or x.role.nil? }
-    end
-    roles
+    deprecate_warning("find_all_by_name(name) or where(:name => name)", __FILE__, __LINE__)
+    where(:name => name)
   end
 
   def self.find_roles_by_search(search)
+    deprecate_warning("find_all_by_name(name) or where(:name => name)", __FILE__, __LINE__)
     roles = []
     arr = if search.nil?
-      ChefObject.query_chef.search "role"
+      query_object.search "role"
     else
-      ChefObject.query_chef.search "role", search
+      query_object.search "role", search
     end
     if arr[2] != 0
       roles = arr[0].map { |x| RoleObject.new x }
@@ -75,12 +78,8 @@ class RoleObject < ChefObject
   end
 
   def self.find_role_by_name(name)
-    begin
-      return RoleObject.new Chef::Role.load(name)
-    rescue Net::HTTPServerException => e
-      return nil if e.response.code == "404"
-      raise e
-    end
+    deprecate_warning("load(name)", __FILE__, __LINE__)
+    load(name)
   end
 
   def barclamp
@@ -120,10 +119,6 @@ class RoleObject < ChefObject
 
   def allow_multiple_proposals?
     ServiceObject.get_service(barclamp).allow_multiple_proposals?
-  end
-
-  def role
-    @role
   end
 
   def name

@@ -16,7 +16,10 @@
 #
 
 class ChefObject
-  class_attribute :chef_type
+  class << self
+    include ChefFinders
+    include Deprecate
+  end
 
   @@CrowbarDomain = nil
   
@@ -37,21 +40,9 @@ class ChefObject
     end
   end
 
-  def self.query_chef
-    begin
-      return Chef::Search::Query.new
-    rescue
-      return Chef::Node.new
-    end
-  end
-
-  def self.chef_escape(str)
-    str.gsub("-:") { |c| '\\' + c }
-  end
-
   def export(name = nil)
     name ||= self.respond_to?(:name) ? self.name : "unknown"
-    file   = Rails.root.join("db", "#{self.chef_type}_#{name}.json")
+    file   = Rails.root.join("db", "#{self.class.chef_type}_#{name}.json")
     File.open(file, "w") { |f| f.write(self.to_json) }
   end
 end

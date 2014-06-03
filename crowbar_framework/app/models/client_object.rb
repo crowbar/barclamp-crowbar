@@ -16,24 +16,30 @@
 #
 
 class ClientObject < ChefObject
-  def self.find_client_by_name(name)
-    begin
-      return ClientObject.new Chef::ApiClient.load(name)
-    rescue StandardError => e
-      Rails.logger.fatal("Failed to find client: #{name} #{e.message}")
-      return nil
-    end
-  end
+  attr_reader :client
 
   def initialize(client)
     @client = client
   end
 
+  def self.chef_class
+    Chef::ApiClient
+  end
+
+  def self.chef_type
+    "api_client"
+  end
+
+  def self.find_client_by_name(name)
+    deprecate_warning("load(name)", __FILE__, __LINE__)
+    load(name)
+  end
+
   def save
-    @client.save
+    client.save
   end
 
   def destroy
-    @client.destroy
+    client.destroy
   end
 end

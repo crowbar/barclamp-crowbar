@@ -19,46 +19,55 @@ require 'chef/mixin/deep_merge'
 require 'timeout'
 
 class NodeObject < ChefObject
-  self.chef_type = "node"
+  attr_reader :node, :role
+
+  def self.chef_class
+    Chef::Node
+  end
+
+  def self.chef_type
+    "node"
+  end
+
+  def self.after_find_filter(nodes)
+    nodes.compact.reject { |n| n.role.nil? }
+  end
 
   def self.find(search)
+    deprecate_warning("where(:key => 'value1', :another => 'value2') or find_by_key_and_another(value1, value2)", __FILE__, __LINE__)
     answer = []
     nodes = if search.nil?
-      ChefObject.query_chef.search "node"
+      query_object.search "node"
     else
-      ChefObject.query_chef.search "node", "#{chef_escape(search)}"
+      query_object.search "node", "#{chef_escape(search)}"
     end
     if nodes[2] != 0 and !nodes[0].nil?
       nodes[0].delete_if { |x| x.nil? }
       answer = nodes[0].map do |x|
         NodeObject.new x
       end
-      answer.delete_if { |x| !x.has_chef_server_roles? }
+      answer.delete_if { |x| x.role.nil? }
     end
     return answer
   end
 
-  def has_chef_server_roles?
-      return !@role.nil?
-  end
-
   def self.find_all_nodes
-    self.find nil
+    deprecate_warning("all", __FILE__, __LINE__)
+    all
   end
 
   def self.find_nodes_by_name(name)
-    self.find "name:#{chef_escape(name)}"
+    deprecate_warning("find_all_by_name(name) or where(:name => name)", __FILE__, __LINE__)
+    where(:name => name)
   end
 
+  # FIXME: is duplicated node aliases valid use case?
   def self.find_node_by_alias(name)
-    nodes = self.find_all_nodes.select { |n| n.alias.downcase == name.downcase }
-    if nodes.length == 1
-      return nodes[0]
-    elsif nodes.length == 0
-      nil
-    else
+    nodes = all.select { |n| n.alias.downcase == name.downcase }
+    if nodes.length > 1
       raise "#{I18n.t('multiple_node_alias', :scope=>'model.node')}: #{nodes.join(',')}"
     end
+    nodes.first
   end
 
   def self.default_platform
@@ -73,39 +82,21 @@ class NodeObject < ChefObject
   end
 
   def self.find_node_by_public_name(name)
-    nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
-    if nodes.length == 1
-      return nodes[0]
-    elsif nodes.length == 0
-      nil
-    else
+    nodes = where(:crowbar_public_name => name)
+    if nodes.length > 1
       raise "#{I18n.t('multiple_node_public_name', :scope=>'model.node')}: #{nodes.join(',')}"
     end
+    nodes.first
   end
 
   def self.find_node_by_name(name)
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-    val = begin
-      Chef::Node.load(name)
-    rescue StandardError => e
-      Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
-      nil
-    end
-    return val.nil? ? nil : NodeObject.new(val)
+    deprecate_warning("load(name) and fix the missing cloud_domain at the call site if possible", __FILE__, __LINE__)
+    load(name)
   end
 
   def self.find_node_by_name_or_alias(name)
-    node = find_node_by_name(name)
-
-    if node.nil?
-      find_node_by_alias(name)
-    else
-      node
-    end
-  end
-
-  def self.all
-    self.find nil
+    find_by_name(name) || find_node_by_alias(name)
   end
 
   def self.make_role_name(name)

@@ -61,6 +61,17 @@ class NodeObject < ChefObject
     end
   end
 
+  def self.default_platform
+    @@default_platform ||= begin
+      admin = NodeObject.find("role:crowbar").select { |n| n.admin? }.first
+      if admin.nil?
+        ""
+      else
+        "#{admin[:platform]}-#{admin[:platform_version]}"
+      end
+    end
+  end
+
   def self.find_node_by_public_name(name)
     nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
     if nodes.length == 1
@@ -148,8 +159,12 @@ class NodeObject < ChefObject
     @node = node
   end
 
+  def default_platform
+    self.class.default_platform
+  end
+
   def target_platform
-    @node[:target_platform]
+    @node[:target_platform] || default_platform
   end
 
   def pretty_target_platform

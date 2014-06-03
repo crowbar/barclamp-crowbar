@@ -162,36 +162,57 @@ class RoleObject < ChefObject
     @role = x
   end
 
-  def save
-    @role.override_attributes[barclamp] = {} if @role.override_attributes[barclamp].nil?
-    if @role.override_attributes[barclamp]["crowbar-revision"].nil?
-      @role.override_attributes[barclamp]["crowbar-revision"] = 0
+  def crowbar_revision
+    override_attributes[barclamp] ? override_attributes[barclamp]["crowbar-revision"].to_i : 0
+  end
+
+  def increment_crowbar_revision!
+    override_attributes[barclamp] ||= {}
+    if override_attributes[barclamp]["crowbar-revision"].nil?
+      override_attributes[barclamp]["crowbar-revision"] = 0
     else
-      @role.override_attributes[barclamp]["crowbar-revision"] = @role.override_attributes[barclamp]["crowbar-revision"] + 1
+      override_attributes[barclamp]["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
+  end
+
+  def save
+    Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
     role_lock = FileLock.acquire "role:#{@role.name}"
     begin
-      old_role = RoleObject.find_role_by_name(@role.name)
-      if old_role
-        old_role.override_attributes[barclamp] ||= {}
-        old_rev = old_role.override_attributes[barclamp]["crowbar-revision"]
-        new_rev = @role.override_attributes[barclamp]["crowbar-revision"]
-        if old_rev && old_rev >= new_rev
-          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{old_rev})")
+      upstream_role = RoleObject.find_role_by_name(@role.name)
+      ### We assume that if we can not find the role, it has just
+      # been created. TODO: If it was actually deleted meanwhile,
+      # this might not work as expected.
+      if upstream_role
+        upstream_rev = upstream_role.crowbar_revision
+        new_rev = crowbar_revision
+        if upstream_rev && upstream_rev >= new_rev
+          Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{upstream_rev})")
+        end
+        if block_given?
+          @role = upstream_role.role
         end
       end
+      if block_given?
+        yield(@role)
+      end
+      increment_crowbar_revision!
       @role.save
     ensure
       FileLock.release role_lock
     end
-    Rails.logger.debug("Done saving role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done saving role: #{@role.name} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
-    @role.destroy
-    Rails.logger.debug("Done removing role: #{@role.name} - #{@role.override_attributes[barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Destroying role: #{@role.name} - #{crowbar_revision}")
+    begin
+      role_lock = FileLock.acquire "role:#{@role.name}"
+      @role.destroy
+    ensure
+      FileLock.release role_lock
+    end
+    Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end
 
   def elements

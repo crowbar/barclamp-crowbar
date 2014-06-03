@@ -38,8 +38,6 @@ class CrowbarService < ServiceObject
       if node.nil? and (state == "discovering" or state == "testing")
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
         node = NodeObject.create_new name
-        @logger.debug("Crowbar transition: marking #{name} as initially not allocated")
-        node.allocated = false
         self.transition_save_node = true
       end
       if node.nil?

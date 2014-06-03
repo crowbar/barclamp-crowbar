@@ -25,13 +25,6 @@ describe CrowbarController do
   end
 
   describe "GET index" do
-
-    it "renders list of services" do
-      get :index
-      response.should be_success
-      assigns(:modules).map { |s| s[0] }.should include("crowbar")
-    end
-
     it "renders list of active roles as json" do
       get :index, :format => "json"
       response.should be_success

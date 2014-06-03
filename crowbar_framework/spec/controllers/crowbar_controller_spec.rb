@@ -246,6 +246,7 @@ describe CrowbarController do
     let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
 
     before(:each) do
+      ProposalObject.any_instance.stubs(:save).returns(true)
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_after_save).at_least_once

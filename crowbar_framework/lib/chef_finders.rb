@@ -32,8 +32,10 @@ module ChefFinders
       result = result.first
     end
 
-    if find_or_fail && ( (find_first && result.nil?) || result.empty? )
-      raise RecordNotFound.new("Cannot find record matching query #{build_query(conditions)}")
+    if find_or_fail
+      if (find_first && result.nil?) || (!find_first && result.empty?)
+        raise RecordNotFound.new("Cannot find any records matching query #{build_query(conditions)}")
+      end
     end
 
     result

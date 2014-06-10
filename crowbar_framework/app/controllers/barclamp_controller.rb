@@ -236,14 +236,13 @@ class BarclampController < ApplicationController
     modules = {}
     active = RoleObject.active
     barclamps.each do |name, details|
-      props = ProposalObject.find_proposals name
       modules[name] = { :description=>details['description'] || t('not_set'), :order=> details['order'], :proposals=>{}, :expand=>false, :members=>(details['members'].nil? ? 0 : details['members'].length) }
 
       bc_service = ServiceObject.get_service(name)
       modules[name][:allow_multiple_proposals] = bc_service.allow_multiple_proposals?
       suggested_proposal_name = bc_service.suggested_proposal_name
 
-      ProposalObject.find_proposals(name).each do |prop|        
+      ProposalObject.find_proposals(name).each do |prop|
         # active is ALWAYS true if there is a role and or status maybe true if the status is ready, unready, or pending.
         status = (["unready", "pending"].include?(prop.status) or active.include?("#{name}_#{prop.name}")) 
         @count += 1 unless @count<0  #allows caller to skip incrementing by initializing to -1

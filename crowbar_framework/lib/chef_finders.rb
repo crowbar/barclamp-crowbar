@@ -78,7 +78,15 @@ module ChefFinders
 
   def raw_search(conditions = {})
     query = build_query(conditions)
-    query_object.search(chef_type, query)
+    benchmark_query(query) do
+      query_object.search(chef_type, query)
+    end
+  end
+
+  def benchmark_query(query)
+    ActiveRecord::Base.benchmark("[chef search] #{chef_type} #{query}") do
+      yield if block_given?
+    end
   end
 
   def build_query(conditions = {}, op = :and)

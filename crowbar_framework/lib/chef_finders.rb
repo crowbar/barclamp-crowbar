@@ -1,14 +1,15 @@
 module ChefFinders
   class RecordNotFound < StandardError; end
+  class NotImplemented < StandardError; end
 
   # Chef::Node, Chef::Role, Chef::DataBag...
   def chef_class
-    Class
+    raise NotImplemented.new
   end
 
   # 'node', 'role', 'data_bag'...
   def chef_type
-    "class"
+    raise NotImplemented.new
   end
 
   def after_find_filter(results)

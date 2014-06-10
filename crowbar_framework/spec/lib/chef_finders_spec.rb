@@ -1,9 +1,20 @@
 require 'spec_helper'
 
 describe ChefFinders do
-  FinderKlass = Struct.new("FinderKlass") do
+  class FinderKlass
     class << self
       include ChefFinders
+    end
+
+    def initialize(item)
+    end
+
+    def self.chef_type
+      "node"
+    end
+
+    def self.chef_class
+      Chef::Node
     end
   end
 

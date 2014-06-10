@@ -68,9 +68,9 @@ module ChefFinders
 
   def query_object
     begin
-      return Chef::Search::Query.new
+      Chef::Search::Query.new
     rescue
-      return Chef::Node.new
+      Chef::Node.new
     end
   end
 

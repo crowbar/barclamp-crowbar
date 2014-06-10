@@ -53,10 +53,10 @@ module ChefFinders
   end
 
   def all
-    where(nil)
+    where
   end
 
-  def where(conditions = nil)
+  def where(conditions = {})
     results, offset, count = raw_search(conditions)
     results.map! { |r| new(r) }
     after_find_filter(results)
@@ -74,12 +74,14 @@ module ChefFinders
     end
   end
 
-  def raw_search(conditions = nil)
-    query = build_query(conditions || {})
+  def raw_search(conditions = {})
+    query = build_query(conditions)
     query_object.search(chef_type, query)
   end
 
   def build_query(conditions = {}, op = :and)
+    return chef_escape("*:*") if conditions.empty?
+
     conditions.map do |k, v|
       if v.is_a?(Array)
         v.map { |x| "#{k}:#{chef_escape(x)}" }.join(" #{op} ")

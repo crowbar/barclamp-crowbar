@@ -43,7 +43,10 @@ module ChefFinders
 
   def load(id)
     begin
-      new(chef_class.load(id))
+      result = benchmark_query(id) do
+        chef_class.load(id)
+      end
+      new(result)
     rescue Net::HTTPServerException => e
       if e.response.code == "404"
         Rails.logger.warn("[chef search] #{chef_type} #{id} not found.")

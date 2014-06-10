@@ -89,7 +89,7 @@ module ChefFinders
   end
 
   def benchmark_query(query)
-    ActiveRecord::Base.benchmark("[chef search] #{chef_type} #{query}") do
+    ActiveRecord::Base.benchmark("[chef search] #{chef_type} #{query}", Logger::DEBUG) do
       yield if block_given?
     end
   end

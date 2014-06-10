@@ -46,7 +46,7 @@ module ChefFinders
       return new(chef_class.load(id))
     rescue Net::HTTPServerException => e
       if e.response.code == "404"
-        Rails.logger.warn("#{chef_class} #{id} not found.")
+        Rails.logger.warn("[chef search] #{chef_type} #{id} not found.")
         nil
       else
         raise e

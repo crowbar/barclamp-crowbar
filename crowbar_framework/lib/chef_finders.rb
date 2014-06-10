@@ -1,10 +1,12 @@
 module ChefFinders
   class RecordNotFound < StandardError; end
 
+  # Chef::Node, Chef::Role, Chef::DataBag...
   def chef_class
     Class
   end
 
+  # 'node', 'role', 'data_bag'...
   def chef_type
     "class"
   end

@@ -75,11 +75,8 @@ module ChefFinders
   end
 
   def raw_search(conditions = nil)
-    if conditions
-      query_object.search(chef_type, build_query(conditions))
-    else
-      query_object.search(chef_type)
-    end
+    query = build_query(conditions || {})
+    query_object.search(chef_type, query)
   end
 
   def build_query(conditions = {}, op = :and)

@@ -366,14 +366,11 @@ module NodesHelper
   end
 
   def node_barclamp_list(node)
+    all_proposals = ProposalObject.all
+
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
       node_barclamps(node).map do |role|
-        role_split = role.split("-", 3)
-
-        proposal = ProposalObject.find_proposal(
-          role_split.first,
-          role_split.last
-        )
+        proposal = all_proposals.find { |p| p.id == role_to_proposal_name(role) }
 
         if proposal.nil?
           listing["Unknown"] ||= []
@@ -439,11 +436,12 @@ module NodesHelper
   end
 
   def node_role_list(node)
+    all_roles     = RoleObject.all
+    all_proposals = ProposalObject.all
+
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
       node_roles(node).map do |role|
-        object = RoleObject.find_role_by_name(
-          role
-        )
+        object = all_roles.find { |r| r.name == role }
 
         next if role =~ /^crowbar-.*_#{ChefObject.cloud_domain.gsub(".", "_")}/
 
@@ -455,12 +453,7 @@ module NodesHelper
             barclamp.include? object.barclamp
           end.first
 
-          role_split = barclamp.to_s.split("-", 3)
-
-          proposal = ProposalObject.find_proposal(
-            role_split.first,
-            role_split.last
-          )
+          proposal = all_proposals.find { |p| p.id == role_to_proposal_name(barclamp) }
 
           if proposal.nil?
             listing[object.category] ||= []
@@ -567,6 +560,11 @@ module NodesHelper
   end
 
   protected
+
+  def role_to_proposal_name(role)
+    role_split = role.split("-", 3)
+    "bc-#{role_split.first}-#{role_split.last}"
+  end
 
   def node_role_map
     {

@@ -14,10 +14,6 @@
             .input-group-btn
               = submit_tag t(".add"), :class => "btn btn-default input-sm"
 
-#nodedetails
-  - if @node
-    = render :partial => "show"
-
 .alert.alert-info{ "data-id" => "AUTOMATIC", "data-droppable" => "true" }
   = t(".drag_hint")
 

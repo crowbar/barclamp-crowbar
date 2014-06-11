@@ -16,15 +16,6 @@
  */
 
 jQuery(document).ready(function($) {
-  $('.list-group-item a').live('click', function(event) {
-    $('.list-group-item').removeClass('selected');
-    $(this).parents('.list-group-item').addClass('selected');
-
-    $('#nodedetails').load(
-      '{0} .panel'.format($(this).data('href'))
-    );
-  });
-
   $('[data-group-add]').live('submit', function(event) {
     var $el = $(event.target);
     var $input = $el.find('input[name=group]');

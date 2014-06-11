@@ -35,9 +35,7 @@
             - @nodes[handle].tap do |node|
               %li.list-group-item{ "data-id" => handle.parameterize, "data-draggable" => "true", "data-update" => group_change_path(:id => handle.parameterize, :group => "{0}".html_safe) }
                 %span.led{ :class => node[:status], :title => t(node[:state], :scope => "state", :default => node[:state].titlecase), "data-node" => handle }
-
-                %a{ :href => "#", :title => node[:description], "data-href" => node_path(handle) }
-                  = truncate(node[:alias], :length => 25)
+                = link_to(truncate(node[:alias], :length => 25), node_path(handle), :title => node[:description])
 
 %script#group-panel{ :type => "text/x-handlebars-template" }
   .col-xs-3.group-panel{ "data-id" => "{{group}}", "data-droppable" => "true" }

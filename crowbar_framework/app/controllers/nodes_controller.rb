@@ -29,20 +29,8 @@ class NodesController < ApplicationController
       end
     else
       @nodes = {}
-      raw_nodes = NodeObject.all
+      get_nodes_and_groups(params[:name])
       get_node_and_network(params[:selected]) if params[:selected]
-      raw_nodes.each do |node|
-        @sum = @sum + node.name.hash
-        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
-        group = node.group
-        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
-        @groups[group][:nodes][node.group_order] = node.handle
-        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
-        if node.handle === params[:name]
-          @node = node
-          get_node_and_network(node.handle)
-        end
-      end
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
 
@@ -297,6 +285,7 @@ class NodesController < ApplicationController
   def show
     get_node_and_network(params[:id] || params[:name])
     raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
+    get_nodes_and_groups(params[:name], false)
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
@@ -418,4 +407,25 @@ class NodesController < ApplicationController
 
     @network
   end
+
+  def get_nodes_and_groups(node_name, draggable = true)
+    @sum = 0
+    @groups = {}
+    @nodes  = {}
+      raw_nodes = NodeObject.all
+      raw_nodes.each do |node|
+        @sum = @sum + node.name.hash
+        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
+        group = node.group
+        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
+        @groups[group][:nodes][node.group_order] = node.handle
+        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
+        if node.handle === node_name
+          @node = node
+          get_node_and_network(node.handle)
+        end
+      end
+    @draggable = draggable
+  end
+
 end

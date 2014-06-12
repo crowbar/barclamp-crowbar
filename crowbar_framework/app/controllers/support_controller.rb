@@ -138,8 +138,8 @@ class SupportController < ApplicationController
         exports = Dir.glob(Rails.root.join("db", "*.json").to_s)
         cmd     = ["tar", "-czf", Rails.root.join("tmp", filename), *exports]
 
-        system(*cmd)
-        File.rename(Rails.root.join("tmp", filename), export_dir.join(filename))
+        ok = system(*cmd)
+        File.rename(Rails.root.join("tmp", filename), export_dir.join(filename)) if ok
       end
 
       Process.detach(pid)

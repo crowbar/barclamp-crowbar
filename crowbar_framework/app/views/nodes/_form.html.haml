@@ -5,7 +5,7 @@
         = @node.name
 
         .btn-group.pull-right
-          = link_to t("cancel"), nodes_path(:selected => @node.handle), :class => "btn btn-default"
+          = link_to t("cancel"), node_path(@node.handle), :class => "btn btn-default"
           %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".save") }
 
           - unless @node.allocated? or @node.admin?

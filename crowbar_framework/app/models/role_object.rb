@@ -186,7 +186,7 @@ class RoleObject < ChefObject
       if upstream_role
         upstream_rev = upstream_role.crowbar_revision
         new_rev = crowbar_revision
-        if upstream_rev && upstream_rev >= new_rev
+        if upstream_rev && upstream_rev > new_rev
           Rails.logger.warn("WARNING: revision race for role #{@role.name} (previous revision #{upstream_rev})")
         end
         if block_given?

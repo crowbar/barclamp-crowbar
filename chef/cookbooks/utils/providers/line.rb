@@ -43,6 +43,7 @@ end
 #
 # if a line matching the filter_re also matches the add line, then do neither.
 def add_and_filter(file, add, filter_re)
+  lock = nil
   lock = lock(@new_resource)
   need_to_add = !add.nil?
   need_to_remove = false
@@ -85,7 +86,7 @@ def add_and_filter(file, add, filter_re)
   return updated
 
 ensure
-  unlock(lock)
+  unlock(lock) unless lock.nil?
 end
 
 

@@ -246,15 +246,15 @@ class ProposalObject < ChefObject
 
   def save
     increment_crowbar_revision!
-    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
-    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   
   def export

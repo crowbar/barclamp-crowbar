@@ -234,14 +234,18 @@ class ProposalObject < ChefObject
     @item = x
   end
 
-  def save
-    @item["deployment"] = {} if @item["deployment"].nil?
-    @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?
+  def increment_crowbar_revision!
+    @item["deployment"] ||= {}
+    @item["deployment"][barclamp] ||= {}
     if @item["deployment"][barclamp]["crowbar-revision"].nil?
       @item["deployment"][barclamp]["crowbar-revision"] = 0
     else
-      @item["deployment"][barclamp]["crowbar-revision"] = @item["deployment"][barclamp]["crowbar-revision"] + 1
+      @item["deployment"][barclamp]["crowbar-revision"] += 1
     end
+  end
+
+  def save
+    increment_crowbar_revision!
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
     @item.save
     Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")

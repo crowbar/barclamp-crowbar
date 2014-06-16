@@ -201,13 +201,13 @@ class ProposalObject < ChefObject
     RoleObject.find_role_by_name("#{barclamp}-config-#{name}")
   end
 
-  def revision
+  def crowbar_revision
     @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
   end
 
   def latest_applied?
     r = role
-    revision > 0 && r && r.revision == revision
+    crowbar_revision > 0 && r && r.crowbar_revision == crowbar_revision
   end
 
   def active?

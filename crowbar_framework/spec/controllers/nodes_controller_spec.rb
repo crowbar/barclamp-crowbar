@@ -112,22 +112,32 @@ describe NodesController do
       response.should redirect_to(unallocated_list_path)
     end
 
-
     it "reports successful changes" do
-      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" }  }
       assigns(:report)[:failed].length.should == 0
       assigns(:report)[:success].should include(node.name)
     end
 
-    it "reports duplicate nodes" do
+    it "reports duplicate alias nodes" do
       post :bulk, :node => { node.name => { "alias" => "newalias" }, admin.name => { "alias" => "newalias" } }
-      assigns(:report)[:duplicate].should == true
+      assigns(:report)[:duplicate_alias].should == true
+      assigns(:report)[:failed].should include(admin.name)
+    end
+
+    it "reports duplicate public name nodes" do
+      post :bulk, :node => { node.name => { "public_name" => "newname" }, admin.name => { "public_name" => "newname" } }
+      assigns(:report)[:duplicate_public].should == true
       assigns(:report)[:failed].should include(admin.name)
     end
 
     it "reports nodes for which update failed" do
-      NodeObject.any_instance.stubs(:alias=).raises(StandardError)
-      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" },  }
+      NodeObject.any_instance.stubs(:force_alias=).raises(StandardError)
+      NodeObject.any_instance.stubs(:force_public_name=).raises(StandardError)
+
+      post :bulk, :node => { node.name => { "allocate" => true, "alias" => "newalias" } }
+      assigns(:report)[:failed].should include(node.name)
+
+      post :bulk, :node => { node.name => { "allocate" => true, "public_name" => "newalias" } }
       assigns(:report)[:failed].should include(node.name)
     end
   end

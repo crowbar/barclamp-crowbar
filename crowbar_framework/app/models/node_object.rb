@@ -585,15 +585,21 @@ class NodeObject < ChefObject
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
 
-  def save
+  def increment_crowbar_revision!
     if @role.default_attributes["crowbar-revision"].nil?
       @role.default_attributes["crowbar-revision"] = 0
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - unset")
     else
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
-      @role.default_attributes["crowbar-revision"] = @role.default_attributes["crowbar-revision"] + 1
+      @role.default_attributes["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+  end
+
+  def crowbar_revision
+    @role.default_attributes["crowbar-revision"]
+  end
+
+  def save
+    increment_crowbar_revision!
+    Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision}")
 
     # helper function to remove from node elements that were removed from the
     # role attributes; this is something that
@@ -617,14 +623,14 @@ class NodeObject < ChefObject
     # update deep clone of @role.default_attributes
     @attrs_last_saved = deep_clone(@role.default_attributes)
 
-    Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Destroying node: #{@node.name} - #{crowbar_revision}")
     @role.destroy
     @node.destroy
-    Rails.logger.debug("Done with removal of node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done with removal of node: #{@node.name} - #{crowbar_revision}")
   end
 
   def networks

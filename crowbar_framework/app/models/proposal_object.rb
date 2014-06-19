@@ -201,13 +201,13 @@ class ProposalObject < ChefObject
     RoleObject.find_role_by_name("#{barclamp}-config-#{name}")
   end
 
-  def revision
+  def crowbar_revision
     @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
   end
 
   def latest_applied?
     r = role
-    revision > 0 && r && r.revision == revision
+    crowbar_revision > 0 && r && r.crowbar_revision == crowbar_revision
   end
 
   def active?
@@ -234,23 +234,27 @@ class ProposalObject < ChefObject
     @item = x
   end
 
-  def save
-    @item["deployment"] = {} if @item["deployment"].nil?
-    @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?
+  def increment_crowbar_revision!
+    @item["deployment"] ||= {}
+    @item["deployment"][barclamp] ||= {}
     if @item["deployment"][barclamp]["crowbar-revision"].nil?
       @item["deployment"][barclamp]["crowbar-revision"] = 0
     else
-      @item["deployment"][barclamp]["crowbar-revision"] = @item["deployment"][barclamp]["crowbar-revision"] + 1
+      @item["deployment"][barclamp]["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+  end
+
+  def save
+    increment_crowbar_revision!
+    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
-    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   
   def export

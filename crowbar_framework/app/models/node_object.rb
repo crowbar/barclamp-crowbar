@@ -623,7 +623,7 @@ class NodeObject < ChefObject
     # update deep clone of @role.default_attributes
     @attrs_last_saved = deep_clone(@role.default_attributes)
 
-    Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision}")
+    Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision} - #{caller[0]}")
   end
 
   def destroy

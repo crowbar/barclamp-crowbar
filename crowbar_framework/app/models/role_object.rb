@@ -197,7 +197,7 @@ class RoleObject < ChefObject
     ensure
       FileLock.release role_lock
     end
-    Rails.logger.debug("Done saving role: #{@role.name} - #{crowbar_revision}")
+    Rails.logger.debug("Done saving role: #{@role.name} - #{crowbar_revision} - #{caller[0]}")
   end
 
   def destroy

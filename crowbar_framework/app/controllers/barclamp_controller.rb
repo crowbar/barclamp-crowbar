@@ -390,7 +390,10 @@ class BarclampController < ApplicationController
           answer = @service_object.proposal_commit(params[:name])
           flash[:alert] = answer[1] if answer[0] >= 400
           flash[:notice] = answer[1] if answer[0] >= 300 and answer[0] < 400
-          flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
+          if answer[0] == 200
+            @proposal.save(:applied => true)
+            flash[:notice] = t('barclamp.proposal_show.commit_proposal_success')
+          end
           if answer[0] == 202
             flash_msg = answer[1].map { |node_dns|
                  NodeObject.find_node_by_name(node_dns).alias
@@ -462,6 +465,10 @@ class BarclampController < ApplicationController
   add_help(:proposal_commit,[:id],[:post])
   def proposal_commit
     ret = @service_object.proposal_commit params[:id]
+    if ret[0] == 200
+      @proposal = ProposalObject.find_proposal_by_id(params[:id])
+      @proposal.save(:applied => true)
+    end
     return render :text => ret[1], :status => ret[0] if ret[0] >= 210
     render :json => ret[1], :status => ret[0]
   end

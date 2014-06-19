@@ -205,9 +205,16 @@ class ProposalObject < ChefObject
     @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
   end
 
+  # UI uses 'applied' for a deployment proposal, while the data-bags call this
+  # state 'committed'
   def latest_applied?
-    r = role
-    crowbar_revision > 0 && r && r.crowbar_revision == crowbar_revision
+    @item["deployment"][barclamp]["crowbar-committed"] rescue false
+  end
+
+  def latest_applied=(applied)
+    @item["deployment"] ||= {}
+    @item["deployment"][barclamp] ||= {}
+    @item["deployment"][barclamp]["crowbar-committed"] = applied
   end
 
   def active?
@@ -244,7 +251,8 @@ class ProposalObject < ChefObject
     end
   end
 
-  def save
+  def save(options = {})
+    self.latest_applied = !!options[:applied]
     increment_crowbar_revision!
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save

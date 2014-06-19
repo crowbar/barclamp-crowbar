@@ -248,7 +248,7 @@ class ProposalObject < ChefObject
     increment_crowbar_revision!
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
+    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - prop: #{crowbar_revision} role: #{role.nil? ? "-" : role.crowbar_revision} - #{caller[0]}")
   end
 
   def destroy

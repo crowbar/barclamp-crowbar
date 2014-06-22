@@ -10,9 +10,10 @@ before_install:
   - gem --version
 install:
   - cd crowbar_framework
-  - bundle install --without development
+  - bundle install
   - bundle exec rake db:migrate
   - sed -i -e "s#use_bundler\:\ false#use_bundler\:\ true#" config/app_config.yml
   - cp config/catalog.yml.example config/catalog.yml
 script:
   - bundle exec rake spec
+  - bundle exec rake brakeman:run

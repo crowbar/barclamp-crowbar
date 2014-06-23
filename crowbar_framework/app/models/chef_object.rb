@@ -40,7 +40,9 @@ class ChefObject
   def self.query_chef
     begin
       return Chef::Search::Query.new
-    rescue
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
+    rescue StandardError => e
       return Chef::Node.new
     end
   end

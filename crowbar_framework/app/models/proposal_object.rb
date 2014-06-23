@@ -24,7 +24,9 @@ class ProposalObject < ChefObject
     begin
       bag = ProposalObject.new(Chef::DataBag.load bag)  #should use new syntax
       return bag
-    rescue
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
+    rescue StandardError => e
       return nil
     end
   end
@@ -64,6 +66,8 @@ class ProposalObject < ChefObject
   def self.find_proposal_by_id(id)
     val = begin
       Chef::DataBag.load "crowbar/#{id}"
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Data on load #{id}: #{e.inspect}")
       nil

@@ -15,27 +15,9 @@
 # limitations under the License.
 #
 
-class ClientObject < ChefObject
-  def self.find_client_by_name(name)
-    begin
-      return ClientObject.new Chef::ApiClient.load(name)
-    rescue Errno::ECONNREFUSED => e
-      raise Crowbar::Error::ChefOffline.new
-    rescue StandardError => e
-      Rails.logger.fatal("Failed to find client: #{name} #{e.message}")
-      return nil
+module Crowbar
+  module Error
+    class ChefOffline < StandardError
     end
-  end
-
-  def initialize(client)
-    @client = client
-  end
-
-  def save
-    @client.save
-  end
-
-  def destroy
-    @client.destroy
   end
 end

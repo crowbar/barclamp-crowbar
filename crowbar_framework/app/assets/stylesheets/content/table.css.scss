@@ -73,5 +73,9 @@ table {
         margin-bottom: 0;
       }
     }
+
+    &.zeropad {
+      padding: 0 !important;
+    }
   }
 }

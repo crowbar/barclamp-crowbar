@@ -36,7 +36,7 @@
   JsonAttribute.prototype.writeJson = function() {
     this.el.val(
       JSON.stringify(this.json)
-    );
+    ).trigger('change');
   };
 
   JsonAttribute.prototype.write = function(key, value, type) {

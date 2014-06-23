@@ -38,7 +38,8 @@ module Dsl
           :id => "proposal_deployment",
           :type => "hidden",
           :name => "proposal_deployment",
-          :value => attrs.to_json
+          :value => attrs.to_json,
+          "data-changed-state" => I18n.t("proposal.failures.unsaved_changes")
         )
       end
 

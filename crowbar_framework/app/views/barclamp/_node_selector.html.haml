@@ -7,7 +7,7 @@
         = t(".msie_fail")
 
 - else
-  %input#proposal_deployment{ :type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_deployment.to_json }
+  %input#proposal_deployment{ :type => "hidden", :name => "proposal_deployment", :value => @proposal.raw_deployment.to_json, :data => { "changed-state" => t("proposal.failures.unsaved_changes") } }
 
   .panel-sub
     %h3

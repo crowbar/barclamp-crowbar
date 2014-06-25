@@ -205,16 +205,14 @@ class ProposalObject < ChefObject
     @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
   end
 
-  # UI uses 'applied' for a deployment proposal, while the data-bags call this
-  # state 'committed'
   def latest_applied?
-    @item["deployment"][barclamp]["crowbar-committed"] rescue false
+    @item["deployment"][barclamp]["crowbar-applied"] rescue false
   end
 
   def latest_applied=(applied)
     @item["deployment"] ||= {}
     @item["deployment"][barclamp] ||= {}
-    @item["deployment"][barclamp]["crowbar-committed"] = applied
+    @item["deployment"][barclamp]["crowbar-applied"] = applied
   end
 
   def active?

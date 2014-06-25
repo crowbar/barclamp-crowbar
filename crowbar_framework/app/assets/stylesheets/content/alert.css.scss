@@ -8,3 +8,25 @@
     margin-bottom: 0
   }
 }
+
+.bootstrap-growl-top-right {
+  &.alert-success {
+    box-shadow: 0px 0px 10px $alert-success-border;
+    border-color: $alert-success-text;
+  }
+
+  &.alert-info {
+    box-shadow: 0px 0px 10px $alert-info-border;
+    border-color: $alert-info-text;
+  }
+
+  &.alert-warning {
+    box-shadow: 0px 0px 10px $alert-warning-border;
+    border-color: $alert-warning-text;
+  }
+
+  &.alert-danger {
+    box-shadow: 0px 0px 10px $alert-danger-border;
+    border-color: $alert-danger-text;
+  }
+}

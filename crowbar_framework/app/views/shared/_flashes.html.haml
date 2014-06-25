@@ -1,6 +1,9 @@
 - flash.each do |key, message|
-  .alert.alert-dismissable{ :class => "alert-#{flash_for key}"}
-    %button.close{ :type => "button", "data-dismiss" => "alert", "aria-hidden" => true }
-      &times;
-
-    = simple_format(message)
+  :javascript
+    $.growl({
+      type: '#{flash_for key}',
+      message: '#{simple_format message}',
+      z_index: 5000,
+      delay: 0,
+      allow_dismiss: true
+    });

@@ -37,8 +37,8 @@ gem "syslogger", "1.3.0"
 gem "tilt", "1.3.3"
 gem "mime-types", "1.18", :require => "mime/types"
 
-gem "chef", "~> 10.0"
-gem "ohai", "~> 6.14"
+gem "chef", "~> 10.24.0"
+gem "ohai", "~> 6.14.0"
 
 group :development do
   gem "brakeman", "1.8.2"

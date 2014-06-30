@@ -717,19 +717,21 @@ class ServiceObject
     elsif prop["deployment"][@bc_name]["crowbar-committing"]
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
+      response = nil
       begin
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
         save_proposal!(prop, :validate_after_save => validate_after_save)
-        active_update prop.raw_data, inst, in_queue
+        response = active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
-        [400, "Failed to validate proposal: #{e.message}"]
+        response = [400, "Failed to validate proposal: #{e.message}"]
       ensure
         # Make sure we unmark the wall
         prop = ProposalObject.find_proposal(@bc_name, inst)
         prop["deployment"][@bc_name]["crowbar-committing"] = false
-        prop.save
+        prop.save(:applied => (response.first == 200))
       end
+      response
     end
   end
 

@@ -48,7 +48,11 @@ class ProposalObject < ChefObject
   def self.all
     self.find 'bc-*'
   end
-  
+
+  def self.select_proposals(barclamp, all = ProposalObject.all)
+    all.select { |p| p.id =~ /^bc-#{barclamp}-.*/ }
+  end
+
   def self.find_proposals(barclamp)
     self.find "bc-#{barclamp}-*"
   end

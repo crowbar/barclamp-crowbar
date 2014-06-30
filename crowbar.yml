@@ -34,7 +34,7 @@ crowbar:
   order: 0
   run_order: 0
   chef_order: 0
-  proposal_schema_version: 2
+  proposal_schema_version: 3
 
 nav:
   primary:

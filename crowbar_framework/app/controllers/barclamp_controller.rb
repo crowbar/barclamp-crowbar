@@ -273,7 +273,7 @@ class BarclampController < ApplicationController
   add_help(:proposal_show,[:id])
   def proposal_show
     ret = @service_object.proposal_show params[:id]
-    return render :text => ret[1], :status => ret[0] if ret[0] != 200
+    raise Crowbar::Error::NotFound.new if ret[0] == 404
     @proposal = ret[1]
     @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
     flash.now[:alert] = @proposal.fail_reason if @proposal.failed?

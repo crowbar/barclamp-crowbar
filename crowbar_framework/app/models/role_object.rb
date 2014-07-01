@@ -77,6 +77,8 @@ class RoleObject < ChefObject
   def self.find_role_by_name(name)
     begin
       return RoleObject.new Chef::Role.load(name)
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue Net::HTTPServerException => e
       return nil if e.response.code == "404"
       raise e

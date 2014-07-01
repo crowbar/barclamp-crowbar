@@ -87,6 +87,8 @@ class NodeObject < ChefObject
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = begin
       Chef::Node.load(name)
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
       nil

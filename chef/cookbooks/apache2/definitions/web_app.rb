@@ -25,8 +25,14 @@ define :web_app, :template => "web_app.conf.erb" do
   include_recipe "apache2::mod_rewrite"
   include_recipe "apache2::mod_deflate"
   include_recipe "apache2::mod_headers"
-  
-  template "#{node[:apache][:dir]}/sites-available/#{application_name}.conf" do
+
+  if node.platform == "suse"
+    vhost_conf = "#{node[:apache][:dir]}/vhosts.d/#{application_name}.conf"
+  else
+    vhost_conf = "#{node[:apache][:dir]}/sites-available/#{application_name}.conf"
+  end
+
+  template vhost_conf do
     source params[:template]
     owner "root"
     group "root"
@@ -38,11 +44,11 @@ define :web_app, :template => "web_app.conf.erb" do
       :application_name => application_name,
       :params => params
     )
-    if ::File.exists?("#{node[:apache][:dir]}/sites-enabled/#{application_name}.conf")
+    if ::File.exists?(vhost_conf)
       notifies :reload, resources(:service => "apache2"), :delayed
     end
   end
-  
+
   apache_site "#{params[:name]}.conf" do
     enable enable_setting
   end

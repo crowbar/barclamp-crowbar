@@ -9,8 +9,8 @@
 .panel-body
   .form-group
     - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7')
-      %textarea#proposal_deployment{ :name => "proposal_deployment", :rows => 30, :cols => 80 }
+      %textarea#proposal_deployment{ :name => "proposal_deployment", :rows => 30, :cols => 80, :data => { "changed-state" => t("proposal.failures.unsaved_changes") } }
         = @proposal.pretty_deployment_json
     - else
-      %textarea#proposal_deployment.editor{ :name => "proposal_deployment" }
+      %textarea#proposal_deployment.editor{ :name => "proposal_deployment", :data => { "changed-state" => t("proposal.failures.unsaved_changes") } }
         = @proposal.pretty_deployment_json

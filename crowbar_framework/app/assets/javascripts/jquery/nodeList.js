@@ -91,11 +91,10 @@
           self.json.elements[role].remove(value);
         });
 
+        self.updateJson();
         self.removedNodes();
       }
     });
-
-    self.updateJson();
   };
 
   NodeList.prototype.initDraggable = function() {
@@ -180,7 +179,7 @@
 
     self.input.val(
       JSON.stringify(self.json)
-    );
+    ).trigger('change');
   };
 
   NodeList.prototype.errorMessage = function(message) {
@@ -307,8 +306,6 @@
             break;
           default:
             if (self.json.elements[role].length >= constraints.count) {
-              console.log(alias, role, self.json.elements[role].length, constraints.count);
-
               return self.errorMessage(
                 'barclamp.node_selector.max_count'.localize().format(
                   alias,

@@ -14,3 +14,4 @@
 //= require jquery/updateAttribute
 //= require jquery/messages
 //= require jquery/dynamicTable
+//= require jquery/changeDetection

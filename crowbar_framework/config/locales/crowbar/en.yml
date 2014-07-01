@@ -189,6 +189,7 @@ en:
       duplicate_elements_in_role: 'Duplicate elements detected in role'
       unknown_node: 'Unable to find any node named'
       unknown_cluster: 'Unable to find any cluster named'
+      unsaved_changes: 'You might have unsaved changes; do you really want to switch to another page?'
 
   docs:
     index:

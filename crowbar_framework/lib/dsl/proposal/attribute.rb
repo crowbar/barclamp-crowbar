@@ -242,6 +242,10 @@ module Dsl
         translation_key = attribute.clone
         translation_key.unshift("")
 
+        translation_key.map! do |v|
+          v == "{{@index}}" ? "index" : v
+        end
+
         content_tag(
           :label,
           t(translation_key.join(".")),

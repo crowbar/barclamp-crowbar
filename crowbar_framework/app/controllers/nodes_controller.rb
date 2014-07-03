@@ -381,7 +381,7 @@ class NodesController < ApplicationController
         @node.networks.each do |intf, data|
           if data["usage"] == "bmc"
             ifname = "bmc"
-            address = @node["crowbar_wall"]["ipmi"]["address"] rescue nil
+            address = @node["crowbar_wall"]["ipmi"]["address"] rescue data["address"]
           else
             ifname, ifs, team = @node.lookup_interface_info(data["conduit"])
             if ifname.nil? or ifs.nil?

@@ -220,7 +220,7 @@ class ProposalObject < ChefObject
   end
 
   def active?
-    role.nil?
+    !role.nil?
   end
 
   def raw_data

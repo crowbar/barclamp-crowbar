@@ -133,6 +133,10 @@ class ServiceObject
     pw[-size,size]
   end
 
+  def random_hex_string(size = 32)
+    SecureRandom.hex(size)
+  end
+
 #
 # Locking Routines
 #

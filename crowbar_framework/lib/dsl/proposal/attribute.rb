@@ -71,7 +71,8 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("string")
+                "data-change" => changer("string"),
+                "id"          => sanitize_to_id(attribute_name),
               }).merge(options)
             )
           ].join("\n")
@@ -101,7 +102,8 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("boolean")
+                "data-change" => changer("boolean"),
+                "id"          => sanitize_to_id(attribute_name),
               }).merge(options)
             )
           ].join("\n")
@@ -213,7 +215,8 @@ module Dsl
             attribute_value,
 
             defaults.merge({
-              "data-change" => changer(type_cast)
+              "data-change" => changer(type_cast),
+              "id"          => sanitize_to_id(attribute_name),
             }).merge(options)
           ]
 
@@ -259,6 +262,13 @@ module Dsl
           attribute_name,
           type_cast
         ].join(";")
+      end
+
+      # We need to make sure that FormTagHelpers sanitize_to_id does not mangle the
+      # attribute. It can contain handlebars variable placeholders, which
+      # would get escaped, e.g. {{@index}} would become __index__
+      def sanitize_to_id(text)
+        [*text].join("_")
       end
     end
   end

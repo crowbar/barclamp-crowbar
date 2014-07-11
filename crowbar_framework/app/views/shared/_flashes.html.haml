@@ -2,7 +2,7 @@
   :javascript
     $.growl({
       type: '#{flash_for key}',
-      message: '#{simple_format message}',
+      message: '#{escape_javascript(simple_format(message))}',
       z_index: 5000,
       delay: 0,
       allow_dismiss: true

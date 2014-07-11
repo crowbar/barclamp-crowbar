@@ -188,6 +188,13 @@ module Dsl
 
       def attribute_value
         begin
+          # HACK: When this looks like a handlebars template, generate
+          # a template lookup for handlebarsjs
+          idx = attribute.index "{{@index}}"
+          if idx
+            return wrap_around(attribute.slice(idx+1, attribute.length).join("."), "{{", "}}")
+          end
+
           result = attrs
 
           attribute.each do |n|

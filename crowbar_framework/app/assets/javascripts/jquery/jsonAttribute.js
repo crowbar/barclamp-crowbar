@@ -136,7 +136,19 @@
         data = data[part];
       }
 
-      delete(data[keys.shift()]);
+      var part = keys.shift();
+
+      // splice it from an array instead of deleting the element
+      // (which leaves behind a null entry)
+      if (data[part] != null &&
+          typeof data[part] === "object" &&
+          'splice' in data &&
+          parseInt(Number(part)) == part) {
+        data.splice(part, 1);
+      }
+      else {
+        delete(data[part]);
+      }
     } catch(e) {
       return false;
     }

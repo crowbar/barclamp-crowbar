@@ -71,8 +71,9 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("string"),
-                "id"          => sanitize_to_id(attribute_name),
+                "data-change"         => changer("string"),
+                "id"                  => sanitize_to_id(attribute_name),
+                "data-initial-value"  => attribute_value
               }).merge(options)
             )
           ].join("\n")

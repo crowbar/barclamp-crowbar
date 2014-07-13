@@ -254,7 +254,7 @@ module Dsl
         translation_key.unshift("")
 
         translation_key.map! do |v|
-          v == "{{@index}}" ? "index" : v
+          v == "{{@index}}" ? "index" : v.to_s
         end
 
         content_tag(

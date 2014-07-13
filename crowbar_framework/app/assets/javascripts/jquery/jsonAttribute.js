@@ -101,7 +101,7 @@
     var keys = key.split('/');
 
     try {
-      while (keys.length >= 1) {
+      while (keys.length > 1) {
         var part = keys.shift();
 
         if (!data[part]) {
@@ -110,6 +110,10 @@
 
         data = data[part];
       }
+      var part = keys.shift();
+
+      data = data[part];
+
     } catch(e) {
       return value;
     }

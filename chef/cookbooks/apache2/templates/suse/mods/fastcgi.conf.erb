@@ -1,0 +1,24 @@
+# protect the fcgi-bin directory if mod_fastcgi is not loaded
+<IfModule !mod_fastcgi.c>
+  <Directory "/srv/www/fcgi-bin">
+    AllowOverride None
+    Options None
+    Order allow,deny
+    Deny from all
+ </Directory>
+</IfModule>
+
+<IfModule mod_fastcgi.c>
+
+  ScriptAlias /fcgi-bin/ /srv/www/fcgi-bin/
+  FastCgiIpcDir /var/lib/apache2/fastcgi
+
+  <Directory "/srv/www/fcgi-bin">
+    AllowOverride None
+    Options +ExecCGI -Includes
+    SetHandler fastcgi-script
+    Order allow,deny
+    Allow from all
+  </Directory>
+  AddHandler fastcgi-script fcg fcgi fpl
+</IfModule>

@@ -19,7 +19,7 @@
 
 define :apache_conf do
   template "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf" do
-    path "#{node[:apache][:dir]}/mod_#{params[:name]}.conf" if node.platform == "suse"
+    path "#{node[:apache][:dir]}/vhosts.d/#{application_name}.conf" if node.platform == "suse"
     source "mods/#{params[:name]}.conf.erb"
     notifies :reload, resources(:service => "apache2")
     mode 0644

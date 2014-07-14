@@ -1,24 +1,44 @@
 # protect the fcgi-bin directory if mod_fastcgi is not loaded
 <IfModule !mod_fastcgi.c>
-  <Directory "/srv/www/fcgi-bin">
-    AllowOverride None
-    Options None
-    Order allow,deny
-    Deny from all
- </Directory>
+	<Directory "/srv/www/fcgi-bin">
+		AllowOverride None
+		Options None
+		Order allow,deny
+		Deny from all
+	</Directory>
 </IfModule>
 
 <IfModule mod_fastcgi.c>
 
-  ScriptAlias /fcgi-bin/ /srv/www/fcgi-bin/
-  FastCgiIpcDir /var/lib/apache2/fastcgi
+	ScriptAlias /fcgi-bin/ /srv/www/fcgi-bin/
+	FastCgiIpcDir /var/lib/apache2/fastcgi
+	# FastCGI applications can be static, dynamic, or external.
 
-  <Directory "/srv/www/fcgi-bin">
-    AllowOverride None
-    Options +ExecCGI -Includes
-    SetHandler fastcgi-script
-    Order allow,deny
-    Allow from all
-  </Directory>
-  AddHandler fastcgi-script fcg fcgi fpl
+	# Dynamic FastCGI applications can be put in this directory.
+	# Use the FastCgiConfig directive in your httpd.conf.local
+	# to change the defaults for them.
+	# http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html#FastCgiConfig
+	<Directory "/srv/www/fcgi-bin">
+		AllowOverride None
+		Options +ExecCGI -Includes
+		SetHandler fastcgi-script
+		Order allow,deny
+		Allow from all
+	</Directory>
+	AddHandler fastcgi-script fcg fcgi fpl
+
+	# Static or external FastCGI applications are started when apache
+	# is started. They are configured with the
+	# FastCgiServer and FastCgiExternalServer directives:
+	# http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html#FastCgiServer
+	# http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html#FastCgiExternalServer
+	# which can be put into httpd.conf.local.
+	#
+	# Examples:
+	#FastCgiServer /srv/www/fcgi-bin/echo -processes 5
+	#FastCgiServer /srv/www/htdocs/some/path/echo.fcgi
+
+	# see http://www.FastCGI.com/docs/faq.html#typical_httpd.conf for more
+	# information...
+
 </IfModule>

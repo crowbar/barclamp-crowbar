@@ -28,12 +28,28 @@ module RemoteNode
     timeout_at = Time.now.to_i + timeout
     ip         = self.resolve_host(host)
 
+    self.wait_for_uptime(host)
+
     self.wait_until(timeout_at, sleep_time) do
       self.port_open?(ip, 22) && self.ssh_cmd(ip, runlevel_check_cmd(host))
     end
   end
 
   private
+
+  # When rebooting a host it's possible to login to the host before the host restarts.
+  # That's why we wait until it's impossible to get the uptime or the current uptime is
+  # lower than the first uptime.
+  def self.wait_for_uptime(host_or_ip)
+    uptime_first = self.ssh_cmd_get_uptime(host_or_ip)
+    30.times do
+      if uptime_first > 0 and self.ssh_cmd_get_uptime(host_or_ip) >= uptime_first
+        sleep(10)
+      else
+        break
+      end
+    end
+  end
 
   # Workaround for similar issue
   # http://projects.puppetlabs.com/issues/2776
@@ -70,8 +86,24 @@ module RemoteNode
     done
   end
 
+  # Basic ssh parameters used for different commands on the remote host
+  def self.ssh_cmd_base(host_or_ip)
+    return ["sudo", "-i", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{host_or_ip}"]
+  end
+
+  # get uptime of the given host or 0 if command can not be executed
+  def self.ssh_cmd_get_uptime(host_or_ip)
+    ssh_cmd = self.ssh_cmd_base(host_or_ip)
+    ssh_cmd << "cat" << "/proc/uptime"
+    retstr = `#{ssh_cmd.join(" ")}`.split(" ")[0].to_i
+    if $?.exitstatus != 0
+      retstr = 0
+    end
+    return retstr
+  end
+
   def self.ssh_cmd(host_or_ip, cmd)
-    ssh = ["sudo", "-i", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{host_or_ip}"]
+    ssh = self.ssh_cmd_base(host_or_ip)
     ssh << cmd
     system(*ssh)
   end

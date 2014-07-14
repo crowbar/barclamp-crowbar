@@ -17,13 +17,13 @@
 # limitations under the License.
 #
 
-if node.platform == "suse"
-  mod_conf = "#{node[:apache][:dir]}/conf.d/#{params[:name]}.conf"
-else
-  mod_conf = "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"
-end
-
 define :apache_conf do
+  if node.platform == "suse"
+    mod_conf = "#{node[:apache][:dir]}/conf.d/#{params[:name]}.conf"
+  else
+    mod_conf = "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"
+  end
+
   template mod_conf do
     source "mods/#{params[:name]}.conf.erb"
     notifies :reload, resources(:service => "apache2")

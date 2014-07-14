@@ -17,9 +17,14 @@
 # limitations under the License.
 #
 
+if node.platform == "suse"
+  mod_conf = "#{node[:apache][:dir]}/conf.d/#{application_name}.conf"
+else
+  mod_conf = "#{node[:apache][:dir]}/mods-available/#{application_name}.conf"
+end
+
 define :apache_conf do
-  template "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf" do
-    path "#{node[:apache][:dir]}/vhosts.d/#{application_name}.conf" if node.platform == "suse"
+  template mod_conf do
     source "mods/#{params[:name]}.conf.erb"
     notifies :reload, resources(:service => "apache2")
     mode 0644

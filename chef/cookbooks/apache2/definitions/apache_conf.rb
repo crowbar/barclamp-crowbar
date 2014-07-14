@@ -18,9 +18,9 @@
 #
 
 if node.platform == "suse"
-  mod_conf = "#{node[:apache][:dir]}/conf.d/#{application_name}.conf"
+  mod_conf = "#{node[:apache][:dir]}/conf.d/#{params[:name]}.conf"
 else
-  mod_conf = "#{node[:apache][:dir]}/mods-available/#{application_name}.conf"
+  mod_conf = "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"
 end
 
 define :apache_conf do

@@ -26,6 +26,7 @@ define :apache_conf do
 
   template mod_conf do
     source "mods/#{params[:name]}.conf.erb"
+    cookbook 'apache2'
     notifies :reload, resources(:service => "apache2")
     mode 0644
   end

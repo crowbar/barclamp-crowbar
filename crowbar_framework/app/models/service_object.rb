@@ -1460,16 +1460,7 @@ class ServiceObject
       if nobj[:crowbar_wall][:wait_for_reboot] and nobj[:crowbar_wall][:wait_for_reboot] == true
         puts "Waiting for reboot of node #{node}"
         if RemoteNode.ready?(node, 1200)
-          3.times do
-            if system(*ssh_cmd)
-              nobj = NodeObject.find_node_by_name(node)
-              puts "Waiting for reboot of node #{node} done. Node is back"
-              break
-            else
-              puts "#{command} failed on node #{node}, going to wait 60s until next attempt"
-              sleep(60)
-            end
-          end
+          puts "Waiting for reboot of node #{node} done. Node is back"
         else
           STDERR.puts "Waiting for reboot of node #{node} failed"
           exit(1)

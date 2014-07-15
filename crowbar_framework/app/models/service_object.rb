@@ -1457,7 +1457,7 @@ class ServiceObject
 
       # check if we need to wait for a node reboot
       nobj = NodeObject.find_node_by_name(node)
-      if nobj[:crowbar_wall][:wait_for_reboot] and nobj[:crowbar_wall][:wait_for_reboot] == true
+      if nobj[:crowbar_wall][:wait_for_reboot]
         puts "Waiting for reboot of node #{node}"
         if RemoteNode.ready?(node, 1200)
           puts "Waiting for reboot of node #{node} done. Node is back"

@@ -92,8 +92,12 @@
       data = data[part];
     }
 
-    data[keys.shift()] = value;
-    this.writeJson();
+    var current = keys.shift();
+
+    if (data[current] !== value) {
+      data[current] = value;
+      this.writeJson();
+    }
   };
 
   JsonAttribute.prototype.read = function(key, value, type) {

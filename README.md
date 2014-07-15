@@ -1,6 +1,8 @@
 Welcome to a Barclamp for the Crowbar Framework project
 =======================================================
 
+[![Build Status](https://travis-ci.org/crowbar/barclamp-crowbar.svg?branch=master)](https://travis-ci.org/crowbar/barclamp-crowbar)
+
 The code and documentation is distributed under the [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0.html).
 Contributions back to the source are encouraged.
 

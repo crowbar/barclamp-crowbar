@@ -20,6 +20,7 @@ require 'chef'
 require 'json'
 require 'hash_only_merge'
 require 'securerandom'
+require 'timeout'
 
 class ServiceObject
   include CrowbarPacemakerProxy
@@ -1461,6 +1462,29 @@ class ServiceObject
         puts "Waiting for reboot of node #{node}"
         if RemoteNode.ready?(node, 1200)
           puts "Waiting for reboot of node #{node} done. Node is back"
+          # Check node state - crowbar_join's chef-client run should successfully finish
+          puts "Waiting to finish chef-client run on node #{node}"
+          begin
+            Timeout.timeout(600) do
+              loop do
+                nobj = NodeObject.find_node_by_name(node)
+                case nobj[:state]
+                when "ready"
+                  puts "Node state after reboot is: #{nobj[:state]}. Continue"
+                  break
+                when "problem"
+                  STDERR.puts "Node state after reboot is: #{nobj[:state]}. Exit"
+                  exit(1)
+                else
+                  puts "Node state after reboot is: #{nobj[:state]}. Waiting"
+                  sleep(10)
+                end
+              end
+            end
+          rescue Timeout::Error
+            STDERR.puts "Node state never reached valid state. Exit"
+            exit(1)
+          end
         else
           STDERR.puts "Waiting for reboot of node #{node} failed"
           exit(1)

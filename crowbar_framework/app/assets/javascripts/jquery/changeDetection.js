@@ -23,7 +23,7 @@
     this.defaults = {
       attribute: 'changedState',
       sourceEvents: 'change',
-      targetElements: 'a.customview, a.rawview, .nav a',
+      targetElements: 'a.customview, a.rawview, .nav a:not([data-toggle]), .btn.cancel',
       targetEvents: 'click',
       message: this.$el.data('changed-state')
     };

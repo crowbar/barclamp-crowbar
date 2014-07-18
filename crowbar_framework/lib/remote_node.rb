@@ -28,26 +28,28 @@ module RemoteNode
     timeout_at = Time.now.to_i + timeout
     ip         = self.resolve_host(host)
 
-    self.wait_for_uptime(host)
+    nobj = NodeObject.find_node_by_name(host)
+    reboot_requesttime = nobj[:crowbar_wall][:wait_for_reboot_requesttime] || 0
 
     self.wait_until(timeout_at, sleep_time) do
-      self.port_open?(ip, 22) && self.ssh_cmd(ip, runlevel_check_cmd(host))
+      self.port_open?(ip, 22) && self.reboot_done?(ip, reboot_requesttime) && self.ssh_cmd(ip, runlevel_check_cmd(host))
     end
   end
 
   private
 
-  # When rebooting a host it's possible to login to the host before the host restarts.
-  # That's why we wait until it's impossible to get the uptime or the current uptime is
-  # lower than the first uptime.
-  def self.wait_for_uptime(host_or_ip)
-    uptime_first = self.ssh_cmd_get_uptime(host_or_ip)
-    30.times do
-      if uptime_first > 0 and self.ssh_cmd_get_uptime(host_or_ip) >= uptime_first
-        sleep(10)
+  def self.reboot_done?(host_or_ip, reboot_requesttime)
+    # if reboot_requesttime is zero, we don't know when the reboot was requested.
+    # in this case return true so the process can continue
+    if reboot_requesttime > 0
+      boottime = self.ssh_cmd_get_boottime(host_or_ip)
+      if boottime > 0 and boottime <= reboot_requesttime
+        false
       else
-        break
+        true
       end
+    else
+      true
     end
   end
 
@@ -91,15 +93,17 @@ module RemoteNode
     return ["sudo", "-i", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{host_or_ip}"]
   end
 
-  # get uptime of the given host or 0 if command can not be executed
-  def self.ssh_cmd_get_uptime(host_or_ip)
+  # get boot time of the given host or 0 if command can not be executed
+  def self.ssh_cmd_get_boottime(host_or_ip)
     ssh_cmd = self.ssh_cmd_base(host_or_ip)
-    ssh_cmd << "cat" << "/proc/uptime"
-    retstr = `#{ssh_cmd.join(" ")}`.split(" ")[0].to_i
+    ssh_cmd << "'echo $(($(date +%s) - $(cat /proc/uptime|cut -d \" \" -f 1|cut -d \".\" -f 1)))'"
+    ssh_cmd = ssh_cmd.map{|x| x.chomp}.join(" ")
+    retval = `#{ssh_cmd}`.split(" ")[0].to_i
     if $?.exitstatus != 0
-      retstr = 0
+      puts "ssh-cmd '#{ssh_cmd}' to get datetime not successful"
+      retval = 0
     end
-    return retstr
+    return retval
   end
 
   def self.ssh_cmd(host_or_ip, cmd)

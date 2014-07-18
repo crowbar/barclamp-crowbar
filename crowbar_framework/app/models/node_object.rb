@@ -170,7 +170,7 @@ class NodeObject < ChefObject
   end
 
   def pretty_target_platform
-    CrowbarService.pretty_target_platform(@node[:target_platform])
+    CrowbarService.pretty_target_platform(target_platform)
   end
 
   def target_platform=(value)

@@ -30,7 +30,6 @@ class NodesController < ApplicationController
     else
       @nodes = {}
       get_nodes_and_groups(params[:name])
-      get_node_and_network(params[:selected]) if params[:selected]
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
 

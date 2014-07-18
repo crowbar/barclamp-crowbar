@@ -78,7 +78,7 @@ module NodesHelper
 
   def node_links_for(value)
     node_list_for(value).map do |name, node|
-      link_to node[:alias], nodes_path(:selected => node[:handle]), :title => node[:title]
+      link_to node[:alias], node_path(node[:handle]), :title => node[:title]
     end
   end
 

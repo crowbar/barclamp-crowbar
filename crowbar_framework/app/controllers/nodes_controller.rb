@@ -30,7 +30,6 @@ class NodesController < ApplicationController
     else
       @nodes = {}
       get_nodes_and_groups(params[:name])
-      get_node_and_network(params[:selected]) if params[:selected]
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
 
@@ -314,7 +313,7 @@ class NodesController < ApplicationController
       Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
       flash[:notice] = "Unknown action: #{params[:submit]}"
     end
-    redirect_to nodes_path(:selected => @node.name)
+    redirect_to node_path(@node.handle)
   end
 
   #this code allow us to get values of attributes by path of node

@@ -52,7 +52,7 @@
               %li.form-control.input-sm.available{ "data-draggable" => "true", "data-id" => n, "data-alias" => detail[:alias], "data-cluster" => "false", "data-admin" => detail[:admin].to_s, :title => (detail[:title] || t("not_set")) }
                 = icon_tag :hdd
                 = detail[:alias]
-                = link_to icon_tag("link"), nodes_path(:selected => detail[:handle]), :title => t(".node_link", :alias => detail[:alias]), :class => "pull-right"
+                = link_to icon_tag("link"), node_path(detail[:handle]), :title => t(".node_link", :alias => detail[:alias]), :class => "pull-right"
 
       .col-xs-6.dropzone
         - @proposal.all_elements.each do |element|

@@ -314,7 +314,7 @@ class NodesController < ApplicationController
       Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
       flash[:notice] = "Unknown action: #{params[:submit]}"
     end
-    redirect_to nodes_path(:selected => @node.name)
+    redirect_to node_path(@node.handle)
   end
 
   #this code allow us to get values of attributes by path of node

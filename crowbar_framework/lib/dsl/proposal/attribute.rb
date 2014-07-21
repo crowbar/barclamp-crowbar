@@ -252,7 +252,7 @@ module Dsl
         content_tag(
           :label,
           t(translation_key.join(".")),
-          :for => attribute
+          :for => sanitize_to_id(attribute_name)
         )
       end
 

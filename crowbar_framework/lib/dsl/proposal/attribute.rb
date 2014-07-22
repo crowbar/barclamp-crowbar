@@ -71,8 +71,9 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("string"),
-                "id"          => sanitize_to_id(attribute_name),
+                "data-change"         => changer("string"),
+                "id"                  => sanitize_to_id(attribute_name),
+                "data-initial-value"  => attribute_value
               }).merge(options)
             )
           ].join("\n")
@@ -187,6 +188,13 @@ module Dsl
 
       def attribute_value
         begin
+          # HACK: When this looks like a handlebars template, generate
+          # a template lookup for handlebarsjs
+          idx = attribute.index "{{@index}}"
+          if idx
+            return wrap_around(attribute.slice(idx+1, attribute.length).join("."), "{{", "}}")
+          end
+
           result = attrs
 
           attribute.each do |n|
@@ -246,7 +254,7 @@ module Dsl
         translation_key.unshift("")
 
         translation_key.map! do |v|
-          v == "{{@index}}" ? "index" : v
+          v == "{{@index}}" ? "index" : v.to_s
         end
 
         content_tag(

@@ -110,14 +110,16 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            unless node.target_platform == node_attributes["target_platform"]
-              node.target_platform = node_attributes["target_platform"]
-              dirty = true
-            end
+            unless node.allocated?
+              unless node.target_platform == node_attributes["target_platform"]
+                node.target_platform = node_attributes["target_platform"]
+                dirty = true
+              end
 
-            unless node.license_key == node_attributes["license_key"]
-              node.license_key = node_attributes["license_key"]
-              dirty = true
+              unless node.license_key == node_attributes["license_key"]
+                node.license_key = node_attributes["license_key"]
+                dirty = true
+              end
             end
 
             unless node.intended_role == node_attributes["intended_role"]

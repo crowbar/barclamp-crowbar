@@ -27,16 +27,42 @@ module RemoteNode
   def self.ready?(host, timeout = 60, sleep_time = 10)
     timeout_at = Time.now.to_i + timeout
     ip         = self.resolve_host(host)
+    msg = "Waiting for host, next attempt at #{Time.now + sleep_time}"
 
     nobj = NodeObject.find_node_by_name(host)
     reboot_requesttime = nobj[:crowbar_wall][:wait_for_reboot_requesttime] || 0
 
-    self.wait_until(timeout_at, sleep_time) do
+    self.wait_until(msg, timeout_at, sleep_time) do
       self.port_open?(ip, 22) && self.reboot_done?(ip, reboot_requesttime) && self.ssh_cmd(ip, runlevel_check_cmd(host))
     end
   end
 
+  # wait until no other chef-clients are currently running on the host
+  def self.chef_ready?(host, timeout = 60, sleep_time = 10)
+    timeout_at = Time.now.to_i + timeout
+    ip         = self.resolve_host(host)
+    msg = "Waiting for already running chef-client, next attempt at #{Time.now + sleep_time}"
+    self.wait_until(msg, timeout_at, sleep_time) do
+      self.port_open?(ip, 22) && !self.chef_clients_running?(ip)
+    end
+  end
+
   private
+
+  # are there some chef-clients running on the host?
+  # chef-client daemon started by pid 1 is not counted
+  def self.chef_clients_running?(host_or_ip)
+    ssh_cmd = self.ssh_cmd_base(host_or_ip)
+    ssh_cmd << "'if test -f /var/chef/cache/chef-client-running.pid; then flock -n /var/chef/cache/chef-client-running.pid true; fi'"
+    ssh_cmd = ssh_cmd.map{|x| x.chomp}.join(" ")
+    res = `#{ssh_cmd}`
+    case $?.exitstatus
+    when 0
+      return false
+    else
+      return true
+    end
+  end
 
   def self.reboot_done?(host_or_ip, reboot_requesttime)
     # if reboot_requesttime is zero, we don't know when the reboot was requested.
@@ -73,14 +99,14 @@ module RemoteNode
   end
 
   # Polls until yielded block returns true or a timeout is reached
-  def self.wait_until(timeout_at, sleep_time = 10)
+  def self.wait_until(msg, timeout_at, sleep_time = 10)
     done = block_given? ? yield : false
 
     while Time.now.to_i < timeout_at && !done do
       done = block_given? ? yield : false
 
       unless done
-        puts "Waiting, next attempt at #{Time.now + sleep_time}"
+        puts msg
         sleep(sleep_time)
       end
     end

@@ -254,6 +254,8 @@ class NodeObject < ChefObject
     if display_set? 'alias'
       display['alias']
     else
+      # FIXME: This code is duplicated in crowbar_machines' #aliases method.
+      # If you change this, currently you need to update that too.
       fallback = name.split('.')[0]
       fallback = default_loader['alias'] || fallback if suggest and !display_set? 'alias'
       fallback

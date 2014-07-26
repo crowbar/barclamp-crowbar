@@ -1454,46 +1454,62 @@ class ServiceObject
       ssh = ["sudo", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{node}"]
       ssh_cmd = ssh.dup << command
 
+      # check if there are currently other chef-client runs on the node
+      wait_for_chef_clients(node)
+      # check if the node is currently rebooting
+      wait_for_reboot(node)
+
       exit(1) unless system(*ssh_cmd)
 
       # check if we need to wait for a node reboot
-      nobj = NodeObject.find_node_by_name(node)
-      if nobj[:crowbar_wall][:wait_for_reboot]
-        puts "Waiting for reboot of node #{node}"
-        if RemoteNode.ready?(node, 1200)
-          puts "Waiting for reboot of node #{node} done. Node is back"
-          # Check node state - crowbar_join's chef-client run should successfully finish
-          puts "Waiting to finish chef-client run on node #{node}"
-          begin
-            Timeout.timeout(600) do
-              loop do
-                nobj = NodeObject.find_node_by_name(node)
-                case nobj[:state]
-                when "ready"
-                  puts "Node state after reboot is: #{nobj[:state]}. Continue"
-                  break
-                when "problem"
-                  STDERR.puts "Node state after reboot is: #{nobj[:state]}. Exit"
-                  exit(1)
-                else
-                  puts "Node state after reboot is: #{nobj[:state]}. Waiting"
-                  sleep(10)
-                end
-              end
-            end
-          rescue Timeout::Error
-            STDERR.puts "Node state never reached valid state. Exit"
-            exit(1)
-          end
-        else
-          STDERR.puts "Waiting for reboot of node #{node} failed"
-          exit(1)
-        end
-      end
+      wait_for_reboot(node)
     }
   end
 
   private
+
+  def wait_for_chef_clients(node)
+    unless RemoteNode.chef_ready?(node, 1200)
+      STDERR.puts "Waiting for already running chef-clients on #{node} failed"
+      exit(1)
+    end
+  end
+
+  def wait_for_reboot(node)
+    nobj = NodeObject.find_node_by_name(node)
+    if nobj[:crowbar_wall][:wait_for_reboot]
+      puts "Waiting for reboot of node #{node}"
+      if RemoteNode.ready?(node, 1200)
+        puts "Waiting for reboot of node #{node} done. Node is back"
+        # Check node state - crowbar_join's chef-client run should successfully finish
+        puts "Waiting to finish chef-client run on node #{node}"
+        begin
+          Timeout.timeout(600) do
+            loop do
+              nobj = NodeObject.find_node_by_name(node)
+              case nobj[:state]
+              when "ready"
+                puts "Node state after reboot is: #{nobj[:state]}. Continue"
+                break
+              when "problem"
+                STDERR.puts "Node state after reboot is: #{nobj[:state]}. Exit"
+                exit(1)
+              else
+                puts "Node state after reboot is: #{nobj[:state]}. Waiting"
+                sleep(10)
+              end
+            end
+          end
+        rescue Timeout::Error
+          STDERR.puts "Node state never reached valid state. Exit"
+          exit(1)
+        end
+      else
+        STDERR.puts "Waiting for reboot of node #{node} failed"
+        exit(1)
+      end
+    end
+  end
 
   def handle_validation_errors
     if @validation_errors && @validation_errors.length > 0

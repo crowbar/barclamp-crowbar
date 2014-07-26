@@ -86,6 +86,8 @@ class RoleObject < ChefObject
   end
 
   def barclamp
+    # FIXME: this obviously shouldn't need to exist; we need a proper registry
+    # to avoid barclamp-crowbar having to know about other barclamps...
     name = @role.name.split("-")[0]
 
     case name
@@ -95,6 +97,8 @@ class RoleObject < ChefObject
       "ipmi"
     when "nfs"
       "nfs_client"
+    when "hawk"
+      "pacemaker"
     else
       name
     end

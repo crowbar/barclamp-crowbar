@@ -95,6 +95,8 @@ class RoleObject < ChefObject
       "ipmi"
     when "nfs"
       "nfs_client"
+    when "hawk"
+      "pacemaker"
     else
       name
     end

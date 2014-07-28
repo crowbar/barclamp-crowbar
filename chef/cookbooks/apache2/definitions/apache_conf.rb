@@ -19,7 +19,15 @@
 
 define :apache_conf do
   if node.platform == "suse"
-    mod_conf = "#{node[:apache][:dir]}/conf.d/#{params[:name]}.conf"
+    if params[:name] == "ssl"
+      # SSL is special
+      mod_conf = "#{node[:apache][:dir]}/ssl-global.conf"
+    elsif %{info log_config reqtimeout status usertrack}.include?(params[:name])
+      # Explicitly included from httpd.conf already
+      mod_conf = "#{node[:apache][:dir]}/mod_#{params[:name]}.conf"
+    else
+      mod_conf = "#{node[:apache][:dir]}/conf.d/#{params[:name]}.conf"
+    end
   else
     mod_conf = "#{node[:apache][:dir]}/mods-available/#{params[:name]}.conf"
   end

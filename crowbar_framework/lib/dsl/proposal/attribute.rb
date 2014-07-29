@@ -105,6 +105,7 @@ module Dsl
               defaults.merge({
                 "data-change" => changer("boolean"),
                 "id"          => sanitize_to_id(attribute_name),
+                "data-initial-value"  => attribute_value
               }).merge(options)
             )
           ].join("\n")
@@ -192,7 +193,7 @@ module Dsl
           # a template lookup for handlebarsjs
           idx = attribute.index "{{@index}}"
           if idx
-            return wrap_around(attribute.slice(idx+1, attribute.length).join("."), "{{", "}}")
+            return wrap_around(attribute.slice(idx+1, attribute.length).join("."), "{{toString ", "}}")
           end
 
           result = attrs

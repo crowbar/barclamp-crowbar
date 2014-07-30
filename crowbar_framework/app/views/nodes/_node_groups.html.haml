@@ -4,7 +4,7 @@
 
 #nodegroups.row
   - @groups.sort.each do |group_name, group|
-    .col-xs-3{ "data-id" => group_name, "data-droppable" => @draggable, "data-group" => group_name }
+    .col-xs-3{ "data-id" => group_name, "data-droppable" => @draggable.to_s, "data-group" => group_name }
       .panel.panel-default
         .panel-heading
           %h2
@@ -14,13 +14,13 @@
         %ul.list-group
           - group[:nodes].values.sort_by { |handle| @nodes[handle][:alias] }.each do |handle|
             - @nodes[handle].tap do |node|
-              %li.list-group-item{ "data-id" => handle.parameterize, "data-draggable" => @draggable, "data-update" => group_change_path(:id => handle.parameterize, :group => "{0}".html_safe) }
+              %li.list-group-item{ "data-id" => handle.parameterize, "data-draggable" => @draggable.to_s, "data-update" => group_change_path(:id => handle.parameterize, :group => "{0}".html_safe) }
                 %span.led{ :class => node[:status], :title => t(node[:state], :scope => "state", :default => node[:state].titlecase), "data-node" => handle }
                 = link_to(truncate(node[:alias], :length => 25), node_path(handle), :title => node[:description])
 
 - if @draggable
   %script#group-panel{ :type => "text/x-handlebars-template" }
-    .col-xs-3.group-panel{ "data-id" => "{{group}}", "data-droppable" => @draggable }
+    .col-xs-3.group-panel{ "data-id" => "{{group}}", "data-droppable" => @draggable.to_s }
       .panel.panel-default
         .panel-heading
           %h2

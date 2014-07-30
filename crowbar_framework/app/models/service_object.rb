@@ -1383,7 +1383,7 @@ class ServiceObject
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
       @logger.debug("ARTOI: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
       prop["deployment"][barclamp]["elements"][newrole] << node.name
-      prop.save
+      prop.save(:applied => prop.latest_applied?)
     else
       @logger.debug("ARTOI: node #{node.name} already in proposal: role #{newrole} for #{barclamp}")
     end

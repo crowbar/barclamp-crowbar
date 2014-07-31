@@ -16,4 +16,3 @@ install:
   - cp config/catalog.yml.example config/catalog.yml
 script:
   - bundle exec rake spec
-  - bundle exec rake brakeman:run

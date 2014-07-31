@@ -7,11 +7,13 @@
 
 jQuery(document).ready(function($) {
   $('textarea.editor').each(function() {
-    CodeMirror.fromTextArea(this, {
+    var cm = CodeMirror.fromTextArea(this, {
       lineNumbers: true,
       matchBrackets: true,
       tabSize: 2
     });
+
+    $(this).data('codeMirror', cm);
   });
 
   $('[data-default]').each(function() {
@@ -238,6 +240,7 @@ jQuery(document).ready(function($) {
   $('[data-ledupdate]').ledUpdate();
   $('[data-show-for-clusters-only="true"]').hideShowClusterConf();
 
+  $('#proposal_attributes, #proposal_deployment').changedState();
   $('#nodelist').nodeList();
   $('input[type=password]').hideShowPassword();
 

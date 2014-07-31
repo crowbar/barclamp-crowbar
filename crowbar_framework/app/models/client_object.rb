@@ -19,6 +19,8 @@ class ClientObject < ChefObject
   def self.find_client_by_name(name)
     begin
       return ClientObject.new Chef::ApiClient.load(name)
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue StandardError => e
       Rails.logger.fatal("Failed to find client: #{name} #{e.message}")
       return nil

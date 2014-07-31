@@ -24,7 +24,9 @@ class ProposalObject < ChefObject
     begin
       bag = ProposalObject.new(Chef::DataBag.load bag)  #should use new syntax
       return bag
-    rescue
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
+    rescue StandardError => e
       return nil
     end
   end
@@ -48,7 +50,11 @@ class ProposalObject < ChefObject
   def self.all
     self.find 'bc-*'
   end
-  
+
+  def self.select_proposals(barclamp, all = ProposalObject.all)
+    all.select { |p| p.id =~ /^bc-#{barclamp}-.*/ }
+  end
+
   def self.find_proposals(barclamp)
     self.find "bc-#{barclamp}-*"
   end
@@ -64,6 +70,8 @@ class ProposalObject < ChefObject
   def self.find_proposal_by_id(id)
     val = begin
       Chef::DataBag.load "crowbar/#{id}"
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Data on load #{id}: #{e.inspect}")
       nil
@@ -129,12 +137,22 @@ class ProposalObject < ChefObject
 
   def name
     match = @item.name.match(/crowbar_bc-(.*)-(.*)$/)
-    match[1] == 'template' ? match[1] : match[2]
+    if match.nil?
+      match = @item.name.match(/crowbar_(.*)_network$/)
+      match.nil? ? "" : match[1]
+    else
+      match[1] == 'template' ? match[1] : match[2]
+    end
   end
 
   def barclamp
     match = @item.name.match(/crowbar_bc-(.*)-(.*)$/)
-    match[1] == 'template' ? match[2] : match[1]
+    if match.nil?
+      match = @item.name.match(/crowbar_(.*)_network$/)
+      match.nil? ? "" : "network"
+    else
+      match[1] == 'template' ? match[2] : match[1]
+    end
   end
 
   def prop
@@ -201,17 +219,22 @@ class ProposalObject < ChefObject
     RoleObject.find_role_by_name("#{barclamp}-config-#{name}")
   end
 
-  def revision
+  def crowbar_revision
     @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
   end
 
   def latest_applied?
-    r = role
-    revision > 0 && r && r.revision == revision
+    @item["deployment"][barclamp]["crowbar-applied"] rescue false
+  end
+
+  def latest_applied=(applied)
+    @item["deployment"] ||= {}
+    @item["deployment"][barclamp] ||= {}
+    @item["deployment"][barclamp]["crowbar-applied"] = applied
   end
 
   def active?
-    role.nil?
+    !role.nil?
   end
 
   def raw_data
@@ -234,23 +257,28 @@ class ProposalObject < ChefObject
     @item = x
   end
 
-  def save
-    @item["deployment"] = {} if @item["deployment"].nil?
-    @item["deployment"][barclamp] = {} if @item["deployment"][barclamp].nil?
+  def increment_crowbar_revision!
+    @item["deployment"] ||= {}
+    @item["deployment"][barclamp] ||= {}
     if @item["deployment"][barclamp]["crowbar-revision"].nil?
       @item["deployment"][barclamp]["crowbar-revision"] = 0
     else
-      @item["deployment"][barclamp]["crowbar-revision"] = @item["deployment"][barclamp]["crowbar-revision"] + 1
+      @item["deployment"][barclamp]["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+  end
+
+  def save(options = {})
+    self.latest_applied = !!options[:applied]
+    increment_crowbar_revision!
+    Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
-    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
+    Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   
   def export

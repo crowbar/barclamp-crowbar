@@ -142,6 +142,14 @@ else
   end
 end
 
+directory "/var/run/crowbar" do
+  owner "crowbar"
+  group "crowbar"
+  mode  "0755"
+  action :create
+  only_if { node[:platform] == "ubuntu" }
+end
+
 # mode 0755 so subdirs can be nfs mounted to admin-exported shares
 directory logdir do
   owner "crowbar"

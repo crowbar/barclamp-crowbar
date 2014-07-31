@@ -20,6 +20,7 @@ require 'chef'
 require 'json'
 require 'hash_only_merge'
 require 'securerandom'
+require 'timeout'
 
 class ServiceObject
   include CrowbarPacemakerProxy
@@ -717,19 +718,21 @@ class ServiceObject
     elsif prop["deployment"][@bc_name]["crowbar-committing"]
       [402, "#{I18n.t('.already_commit', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
     else
+      response = nil
       begin
         # Put mark on the wall
         prop["deployment"][@bc_name]["crowbar-committing"] = true
         save_proposal!(prop, :validate_after_save => validate_after_save)
-        active_update prop.raw_data, inst, in_queue
+        response = active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
-        [400, "Failed to validate proposal: #{e.message}"]
+        response = [400, "Failed to validate proposal: #{e.message}"]
       ensure
         # Make sure we unmark the wall
         prop = ProposalObject.find_proposal(@bc_name, inst)
         prop["deployment"][@bc_name]["crowbar-committing"] = false
-        prop.save
+        prop.save(:applied => (response.first == 200))
       end
+      response
     end
   end
 
@@ -1448,48 +1451,65 @@ class ServiceObject
       # Exec command
       # the -- tells sudo to stop interpreting options
 
-      # example for using reboot feature in recipes
-      # unless ["complete","rebooting"].include? node[:reboot]
-      #   node[:reboot] = "require"
-      #   node.save
-      # end
-      # if node[cpu][0][flags].include?("smx")
-      #   node[:reboot] = "complete"
-      # end
-
       ssh = ["sudo", "-u", "root", "--", "ssh", "-o", "TCPKeepAlive=no", "-o", "ServerAliveInterval=15", "root@#{node}"]
       ssh_cmd = ssh.dup << command
-      ssh_reboot = ssh.dup << "reboot"
+
+      # check if there are currently other chef-client runs on the node
+      wait_for_chef_clients(node)
+      # check if the node is currently rebooting
+      wait_for_reboot(node)
 
       exit(1) unless system(*ssh_cmd)
 
-      nobj = NodeObject.find_node_by_name(node)
-      attempt=0
-      while nobj[:reboot] == "require" and attempt <= 3
-        attempt += 1
-        puts "going to reboot #{node} due to #{nobj[:reboot]} attempt #{attempt}"
-        system(*ssh_reboot)
-        if RemoteNode.ready?(node, 1200)
-          3.times do
-            if system(*ssh_cmd)
-              nobj = NodeObject.find_node_by_name(node)
-              break
-            else
-              puts "#{command} failed on node #{node}, going to wait 60s until next attempt"
-              sleep(60)
-            end
-          end
-        else
-          exit(1)
-        end
-      end
-      if attempt > 3 and nobj[:reboot] == "require"
-        puts "reboot failed #{attempt} times"
-      end
+      # check if we need to wait for a node reboot
+      wait_for_reboot(node)
     }
   end
 
   private
+
+  def wait_for_chef_clients(node)
+    unless RemoteNode.chef_ready?(node, 1200)
+      STDERR.puts "Waiting for already running chef-clients on #{node} failed"
+      exit(1)
+    end
+  end
+
+  def wait_for_reboot(node)
+    nobj = NodeObject.find_node_by_name(node)
+    if nobj[:crowbar_wall][:wait_for_reboot]
+      puts "Waiting for reboot of node #{node}"
+      if RemoteNode.ready?(node, 1200)
+        puts "Waiting for reboot of node #{node} done. Node is back"
+        # Check node state - crowbar_join's chef-client run should successfully finish
+        puts "Waiting to finish chef-client run on node #{node}"
+        begin
+          Timeout.timeout(600) do
+            loop do
+              nobj = NodeObject.find_node_by_name(node)
+              case nobj[:state]
+              when "ready"
+                puts "Node state after reboot is: #{nobj[:state]}. Continue"
+                break
+              when "problem"
+                STDERR.puts "Node state after reboot is: #{nobj[:state]}. Exit"
+                exit(1)
+              else
+                puts "Node state after reboot is: #{nobj[:state]}. Waiting"
+                sleep(10)
+              end
+            end
+          end
+        rescue Timeout::Error
+          STDERR.puts "Node state never reached valid state. Exit"
+          exit(1)
+        end
+      else
+        STDERR.puts "Waiting for reboot of node #{node} failed"
+        exit(1)
+      end
+    end
+  end
 
   def handle_validation_errors
     if @validation_errors && @validation_errors.length > 0

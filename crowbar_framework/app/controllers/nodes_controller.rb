@@ -29,20 +29,7 @@ class NodesController < ApplicationController
       end
     else
       @nodes = {}
-      raw_nodes = NodeObject.all
-      get_node_and_network(params[:selected]) if params[:selected]
-      raw_nodes.each do |node|
-        @sum = @sum + node.name.hash
-        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
-        group = node.group
-        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
-        @groups[group][:nodes][node.group_order] = node.handle
-        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
-        if node.handle === params[:name]
-          @node = node
-          get_node_and_network(node.handle)
-        end
-      end
+      get_nodes_and_groups(params[:name])
       flash[:notice] = "<b>#{t :warning, :scope => :error}:</b> #{t :no_nodes_found, :scope => :error}" if @nodes.empty? #.html_safe if @nodes.empty?
     end
 
@@ -123,14 +110,16 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            unless node.target_platform == node_attributes["target_platform"]
-              node.target_platform = node_attributes["target_platform"]
-              dirty = true
-            end
+            unless node.allocated?
+              unless node.target_platform == node_attributes["target_platform"]
+                node.target_platform = node_attributes["target_platform"]
+                dirty = true
+              end
 
-            unless node.license_key == node_attributes["license_key"]
-              node.license_key = node_attributes["license_key"]
-              dirty = true
+              unless node.license_key == node_attributes["license_key"]
+                node.license_key = node_attributes["license_key"]
+                dirty = true
+              end
             end
 
             unless node.intended_role == node_attributes["intended_role"]
@@ -297,6 +286,7 @@ class NodesController < ApplicationController
   def show
     get_node_and_network(params[:id] || params[:name])
     raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
+    get_nodes_and_groups(params[:name], false)
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @node }
@@ -317,15 +307,17 @@ class NodesController < ApplicationController
     raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
 
     if params[:submit] == t('nodes.form.allocate')
-      @node.allocate!
-      flash[:notice] = t('nodes.form.allocate_node_success') if save_node(true)
+      if save_node
+        @node.allocate!
+        flash[:notice] = t('nodes.form.allocate_node_success')
+      end
     elsif params[:submit] == t('nodes.form.save')
-      flash[:notice] = t('nodes.form.save_node_success') if save_node(false)
+      flash[:notice] = t('nodes.form.save_node_success') if save_node
     else
       Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
       flash[:notice] = "Unknown action: #{params[:submit]}"
     end
-    redirect_to nodes_path(:selected => @node.name)
+    redirect_to node_path(@node.handle)
   end
 
   #this code allow us to get values of attributes by path of node
@@ -342,7 +334,7 @@ class NodesController < ApplicationController
 
   private
 
-  def save_node(change_target_platform)
+  def save_node
     if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
       flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
       return false
@@ -365,7 +357,7 @@ class NodesController < ApplicationController
         @node.send("#{attr}=", params[param]) if params.key?(param)
       end
 
-      if change_target_platform
+      unless @node.allocated?
         @node.target_platform = params[:target_platform] || @template.default_platform
         @node.license_key = params[:license_key]
       end
@@ -418,4 +410,25 @@ class NodesController < ApplicationController
 
     @network
   end
+
+  def get_nodes_and_groups(node_name, draggable = true)
+    @sum = 0
+    @groups = {}
+    @nodes  = {}
+      raw_nodes = NodeObject.all
+      raw_nodes.each do |node|
+        @sum = @sum + node.name.hash
+        @nodes[node.handle] = { :alias=>node.alias, :description=>node.description, :status=>node.status, :state=>node.state }
+        group = node.group
+        @groups[group] = { :automatic=>!node.display_set?('group'), :status=>{"ready"=>0, "failed"=>0, "unknown"=>0, "unready"=>0, "pending"=>0}, :nodes=>{} } unless @groups.key? group
+        @groups[group][:nodes][node.group_order] = node.handle
+        @groups[group][:status][node.status] = (@groups[group][:status][node.status] || 0).to_i + 1
+        if node.handle === node_name
+          @node = node
+          get_node_and_network(node.handle)
+        end
+      end
+    @draggable = draggable
+  end
+
 end

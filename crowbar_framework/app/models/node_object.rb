@@ -87,6 +87,8 @@ class NodeObject < ChefObject
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
     val = begin
       Chef::Node.load(name)
+    rescue Errno::ECONNREFUSED => e
+      raise Crowbar::Error::ChefOffline.new
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
       nil
@@ -168,7 +170,7 @@ class NodeObject < ChefObject
   end
 
   def pretty_target_platform
-    CrowbarService.pretty_target_platform(@node[:target_platform])
+    CrowbarService.pretty_target_platform(target_platform)
   end
 
   def target_platform=(value)
@@ -389,24 +391,20 @@ class NodeObject < ChefObject
     return if @node.nil?
     return if @role.nil?
     return if self.allocated?
-    self.allocated = true
-    save
+    Rails.logger.info("Allocating node #{@node.name}")
+    @role.save do |r|
+      r.default_attributes["crowbar"]["allocated"] = true
+    end
   end
 
   def allocate
     allocate!
   end
 
-  def allocated=(value)
-    return false if @role.nil?
-    Rails.logger.info("Setting allocate state for #{@node.name} to #{value}")
-    self.crowbar["crowbar"]["allocated"] = value
-    @role.save
-    value
-  end
-
   def allocated?
-    (@node.nil? or @role.nil?) ? false : !!self.crowbar["crowbar"]["allocated"]
+    return false if (@node.nil? or @role.nil?)
+    return false if self.crowbar["crowbar"].nil?
+    return !!@role.default_attributes["crowbar"]["allocated"]
   end
 
   def ipmi_enabled?
@@ -589,15 +587,21 @@ class NodeObject < ChefObject
     @node['roles'].nil? ? nil : @node['roles'].sort
   end
 
-  def save
+  def increment_crowbar_revision!
     if @role.default_attributes["crowbar-revision"].nil?
       @role.default_attributes["crowbar-revision"] = 0
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - unset")
     else
-      Rails.logger.debug("Starting Node Revisions: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
-      @role.default_attributes["crowbar-revision"] = @role.default_attributes["crowbar-revision"] + 1
+      @role.default_attributes["crowbar-revision"] += 1
     end
-    Rails.logger.debug("Saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+  end
+
+  def crowbar_revision
+    @role.default_attributes["crowbar-revision"]
+  end
+
+  def save
+    increment_crowbar_revision!
+    Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision}")
 
     # helper function to remove from node elements that were removed from the
     # role attributes; this is something that
@@ -621,14 +625,14 @@ class NodeObject < ChefObject
     # update deep clone of @role.default_attributes
     @attrs_last_saved = deep_clone(@role.default_attributes)
 
-    Rails.logger.debug("Done saving node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done saving node: #{@node.name} - #{crowbar_revision}")
   end
 
   def destroy
-    Rails.logger.debug("Destroying node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Destroying node: #{@node.name} - #{crowbar_revision}")
     @role.destroy
     @node.destroy
-    Rails.logger.debug("Done with removal of node: #{@node.name} - #{@role.default_attributes["crowbar-revision"]}")
+    Rails.logger.debug("Done with removal of node: #{@node.name} - #{crowbar_revision}")
   end
 
   def networks
@@ -1156,8 +1160,14 @@ class NodeObject < ChefObject
 
     if meta and meta["disks"]
       # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name
-      # within the deployer barclamp To return always similar values.
-      result = %w(by-id by-path).map do |type|
+      # within the deployer barclamp to return always similar values.
+      disk_lookups = ["by-path"]
+      # VirtualBox does not provide stable disk ids, so we cannot rely on them
+      # in that case.
+      unless @node[:dmi][:system][:product_name] =~ /VirtualBox/i
+        disk_lookups.unshift "by-id"
+      end
+      result = disk_lookups.map do |type|
         if meta["disks"][type] and not meta["disks"][type].empty?
           "#{type}/#{meta["disks"][type].first}"
         end

@@ -47,7 +47,8 @@ module Dsl
           :id => "proposal_attributes",
           :type => "hidden",
           :name => "proposal_attributes",
-          :value => attrs.to_json
+          :value => attrs.to_json,
+          "data-changed-state" => I18n.t("proposal.failures.unsaved_changes")
         )
       end
 
@@ -70,7 +71,9 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("string")
+                "data-change"         => changer("string"),
+                "id"                  => sanitize_to_id(attribute_name),
+                "data-initial-value"  => attribute_value
               }).merge(options)
             )
           ].join("\n")
@@ -100,7 +103,8 @@ module Dsl
               selects,
 
               defaults.merge({
-                "data-change" => changer("boolean")
+                "data-change" => changer("boolean"),
+                "id"          => sanitize_to_id(attribute_name),
               }).merge(options)
             )
           ].join("\n")
@@ -184,6 +188,13 @@ module Dsl
 
       def attribute_value
         begin
+          # HACK: When this looks like a handlebars template, generate
+          # a template lookup for handlebarsjs
+          idx = attribute.index "{{@index}}"
+          if idx
+            return wrap_around(attribute.slice(idx+1, attribute.length).join("."), "{{", "}}")
+          end
+
           result = attrs
 
           attribute.each do |n|
@@ -212,7 +223,8 @@ module Dsl
             attribute_value,
 
             defaults.merge({
-              "data-change" => changer(type_cast)
+              "data-change" => changer(type_cast),
+              "id"          => sanitize_to_id(attribute_name),
             }).merge(options)
           ]
 
@@ -241,10 +253,14 @@ module Dsl
         translation_key = attribute.clone
         translation_key.unshift("")
 
+        translation_key.map! do |v|
+          v == "{{@index}}" ? "index" : v.to_s
+        end
+
         content_tag(
           :label,
           t(translation_key.join(".")),
-          :for => attribute
+          :for => sanitize_to_id(attribute_name)
         )
       end
 
@@ -254,6 +270,13 @@ module Dsl
           attribute_name,
           type_cast
         ].join(";")
+      end
+
+      # We need to make sure that FormTagHelpers sanitize_to_id does not mangle the
+      # attribute. It can contain handlebars variable placeholders, which
+      # would get escaped, e.g. {{@index}} would become __index__
+      def sanitize_to_id(text)
+        [*text].join("_")
       end
     end
   end

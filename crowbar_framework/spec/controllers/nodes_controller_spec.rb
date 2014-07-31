@@ -62,7 +62,7 @@ describe NodesController do
       it "updates the node" do
         post :update, :name => @node.name, :submit => I18n.t('nodes.form.allocate'), :alias => "newname.crowbar.com", :public_name => "newname"
         flash[:notice].should == I18n.t('nodes.form.allocate_node_success')
-        response.should redirect_to(nodes_path(:selected => @node.name))
+        response.should redirect_to(node_path(@node.handle))
       end
     end
 
@@ -70,7 +70,7 @@ describe NodesController do
       it "updates the node" do
         post :update, :name => @node.name, :submit => I18n.t('nodes.form.save'), :alias => "newname.crowbar.com", :public_name => "newname"
         flash[:notice].should == I18n.t('nodes.form.save_node_success')
-        response.should redirect_to(nodes_path(:selected => @node.name))
+        response.should redirect_to(node_path(@node.handle))
       end
     end
 
@@ -78,7 +78,7 @@ describe NodesController do
       it "sets the notice" do
         post :update, :name => @node.name, :submit => "i dont exist"
         flash[:notice].should match(/Unknown action/)
-        response.should redirect_to(nodes_path(:selected => @node.name))
+        response.should redirect_to(node_path(@node.handle))
       end
     end
   end

@@ -14,48 +14,11 @@
             .input-group-btn
               = submit_tag t(".add"), :class => "btn btn-default input-sm"
 
-#nodedetails
-  - if @node
-    = render :partial => "show"
-
-.alert.alert-info{ "data-id" => "AUTOMATIC", "data-droppable" => "true" }
-  = t(".drag_hint")
-
-#nodegroups.row
-  - @groups.sort.each do |group_name, group|
-    .col-xs-3{ "data-id" => group_name, "data-droppable" => "true", "data-group" => group_name }
-      .panel.panel-default
-        .panel-heading
-          %h2
-            = piechart_for group
-            = truncate(group_name || t("unknown"), :length => 25)
-
-        %ul.list-group
-          - group[:nodes].values.sort_by { |handle| @nodes[handle][:alias] }.each do |handle|
-            - @nodes[handle].tap do |node|
-              %li.list-group-item{ "data-id" => handle.parameterize, "data-draggable" => "true", "data-update" => group_change_path(:id => handle.parameterize, :group => "{0}".html_safe) }
-                %span.led{ :class => node[:status], :title => t(node[:state], :scope => "state", :default => node[:state].titlecase), "data-node" => handle }
-
-                %a{ :href => "#", :title => node[:description], "data-href" => node_path(handle) }
-                  = truncate(node[:alias], :length => 25)
-
-%script#group-panel{ :type => "text/x-handlebars-template" }
-  .col-xs-3.group-panel{ "data-id" => "{{group}}", "data-droppable" => "true" }
-    .panel.panel-default
-      .panel-heading
-        %h2
-          = link_to icon_tag("trash"), "#", "data-group-delete" => "true"
-
-          %span
-            {{group}}
-
-      %ul.list-group
-        %li.list-group-item.empty
-          = t(".new_drag")
-
 %script#group-invalid{ :type => "text/x-handlebars-template" }
   .alert.alert-danger.alert-dismissable.group-invalid
     %button.close{ :type => "button", "data-dismiss" => "alert", "aria-hidden" => true }
       &times;
 
     = t(".add_group_error")
+
+= render "node_groups"

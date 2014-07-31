@@ -38,11 +38,7 @@ require 'getoptlong'
 @allow_zero_args = false
 @timeout = 500
 @barclamp="machines"
-@key = ENV["CROWBAR_KEY"]
-if @key
-  @username=@key.split(':',2)[0]
-  @password=@key.split(':',2)[1]
-end
+@crowbar_key_file = '/etc/crowbar.install.key'
 @noready = false
 
 #
@@ -139,6 +135,19 @@ def status()
 end
 
 def opt_parse()
+  key = ENV["CROWBAR_KEY"]
+  if key.nil? and ::File.exists?(@crowbar_key_file) and ::File.readable?(@crowbar_key_file)
+    begin
+      key = File.read(@crowbar_key_file).strip
+    rescue => e
+      warn "Unable to read crowbar key from #{@crowbar_key_file}: #{e}"
+    end
+  end
+
+  if key
+    @username, @password = key.split(":",2)
+  end
+
   sub_options = @options.map { |x| x[0] }
   lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
@@ -176,10 +185,14 @@ def opt_parse()
     end
   end
 
-  STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!" if @username.nil? or @password.nil?
-  STDERR.puts "Please set CROWBAR_KEY or use -U and -P" if @username.nil? or @password.nil?
   if ARGV.length == 0 and !@allow_zero_args
     usage -1
+  end
+
+  if @username.nil? or @password.nil?
+    STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!"
+    STDERR.puts "Please set CROWBAR_KEY or use -U and -P"
+    exit 1
   end
 end
 

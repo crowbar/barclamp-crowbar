@@ -25,7 +25,7 @@ end
 
 @areas = Dir.glob("./crowbar_*").map! { |x| x.gsub("./crowbar_", "") }
 @areas << Dir.glob(File.join(loc,"crowbar_*")).map! { |x| x.gsub(File.join(loc,"crowbar_"), "") }
-@areas = @areas.flatten
+@areas = @areas.flatten.select {|a| a !~ /\.sh$/}
 
 if ARGV.length == 0
   usage -1

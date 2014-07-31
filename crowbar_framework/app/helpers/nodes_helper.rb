@@ -453,11 +453,13 @@ module NodesHelper
             barclamp.include? object.barclamp
           end.first
 
-          proposal = all_proposals.find { |p| p.id == role_to_proposal_name(barclamp) }
+          unless barclamp.nil?
+            proposal = all_proposals.find { |p| p.id == role_to_proposal_name(barclamp) }
+          end
 
           if proposal.nil?
             listing[object.category] ||= []
-            listing[object.category].push role
+            listing[object.category].push role.titleize
           else
             route = proposal_barclamp_path(
               :controller => proposal.barclamp,

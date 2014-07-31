@@ -28,6 +28,11 @@ describe ProposalObject do
       proposal = ProposalObject.find_barclamp("crowbar")
       proposal.barclamp.should == 'crowbar'
     end
+
+    it "returns network for networks" do
+      proposal = ProposalObject.find_proposal_by_id("admin_network")
+      proposal.barclamp.should == 'network'
+    end
   end
 
   describe "name" do
@@ -39,6 +44,11 @@ describe ProposalObject do
     it "returns name for templates" do
       proposal = ProposalObject.find_barclamp("crowbar")
       proposal.name.should == 'template'
+    end
+
+    it "returns name for networks" do
+      proposal = ProposalObject.find_proposal_by_id("admin_network")
+      proposal.name.should == 'admin'
     end
   end
 

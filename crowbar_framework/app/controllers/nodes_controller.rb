@@ -74,7 +74,8 @@ class NodesController < ApplicationController
     @report = {
       :success => [],
       :failed => [],
-      :duplicate => false
+      :duplicate_public => false,
+      :duplicate_alias => false
     }.tap do |report|
       node_values = params[:node] || {}
 
@@ -82,14 +83,23 @@ class NodesController < ApplicationController
         attributes["alias"]
       end
 
+      node_publics = node_values.values.map do |attributes|
+        attributes["public_name"]
+      end
+
       node_values.each do |node_name, node_attributes|
+        if not node_attributes["public_name"].to_s.empty? and node_publics.grep(node_attributes["public_name"]).size > 1
+          report[:duplicate_public] = true
+          report[:failed].push node_name
+        end
+
         if node_aliases.grep(node_attributes["alias"]).size > 1
-          report[:duplicate] = true
+          report[:duplicate_alias] = true
           report[:failed].push node_name
         end
       end
 
-      unless report[:duplicate]
+      unless report[:duplicate_alias] or report[:duplicate_public]
         node_values.each do |node_name, node_attributes|
           begin
             dirty = false
@@ -101,12 +111,12 @@ class NodesController < ApplicationController
             end
 
             unless node.alias == node_attributes["alias"]
-              node.alias = node_attributes["alias"]
+              node.force_alias = node_attributes["alias"]
               dirty = true
             end
 
             unless node.public_name == node_attributes["public_name"]
-              node.public_name = node_attributes["public_name"]
+              node.force_public_name = node_attributes["public_name"]
               dirty = true
             end
 
@@ -163,10 +173,16 @@ class NodesController < ApplicationController
         node_name.split(".").first
       end
 
-      flash[:alert] = I18n.t(
-        @report[:duplicate] ? "nodes.list.duplicates" : "nodes.list.failed",
-        :failed => node_list.to_sentence
-      )
+      translation = case
+      when @report[:duplicate_alias]
+        "nodes.list.duplicate_alias"
+      when @report[:duplicate_publics]
+        "nodes.list.duplicate_public"
+      else
+        "nodes.list.failed"
+      end
+
+      flash[:alert] = I18n.t(translation, :failed => node_list.to_sentence)
     elsif @report[:success].length > 0
       node_list = @report[:success].map do |node_name|
         node_name.split(".").first

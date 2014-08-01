@@ -24,12 +24,6 @@ class SupportController < ApplicationController
     redirect_to "/export/#{filename}"
   end
 
-  def get_cli
-    executable = Rails.root.join("..", "bin", "gather_cli.sh").expand_path
-    system("sudo", "-i", executable, request.env['SERVER_ADDR'], request.env['SERVER_PORT'])
-    redirect_to "/crowbar-cli.tar.gz"
-  end
-
   def index
     @export = Utils::ExtendedHash.new({
       :waiting => params[:waiting] == "true" || params[:format] == "json",
@@ -37,7 +31,6 @@ class SupportController < ApplicationController
       :current => params["file"].to_s.gsub("-DOT-", "."),
       :files => {
         :logs => [],
-        :cli => [],
         :chef => [],
         :other => [],
         :support_configs => [],
@@ -54,8 +47,6 @@ class SupportController < ApplicationController
         next
       elsif filename =~ /^crowbar-logs-.*/
         @export.files.logs.push filename
-      elsif filename =~ /^crowbar-cli-.*/
-        @export.files.cli.push filename
       elsif filename =~ /^crowbar-chef-.*/
         @export.files.chef.push filename
       elsif filename =~ /(.*).import.log$/

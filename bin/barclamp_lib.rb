@@ -24,8 +24,6 @@ require 'getoptlong'
 
 @debug = false
 @hostname = ENV["CROWBAR_IP"] 
-# DO NOT CHANGE THE NEXT 2 LINES
-# gather_cli replies on the exact format they are in. 
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000
 @headers = {

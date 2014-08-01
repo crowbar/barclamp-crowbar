@@ -33,17 +33,13 @@ require "utils/extended_hash"
 @allow_zero_args = false
 @timeout = 500
 @barclamp = "machines"
-@key = ENV["CROWBAR_KEY"]
+@crowbar_key_file = '/etc/crowbar.install.key'
 
 # DO NOT CHANGE THE FORMAT OF THE NEXT 2 LINES.
 # gather_cli relies on the exact spacing of them to
 # rewrite the addreses when it is serving the CLI.
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000 unless @port
-
-if @key
-  @username, @password = @key.split(":",2)
-end
 
 @headers = {
   "Accept" => "application/json",
@@ -335,9 +331,21 @@ def api_help
 end
 
 def opt_parse
+  key = ENV["CROWBAR_KEY"]
+  if key.nil? and ::File.exists?(@crowbar_key_file) and ::File.readable?(@crowbar_key_file)
+    begin
+      key = File.read(@crowbar_key_file).strip
+    rescue => e
+      warn "Unable to read crowbar key from #{@crowbar_key_file}: #{e}"
+    end
+  end
+
+  if key
+    @username, @password = key.split(":",2)
+  end
+
   sub_options = @options.map { |x| x[0] }
   lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
-
   opts = GetoptLong.new(*sub_options)
 
   opts.each do |opt, arg|
@@ -367,13 +375,14 @@ def opt_parse
     end
   end
 
+  if ARGV.length == 0 and !@allow_zero_args
+    usage -1
+  end
+
   if @username.nil? or @password.nil?
     STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!"
     STDERR.puts "Please set CROWBAR_KEY or use -U and -P"
-  end
-
-  if ARGV.length == 0 and !@allow_zero_args
-    usage -1
+    exit 1
   end
 end
 

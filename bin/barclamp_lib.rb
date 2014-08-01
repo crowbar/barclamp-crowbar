@@ -35,11 +35,7 @@ require 'getoptlong'
 @data = ""
 @allow_zero_args = false
 @timeout = 500
-@key = ENV["CROWBAR_KEY"]
-if @key
-  @username=@key.split(':',2)[0]
-  @password=@key.split(':',2)[1]
-end
+@crowbar_key_file = '/etc/crowbar.install.key'
 
 #
 # Parsing options can be added by adding to this list before calling opt_parse
@@ -437,6 +433,19 @@ end
 ### Start MAIN ###
 
 def opt_parse()
+  key = ENV["CROWBAR_KEY"]
+  if key.nil? and ::File.exists?(@crowbar_key_file) and ::File.readable?(@crowbar_key_file)
+    begin
+      key = File.read(@crowbar_key_file).strip
+    rescue => e
+      warn "Unable to read crowbar key from #{@crowbar_key_file}: #{e}"
+    end
+  end
+
+  if key
+    @username, @password = key.split(":",2)
+  end
+
   sub_options = @options.map { |x| x[0] }
   lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
@@ -476,8 +485,11 @@ def opt_parse()
     usage -1
   end
 
-  STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!" if @username.nil? or @password.nil?
-  STDERR.puts "Please set CROWBAR_KEY or use -U and -P" if @username.nil? or @password.nil?
+  if @username.nil? or @password.nil?
+    STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!"
+    STDERR.puts "Please set CROWBAR_KEY or use -U and -P"
+    exit 1
+  end
 end
 
 def run_sub_command(cmds, subcmd)

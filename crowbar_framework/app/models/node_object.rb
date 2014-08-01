@@ -243,6 +243,13 @@ class NodeObject < ChefObject
     begin name.split('.')[0] rescue name end
   end
 
+  def update_and_validate(key, value, unique_check = true)
+    send("validate_#{key}".to_sym, value, unique_check)
+    send("update_#{key}".to_sym, value)
+
+    value
+  end
+
   def alias(suggest=false)
     if display_set? 'alias'
       display['alias']
@@ -254,29 +261,52 @@ class NodeObject < ChefObject
   end
 
   def alias=(value)
-    return value if self.alias==value
-    value = value.strip.sub(/\s/,'-')
-    # valid DNS Name
+    return value if self.alias == value
+
+    update_and_validate(
+      :alias,
+      value.strip.sub(/\s/, '-'),
+      true
+    )
+  end
+
+  def force_alias=(value)
+    update_and_validate(
+      :alias,
+      value.strip.sub(/\s/, '-'),
+      false
+    )
+  end
+
+  def validate_alias(value, unique_check = true)
     if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
       raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
-    elsif value.length>63 || value.length+ChefObject.cloud_domain.length>254
+    end
+
+    if value.length>63 || value.length+ChefObject.cloud_domain.length>254
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit or it's length (#{value.length}) will cause the total DNS max of 255 to be exeeded."
       raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
-    else
-      # don't allow duplicate alias
+    end
+
+    if unique_check
       node = NodeObject.find_node_by_alias value
-      if node and !node.handle.eql?(handle)
+
+      if node and !node.handle == handle
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('duplicate_alias', :scope=>'model.node') + ": " + node.name
-      else
-        set_display "alias", value
-        @role.description = chef_description
-        # move this to event driven model one day
-        system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path)
       end
     end
-    return value
+
+    true
+  end
+
+  def update_alias(value)
+    set_display "alias", value
+    @role.description = chef_description
+
+    # move this to event driven model one day
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path)
   end
 
   def public_name(suggest=false)
@@ -290,26 +320,52 @@ class NodeObject < ChefObject
   end
 
   def public_name=(value)
-    value = value.strip.sub(/\s/,'-')
-    # valid DNS Name
-    if not (value.nil? or value.empty?)
+    return value if self.public_name == value
+
+    update_and_validate(
+      :public_name,
+      value.strip.sub(/\s/, '-'),
+      true
+    )
+  end
+
+  def force_public_name=(value)
+    update_and_validate(
+      :public_name,
+      value.strip.sub(/\s/, '-'),
+      false
+    )
+  end
+
+  def validate_public_name(value, unique_check = true)
+    unless value.to_s.empty?
       if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
         Rails.logger.warn "Public name #{value} not saved because it did not conform to valid DNS hostnames"
         raise "#{I18n.t('invalid_dns_public_name', :scope=>'model.node')}: #{value}"
-      elsif value.length>255
+      end
+
+      if value.length > 255
         Rails.logger.warn "Public name #{value} not saved because it exceeded the 255 character length limit"
         raise "#{I18n.t('too_long_dns_public_name', :scope=>'model.node')}: #{value}"
-      else
-        # don't allow duplicate public names
+      end
+
+      if unique_check
         node = NodeObject.find_node_by_public_name value
-        if node and !node.handle.eql?(handle)
+
+        if node and !node.handle == handle
           Rails.logger.warn "Public name #{value} not saved because #{node.name} already has the same public name."
           raise I18n.t('duplicate_public_name', :scope=>'model.node') + ": " + node.name
         end
       end
     end
 
-    crowbar["crowbar"]["public_name"] = value
+    true
+  end
+
+  def update_public_name(value)
+    unless value.nil?
+      crowbar["crowbar"]["public_name"] = value
+    end
   end
 
   def description(suggest=false, use_name=false)

@@ -16,11 +16,16 @@
 # limitations under the License.
 #
 
-loc=File.expand_path(File.dirname(__FILE__))
 def usage (rc)
   puts "Usage: crowbar <area> <subcommand>"
   puts "  Areas: #{@areas.sort.join(" ")}"
   exit rc
+end
+
+if File.symlink?(__FILE__)
+  loc = File.expand_path(File.dirname(File.readlink(__FILE__)))
+else
+  loc = File.expand_path(File.dirname(__FILE__))
 end
 
 @areas = Dir.glob("./crowbar_*").map! { |x| x.gsub("./crowbar_", "") }

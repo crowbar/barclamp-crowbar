@@ -411,6 +411,7 @@ en:
         raid5: 'RAID 5'
         raid6: 'RAID 6'
         raid10: 'RAID 10'
+      raid_disks_selected: 'Failed to save %{node}: Not enough disks selected for this RAID level'
 
   support:
     index:

@@ -392,13 +392,13 @@ class NodeObject < ChefObject
       "ready"     #green
     when "discovered", "wait", "waiting", "user", "hold", "pending", "input"
       "pending"   #flashing yellow
-    when "discovering", "reset", "delete", "reinstall", "shutdown", "reboot", "poweron", "noupdate"
+    when "discovering", "reset", "delete", "shutdown", "reboot", "poweron", "noupdate"
       "unknown"   #grey
-    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert", "recovering"
+    when "problem", "issue", "error", "failed", "fail", "warn", "warning", "fubar", "alert"
       "failed"    #flashing red
     when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
       "building"  #yellow
-    else
+    else # including: installing, installed, reinstall, recovering, readying, applying
       "unready"   #spinner
     end
   end

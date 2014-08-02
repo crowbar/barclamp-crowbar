@@ -302,7 +302,7 @@ en:
       failed: 'Failed to save the nodes %{failed}'
       duplicate_alias: 'Failed to save the nodes %{failed} because there are duplicate aliases. Nothing got changed!'
       duplicate_public: 'Failed to save the nodes %{failed} because there are duplicate public names. Nothing got changed!'
-      group_error: 'Failed to save the group for %{node}, should start with a letter and only contain letters, digits, -, _, ., or :.'
+      group_error: 'Failed to save %{node}: The group should start with a letter and only contain letters, digits, -, _, ., or :.'
       name: 'Name'
       group: 'Group'
       alias: 'Alias'  

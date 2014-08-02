@@ -352,7 +352,7 @@ class NodesController < ApplicationController
 
   def save_node
     if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-      flash[:notice] = @node.name + ": " + t('nodes.list.group_error')
+      flash[:alert] = t('nodes.list.group_error', :node => @node.name)
       return false
     end
 

@@ -25,24 +25,24 @@ module RemoteNode
   # @param timeout [integer] timeout in seconds
 
   def self.ready?(host, timeout = 60, sleep_time = 10)
-    timeout_at = Time.now.to_i + timeout
+    timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
-    msg = "Waiting for host, next attempt at #{Time.now + sleep_time}"
+    msg = "Waiting for host, next attempt in #{sleep_time} seconds until #{timeout_at}"
 
     nobj = NodeObject.find_node_by_name(host)
     reboot_requesttime = nobj[:crowbar_wall][:wait_for_reboot_requesttime] || 0
 
-    self.wait_until(msg, timeout_at, sleep_time) do
+    self.wait_until(msg, timeout_at.to_i, sleep_time) do
       self.port_open?(ip, 22) && self.reboot_done?(ip, reboot_requesttime) && self.ssh_cmd(ip, runlevel_check_cmd(host))
     end
   end
 
   # wait until no other chef-clients are currently running on the host
   def self.chef_ready?(host, timeout = 60, sleep_time = 10)
-    timeout_at = Time.now.to_i + timeout
+    timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
-    msg = "Waiting for already running chef-client, next attempt at #{Time.now + sleep_time}"
-    self.wait_until(msg, timeout_at, sleep_time) do
+    msg = "Waiting for already running chef-client, next attempt in #{sleep_time} seconds until #{timeout_at}"
+    self.wait_until(msg, timeout_at.to_i, sleep_time) do
       self.port_open?(ip, 22) && !self.chef_clients_running?(ip)
     end
   end

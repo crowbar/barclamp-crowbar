@@ -39,16 +39,16 @@
 @-moz-document url-prefix() {
   a {
     &.btn {
-      @include button-size(($padding-base-vertical - 1px), $padding-base-horizontal, $font-size-base, $line-height-base, $border-radius-base);
+      @include button-size($padding-base-vertical, $padding-base-horizontal, $font-size-base, $line-height-base, $border-radius-base);
     }
 
     &.btn-lg {
-      @include button-size(($padding-large-vertical - 1px), $padding-large-horizontal, $font-size-large, $line-height-large, $border-radius-large);
+      @include button-size($padding-large-vertical, $padding-large-horizontal, $font-size-large, $line-height-large, $border-radius-large);
     }
 
     &.btn-sm,
     &.btn-xs {
-      @include button-size(($padding-small-vertical - 1px), $padding-small-horizontal, $font-size-small, $line-height-small, $border-radius-small);
+      @include button-size($padding-small-vertical, $padding-small-horizontal, $font-size-small, $line-height-small, $border-radius-small);
     }
   }
 }

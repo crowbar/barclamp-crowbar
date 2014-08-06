@@ -333,9 +333,7 @@ class BarclampController < ApplicationController
       Rails.logger.info "asking for proposal of: #{params.inspect}"
       answer = @service_object.proposal_create params
       Rails.logger.info "proposal is: #{answer.inspect}"
-      if answer[0] == 200
-        flash[:notice] =  t('proposal.actions.create_success')
-      else
+      unless answer[0] == 200
         flash[:alert] = answer[1]
       end
     rescue StandardError => e

@@ -34,10 +34,16 @@ module SchemaMigration
     all_scripts = find_scripts_for_bc(bc_name)
     return if all_scripts.empty?
 
+    begin
+      validator = CrowbarValidator.new(data_bags_path.join("bc-template-#{bc_name}.schema"))
+    rescue StandardError => e
+      raise "Failed to load databag schema for #{bc_name}: #{e.message}"
+    end
+
     props = ProposalObject.find_proposals bc_name
 
     props.each do |prop|
-      migrate_proposal(bc_name, template, all_scripts, prop)
+      migrate_proposal(bc_name, validator, template, all_scripts, prop)
 
       # Attempt to do migration for the matching committed proposal
       # Note: we don't want to commit the proposal we just migrated, because it
@@ -54,9 +60,12 @@ module SchemaMigration
 
   private
 
+  def self.data_bags_path
+    Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
+  end
+
   def self.get_migrate_dir(bc_name)
-    data_bags_path_prefix = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
-    return File.join(data_bags_path_prefix, 'migrate', bc_name)
+    data_bags_path.join("migrate", bc_name)
   end
 
   def self.find_scripts_for_bc(bc_name)
@@ -151,7 +160,7 @@ module SchemaMigration
     return attributes, deployment
   end
 
-  def self.migrate_proposal(bc_name, template, all_scripts, proposal)
+  def self.migrate_proposal(bc_name, validator, template, all_scripts, proposal)
     attributes = proposal['attributes'][bc_name]
     deployment = proposal['deployment'][bc_name]
 
@@ -161,6 +170,14 @@ module SchemaMigration
 
     proposal['attributes'][bc_name] = attributes
     proposal['deployment'][bc_name] = deployment
+
+    errors = validator.validate(proposal.raw_data)
+    unless errors.empty?
+      error_lines = errors.map {|e| e.message}
+      error_lines.unshift "Failed to validate migrated proposal #{proposal.name} for #{bc_name}:"
+      raise error_lines.join("\n")
+    end
+
     proposal.save
   end
 

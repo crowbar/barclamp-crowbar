@@ -152,7 +152,11 @@ module SchemaMigration
     scripts.each do |script|
       # we only pass attributes and deployment to not encourage direct access
       # to the proposal
-      attributes, deployment = run_script(script, is_upgrade, template['attributes'][bc_name], template['deployment'][bc_name], attributes, deployment)
+      begin
+        attributes, deployment = run_script(script, is_upgrade, template['attributes'][bc_name], template['deployment'][bc_name], attributes, deployment)
+      rescue StandardError => e
+        raise "error while executing migration script #{script}:\n#{e.message}"
+      end
     end
 
     deployment['schema-revision'] = schema_revision
@@ -164,7 +168,11 @@ module SchemaMigration
     attributes = proposal['attributes'][bc_name]
     deployment = proposal['deployment'][bc_name]
 
-    (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    begin
+      (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    rescue StandardError => e
+      raise "Failed to migrate proposal #{proposal.name} for #{bc_name}: #{e.message}"
+    end
 
     return if attributes.nil? || deployment.nil?
 
@@ -185,7 +193,11 @@ module SchemaMigration
     attributes = role.default_attributes[bc_name]
     deployment = role.override_attributes[bc_name]
 
-    (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    begin
+      (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    rescue StandardError => e
+      raise "Failed to migrate role #{role.name} for #{bc_name}: #{e.message}"
+    end
 
     return if attributes.nil? || deployment.nil?
 

@@ -26,13 +26,11 @@ module CrowbarPacemakerProxy
 
   # Returns: list of available clusters
   def available_clusters
-    @available_clusters ||= begin
-      clusters = {}
-      if defined?(PacemakerServiceObject)
-        clusters.merge!(PacemakerServiceObject.available_clusters)
-      end
-      clusters
+    clusters = {}
+    if defined?(PacemakerServiceObject)
+      clusters.merge!(PacemakerServiceObject.available_clusters)
     end
+    clusters
   end
 
   # Returns: name of the barclamp and of the proposal for this cluster

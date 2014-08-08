@@ -116,6 +116,20 @@ class RoleObject < ChefObject
     [barclamp, inst].join("_")
   end
 
+  def proposal?
+    @role.name.to_s =~ /.*\-config\-.*/
+  end
+
+  def proposal(proposals = nil)
+    @associated_proposal ||= begin
+      if proposals
+        proposals.find { |p| p.barclamp == barclamp && p.name == inst }
+      else
+        ProposalObject.find_proposal(barclamp, inst)
+      end
+    end
+  end
+
   def display_name
     @display_name ||= BarclampCatalog.display_name(barclamp)
   end

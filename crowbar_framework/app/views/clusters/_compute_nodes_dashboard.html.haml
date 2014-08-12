@@ -1,5 +1,3 @@
 .col-xs-12
   - roles.group_by { |r| r.name.split("-").last }.each do |hypervisor, hypervisor_roles|
-    .row
-      .col-xs-12
-        = render :partial => "compute_node", :locals => { :hypervisor => hypervisor, :nodes => hypervisor_roles.first.element_nodes(all_roles, all_nodes) }
+    = render :partial => "compute_node", :locals => { :hypervisor => hypervisor, :nodes => hypervisor_roles.first.element_nodes(all_roles, all_nodes).reject { |n| n.cluster }.map(&:node) }

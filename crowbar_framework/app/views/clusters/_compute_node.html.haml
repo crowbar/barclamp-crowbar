@@ -1,17 +1,20 @@
-.panel.panel-default
-  .panel-heading
-    %h2
-      = hypervisor.capitalize
+- unless nodes.empty?
+  .row
+    .col-xs-12
+      .panel.panel-default
+        .panel-heading
+          %h2
+            = hypervisor.capitalize
 
-  .panel-body
-    .row
-      .col-xs-12
-        %h3
-          = t(".nodes")
-    .row
-      .col-xs-12
-        - nodes.each do |node|
-          %span
-            = render :partial => "node_link", :locals => { :node => node }
+        .panel-body
+          .row
+            .col-xs-12
+              %h3
+                = t(".nodes")
+          .row
+            .col-xs-12
+              - nodes.each do |node|
+                %span
+                  = render :partial => "node_link", :locals => { :node => node }
 
-  .panel-footer
+        .panel-footer

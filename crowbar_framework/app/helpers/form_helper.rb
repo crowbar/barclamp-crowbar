@@ -20,7 +20,9 @@ module FormHelper
     options_for_select(
       [
         [crowbar_service.pretty_target_platform(default_platform), default_platform],
+        [crowbar_service.pretty_target_platform("windows-6.3"), "windows-6.3"],
         [crowbar_service.pretty_target_platform("windows-6.2"), "windows-6.2"],
+        [crowbar_service.pretty_target_platform("hyperv-6.3"), "hyperv-6.3"],
         [crowbar_service.pretty_target_platform("hyperv-6.2"), "hyperv-6.2"]
       ],
       selected.to_s

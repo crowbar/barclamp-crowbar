@@ -271,7 +271,9 @@ class CrowbarService < ServiceObject
 
   def self.pretty_target_platform(target_platform)
     return "SLES 11 SP3" if target_platform == "suse-11.3"
+    return "Windows Server 2012 R2" if target_platform == "windows-6.3"
     return "Windows Server 2012" if target_platform == "windows-6.2"
+    return "Hyper-V Server 2012 R2" if target_platform == "hyperv-6.3"
     return "Hyper-V Server 2012" if target_platform == "hyperv-6.2"
     return target_platform
   end
@@ -282,6 +284,7 @@ class CrowbarService < ServiceObject
 
   def self.require_license_platforms
     [
+      "windows-6.3",
       "windows-6.2"
     ]
   end

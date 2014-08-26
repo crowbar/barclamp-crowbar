@@ -79,9 +79,30 @@ class NodeObject < ChefObject
         []
       else
         availables_oses = provisioner["provisioner"]["available_oses"].keys
-        # make default platform go first
-        availables_oses.unshift default_platform unless default_platform.empty?
-        availables_oses.uniq
+        # Sort the platforms:
+        #  - first, the default platform
+        #  - between first and the Hyper-V/Windows bits: others, sorted
+        #    alphabetically
+        #  - last Hyper-V, and just before that Windows
+        platform_order = {"windows" => 90, "hyperv" => 100}
+        availables_oses.uniq.sort {|x, y|
+          platform_x, version_x = x.split('-')
+          platform_y, version_y = y.split('-')
+          platform_order_x = platform_order[platform_x] || 1
+          platform_order_y = platform_order[platform_y] || 1
+
+          if x == default_platform
+            -1
+          elsif y == default_platform
+            1
+          elsif platform_x == platform_y
+            version_y <=> version_x
+          elsif platform_order_x == platform_order_y
+            x <=> y
+          else
+            platform_order_x <=> platform_order_y
+          end
+        }
       end
     end
   end

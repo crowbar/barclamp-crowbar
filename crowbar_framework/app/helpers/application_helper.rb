@@ -250,4 +250,8 @@ module ApplicationHelper
   def default_platform
     NodeObject.default_platform
   end
+
+  def available_platforms
+    NodeObject.available_platforms
+  end
 end

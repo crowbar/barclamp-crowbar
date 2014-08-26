@@ -72,6 +72,20 @@ class NodeObject < ChefObject
     end
   end
 
+  def self.available_platforms
+    @@available_platforms ||= begin
+      provisioner = NodeObject.find("roles:provisioner-server").first
+      if provisioner.nil?
+        []
+      else
+        availables_oses = provisioner["provisioner"]["available_oses"].keys
+        # make default platform go first
+        availables_oses.unshift default_platform unless default_platform.empty?
+        availables_oses.uniq
+      end
+    end
+  end
+
   def self.find_node_by_public_name(name)
     nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
     if nodes.length == 1

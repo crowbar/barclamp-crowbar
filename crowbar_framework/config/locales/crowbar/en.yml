@@ -71,7 +71,6 @@ en:
     proposal_show:
       title: 'Edit Proposal'
       apply_changes: 'Apply changes now?'
-      create_proposal_success: 'Successfully created the proposal'
       commit_proposal: 'Apply'
       commit_proposal_success: 'Successfully applied the proposal'
       commit_proposal_queued: 'Successfully queued the proposal until the following become ready'

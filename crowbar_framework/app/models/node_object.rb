@@ -1253,6 +1253,24 @@ class NodeObject < ChefObject
       # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name
       # within the deployer barclamp to return always similar values.
       disk_lookups = ["by-path"]
+
+      # If this looks like a virtio disk and the target platform is one
+      # that might not have the "by-path" links (e.g. SLES 12). Avoid
+      # using "by-path".
+      if device =~ /^vd[a-z]+$/
+        virtio_by_path_platforms = %w(
+          ubuntu-12.04
+          redhat-6.2
+          redhat-6.4
+          centos-6.2
+          centos-6.4
+          suse-11.3
+        )
+        unless virtio_by_path_platform.include?(@node[:target_platform])
+          disk_lookups = []
+        end
+      end
+
       # VirtualBox does not provide stable disk ids, so we cannot rely on them
       # in that case.
       unless @node[:dmi][:system][:product_name] =~ /VirtualBox/i
@@ -1264,7 +1282,13 @@ class NodeObject < ChefObject
         end
       end
 
-      "/dev/disk/#{result.compact.first}"
+      # virtio disk might have neither by-path nor by-id links, use the /dev/vdX
+      # name in that case
+      if result.empty?
+        "/dev/#{device}"
+      else
+        "/dev/disk/#{result.compact.first}"
+      end
     else
       nil
     end

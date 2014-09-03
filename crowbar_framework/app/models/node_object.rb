@@ -72,6 +72,41 @@ class NodeObject < ChefObject
     end
   end
 
+  def self.available_platforms
+    @@available_platforms ||= begin
+      provisioner = NodeObject.find("roles:provisioner-server").first
+      if provisioner.nil?
+        []
+      else
+        availables_oses = provisioner["provisioner"]["available_oses"].keys
+        # Sort the platforms:
+        #  - first, the default platform
+        #  - between first and the Hyper-V/Windows bits: others, sorted
+        #    alphabetically
+        #  - last Hyper-V, and just before that Windows
+        platform_order = {"windows" => 90, "hyperv" => 100}
+        availables_oses.uniq.sort {|x, y|
+          platform_x, version_x = x.split('-')
+          platform_y, version_y = y.split('-')
+          platform_order_x = platform_order[platform_x] || 1
+          platform_order_y = platform_order[platform_y] || 1
+
+          if x == default_platform
+            -1
+          elsif y == default_platform
+            1
+          elsif platform_x == platform_y
+            version_y <=> version_x
+          elsif platform_order_x == platform_order_y
+            x <=> y
+          else
+            platform_order_x <=> platform_order_y
+          end
+        }
+      end
+    end
+  end
+
   def self.find_node_by_public_name(name)
     nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
     if nodes.length == 1

@@ -270,6 +270,7 @@ class CrowbarService < ServiceObject
   end
 
   def self.pretty_target_platform(target_platform)
+    return "SLES 12" if target_platform == "suse-12.0"
     return "SLES 11 SP3" if target_platform == "suse-11.3"
     return "Windows Server 2012 R2" if target_platform == "windows-6.3"
     return "Windows Server 2012" if target_platform == "windows-6.2"
@@ -291,6 +292,7 @@ class CrowbarService < ServiceObject
 
   def self.support_software_raid
     [
+      "suse-12.0",
       "suse-11.3"
     ]
   end

@@ -10,9 +10,12 @@
           = t(".nodes")
     .row
       .col-xs-12
-        - cluster_nodes.each do |node|
-          %span
-            = render :partial => "node_link", :locals => { :node => node }
+        - if cluster_nodes.empty?
+          = t(".no_cluster_nodes")
+        - else
+          - cluster_nodes.each do |node|
+            %span
+              = render :partial => "node_link", :locals => { :node => node }
 
     .row
       .col-xs-12

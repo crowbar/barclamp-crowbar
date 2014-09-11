@@ -200,6 +200,10 @@ class NodeObject < ChefObject
     self.class.default_platform
   end
 
+  def core_roles_only?
+    roles && roles.all? { |r| RoleObject.core_role?(r) }
+  end
+
   def target_platform
     @node[:target_platform] || default_platform
   end

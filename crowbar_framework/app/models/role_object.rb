@@ -18,6 +18,15 @@
 class RoleObject < ChefObject
   self.chef_type = "role"
 
+  def self.core_role?(role_name)
+    core_barclamps = BarclampCatalog.members('crowbar').keys
+    core_barclamps.any? { |core_barclamp| core_barclamp == barclamp(role_name) }
+  end
+
+  def core_role?
+    self.class.core_role?(name)
+  end
+
   def self.all
     self.find_roles_by_search(nil)
   end

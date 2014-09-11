@@ -204,6 +204,14 @@ class NodeObject < ChefObject
     roles && roles.all? { |r| RoleObject.core_role?(r) }
   end
 
+  def self.unassigned(nodes = NodeObject.all)
+    nodes.select { |n| !n.admin? && n.core_roles_only? }
+  end
+
+  def self.unallocated(nodes = NodeObject.all)
+    nodes.select { |n| !n.allocated? }
+  end
+
   def target_platform
     @node[:target_platform] || default_platform
   end

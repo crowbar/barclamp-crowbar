@@ -1,23 +1,24 @@
-.row
-  .col-xs-12
+.panel.panel-default
+  .panel-heading
     %h2
       = role.name
 
-.row
-  .col-md-6.col-xs-12
-    .panel.panel-default
-      .panel-heading
+  .panel-body
+    .row
+      .col-xs-12
         %h3
           = t(".nodes")
-      %ul.list-group
+
+    .row
+      .col-xs-12
         - nodes.each do |node|
-          - if ServiceObject.is_cluster?(node)
-            %li.list-group-item
-              %ul.list-group
-                = render :partial => "cluster_link", :locals => { :element => node, :status => ServiceObject.cluster_status(node), :name => ServiceObject.cluster_name(node) }
-                - ServiceObject.expand_nodes_for_all([node]).first.each do |node|
-                  %li.list-group-item
-                    = render :partial => "node_link", :locals => { :node => NodeObject.find_node_by_name(node) }
-          - else
-            %li.list-group-item
+          %span
+            - if ServiceObject.is_cluster?(node)
+              = render :partial => "cluster_link", :locals => { :element => node, :status => ServiceObject.cluster_status(node), :name => ServiceObject.cluster_name(node) }
+              (
+              - ServiceObject.expand_nodes_for_all([node]).first.each do |node|
+                = render :partial => "node_link", :locals => { :node => NodeObject.find_node_by_name(node) }
+              )
+            - else
               = render :partial => "node_link", :locals => { :node => NodeObject.find_node_by_name(node) }
+  .panel-footer

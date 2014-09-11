@@ -1,0 +1,14 @@
+.row{ "data-ledupdate" => nodes_status_path, "data-ledignore" => "groups, proposals", "data-ledreload" => "false" }
+  .col-xs-12
+    %h1.page-header
+      = t(".title")
+
+.row
+  .col-md-8.col-xs-12
+    .row
+      = render :partial => "role_dashboard"
+  .col-md-offset-1.col-md-3.col-xs-12
+    .row
+      = render :partial => "unassigned_nodes", :locals => { :nodes => @nodes }
+    .row
+      = render :partial => "unassigned_roles"

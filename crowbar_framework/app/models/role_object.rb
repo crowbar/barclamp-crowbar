@@ -246,6 +246,14 @@ class RoleObject < ChefObject
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end
 
+  def self.on_cluster
+    RoleObject.all.select { |r| r.on_cluster? }
+  end
+
+  def on_cluster?
+    elements.values.flatten.any? { |n| ServiceObject.is_cluster?(n) }
+  end
+
   def elements
     (@role.override_attributes[self.barclamp]["elements"] || {}) rescue {}
   end

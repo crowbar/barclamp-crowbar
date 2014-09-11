@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+require 'ostruct'
+
 class RoleObject < ChefObject
   self.chef_type = "role"
 
@@ -25,6 +27,83 @@ class RoleObject < ChefObject
 
   def core_role?
     self.class.core_role?(name)
+  end
+
+  # FIXME: there is currently an ambiguity whether 'assigned' means 'saved' +
+  # 'applied' or just 'saved' proposal This code is assuming the former. The
+  # latter would require iterating over proposals instead of proposal roles.
+  def self.assigned(roles = self.all)
+    assigned_roles = []
+    roles.select(&:proposal?).map(&:elements).each do |element|
+      element.each do |role_name, node_names|
+        assigned_roles.push(roles.find { |r| r.name == role_name })
+      end
+    end
+    assigned_roles.compact.uniq
+  end
+
+  def self.unassigned(roles = self.all)
+    roles - assigned(roles)
+  end
+
+  # Returns all proposal roles where this role is mentioned
+  def proposal_roles(roles = self.class.all)
+    if proposal?
+      []
+    else
+      roles.select do |role|
+        role.proposal? && role.elements.keys.include?(name)
+      end
+    end
+  end
+
+  # FIXME: proposal roles cannot contain clusters?
+  def proposal_nodes(nodes = NodeObject.all)
+    @proposal_nodes ||= begin
+      assigned_nodes = {}
+      elements.each do |role_name, node_names|
+        assigned_nodes[role_name] = node_names.map do |node_name|
+          nodes.find { |n| n.name == node_name }
+        end.compact
+      end
+      assigned_nodes
+    end
+  end
+
+  # Returns all nodes which have this role applied
+  def element_nodes(roles = self.class.all, nodes = NodeObject.all)
+    assigned_nodes = []
+
+    # Get all nodes from proposal roles mentioning this one
+    proposal_roles(roles).each do |prop|
+      prop.elements[self.name].each do |node_name|
+        # Resolve clusters. We do not use the Pacemaker helper as that means
+        # another call to Chef. Obvious FIXME is to patch that method to accept
+        # cache param and fallback to proposal look up.
+        if ServiceObject.is_cluster?(node_name)
+          cluster = roles.find { |r| r.name == "pacemaker-config-#{ServiceObject.cluster_name(node_name)}" }
+          cluster_roles_nodes = cluster.proposal_nodes(nodes)
+
+          obj = OpenStruct.new(
+            :cluster => true,
+            :nodes   => cluster_roles_nodes.map { |role, nodes| nodes }.flatten.uniq,
+            :node    => nil,
+            :name    => ServiceObject.cluster_name(node_name)
+          )
+        else
+          node = nodes.find { |n| n.name == node_name }
+          obj  = !node ? nil : OpenStruct.new(
+            :cluster => false,
+            :nodes   => [node],
+            :node    => node,
+            :name    => node.name
+          )
+        end
+        assigned_nodes.push(obj) if obj
+      end
+    end
+
+    assigned_nodes
   end
 
   def self.all

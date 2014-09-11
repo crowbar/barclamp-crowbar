@@ -1,0 +1,11 @@
+.col-xs-12
+  %h2
+    = t(".clusters")
+
+.row
+  .col-xs-12
+    - clusters.sort.each_slice(2) do |cluster_pair|
+      .row
+        - cluster_pair.each do |element, cluster|
+          .col-md-6.col-xs-12
+            = render :partial => "cluster", :locals => { :element => element, :status => ServiceObject.cluster_status(element)}

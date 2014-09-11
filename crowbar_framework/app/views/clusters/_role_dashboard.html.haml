@@ -1,0 +1,10 @@
+.col-xs-12
+  %h2
+    = t(".roles")
+
+.row
+  .col-xs-12
+    - RoleObject.all.reject { |r| r.core_role? || r.proposal? }.sort_by { |r| r.name }.each do |role|
+      .row
+        .col-xs-12
+          = render :partial => "role", :locals => { :role => role, :nodes => role.proposals.map { |p| p.elements.values }.flatten.uniq }

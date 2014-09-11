@@ -7,18 +7,10 @@
         = t(".simple_clusters", :count => @clusters.count)
 
 .row
-  .col-xs-12
-    %h2
-      = t(".clusters")
-
-.row
-  .col-xs-12
-  - @clusters.sort.each_slice(2) do |cluster_pair|
-    .row
-    - cluster_pair.each do |element, cluster|
-      .col-md-6.col-xs-12
-        = render :partial => "dashboard", :locals => { :element => element, :status => ServiceObject.cluster_status(element)}
-
+  = render :partial => "cluster_dashboard", :locals => { :clusters => @clusters }
 .row
   = render :partial => "unallocated_nodes"
   = render :partial => "unassigned_nodes"
+
+.row
+  = render :partial => "role_dashboard"

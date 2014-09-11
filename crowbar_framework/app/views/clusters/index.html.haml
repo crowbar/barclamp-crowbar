@@ -3,5 +3,13 @@
     %h1.page-header
       = t(".title")
 
+%h2
+  = t(".clusters")
+
 - @clusters.each do |element, cluster|
   = render :partial => "dashboard", :locals => { :element => element, :status => ServiceObject.cluster_status(element)}
+
+%h2
+  = t(".unallocated_nodes")
+
+= render :partial => "unallocated_nodes"

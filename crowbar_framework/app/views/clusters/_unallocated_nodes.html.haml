@@ -1,0 +1,3 @@
+- NodeObject.all.reject(&:allocated?).each do |node|
+  %div
+    = render :partial => "node_link", :locals => { :node => node }

@@ -1,5 +1,5 @@
 .col-xs-12
-  - RoleObject.all.reject { |r| r.core_role? || r.proposal? || r.proposals.empty? || r.ha? }.sort_by { |r| r.name }.each do |role|
+  - roles.each do |role|
     .row
       .col-xs-12
-        = render :partial => "role", :locals => { :role => role, :nodes => role.proposals.map { |p| p.elements.values }.flatten.uniq }
+        = render :partial => "role", :locals => { :role => role, :elements => role.element_nodes(all_roles, all_nodes) }

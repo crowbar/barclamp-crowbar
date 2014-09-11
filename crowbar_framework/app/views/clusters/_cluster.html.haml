@@ -1,7 +1,7 @@
 .panel.panel-default
   .panel-heading
     %h2
-      = render :partial => "cluster_link", :locals => { :element => element, :status => status, :name => ServiceObject.cluster_name(element) }
+      = render :partial => "cluster_link", :locals => { :element => element, :status => ServiceObject.cluster_status(cluster_nodes), :name => ServiceObject.cluster_name(element) }
 
   .panel-body
     .row
@@ -10,7 +10,7 @@
           = t(".nodes")
     .row
       .col-xs-12
-        - ServiceObject.nodes_in_cluster(element).each do |node|
+        - cluster_nodes.each do |node|
           %span
             = render :partial => "node_link", :locals => { :node => node }
 
@@ -21,8 +21,10 @@
 
     .row
       .col-xs-12
-        FIXME: check for blank roles
-        - ServiceObject.roles_in_cluster(element).map(&:proposal).uniq.each do |proposal|
-          %span
-            = render :partial => "proposal_link", :locals => { :proposal => proposal }
+        - if cluster_roles.empty?
+          = t(".no_cluster_roles")
+        - else
+          - cluster_roles.each do |role|
+            %span
+              = render :partial => "proposal_link", :locals => { :proposal => role.proposal(all_proposals), :role => role }
   .panel-footer

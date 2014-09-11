@@ -6,9 +6,9 @@
 .row
   .col-md-8.col-xs-12
     .row
-      = render :partial => "role_dashboard"
+      = render :partial => "role_dashboard", :locals => { :roles => @assigned_roles, :all_roles => @roles, :all_nodes => @nodes }
   .col-md-offset-1.col-md-3.col-xs-12
     .row
-      = render :partial => "unassigned_nodes", :locals => { :nodes => @nodes }
+      = render :partial => "unassigned_nodes", :locals => { :nodes => @unassigned_nodes }
     .row
-      = render :partial => "unassigned_roles"
+      = render :partial => "unassigned_roles", :locals => { :roles => @unassigned_roles }

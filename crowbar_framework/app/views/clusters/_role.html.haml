@@ -11,14 +11,17 @@
 
     .row
       .col-xs-12
-        - nodes.each do |node|
+      .col-xs-12
+        - elements.select { |e| e.cluster }.each do |cluster|
           %span
-            - if ServiceObject.is_cluster?(node)
-              = render :partial => "cluster_link", :locals => { :element => node, :status => ServiceObject.cluster_status(node), :name => ServiceObject.cluster_name(node) }
-              (
-              - ServiceObject.expand_nodes_for_all([node]).first.each do |node|
-                = render :partial => "node_link", :locals => { :node => NodeObject.find_node_by_name(node) }
-              )
-            - else
-              = render :partial => "node_link", :locals => { :node => NodeObject.find_node_by_name(node) }
+            = render :partial => "cluster_link", :locals => { :status => ServiceObject.cluster_status(cluster.nodes), :name => cluster.name }
+            (
+            - cluster.nodes.each do |node|
+              = render :partial => "node_link", :locals => { :node => node }
+            )
+
+        - elements.select { |e| !e.cluster }.each do |node|
+          %span
+            = render :partial => "node_link", :locals => { :node => node.node }
+
   .panel-footer

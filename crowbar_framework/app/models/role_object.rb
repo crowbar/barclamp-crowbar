@@ -60,6 +60,10 @@ class RoleObject < ChefObject
     active_roles(barclamp, inst).map { |x| "#{x.barclamp}_#{x.inst}" }
   end
 
+  def ha?
+    barclamp == "pacemaker"
+  end
+
   def self.find_roles_by_name(name)
     roles = []
     #TODO this call could be moved to fild_roles_by_search

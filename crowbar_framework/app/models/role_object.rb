@@ -65,6 +65,20 @@ class RoleObject < ChefObject
     end
   end
 
+  def cluster_roles(roles = RoleObject.all)
+    @cluster_roles ||= begin
+      roles.select do |role|
+        role.elements.values.flatten.compact.uniq.include?("cluster:#{inst}")
+      end
+    end
+  end
+
+  def cluster_nodes(nodes = NodeObject.all)
+    @cluster_nodes ||= begin
+      proposal_nodes(nodes).values.flatten.uniq
+    end
+  end
+
   # FIXME: proposal roles cannot contain clusters?
   def proposal_nodes(nodes = NodeObject.all)
     @proposal_nodes ||= begin

@@ -1,0 +1,17 @@
+%h2
+  = render :partial => "cluster_link", :locals => { :element => element, :status => status, :name => ServiceObject.cluster_name(element) }
+
+.row
+  .col-xs-6
+    %h3
+    = t(".nodes")
+    - ServiceObject.nodes_in_cluster(element).each do |node|
+      %div
+        = render :partial => "node_link", :locals => { :node => node }
+
+  .col-xs-6
+    %h3
+    = t(".roles")
+    - ServiceObject.roles_in_cluster(element).map(&:proposal).uniq.each do |proposal|
+      %div
+        = render :partial => "proposal_link", :locals => { :proposal => proposal }

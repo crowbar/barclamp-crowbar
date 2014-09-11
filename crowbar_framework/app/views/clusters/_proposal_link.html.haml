@@ -1,0 +1,6 @@
+= display_led_for(proposal.status, "#{proposal.barclamp.parameterize}_#{proposal.name.parameterize}")
+= link_to proposal.display_name, proposal_barclamp_path(:controller => proposal.barclamp, :id => proposal.name)
+- if proposal.latest_applied?
+  %span.glyphicon.glyphicon-ok-sign{ :title => t('.current_revision_applied') }
+- else
+  %span.glyphicon.glyphicon-exclamation-sign{ :title => t('.current_revision_not_applied') }

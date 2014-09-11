@@ -85,10 +85,10 @@ class RoleObject < ChefObject
     end
   end
 
-  def barclamp
+  def self.barclamp(role_name)
     # FIXME: this obviously shouldn't need to exist; we need a proper registry
     # to avoid barclamp-crowbar having to know about other barclamps...
-    name = @role.name.split("-")[0]
+    name = role_name.split("-")[0]
 
     case name
     when "switch_config"
@@ -102,6 +102,10 @@ class RoleObject < ChefObject
     else
       name
     end
+  end
+
+  def barclamp
+    self.class.barclamp(@role.name)
   end
 
   def category

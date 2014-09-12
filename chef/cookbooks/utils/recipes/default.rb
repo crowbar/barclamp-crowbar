@@ -1,4 +1,5 @@
 # Copyright (c) 2011 Dell Inc.
+# Copyright (c) 2014 SUSE Linux GmbH.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +14,10 @@
 # limitations under the License.
 #
 
-# set some shortcut variables. 
-@@centos = @@ubuntu = false 
-platform = node[:platform]
-case platform
-  when "centos", "redhat"
-  @@centos = true
-  when "ubuntu"
-  @@ubuntu = true
-end
-
-@@is_admin = node["crowbar"]["admin_node"] rescue false
+admin = CrowbarHelper.is_admin?(node) ? 'admin': ''
 
 if node[:platform] == "windows"
-  log("running on OS:[#{platform}] #{@@is_admin ? 'admin': ''}") { level :info} 
+  log("running on OS:#{node[:platform]} #{admin}")
 else
-  log("running on OS:[#{platform}] on #{node[:dmi][:system][:product_name]} hardware #{@@is_admin ? 'admin': ''}") { level :info} 
+  log("running on OS:#{node[:platform]} on #{node[:dmi][:system][:product_name]} hardware #{admin}")
 end

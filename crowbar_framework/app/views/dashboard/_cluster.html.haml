@@ -1,0 +1,33 @@
+.panel.panel-default
+  .panel-heading
+    %h2
+      = render :partial => "link_cluster", :locals => { :element => element, :status => ServiceObject.cluster_status(cluster_nodes), :name => ServiceObject.cluster_name(element) }
+
+  .panel-body
+    .row
+      .col-xs-12
+        %h3
+          = t(".nodes")
+    .row
+      .col-xs-12
+        - if cluster_nodes.empty?
+          = t(".no_cluster_nodes")
+        - else
+          - cluster_nodes.each do |node|
+            %span
+              = render :partial => "link_node", :locals => { :node => node }
+
+    .row
+      .col-xs-12
+        %h3
+          = t(".roles")
+
+    .row
+      .col-xs-12
+        - if cluster_roles.empty?
+          = t(".no_cluster_roles")
+        - else
+          - cluster_roles.each do |role|
+            %span
+              = render :partial => "link_proposal", :locals => { :proposal => role.proposal(all_proposals), :role => role }
+  .panel-footer

@@ -1,0 +1,6 @@
+= display_led_for(proposal.status, nil)
+= link_to proposal.display_name, proposal_barclamp_path(:controller => proposal.barclamp, :id => proposal.name)
+- if proposal.latest_applied?
+  = icon_tag("ok-sign", nil, :title => t('.current_revision_applied'))
+- else
+  = icon_tag("exclamation-sign", nil, :title => t('.current_revision_not_applied'))

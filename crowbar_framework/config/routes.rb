@@ -53,6 +53,10 @@ ActionController::Routing::Routes.draw do |map|
   map.network 'network', :controller => 'network', :action=>'switch'
   map.switch 'network/switch/:id', :controller => 'network', :action=>'switch', :requirements => { :id => /.*/ }
   map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
+
+  # clusters
+  map.clusters  'clusters',     :controller => 'dashboard', :action => 'clusters'
+  map.active_roles 'active_roles', :controller => 'dashboard', :action => 'active_roles'
   
   #support paths
 

@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+require 'ostruct'
+
 class RoleObject < ChefObject
   self.chef_type = "role"
 
@@ -44,6 +46,17 @@ class RoleObject < ChefObject
     end
   end
 
+  # Returns all proposal roles where this role is mentioned
+  def proposal_roles(roles = self.class.all)
+    if proposal?
+      []
+    else
+      roles.select do |role|
+        role.proposal? && role.elements.keys.include?(name)
+      end
+    end
+  end
+
   def proposal(proposals = nil)
     @associated_proposal ||= begin
       if proposals
@@ -52,6 +65,64 @@ class RoleObject < ChefObject
         ProposalObject.find_proposal(barclamp, inst)
       end
     end
+  end
+
+  def self.assigned(roles = self.all)
+    assigned_roles = []
+    roles.select(&:proposal?).map(&:elements).each do |element|
+      element.each do |role_name, node_names|
+        assigned_roles.push(roles.find { |r| r.name == role_name })
+      end
+    end
+    assigned_roles.compact.uniq
+  end
+
+  # Returns all nodes which have this role applied
+  def element_nodes(roles = self.class.all, nodes = NodeObject.all)
+    assigned_nodes = []
+
+    # Get all nodes from proposal roles mentioning this one
+    proposal_roles(roles).each do |prop|
+      prop.elements[self.name].each do |node_name|
+        # Resolve clusters. We do not use the Pacemaker helper as that means
+        # another call to Chef. Obvious FIXME is to patch that method to accept
+        # cache param and fallback to proposal look up.
+        if ServiceObject.is_cluster?(node_name)
+          cluster = roles.find { |r| r.name == "pacemaker-config-#{ServiceObject.cluster_name(node_name)}" }
+          cluster_roles_nodes = cluster.proposal_nodes(nodes)
+
+          obj = OpenStruct.new(
+            :cluster => true,
+            :nodes   => cluster_roles_nodes.map { |role, nodes| nodes }.flatten.uniq,
+            :node    => nil,
+            :name    => ServiceObject.cluster_name(node_name)
+          )
+        else
+          node = nodes.find { |n| n.name == node_name }
+          obj  = !node ? nil : OpenStruct.new(
+            :cluster => false,
+            :nodes   => [node],
+            :node    => node,
+            :name    => node.name
+          )
+        end
+        assigned_nodes.push(obj) if obj
+      end
+    end
+    assigned_nodes
+  end
+
+  def core_role?
+    core_barclamps = BarclampCatalog.members('crowbar').keys
+    core_barclamps.any? { |core_barclamp| core_barclamp == barclamp }
+  end
+
+  def ha?
+    barclamp == "pacemaker"
+  end
+
+  def proposal?
+    @role.name.to_s =~ /.*\-config\-.*/
   end
 
   def self.all

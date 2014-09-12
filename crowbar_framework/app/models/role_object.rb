@@ -18,6 +18,42 @@
 class RoleObject < ChefObject
   self.chef_type = "role"
 
+  def cluster_roles(roles = RoleObject.all)
+    @cluster_roles ||= begin
+      roles.select do |role|
+        role.elements.values.flatten.compact.uniq.include?("cluster:#{inst}")
+      end
+    end
+  end
+
+  def cluster_nodes(nodes = NodeObject.all)
+    @cluster_nodes ||= begin
+      proposal_nodes(nodes).values.flatten.uniq
+    end
+  end
+
+  def proposal_nodes(nodes = NodeObject.all)
+    @proposal_nodes ||= begin
+      assigned_nodes = {}
+      elements.each do |role_name, node_names|
+        assigned_nodes[role_name] = node_names.map do |node_name|
+          nodes.find { |n| n.name == node_name }
+        end.compact
+      end
+      assigned_nodes
+    end
+  end
+
+  def proposal(proposals = nil)
+    @associated_proposal ||= begin
+      if proposals
+        proposals.find { |p| p.barclamp == barclamp && p.name == inst }
+      else
+        ProposalObject.find_proposal(barclamp, inst)
+      end
+    end
+  end
+
   def self.all
     self.find_roles_by_search(nil)
   end

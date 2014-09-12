@@ -254,7 +254,7 @@ class RoleObject < ChefObject
   end
 
   def elements
-    @role.override_attributes[self.barclamp]["elements"]
+    (@role.override_attributes[self.barclamp]["elements"] || {}) rescue {}
   end
 
   def run_list

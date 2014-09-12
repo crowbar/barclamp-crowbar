@@ -196,7 +196,7 @@
           self.options.afterProcess.call(this, response);
         }
 
-        if (reload) {
+        if (reload && self.$el.data('ledreload') != false) {
           if (self.$el.data('ledredirect')) {
             win.location = self.$el.data('ledredirect');
           } else {

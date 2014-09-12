@@ -37,6 +37,9 @@ en:
     crowbar_ug: 'Users Guide'
     crowbar_dg: 'Deployment Guide'
     documentation: 'Documentation'
+    clusters: 'HA Clusters'
+    clusters_dashboard: 'Clusters dashboard'
+    roles_dashboard: 'Roles dashboard'
 
   layouts:
     application:
@@ -272,6 +275,39 @@ en:
         proposal_count: 'Proposals'
         status: 'Status'
         barclamp: 'Barclamp'
+
+  clusters:
+    roles:
+      title: 'Roles dashboard'
+    compute_node:
+      nodes: 'Nodes'
+    role:
+      nodes: 'Nodes'
+    cluster:
+      nodes: 'Nodes'
+      roles: 'Roles'
+      no_cluster_roles: 'No roles have been assigned to this cluster.'
+      no_cluster_nodes: 'No nodes have been assigned to this cluster.'
+    proposal_link:
+      current_revision_applied: 'No change in proposal since last deployment.'
+      current_revision_not_applied: 'The proposal has been changed since last deployment.'
+    unallocated_nodes:
+      unallocated_nodes: 'Unallocated nodes'
+    unassigned_nodes:
+      unassigned_nodes: 'Unassigned nodes'
+    unassigned_roles:
+      unassigned_roles: 'Unassigned roles'
+    index:
+      title: 'Clusters dashboard'
+      clusters: 'Clusters'
+      roles: 'Roles'
+      compute_nodes: 'Compute nodes'
+      extended_clusters:
+        one: 'There is %{count} cluster available in the system'
+        other: 'There are %{count} clusters available in the system'
+      simple_clusters:
+        one: '%{count} cluster'
+        other: '%{count} clusters'
 
   nodes:
     index:

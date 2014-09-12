@@ -39,10 +39,14 @@ crowbar:
 nav:
   primary:
     - [ nodes, root_path ]
+    - [ clusters, clusters_dashboard_path unless ServiceObject.available_clusters.empty? ]
     - [ network, network_path ]
     - [ barclamps, barclamp_modules_path ]
     - [ utils, utils_path ]
     - [ help, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
+  clusters:
+    - [ clusters_dashboard, clusters_dashboard_path ]
+    - [ active_roles, clusters_roles_dashboard_path ]
   nodes:
     - [ dashboard, dashboard_path ]
     - [ list, nodes_list_path ]

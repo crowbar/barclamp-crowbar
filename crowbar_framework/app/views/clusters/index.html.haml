@@ -1,0 +1,39 @@
+.row{ "data-ledupdate" => nodes_status_path, "data-ledignore" => "groups, proposals", "data-ledreload" => "false" }
+  .col-xs-12
+    %h1.page-header
+      = t(".title")
+
+      .badge{ :title => t(".extended_clusters", :count => @clusters.count) }
+        = t(".simple_clusters", :count => @clusters.count)
+
+.row
+  .col-xs-12
+    %h2
+      = t(".clusters")
+
+.row
+  .col-md-8.col-xs-12
+    .row
+      = render :partial => "cluster_dashboard", :locals => { :clusters => @clusters, :all_nodes => @nodes, :all_roles => @roles, :all_proposals => @proposals }
+    .row
+      .col-xs-12
+        %h2
+          = t(".roles")
+
+    .row
+      = render :partial => "role_dashboard", :locals => { :roles => @assigned_roles, :all_roles => @roles, :all_nodes => @nodes }
+
+    .row
+      .col-xs-12
+        %h2
+          = t(".compute_nodes")
+
+    .row
+      = render :partial => "compute_nodes_dashboard", :locals => { :roles => @compute_roles, :all_roles => @roles, :all_nodes => @nodes }
+  .col-md-offset-1.col-md-3.col-xs-12
+    .row
+      = render :partial => "unallocated_nodes", :locals => { :nodes => @unallocated_nodes }
+    .row
+      = render :partial => "unassigned_nodes", :locals => { :nodes => @unassigned_nodes }
+    .row
+      = render :partial => "unassigned_roles", :locals => { :roles => @unassigned_roles }

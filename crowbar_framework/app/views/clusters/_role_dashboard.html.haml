@@ -1,0 +1,5 @@
+.col-xs-12
+  - roles.each do |role|
+    .row
+      .col-xs-12
+        = render :partial => "role", :locals => { :role => role, :elements => role.element_nodes(all_roles, all_nodes) }

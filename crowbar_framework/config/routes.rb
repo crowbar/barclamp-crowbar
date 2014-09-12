@@ -28,6 +28,10 @@ ActionController::Routing::Routes.draw do |map|
 
   map.docs_barclamp 'docs/:controller/:id', :action=>'docs', :conditions => { :method => :get }
 
+  # clusters
+  map.clusters_dashboard 'clusters/dashboard', :controller => 'clusters', :action => 'index'
+  map.clusters_roles_dashboard 'clusters/roles_dashboard', :controller => 'clusters', :action => 'roles'
+
   # nodes
   map.resources :nodes, :only => [:index]
   map.connect 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',

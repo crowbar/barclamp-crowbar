@@ -26,13 +26,11 @@ module CrowbarPacemakerProxy
 
   # Returns: list of available clusters
   def available_clusters
-    @available_clusters ||= begin
-      clusters = {}
-      if defined?(PacemakerServiceObject)
-        clusters.merge!(PacemakerServiceObject.available_clusters)
-      end
-      clusters
+    clusters = {}
+    if defined?(PacemakerServiceObject)
+      clusters.merge!(PacemakerServiceObject.available_clusters)
     end
+    clusters
   end
 
   # Returns: name of the barclamp and of the proposal for this cluster
@@ -103,4 +101,11 @@ module CrowbarPacemakerProxy
     [nodes, failures]
   end
 
+  # Based on the status of its nodes, returns the overall cluster status
+  def cluster_status(cluster_nodes)
+    node_states = cluster_nodes.map(&:status)
+    # Needs to be synced w/ NodeObject#status
+    possible_states = ["unready", "building", "failed", "unknown", "pending", "ready"]
+    possible_states.find { |s| node_states.include?(s) } || "unknown"
+  end
 end

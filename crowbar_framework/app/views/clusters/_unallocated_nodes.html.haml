@@ -1,0 +1,10 @@
+.col-xs-12
+  .panel.panel-default
+    .panel-heading
+      %h2
+        = t(".unallocated_nodes")
+    %ul.list-group
+      - nodes.reject(&:allocated?).each do |node|
+        %li.list-group-item
+          = render :partial => "node_link", :locals => { :node => node }
+    .panel-footer

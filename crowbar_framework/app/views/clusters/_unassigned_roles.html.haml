@@ -1,0 +1,10 @@
+.col-xs-12
+  .panel.panel-default
+    .panel-heading
+      %h2
+        = t(".unassigned_roles")
+    %ul.list-group
+      - roles.each do |role|
+        %li.list-group-item
+          = role.name
+    .panel-footer

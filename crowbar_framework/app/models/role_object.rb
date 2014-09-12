@@ -15,15 +15,124 @@
 # limitations under the License.
 #
 
+require 'ostruct'
+
 class RoleObject < ChefObject
   self.chef_type = "role"
+
+  def self.core_role?(role_name)
+    core_barclamps = BarclampCatalog.members('crowbar').keys
+    core_barclamps.any? { |core_barclamp| core_barclamp == barclamp(role_name) }
+  end
+
+  def core_role?
+    self.class.core_role?(name)
+  end
+
+  def self.compute_roles(roles = nil)
+    if roles
+      roles.select { |r| !r.proposal? && r.name =~ /^nova\-multi\-compute/ }
+    else
+      self.find_role_by_name("nova-multi-compute-*").reject { |r| r.proposal? }
+    end
+  end
+
+  # FIXME: there is currently an ambiguity whether 'assigned' means 'saved' +
+  # 'applied' or just 'saved' proposal This code is assuming the former. The
+  # latter would require iterating over proposals instead of proposal roles.
+  def self.assigned(roles = self.all)
+    assigned_roles = []
+    roles.select(&:proposal?).map(&:elements).each do |element|
+      element.each do |role_name, node_names|
+        assigned_roles.push(roles.find { |r| r.name == role_name })
+      end
+    end
+    assigned_roles.compact.uniq
+  end
+
+  def self.unassigned(roles = self.all)
+    roles - assigned(roles)
+  end
+
+  # Returns all proposal roles where this role is mentioned
+  def proposal_roles(roles = self.class.all)
+    if proposal?
+      []
+    else
+      roles.select do |role|
+        role.proposal? && role.elements.keys.include?(name)
+      end
+    end
+  end
+
+  def cluster_roles(roles = RoleObject.all)
+    @cluster_roles ||= begin
+      roles.select do |role|
+        role.elements.values.flatten.compact.uniq.include?("cluster:#{inst}")
+      end
+    end
+  end
+
+  def cluster_nodes(nodes = NodeObject.all)
+    @cluster_nodes ||= begin
+      proposal_nodes(nodes).values.flatten.uniq
+    end
+  end
+
+  # FIXME: proposal roles cannot contain clusters?
+  def proposal_nodes(nodes = NodeObject.all)
+    @proposal_nodes ||= begin
+      assigned_nodes = {}
+      elements.each do |role_name, node_names|
+        assigned_nodes[role_name] = node_names.map do |node_name|
+          nodes.find { |n| n.name == node_name }
+        end.compact
+      end
+      assigned_nodes
+    end
+  end
+
+  # Returns all nodes which have this role applied
+  def element_nodes(roles = self.class.all, nodes = NodeObject.all)
+    assigned_nodes = []
+
+    # Get all nodes from proposal roles mentioning this one
+    proposal_roles(roles).each do |prop|
+      prop.elements[self.name].each do |node_name|
+        # Resolve clusters. We do not use the Pacemaker helper as that means
+        # another call to Chef. Obvious FIXME is to patch that method to accept
+        # cache param and fallback to proposal look up.
+        if ServiceObject.is_cluster?(node_name)
+          cluster = roles.find { |r| r.name == "pacemaker-config-#{ServiceObject.cluster_name(node_name)}" }
+          cluster_roles_nodes = cluster.proposal_nodes(nodes)
+
+          obj = OpenStruct.new(
+            :cluster => true,
+            :nodes   => cluster_roles_nodes.map { |role, nodes| nodes }.flatten.uniq,
+            :node    => nil,
+            :name    => ServiceObject.cluster_name(node_name)
+          )
+        else
+          node = nodes.find { |n| n.name == node_name }
+          obj  = !node ? nil : OpenStruct.new(
+            :cluster => false,
+            :nodes   => [node],
+            :node    => node,
+            :name    => node.name
+          )
+        end
+        assigned_nodes.push(obj) if obj
+      end
+    end
+
+    assigned_nodes
+  end
 
   def self.all
     self.find_roles_by_search(nil)
   end
 
   def self.all_dependencies
-    active_roles = RoleObject.find_roles_by_name("*-config-*")
     dependencies = {}
     active_roles.map do |role|
        service = ServiceObject.get_service(role.barclamp).new(Rails.logger)
@@ -40,13 +149,20 @@ class RoleObject < ChefObject
     Hash[all_dependencies.select { |s, r| r.include?(service) }].keys
   end
 
-  def self.active(barclamp = nil, inst = nil)
-    full = if barclamp.nil?
+  def self.active_roles(barclamp = nil, inst = nil)
+    if barclamp.nil?
       RoleObject.find_roles_by_name "*-config-*"
     else
       RoleObject.find_roles_by_name "#{barclamp}-config-#{inst || "*"}"
     end
-    full.map { |x| "#{x.barclamp}_#{x.inst}" }
+  end
+
+  def self.active(barclamp = nil, inst = nil)
+    active_roles(barclamp, inst).map { |x| "#{x.barclamp}_#{x.inst}" }
+  end
+
+  def ha?
+    barclamp == "pacemaker"
   end
 
   def self.find_roles_by_name(name)
@@ -85,10 +201,10 @@ class RoleObject < ChefObject
     end
   end
 
-  def barclamp
+  def self.barclamp(role_name)
     # FIXME: this obviously shouldn't need to exist; we need a proper registry
     # to avoid barclamp-crowbar having to know about other barclamps...
-    name = @role.name.split("-")[0]
+    name = role_name.split("-")[0]
 
     case name
     when "switch_config"
@@ -104,6 +220,10 @@ class RoleObject < ChefObject
     end
   end
 
+  def barclamp
+    self.class.barclamp(@role.name)
+  end
+
   def category
     @category ||= BarclampCatalog.category(barclamp)
   end
@@ -114,6 +234,20 @@ class RoleObject < ChefObject
 
   def prop
     [barclamp, inst].join("_")
+  end
+
+  def proposal?
+    @role.name.to_s =~ /.*\-config\-.*/
+  end
+
+  def proposal(proposals = nil)
+    @associated_proposal ||= begin
+      if proposals
+        proposals.find { |p| p.barclamp == barclamp && p.name == inst }
+      else
+        ProposalObject.find_proposal(barclamp, inst)
+      end
+    end
   end
 
   def display_name
@@ -217,8 +351,16 @@ class RoleObject < ChefObject
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end
 
+  def self.on_cluster
+    RoleObject.all.select { |r| r.on_cluster? }
+  end
+
+  def on_cluster?
+    elements.values.flatten.any? { |n| ServiceObject.is_cluster?(n) }
+  end
+
   def elements
-    @role.override_attributes[self.barclamp]["elements"]
+    (@role.override_attributes[self.barclamp]["elements"] || {}) rescue {}
   end
 
   def run_list

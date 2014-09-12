@@ -1,0 +1,27 @@
+.panel.panel-default
+  .panel-heading
+    %h2
+      = role.name
+
+  .panel-body
+    .row
+      .col-xs-12
+        %h3
+          = t(".nodes")
+
+    .row
+      .col-xs-12
+      .col-xs-12
+        - elements.select { |e| e.cluster }.each do |cluster|
+          %span
+            = render :partial => "cluster_link", :locals => { :status => ServiceObject.cluster_status(cluster.nodes), :name => cluster.name }
+            (
+            - cluster.nodes.each do |node|
+              = render :partial => "node_link", :locals => { :node => node }
+            )
+
+        - elements.select { |e| !e.cluster }.each do |node|
+          %span
+            = render :partial => "node_link", :locals => { :node => node.node }
+
+  .panel-footer

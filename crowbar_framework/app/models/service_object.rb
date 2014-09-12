@@ -57,6 +57,8 @@ class ServiceObject
   end
 
   class << self
+    include CrowbarPacemakerProxy
+
     # This method should be overriden from subclassing service objects
     # and return the constraints related to this specific service.
     def role_constraints

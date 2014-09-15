@@ -20,7 +20,7 @@ en:
     role:
       nodes: 'Nodes'
     active_roles:
-      title: 'Active roles'
+      title: 'Active Roles'
     link_proposal:
       current_revision_applied: 'No change in proposal since last deployment.'
       current_revision_not_applied: 'The proposal has been changed since last deployment.'

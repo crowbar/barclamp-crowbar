@@ -8,19 +8,20 @@
   }
 }
 
+.glyphicon {
+  font-size: $font-size-base;
+}
+.glyphicon-ok-sign {
+  color: $brand-success;
+}
+.glyphicon-exclamation-sign {
+  color: $brand-warning;
+}
+
 .panel {
   .panel-heading {
     h2 {
       margin: 0;
-    }
-    .glyphicon {
-      font-size: $font-size-base;
-    }
-    .glyphicon-ok-sign {
-      color: $brand-success;
-    }
-    .glyphicon-exclamation-sign {
-      color: $brand-warning;
     }
   }
 

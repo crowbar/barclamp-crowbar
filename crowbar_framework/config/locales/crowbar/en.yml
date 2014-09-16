@@ -16,7 +16,31 @@
 #
 
 en:
+  dashboard:
+    role:
+      nodes: 'Nodes'
+    active_roles:
+      title: 'Active Roles'
+    link_proposal:
+      current_revision_applied: 'No change in proposal since last deployment.'
+      current_revision_not_applied: 'The proposal has been changed since last deployment.'
+    cluster:
+      roles: 'Roles'
+      nodes: 'Nodes'
+      no_cluster_roles: 'No roles have been assigned to this cluster.'
+      no_cluster_nodes: 'No nodes have been assigned to this cluster.'
+    clusters:
+      title: 'HA Clusters'
+      simple_clusters:
+        one: '%{count} cluster'
+        other: '%{count} clusters'
+      extended_clusters:
+        one: 'There is %{count} cluster available in the system'
+        other: 'There are %{count} clusters available in the system'
+
   nav:
+    clusters: 'HA Clusters'
+    active_roles: 'Active Roles'
     nodes: 'Nodes'
     dashboard: 'Dashboard'
     families: 'Family Groups'

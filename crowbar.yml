@@ -46,6 +46,8 @@ nav:
   nodes:
     - [ dashboard, dashboard_path ]
     - [ list, nodes_list_path ]
+    - [ clusters, clusters_path unless ServiceObject.available_clusters.empty? ]
+    - [ active_roles, active_roles_path ]
     - [ families, nodes_families_path if RAILS_ENV == 'development' ]
   barclamps:
     - [ all_bc, barclamp_modules_path ]

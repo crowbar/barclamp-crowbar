@@ -1,0 +1,11 @@
+.row{ "data-ledupdate" => nodes_status_path, "data-ledignore" => "groups, proposals", "data-ledreload" => "false" }
+  .col-xs-12
+    %h1.page-header
+      = t(".title")
+
+.row
+  .col-xs-12
+    - @assigned_roles.each do |role|
+      .row
+        .col-xs-12
+          = render :partial => "role", :locals => { :role => role, :elements => role.element_nodes(@roles, @nodes) }

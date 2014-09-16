@@ -1,0 +1,2 @@
+%span.led{ :class => status, :title => t(status, :scope => "status", :default => status.titlecase) }
+= link_to "#{name.titlecase} Cluster", proposal_barclamp_path(:controller => "pacemaker", :id => name)

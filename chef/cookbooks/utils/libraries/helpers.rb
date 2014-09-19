@@ -29,7 +29,8 @@ module CrowbarHelper
       # loose dependency on the pacemaker cookbook
       cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
 
-      public_name = nil
+      # Specify default as the configured public name
+      public_name = CrowbarPacemakerHelper.cluster_haproxy_vpublic_name(node)
       public_fqdn = "public.#{cluster_vhostname}.#{node[:domain]}"
       public_net_db = Chef::DataBagItem.load('crowbar', 'public_network').raw_data
       public_ip = public_net_db["allocated_by_name"]["#{cluster_vhostname}.#{node[:domain]}"]["address"]

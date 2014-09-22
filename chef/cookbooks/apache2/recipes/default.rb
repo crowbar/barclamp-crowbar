@@ -41,7 +41,7 @@ service "apache2" do
   when "suse"
     service_name "apache2"
     restart_command "/sbin/service apache2 restart && sleep 1"
-    reload_command "/sbin/service apache2 graceful && sleep 1"
+    reload_command "/sbin/service apache2 reload && sleep 1"
   when "debian"
     service_name "apache2"
     restart_command "/usr/sbin/invoke-rc.d apache2 restart && sleep 1"

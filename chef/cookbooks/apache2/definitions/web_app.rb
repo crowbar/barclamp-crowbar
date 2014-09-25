@@ -25,7 +25,6 @@ define :web_app, :template => "web_app.conf.erb" do
   include_recipe "apache2::mod_rewrite"
   include_recipe "apache2::mod_deflate"
   include_recipe "apache2::mod_headers"
-  include_recipe "apache2::mod_filter"
 
   if node.platform == "suse"
     vhost_conf = "#{node[:apache][:dir]}/vhosts.d/#{application_name}.conf"

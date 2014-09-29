@@ -57,10 +57,11 @@ ActionController::Routing::Routes.draw do |map|
   # clusters
   map.clusters  'clusters',     :controller => 'dashboard', :action => 'clusters'
   map.active_roles 'active_roles', :controller => 'dashboard', :action => 'active_roles'
-  
+
+  # deployment queue
+  map.deployment_queue 'deployment_queue', :controller => 'deploy_queue', :action => 'index'
+
   #support paths
-
-
   map.utils 'utils.:format', :controller=>'support', :action=>'index'
   map.utils_files 'utils/files/:id', :controller=>'support', :action=>'destroy', :requirements => { :id => /.*/ }
   map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
@@ -70,7 +71,7 @@ ActionController::Routing::Routes.draw do |map|
   map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
   map.utils_upload 'utils/upload/:id', :controller=>'support', :action=>'upload', :requirements => { :id => /.*/ }
   map.restart 'utils/restart/:id.:format', :controller=>'support', :action=>'restart'
-  
+
   # barclamps
   map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
   map.barclamp_nodes            'crowbar/:controller/1.0/proposals/nodes', :action=>'nodes'

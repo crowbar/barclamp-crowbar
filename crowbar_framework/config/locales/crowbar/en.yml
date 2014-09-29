@@ -16,6 +16,23 @@
 #
 
 en:
+  deploy_queue:
+    index:
+      waiting_in_queue: 'Waiting in queue'
+      reason: 'Reason for being queued'
+      dequeue_proposal: 'Dequeue'
+      actions: 'Actions'
+      currently_deployed: 'Currently deploying'
+      no_proposal_deployed: "No proposals are currently being deployed."
+      deployment_queue: 'Deployment queue'
+      barclamp: 'Barclamp'
+      proposal_name: 'Proposal name'
+      no_dependencies: 'No dependencies'
+      dependencies: 'Dependencies'
+      nodes: 'Nodes'
+      deploy_queue_empty: 'The deployment queue is currently empty.'
+      waiting_for_nodes: 'Waiting for nodes to be ready: %{nodes}.'
+      waiting_for_proposals: 'Waiting for deployment of proposals: %{props}.'
   dashboard:
     role:
       nodes: 'Nodes'
@@ -39,6 +56,7 @@ en:
         other: 'There are %{count} clusters available in the system'
 
   nav:
+    deployment_queue: 'Deployment queue'
     clusters: 'HA Clusters'
     active_roles: 'Active Roles'
     nodes: 'Nodes'

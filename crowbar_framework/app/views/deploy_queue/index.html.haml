@@ -1,0 +1,90 @@
+%h1
+  = t(".deployment_queue")
+
+%h2
+  = t(".currently_deployed")
+- if @top
+  %table.table.table-bordered.table-striped
+    %thead
+      %tr
+        %th
+          = t(".proposal_name")
+        %th
+          = t(".nodes")
+    %tbody
+      %tr
+        %td
+          = @top.barclamp
+          = @top.name
+        %td
+          - @top.elements.each do |role_name, node_names|
+            %div
+              = role_name
+            %div
+              - node_names.map { |node_name| @nodes[node_name] }.each do |node|
+                %span
+                  %span.led{ :class => node.status, :title => t(node.state, :scope => "state", :default => node.state.titlecase), "data-node" => node.handle }
+                  %a{ :href => node_path(node.handle), :title => node.description }
+                    = node.alias
+- else
+  = t(".no_proposal_deployed")
+
+%h2
+  = t(".waiting_in_queue")
+
+- if @queue.empty?
+  = t(".deploy_queue_empty")
+- else
+  %table.table.table-bordered.table-striped
+    %thead
+      %tr
+        %th
+          = t(".proposal_name")
+        %th
+          = t(".nodes")
+        %th
+          = t(".dependencies")
+        %th
+          = t(".reason")
+        %th
+          = t(".actions")
+    %tbody
+      - @queue.each do |item|
+        %tr
+          %td
+            = item["barclamp"]
+            = item["inst"]
+          %td
+            - item["elements"].each do |role_name, node_names|
+              %div
+                = role_name
+              %div
+                - node_names.map { |node_name| @nodes[node_name] }.each do |node|
+                  %span
+                    %span.led{ :class => node.status, :title => t(node.state, :scope => "state", :default => node.state.titlecase), "data-node" => node.handle }
+                    %a{ :href => node_path(node.handle), :title => node.description }
+                      = node.alias
+          %td
+            - if item["deps"].nil? || item["deps"].empty?
+              = t(".no_dependencies")
+            - else
+              - item["deps"].map { |dep| @props["#{dep["barclamp"]}_#{dep["inst"]}"] }.each do |dep|
+                %div
+                  %span.led{ :class => dep.status, :title => t(dep.status, :scope => "state", :default => dep.status.titlecase), "data-node" => dep.name }
+                  %span
+                    = dep.barclamp
+                    = dep.name
+          %td
+            - nodes = item["elements"].values.flatten.uniq.map { |node_name| @nodes[node_name] }.select { |n| !n.ready? }
+            - if !nodes.empty?
+              %div
+                = t(".waiting_for_nodes", :nodes => nodes.map { |n| n.alias }.to_sentence)
+            - deps = item["deps"].map { |dep| @props["#{dep["barclamp"]}_#{dep["inst"]}"] }.select { |p| p.status != 'ready' }
+            - if !deps.empty?
+              %div
+                = t(".waiting_for_proposals", :props => deps.map { |p| "#{p.barclamp} #{p.name}" }.to_sentence)
+          %td
+            %form{:action => update_proposal_barclamp_path(item["barclamp"], item["inst"]), :method => :post}
+              = hidden_field_tag("origin", "deployment_queue", :id => "origin_#{item["barclamp"]}_#{item["inst"]}")
+              = hidden_field_tag("name", item["inst"], :id => "name_#{item["barclamp"]}_#{item["inst"]}")
+              %input.btn.btn-default{:type => "submit", :name => "submit", :value => t("barclamp.proposal_show.dequeue_proposal") }

@@ -8,6 +8,9 @@
 
 .panel-body
   .form-group
+    %input{ :type => "hidden", :name => "dep_raw", :value => @dep_raw }
+    %input{ :type => "hidden", :name => "attr_raw", :value => @attr_raw }
+
     - if request.env['HTTP_USER_AGENT'].downcase.index('msie 7')
       %textarea#proposal_deployment{ :name => "proposal_deployment", :rows => 30, :cols => 80, :data => { "changed-state" => t("proposal.failures.unsaved_changes") } }
         = @proposal.pretty_deployment_json

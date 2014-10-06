@@ -426,7 +426,16 @@ class BarclampController < ApplicationController
         Rails.logger.warn "Invalid action #{params[:submit]} for #{params[:id]}"
         flash[:alert] = "Invalid action #{params[:submit]}"
       end
-      redirect_to proposal_barclamp_path(:controller => params[:barclamp], :id => params[:name])
+
+      redirect_params = {
+        :controller => params[:barclamp],
+        :id => params[:name]
+      }
+
+      redirect_params[:dep_raw] = params[:dep_raw] if params[:dep_raw] == "true"
+      redirect_params[:attr_raw] = params[:attr_raw] if params[:attr_raw] == "true"
+
+      redirect_to proposal_barclamp_path(redirect_params)
     end
   end
 

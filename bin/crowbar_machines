@@ -68,6 +68,7 @@ require "utils/extended_hash"
   "reinstall" => [ "action \"reinstall\", ARGV.shift", "reinstall <name or alias> - Reinstall a node" ],
   "update" => [ "action \"update\", ARGV.shift", "update <name or alias> - Hardware update a node" ],
   "rename" => [ "rename ARGV.shift, ARGV.shift", "rename <name or alias> <new_alias> - Rename a node alias" ],
+  "role" => [ "role ARGV.shift, ARGV.shift", "role <name or alias> <intended role> - Assign an intended role" ],
   "api_help" => [ "api_help", "api_help - Crowbar API help for this barclamp" ]
 }
 
@@ -308,6 +309,26 @@ def rename(name, update)
   usage(-1) if update.nil? or update.empty?
 
   action("rename", name, { :alias => update})
+end
+
+def role(name, update)
+  usage(-1) if name.nil? or name.empty?
+  usage(-1) if update.nil? or update.empty?
+
+  available_roles = %w(
+    no_role
+    controller
+    compute
+    network
+    storage
+  )
+
+  unless available_roles.include? update
+    puts "The role have to be one of #{available_roles.join(", ")}"
+    exit 1
+  end
+
+  action("role", name, { :role => update})
 end
 
 def api_help

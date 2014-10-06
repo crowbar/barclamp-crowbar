@@ -26,6 +26,8 @@ module FormHelper
   def roles_for_select(selected)
     options_for_select(
       [
+        # These roles have to stay in sync
+        # with machines role command
         [t(".no_role"), "no_role"], 
         [t(".controller"), "controller"], 
         [t(".compute"), "compute"], 

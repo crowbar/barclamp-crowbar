@@ -23,6 +23,7 @@ class MachinesController < BarclampController
   before_filter :load_machine_or_render_not_found,
     :only => [
       :show,
+      :role,
       :rename,
       :identify,
       :delete,
@@ -62,6 +63,16 @@ class MachinesController < BarclampController
   def show
     respond_to do |format|
       format.json { render :json => @machine.to_hash }
+    end
+  end
+
+  add_help(:role, [:id])
+  def role
+    @machine.intended_role = params[:role]
+    @machine.save
+
+    respond_to do |format|
+      format.json { head :ok }
     end
   end
 

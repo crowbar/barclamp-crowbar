@@ -728,6 +728,8 @@ class ServiceObject
         response = active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
         response = [400, "Failed to validate proposal: #{e.message}"]
+      rescue StandardError => e
+        response = [500, e.message]
       ensure
         # Make sure we unmark the wall
         prop = ProposalObject.find_proposal(@bc_name, inst)

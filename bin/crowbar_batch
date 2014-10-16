@@ -123,6 +123,10 @@ def proposal_puts(msg)
   puts INDENT + msg
 end
 
+def proposal_debug(msg)
+  debug INDENT + msg
+end
+
 def build_proposal(proposal)
   barclamp = proposal["barclamp"]
   name     = proposal["name"] || 'default'
@@ -191,9 +195,13 @@ def modify_proposal(barclamp, name, proposal)
       return false
     else
       proposal_puts "Not yet applied; needs commit"
+      proposal_debug JSON.pretty_generate(new_json)
       return true
     end
   end
+
+  proposal_debug "Removals:  #{removed.inspect}"
+  proposal_debug "Additions: #{added.inspect}"
 
   new_json["id"] = name
 
@@ -210,6 +218,7 @@ def modify_proposal(barclamp, name, proposal)
   }
   err_to_browser(out) if err > 0
   proposal_puts "Edited; needs commit"
+  proposal_debug JSON.pretty_generate(new_json)
   return true
 end
 

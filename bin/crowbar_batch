@@ -1,0 +1,298 @@
+#!/usr/bin/env ruby
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+$LOAD_PATH.unshift(File.expand_path("../../crowbar_framework/lib", __FILE__))
+
+require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
+
+require "rubygems"
+require "net/http"
+require "net/http/digest_auth"
+require "uri"
+require "json"
+require "yaml"
+require "getoptlong"
+require "utils/extended_hash"
+require "open3"
+require "tempfile"
+
+require "easy_diff"
+require "chef/mixin/deep_merge"
+require "pp"
+
+INDENT = '   '
+
+@barclamp = "batch"
+
+@options = [
+  [ [ "--help", "-h", GetoptLong::NO_ARGUMENT ], "--help or -h - This page for further help" ],
+  [ [ "--debug", "-d", GetoptLong::NO_ARGUMENT ], "--debug or -d - Turns on debugging information" ],
+  [ [ "--username", "-U", GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - Specifies the username to use" ],
+  [ [ "--password", "-P", GetoptLong::REQUIRED_ARGUMENT ], "--password <password> or -P <password>  - Specifies the password to use" ],
+  [ [ "--hostname", "-n", GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - Specifies the destination server" ],
+  [ [ "--port", "-p", GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - Specifies the destination server port" ],
+  [ [ "--timeout", "-t", GetoptLong::REQUIRED_ARGUMENT ], "--timeout <seconds> or -t <seconds> - Timeout in seconds for read HTTP requests" ]
+]
+
+@commands = {
+  "help" => [ "help", "help - This page for further help" ],
+  "build" => [ "build ARGV.shift", "build <YAML spec> - Create/edit/commit proposals defined via YAML" ],
+#  "export" => [ "export", "export <barclamp> [<barclamp> ...] - export barclamps as YAML" ],
+}
+
+def build(input_file)
+  usage(-1) if input_file.nil? or input_file == ""
+
+  host_by_alias = get_aliases
+
+  input_data = File.open(input_file).readlines.join('')
+
+  # Translate @@alias@@ to Chef node name
+  host_by_alias.each do |aliaz, hostname|
+    input_data.gsub!("@@#{aliaz}@@", hostname)
+  end
+
+  data = YAML.load(input_data)
+
+  global_options = data["global_options"] || {}
+
+  proposals = data["proposals"]
+  if ! proposals || proposals.empty?
+    warn "#{input_file} didn't contain any proposals"
+    exit(-1)
+  end
+
+  proposals.each do |proposal|
+    build_proposal(proposal)
+  end
+end
+
+def with_barclamp(barclamp)
+  # Evil cheat for using API calls on other "barclamps",
+  # which allows us to reuse the deficient code in barclamp_lib.
+  # All this code should be using proper classes :-/
+  old_barclamp = @barclamp
+  @barclamp = barclamp
+  ret = yield
+  @barclamp = old_barclamp
+  ret
+end
+
+# Perform an API call to get mappings between Chef node names
+# and Crowbar aliases.  This will be used to substitute strings
+# like '@@controller2@@' within the YAML input file.
+def get_aliases
+  body, status = with_barclamp('machines') do
+    get_json("/")
+  end
+
+  abort "Couldn't get aliases" unless status == 200
+
+  host_by_alias = {}
+
+  return host_by_alias unless body
+
+  body["nodes"].each do |node|
+    fqdn  = node["name"]
+    aliaz = node["alias"]
+    nodename = fqdn.split('.').first
+    if aliaz != nodename
+      host_by_alias[aliaz] = fqdn
+    end
+  end
+
+  host_by_alias
+end
+
+def proposal_puts(msg)
+  puts INDENT + msg
+end
+
+def build_proposal(proposal)
+  barclamp = proposal["barclamp"]
+  name     = proposal["name"] || 'default'
+  puts "#{barclamp} barclamp, '#{name}' proposal:"
+
+  ensure_proposal_exists(barclamp, name)
+
+  needs_commit = modify_proposal(barclamp, name, proposal)
+  commit_proposal(barclamp, name) if needs_commit
+end
+
+def ensure_proposal_exists(barclamp, name)
+  out, err = with_barclamp(barclamp) { proposal_list }
+  abort out if err > 0
+  if ! out.find { |line| line.start_with? name }
+    create_proposal(barclamp, name)
+  else
+    proposal_puts "Already exists"
+  end
+end
+
+def create_proposal(barclamp, name)
+  out, err = with_barclamp(barclamp) { proposal_create(name) }
+  abort out if err > 0
+  proposal_puts "Created"
+end
+
+def get_proposal_json(barclamp, name)
+  struct = with_barclamp(barclamp) { get_json("/proposals/#{name}") }
+
+  if struct[1] == 404
+    abort "No #{barclamp} proposal called '#{name}'"
+  elsif struct[1] != 200
+    abort "Failed to talk to service proposal show: #{struct[1]}: #{struct[0]}"
+  end
+
+  return struct[0]
+end
+
+# Returns true if the proposal needs applying
+def modify_proposal(barclamp, name, proposal)
+  old_json = get_proposal_json(barclamp, name)
+  new_json = old_json.easy_clone
+
+  # For now we require explicit assignment of roles.  Maybe later we
+  # can allow harnessing of the intended role feature.  Note that we
+  # cannot delete the whole elements Hash since some validation code
+  # relies on roles being present even if they don't have any nodes
+  # assigned.
+  elements = new_json["deployment"][barclamp]["elements"]
+  elements.keys.each do |role|
+    elements[role] = []
+  end
+
+  # Ugly hack to overwrite defaults for certain attributes.
+  # There has to be a better way than this :-/
+  case barclamp
+  when "cinder"
+    new_json["attributes"][barclamp]["volumes"] =
+      new_json["attributes"][barclamp]["volumes"].drop_while { |backend|
+        backend["backend_name"] == "default"
+      }
+  end
+
+  merge_attributes(new_json, barclamp, proposal)
+
+  removed, added = old_json.easy_diff new_json
+
+  if removed.empty? && added.empty?
+    proposal_puts "No change required"
+    applied = old_json["deployment"][barclamp]["crowbar-applied"]
+    if applied
+      proposal_puts "Already applied; skipping commit"
+      return false
+    else
+      proposal_puts "Not yet applied; needs commit"
+      return true
+    end
+  end
+
+  new_json["id"] = name
+
+  out, err = with_barclamp(barclamp) {
+    # Evil way of reusing barclamp_lib.rb code non-intrusively
+    @data = JSON.pretty_generate(new_json)
+    begin
+      proposal_edit(name)
+    ensure
+      # make sure proposal data doesn't persist and screw up the next
+      # proposal operation.
+      @data = nil
+    end
+  }
+  err_to_browser(out) if err > 0
+  proposal_puts "Edited; needs commit"
+  return true
+end
+
+def merge_attributes(new_json, barclamp, proposal)
+  to_merge = {
+    "attributes" => {
+      barclamp => proposal["attributes"]
+    },
+    "deployment" => {
+      barclamp => proposal["deployment"]
+    },
+  }
+
+  # easy_merge! seems to have problems with Arrays of Hashes :-/
+  #new_json.easy_merge! to_merge
+
+  #new_json.extend Chef::Mixin::DeepMerge
+  Chef::Mixin::DeepMerge.deep_merge!(to_merge, new_json)
+end
+
+def commit_proposal(barclamp, name)
+  proposal_puts "Committing; please wait ..."
+  out, err = with_barclamp(barclamp) { proposal_commit(name) }
+  err_to_browser(out) if err > 0
+  wait_for_proposal(barclamp, name)
+end
+
+def wait_for_proposal(barclamp, name)
+  print INDENT + "Waiting for proposal to apply "
+  json, deployment = nil, nil
+  count = 0
+  loop do
+    json = get_proposal_json(barclamp, name)
+    count += 1
+    deployment = json["deployment"][barclamp]
+    if ! deployment["crowbar-committing"]
+      break
+    end
+    sleep 10
+    print "."
+  end
+
+  puts
+
+  if deployment["crowbar-status"] != "success"
+    abort "Failed to apply #{barclamp} proposal '#{name}':\n" +
+      JSON.pretty_generate(json)
+  end
+end
+
+def err_to_browser(html)
+  tmp = Tempfile.new([ 'crowbar_autobuild-err-', '.html' ])
+  # Ruby 1.8.7 sucks!  Avoid automatic cleanup of temporary file.
+  tmp_path = tmp.path
+  tmp.close!
+  File.new(tmp_path, 'w').write(html)
+
+  Open3.popen3('w3m -T text/html') do |stdin, stdout, stderr|
+    stdin.write(html)
+    stdin.close
+    while line = stdout.gets
+      break if line =~ /^RAILS_ROOT: /
+      proposal_puts line
+    end
+    while line = stderr.gets
+      proposal_puts line
+    end
+  end
+
+  abort "Full output of error is in #{tmp_path}"
+end
+
+def main
+  opt_parse
+  run_command
+end
+
+main

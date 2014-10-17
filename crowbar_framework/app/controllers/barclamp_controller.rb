@@ -427,15 +427,19 @@ class BarclampController < ApplicationController
         flash[:alert] = "Invalid action #{params[:submit]}"
       end
 
-      redirect_params = {
-        :controller => params[:barclamp],
-        :id => params[:name]
-      }
+      if params[:origin] && params[:origin] == "deployment_queue"
+        redirect_to deployment_queue_path
+      else
+        redirect_params = {
+          :controller => params[:barclamp],
+          :id => params[:name]
+        }
 
-      redirect_params[:dep_raw] = params[:dep_raw] if params[:dep_raw] == "true"
-      redirect_params[:attr_raw] = params[:attr_raw] if params[:attr_raw] == "true"
+        redirect_params[:dep_raw] = params[:dep_raw] if params[:dep_raw] == "true"
+        redirect_params[:attr_raw] = params[:attr_raw] if params[:attr_raw] == "true"
 
-      redirect_to proposal_barclamp_path(redirect_params)
+        redirect_to proposal_barclamp_path(redirect_params)
+      end
     end
   end
 

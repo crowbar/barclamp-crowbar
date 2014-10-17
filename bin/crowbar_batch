@@ -177,15 +177,7 @@ def modify_proposal(barclamp, name, proposal)
     elements[role] = []
   end
 
-  # Ugly hack to overwrite defaults for certain attributes.
-  # There has to be a better way than this :-/
-  case barclamp
-  when "cinder"
-    new_json["attributes"][barclamp]["volumes"] =
-      new_json["attributes"][barclamp]["volumes"].drop_while { |backend|
-        backend["backend_name"] == "default"
-      }
-  end
+  wipe_attributes(new_json, barclamp, proposal)
 
   merge_attributes(new_json, barclamp, proposal)
 
@@ -219,6 +211,34 @@ def modify_proposal(barclamp, name, proposal)
   err_to_browser(out) if err > 0
   proposal_puts "Edited; needs commit"
   return true
+end
+
+def wipe_attributes(new_json, barclamp, proposal)
+  to_wipe = proposal["wipe_attributes"]
+  return unless to_wipe
+
+  to_wipe.each do |attribute|
+    wipe_attribute(new_json, barclamp, attribute)
+  end
+end
+
+def wipe_attribute(new_json, barclamp, attribute)
+  protect = '@PROTECT_QUOTED_DOTS@'
+  # Ruby 1.8.7 doesn't support /(?<!\\)\./
+  segments = attribute.
+    gsub('\.', protect).
+    split('.').
+    map { |x| x.gsub(protect, '.') }
+  to_delete = segments.pop
+  ptr = new_json["attributes"][barclamp]
+  for segment in segments
+    ptr = ptr[segment]
+    if ptr.nil?
+      # "parent" segment didn't exist, so nothing to wipe
+      return
+    end
+  end
+  ptr.delete(to_delete)
 end
 
 def merge_attributes(new_json, barclamp, proposal)

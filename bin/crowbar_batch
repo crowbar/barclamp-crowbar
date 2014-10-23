@@ -52,13 +52,13 @@ INDENT = '   '
 @commands = {
   "help" => [ "help", "help - This page for further help" ],
   "build" => [ "build ARGV.shift", "build <YAML spec> - Create/edit/commit proposals defined via YAML" ],
-#  "export" => [ "export", "export <barclamp> [<barclamp> ...] - export barclamps as YAML" ],
+  "export" => [ "export ARGV", "export <barclamp> [<barclamp> ...] - export barclamps as YAML" ],
 }
 
 def build(input_file)
   usage(-1) if input_file.nil? or input_file == ""
 
-  host_by_alias = get_aliases
+  host_by_alias = get_aliases[0]
 
   input_data = File.open(input_file).readlines.join('')
 
@@ -104,8 +104,9 @@ def get_aliases
   abort "Couldn't get aliases" unless status == 200
 
   host_by_alias = {}
+  alias_by_host = {}
 
-  return host_by_alias unless body
+  return host_by_alias, alias_by_host unless body
 
   body["nodes"].each do |node|
     fqdn  = node["name"]
@@ -113,10 +114,11 @@ def get_aliases
     nodename = fqdn.split('.').first
     if aliaz != nodename
       host_by_alias[aliaz] = fqdn
+      alias_by_host[fqdn] = aliaz
     end
   end
 
-  host_by_alias
+  return host_by_alias, alias_by_host
 end
 
 def proposal_puts(msg)
@@ -154,16 +156,26 @@ def create_proposal(barclamp, name)
   proposal_puts "Created"
 end
 
-def get_proposal_json(barclamp, name)
-  struct = with_barclamp(barclamp) { get_json("/proposals/#{name}") }
+def get_proposal_list(barclamp)
+  out, code = with_barclamp(barclamp) { get_json("/proposals/") }
 
-  if struct[1] == 404
-    abort "No #{barclamp} proposal called '#{name}'"
-  elsif struct[1] != 200
-    abort "Failed to talk to service proposal show: #{struct[1]}: #{struct[0]}"
+  if code != 200
+    abort "Failed to talk to service proposal list: #{code}: #{out}"
   end
 
-  return struct[0]
+  return out
+end
+
+def get_proposal_json(barclamp, name)
+  out, code = with_barclamp(barclamp) { get_json("/proposals/#{name}") }
+
+  if code == 404
+    abort "No #{barclamp} proposal called '#{name}'"
+  elsif code != 200
+    abort "Failed to talk to service proposal show: #{code}: #{out}"
+  end
+
+  return out
 end
 
 # Returns true if the proposal needs applying
@@ -317,6 +329,133 @@ def err_to_browser(html)
   end
 
   abort "Full output of error is in #{tmp_path}"
+end
+
+def export(barclamps)
+  load_chef_module
+
+  alias_by_host = get_aliases[1]
+
+  if barclamps.empty?
+    out, code = with_barclamp('modules') { get_json('') }
+    if code != 200
+      abort "Failed to receive list of barclamps: #{code}: #{out}"
+    end
+    barclamps = out.sort_by { |x| x[1]['order'] }.map { |x| x[0] }
+  end
+
+  puts '---'
+  puts 'proposals:'
+
+  barclamps.each do |barclamp|
+    export_barclamp(barclamp, alias_by_host)
+  end
+end
+
+def load_chef_module
+  require "chef"
+
+  Chef::Config.node_name "crowbar"
+  Chef::Config.client_key "/opt/dell/crowbar_framework/config/client.pem"
+  Chef::Config.chef_server_url "http://localhost:4000"
+  Chef::Config.http_retry_count 3
+end
+
+def export_barclamp(barclamp, alias_by_host)
+  begin
+    data_bag = Chef::DataBag.load("crowbar/bc-template-#{barclamp}")
+  rescue Net::HTTPServerException => e
+    if e.response.is_a? Net::HTTPNotFound
+      abort "No template found for barclamp '#{barclamp}'; is it a valid barclamp?"
+    else
+      raise
+    end
+  end
+
+  proposals = get_proposal_list(barclamp)
+  if proposals.empty?
+    puts "# WARNING: no proposals exist for #{barclamp} barclamp"
+    return
+  end
+
+  proposals.each do |proposal|
+    export_proposal(barclamp, data_bag.to_hash, proposal, alias_by_host)
+  end
+end
+
+# Turn a nested data structure like
+#
+#   {
+#     'a' => {
+#       'b' => { 'c' => 'd' },
+#       'e' => 'f',
+#     },
+#     'g' => {
+#       'h' => { 'i' => 'j' },
+#     },
+#     'k' => 'l'
+#   }
+#
+# into a (semi-randomly ordered) list of key chains:
+#
+#   [ 'a.b.c', 'a.e', 'g.h.i', 'k' ]
+def squash(hash)
+  hash.map do |k,v|
+    case v
+    when Hash
+      squash(v).map { |i| k + '.' + i }
+    else
+      k
+    end
+  end.flatten
+end
+
+def export_proposal(barclamp, template, proposal, alias_by_host)
+  json = get_proposal_json(barclamp, proposal)
+
+  puts "- barclamp: #{barclamp}"
+  puts "  name: #{proposal}" unless proposal == 'default'
+
+  removed_attrs, added_attrs = \
+    template['attributes'][barclamp].easy_diff json['attributes'][barclamp]
+
+  to_wipe = squash(removed_attrs) - squash(added_attrs)
+  unless to_wipe.empty?
+    puts '  wipe_attributes:'
+    puts to_yaml(to_wipe).gsub(/^/, '    ')
+  end
+
+  if added_attrs.empty?
+    puts 'attributes:'
+  else
+    attrs = { 'attributes' => added_attrs }
+    puts to_yaml(attrs).gsub(/^/, '  ')
+  end
+
+  elements = json['deployment'][barclamp]['elements']
+  elements.each do |role, nodes|
+    nodes.each_with_index do |node, i|
+      if alias_by_host.include? node
+        nodes[i] = '@@%s@@' % alias_by_host[node]
+      end
+    end
+  end
+
+  deployment = {
+    'deployment' => {
+      'elements' => elements
+    }
+  }
+  puts to_yaml(deployment).gsub(/^/, '  ')
+end
+
+def to_yaml(data)
+  data.to_yaml.sub('---', '').strip.
+    gsub(/"(@@[^ @]+@@)"/, '\1')
+end
+
+def print_yaml(data)
+  puts(to_yaml(data))
 end
 
 def main

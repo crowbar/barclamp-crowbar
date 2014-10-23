@@ -35,6 +35,9 @@ require "easy_diff"
 require "chef/mixin/deep_merge"
 require "pp"
 
+ALIAS_REGEXP = /"(@@[^ @]+@@)"/
+ALIAS_TEMPLATE = '@@%s@@'
+
 INDENT = '   '
 
 @barclamp = "batch"
@@ -64,7 +67,7 @@ def build(input_file)
 
   # Translate @@alias@@ to Chef node name
   host_by_alias.each do |aliaz, hostname|
-    input_data.gsub!("@@#{aliaz}@@", hostname)
+    input_data.gsub!(ALIAS_TEMPLATE % aliaz, hostname)
   end
 
   data = YAML.load(input_data)
@@ -436,7 +439,7 @@ def export_proposal(barclamp, template, proposal, alias_by_host)
   elements.each do |role, nodes|
     nodes.each_with_index do |node, i|
       if alias_by_host.include? node
-        nodes[i] = '@@%s@@' % alias_by_host[node]
+        nodes[i] = ALIAS_TEMPLATE % alias_by_host[node]
       end
     end
   end
@@ -451,7 +454,7 @@ end
 
 def to_yaml(data)
   data.to_yaml.sub('---', '').strip.
-    gsub(/"(@@[^ @]+@@)"/, '\1')
+    gsub(ALIAS_REGEXP, '\1')
 end
 
 def print_yaml(data)

@@ -16,6 +16,16 @@
 # limitations under the License.
 #
 
+# TODO:
+#   - batch build:
+#     - support --include/--exclude of particular barclamps
+#     - support merging from template data bag rather than
+#       from current proposal
+#     - support interpolation of external parameters; example use cases:
+#       - SBD vdisk device names
+#       - SSL yes or no
+#       - different neutron backend
+
 $LOAD_PATH.unshift(File.expand_path("../../crowbar_framework/lib", __FILE__))
 
 require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")

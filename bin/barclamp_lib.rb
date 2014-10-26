@@ -501,7 +501,7 @@ def parse_extra_opt(opt, arg)
   found = false
   @options.each do |x|
     next unless x[0].include? opt
-    eval x[2]
+    x[2].call(opt, arg)
     found = true
   end
   usage(-1) unless found

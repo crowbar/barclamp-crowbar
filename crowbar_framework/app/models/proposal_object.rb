@@ -173,8 +173,8 @@ class ProposalObject < ChefObject
     if bc.nil?
       "hold"
     else
-      return "unready" if bc.has_key? "crowbar-committing" and bc["crowbar-committing"]
-      return "pending" if bc.has_key? "crowbar-queued" and bc["crowbar-queued"]
+      return "unready" if bc["crowbar-committing"]
+      return "pending" if bc["crowbar-queued"]
       return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
       if !bc.key? "crowbar-status" or bc["crowbar-status"] === "success"
         "ready"

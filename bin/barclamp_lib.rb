@@ -432,7 +432,19 @@ end
 
 ### Start MAIN ###
 
-def opt_parse()
+def opt_parse
+  get_user_password
+
+  standard_opt_parse
+
+  if ARGV.length == 0 and !@allow_zero_args
+    usage -1
+  end
+
+  check_user_password
+end
+
+def get_user_password
   key = ENV["CROWBAR_KEY"]
   if key.nil? and ::File.exists?(@crowbar_key_file) and ::File.readable?(@crowbar_key_file)
     begin
@@ -445,46 +457,57 @@ def opt_parse()
   if key
     @username, @password = key.split(":",2)
   end
+end
 
+def standard_opt_parse
   sub_options = @options.map { |x| x[0] }
-  lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
 
   opts.each do |opt, arg|
-    case opt
-      when '--help'
-        usage 0
-      when '--debug'
-        @debug = true
-      when '--hostname'
-        @hostname = arg
-      when '--username'
-        @username = arg
-      when '--password'
-        @password = arg
-      when '--port'
-        @port = arg.to_i
-      when '--data'
-        @data = arg
-      when '--timeout'
-        @timeout = arg.to_i
-      when '--file'
-        @data = File.read(arg)
-      else
-        found = false
-        lsub_options.each do |x|
-          next if x[0] != opt
-          eval x[1]
-          found = true
-        end
-        usage -1 unless found
+    if ! parse_standard_opt(opt, arg)
+      parse_extra_opt(opt, arg)
     end
   end
+end
 
-  if ARGV.length == 0 and !@allow_zero_args
-    usage -1
+def parse_standard_opt(opt, arg)
+  case opt
+  when '--help'
+    usage 0
+  when '--debug'
+    @debug = true
+  when '--hostname'
+    @hostname = arg
+  when '--username'
+    @username = arg
+  when '--password'
+    @password = arg
+  when '--port'
+    @port = arg.to_i
+  when '--data'
+    @data = arg
+  when '--timeout'
+    @timeout = arg.to_i
+  when '--file'
+    @data = File.read(arg)
+  else
+    return false
   end
 
+  return true
+end
+
+def parse_extra_opt(opt, arg)
+  found = false
+  @options.each do |x|
+    next unless x[0].include? opt
+    eval x[2]
+    found = true
+  end
+  usage(-1) unless found
+end
+
+def check_user_password
   if @username.nil? or @password.nil?
     STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!"
     STDERR.puts "Please set CROWBAR_KEY or use -U and -P"
@@ -494,7 +517,7 @@ end
 
 def run_sub_command(cmds, subcmd)
   cmd = cmds[subcmd]
-  usage -2 if cmd.nil?
+  usage(-2) if cmd.nil?
   eval cmd[0]
 end
 

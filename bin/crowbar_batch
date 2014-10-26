@@ -18,7 +18,6 @@
 
 # TODO:
 #   - batch build:
-#     - support --include/--exclude of particular barclamps
 #     - support merging from template data bag rather than
 #       from current proposal
 #     - support interpolation of external parameters; example use cases:
@@ -52,14 +51,32 @@ INDENT = '   '
 
 @barclamp = "batch"
 
-@options = [
-  [ [ "--help", "-h", GetoptLong::NO_ARGUMENT ], "--help or -h - This page for further help" ],
-  [ [ "--debug", "-d", GetoptLong::NO_ARGUMENT ], "--debug or -d - Turns on debugging information" ],
-  [ [ "--username", "-U", GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - Specifies the username to use" ],
-  [ [ "--password", "-P", GetoptLong::REQUIRED_ARGUMENT ], "--password <password> or -P <password>  - Specifies the password to use" ],
-  [ [ "--hostname", "-n", GetoptLong::REQUIRED_ARGUMENT ], "--hostname <name or ip> or -n <name or ip>  - Specifies the destination server" ],
-  [ [ "--port", "-p", GetoptLong::REQUIRED_ARGUMENT ], "--port <port> or -p <port> - Specifies the destination server port" ],
-  [ [ "--timeout", "-t", GetoptLong::REQUIRED_ARGUMENT ], "--timeout <seconds> or -t <seconds> - Timeout in seconds for read HTTP requests" ]
+@options.delete_if { |x| %w(--data --file).include? x[0][0] }
+@options += [
+  [
+    [ "--include", "-i", GetoptLong::OPTIONAL_ARGUMENT ],
+    "-i, --include <barclamp[.proposal]> - Only process the given proposal(s)",
+    lambda { |opt, arg|
+      if arg.include?('.')
+        bc = arg.split('.')[0]
+        (@include_barclamps ||= {})[bc ] = true
+        (@include_proposals ||= {})[arg] = true
+      else
+        (@include_barclamps ||= {})[arg] = true
+      end
+    }
+  ],
+  [
+    [ "--exclude", "-e", GetoptLong::OPTIONAL_ARGUMENT ],
+    "-e, --exclude <barclamp[.proposal]> - Only process the given proposal(s)",
+    lambda { |opt, arg|
+      if arg.include?('.')
+        (@exclude_proposals ||= {})[arg] = true
+      else
+        (@exclude_barclamps ||= {})[arg] = true
+      end
+    }
+  ]
 ]
 
 @commands = {
@@ -145,6 +162,13 @@ end
 def build_proposal(proposal)
   barclamp = proposal["barclamp"]
   name     = proposal["name"] || 'default'
+  fullname = "%s.%s" % [ barclamp, name ]
+
+  return if @include_barclamps && ! @include_barclamps[barclamp]
+  return if @exclude_barclamps &&   @exclude_barclamps[barclamp]
+  return if @include_proposals && ! @include_proposals[fullname]
+  return if @exclude_proposals &&   @exclude_proposals[fullname]
+
   puts "#{barclamp} barclamp, '#{name}' proposal:"
 
   ensure_proposal_exists(barclamp, name)
@@ -394,6 +418,8 @@ def export(barclamps)
   puts 'proposals:'
 
   barclamps.each do |barclamp|
+    next if @include_barclamps && ! @include_barclamps[barclamp]
+    next if @exclude_barclamps &&   @exclude_barclamps[barclamp]
     export_barclamp(barclamp, alias_by_host)
   end
 end
@@ -425,6 +451,10 @@ def export_barclamp(barclamp, alias_by_host)
   end
 
   proposals.each do |proposal|
+    fullname = "%s.%s" % [ barclamp, proposal ]
+    next if @include_proposals && ! @include_proposals[fullname]
+    next if @exclude_proposals &&   @exclude_proposals[fullname]
+
     export_proposal(barclamp, data_bag.to_hash, proposal, alias_by_host)
   end
 end

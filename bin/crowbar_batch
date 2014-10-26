@@ -294,32 +294,65 @@ end
 
 def commit_proposal(barclamp, name)
   proposal_puts "Committing; please wait ..."
-  out, err = with_barclamp(barclamp) { proposal_commit(name) }
-  err_to_browser(out) if err > 0
+
+  out, code = with_barclamp(barclamp) {
+    post_json("/proposals/commit/#{name}", @data)
+  }
+
+  if code == 200
+    proposal_puts "Committed #{name}"
+  elsif code == 202
+    proposal_puts "Queued #{name} waiting for: #{out}"
+  elsif code == 402
+    proposal_puts "#{name} already being applied"
+  else
+    abort "Failed to talk to service proposal show: #{code}: #{out}"
+  end
+
   wait_for_proposal(barclamp, name)
 end
 
+def proposal_state(bc)
+  # Currently BarclampController#proposal_status is a UI-only method :-/
+  #out, code = with_barclamp(barclamp) { get_json("/proposals/status/#{name}") }
+
+  # paraphrased from questionable code in ProposalObject#status
+  return "unready" if bc["crowbar-committing"]
+  return "pending" if bc["crowbar-queued"]
+  return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
+  return "ready" if !bc.key? "crowbar-status" or bc["crowbar-status"] === "success"
+  return "failed"
+end
+
 def wait_for_proposal(barclamp, name)
-  print INDENT + "Waiting for proposal to apply "
-  json, deployment = nil, nil
-  count = 0
+  proposal_puts "Waiting for proposal to finish applying ..."
+  last_state = nil
   loop do
     json = get_proposal_json(barclamp, name)
-    count += 1
-    deployment = json["deployment"][barclamp]
-    if ! deployment["crowbar-committing"]
-      break
+    state = proposal_state(json["deployment"][barclamp])
+    if state != last_state
+      puts unless last_state.nil?
+      print INDENT + "State now #{state} "
+      $stdout.flush
+      last_state = state
     end
-    sleep 10
+
+    case state
+    when 'ready'
+      break
+    when 'failed'
+      puts
+      abort "Failed to apply #{barclamp} proposal '#{name}':\n" +
+        JSON.pretty_generate(json)
+    end
+
+    # Still waiting ...
     print "."
+    $stdout.flush
+    sleep 10
   end
 
   puts
-
-  if deployment["crowbar-status"] != "success"
-    abort "Failed to apply #{barclamp} proposal '#{name}':\n" +
-      JSON.pretty_generate(json)
-  end
 end
 
 def err_to_browser(html)

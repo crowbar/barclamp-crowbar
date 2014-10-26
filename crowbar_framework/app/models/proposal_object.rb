@@ -176,7 +176,7 @@ class ProposalObject < ChefObject
       return "unready" if bc.has_key? "crowbar-committing" and bc["crowbar-committing"]
       return "pending" if bc.has_key? "crowbar-queued" and bc["crowbar-queued"]
       return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
-      if !@item["deployment"][self.barclamp].key? "crowbar-status" or @item["deployment"][self.barclamp]["crowbar-status"] === "success"
+      if !bc.key? "crowbar-status" or bc["crowbar-status"] === "success"
         "ready"
       else
         "failed"

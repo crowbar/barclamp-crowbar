@@ -220,14 +220,22 @@ def modify_proposal(barclamp, name, proposal)
   old_json = get_proposal_json(barclamp, name)
   new_json = old_json.easy_clone
 
-  # For now we require explicit assignment of roles.  Maybe later we
-  # can allow harnessing of the intended role feature.  Note that we
-  # cannot delete the whole elements Hash since some validation code
-  # relies on roles being present even if they don't have any nodes
-  # assigned.
-  elements = new_json["deployment"][barclamp]["elements"]
-  elements.keys.each do |role|
-    elements[role] = []
+  if proposal.has_key? 'deployment'
+    # For now, if the YAML specifies any assignment of roles to
+    # elements, we require it to explicitly assign *all* roles.  Maybe
+    # later we can allow harnessing of the intended role feature.
+    # Note that we cannot delete the whole 'elements' Hash since some
+    # validation code relies on roles being present even if they don't
+    # have any nodes assigned.
+    elements = new_json["deployment"][barclamp]["elements"]
+    elements.keys.each do |role|
+      elements[role] = []
+    end
+  else
+    # YAML doesn't specify deployment elements, so leave them as they
+    # are currently.  This is useful for modifying core barclamps,
+    # e.g. provisioner.
+    proposal_puts "Keeping existing role assignments"
   end
 
   wipe_attributes(new_json, barclamp, proposal)

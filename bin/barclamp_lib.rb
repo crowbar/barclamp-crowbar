@@ -232,7 +232,7 @@ def api_help
 end
 
 def show(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = get_json("/#{name}")
 
@@ -246,7 +246,7 @@ def show(name)
 end
 
 def delete(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = delete_json("/#{name}")
 
@@ -277,7 +277,7 @@ def proposal_list
 end
 
 def proposal_show(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = get_json("/proposals/#{name}")
 
@@ -291,7 +291,7 @@ def proposal_show(name)
 end
 
 def proposal_create(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   @data = "{\"id\":\"#{name}\"}" if @data.nil? or @data == ""
 
@@ -305,7 +305,7 @@ def proposal_create(name)
 end
 
 def proposal_edit(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   if @data.nil? or @data == ""
     struct = get_json("/proposals/#{name}")
@@ -352,7 +352,7 @@ def proposal_edit(name)
 end
 
 def proposal_delete(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = delete_json("/proposals/#{name}")
 
@@ -366,7 +366,7 @@ def proposal_delete(name)
 end
 
 def proposal_commit(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = post_json("/proposals/commit/#{name}", @data)
 
@@ -380,7 +380,7 @@ def proposal_commit(name)
 end
 
 def proposal_dequeue(name)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   struct = delete_json("/proposals/dequeue/#{name}")
 
@@ -409,7 +409,7 @@ def elements
 end
 
 def element_node(element)
-  usage -1 if element.nil? or element == ""
+  usage(-1) if element.nil? or element == ""
 
   struct = get_json("/elements/#{element}")
 
@@ -428,7 +428,7 @@ def element_node(element)
 end
 
 def transition(name, state)
-  usage -1 if name.nil? or name == ""
+  usage(-1) if name.nil? or name == ""
 
   data = {
     "name" => name,

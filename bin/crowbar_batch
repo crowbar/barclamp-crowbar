@@ -107,8 +107,13 @@ def build(input_file)
     exit(-1)
   end
 
-  proposals.each do |proposal|
-    build_proposal(proposal)
+  begin
+    proposals.each do |proposal|
+      build_proposal(proposal)
+    end
+  rescue Timeout::Error
+    abort "Timed out at #{Time.now};\n" +
+      "perhaps you need a --timeout value higher than #{@timeout} seconds?"
   end
 end
 

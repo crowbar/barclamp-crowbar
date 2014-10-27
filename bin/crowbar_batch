@@ -169,7 +169,8 @@ def build_proposal(proposal)
   return if @include_proposals && ! @include_proposals[fullname]
   return if @exclude_proposals &&   @exclude_proposals[fullname]
 
-  puts "#{barclamp} barclamp, '#{name}' proposal:"
+  time = Time.now.strftime '%T'
+  puts "[#{time}] #{barclamp} barclamp, '#{name}' proposal:"
 
   ensure_proposal_exists(barclamp, name)
 

@@ -98,6 +98,10 @@ def help
   usage 0
 end
 
+def debug(msg)
+  puts msg if @debug
+end
+
 def authenticate(req,uri,data=nil)
   uri.user=@username
   uri.password=@password
@@ -107,15 +111,13 @@ def authenticate(req,uri,data=nil)
     r = req.new(uri.request_uri,@headers)
     r.body = data if data
     res = http.request r
-    if @debug
-      puts "DEBUG: (a) hostname: #{uri.host}:#{uri.port}"
-      puts "DEBUG: (a) request: #{uri.path}"
-      puts "DEBUG: (a) method: #{req::METHOD}"
-      puts "DEBUG: (a) return code: #{res.code}"
-      puts "DEBUG: (a) return body: #{res.body}"
-      puts "DEBUG: (a) return headers:"
-      res.each_header { |h, v| puts "#{h}: #{v}" }
-    end
+    debug "(a) hostname: #{uri.host}:#{uri.port}"
+    debug "(a) request: #{uri.path}"
+    debug "(a) method: #{req::METHOD}"
+    debug "(a) return code: #{res.code}"
+    debug "(a) return body: #{res.body}"
+    debug "(a) return headers:"
+    res.each_header { |h, v| debug "#{h}: #{v}" }
 
     if res['www-authenticate'] and not @username.nil? and not @password.nil?
       digest_auth=Net::HTTP::DigestAuth.new
@@ -133,16 +135,16 @@ def get_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Get,uri)
 
-  puts "DEBUG: (g) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (g) request: #{uri.path}" if @debug
-  puts "DEBUG: (g) return code: #{res.code}" if @debug
-  puts "DEBUG: (g) return body: #{res.body}" if @debug
+  debug "(g) hostname: #{uri.host}:#{uri.port}"
+  debug "(g) request: #{uri.path}"
+  debug "(g) return code: #{res.code}"
+  debug "(g) return body: #{res.body}"
 
   return [res.body, res.code.to_i ] if res.code.to_i != 200
 
   struct = JSON.parse(res.body)
 
-  puts "DEBUG: (g) JSON parse structure = #{struct.inspect}" if @debug
+  debug "(g) JSON parse structure = #{struct.inspect}"
 
   return [struct, 200]
 end
@@ -151,11 +153,11 @@ def post_json(path, data)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Post,uri,data)
 
-  puts "DEBUG: (post) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (post) request: #{uri.path}" if @debug
-  puts "DEBUG: (post) data: #{@data}" if @debug
-  puts "DEBUG: (post) return code: #{res.code}" if @debug
-  puts "DEBUG: (post) return body: #{res.body}" if @debug
+  debug "(post) hostname: #{uri.host}:#{uri.port}"
+  debug "(post) request: #{uri.path}"
+  debug "(post) data: #{@data}"
+  debug "(post) return code: #{res.code}"
+  debug "(post) return body: #{res.body}"
 
   [res.body, res.code.to_i ]
 end
@@ -164,11 +166,11 @@ def put_json(path, data)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Put,uri,data)
 
-  puts "DEBUG: (put) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (put) request: #{uri.path}" if @debug
-  puts "DEBUG: (put) data: #{@data}" if @debug
-  puts "DEBUG: (put) return code: #{res.code}" if @debug
-  puts "DEBUG: (put) return body: #{res.body}" if @debug
+  debug "(put) hostname: #{uri.host}:#{uri.port}"
+  debug "(put) request: #{uri.path}"
+  debug "(put) data: #{@data}"
+  debug "(put) return code: #{res.code}"
+  debug "(put) return body: #{res.body}"
 
   [res.body, res.code.to_i ]
 end
@@ -177,10 +179,10 @@ def delete_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
   res = authenticate(Net::HTTP::Delete,uri)
 
-  puts "DEBUG: (d) hostname: #{uri.host}:#{uri.port}" if @debug
-  puts "DEBUG: (d) request: #{uri.path}" if @debug
-  puts "DEBUG: (d) return code: #{res.code}" if @debug
-  puts "DEBUG: (d) return body: #{res.body}" if @debug
+  debug "(d) hostname: #{uri.host}:#{uri.port}"
+  debug "(d) request: #{uri.path}"
+  debug "(d) return code: #{res.code}"
+  debug "(d) return body: #{res.body}"
 
   [res.body, res.code.to_i ]
 end
@@ -430,7 +432,19 @@ end
 
 ### Start MAIN ###
 
-def opt_parse()
+def opt_parse
+  get_user_password
+
+  standard_opt_parse
+
+  if ARGV.length == 0 and !@allow_zero_args
+    usage -1
+  end
+
+  check_user_password
+end
+
+def get_user_password
   key = ENV["CROWBAR_KEY"]
   if key.nil? and ::File.exists?(@crowbar_key_file) and ::File.readable?(@crowbar_key_file)
     begin
@@ -443,46 +457,57 @@ def opt_parse()
   if key
     @username, @password = key.split(":",2)
   end
+end
 
+def standard_opt_parse
   sub_options = @options.map { |x| x[0] }
-  lsub_options = @options.map { |x| [ x[0][0], x[2] ] }
   opts = GetoptLong.new(*sub_options)
 
   opts.each do |opt, arg|
-    case opt
-      when '--help'
-        usage 0
-      when '--debug'
-        @debug = true
-      when '--hostname'
-        @hostname = arg
-      when '--username'
-        @username = arg
-      when '--password'
-        @password = arg
-      when '--port'
-        @port = arg.to_i
-      when '--data'
-        @data = arg
-      when '--timeout'
-        @timeout = arg.to_i
-      when '--file'
-        @data = File.read(arg)
-      else
-        found = false
-        lsub_options.each do |x|
-          next if x[0] != opt
-          eval x[1]
-          found = true
-        end
-        usage -1 unless found
+    if ! parse_standard_opt(opt, arg)
+      parse_extra_opt(opt, arg)
     end
   end
+end
 
-  if ARGV.length == 0 and !@allow_zero_args
-    usage -1
+def parse_standard_opt(opt, arg)
+  case opt
+  when '--help'
+    usage 0
+  when '--debug'
+    @debug = true
+  when '--hostname'
+    @hostname = arg
+  when '--username'
+    @username = arg
+  when '--password'
+    @password = arg
+  when '--port'
+    @port = arg.to_i
+  when '--data'
+    @data = arg
+  when '--timeout'
+    @timeout = arg.to_i
+  when '--file'
+    @data = File.read(arg)
+  else
+    return false
   end
 
+  return true
+end
+
+def parse_extra_opt(opt, arg)
+  found = false
+  @options.each do |x|
+    next unless x[0].include? opt
+    x[2].call(opt, arg)
+    found = true
+  end
+  usage(-1) unless found
+end
+
+def check_user_password
   if @username.nil? or @password.nil?
     STDERR.puts "CROWBAR_KEY not set, will not be able to authenticate!"
     STDERR.puts "Please set CROWBAR_KEY or use -U and -P"
@@ -492,7 +517,7 @@ end
 
 def run_sub_command(cmds, subcmd)
   cmd = cmds[subcmd]
-  usage -2 if cmd.nil?
+  usage(-2) if cmd.nil?
   eval cmd[0]
 end
 

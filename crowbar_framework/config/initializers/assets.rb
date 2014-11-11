@@ -15,4 +15,12 @@
 # limitations under the License.
 #
 
-Rails.configuration.action_view.debug_sprockets = true unless Rails.env.production?
+Rails.application.config.tap do |config|
+  config.assets.version = '1.0'
+
+  config.assets.precompile = [
+    /application.(css|js)$/,
+    /ie.(css|js)$/,
+    /branding.(css|js)$/
+  ]
+end

@@ -31,7 +31,7 @@
     var updater = setInterval(
       function() {
         $.ajax({
-          url: '/utils/restart/#{SERVER_PID}.json',
+          url: '/utils/restart/#{Crowbar::Application::SERVER_PID}.json',
           success: function (data) {
             if (data) {
               $('.led').attr('class','led ready');

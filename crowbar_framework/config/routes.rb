@@ -15,13 +15,19 @@
 # limitations under the License.
 #
 
-ActionController::Routing::Routes.draw do |map|
+Rails.application.routes.draw do
   # Install route from each barclamp
-  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
-      eval(IO.read(routes_file), binding)
+  Rails.root.join("config", "routes.d").children.each do |routes|
+    eval(routes.read, binding) if routes.extname == ".routes"
   end
 
-  map.root :controller => "nodes", :action=>'index'
+  # Root route have to be on top of all
+  root to: "nodes#index"
+
+
+
+
+
 
   map.docs 'docs', :controller => 'docs', :action => 'index', :conditions => { :method => :get }
   map.topic_docs 'docs/*id', :controller => 'docs', :action => 'show', :conditions => { :method => :get }
@@ -43,13 +49,13 @@ ActionController::Routing::Routes.draw do |map|
   map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index', :requirements => { :name => /.*/ }
   map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
   # this route allows any barclamp to extend the nodes view
-  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'  
+  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'
   map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :requirements => { :name => /.*/ }
   map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :requirements => { :name => /.*/ }
-  
+
   # this route allows any barclamp to extend the network view
   map.network_barclamp 'network/:controller/1.0', :action=>'network'
-  # these paths require the network barclamp 
+  # these paths require the network barclamp
   map.network 'network', :controller => 'network', :action=>'switch'
   map.switch 'network/switch/:id', :controller => 'network', :action=>'switch', :requirements => { :id => /.*/ }
   map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
@@ -117,4 +123,12 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect ':controller/:action/:id'
   map.connect ':controller/:action/:id.:format'
+
+
+
+
+
+
+
+
 end

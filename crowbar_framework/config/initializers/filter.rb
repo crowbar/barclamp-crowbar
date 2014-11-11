@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 
-ActionController::Routing.generate_best_match = false
-
-ActiveSupport.use_standard_json_time_format = true
-ActiveSupport.escape_html_entities_in_json = false
+Rails.application.config.tap do |config|
+  config.filter_parameters += [
+    :password,
+    :password_confirmation
+  ]
+end

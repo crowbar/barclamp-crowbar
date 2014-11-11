@@ -15,139 +15,79 @@
 # limitations under the License.
 #
 
-require "thread"
-require "rubygems"
-require "pathname"
-require "app_config"
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
 
-RAILS_ROOT = File.expand_path("../..", __FILE__) unless defined?(RAILS_ROOT)
+require "uri"
+require "net/http"
 
-module Rails
-  class << self
-    def root
-      ::Pathname.new RAILS_ROOT
-    end
+if File.exists? ENV["BUNDLE_GEMFILE"]
+  require "bundler/setup"
 
-    def boot!
-      unless booted?
-        preinitialize
-        pick_boot.run
-      end
-    end
+  Bundler.require(:default, Rails.env)
 
-    def booted?
-      defined? Rails::Initializer
-    end
+  require "rails/all"
+  require "dotenv/deployment"
+else
+  # rails related
+  gem "rails", version: "~> 4.1"
+  require "rails/all"
 
-    def pick_boot
-      (vendor_rails? ? VendorBoot : GemBoot).new
-    end
+  gem "haml-rails", version: "~> 0.5"
+  require "haml-rails"
 
-    def vendor_rails?
-      self.root.join("vendor", "rails").directory?
-    end
+  gem "sass-rails", version: "~> 4.0"
+  require "sass-rails"
 
-    def preinitialize
-      load(preinitializer_path) if preinitializer_path.file?
-    end
+  # general stuff
+  gem "activerecord-session_store", version: "~> 0.1"
+  require "activerecord/session_store"
 
-    def preinitializer_path
-      self.root.join("config", "preinitializer.rb")
-    end
-  end
+  gem "activeresource", version: "~> 4.0"
+  require "active_resource"
 
-  class Boot
-    def run
-      load_initializer
-      Rails::Initializer.run(:set_load_path)
-    end
-  end
+  gem "closure-compiler", version: "~> 1.1"
+  require "closure-compiler"
 
-  class VendorBoot < Boot
-    def load_initializer
-      require Rails.root.join("vendor", "rails", "railties", "lib", "initializer")
+  gem "dotenv", version: "~> 1.0"
+  require "dotenv"
 
-      Rails::Initializer.run(:install_gem_spec_stubs)
-      Rails::GemDependency.add_frozen_gem_path
-    end
-  end
+  gem "dotenv-deployment", version: "~> 0.2"
+  require "dotenv/deployment"
 
-  class GemBoot < Boot
-    def load_initializer
-      self.class.load_rubygems
-      load_rails_gem
+  gem "hashie", version: "~> 2.1"
+  require "hashie"
 
-      require "initializer"
-    end
+  gem "js-routes", version: "~> 0.9"
+  require "js-routes"
 
-    def load_rails_gem
-      if version = self.class.gem_version
-        gem "rails", version
-      else
-        gem "rails"
-      end
-    rescue Gem::LoadError => load_error
-      $stderr.puts %(Missing the Rails #{version} gem. Please `gem install -v=#{version} rails`, update your RAILS_GEM_VERSION setting in config/environment.rb for the Rails version you do have installed, or comment out RAILS_GEM_VERSION to use the latest version installed.)
-      exit 1
-    end
+  gem "kwalify", version: "~> 0.7"
+  require "kwalify"
 
-    class << self
-      def rubygems_version
-        Gem::RubyGemsVersion rescue nil
-      end
+  gem "mime-types", version: "~> 1.25"
+  require "mime/types"
 
-      def gem_version
-        if defined? RAILS_GEM_VERSION
-          RAILS_GEM_VERSION
-        elsif ENV.include?("RAILS_GEM_VERSION")
-          ENV["RAILS_GEM_VERSION"]
-        else
-          parse_gem_version(read_environment_rb)
-        end
-      end
+  gem "redcarpet", version: "~> 3.2"
+  require "redcarpet"
 
-      def load_rubygems
-        min_version = "1.3.2"
+  gem "simple-navigation", version: "~> 3.12"
+  require "simple-navigation"
 
-        unless rubygems_version >= min_version
-          $stderr.puts %Q(Rails requires RubyGems >= #{min_version} (you have #{rubygems_version}). Please `gem update --system` and try again.)
-          exit 1
-        end
-      rescue LoadError
-        $stderr.puts %Q(Rails requires RubyGems >= #{min_version}. Please install RubyGems and try again: http://rubygems.rubyforge.org)
-        exit 1
-      end
+  gem "simple_navigation_renderers", version: "~> 1.0"
+  require "simple_navigation_renderers"
 
-      def parse_gem_version(text)
-        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*["']([!~<>=]*\s*[\d.]+)["']/
-      end
+  gem "sqlite3", version: "~> 1.3"
+  require "sqlite3"
 
-      private
-        def read_environment_rb
-          File.read(Rails.root.join("config", "environment.rb"))
-        end
-    end
-  end
+  gem "syslogger", version: "~> 1.6"
+  require "syslogger"
+
+  # chef related
+  gem "mixlib-shellout", version: "~> 1.4"
+  require "mixlib-shellout"
+
+  gem "ohai", version: "~> 6.22"
+  require "ohai"
+
+  gem "chef", version: "~> 10.24"
+  require "chef"
 end
-
-AppConfig.setup(
-  :yaml => Rails.root.join("config", "app_config.yml")
-)
-
-if AppConfig[:use_bundler]
-  class Rails::Boot
-    def run
-      load_initializer
-
-      Rails::Initializer.class_eval do
-        def load_gems
-          @bundler_loaded ||= Bundler.require :default, Rails.env
-        end
-      end
-
-      Rails::Initializer.run(:set_load_path)
-    end
-  end
-end
-
-Rails.boot!

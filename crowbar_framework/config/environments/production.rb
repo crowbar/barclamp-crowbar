@@ -15,32 +15,45 @@
 # limitations under the License.
 #
 
-# The production environment is meant for finished, "live" apps.
-# Code is not reloaded between requests
-config.cache_classes = true
+Rails.application.configure do
+  config.cache_classes = true
+  config.eager_load = true
+  config.consider_all_requests_local = false
+  config.serve_static_assets = true
+  config.force_ssl = false
+  config.autoflush_log = false
 
-# Full error reports are disabled and caching is turned on
-config.action_controller.consider_all_requests_local = false
-config.action_controller.perform_caching = true
-config.action_view.cache_template_loading = true
-config.action_view.debug_rjs = false
+  config.action_dispatch.show_exceptions = false
+  config.action_dispatch.cookies_serializer = :json
 
-# Log error messages when you accidentally call methods on nil.
-config.whiny_nils = false
+  config.action_controller.perform_caching = true
+  config.action_controller.allow_forgery_protection = true
 
-# Set a verbose log level to get the informations we need
-config.log_level = :debug
+  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.delivery_method = :smtp
 
-# Don't care if the mailer can't send
-config.action_mailer.raise_delivery_errors = false
+  config.action_view.raise_on_missing_translations = false
 
-# Enable request forgery protection in production environment
-config.action_controller.allow_forgery_protection = true
+  config.active_support.deprecation = :notify
 
-# Enable threaded mode
-#config.threadsafe!
+  config.active_record.migration_error = :page_load
+  config.active_record.dump_schema_after_migration = false
 
-CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-CHEF_NODE_NAME ="crowbar"
-CHEF_SERVER_URL = "http://localhost:4000"
-CROWBAR_VERSION = "Production"
+  config.assets.debug = false
+  config.assets.raise_runtime_errors = false
+  config.assets.js_compressor = :closure
+  config.assets.css_compressor = :sass
+  config.assets.compile = false
+  config.assets.digest = true
+
+  config.i18n.fallbacks = true
+
+  config.log_level = :info
+  config.log_tags = []
+
+  config.logger = ActiveSupport::TaggedLogging.new(
+    Logger.new File.join(ENV["CROWBAR_LOG_DIR"], "production.log") # SyslogLogger.new
+  )
+
+  config.log_formatter = ::Logger::Formatter.new
+end

@@ -24,21 +24,21 @@ class ApplicationController < ActionController::Base
   rescue_from Crowbar::Error::ChefOffline, :with => :chef_is_offline
 
   @@users = nil
-  
+
   before_filter :digest_authenticate, :if => :need_to_auth?
-  
-  
+
+
   # Basis for the reflection/help system.
-  
-  # First, a place to stash the help contents.  
-  # Using a class_inheritable_accessor ensures that 
-  # these contents are inherited by children, but can be 
-  # overridden or appended to by child classes without messing up 
+
+  # First, a place to stash the help contents.
+  # Using a class_inheritable_accessor ensures that
+  # these contents are inherited by children, but can be
+  # overridden or appended to by child classes without messing up
   # the contents we are building here.
   class_inheritable_accessor :help_contents
   self.help_contents = []
-  
-  # Class method for adding method-specific help/API information 
+
+  # Class method for adding method-specific help/API information
   # for each method we are going to expose to the CLI.
   # Since it is a class method, it will not be bothered by the Rails
   # trying to expose it to everything else, and we can call it to build
@@ -60,25 +60,25 @@ class ApplicationController < ActionController::Base
       })
     }
   end
-  
+
   helper :all
-  
-  protect_from_forgery # See ActionController::RequestForgeryProtection for details
-  
+
+  protect_from_forgery with: :exception
+
   def self.set_layout(template = "application")
-    layout proc { |controller| 
-      if controller.is_ajax? 
+    layout proc { |controller|
+      if controller.is_ajax?
         nil
       else
         template
       end
     }
   end
-  
+
   def is_ajax?
     request.xhr?
   end
-  
+
   add_help(:help)
   def help
     render :json => { self.controller_name => self.help_contents.collect { |m|
@@ -88,7 +88,7 @@ class ApplicationController < ActionController::Base
           # I suppose we have to do it at runtime.
           url=URI::unescape(url_for({ :action => k,
                         :controller => self.controller_name,
-            
+
           }.merge(v["args"].inject({}) {|acc,x|
             acc.merge({x.to_s => "(#{x.to_s})"})
           }
@@ -101,38 +101,38 @@ class ApplicationController < ActionController::Base
     }
   end
   set_layout
-  
+
   #########################
   # private stuff below.
-  
-  private  
-  
+
+  private
+
   @@auth_load_mutex = Mutex.new
   @@realm = ""
-  
+
   def need_to_auth?()
     return false unless File::exists? "htdigest"
     ip = session[:ip_address] rescue nil
     return false if ip == request.remote_addr
     return true
   end
-  
+
   def digest_authenticate
-    load_users()    
+    load_users()
     authenticate_or_request_with_http_digest(@@realm) { |u| find_user(u) }
     ## only create the session if we're authenticated
     if authenticate_with_http_digest(@@realm) { |u| find_user(u) }
       session[:ip_address] = request.remote_addr
     end
   end
-  
-  def find_user(username) 
+
+  def find_user(username)
     return false if !@@users || !username
     user = @@users[username]
     return false unless user
-    return user[:password] || false   
+    return user[:password] || false
   end
-  
+
   ##
   # load the ""user database"" but be careful about thread contention.
   # $htdigest gets flushed when proposals get saved (in case they user database gets modified)
@@ -146,11 +146,11 @@ class ApplicationController < ActionController::Base
         $htdigest_reload = true
       end
     end
-    return if @@users and !$htdigest_reload  
+    return if @@users and !$htdigest_reload
 
     ## only 1 thread should load stuff..(and reset the flag)
     @@auth_load_mutex.synchronize  do
-      $htdigest_reload = false if $htdigest_reload   
+      $htdigest_reload = false if $htdigest_reload
     end
 
     ret = {}
@@ -161,9 +161,9 @@ class ApplicationController < ActionController::Base
       user = list[0].strip rescue nil
       password = list[2].strip rescue nil
       realm = list[1].strip rescue nil
-      ret[user] ={:realm => realm, :password => password}  
+      ret[user] ={:realm => realm, :password => password}
     }
-    @@auth_load_mutex.synchronize  do 
+    @@auth_load_mutex.synchronize  do
         @@users = ret.dup
         @@realm = @@users.values[0][:realm]
     end

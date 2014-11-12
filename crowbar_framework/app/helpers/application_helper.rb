@@ -31,7 +31,8 @@ module ApplicationHelper
   # cleaner within the views
   def branding_config
     @branding_config ||= begin
-      AppConfig.setup! yaml: Rails.root.join("config", "branding.yml")
+      config = YAML.load_file(Rails.root.join("config", "branding.yml")) rescue {}
+      Hashie::Mash.new(config)
     end
   end
 

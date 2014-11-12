@@ -19,7 +19,7 @@
 lockfile="/var/run/crowbar/chef-client.lock"
 while ! ( set -o noclobber; echo "$$" > "$lockfile") 2> /dev/null; do
     pid=$(cat "$lockfile")
-    echo "Failed to aquire lockfile: $lockfile."
+    echo "Failed to acquire lockfile: $lockfile."
     echo "Held by $(readlink "/proc/$pid/exe") ($pid)"
     echo "Process tree for $pid:" 
     pstree -Aupcl "$pid"

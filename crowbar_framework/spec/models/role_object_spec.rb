@@ -36,7 +36,7 @@ describe RoleObject do
       it "returns all roles" do
         roles = RoleObject.all
         roles.should_not be_empty
-        roles.all? { |r| r.is_a?(RoleObject) }.should be_true
+        roles.all? { |r| r.is_a?(RoleObject) }.should be true
       end
     end
 
@@ -44,7 +44,7 @@ describe RoleObject do
       it "returns only matching roles" do
         roles = RoleObject.find_roles_by_name("crowbar")
         roles.should_not be_empty
-        roles.all? { |r| r.name == "crowbar" }.should be_true
+        roles.all? { |r| r.name == "crowbar" }.should be true
       end
     end
 
@@ -60,26 +60,26 @@ describe RoleObject do
         roles = RoleObject.active
         roles.should be_a(Array)
         roles.should_not be_empty
-        roles.all? { |r| r.is_a?(String) }.should be_true
+        roles.all? { |r| r.is_a?(String) }.should be true
       end
 
       it "filters by barclamp if passed" do
         roles = RoleObject.active("crowbar")
         roles.should_not be_empty
-        roles.all? { |r| r.match(/^crowbar/) }.should be_true
+        roles.all? { |r| r.match(/^crowbar/) }.should be true
       end
 
       it "filters by barclamp and instance if passed" do
         roles = RoleObject.active("crowbar", "default")
         roles.should_not be_empty
-        roles.all? { |r| r.match(/^crowbar/) }.should be_true
+        roles.all? { |r| r.match(/^crowbar/) }.should be true
       end
     end
 
     describe "find_roles_by_search" do
       it "returns roles matching a search query" do
         roles = RoleObject.find_roles_by_search("name:*crowbar*")
-        roles.all? { |r| r.name.include?("crowbar") }.should be_true
+        roles.all? { |r| r.name.include?("crowbar") }.should be true
       end
     end
   end

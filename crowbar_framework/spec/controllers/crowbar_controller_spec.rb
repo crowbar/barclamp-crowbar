@@ -18,7 +18,7 @@
 require 'spec_helper'
 
 describe CrowbarController do
-  integrate_views
+  render_views
 
   before do
     CrowbarService.any_instance.stubs(:apply_role).returns([200, "OK"])

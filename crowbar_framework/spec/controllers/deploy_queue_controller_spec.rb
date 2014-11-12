@@ -18,7 +18,7 @@
 require 'spec_helper'
 
 describe DeployQueueController do
-  integrate_views
+  render_views
 
   describe "GET index" do
     it "is successful" do

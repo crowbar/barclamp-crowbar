@@ -19,7 +19,7 @@ Rails.application.routes.draw do
   # Install route from each barclamp
   Rails.root.join("config", "routes.d").children.each do |routes|
     eval(routes.read, binding) if routes.extname == ".routes"
-  end
+  end if Rails.root.join("config", "routes.d").directory?
 
   # Root route have to be on top of all
   root to: "nodes#index"

@@ -16,4 +16,6 @@
 #
 
 require File.expand_path("../application", __FILE__)
+require "dotenv/deployment"
+
 Rails.application.initialize!

@@ -15,28 +15,28 @@
 # limitations under the License.
 #
 
-module Haml
-  module Compiler
-    class << self
-      def build_attributes_with_dasherize(is_html, attr_wrapper, escape_attrs, attributes = {})
-        new_attributes = {}.tap do |dasherized|
-          attributes.keys.each do |key|
-            dasherized[key.to_s.gsub("_", "-").to_sym] = attributes[key]
-          end
-        end
+# module Haml
+#   module Compiler
+#     class << self
+#       def build_attributes_with_dasherize(is_html, attr_wrapper, escape_attrs, attributes = {})
+#         new_attributes = {}.tap do |dasherized|
+#           attributes.keys.each do |key|
+#             dasherized[key.to_s.gsub("_", "-").to_sym] = attributes[key]
+#           end
+#         end
 
-        build_attributes_without_dasherize(
-          is_html,
-          attr_wrapper,
-          escape_attrs,
-          new_attributes
-        )
-      end
+#         build_attributes_without_dasherize(
+#           is_html,
+#           attr_wrapper,
+#           escape_attrs,
+#           new_attributes
+#         )
+#       end
 
-      alias_method :build_attributes_without_dasherize, :build_attributes
-      alias_method :build_attributes, :build_attributes_with_dasherize
-    end
-  end
-end
+#       alias_method :build_attributes_without_dasherize, :build_attributes
+#       alias_method :build_attributes, :build_attributes_with_dasherize
+#     end
+#   end
+# end
 
 Haml::Template.options[:attr_wrapper] = "\""

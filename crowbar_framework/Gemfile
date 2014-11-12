@@ -24,7 +24,7 @@ gem "sass-rails", "~> 4.0"
 gem "activeresource", "~> 4.0"
 gem "closure-compiler", "~> 1.1"
 gem "dotenv", "~> 1.0"
-gem "hashie", "~> 2.1"
+gem "hashie", "~> 3.3"
 gem "js-routes", "~> 0.9"
 gem "kwalify", "~> 0.7"
 gem "redcarpet", "~> 3.2"
@@ -44,7 +44,7 @@ gem "mime-types", "~> 1.25",
   require: "mime/types"
 
 gem "dotenv-deployment", "~> 0.2",
-  require: "dotenv/deployment"
+  require: false
 
 group :development, :test do
   gem "brakeman", "~> 2.6"

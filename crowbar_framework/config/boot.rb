@@ -22,11 +22,9 @@ require "net/http"
 
 if File.exists? ENV["BUNDLE_GEMFILE"]
   require "bundler/setup"
+  require "rails/all"
 
   Bundler.require(:default, Rails.env)
-
-  require "rails/all"
-  require "dotenv/deployment"
 else
   # rails related
   gem "rails", version: "~> 4.1"
@@ -50,9 +48,6 @@ else
 
   gem "dotenv", version: "~> 1.0"
   require "dotenv"
-
-  gem "dotenv-deployment", version: "~> 0.2"
-  require "dotenv/deployment"
 
   gem "hashie", version: "~> 2.1"
   require "hashie"
@@ -90,4 +85,7 @@ else
 
   gem "chef", version: "~> 10.24"
   require "chef"
+
+  # wirthout require
+  gem "dotenv-deployment", version: "~> 0.2"
 end

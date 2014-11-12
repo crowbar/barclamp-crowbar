@@ -118,6 +118,5 @@ Rails.application.routes.draw do
   get 'crowbar/:barclamp', :action => 'versions', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/:action/:id', :controller => 'barclamp'
 
-  match ':controller/:action/:id', :via => [:get, :post, :put, :patch, :delete]
-  match ':controller/:action/:id.:format', :via => [:get, :post, :put, :patch, :delete]
+  match '/:controller/:action/*', :via => [:get, :post, :put, :patch, :delete]
 end

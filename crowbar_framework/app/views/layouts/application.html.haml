@@ -7,7 +7,7 @@
     = meta_tags
 
     - registered_stylesheets.each do |stylesheet|
-      = stylesheet_tag stylesheet
+      = stylesheet_link_tag stylesheet
 
     = yield :stylesheets
 
@@ -17,8 +17,8 @@
     = yield :javascripts
 
     /[if lt IE 9]
-      = stylesheet_tag "ie"
-      = javascript_tag "ie"
+      = stylesheet_link_tag "ie"
+      = javascript_include_tag "ie"
 
   %body{ :class => params[:controller] }
     = render :partial => "shared/header"

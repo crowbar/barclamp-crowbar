@@ -35,7 +35,7 @@ class ApplicationController < ActionController::Base
   # these contents are inherited by children, but can be
   # overridden or appended to by child classes without messing up
   # the contents we are building here.
-  class_inheritable_accessor :help_contents
+  class_attribute :help_contents
   self.help_contents = []
 
   # Class method for adding method-specific help/API information

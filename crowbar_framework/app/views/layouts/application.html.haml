@@ -12,7 +12,7 @@
     = yield :stylesheets
 
     - registered_javascripts.each do |javascript|
-      = javascript_tag javascript
+      = javascript_include_tag javascript
 
     = yield :javascripts
 

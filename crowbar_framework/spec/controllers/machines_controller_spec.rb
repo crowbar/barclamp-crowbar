@@ -117,7 +117,7 @@ describe MachinesController do
     context "for non-existent node" do
       it "renders 404" do
         get :show, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        response.should be_not_found
       end
     end
   end
@@ -129,14 +129,14 @@ describe MachinesController do
         NodeObject.any_instance.expects(:save).once
 
         post :rename, :name => "testing", :alias => "tester"
-        response.status.should eql("200 OK")
+        response.should be_success
       end
     end
 
     context "for non-existent node" do
       it "renders 404" do
         post :rename, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        response.should be_not_found
       end
     end
   end
@@ -147,14 +147,14 @@ describe MachinesController do
         NodeObject.any_instance.expects(:delete).once
 
         delete :delete, :name => "testing"
-        response.status.should eql("200 OK")
+        response.should be_success
       end
     end
 
     context "for non-existent node" do
       it "renders 404" do
         delete :delete, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        response.should be_not_found
       end
     end
   end
@@ -175,14 +175,14 @@ describe MachinesController do
           NodeObject.any_instance.expects(action).once
 
           post action, :name => "testing"
-          response.status.should eql("200 OK")
+          response.should be_success
         end
       end
 
       context "for non-existent node" do
         it "renders 404" do
           post action, :name => "nonexistent"
-          response.status.should eql("404 Not Found")
+          response.should be_success
         end
 
         it "prevents #{action}" do

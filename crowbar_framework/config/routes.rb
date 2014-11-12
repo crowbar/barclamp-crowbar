@@ -33,10 +33,10 @@ Rails.application.routes.draw do
 
   get 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
               :constraints => { :name => /.*/, :path => /.*/ }
-  get 'nodes/status.:format', :controller => 'nodes', :action => 'status', :as => 'nodes_status'
-  get 'nodes/list.:format', :controller => 'nodes', :action => 'list', :as => 'nodes_list'
-  get 'nodes/unallocated.:format', :controller => 'nodes', :action => 'unallocated', :as => 'unallocated_list'
-  post 'nodes/bulk.:format', :controller => 'nodes', :action => 'bulk', :as => 'bulk_nodes'
+  get 'nodes/status(.:format)', :controller => 'nodes', :action => 'status', :as => 'nodes_status'
+  get 'nodes/list(.:format)', :controller => 'nodes', :action => 'list', :as => 'nodes_list'
+  get 'nodes/unallocated(.:format)', :controller => 'nodes', :action => 'unallocated', :as => 'unallocated_list'
+  post 'nodes/bulk(.:format)', :controller => 'nodes', :action => 'bulk', :as => 'bulk_nodes'
   get 'nodes/families', :controller=>'nodes', :action=>'families', :as => 'nodes_families'
   get 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :constraints => { :id => /.*/ }, :as => 'hit_node'
   get 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /.*/ }, :as => 'edit_node'
@@ -63,7 +63,7 @@ Rails.application.routes.draw do
   get 'deployment_queue', :controller => 'deploy_queue', :action => 'index', :as => 'deployment_queue'
 
   #support paths
-  get 'utils.:format', :controller=>'support', :action=>'index', :as => 'utils'
+  get 'utils(.:format)', :controller=>'support', :action=>'index', :as => 'utils'
   get 'utils/files/:id', :controller=>'support', :action=>'destroy', :constraints => { :id => /.*/ }, :as => 'utils_files'
   get 'utils/chef', :controller=>'support', :action=>'export_chef', :as => 'export_chef'
   get 'utils/supportconfig', :controller=>'support', :action=>'export_supportconfig', :as => 'export_supportconfig'
@@ -71,7 +71,7 @@ Rails.application.routes.draw do
   get 'utils/:controller/1.0', :action=>'utils', :as => 'utils_barclamp'
   get 'utils/import/:id', :controller=>'support', :action=>'import', :constraints => { :id => /.*/ }, :as => 'utils_import'
   get 'utils/upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /.*/ }, :as => 'utils_upload'
-  get 'utils/restart/:id.:format', :controller=>'support', :action=>'restart', :as => 'restart'
+  get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
 
   # barclamps
   get 'crowbar/:controller/1.0/help', :action => 'help', :as => 'help_barclamp'
@@ -79,7 +79,7 @@ Rails.application.routes.draw do
   put 'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :as => 'create_proposal_barclamp'
   get 'crowbar/:controller/1.0/proposals', :action => 'proposals', :as => 'proposals_barclamp'
   post 'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :as => 'commit_proposal_barclamp'
-  get 'crowbar/:controller/1.0/proposals/status/:id/.:format', :action => 'proposal_status', :as => 'status_proposals_barclamp'
+  get 'crowbar/:controller/1.0/proposals/status/:id/(.:format)', :action => 'proposal_status', :as => 'status_proposals_barclamp'
   delete 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :as => 'delete_proposal_barclamp'
   delete 'crowbar/:controller/1.0/proposals/dequeue/:id', :action => 'proposal_dequeue', :as => 'dequeue_barclamp'
   post 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_update', :as => 'update_proposal_barclamp'
@@ -103,7 +103,7 @@ Rails.application.routes.draw do
   put 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :controller => 'barclamp'
   get 'crowbar/:barclamp/1.0/proposals', :action => 'proposals', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/proposals/commit/:id', :action => 'proposal_commit', :controller => 'barclamp'
-  get 'crowbar/:barclamp/1.0/proposals/status.:format', :action => 'proposal_status', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/proposals/status(.:format)', :action => 'proposal_status', :controller => 'barclamp'
   delete 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_delete', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_update', :controller => 'barclamp'
   get 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_show', :controller => 'barclamp'
@@ -118,5 +118,5 @@ Rails.application.routes.draw do
   get 'crowbar/:barclamp', :action => 'versions', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/:action/:id', :controller => 'barclamp'
 
-  match '/:controller/:action/*', :via => [:get, :post, :put, :patch, :delete]
+  match '/:controller/:action/*(:.format)', :via => [:get, :post, :put, :patch, :delete]
 end

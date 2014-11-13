@@ -78,7 +78,7 @@ else
 
   # chef related
   gem "mixlib-shellout", version: "~> 1.4"
-  require "mixlib-shellout"
+  require "mixlib/shellout"
 
   gem "ohai", version: "~> 6.22"
   require "ohai"

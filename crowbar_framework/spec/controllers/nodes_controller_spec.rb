@@ -158,19 +158,19 @@ describe NodesController do
 
   describe "GET status" do
     it "is successful" do
-      get :status
+      get :status, :format => "json"
       response.should be_success
     end
 
     it "renders error if fetch fails" do
       NodeObject.stubs(:all).raises(Errno::ECONNREFUSED)
-      get :status
+      get :status, :format => "json"
       json = JSON.parse(response.body)
       json["error"].should_not be_empty
     end
 
     it "returns status of the nodes" do
-      get :status
+      get :status, :format => "json"
       json = JSON.parse(response.body)
 
       json["nodes"]["admin"].keys.should include("status")

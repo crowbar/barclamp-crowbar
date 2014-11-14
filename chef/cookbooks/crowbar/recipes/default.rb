@@ -71,6 +71,7 @@ when "suse"
     ruby2.1-rubygem-simple_navigation_renderers
     ruby2.1-rubygem-sqlite3
     ruby2.1-rubygem-syslogger
+    ruby2.1-rubygem-rainbows-rails
   )
 end
 
@@ -102,6 +103,7 @@ if node[:platform] != "suse"
     simple_navigation_renderers
     sqlite3
     syslogger
+    rainbows-rails
   )
 
   gemlist.each do |g|

@@ -79,7 +79,7 @@ Rails.application.routes.draw do
   put 'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :as => 'create_proposal_barclamp'
   get 'crowbar/:controller/1.0/proposals', :action => 'proposals', :as => 'proposals_barclamp'
   post 'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :as => 'commit_proposal_barclamp'
-  get 'crowbar/:controller/1.0/proposals/status/:id/(.:format)', :action => 'proposal_status', :as => 'status_proposals_barclamp'
+  get 'crowbar/:controller/1.0/proposals/status/(:id/)(.:format)', :action => 'proposal_status', :as => 'status_proposals_barclamp'
   delete 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :as => 'delete_proposal_barclamp'
   delete 'crowbar/:controller/1.0/proposals/dequeue/:id', :action => 'proposal_dequeue', :as => 'dequeue_barclamp'
   post 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_update', :as => 'update_proposal_barclamp'

@@ -9,7 +9,7 @@
         - else
           = link_to t(".all"), nodes_list_path, :class => "btn btn-default"
 
-- form_for :node, :url => bulk_nodes_path, :html => { :role => "form" } do |f|
+= form_for :node, :url => bulk_nodes_path, :html => { :role => "form" } do |f|
   = hidden_field_tag "return", @allocated
 
   .panel.panel-default

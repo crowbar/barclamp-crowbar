@@ -35,7 +35,7 @@
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
 
             - if barclamp[:allow_multiple_proposals] or barclamp[:proposals].length == 0
-              - create_proposal_form_for(barclamp_name) do
+              = create_proposal_form_for(barclamp_name) do
                 %tr
                   %td.col-xs-1.status
                     %span.glyphicon.glyphicon-plus

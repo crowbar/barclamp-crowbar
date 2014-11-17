@@ -76,7 +76,7 @@ module Dsl
                 "data-initial-value"  => attribute_value
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -108,7 +108,7 @@ module Dsl
                 "data-initial-value"  => attribute_value
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -195,7 +195,7 @@ module Dsl
               ),
               :class => "pull-right"
             )
-          ].join("\n")
+          ].join("\n").html_safe
         )
       end
 
@@ -256,7 +256,7 @@ module Dsl
           [
             labeling,
             send(field, *parameters)
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 

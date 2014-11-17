@@ -31,7 +31,7 @@
                       = proposal[:description]
                   %td.col-xs-1.actions
                     = link_to t("proposal.actions.edit"), proposal_barclamp_path(:controller => barclamp_name, :id => proposal_name), :class => "btn btn-default btn-block"
-              - create_proposal_form_for(barclamp_name) do
+              = create_proposal_form_for(barclamp_name) do
                 %tr
                   %td.col-xs-1.status
                     %span.glyphicon.glyphicon-plus
@@ -56,7 +56,7 @@
           = barclamp[:description]
         %td.col-xs-1.actions
           - if barclamp[:proposals].length == 0
-            - create_proposal_form_for(barclamp_name) do
+            = create_proposal_form_for(barclamp_name) do
               = hidden_field_tag :barclamp, barclamp_name
               = hidden_field_tag :name, "default"
               = hidden_field_tag :description, t(".created_on", :date => l(Time.now))

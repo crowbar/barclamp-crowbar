@@ -5,7 +5,7 @@
 
       = t(".title")
 
-- update_proposal_form_for @proposal do |f|
+= update_proposal_form_for @proposal do |f|
   %input#barclamp{ :type => "hidden", :name => "barclamp", :value => @proposal.barclamp }
   %input#name{ :type => "hidden", :name => "name", :value => @proposal.name }
 

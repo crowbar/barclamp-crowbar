@@ -133,14 +133,14 @@ module ProposalsHelper
 
   def attributes_for(proposal, &block)
     attribute = Dsl::Proposal::Attribute.new(proposal, self)
-    block.bind(attribute).call
+    attribute.instance_eval(&block)
 
     ""
   end
 
   def deployment_for(proposal, &block)
     deployment = Dsl::Proposal::Deployment.new(proposal, self)
-    block.bind(deployment).call
+    deployment.instance_eval(&block)
 
     ""
   end

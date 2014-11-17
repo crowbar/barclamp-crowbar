@@ -56,7 +56,7 @@ module Dsl
               ),
               :class => "pull-right"
             )
-          ].join("\n")
+          ].join("\n").html_safe
         )
       end
 

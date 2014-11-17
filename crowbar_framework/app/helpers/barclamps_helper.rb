@@ -23,7 +23,7 @@ module BarclampsHelper
       "chevron-right"
     end
 
-    "#{icon_tag(icon_class)} #{title}"
+    "#{icon_tag(icon_class)} #{title}".html_safe
   end
 
   def display_led_for(state, property, path = false)
@@ -93,7 +93,7 @@ module BarclampsHelper
       if Rails.root.join("app", "views", "barclamp", proposal.barclamp, "_edit_attributes.html.haml").file?
         render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
       else
-        # Currently this view does not exist, but should be the 
+        # Currently this view does not exist, but should be the
         # fallback way to show a generic form or message
         render :partial => "barclamp/general/edit_attributes"
       end

@@ -43,7 +43,7 @@ Rails.application.configure do
   config.assets.raise_runtime_errors = false
   config.assets.js_compressor = :closure
   config.assets.css_compressor = :sass
-  config.assets.compile = false
+  config.assets.compile = true
   config.assets.digest = true
 
   config.i18n.fallbacks = true

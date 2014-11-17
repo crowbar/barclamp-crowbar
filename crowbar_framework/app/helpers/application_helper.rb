@@ -140,7 +140,7 @@ module ApplicationHelper
           :class => "slogan"
         )
       end
-    end.join("\n")
+    end.join("\n").html_safe
   end
 
   # Include required meta tags like csrf token, viewport and such stuff
@@ -176,7 +176,7 @@ module ApplicationHelper
           :content => Rack::Utils.escape_html(form_authenticity_token)
         )
       end
-    end.join("\n")
+    end.join("\n").html_safe
   end
 
   def have_openstack

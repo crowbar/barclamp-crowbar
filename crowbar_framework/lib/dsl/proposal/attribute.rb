@@ -133,19 +133,43 @@ module Dsl
       end
 
       def array_string_field(attribute, options = {})
-        input attribute, :text_field_tag, "array-string", options
+        type = if options.delete(:only_comma)
+          "array-comma-string"
+        else
+          "array-string"
+        end
+
+        input attribute, :text_field_tag, type, options
       end
 
       def array_boolean_field(attribute, options = {})
-        input attribute, :text_field_tag, "array-boolean", options
+        type = if options.delete(:only_comma)
+          "array-comma-boolean"
+        else
+          "array-boolean"
+        end
+
+        input attribute, :text_field_tag, type, options
       end
 
       def array_integer_field(attribute, options = {})
-        input attribute, :text_field_tag, "array-integer", options
+        type = if options.delete(:only_comma)
+          "array-comma-integer"
+        else
+          "array-integer"
+        end
+
+        input attribute, :text_field_tag, type, options
       end
 
       def array_float_field(attribute, options = {})
-        input attribute, :text_field_tag, "array-float", options
+        type = if options.delete(:only_comma)
+          "array-comma-float"
+        else
+          "array-float"
+        end
+
+        input attribute, :text_field_tag, type, options
       end
 
       def instance_field(attribute, options = {})

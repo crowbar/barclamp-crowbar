@@ -326,12 +326,14 @@ class BarclampController < ApplicationController
   def proposal_create
     Rails.logger.info "Proposal Create starting. Params #{params.inspect}"
     controller = params[:controller]
-    orig_id = params[:name] || params[:id]
-    params[:id] = orig_id
+
+    request_params = params[@service_object.bc_name.to_sym]
+    request_params[:id] = request_params[:name] || request_params[:id]
+
     answer = [ 500, "Server issue" ]
     begin
-      Rails.logger.info "asking for proposal of: #{params.inspect}"
-      answer = @service_object.proposal_create params
+      Rails.logger.info "asking for proposal of: #{request_params.inspect}"
+      answer = @service_object.proposal_create request_params
       Rails.logger.info "proposal is: #{answer.inspect}"
       unless answer[0] == 200
         flash[:alert] = answer[1]
@@ -342,7 +344,7 @@ class BarclampController < ApplicationController
     respond_to do |format|
       format.html {
         return redirect_to barclamp_modules_path :id => params[:controller] if answer[0] != 200
-        redirect_to proposal_barclamp_path :controller=> controller, :id=>orig_id
+        redirect_to proposal_barclamp_path :controller=> controller, :id=>request_params[:id]
       }
       format.xml  {
         return render :text => flash[:alert], :status => answer[0] if answer[0] != 200

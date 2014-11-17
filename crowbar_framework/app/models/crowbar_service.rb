@@ -167,18 +167,17 @@ class CrowbarService < ServiceObject
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
       ordered_bcs.each do |k, plist |
-        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+        @logger.fatal("Deploying proposal - id: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
           id = "default"
           data = "{\"id\":\"#{id}\"}"
           @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
 
           if v != "default"
-            file = File.open(v, "r")
-            data = file.readlines.to_s
-            file.close
+            struct = JSON.parse(
+              File.read(v)
+            )
 
-            struct = JSON.parse(data)
             id = struct["id"].gsub("bc-#{k}-", "")
           end
 

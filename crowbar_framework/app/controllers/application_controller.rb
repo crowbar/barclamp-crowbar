@@ -65,6 +65,9 @@ class ApplicationController < ActionController::Base
 
   protect_from_forgery with: :exception
 
+  # TODO: Disable it only for API calls
+  skip_before_action :verify_authenticity_token
+
   def self.set_layout(template = "application")
     layout proc { |controller|
       if controller.is_ajax?

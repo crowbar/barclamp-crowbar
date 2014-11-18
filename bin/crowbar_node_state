@@ -77,6 +77,10 @@ def help
   usage 0
 end
 
+def debug(msg)
+  puts msg if @debug
+end
+
 def authenticate(req, uri, data = nil)
   uri.user = @username
   uri.password = @password

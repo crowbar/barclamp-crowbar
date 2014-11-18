@@ -5,7 +5,13 @@
 
 .row
   .col-xs-12
-    - @assigned_roles.each do |role|
-      .row
-        .col-xs-12
-          = render :partial => "role", :locals => { :role => role, :elements => role.element_nodes(@roles, @nodes) }
+    - @assigned_roles.each do |barclamp, roles|
+      .panel.panel-default
+        .panel-heading
+          %h2
+            = display_name_for(barclamp)
+        .panel-body
+          - roles.map { |role| { :role => role, :elements => role.element_nodes(@roles, @nodes) } }.each do |locals|
+            - unless locals[:elements].empty?
+              = render :partial => "role", :locals => locals
+        .panel-footer

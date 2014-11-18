@@ -23,7 +23,7 @@ require 'json'
 require 'getoptlong'
 
 @debug = false
-@hostname = ENV["CROWBAR_IP"] 
+@hostname = ENV["CROWBAR_IP"]
 @hostname = "127.0.0.1" unless @hostname
 @port = 3000
 @headers = {
@@ -37,7 +37,7 @@ require 'getoptlong'
 
 #
 # Parsing options can be added by adding to this list before calling opt_parse
-# 
+#
 @options = [
     [ [ '--help', '-h', GetoptLong::NO_ARGUMENT ], "--help or -h - help" ],
     [ [ '--username', '-U', GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - specifies the username" ],
@@ -102,34 +102,49 @@ def debug(msg)
   puts msg if @debug
 end
 
-def authenticate(req,uri,data=nil)
-  uri.user=@username
-  uri.password=@password
-  res=nil
-  Net::HTTP.start(uri.host, uri.port) {|http|
-    http.read_timeout = @timeout
-    r = req.new(uri.request_uri,@headers)
+def authenticate(req, uri, data = nil)
+  uri.user = @username
+  uri.password = @password
+
+  h = Net::HTTP.new uri.host, uri.port
+  h.read_timeout = @timeout
+
+  r = req.new uri.request_uri, @headers
+  r.body = data if data
+
+  res = h.request r
+
+  debug "(r) hostname: #{uri.host}:#{uri.port}"
+  debug "(r) request: #{uri.path}"
+  debug "(r) method: #{req::METHOD}"
+  debug "(r) return code: #{res.code}"
+  debug "(r) return body: #{res.body}"
+  res.each_header do |h, v|
+    debug "(r) return #{h}: #{v}"
+  end
+
+  if res["www-authenticate"]
+    digest = Net::HTTP::DigestAuth.new
+    auth = digest.auth_header uri, res["www-authenticate"], req::METHOD
+
+    r = req.new uri.request_uri, @headers
     r.body = data if data
-    res = http.request r
+    r.add_field "Authorization", auth
+
+    res = h.request r
+
     debug "(a) hostname: #{uri.host}:#{uri.port}"
     debug "(a) request: #{uri.path}"
     debug "(a) method: #{req::METHOD}"
     debug "(a) return code: #{res.code}"
     debug "(a) return body: #{res.body}"
-    debug "(a) return headers:"
-    res.each_header { |h, v| debug "#{h}: #{v}" }
-
-    if res['www-authenticate'] and not @username.nil? and not @password.nil?
-      digest_auth=Net::HTTP::DigestAuth.new
-      auth=Net::HTTP::DigestAuth.new.auth_header(uri,
-                                                 res['www-authenticate'],
-                                                 req::METHOD)
-      r.add_field 'Authorization', auth
-      res = http.request r
+    res.each_header do |h, v|
+      debug "(a) return #{h}: #{v}"
     end
-  }
+  end
+
   res
-end  
+end
 
 def get_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/crowbar/#{@barclamp}/1.0#{path}")
@@ -193,7 +208,7 @@ def list
 
   if struct[1] != 200
     [ "Failed to talk to service list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty? 
+  elsif struct[0].nil? or struct[0].empty?
     [ "No current configurations", 0 ]
   else
     out = ""
@@ -209,7 +224,7 @@ def api_help
   struct=get_json("/help")
   if struct[1] != 200
     [ "Failed to talk to service list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty? 
+  elsif struct[0].nil? or struct[0].empty?
     [ "No help", 0 ]
   else
     [ jj(struct[0]), 0 ]
@@ -232,13 +247,13 @@ end
 
 def delete(name)
   usage -1 if name.nil? or name == ""
- 
+
   struct = delete_json("/#{name}")
 
   if struct[1] == 200
     [ "Deleted #{name}", 0 ]
   elsif struct[1] == 404
-    [ "Delete failed for #{name}: Not Found", 1 ] 
+    [ "Delete failed for #{name}: Not Found", 1 ]
   else
     [ "Failed to talk to service delete: #{struct[1]}: #{struct[0]}", 1 ]
   end
@@ -249,7 +264,7 @@ def proposal_list
 
   if struct[1] != 200
     [ "Failed to talk to service proposal list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty? 
+  elsif struct[0].nil? or struct[0].empty?
     [ "No current proposals", 0 ]
   else
     out = ""
@@ -344,7 +359,7 @@ def proposal_delete(name)
   if struct[1] == 200
     [ "Deleted #{name}", 0 ]
   elsif struct[1] == 404
-    [ "Delete failed for #{name}: Not Found", 1 ] 
+    [ "Delete failed for #{name}: Not Found", 1 ]
   else
     [ "Failed to talk to service delete: #{struct[1]}: #{struct[0]}", 1 ]
   end

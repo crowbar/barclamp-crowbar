@@ -672,7 +672,7 @@ class ServiceObject
     # crowbar-deep-merge-template key should be removed in all cases, as it
     # should not end in the proposal anyway; if the key is not here, we default
     # to false (and therefore the old behavior)
-    if params.delete("crowbar-deep-merge-template") { |v| false }
+    if params.delete("crowbar-deep-merge-template")
       HashOnlyMerge.hash_only_merge!(proposal, params)
     else
       proposal.merge!(params)

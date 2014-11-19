@@ -1,11 +1,36 @@
 .navbar-inverse {
   .navbar-brand {
+    padding: 15px 15px 12px;
+
     .title {
       font-weight: bold;
+      font-size: 21px;
     }
 
     .slogan {
       font-weight: normal;
+    }
+  }
+
+  .navbar-nav > .open > a {
+    background-color: #25282a;
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.4) inset, 1px 1px 0 rgba(255,255,255,0.1);
+  }
+
+  .dropdown-menu {
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    right: -1px;
+
+    & > li > a {
+      padding: 3px 10px;
+      margin: 0px 5px;
+    }
+
+    li a:hover {
+      border-radius: 3px;
+      box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) inset,1px 1px 0 rgba(255, 255, 255, 0.1);
+      background-color: #2e3235;
     }
   }
 }

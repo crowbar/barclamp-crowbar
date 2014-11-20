@@ -6,7 +6,13 @@ class DashboardController < ApplicationController
   end
 
   def active_roles
-    @assigned_roles = RoleObject.assigned(@roles).reject { |r| r.proposal? || r.core_role? || r.ha? }.sort_by(&:name)
+    @assigned_roles = RoleObject.assigned(@roles).reject do |r|
+      r.proposal? || r.core_role? || r.ha?
+    end.group_by do |r|
+      r.barclamp
+    end.sort_by do |barclamp, roles|
+      barclamp
+    end
   end
 
   private

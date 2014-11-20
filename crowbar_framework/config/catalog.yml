@@ -1,0 +1,68 @@
+---
+barclamps:
+  deployer:
+    user_managed: true
+    display: "Deployer"
+    description: "Initial classification system for the Crowbar environment"
+    order: 10
+    chef_order: 10
+    run_order: 10
+  ntp:
+    user_managed: true
+    display: "NTP"
+    description: "Common NTP service for the cluster. An NTP server or servers can be specified and all other nodes will be clients of them."
+    order: 50
+    chef_order: 50
+    run_order: 50
+  dns:
+    user_managed: true
+    display: "DNS"
+    description: "Manages the DNS subsystem for the cluster"
+    order: 30
+    chef_order: 30
+    run_order: 30
+  network:
+    user_managed: true
+    display: "Network"
+    description: "Instantiates network interfaces on the crowbar managed systems. Also manages the address pool"
+    order: 20
+    chef_order: 20
+    run_order: 20
+  logging:
+    user_managed: true
+    display: "Logging"
+    description: "Centralized logging system based on syslog"
+    order: 40
+    chef_order: 40
+    run_order: 40
+  provisioner:
+    user_managed: true
+    display: "Provisioner"
+    description: "The roles and recipes to set up the provisioning server and a base environment for all nodes"
+    order: 10
+    chef_order: 1060
+    run_order: 1060
+  ipmi:
+    user_managed: true
+    display: "IPMI"
+    description: "The default proposal for the ipmi barclamp"
+    order: 15
+    chef_order: 15
+    run_order: 15
+
+  crowbar:
+    user_managed: true
+    display: "Crowbar"
+    description: "Self-referential barclamp enabling other barclamps"
+    order: 0
+    chef_order: 0
+    run_order: 0
+    members:
+      deployer: 10
+      ntp: 50
+      crowbar: 0
+      dns: 30
+      network: 20
+      logging: 40
+      provisioner: 10
+      ipmi: 15

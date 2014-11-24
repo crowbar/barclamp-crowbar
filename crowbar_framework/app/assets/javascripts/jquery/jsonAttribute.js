@@ -51,9 +51,20 @@
         value = parseFloat(value);
         break;
       case 'array-string':
+        value = this.replaceSpace(this.splitString(value));
+        break;
+      case 'array-comma-string':
         value = this.splitString(value);
         break;
       case 'array-boolean':
+        var index;
+        value = this.replaceSpace(this.splitString(value));
+
+        for (index in value) {
+          value[index] = value[index].toLowerCase() == 'true'
+        }
+        break;
+      case 'array-comma-boolean':
         var index;
         value = this.splitString(value);
 
@@ -63,6 +74,14 @@
         break;
       case 'array-integer':
         var index;
+        value = this.replaceSpace(this.splitString(value));
+
+        for (index in value) {
+          value[index] = parseInt(value[index]);
+        }
+        break;
+      case 'array-comma-integer':
+        var index;
         value = this.splitString(value);
 
         for (index in value) {
@@ -70,6 +89,14 @@
         }
         break;
       case 'array-float':
+        var index;
+        value = this.replaceSpace(this.splitString(value));
+
+        for (index in value) {
+          value[index] = parseFloat(value[index]);
+        }
+        break;
+      case 'array-comma-float':
         var index;
         value = this.splitString(value);
 
@@ -164,8 +191,15 @@
     this.writeJson();
   };
 
+  JsonAttribute.prototype.replaceSpace = function(value) {
+    return value.replace(/ /g, ',');
+  };
+
   JsonAttribute.prototype.splitString = function(value) {
-    return value.replace(/ /g, ',').replace(/,+/g, ',').split(',');
+    return $.map(
+      value.split(','),
+      $.trim
+    );
   };
 
   $.fn.readJsonAttribute = function(key, value, type) {

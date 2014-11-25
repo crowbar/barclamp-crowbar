@@ -50,9 +50,9 @@ nav:
     - [ active_roles, active_roles_path ]
     - [ families, nodes_families_path ]
   barclamps:
+    - [ deployment_queue, deployment_queue_path ]
     - [ all_bc, barclamp_modules_path ]
     - [ crowbar_bc, "index_barclamp_path(:controller=>'crowbar')" ]
-    - [ deployment_queue, deployment_queue_path ]
   utils:
     - [ util_logs, utils_path ]
   help:

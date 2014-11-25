@@ -91,7 +91,7 @@
         .form-group
           = f.label :group, t('.group')
           %p.form-control-static
-            = t('.default', :group => content_tag(:strong, @node.group))
+            = t('.default', :group => content_tag(:strong, @node.group)).html_safe
 
         .form-group
           = f.label :group, t('.override')

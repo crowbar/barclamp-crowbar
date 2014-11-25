@@ -216,11 +216,11 @@ module ApplicationHelper
     if value.nil? or value.empty?
       content_tag(
         :span,
-        "&mdash;",
+        "&mdash;".html_safe,
         :class => "empty"
       )
     else
-      value
+      value.html_safe
     end
   end
 
@@ -234,11 +234,11 @@ module ApplicationHelper
     if is_empty
       content_tag(
         :span,
-        fallback,
+        fallback.html_safe,
         :class => "empty"
       )
     else
-      value
+      value.html_safe
     end
   end
 

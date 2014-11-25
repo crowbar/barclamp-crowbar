@@ -295,6 +295,7 @@ class BarclampController < ApplicationController
     i18n = {}
     begin
       active = RoleObject.active(params[:barclamp], params[:name])
+
       result = if params[:id].nil?
         result = ProposalObject.all
         result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
@@ -312,7 +313,7 @@ class BarclampController < ApplicationController
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
       lines = [ "Failed to iterate over proposal list due to '#{e.message}'" ] + e.backtrace
       Rails.logger.fatal(lines.join("\n"))
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
+      render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}.to_json, :cache => false
     end
   end
 

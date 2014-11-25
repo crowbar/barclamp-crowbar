@@ -95,6 +95,7 @@ en:
     show_simplified_index:
       created_on: 'Created on %{date}'
       failed: 'Error: %{message}'
+      blockui_message: 'Processing, please wait...'
     modules:
       title: 'All Barclamps'
     index:
@@ -203,7 +204,7 @@ en:
       link: '%{name} barclamp'
       apply: 'Apply'
       save: 'Save'
-      edit: 'Edit'      
+      edit: 'Edit'
       dequeue: 'Dequeue'
       dequeue_failure: 'Error, could not dequeue proposal.'
       dequeue_success: 'Successfully dequeued proposal.'
@@ -346,7 +347,7 @@ en:
       group_error: 'Failed to save %{node}: The group should start with a letter and only contain letters, digits, -, _, ., or :.'
       name: 'Name'
       group: 'Group'
-      alias: 'Alias'  
+      alias: 'Alias'
       public_name: 'Public Name'
       hw_description: 'Hardware'
       description: 'Description'

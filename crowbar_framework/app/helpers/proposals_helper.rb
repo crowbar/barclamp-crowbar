@@ -27,10 +27,10 @@ module ProposalsHelper
       :class => "form-inline",
       :autocomplete => "off",
       "data-type" => "html",
-      "data-method" => "put"
+      "data-blockui" => t(".blockui_message")
     }
 
-    form_for :proposal, :url => url, :html => html, :remote => true, &block
+    form_for :proposal, :url => url, :html => html, &block
   end
 
   def update_proposal_form_for(proposal, &block)

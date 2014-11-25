@@ -1,6 +1,6 @@
 - if @draggable
   .alert.alert-info{ "data-id" => "AUTOMATIC", "data-droppable" => "true" }
-    = t(".drag_hint")
+    = t(".drag_hint").html_safe
 
 #nodegroups.row
   - @groups.sort.each do |group_name, group|

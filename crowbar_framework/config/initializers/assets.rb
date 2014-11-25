@@ -19,8 +19,9 @@ Rails.application.config.tap do |config|
   config.assets.version = '1.0'
 
   config.assets.precompile = [
-    /application.(css|js)$/,
-    /ie.(css|js)$/,
-    /branding.(css|js)$/
+    /application\.(css|js)$/,
+    /ie\.(css|js)$/,
+    /branding\.(css|js)$/,
+    /\.(jpg|png|gif|svg|eot|woff|ttf)$/
   ]
 end

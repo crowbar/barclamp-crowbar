@@ -202,7 +202,7 @@ module ApplicationHelper
   end
 
   def flash_for(value)
-    case value
+    case value.to_sym
     when :notice
       "success"
     when :alert

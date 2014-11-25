@@ -43,7 +43,7 @@ class SupportController < ApplicationController
 
       if filename =~ /^\./
         next
-      elsif filename =~ /^KEEP_THIS.*/
+      elsif filename =~ /^(KEEP_THIS.*)|(index.html)/
         next
       elsif filename =~ /^crowbar-logs-.*/
         @export.files.logs.push filename

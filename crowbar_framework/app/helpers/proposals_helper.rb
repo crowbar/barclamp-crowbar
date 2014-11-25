@@ -119,6 +119,9 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
+    parameters.delete(:attr_raw) if parameters[:attr_raw] == false
+    parameters.delete(:dep_raw) if parameters[:dep_raw] == false
+
     link_to t('raw'), proposal_barclamp_path(parameters), :class => "rawview"
   end
 
@@ -127,6 +130,9 @@ module ProposalsHelper
       :id => proposal.name,
       :controller => proposal.barclamp
     }.merge options
+
+    parameters.delete(:attr_raw) if parameters[:attr_raw] == false
+    parameters.delete(:dep_raw) if parameters[:dep_raw] == false
 
     link_to t('custom'), proposal_barclamp_path(parameters), :class => "customview"
   end

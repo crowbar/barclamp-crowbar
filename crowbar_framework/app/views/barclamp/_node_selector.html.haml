@@ -15,7 +15,7 @@
 
       .pull-right
         %small
-          = proposal_raw_button @proposal, :dep_raw => true, :attr_raw => @attr_raw
+          = proposal_raw_button @proposal, :dep_raw => true, :attr_raw => show_raw_attributes?
 
   .panel-body
     .alert.alert-info

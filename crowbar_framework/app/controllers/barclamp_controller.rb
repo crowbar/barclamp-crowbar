@@ -278,8 +278,6 @@ class BarclampController < ApplicationController
     @proposal = ret[1]
     @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
     flash.now[:alert] = @proposal.fail_reason if @proposal.failed?
-    @attr_raw = params[:attr_raw] || false
-    @dep_raw = params[:dep_raw] || false
 
     respond_to do |format|
       format.html { render :template => 'barclamp/proposal_show' }
@@ -435,8 +433,8 @@ class BarclampController < ApplicationController
           :id => params[:name]
         }
 
-        redirect_params[:dep_raw] = params[:dep_raw] if params[:dep_raw] == "true"
-        redirect_params[:attr_raw] = params[:attr_raw] if params[:attr_raw] == "true"
+        redirect_params[:dep_raw] = true if view_context.show_raw_deployment?
+        redirect_params[:attr_raw] = true if view_context.show_raw_attributes?
 
         redirect_to proposal_barclamp_path(redirect_params)
       end

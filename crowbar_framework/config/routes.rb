@@ -52,8 +52,8 @@ Rails.application.routes.draw do
   get 'network/:controller/1.0', :action=>'network', :as => 'network_barclamp'
   # these paths require the network barclamp
   get 'network', :controller => 'network', :action=>'switch', :as => 'network'
-  get 'network/switch/:id', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :as => 'switch'
-  get 'network/vlan/:id', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :as => 'vlan'
+  get 'network/switch/:id', :controller => 'network', :action=>'switch', :constraints => { :id => /.*/ }, :defaults => { :id => "default" }, :as => 'switch'
+  get 'network/vlan/:id', :controller => 'network', :action=>'vlan', :constraints => { :id => /.*/ }, :defaults => { :id => "default" }, :as => 'vlan'
 
   # clusters
   get 'clusters',     :controller => 'dashboard', :action => 'clusters', :as => 'clusters'

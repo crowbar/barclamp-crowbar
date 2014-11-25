@@ -127,7 +127,7 @@ class SupportController < ApplicationController
 
       pid = Process.fork do
         exports = Dir.glob(Rails.root.join("db", "*.json").to_s)
-        cmd     = ["tar", "-czf", Rails.root.join("tmp", filename), *exports]
+        cmd     = ["tar", "-czf", Rails.root.join("tmp", filename).to_s, *exports]
 
         ok = system(*cmd)
         File.rename(Rails.root.join("tmp", filename), export_dir.join(filename)) if ok

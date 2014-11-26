@@ -13,7 +13,7 @@
   }
 
   .navbar-nav > .open > a {
-    background-color: #25282a;
+    background-color: #25282a !important;
     box-shadow: 1px 1px 0 rgba(0,0,0,0.4) inset, 1px 1px 0 rgba(255,255,255,0.1);
   }
 
@@ -30,7 +30,7 @@
     li a:hover {
       border-radius: 3px;
       box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) inset,1px 1px 0 rgba(255, 255, 255, 0.1);
-      background-color: #2e3235;
+      background-color: #2e3235 !important;
     }
   }
 }

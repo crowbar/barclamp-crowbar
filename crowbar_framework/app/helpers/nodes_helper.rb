@@ -241,7 +241,7 @@ module NodesHelper
           switch_label = [
             value_for(@node.switch_name, t("unknown"), show_name),
             value_for(@node.switch_port, t("unknown"), show_port)
-          ].join(" / ")
+          ].join(" / ").html_safe
 
           switch_title = t("model.attributes.node.switch_name_port")
         else
@@ -249,7 +249,7 @@ module NodesHelper
             value_for(@node.switch_name, t("unknown"), show_name),
             value_for(@node.switch_unit, t("unknown"), show_unit),
             value_for(@node.switch_port, t("unknown"), show_port)
-          ].join(" / ")
+          ].join(" / ").html_safe
 
           switch_title = t("model.attributes.node.switch_name_unit_port")
         end

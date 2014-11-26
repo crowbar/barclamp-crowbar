@@ -22,6 +22,6 @@ Rails.application.config.tap do |config|
     /application\.(css|js)$/,
     /ie\.(css|js)$/,
     /branding\.(css|js)$/,
-    /\.(jpg|png|gif|svg|eot|woff|ttf)$/
+    /\.(jpg|png|gif|svg|ico|eot|woff|ttf)$/
   ]
 end

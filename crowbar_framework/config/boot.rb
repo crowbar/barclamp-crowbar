@@ -39,6 +39,9 @@ else
   gem "rainbows-rails", version: "~> 1.0"
   require "rainbows-rails"
 
+  gem "ember-rails", version: "~> 1.0"
+  require "ember-rails"
+
   # general stuff
   gem "activerecord-session_store", version: "~> 0.1"
   require "activerecord/session_store"
@@ -46,14 +49,14 @@ else
   gem "activeresource", version: "~> 4.0"
   require "active_resource"
 
-  gem "closure-compiler", version: "~> 1.1"
-  require "closure-compiler"
-
   gem "dotenv", version: "~> 1.0"
   require "dotenv"
 
   gem "hashie", version: "~> 2.1"
   require "hashie"
+
+  gem "i18n-js", version: "~> 2.1"
+  require "i18n-js"
 
   gem "js-routes", version: "~> 0.9"
   require "js-routes"
@@ -78,6 +81,9 @@ else
 
   gem "syslogger", version: "~> 1.6"
   require "syslogger"
+
+  gem "uglifier", "~> 2.2"
+  require "uglifier"
 
   # chef related
   gem "mixlib-shellout", version: "~> 1.4"

@@ -41,7 +41,7 @@ Rails.application.configure do
 
   config.assets.debug = true
   config.assets.raise_runtime_errors = true
-  config.assets.js_compressor = :closure
+  config.assets.js_compressor = :uglifier
   config.assets.css_compressor = :sass
   config.assets.compile = true
   config.assets.digest = true

@@ -547,6 +547,7 @@ class ServiceObject
     proposal.delete("action")
     proposal.delete("barclamp")
     proposal.delete("name")
+    proposal.delete("utf8")
     proposal.delete("_method")
     proposal.delete("authenticity_token")
   end

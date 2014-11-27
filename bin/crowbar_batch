@@ -516,7 +516,7 @@ def export_proposal(barclamp, template, proposal, alias_by_host)
   end
 
   if added_attrs.empty?
-    puts 'attributes:'
+    puts '  attributes:'
   else
     attrs = { 'attributes' => added_attrs }
     puts to_yaml(attrs).gsub(/^/, '  ')

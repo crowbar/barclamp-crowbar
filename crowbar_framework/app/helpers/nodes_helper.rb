@@ -267,7 +267,7 @@ module NodesHelper
       ips.each do |network, addresses|
         unless network == "~notconnected" and addresses.nil?
           network_list = if ["[not managed]", "[dhcp]"].include? network
-            address_list = addresses.to_a.map do |address|
+            address_list = [*addresses].map do |address|
               content_tag(
                 :li,
                 address

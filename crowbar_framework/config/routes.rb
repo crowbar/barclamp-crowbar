@@ -45,7 +45,7 @@ Rails.application.routes.draw do
   post 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :constraints => { :id => /[^\/]+/ }, :as => 'group_change'
   # this route allows any barclamp to extend the nodes view
   get 'nodes/:controller/1.0', :action => 'nodes', :as => 'nodes_barclamp'
-  get 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /[^\/]+/ }, :as => 'update_node'
+  post 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /[^\/]+/ }, :as => 'update_node'
   get 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /[^\/]+/ }, :as => 'node'
 
   # this route allows any barclamp to extend the network view

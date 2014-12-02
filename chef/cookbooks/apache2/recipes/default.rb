@@ -197,7 +197,6 @@ template "#{node[:apache][:dir]}/ports.conf" do
   owner "root"
   variables :apache_listen_ports => node[:apache][:listen_ports]
   mode 0644
-  notifies :reload, resources(:service => "apache2")
 end
 
 # leave the default module list untouched for now on SUSE
@@ -224,6 +223,6 @@ end
 #apache_site "default" if platform?("centos", "redhat", "fedora")
 
 service "apache2" do
-  action :start
+  action [ :start, :reload ]
   ignore_failure true
 end

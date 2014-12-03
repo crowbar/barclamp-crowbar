@@ -4,13 +4,22 @@
       = t(".title")
 
       .btn-group.pull-right
-        - BarclampCatalog.barclamps.each do |bc, details|
-          - if ("#{bc.camelize}Controller".constantize.new.methods.include?("export") rescue false)
-            = link_to t("nav.#{bc}_export"), utils_export_path(:controller => bc), :class => "btn btn-default"
+        %button.btn.btn-default.dropdown-toggle{ type: "button", data: { toggle: "dropdown" }, aria: { expanded: "false" } }
+          = t(".export.title")
+          %span.caret
 
-        = link_to t("nav.util_chef"), export_chef_path, :class => "btn btn-default"
-        - if suse_system?
-          = link_to t("nav.util_supportconfig"), export_supportconfig_path, :class => "btn btn-default"
+        %ul.dropdown-menu{ role: "menu" }
+          - BarclampCatalog.barclamps.each do |bc, details|
+            - if ("#{bc.camelize}Controller".constantize.new.methods.include?("export") rescue false)
+              %li
+                = link_to t(".export.#{bc}"), utils_export_path(:controller => bc), :class => "btn btn-default"
+
+          %li
+            = link_to t(".export.chef"), export_chef_path, :class => "btn btn-default"
+
+          - if suse_system?
+            %li
+              = link_to t(".export.supportconfig"), export_supportconfig_path, :class => "btn btn-default"
 
 - if @export.waiting
   .alert.alert-success

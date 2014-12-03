@@ -465,6 +465,10 @@ en:
       delete_succeeded: 'Deleted %{file} successfully'
       delete_failed: 'Failed to delete %{file}'
       wait: 'Exporting... Please wait or check back later (screen will automatically update when complete)'
+      export:
+        title: 'New export'
+        chef: 'Chef'
+        supportconfig: 'Supportconfig'
     export:
       succeed: 'Chef Objects Exported'
       fail: 'Chef export failed with %{error}'

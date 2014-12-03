@@ -56,29 +56,26 @@ en:
         other: 'There are %{count} clusters available in the system'
 
   nav:
-    deployment_queue: 'Deployment Queue'
-    clusters: 'HA Clusters'
-    active_roles: 'Active Roles'
-    nodes: 'Nodes'
-    dashboard: 'Dashboard'
-    families: 'Family Groups'
-    network: 'Network'
-    utils: 'Utilities'
-    util_logs: 'Exported Items'
-    util_chef: 'Chef Export'
-    util_supportconfig: 'Supportconfig Export'
-    util_import: 'Import Barclamps'
-    list: 'Bulk Edit'
-    barclamps: 'Barclamps'
-    crowbar_bc: 'Crowbar'
-    all_bc: 'All Barclamps'
-    roles: 'Active Roles'
-    proposals: 'Proposals'
-    help: 'Help'
-    crowbar_wiki: 'Online Help'
-    crowbar_ug: 'Users Guide'
-    crowbar_dg: 'Deployment Guide'
-    documentation: 'Documentation'
+    nodes:
+      title: 'Nodes'
+      dashboard: 'Dashboard'
+      batch: 'Bulk Edit'
+      clusters: 'HA Clusters'
+      roles: 'Active Roles'
+      families: 'Family Groups'
+    barclamps:
+      title: 'Barclamps'
+      all: 'All Barclamps'
+      crowbar: 'Crowbar'
+      queue: 'Deployment Queue'
+    utils:
+      title: 'Utilities'
+      logs: 'Exported Items'
+    help:
+      title: 'Help'
+      docs: 'Documentation'
+      crowbar_users: 'Crowbar Users Guide'
+      wiki: 'Online Help'
 
   layouts:
     application:

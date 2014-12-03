@@ -18,6 +18,16 @@
 module ApplicationHelper
   include Sprockets::Helpers
 
+  # This helper will be replaced with the master-rails-4 branch,
+  # i have added this only to get most barclamps already merged into master!
+  def show_raw_attributes?
+    params[:attr_raw].to_s == "true" || false
+  end
+
+  def show_raw_deployment?
+    params[:dep_raw].to_s == "true" || false
+  end
+
   # Check if we are using a quite old bad internet explorer, currently used for
   # disableing drag and drop for this old browser
   def bad_explorer?

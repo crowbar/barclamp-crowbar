@@ -66,6 +66,7 @@ when "suse"
     ruby2.1-rubygem-ohai-6
     ruby2.1-rubygem-rails-4_1
     ruby2.1-rubygem-redcarpet
+    ruby2.1-rubygem-ruby-shadow
     ruby2.1-rubygem-sass-rails
     ruby2.1-rubygem-simple-navigation
     ruby2.1-rubygem-simple_navigation_renderers

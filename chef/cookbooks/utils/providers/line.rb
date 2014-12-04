@@ -77,7 +77,7 @@ def add_and_filter(file, add, filter_re)
   if need_to_remove
     lines << "#{add}\n" if need_to_add
     need_to_add = false
-    open(file, "w+") {|f| f.write lines.join("\n") }
+    open(file, "w+") {|f| f.write lines.join("") }
   end
   open(file, "a") {|f| 
     f.write "#{add}\n"

@@ -22,19 +22,21 @@ SimpleNavigation::Configuration.run do |navigation|
   navigation.selected_class = "active"
   navigation.active_leaf_class = "leaf"
 
-  navigation.items do |primary|
-    primary.dom_class = "nav navbar-nav"
-    primary.item :nodes, t("nav.nodes"), root_path do |secondary|
-      secondary.item :dashboard, t("nav.dashboard"), dashboard_path
-      secondary.item :list, t("nav.list"), nodes_list_path
-      secondary.item :families, t("nav.families"), nodes_families_path
+  navigation.items do |level1|
+    level1.dom_class = "nav navbar-nav"
+
+    level1.item :nodes, t("nav.nodes.title"), root_path do |level2|
+      level2.item :dashboard, t("nav.nodes.dashboard"), dashboard_path
+      level2.item :batch, t("nav.nodes.batch"), nodes_list_path
+      level2.item :families, t("nav.nodes.families"), nodes_families_path, :if => proc { Rails.env.development? }
     end
-    primary.item :barclamps, t("nav.barclamps"), barclamp_modules_path do |secondary|
-      secondary.item :all_bc, t("nav.all_bc"), barclamp_modules_path
-      secondary.item :crowbar_bc, t("nav.crowbar_bc"), index_barclamp_path(:controller=>'crowbar')
+    level1.item :barclamps, t("nav.barclamps.title"), barclamp_modules_path do |level2|
+      level2.item :all, t("nav.barclamps.all"), barclamp_modules_path
+      level2.item :crowbar, t("nav.barclamps.crowbar"), index_barclamp_path(:controller => "crowbar")
+      level2.item :queue, t("nav.barclamps.queue"), deployment_queue_path
     end
-    primary.item :utils, t("nav.utils"), utils_path do |secondary|
-      secondary.item :util_logs, t("nav.util_logs"), utils_path
+    level1.item :utils, t("nav.utils.title"), utils_path do |level2|
+      level2.item :logs, t("nav.utils.logs"), utils_path
     end
   end
 end

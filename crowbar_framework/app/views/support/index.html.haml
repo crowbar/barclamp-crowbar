@@ -12,14 +12,14 @@
           - BarclampCatalog.barclamps.each do |bc, details|
             - if ("#{bc.camelize}Controller".constantize.new.methods.include?("export") rescue false)
               %li
-                = link_to t(".export.#{bc}"), utils_export_path(:controller => bc), :class => "btn btn-default"
+                = link_to t(".export.#{bc}"), utils_export_path(:controller => bc)
 
           %li
-            = link_to t(".export.chef"), export_chef_path, :class => "btn btn-default"
+            = link_to t(".export.chef"), export_chef_path
 
           - if suse_system?
             %li
-              = link_to t(".export.supportconfig"), export_supportconfig_path, :class => "btn btn-default"
+              = link_to t(".export.supportconfig"), export_supportconfig_path
 
 - if @export.waiting
   .alert.alert-success

@@ -28,7 +28,8 @@ class NodeObject < ChefObject
     else
       ChefObject.query_chef.search "node", "#{chef_escape(search)}"
     end
-    if nodes[2] != 0 and !nodes[0].nil?
+
+    if nodes.is_a?(Array) and nodes[2] != 0 and !nodes[0].nil?
       nodes[0].delete_if { |x| x.nil? }
       answer = nodes[0].map do |x|
         NodeObject.new x

@@ -23,16 +23,16 @@ Rails.application.configure do
   config.force_ssl = false
   config.autoflush_log = false
 
-  config.action_dispatch.show_exceptions = false
+  config.action_dispatch.show_exceptions = true
   config.action_dispatch.cookies_serializer = :json
 
   config.action_controller.perform_caching = true
   config.action_controller.allow_forgery_protection = true
 
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :smtp
 
-  config.action_view.raise_on_missing_translations = false
+  config.action_view.raise_on_missing_translations = true
 
   config.active_support.deprecation = :notify
 
@@ -40,7 +40,7 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   config.assets.debug = false
-  config.assets.raise_runtime_errors = false
+  config.assets.raise_runtime_errors = true
   config.assets.js_compressor = :uglifier
   config.assets.css_compressor = :sass
   config.assets.compile = true
@@ -48,7 +48,7 @@ Rails.application.configure do
 
   config.i18n.fallbacks = true
 
-  config.log_level = :info
+  config.log_level = :debug
   config.log_tags = []
 
   config.logger = ActiveSupport::TaggedLogging.new(

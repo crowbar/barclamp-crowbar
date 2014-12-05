@@ -51,14 +51,14 @@
         value = parseFloat(value);
         break;
       case 'array-string':
-        value = this.replaceSpace(this.splitString(value));
+        value = this.splitString(this.replaceSpace(value));
         break;
       case 'array-comma-string':
         value = this.splitString(value);
         break;
       case 'array-boolean':
         var index;
-        value = this.replaceSpace(this.splitString(value));
+        value = this.splitString(this.replaceSpace(value));
 
         for (index in value) {
           value[index] = value[index].toLowerCase() == 'true'
@@ -74,7 +74,7 @@
         break;
       case 'array-integer':
         var index;
-        value = this.replaceSpace(this.splitString(value));
+        value = this.splitString(this.replaceSpace(value));
 
         for (index in value) {
           value[index] = parseInt(value[index]);
@@ -90,7 +90,7 @@
         break;
       case 'array-float':
         var index;
-        value = this.replaceSpace(this.splitString(value));
+        value = this.splitString(this.replaceSpace(value));
 
         for (index in value) {
           value[index] = parseFloat(value[index]);

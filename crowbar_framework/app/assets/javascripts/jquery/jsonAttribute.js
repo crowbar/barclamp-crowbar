@@ -192,7 +192,7 @@
   };
 
   JsonAttribute.prototype.replaceSpace = function(value) {
-    return value.replace(/ /g, ',');
+    return value.replace(/\s*,\s*|\s/g, ',');
   };
 
   JsonAttribute.prototype.splitString = function(value) {

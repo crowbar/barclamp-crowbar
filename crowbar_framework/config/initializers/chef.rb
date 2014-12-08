@@ -25,9 +25,3 @@ begin
 rescue LoadError => e
   Rails.logger.warn "Failed to load chef"
 end
-
-if Rails.env.development?
-  ::Rack::MiniProfiler.profile_method Chef::Search::Query, :search do |model, query|
-    "Chef search: #{model} #{query || "all"}"
-  end
-end

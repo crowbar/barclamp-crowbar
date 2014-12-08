@@ -15,7 +15,15 @@
 # limitations under the License.
 #
 
-if Rails.env.development?
+if ENV["ENABLE_PROFILER"]
   require "rack-mini-profiler"
   Rack::MiniProfilerRails.initialize! Rails.application
+
+  begin
+    ::Rack::MiniProfiler.profile_method Chef::Search::Query, :search do |model, query|
+      "Chef search: #{model} #{query || "all"}"
+    end
+  rescue
+    Rails.logger.warn "Failed to initialize profiler for chef calls"
+  end
 end

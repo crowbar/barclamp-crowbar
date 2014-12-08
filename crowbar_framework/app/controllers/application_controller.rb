@@ -26,6 +26,7 @@ class ApplicationController < ActionController::Base
   @@users = nil
 
   before_filter :digest_authenticate, :if => :need_to_auth?
+  before_filter :enable_profiler, :if => ENV["ENABLE_PROFILER"]
 
 
   # Basis for the reflection/help system.
@@ -195,5 +196,9 @@ class ApplicationController < ActionController::Base
       format.html { render "errors/chef_offline", :status => 500 }
       format.json { render :json => { :error => "Chef server is not available" }, :status => 500 }
     end
+  end
+
+  def enable_profiler
+    Rack::MiniProfiler.authorize_request
   end
 end

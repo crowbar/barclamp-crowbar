@@ -34,12 +34,6 @@ module Crowbar
       Rails.root.join("config", "locales", "**", "*.{rb,yml}").to_s
     ]
 
-    config.assets.precompile = [
-      /application.(css|js)$/,
-      /ie.(css|js)$/,
-      /branding.(css|js)$/
-    ]
-
     config.generators do |g|
       g.assets false
       g.helper false

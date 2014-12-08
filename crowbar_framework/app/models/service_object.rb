@@ -1570,7 +1570,7 @@ class ServiceObject
   end
 
   def profile(name, &block)
-    if Rails.env.development?
+    if ENV["ENABLE_PROFILER"]
       Rack::MiniProfiler.step(name, &blk)
     else
       block.call

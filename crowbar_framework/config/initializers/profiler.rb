@@ -15,19 +15,7 @@
 # limitations under the License.
 #
 
-begin
-  Chef::Config.tap do |config|
-    config.node_name ENV["CHEF_NODE_NAME"]
-    config.client_key ENV["CHEF_CLIENT_KEY"]
-    config.chef_server_url ENV["CHEF_SERVER_URL"]
-    config.http_retry_count 3
-  end
-rescue LoadError => e
-  Rails.logger.warn "Failed to load chef"
-end
-
 if Rails.env.development?
-  ::Rack::MiniProfiler.profile_method Chef::Search::Query, :search do |model, query|
-    "Chef search: #{model} #{query || "all"}"
-  end
+  require "rack-mini-profiler"
+  Rack::MiniProfilerRails.initialize! Rails.application
 end

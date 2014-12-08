@@ -53,6 +53,9 @@ gem "mime-types", "~> 1.25",
 gem "dotenv-deployment", "~> 0.2",
   require: false
 
+gem "rack-mini-profiler", "~> 0.9",
+  require: false
+
 group :development, :test do
   gem "brakeman", "~> 2.6"
   gem "rspec-rails", "~> 2.14"

@@ -570,7 +570,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, inst, false)
+      answer = profile("Apply role #{role_name} #{inst}") { apply_role(role, inst, false) }
       role.destroy
       answer
     end
@@ -1553,7 +1553,7 @@ class ServiceObject
   def active_update(proposal, inst, in_queue)
     begin
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      apply_role(role, inst, in_queue)
+      profile("Apply role #{role.name} #{inst}") { apply_role(role, inst, in_queue) }
     rescue Net::HTTPServerException => e
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
@@ -1567,5 +1567,13 @@ class ServiceObject
 
   def only_unless_admin(node)
     yield unless node.admin?
+  end
+
+  def profile(name, &block)
+    if Rails.env.development?
+      Rack::MiniProfiler.step(name, &blk)
+    else
+      block.call
+    end
   end
 end

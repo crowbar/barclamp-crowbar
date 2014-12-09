@@ -1571,7 +1571,7 @@ class ServiceObject
 
   def profile(name, &block)
     if ENV["ENABLE_PROFILER"]
-      Rack::MiniProfiler.step(name, &blk)
+      Rack::MiniProfiler.step(name, &block)
     else
       block.call
     end

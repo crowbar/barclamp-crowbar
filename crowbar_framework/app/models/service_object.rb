@@ -1570,7 +1570,7 @@ class ServiceObject
   end
 
   def profile(name, &block)
-    if ENV["ENABLE_PROFILER"]
+    if ENV["ENABLE_PROFILER"] == "true"
       Rack::MiniProfiler.step(name, &block)
     else
       block.call

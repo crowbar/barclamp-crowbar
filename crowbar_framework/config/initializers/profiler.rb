@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-if ENV["ENABLE_PROFILER"]
+if ENV["ENABLE_PROFILER"] == "true"
   require "rack-mini-profiler"
   Rack::MiniProfilerRails.initialize! Rails.application
 

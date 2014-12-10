@@ -17,7 +17,7 @@
 
 module ChefHelper
   def chef_server_role_link(role_name)
-    if ENV["CONVERGED_ADMIN"] and ENV["HAVE_CHEF_WEBUI"]
+    if ENV["CONVERGED_ADMIN"] == "true" and ENV["HAVE_CHEF_WEBUI"] == "true"
       link_to role_name, chef_server_role_url(role_name), :target => "_blank"
     else
       role_name

@@ -26,7 +26,7 @@ class ApplicationController < ActionController::Base
   @@users = nil
 
   before_filter :digest_authenticate, :if => :need_to_auth?
-  before_filter :enable_profiler, :if => ENV["ENABLE_PROFILER"]
+  before_filter :enable_profiler, :if => ENV["ENABLE_PROFILER"] == "true"
 
 
   # Basis for the reflection/help system.

@@ -1122,6 +1122,10 @@ class NodeObject < ChefObject
       # (so dhcp & PXE config is prepared when node is rebooted)
       begin
         Timeout.timeout(300) do
+          while File.exist?("/var/run/crowbar/chef-client.run")
+            Rails.logger.debug("chef client queue still not empty")
+            sleep(1)
+          end
           while File.exist?("/var/run/crowbar/chef-client.lock")
             Rails.logger.debug("chef client still running")
             sleep(1)

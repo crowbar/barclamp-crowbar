@@ -1109,12 +1109,21 @@ class NodeObject < ChefObject
           #   - if the run marker is removed because chef-client run is over,
           #     but another chef-client run is triggered; all of this while we
           #     are in sleep(1).
+          # First race is totally unlikely.
+          # Second race is worked around by the conditional sleep between our
+          # two loops.
           # The last two races just lead to this method taking longer than
           # needed, and the timeout protects us from an infinite loop.
+
+          had_queue = false
           while File.exist?("/var/run/crowbar/chef-client.run")
+            had_queue = true
             Rails.logger.debug("chef-client still in the queue")
             sleep(1)
           end
+
+          sleep(1) if had_queue
+
           while File.exist?("/var/run/crowbar/chef-client.lock")
             Rails.logger.debug("chef-client still running")
             sleep(1)

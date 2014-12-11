@@ -35,13 +35,11 @@ if node.platform == "suse"
   end
 end
 
-ports = node[:apache][:listen_ports].include?("443") ? node[:apache][:listen_ports] : [node[:apache][:listen_ports], "443"].flatten
-
-template "#{node[:apache][:dir]}/ports.conf" do
-  source "ports.conf.erb"
-  variables :apache_listen_ports => ports
-  notifies :reload, resources(:service => "apache2")
-  mode 0644
+unless node[:apache][:listen_ports].include?("443")
+  # override the resource defined in default.rb; we don't want to create the
+  # resource again, otherwise we will write the file twice
+  resource = resources(:template => "#{node[:apache][:dir]}/ports.conf")
+  resource.variables({:apache_listen_ports => [node[:apache][:listen_ports], "443"].flatten})
 end
 
 apache_module "ssl" do

@@ -1122,12 +1122,36 @@ class NodeObject < ChefObject
       # (so dhcp & PXE config is prepared when node is rebooted)
       begin
         Timeout.timeout(300) do
+          # - The transition above will result in a chef-client run locally
+          #   (through looper_chef_client.sh & blocking_chef_client.sh).
+          # - If there was already a chef-client running, then our action will
+          #   result in a queued chef-client run; this is marked by the
+          #   chef-client.run file. Once the previous chef-client is done, the
+          #   marker is removed, and we start a chef-client run.
+          # - When a chef-client is running, the chef-client.lock is added. So
+          #   we can look for the file and when it disappears, our chef-client
+          #   run is over and the transition will have been effective.
+          #
+          # There are a few very unlikely races, though:
+          #   - things are so fast that we execute this code before the markers
+          #     are created.
+          #   - if the queue marker is removed because previous chef-client run
+          #     is over, but things are so fast that we check for the
+          #     run marker before it exists.
+          #   - if the queue marker is removed because previous chef-client run
+          #     is over, but another action from the user leads to the queue
+          #     creation again; all of this while we are in sleep(1).
+          #   - if the run marker is removed because chef-client run is over,
+          #     but another chef-client run is triggered; all of this while we
+          #     are in sleep(1).
+          # The last two races just lead to this method taking longer than
+          # needed, and the timeout protects us from an infinite loop.
           while File.exist?("/var/run/crowbar/chef-client.run")
-            Rails.logger.debug("chef client queue still not empty")
+            Rails.logger.debug("chef-client still in the queue")
             sleep(1)
           end
           while File.exist?("/var/run/crowbar/chef-client.lock")
-            Rails.logger.debug("chef client still running")
+            Rails.logger.debug("chef-client still running")
             sleep(1)
           end
         end

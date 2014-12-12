@@ -20,7 +20,7 @@ require "chef"
 class SupportController < ApplicationController
   def logs
     filename = "crowbar-logs-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tar.bz2"
-    system("sudo", "-i", Rails.root.join("..", "bin", "gather_logs.sh").expand_path, filename)
+    system("sudo", "-i", Rails.root.join("..", "bin", "gather_logs.sh").expand_path.to_s, filename)
     redirect_to "/export/#{filename}"
   end
 

@@ -224,7 +224,29 @@ def aliases
   case status
   when 200
     if body
-      output = body.nodes.map(&:alias).sort
+      names   = body.nodes.map(&:name)
+      aliases = body.nodes.map { |node|
+        # FIXME: This code is a duplicate of the fallback value in
+        # NodeObject#alias.
+        hostname = node.name.split('.')[0]
+        node.alias == hostname ? '-' : node.alias
+      }
+      col_1 = aliases.dup
+      col_1.push 'Alias' if $stdout.isatty # see below
+      col_width = col_1.map(&:length).max
+      format = "%-#{col_width}s  %s"
+      output = aliases.zip(names).map { |aliaz, name|
+        format % [aliaz, name]
+      }.sort
+      # Don't pollute a pipe with the header.  This allows grep, while | read
+      # loops etc. to work nicely whilst still keeping it
+      # human-readable in the interactive case.
+      if $stdout.isatty
+        width = output.map(&:length).max
+        output.unshift('-' * width)
+        output.unshift(format % ['Alias', 'Name'])
+      end
+
       result(output.join("\n"), 0)
     else
       result("No configurations", 0)

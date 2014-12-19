@@ -254,6 +254,8 @@ class NodeObject < ChefObject
     if display_set? 'alias'
       display['alias']
     else
+      # FIXME: This code is duplicated in crowbar_machines' #aliases method.
+      # If you change this, currently you need to update that too.
       fallback = name.split('.')[0]
       fallback = default_loader['alias'] || fallback if suggest and !display_set? 'alias'
       fallback
@@ -279,7 +281,7 @@ class NodeObject < ChefObject
   end
 
   def validate_alias(value, unique_check = true)
-    if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
+    if ! value.empty? && value !~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/
       Rails.logger.warn "Alias #{value} not saved because it did not conform to valid DNS hostnames"
       raise "#{I18n.t('model.node.invalid_dns_alias')}: #{value}"
     end

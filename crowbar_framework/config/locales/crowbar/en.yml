@@ -98,6 +98,7 @@ en:
       commit_proposal: 'Apply'
       commit_proposal_success: 'Successfully applied the proposal'
       commit_proposal_queued: 'Successfully queued the proposal until the following become ready'
+      commit_proposal_queued_unallocated: 'The proposal requires manual allocation of these nodes'
       save_proposal: 'Save'
       save_proposal_success: 'Successfully saved changes to the proposal'
       dequeue_proposal: 'Dequeue'

@@ -16,18 +16,6 @@
 #
 
 module ApplicationHelper
-  include Sprockets::Helpers
-
-  # This helper will be replaced with the master-rails-4 branch,
-  # i have added this only to get most barclamps already merged into master!
-  def show_raw_attributes?
-    params[:attr_raw].to_s == "true" || false
-  end
-
-  def show_raw_deployment?
-    params[:dep_raw].to_s == "true" || false
-  end
-
   # Check if we are using a quite old bad internet explorer, currently used for
   # disableing drag and drop for this old browser
   def bad_explorer?
@@ -39,16 +27,13 @@ module ApplicationHelper
     @suse_system ||= File.exist?("/etc/SuSE-release")
   end
 
-  # Added this helper method to access app config, maybe we need some wrapping
-  # and it feels better to call a method instead of a class
-  def app_config
-    AppConfig
-  end
-
   # A simple wrapper to access the branding configuration directly, looks much
   # cleaner within the views
   def branding_config
-    app_config[:branding]
+    @branding_config ||= begin
+      config = YAML.load_file(Rails.root.join("config", "branding.yml")) rescue {}
+      Hashie::Mash.new(config)
+    end
   end
 
   # Generate the meta title that gets displayed on the page meta information
@@ -155,7 +140,7 @@ module ApplicationHelper
           :class => "slogan"
         )
       end
-    end.join("\n")
+    end.join("\n").html_safe
   end
 
   # Include required meta tags like csrf token, viewport and such stuff
@@ -191,7 +176,7 @@ module ApplicationHelper
           :content => Rack::Utils.escape_html(form_authenticity_token)
         )
       end
-    end.join("\n")
+    end.join("\n").html_safe
   end
 
   def have_openstack
@@ -217,7 +202,7 @@ module ApplicationHelper
   end
 
   def flash_for(value)
-    case value
+    case value.to_sym
     when :notice
       "success"
     when :alert
@@ -231,11 +216,11 @@ module ApplicationHelper
     if value.nil? or value.empty?
       content_tag(
         :span,
-        "&mdash;",
+        "&mdash;".html_safe,
         :class => "empty"
       )
     else
-      value
+      value.html_safe
     end
   end
 
@@ -249,11 +234,11 @@ module ApplicationHelper
     if is_empty
       content_tag(
         :span,
-        fallback,
+        fallback.html_safe,
         :class => "empty"
       )
     else
-      value
+      value.html_safe
     end
   end
 

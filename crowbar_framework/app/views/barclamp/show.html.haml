@@ -16,13 +16,13 @@
       .btn-group.pull-right
         = edit_barclamp_button(@role.barclamp, @role.inst)
 
-  = render_barclamp_show_attributes @role.barclamp, @attr_raw
+  = render_barclamp_show_attributes @role.barclamp
 
   .panel-heading
     %h2
       = t(".deployment")
-      
+
       .btn-group.pull-right
         = edit_barclamp_button(@role.barclamp, @role.inst)
-        
-  = render_barclamp_show_deployment @role.barclamp, @dep_raw
+
+  = render_barclamp_show_deployment @role.barclamp

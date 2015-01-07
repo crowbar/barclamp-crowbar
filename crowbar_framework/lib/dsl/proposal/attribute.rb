@@ -76,7 +76,7 @@ module Dsl
                 "data-initial-value"  => attribute_value
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -108,7 +108,7 @@ module Dsl
                 "data-initial-value"  => attribute_value
               }).merge(options)
             )
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 
@@ -183,6 +183,10 @@ module Dsl
       end
 
       def header(dep_raw = false, attr_raw = true)
+        raw_options = {}
+        raw_options[:dep_raw] = true if dep_raw
+        raw_options[:attr_raw] = true if attr_raw
+
         content_tag(
           :h3,
           [
@@ -191,11 +195,11 @@ module Dsl
               :div,
               content_tag(
                 :small,
-                proposal_raw_button(proposal, :dep_raw => dep_raw, :attr_raw => attr_raw)
+                proposal_raw_button(proposal, raw_options)
               ),
               :class => "pull-right"
             )
-          ].join("\n")
+          ].join("\n").html_safe
         )
       end
 
@@ -256,7 +260,7 @@ module Dsl
           [
             labeling,
             send(field, *parameters)
-          ].join("\n")
+          ].join("\n").html_safe
         end
       end
 

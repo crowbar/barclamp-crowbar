@@ -73,7 +73,7 @@ describe ProposalObject do
       it "returns proposals matching a search" do
         proposals = ProposalObject.find("bc-crowbar-*")
         proposals.should_not be_empty
-        proposals.all? { |p| p.id =~ /^bc-crowbar/ }.should be_true
+        proposals.all? { |p| p.id =~ /^bc-crowbar/ }.should be true
       end
     end
 
@@ -89,7 +89,7 @@ describe ProposalObject do
       it "returns all proposals" do
         proposals = ProposalObject.all
         proposals.should_not be_empty
-        proposals.all? { |p| p.is_a?(ProposalObject) }.should be_true
+        proposals.all? { |p| p.is_a?(ProposalObject) }.should be true
       end
     end
 
@@ -97,7 +97,7 @@ describe ProposalObject do
       it "returns all barclamp proposals with a given name" do
         proposals = ProposalObject.find_proposals("crowbar")
         proposals.should_not be_empty
-        proposals.all? { |p| p.id == "bc-crowbar-default" }.should be_true
+        proposals.all? { |p| p.id == "bc-crowbar-default" }.should be true
       end
     end
 

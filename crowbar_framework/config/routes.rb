@@ -15,106 +15,108 @@
 # limitations under the License.
 #
 
-ActionController::Routing::Routes.draw do |map|
+Rails.application.routes.draw do
   # Install route from each barclamp
-  Dir.glob(File.join(File.dirname(__FILE__), 'routes.d', '*.routes')) do |routes_file|
-      eval(IO.read(routes_file), binding)
-  end
+  Rails.root.join("config", "routes.d").children.each do |routes|
+    eval(routes.read, binding) if routes.extname == ".routes"
+  end if Rails.root.join("config", "routes.d").directory?
 
-  map.root :controller => "nodes", :action=>'index'
+  # Root route have to be on top of all
+  root to: "nodes#index"
 
-  map.docs 'docs', :controller => 'docs', :action => 'index', :conditions => { :method => :get }
-  map.topic_docs 'docs/*id', :controller => 'docs', :action => 'show', :conditions => { :method => :get }
-
-  map.docs_barclamp 'docs/:controller/:id', :action=>'docs', :conditions => { :method => :get }
+  get 'docs', :controller => 'docs', :action => 'index'
+  get 'docs/*id', :controller => 'docs', :action => 'show', :as => 'topic_docs'
+  get 'docs/:controller/:id', :action=>'docs', :as => 'docs_barclamp'
 
   # nodes
-  map.resources :nodes, :only => [:index]
-  map.connect 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
-              :requirements => { :name => /.*/, :path => /.*/ }, :conditions => { :method => :get }
-  map.nodes_status 'nodes/status.:format', :controller => 'nodes', :action => 'status', :conditions => { :method => :get }
-  map.nodes_list 'nodes/list.:format', :controller => 'nodes', :action => 'list', :conditions => { :method => :get }
-  map.unallocated_list 'nodes/unallocated.:format', :controller => 'nodes', :action => 'unallocated', :conditions => { :method => :get }
-  map.bulk_nodes 'nodes/bulk.:format', :controller => 'nodes', :action => 'bulk', :conditions => { :method => :post }
-  map.nodes_families 'nodes/families', :controller=>'nodes', :action=>'families'
-  map.hit_node 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :requirements => { :id => /.*/ }
-  map.edit_node 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :requirements => { :name => /.*/ }
-  map.dashboard 'dashboard', :controller => 'nodes', :action => 'index'
-  map.dashboard_detail 'dashboard/:name', :controller => 'nodes', :action => 'index', :requirements => { :name => /.*/ }
-  map.group_change 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
+  resources :nodes, :only => [:index]
+
+  get 'nodes/:name/attribute/*path', :controller => 'nodes', :action => 'attribute',
+              :constraints => { :name => /[^\/]+/, :path => /.*/ }
+  get 'nodes/status(.:format)', :controller => 'nodes', :action => 'status', :as => 'nodes_status'
+  get 'nodes/list(.:format)', :controller => 'nodes', :action => 'list', :as => 'nodes_list'
+  get 'nodes/unallocated(.:format)', :controller => 'nodes', :action => 'unallocated', :as => 'unallocated_list'
+  post 'nodes/bulk(.:format)', :controller => 'nodes', :action => 'bulk', :as => 'bulk_nodes'
+  get 'nodes/families', :controller=>'nodes', :action=>'families', :as => 'nodes_families'
+  get 'nodes/:id/hit/:req', :controller=>'nodes', :action=>'hit', :constraints => { :id => /[^\/]+/ }, :as => 'hit_node'
+  get 'nodes/:name/edit', :controller=>'nodes', :action =>'edit', :constraints => { :name => /[^\/]+/ }, :as => 'edit_node'
+  get 'dashboard', :controller => 'nodes', :action => 'index', :as => 'dashboard'
+  get 'dashboard/:name', :controller => 'nodes', :action => 'index', :constraints => { :name => /[^\/]+/ }, :as => 'dashboard_detail'
+  post 'nodes/groups/1.0/:id/:group', :controller => 'nodes', :action=>'group_change', :constraints => { :id => /[^\/]+/ }, :as => 'group_change'
   # this route allows any barclamp to extend the nodes view
-  map.nodes_barclamp 'nodes/:controller/1.0', :action => 'nodes'  
-  map.update_node 'nodes/:name/update', :controller => 'nodes', :action=>'update', :requirements => { :name => /.*/ }
-  map.node 'nodes/:name', :controller => 'nodes', :action => 'show', :requirements => { :name => /.*/ }
-  
+  get 'nodes/:controller/1.0', :action => 'nodes', :as => 'nodes_barclamp'
+  post 'nodes/:name/update', :controller => 'nodes', :action=>'update', :constraints => { :name => /[^\/]+/ }, :as => 'update_node'
+  get 'nodes/:name', :controller => 'nodes', :action => 'show', :constraints => { :name => /[^\/]+/ }, :as => 'node'
+
   # this route allows any barclamp to extend the network view
-  map.network_barclamp 'network/:controller/1.0', :action=>'network'
-  # these paths require the network barclamp 
-  map.network 'network', :controller => 'network', :action=>'switch'
-  map.switch 'network/switch/:id', :controller => 'network', :action=>'switch', :requirements => { :id => /.*/ }
-  map.vlan 'network/vlan/:id', :controller => 'network', :action=>'vlan', :requirements => { :id => /.*/ }
+  get 'network/:controller/1.0', :action=>'network', :as => 'network_barclamp'
+  # these paths require the network barclamp
+  get 'network', :controller => 'network', :action=>'switch', :as => 'network'
+  get 'network/switch/:id', :controller => 'network', :action=>'switch', :constraints => { :id => /[^\/]+/ }, :defaults => { :id => "default" }, :as => 'switch'
+  get 'network/vlan/:id', :controller => 'network', :action=>'vlan', :constraints => { :id => /[^\/]+/ }, :defaults => { :id => "default" }, :as => 'vlan'
 
   # clusters
-  map.clusters  'clusters',     :controller => 'dashboard', :action => 'clusters'
-  map.active_roles 'active_roles', :controller => 'dashboard', :action => 'active_roles'
+  get 'clusters',     :controller => 'dashboard', :action => 'clusters', :as => 'clusters'
+  get 'active_roles', :controller => 'dashboard', :action => 'active_roles', :as => 'active_roles'
 
   # deployment queue
-  map.deployment_queue 'deployment_queue', :controller => 'deploy_queue', :action => 'index'
+  get 'deployment_queue', :controller => 'deploy_queue', :action => 'index', :as => 'deployment_queue'
 
   #support paths
-  map.utils 'utils.:format', :controller=>'support', :action=>'index'
-  map.utils_files 'utils/files/:id', :controller=>'support', :action=>'destroy', :requirements => { :id => /.*/ }
-  map.export_chef 'utils/chef', :controller=>'support', :action=>'export_chef'
-  map.export_supportconfig 'utils/supportconfig', :controller=>'support', :action=>'export_supportconfig'
-  map.utils_export 'utils/:controller/1.0/export', :action=>'export'
-  map.utils_barclamp 'utils/:controller/1.0', :action=>'utils'
-  map.utils_import 'utils/import/:id', :controller=>'support', :action=>'import', :requirements => { :id => /.*/ }
-  map.utils_upload 'utils/upload/:id', :controller=>'support', :action=>'upload', :requirements => { :id => /.*/ }
-  map.restart 'utils/restart/:id.:format', :controller=>'support', :action=>'restart'
+  get 'utils(.:format)', :controller=>'support', :action=>'index', :as => 'utils'
+  get 'utils/files/:id', :controller=>'support', :action=>'destroy', :constraints => { :id => /[^\/]+/ }, :as => 'utils_files'
+  get 'utils/chef', :controller=>'support', :action=>'export_chef', :as => 'export_chef'
+  get 'utils/supportconfig', :controller=>'support', :action=>'export_supportconfig', :as => 'export_supportconfig'
+  get 'utils/:controller/1.0/export', :action=>'export', :as => 'utils_export'
+  get 'utils/:controller/1.0', :action=>'utils', :as => 'utils_barclamp'
+  get 'utils/import/:id', :controller=>'support', :action=>'import', :constraints => { :id => /[^\/]+/ }, :as => 'utils_import'
+  get 'utils/upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /[^\/]+/ }, :as => 'utils_upload'
+  get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
 
   # barclamps
-  map.help_barclamp             'crowbar/:controller/1.0/help', :action => 'help', :conditions => { :method => :get }
-  map.barclamp_nodes            'crowbar/:controller/1.0/proposals/nodes', :action=>'nodes'
-  map.create_proposal_barclamp  'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }
-  map.proposals_barclamp        'crowbar/:controller/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }
-  map.commit_proposal_barclamp  'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }
-  map.status_proposals_barclamp 'crowbar/:controller/1.0/proposals/status/:id/.:format', :action => 'proposal_status', :conditions => { :method => :get }
-  map.delete_proposal_barclamp  'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :conditions => { :method => :delete }
-  map.dequeue_barclamp  'crowbar/:controller/1.0/proposals/dequeue/:id', :action => 'proposal_dequeue', :conditions => { :method => :delete }
-  map.update_proposal_barclamp  'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_update', :conditions => { :method => :post }
-  map.proposal_barclamp         'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_show', :conditions => { :method => :get }
-  map.connect 'crowbar/:controller/1.0/elements', :action => 'elements', :conditions => { :method => :get }
-  map.connect 'crowbar/:controller/1.0/elements/:id', :action => 'element_info', :conditions => { :method => :get }
-  map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :post }
-  map.connect 'crowbar/:controller/1.0/transition/:id', :action => 'transition', :conditions => { :method => :get }
-  map.index_barclamp            'crowbar/:controller/1.0', :action => 'index', :conditions => { :method => :get }
-  map.delete_barclamp           'crowbar/:controller/1.0/:id', :action => 'delete', :conditions => { :method => :delete }, :requirements => { :id => /.*/ }
-  map.show_barclamp             'crowbar/:controller/1.0/:id', :action => 'show', :conditions => { :method => :get }, :requirements => { :id => /.*/ }
-  map.versions_barclamp         'crowbar/:controller', :action => 'versions', :conditions => { :method => :get }
-  map.action_barclamp           'crowbar/:controller/1.0/:action/:id', :conditions => { :method => :post }, :requirements => { :id => /.*/ }
-  map.barclamp_index_barclamp   'crowbar', :controller => 'barclamp', :action => 'barclamp_index', :conditions => { :method => :get }
-  map.barclamp_modules 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :conditions => { :method => :get }
+  get 'crowbar/:controller/1.0/help', :action => 'help', :as => 'help_barclamp'
+  get 'crowbar/:controller/1.0/proposals/nodes', :action =>'nodes', :as => 'barclamp_nodes'
+  put 'crowbar/:controller/1.0/proposals', :action => 'proposal_create', :as => 'create_proposal_barclamp'
+  get 'crowbar/:controller/1.0/proposals', :action => 'proposals', :as => 'proposals_barclamp'
+  post 'crowbar/:controller/1.0/proposals/commit/:id', :action => 'proposal_commit', :as => 'commit_proposal_barclamp'
+  get 'crowbar/:controller/1.0/proposals/status(/:id)(/:name)(.:format)', :action => 'proposal_status', :as => 'status_proposals_barclamp'
+  delete 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_delete', :as => 'delete_proposal_barclamp'
+  delete 'crowbar/:controller/1.0/proposals/dequeue/:id', :action => 'proposal_dequeue', :as => 'dequeue_barclamp'
+  post 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_update', :as => 'update_proposal_barclamp'
+  get 'crowbar/:controller/1.0/proposals/:id', :action => 'proposal_show', :as => 'proposal_barclamp'
 
-  map.connect 'crowbar/:barclamp/1.0/help', :action => 'help', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/nodes', :controller => "barclamp", :action=>'nodes'
-  map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :conditions => { :method => :put }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals', :action => 'proposals', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/commit/:id', :action => 'proposal_commit', :conditions => { :method => :post }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/status.:format', :action => 'proposal_status', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_delete', :conditions => { :method => :delete }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_update', :conditions => { :method => :post }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_show', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/elements', :action => 'elements', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/elements/:id', :action => 'element_info', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/transition/:id', :action => 'transition', :conditions => { :method => :post }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/transition/:id', :action => 'transition', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0', :action => 'index', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/status', :action => 'status', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/:id', :action => 'delete', :conditions => { :method => :delete }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/:id', :action => 'show', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp', :action => 'versions', :conditions => { :method => :get }, :controller => 'barclamp'
-  map.connect 'crowbar/:barclamp/1.0/:action/:id', :conditions => { :method => :post }, :controller => 'barclamp'
+  get 'crowbar/:controller/1.0/elements', :action => 'elements'
+  get 'crowbar/:controller/1.0/elements/:id', :action => 'element_info'
+  post 'crowbar/:controller/1.0/transition/:id', :action => 'transition'
+  get  'crowbar/:controller/1.0/transition/:id', :action => 'transition'
 
-  map.connect ':controller/:action/:id'
-  map.connect ':controller/:action/:id.:format'
+  get 'crowbar/:controller/1.0', :action => 'index', :as => 'index_barclamp'
+  delete 'crowbar/:controller/1.0/:id', :action => 'delete', :constraints => { :id => /[^\/]+/ }, :as => 'delete_barclamp'
+  get 'crowbar/:controller/1.0/:id', :action => 'show', :constraints => { :id => /[^\/]+/ }, :as => 'show_barclamp'
+  get 'crowbar/:controller', :action => 'versions', :as => 'versions_barclamp'
+  post 'crowbar/:controller/1.0/:action/:id', :constraints => { :id => /[^\/]+/ }, :as => 'action_barclamp'
+  get 'crowbar', :controller => 'barclamp', :action => 'barclamp_index', :as => 'barclamp_index_barclamp'
+  get 'crowbar/modules/1.0', :controller => 'barclamp', :action => 'modules', :as => 'barclamp_modules'
+
+  get 'crowbar/:barclamp/1.0/help', :action => 'help', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/proposals/nodes', :controller => "barclamp", :action=>'nodes'
+  put 'crowbar/:barclamp/1.0/proposals', :action => 'proposal_create', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/proposals', :action => 'proposals', :controller => 'barclamp'
+  post 'crowbar/:barclamp/1.0/proposals/commit/:id', :action => 'proposal_commit', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/proposals/status(.:format)', :action => 'proposal_status', :controller => 'barclamp'
+  delete 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_delete', :controller => 'barclamp'
+  post 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_update', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/proposals/:id', :action => 'proposal_show', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/elements', :action => 'elements', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/elements/:id', :action => 'element_info', :controller => 'barclamp'
+  post 'crowbar/:barclamp/1.0/transition/:id', :action => 'transition', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/transition/:id', :action => 'transition', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0', :action => 'index', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/status', :action => 'status', :controller => 'barclamp'
+  delete 'crowbar/:barclamp/1.0/:id', :action => 'delete', :controller => 'barclamp'
+  get 'crowbar/:barclamp/1.0/:id', :action => 'show', :controller => 'barclamp'
+  get 'crowbar/:barclamp', :action => 'versions', :controller => 'barclamp'
+  post 'crowbar/:barclamp/1.0/:action/:id', :controller => 'barclamp'
+
+  match '/:controller/:action/*(:.format)', :via => [:get, :post, :put, :patch, :delete]
 end

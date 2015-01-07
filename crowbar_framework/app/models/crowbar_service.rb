@@ -167,19 +167,18 @@ class CrowbarService < ServiceObject
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
       ordered_bcs.each do |k, plist |
-        @logger.fatal("Deploying proposal - id: #{id}, name: #{plist[:instances].join(',')}")
+        @logger.fatal("Deploying proposal - barclamp: #{k}, name: #{plist[:instances].join(',')}")
         plist[:instances].each do |v|
           id = "default"
-          data = "{\"id\":\"#{id}\"}"
+          data = {"id" => id}
           @logger.fatal("Deploying proposal - id: #{id}, name: #{v.inspect}")
 
           if v != "default"
-            file = File.open(v, "r")
-            data = file.readlines.to_s
-            file.close
+            data = JSON.parse(
+              File.read(v)
+            )
 
-            struct = JSON.parse(data)
-            id = struct["id"].gsub("bc-#{k}-", "")
+            id = data["id"].gsub("bc-#{k}-", "")
           end
 
           @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
@@ -194,7 +193,7 @@ class CrowbarService < ServiceObject
           else
             unless answer[1].include?(id)
               @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
-              answer = service.proposal_create(JSON.parse(data))
+              answer = service.proposal_create(data)
               if answer[0] != 200
                 answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
                             "(The error message was: #{answer[1].strip})"

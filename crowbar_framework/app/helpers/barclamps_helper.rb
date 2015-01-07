@@ -23,7 +23,7 @@ module BarclampsHelper
       "chevron-right"
     end
 
-    "#{icon_tag(icon_class)} #{title}"
+    "#{icon_tag(icon_class)} #{title}".html_safe
   end
 
   def display_led_for(state, property, path = false)
@@ -66,8 +66,8 @@ module BarclampsHelper
     link_to t("cancel"), barclamp_modules_path(:id => barclamp), :class => "btn btn-default cancel"
   end
 
-  def render_barclamp_show_attributes(barclamp, raw)
-    if raw
+  def render_barclamp_show_attributes(barclamp)
+    if show_raw_attributes?
       render :partial => "barclamp/show_attributes_raw"
     else
       render :partial => "barclamp/#{barclamp}/show_attributes"
@@ -76,8 +76,8 @@ module BarclampsHelper
     render :partial => "barclamp/show_attributes_raw"
   end
 
-  def render_barclamp_show_deployment(barclamp, raw)
-    if raw
+  def render_barclamp_show_deployment(barclamp)
+    if show_raw_deployment?
       render :partial => "barclamp/show_deployment_raw"
     else
       render :partial => "barclamp/#{barclamp}/show_deployment"
@@ -86,14 +86,14 @@ module BarclampsHelper
     render :partial => "barclamp/show_deployment_raw"
   end
 
-  def render_barclamp_edit_attributes(proposal, raw)
-    if raw
+  def render_barclamp_edit_attributes(proposal)
+    if show_raw_attributes?
       render :partial => 'barclamp/edit_attributes_raw'
     else
       if Rails.root.join("app", "views", "barclamp", proposal.barclamp, "_edit_attributes.html.haml").file?
         render :partial => "barclamp/#{proposal.barclamp}/edit_attributes"
       else
-        # Currently this view does not exist, but should be the 
+        # Currently this view does not exist, but should be the
         # fallback way to show a generic form or message
         render :partial => "barclamp/general/edit_attributes"
       end
@@ -110,8 +110,8 @@ module BarclampsHelper
     raise e
   end
 
-  def render_barclamp_edit_deployment(proposal, raw)
-    if raw
+  def render_barclamp_edit_deployment(proposal)
+    if show_raw_deployment?
       render :partial => 'barclamp/edit_deployment_raw'
     else
       if Rails.root.join("app", "views", "barclamp", proposal.barclamp, "_edit_deployment.html.haml").file?
@@ -136,5 +136,13 @@ module BarclampsHelper
     render :partial => "barclamp/#{barclamp}/index"
   rescue ::ActionView::MissingTemplate
     render :partial => "barclamp/index"
+  end
+
+  def show_raw_attributes?
+    params[:attr_raw].to_s == "true" || false
+  end
+
+  def show_raw_deployment?
+    params[:dep_raw].to_s == "true" || false
   end
 end

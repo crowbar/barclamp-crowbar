@@ -16,18 +16,12 @@
 #
 
 barclamp:
-  name: crowbar
-  display: Crowbar
-  description: Self-referential barclamp enabling other barclamps
-  online_help: 'https://github.com/crowbar/crowbar/wiki'
+  name: 'crowbar'
+  display: 'Crowbar'
+  description: 'Self-referential barclamp enabling other barclamps'
   version: 0
-  proposal_schema_version: 1
   member:
-    - crowbar
-  os_support:
-    - redhat-6.4
-    - centos-6.4
-    - ubuntu-12.04
+    - 'crowbar'
 
 crowbar:
   layout: 1
@@ -37,237 +31,61 @@ crowbar:
   proposal_schema_version: 3
 
 nav:
-  primary:
-    - [ nodes, root_path ]
-    - [ network, network_path ]
-    - [ barclamps, barclamp_modules_path ]
-    - [ utils, utils_path ]
-    - [ help, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
   nodes:
-    - [ dashboard, dashboard_path ]
-    - [ list, nodes_list_path ]
-    - [ clusters, clusters_path unless ServiceObject.available_clusters.empty? ]
-    - [ active_roles, active_roles_path ]
-    - [ families, nodes_families_path if RAILS_ENV == 'development' ]
+    order: 20
+    route: 'root_path'
+    dashboard:
+      order: 10
+      route: 'dashboard_path'
+    batch:
+      order: 20
+      route: 'nodes_list_path'
+    clusters:
+      order: 30
+      route: 'clusters_path'
+      options:
+        unless: 'ServiceObject.available_clusters.empty?'
+    roles:
+      order: 40
+      route: 'active_roles_path'
+    families:
+      order: 50
+      route: 'nodes_families_path'
+      options:
+        if: 'Rails.env.development?'
   barclamps:
-    - [ all_bc, barclamp_modules_path ]
-    - [ crowbar_bc, "index_barclamp_path(:controller=>'crowbar')" ]
-    - [ deployment_queue, deployment_queue_path ]
+    order: 40
+    route: 'barclamp_modules_path'
+    all:
+      order: 10
+      route: 'barclamp_modules_path'
+    crowbar:
+      order: 20
+      route: 'index_barclamp_path'
+      params:
+        controller: 'crowbar'
+    queue:
+      order: 90
+      route: 'deployment_queue_path'
   utils:
-    - [ util_logs, utils_path ]
+    order: 60
+    route: 'utils_path'
+    logs:
+      order: 10
+      route: 'utils_path'
   help:
-    - [ crowbar_wiki, '"https://github.com/crowbar/crowbar/wiki/", { :link => { :target => "_blank" } }' ]
-    - [ crowbar_ug, '"/crowbar_users_guide.pdf", { :link => { :target => "_blank" } }' ]
-    - [ crowbar_dg, '"/crowbar_deployment_guide.pdf", { :link => { :target => "_blank" } }' ]
-    - [ documentation, docs_path if RAILS_ENV == 'development' ]
-
-debs:
-  ubuntu-12.04:
-    repos:
-      - deb http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ precise main restricted universe multiverse
-      - deb http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
-      - deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates main restricted universe multiverse
-      - deb http://archive.canonical.com/ubuntu precise partner
-      - deb-src http://archive.canonical.com/ubuntu precise partner
-      - deb http://extras.ubuntu.com/ubuntu precise main
-      - deb-src http://extras.ubuntu.com/ubuntu precise main
-      - deb http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb-src http://security.ubuntu.com/ubuntu precise-security main restricted universe multiverse
-      - deb http://apt.opscode.com/ precise-0.10 main
-  build_pkgs:
-    - ruby1.8-dev
-    - rubygems1.8
-    - build-essential
-    - libsqlite3-dev
-    - dpkg-dev
-    - libxml2-dev
-    - zlib1g-dev
-  pkgs:
-    # apache stuff
-    - apache2
-    - apache2-prefork-dev
-    - libopkele-dev
-    - libopkele3
-    - libapache2-svn
-    - libapache2-mod-fcgid
-    - libapache2-mod-php5
-    - libapache2-mod-python
-    - libapache2-mod-wsgi
-    # apt-cacher stuff
-    - apt-cacher
-    # build-essential stuff
-    - build-essential
-    - binutils-doc
-    - autoconf
-    - flex
-    - bison
-    - patch
-    # crowbar stuff
-    - curl
-    - sqlite3
-    - libsqlite3-dev
-    - libshadow-ruby1.8
-    - chef
-    - chef-server
-    - chef-server-webui
-    - kwalify
-    - libcurl4-gnutls-dev
-    # minicom stuff
-    - minicom
-    # nscd stuff
-    - nscd
-    # openldap stuff
-    - libnss-ldap
-    - libpam-ldap
-    - ldap-utils
-    - db4.8-util
-    - slapd
-    # openssh stuff
-    - openssh-client
-    - openssh-server
-    # markdown 2 html generation
-    - markdown
-    # ruby stuff
-    - ruby1.8
-    - ruby1.8-dev
-    - ruby-dev
-    - rubygems
-    - rubygems1.8
-    # runit stuff
-    - runit
-    # sudo stuff
-    #- sudo
-    # java stuff
-    #- sun-java6-jdk
-    #- sun-java6-jre
-    - dpkg-dev
-    - screen
-    - alien
-#    - cabextract
-#    - expect
-
-rpms:
-  redhat-6.4:
-    repos:
-      - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
-    build_pkgs:
-      - libcurl-devel
-      - yum-plugin-downloadonly
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
-  centos-6.4:
-    repos:
-      - rpm http://rbel.frameos.org/rbel6
-      - rpm http://mirrors.servercentral.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
-    build_pkgs:
-      - libcurl-devel
-      - yum-plugin-downloadonly
-      - createrepo
-      - libxml2-devel
-      - zlib-devel
-  build_pkgs:
-    - rubygems
-    - ruby-devel
-    - make
-    - gcc
-    - kernel-devel
-    - sqlite-devel
-    - mysql-devel
-  pkgs:
-    # apache stuff
-    - httpd
-    - httpd-devel
-    - mod_fcgid
-    - php
-    - mod_python
-    - mod_ssl
-    - mod_wsgi
-    # build-essential stuff
-    - gcc
-    - gcc-c++
-    - kernel-devel
-    - make
-    - autoconf
-    - flex
-    - bison
-    - patch
-    - e2fsprogs
-    # crowbar stuff
-    - curl
-    - sqlite
-    - sqlite-devel
-    - rubygem-chef-server
-    - rubygem-kwalify
-    - createrepo
-    # minicom stuff
-    - minicom
-    # nscd stuff
-    - nscd
-    # markdown to html stuff
-    - python-markdown
-    # openldap stuff
-    - nss
-    - nss-tools
-    - openldap
-    - openldap-servers
-    - openldap-clients
-    - krb5-workstation
-    # openssh stuff
-    - openssh-clients
-    - openssh-server
-    - openssh
-    # ruby stuff
-    - ruby
-    - ruby-devel
-    - ruby-shadow
-    # sudo stuff
-    - sudo
-    - screen
-#    - expect
-#    - cabextract
-
-gems:
-  pkgs:
-    # bluepill stuff
-    - state_machine-0.9.4
-    - bluepill-0.0.45
-
-    # crowbar stuff
-    - rails-2.3.17
-    - rake-0.8.7
-    - app_config-1.0.2
-    - chef-10.24.4
-    - haml-3.1.6
-    - hike-1.2.1
-    - i18n-0.4.2
-    - json-1.6.1
-    - kwalify-0.7.2
-    - mime-types-1.18
-    - multi_json-1.0.3
-    - rack-1.1.6
-    - sass-3.2.12
-    - simple-navigation-3.7.0
-    - sprockets-2.10.1
-    - sprockets-sass-1.0.2
-    - sprockets-helpers-1.1.0
-    - sqlite3-1.3.6
-    - syslogger-1.3.0
-    - tilt-1.3.3
-
-    # server stuff
-    - eventmachine-1.0.3
-    - net-http-digest_auth-1.1.1
-    - rainbows-4.3.1
-
-    # install stuff
-    - bundler-1.0.21
-    - net-ssh-multi-1.1
-    - libxml-ruby-1.1.3
-    - xml-simple-1.1.3
-    - builder-3.2.2
-
-pips:
-  - uwsgi
+    order: 80
+    route: 'docs_path'
+    docs:
+      order: 10
+      route: 'docs_path'
+    crowbar_users:
+      order: 20
+      path: '/docs/crowbar_users_guide.pdf'
+      params:
+        target: '_blank'
+    wiki:
+      order: 90
+      url: 'https://github.com/crowbar/crowbar/wiki'
+      params:
+        target: '_blank'

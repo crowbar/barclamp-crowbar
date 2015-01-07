@@ -241,7 +241,7 @@ module NodesHelper
           switch_label = [
             value_for(@node.switch_name, t("unknown"), show_name),
             value_for(@node.switch_port, t("unknown"), show_port)
-          ].join(" / ")
+          ].join(" / ").html_safe
 
           switch_title = t("model.attributes.node.switch_name_port")
         else
@@ -249,7 +249,7 @@ module NodesHelper
             value_for(@node.switch_name, t("unknown"), show_name),
             value_for(@node.switch_unit, t("unknown"), show_unit),
             value_for(@node.switch_port, t("unknown"), show_port)
-          ].join(" / ")
+          ].join(" / ").html_safe
 
           switch_title = t("model.attributes.node.switch_name_unit_port")
         end
@@ -267,7 +267,7 @@ module NodesHelper
       ips.each do |network, addresses|
         unless network == "~notconnected" and addresses.nil?
           network_list = if ["[not managed]", "[dhcp]"].include? network
-            address_list = addresses.to_a.map do |address|
+            address_list = [*addresses].map do |address|
               content_tag(
                 :li,
                 address
@@ -281,9 +281,9 @@ module NodesHelper
               ),
               content_tag(
                 :ul,
-                address_list.join("\n")
+                address_list.join("\n").html_safe
               )
-            ].join("\n")
+            ].join("\n").html_safe
           else
             address_list = if addresses.is_a? String
               addresses
@@ -295,7 +295,7 @@ module NodesHelper
                     :li,
                     "#{key}: #{addresses[key]}"
                   )
-                }.join("\n")
+                }.join("\n").html_safe
               )
             end
 
@@ -305,7 +305,7 @@ module NodesHelper
                 network
               ),
               address_list
-            ].join("\n")
+            ].join("\n").html_safe
           end
 
           result.push content_tag(
@@ -326,18 +326,18 @@ module NodesHelper
 
     content_tag(
       :ul,
-      entries.join("\n")
+      entries.join("\n").html_safe
     )
   end
 
   def node_wall_list(node)
     [].tap do |result|
       intended_roles_text = {
-        "no_role"    => t("nodes.form.no_role"),
+        "no_role" => t("nodes.form.no_role"),
         "controller" => t("nodes.form.controller"),
-        "compute"    => t("nodes.form.compute"),
-        "network"    => t("nodes.form.network"),
-        "storage"    => t("nodes.form.storage")
+        "compute" => t("nodes.form.compute"),
+        "network" => t("nodes.form.network"),
+        "storage" => t("nodes.form.storage")
       }
 
       intended_role = node.intended_role
@@ -412,12 +412,12 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
+            ].join("\n").html_safe
           )
         end
-      end.join("\n")
+      end.join("\n").html_safe
     end
 
     content_tag(
@@ -495,12 +495,12 @@ module NodesHelper
               category,
               content_tag(
                 :ul,
-                children.join("\n")
+                children.join("\n").html_safe
               )
-            ].join("\n")
+            ].join("\n").html_safe
           )
         end
-      end.join("\n")
+      end.join("\n").html_safe
     end
 
     content_tag(
@@ -548,7 +548,7 @@ module NodesHelper
 
     content_tag(
       :ul,
-      link_list.join("\n")
+      link_list.join("\n").html_safe
     )
   end
 

@@ -28,18 +28,18 @@ describe MachinesController do
     end
 
     it "is successful" do
-      get :index
+      get :index, :format => "json"
       response.should be_success
     end
 
     context "with some nodes" do
       it "renders json" do
-        get :index
+        get :index, :format => "json"
         JSON.parse(response.body).should be_a(Hash)
       end
 
       it "results in filled nodes hash" do
-        get :index
+        get :index, :format => "json"
         json = JSON.parse(response.body)
 
         json["nodes"].should be_a(Array)
@@ -47,7 +47,7 @@ describe MachinesController do
       end
 
       it "contains name keys" do
-        get :index
+        get :index, :format => "json"
         json = JSON.parse(response.body)
         node = json["nodes"].first
 
@@ -56,7 +56,7 @@ describe MachinesController do
       end
 
       it "contains alias keys" do
-        get :index
+        get :index, :format => "json"
         json = JSON.parse(response.body)
         node = json["nodes"].first
 
@@ -71,12 +71,12 @@ describe MachinesController do
       end
 
       it "renders json" do
-        get :index
+        get :index, :format => "json"
         JSON.parse(response.body).should be_a(Hash)
       end
 
       it "results in empty nodes hash" do
-        get :index
+        get :index, :format => "json"
         json = JSON.parse(response.body)
 
         json["nodes"].should be_a(Array)
@@ -87,18 +87,18 @@ describe MachinesController do
 
   describe "GET show" do
     it "is successful" do
-      get :show, :name => "testing"
+      get :show, :name => "testing", :format => "json"
       response.should be_success
     end
 
     it "renders json" do
-      get :show, :name => "testing"
+      get :show, :name => "testing", :format => "json"
       JSON.parse(response.body).should be_a(Hash)
     end
 
     context "for existent node" do
       it "fetches with name" do
-        get :show, :name => "testing"
+        get :show, :name => "testing", :format => "json"
         json = JSON.parse(response.body)
 
         json["name"].should be_a(String)
@@ -106,7 +106,7 @@ describe MachinesController do
       end
 
       it "works with fqdn" do
-        get :show, :name => "testing.crowbar.com"
+        get :show, :name => "testing.crowbar.com", :format => "json"
         json = JSON.parse(response.body)
 
         json["name"].should be_a(String)
@@ -116,8 +116,8 @@ describe MachinesController do
 
     context "for non-existent node" do
       it "renders 404" do
-        get :show, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        get :show, :name => "nonexistent", :format => "json"
+        response.should be_not_found
       end
     end
   end
@@ -128,15 +128,15 @@ describe MachinesController do
         NodeObject.any_instance.expects(:alias=).with("tester").once
         NodeObject.any_instance.expects(:save).once
 
-        post :rename, :name => "testing", :alias => "tester"
-        response.status.should eql("200 OK")
+        post :rename, :name => "testing", :alias => "tester", :format => "json"
+        response.should be_success
       end
     end
 
     context "for non-existent node" do
       it "renders 404" do
-        post :rename, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        post :rename, :name => "nonexistent", :format => "json"
+        response.should be_not_found
       end
     end
   end
@@ -146,15 +146,15 @@ describe MachinesController do
       it "invokes delete" do
         NodeObject.any_instance.expects(:delete).once
 
-        delete :delete, :name => "testing"
-        response.status.should eql("200 OK")
+        delete :delete, :name => "testing", :format => "json"
+        response.should be_success
       end
     end
 
     context "for non-existent node" do
       it "renders 404" do
-        delete :delete, :name => "nonexistent"
-        response.status.should eql("404 Not Found")
+        delete :delete, :name => "nonexistent", :format => "json"
+        response.should be_not_found
       end
     end
   end
@@ -174,15 +174,15 @@ describe MachinesController do
         it "invokes #{action}" do
           NodeObject.any_instance.expects(action).once
 
-          post action, :name => "testing"
-          response.status.should eql("200 OK")
+          post action, :name => "testing", :format => "json"
+          response.should be_success
         end
       end
 
       context "for non-existent node" do
         it "renders 404" do
-          post action, :name => "nonexistent"
-          response.status.should eql("404 Not Found")
+          post action, :name => "nonexistent", :format => "json"
+          response.should be_not_found
         end
 
         it "prevents #{action}" do

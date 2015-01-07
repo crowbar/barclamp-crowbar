@@ -278,8 +278,6 @@ class BarclampController < ApplicationController
     @proposal = ret[1]
     @active = begin RoleObject.active(params[:controller], params[:id]).length>0 rescue false end
     flash.now[:alert] = @proposal.fail_reason if @proposal.failed?
-    @attr_raw = params[:attr_raw] || false
-    @dep_raw = params[:dep_raw] || false
 
     respond_to do |format|
       format.html { render :template => 'barclamp/proposal_show' }
@@ -297,6 +295,7 @@ class BarclampController < ApplicationController
     i18n = {}
     begin
       active = RoleObject.active(params[:barclamp], params[:name])
+
       result = if params[:id].nil?
         result = ProposalObject.all
         result.delete_if { |v| v.id =~ /^#{ProposalObject::BC_PREFIX}/ }
@@ -314,7 +313,7 @@ class BarclampController < ApplicationController
       count = (e.class.to_s == "Errno::ECONNREFUSED" ? -2 : -1)
       lines = [ "Failed to iterate over proposal list due to '#{e.message}'" ] + e.backtrace
       Rails.logger.fatal(lines.join("\n"))
-      # render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}, :cache => false
+      render :inline => {:proposals=>proposals, :count=>count, :error=>e.message}.to_json, :cache => false
     end
   end
 
@@ -435,8 +434,8 @@ class BarclampController < ApplicationController
           :id => params[:name]
         }
 
-        redirect_params[:dep_raw] = params[:dep_raw] if params[:dep_raw] == "true"
-        redirect_params[:attr_raw] = params[:attr_raw] if params[:attr_raw] == "true"
+        redirect_params[:dep_raw] = true if view_context.show_raw_deployment?
+        redirect_params[:attr_raw] = true if view_context.show_raw_attributes?
 
         redirect_to proposal_barclamp_path(redirect_params)
       end

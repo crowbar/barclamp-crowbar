@@ -547,6 +547,7 @@ class ServiceObject
     proposal.delete("action")
     proposal.delete("barclamp")
     proposal.delete("name")
+    proposal.delete("utf8")
     proposal.delete("_method")
     proposal.delete("authenticity_token")
   end
@@ -569,7 +570,7 @@ class ServiceObject
       dep[@bc_name]["config"].delete("crowbar-committing")
       dep[@bc_name]["config"].delete("crowbar-queued")
       role.override_attributes = dep
-      answer = apply_role(role, inst, false)
+      answer = profile("Apply role #{role_name} #{inst}") { apply_role(role, inst, false) }
       role.destroy
       answer
     end
@@ -672,7 +673,7 @@ class ServiceObject
     # crowbar-deep-merge-template key should be removed in all cases, as it
     # should not end in the proposal anyway; if the key is not here, we default
     # to false (and therefore the old behavior)
-    if params.delete("crowbar-deep-merge-template") { |v| false }
+    if params.delete("crowbar-deep-merge-template")
       HashOnlyMerge.hash_only_merge!(proposal, params)
     else
       proposal.merge!(params)
@@ -1257,7 +1258,7 @@ class ServiceObject
         non_admin_nodes.each do |node|
           nobj = NodeObject.find_node_by_name(node)
           unless nobj[:platform] == "windows"
-            filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+            filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "chef-client", filename)
             pids[pid] = node
           end
@@ -1270,7 +1271,7 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
+              filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
               pid = run_remote_chef_client(node, "chef-client", filename)
               pids[pid] = node
             end
@@ -1293,8 +1294,8 @@ class ServiceObject
 
       unless admin_list.empty?
         admin_list.each do |node|
-          filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-          pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
+          filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
+          pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s, filename)
           pids[node] = pid
         end
         status = Process.waitall
@@ -1305,8 +1306,8 @@ class ServiceObject
             badones.each do |baddie|
               node = pids[baddie[0]]
               @logger.warn("Re-running chef-client (admin) again for a failure: #{node} #{@bc_name} #{inst}")
-              filename = "#{CROWBAR_LOG_DIR}/chef-client/#{node}.log"
-              pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path, filename)
+              filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
+              pid = run_remote_chef_client(node, Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s, filename)
               pids[pid] = node
             end
             status = Process.waitall
@@ -1328,7 +1329,7 @@ class ServiceObject
     end
 
     # XXX: This should not be done this way.  Something else should request this.
-    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if !ran_admin
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) if !ran_admin
 
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
@@ -1552,7 +1553,7 @@ class ServiceObject
   def active_update(proposal, inst, in_queue)
     begin
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
-      apply_role(role, inst, in_queue)
+      profile("Apply role #{role.name} #{inst}") { apply_role(role, inst, in_queue) }
     rescue Net::HTTPServerException => e
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
@@ -1566,5 +1567,13 @@ class ServiceObject
 
   def only_unless_admin(node)
     yield unless node.admin?
+  end
+
+  def profile(name, &block)
+    if ENV["ENABLE_PROFILER"] == "true"
+      Rack::MiniProfiler.step(name, &block)
+    else
+      block.call
+    end
   end
 end

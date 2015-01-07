@@ -27,10 +27,10 @@ module ProposalsHelper
       :class => "form-inline",
       :autocomplete => "off",
       "data-type" => "html",
-      "data-method" => "put"
+      "data-blockui" => t(".blockui_message")
     }
 
-    form_for :proposal, :url => url, :html => html, :remote => true, &block
+    form_for :proposal, :url => url, :html => html, &block
   end
 
   def update_proposal_form_for(proposal, &block)
@@ -119,6 +119,9 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
+    parameters.delete(:attr_raw) if parameters[:attr_raw] == false
+    parameters.delete(:dep_raw) if parameters[:dep_raw] == false
+
     link_to t('raw'), proposal_barclamp_path(parameters), :class => "rawview"
   end
 
@@ -128,19 +131,22 @@ module ProposalsHelper
       :controller => proposal.barclamp
     }.merge options
 
+    parameters.delete(:attr_raw) if parameters[:attr_raw] == false
+    parameters.delete(:dep_raw) if parameters[:dep_raw] == false
+
     link_to t('custom'), proposal_barclamp_path(parameters), :class => "customview"
   end
 
   def attributes_for(proposal, &block)
     attribute = Dsl::Proposal::Attribute.new(proposal, self)
-    block.bind(attribute).call
+    attribute.instance_eval(&block)
 
     ""
   end
 
   def deployment_for(proposal, &block)
     deployment = Dsl::Proposal::Deployment.new(proposal, self)
-    block.bind(deployment).call
+    deployment.instance_eval(&block)
 
     ""
   end

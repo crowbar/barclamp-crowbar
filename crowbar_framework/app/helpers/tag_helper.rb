@@ -51,7 +51,7 @@ module TagHelper
     [
       content_tag(:span, "", options),
       text
-    ].flatten.join("\n")
+    ].flatten.join("\n").html_safe
   end
 
   def badge_tag(text, clazz = nil)

@@ -18,7 +18,7 @@
 require 'spec_helper'
 
 describe NodesController do
-  integrate_views
+  render_views
 
   before do
     NodeObject.any_instance.stubs(:system).returns(true)
@@ -158,19 +158,19 @@ describe NodesController do
 
   describe "GET status" do
     it "is successful" do
-      get :status
+      get :status, :format => "json"
       response.should be_success
     end
 
     it "renders error if fetch fails" do
       NodeObject.stubs(:all).raises(Errno::ECONNREFUSED)
-      get :status
+      get :status, :format => "json"
       json = JSON.parse(response.body)
       json["error"].should_not be_empty
     end
 
     it "returns status of the nodes" do
-      get :status
+      get :status, :format => "json"
       json = JSON.parse(response.body)
 
       json["nodes"]["admin"].keys.should include("status")
@@ -241,7 +241,7 @@ describe NodesController do
       new_group = "new_group"
       post :group_change, :id => @node.name, :group => new_group
 
-      @node.display_set?("group").should be_true
+      @node.display_set?("group").should be true
       @node.group.should == new_group
     end
 
@@ -251,7 +251,7 @@ describe NodesController do
       new_group = "automatic"
       post :group_change, :id => @node.name, :group => new_group
 
-      @node.display_set?("group").should be_false
+      @node.display_set?("group").should be false
       @node.group.should == "sw-#{@node.switch}"
     end
   end

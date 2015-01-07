@@ -40,7 +40,7 @@ describe NodeObject do
       it "returns all nodes" do
         nodes = NodeObject.all
         nodes.should_not be_empty
-        nodes.all? { |n| n.is_a?(NodeObject) }.should be_true
+        nodes.all? { |n| n.is_a?(NodeObject) }.should be true
       end
     end
 
@@ -48,7 +48,7 @@ describe NodeObject do
       it "returns nodes with a given name only" do
         nodes = NodeObject.find_nodes_by_name("testing.crowbar.com")
         nodes.should_not be_empty
-        nodes.all? { |n| n.name =~ /testing/ }.should be_true
+        nodes.all? { |n| n.name =~ /testing/ }.should be true
       end
     end
 

@@ -15,33 +15,45 @@
 # limitations under the License.
 #
 
-# In the development environment your application's code is reloaded on
-# every request. This slows down response time but is perfect for development
-# since you don't have to restart the webserver when you make code changes.
-config.cache_classes = false
+Rails.application.configure do
+  config.cache_classes = false
+  config.eager_load = false
+  config.consider_all_requests_local = true
+  config.serve_static_assets = true
+  config.force_ssl = false
+  config.autoflush_log = true
 
-# Full error reports are enabled and caching is turned off
-config.action_controller.consider_all_requests_local = true
-config.action_controller.perform_caching = false
-config.action_view.cache_template_loading = false
-config.action_view.debug_rjs = true
+  config.action_dispatch.show_exceptions = true
+  config.action_dispatch.cookies_serializer = :json
 
-# Log error messages when you accidentally call methods on nil.
-config.whiny_nils = true
+  config.action_controller.perform_caching = false
+  config.action_controller.allow_forgery_protection = true
 
-# Set a verbose log level to get the informations we need
-config.log_level = :debug
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
 
-# Don't care if the mailer can't send
-config.action_mailer.raise_delivery_errors = false
+  config.action_view.raise_on_missing_translations = true
 
-# Enable request forgery protection in development environment
-config.action_controller.allow_forgery_protection = true
+  config.active_support.deprecation = :log
 
-# Enable threaded mode
-#config.threadsafe!
+  config.active_record.migration_error = :page_load
+  config.active_record.dump_schema_after_migration = true
 
-CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-CHEF_NODE_NAME ="crowbar"
-CHEF_SERVER_URL = "http://localhost:4000"
-CROWBAR_VERSION = "Development"
+  config.assets.debug = true
+  config.assets.raise_runtime_errors = true
+  config.assets.js_compressor = :uglifier
+  config.assets.css_compressor = :sass
+  config.assets.compile = true
+  config.assets.digest = true
+
+  config.i18n.fallbacks = false
+
+  config.log_level = :debug
+  config.log_tags = []
+
+  config.logger = ActiveSupport::TaggedLogging.new(
+    Logger.new Rails.root.join("log", "development.log") # SyslogLogger.new
+  )
+
+  config.log_formatter = ::Logger::Formatter.new
+end

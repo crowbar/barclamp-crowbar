@@ -21,40 +21,97 @@ if node[:platform] != "suse"
   include_recipe "bluepill"
 end
 
-pkglist=()
-rainbows_path=""
+pkglist = ()
+rainbows_path = ""
 logdir = "/var/log/crowbar"
 crowbar_home = "/home/crowbar"
 
 case node[:platform]
 when "ubuntu","debian"
-  pkglist=%w{curl sqlite libsqlite3-dev libshadow-ruby1.8 markdown}
-  rainbows_path="/var/lib/gems/1.8/bin/"
+  pkglist = %w(
+    curl
+    sqlite
+    libsqlite3-dev
+    libshadow-ruby1.8
+    markdown
+  )
+
+  rainbows_path = "/var/lib/gems/1.8/bin/"
 when "redhat","centos"
-  pkglist=%w{curl sqlite sqlite-devel python-markdown}
-  rainbows_path=""
+  pkglist = %w(
+    curl
+    sqlite
+    sqlite-devel
+    python-markdown
+  )
+
+  rainbows_path = ""
 when "suse"
-  pkglist=%w{curl rubygem-rake rubygem-json rubygem-syslogger
-      rubygem-sass rubygem-simple-navigation rubygem-i18n rubygem-haml
-      rubygem-net-http-digest_auth rubygem-rails-2_3 rubygem-rainbows 
-      rubygem-ruby-shadow }
+  pkglist = %w(
+    curl
+    sqlite3
+
+    ruby2.1-rubygem-activerecord-session_store
+    ruby2.1-rubygem-activeresource
+    ruby2.1-rubygem-chef
+    ruby2.1-rubygem-closure-compiler
+    ruby2.1-rubygem-dotenv
+    ruby2.1-rubygem-dotenv-deployment
+    ruby2.1-rubygem-haml-rails
+    ruby2.1-rubygem-hashie
+    ruby2.1-rubygem-js-routes
+    ruby2.1-rubygem-kwalify
+    ruby2.1-rubygem-mime-types-1
+    ruby2.1-rubygem-mixlib-shellout
+    ruby2.1-rubygem-ohai-6
+    ruby2.1-rubygem-rails-4_1
+    ruby2.1-rubygem-redcarpet
+    ruby2.1-rubygem-ruby-shadow
+    ruby2.1-rubygem-sass-rails
+    ruby2.1-rubygem-simple-navigation
+    ruby2.1-rubygem-simple_navigation_renderers
+    ruby2.1-rubygem-sqlite3
+    ruby2.1-rubygem-syslogger
+    ruby2.1-rubygem-rainbows-rails
+  )
 end
 
-pkglist.each {|p|
+pkglist.each do |p|
   package p do
     action :install
   end
-}
+end
 
 if node[:platform] != "suse"
-  gemlist=%w{rake json syslogger sass simple-navigation 
-     i18n haml net-http-digest_auth rails rainbows }
+  gemlist = %w(
+    activerecord-session_store
+    activeresource
+    chef
+    closure-compiler
+    dotenv
+    dotenv-deployment
+    haml-rails
+    hashie
+    js-routes
+    kwalify
+    mime-types
+    mixlib-shellout
+    ohai
+    rails
+    redcarpet
+    sass-rails
+    simple-navigation
+    simple_navigation_renderers
+    sqlite3
+    syslogger
+    rainbows-rails
+  )
 
-  gemlist.each {|g|
+  gemlist.each do |g|
     gem_package g do
       action :install
     end
-  }
+  end
 end
 
 group "crowbar"
@@ -207,7 +264,7 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
   owner "crowbar"
   group "crowbar"
   mode "0644"
-  variables(:web_host => "0.0.0.0", 
+  variables(:web_host => "0.0.0.0",
             :web_port => node["crowbar"]["web_port"] || 3000,
             :user => "crowbar",
             :concurrency_model => "EventMachine",
@@ -222,7 +279,7 @@ template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
   owner "crowbar"
   group "crowbar"
   mode "0644"
-  variables(:web_host => "0.0.0.0", 
+  variables(:web_host => "0.0.0.0",
             :web_port => node["crowbar"]["web_port"] || 3000,
             :user => "crowbar",
             :concurrency_model => "EventMachine",

@@ -137,12 +137,12 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            if @template.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
+            if view_context.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
               node.bios_set = node_attributes["bios"]
               dirty = true
             end
 
-            if @template.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
+            if view_context.crowbar_options[:show].include?(:raid) and not [node.raid_set, "not_set"].include? node_attributes["raid"]
               node.raid_set = node_attributes["raid"]
               dirty = true
             end
@@ -259,7 +259,7 @@ class NodesController < ApplicationController
 
           result[:groups][group_name].tap do |group|
             group[:status][node.status] = group[:status][node.status] + 1
-            group[:tooltip] = @template.piechart_tooltip(@template.piechart_values(group))
+            group[:tooltip] = view_context.piechart_tooltip(view_context.piechart_values(group))
           end
 
           result[:nodes][node.handle] = {
@@ -385,7 +385,7 @@ class NodesController < ApplicationController
       end
 
       unless @node.allocated?
-        @node.target_platform = params[:target_platform] || @template.default_platform
+        @node.target_platform = params[:target_platform] || view_context.default_platform
         @node.license_key = params[:license_key]
       end
       @node.save

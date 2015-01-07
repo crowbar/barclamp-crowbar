@@ -77,23 +77,51 @@ def help
   usage 0
 end
 
-def authenticate(req,uri,data=nil)
-  uri.user=@username
-  uri.password=@password
-  res=nil
-  Net::HTTP.start(uri.host, uri.port) {|http|
-    r = req.new(uri.request_uri,@headers)
+def debug(msg)
+  puts msg if @debug
+end
+
+def authenticate(req, uri, data = nil)
+  uri.user = @username
+  uri.password = @password
+
+  h = Net::HTTP.new uri.host, uri.port
+  h.read_timeout = @timeout
+
+  r = req.new uri.request_uri, @headers
+  r.body = data if data
+
+  res = h.request r
+
+  debug "(r) hostname: #{uri.host}:#{uri.port}"
+  debug "(r) request: #{uri.path}"
+  debug "(r) method: #{req::METHOD}"
+  debug "(r) return code: #{res.code}"
+  debug "(r) return body: #{res.body}"
+  res.each_header do |h, v|
+    debug "(r) return #{h}: #{v}"
+  end
+
+  if res["www-authenticate"]
+    digest = Net::HTTP::DigestAuth.new
+    auth = digest.auth_header uri, res["www-authenticate"], req::METHOD
+
+    r = req.new uri.request_uri, @headers
     r.body = data if data
-    res = http.request r
-    if res['www-authenticate']
-      digest_auth=Net::HTTP::DigestAuth.new
-      auth=Net::HTTP::DigestAuth.new.auth_header(uri,
-                                                 res['www-authenticate'],
-                                                 req::METHOD)
-      r.add_field 'Authorization', auth
-      res = http.request r
+    r.add_field "Authorization", auth
+
+    res = h.request r
+
+    debug "(a) hostname: #{uri.host}:#{uri.port}"
+    debug "(a) request: #{uri.path}"
+    debug "(a) method: #{req::METHOD}"
+    debug "(a) return code: #{res.code}"
+    debug "(a) return body: #{res.body}"
+    res.each_header do |h, v|
+      debug "(a) return #{h}: #{v}"
     end
-  }
+  end
+
   res
 end  
 

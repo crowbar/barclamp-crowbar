@@ -20,7 +20,7 @@ require "chef"
 class SupportController < ApplicationController
   def logs
     filename = "crowbar-logs-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tar.bz2"
-    system("sudo", "-i", Rails.root.join("..", "bin", "gather_logs.sh").expand_path, filename)
+    system("sudo", "-i", Rails.root.join("..", "bin", "gather_logs.sh").expand_path.to_s, filename)
     redirect_to "/export/#{filename}"
   end
 
@@ -43,7 +43,7 @@ class SupportController < ApplicationController
 
       if filename =~ /^\./
         next
-      elsif filename =~ /^KEEP_THIS.*/
+      elsif filename =~ /^(KEEP_THIS.*)|(index.html)/
         next
       elsif filename =~ /^crowbar-logs-.*/
         @export.files.logs.push filename
@@ -127,7 +127,7 @@ class SupportController < ApplicationController
 
       pid = Process.fork do
         exports = Dir.glob(Rails.root.join("db", "*.json").to_s)
-        cmd     = ["tar", "-czf", Rails.root.join("tmp", filename), *exports]
+        cmd     = ["tar", "-czf", Rails.root.join("tmp", filename).to_s, *exports]
 
         ok = system(*cmd)
         File.rename(Rails.root.join("tmp", filename), export_dir.join(filename)) if ok
@@ -144,7 +144,7 @@ class SupportController < ApplicationController
 
   def restart
     @init = false
-    @log = Rails.root.join("public", "export", "#{SERVER_PID}.import.log")
+    @log = Rails.root.join("public", "export", "#{Crowbar::Application::SERVER_PID}.import.log")
 
     if params[:id].nil?
       render
@@ -154,9 +154,9 @@ class SupportController < ApplicationController
     elsif params[:id].eql? "in_process"
       %x[sudo bluepill crowbar-webserver restart] unless Rails.env.development?
       render :json => true
-    elsif params[:id].eql? SERVER_PID
+    elsif params[:id].eql? Crowbar::Application::SERVER_PID
       render :json => false
-    elsif !params[:id].eql? SERVER_PID
+    elsif !params[:id].eql? Crowbar::Application::SERVER_PID
       render :json => true
     else
       render

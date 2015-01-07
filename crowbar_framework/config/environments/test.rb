@@ -15,36 +15,45 @@
 # limitations under the License.
 #
 
-# The test environment is used exclusively to run your application's
-# test suite.  You never need to work with it otherwise.  Remember that
-# your test database is "scratch space" for the test suite and is wiped
-# and recreated between test runs.  Don't rely on the data there!
-config.cache_classes = true
+Rails.application.configure do
+  config.cache_classes = true
+  config.eager_load = false
+  config.consider_all_requests_local = true
+  config.serve_static_assets = true
+  config.force_ssl = false
+  config.autoflush_log = false
 
-# Full error reports are disabled and caching is turned on
-config.action_controller.consider_all_requests_local = true
-config.action_controller.perform_caching = false
-config.action_view.cache_template_loading = true
-config.action_view.debug_rjs = false
+  config.action_dispatch.show_exceptions = false
+  config.action_dispatch.cookies_serializer = :json
 
-# Log error messages when you accidentally call methods on nil.
-config.whiny_nils = true
+  config.action_controller.perform_caching = false
+  config.action_controller.allow_forgery_protection = false
 
-# Set a verbose log level to get the informations we need
-config.log_level = :debug
+  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.delivery_method = :test
 
-# Tell Action Mailer not to deliver emails to the real world.
-# The :test delivery method accumulates sent emails in the
-# ActionMailer::Base.deliveries array.
-config.action_mailer.delivery_method = :test
+  config.action_view.raise_on_missing_translations = true
 
-# Disable request forgery protection in test environment
-config.action_controller.allow_forgery_protection = false
+  config.active_support.deprecation = :stderr
 
-# Enable threaded mode
-#config.threadsafe!
+  config.active_record.migration_error = :page_load
+  config.active_record.dump_schema_after_migration = false
 
-CHEF_CLIENT_KEY = "/opt/dell/crowbar_framework/config/client.pem"
-CHEF_NODE_NAME ="crowbar"
-CHEF_SERVER_URL = "http://localhost:4000"
-CROWBAR_VERSION = "Test"
+  config.assets.debug = false
+  config.assets.raise_runtime_errors = true
+  config.assets.js_compressor = :uglifier
+  config.assets.css_compressor = :sass
+  config.assets.compile = false
+  config.assets.digest = true
+
+  config.i18n.fallbacks = true
+
+  config.log_level = :debug
+  config.log_tags = []
+
+  config.logger = ActiveSupport::TaggedLogging.new(
+    Logger.new Rails.root.join("log", "test.log") # SyslogLogger.new
+  )
+
+  config.log_formatter = ::Logger::Formatter.new
+end

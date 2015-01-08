@@ -208,11 +208,11 @@ def list
 
   if struct[1] != 200
     [ "Failed to talk to service list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty?
+  elsif struct[0][@barclamp].nil? or struct[0][@barclamp].empty?
     [ "No current configurations", 0 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0][@barclamp].each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end
@@ -264,11 +264,11 @@ def proposal_list
 
   if struct[1] != 200
     [ "Failed to talk to service proposal list: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty?
+  elsif struct[0][@barclamp].nil? or struct[0][@barclamp].empty?
     [ "No current proposals", 0 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0][@barclamp].each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end
@@ -396,11 +396,11 @@ def elements
 
   if struct[1] != 200
     [ "Failed to talk to service elements: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty?
+  elsif struct[0][@barclamp].nil? or struct[0][@barclamp].empty?
     [ "No current elements", 1 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0][@barclamp].each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end
@@ -415,11 +415,11 @@ def element_node(element)
 
   if struct[1] != 200
     [ "Failed to talk to service element_node: #{struct[1]}: #{struct[0]}", 1 ]
-  elsif struct[0].nil? or struct[0].empty?
+  elsif struct[0][@barclamp].nil? or struct[0][@barclamp].empty?
     [ "No nodes for #{element}", 1 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0][@barclamp].each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end

@@ -512,14 +512,14 @@ def export_proposal(barclamp, template, proposal, alias_by_host)
   to_wipe = squash(removed_attrs) - squash(added_attrs)
   unless to_wipe.empty?
     puts '  wipe_attributes:'
-    puts to_yaml(to_wipe).gsub(/^/, '    ')
+    puts batch_to_yaml(to_wipe).gsub(/^/, '    ')
   end
 
   if added_attrs.empty?
     puts '  attributes:'
   else
     attrs = { 'attributes' => added_attrs }
-    puts to_yaml(attrs).gsub(/^/, '  ')
+    puts batch_to_yaml(attrs).gsub(/^/, '  ')
   end
 
   elements = json['deployment'][barclamp]['elements']
@@ -536,16 +536,16 @@ def export_proposal(barclamp, template, proposal, alias_by_host)
       'elements' => elements
     }
   }
-  puts to_yaml(deployment).gsub(/^/, '  ')
+  puts batch_to_yaml(deployment).gsub(/^/, '  ')
 end
 
-def to_yaml(data)
+def batch_to_yaml(data)
   data.to_yaml.sub('---', '').strip.
     gsub(ALIAS_REGEXP, '\1')
 end
 
 def print_yaml(data)
-  puts(to_yaml(data))
+  puts(batch_to_yaml(data))
 end
 
 def main

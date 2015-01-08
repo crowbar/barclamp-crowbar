@@ -186,7 +186,7 @@ end
 def ensure_proposal_exists(barclamp, name)
   out, err = with_barclamp(barclamp) { proposal_list }
   abort out if err > 0
-  if ! out.find { |line| line.start_with? name }
+  if ! out.split("\n").find { |line| line.start_with? name }
     create_proposal(barclamp, name)
   else
     proposal_puts "Already exists"

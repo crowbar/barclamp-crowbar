@@ -219,8 +219,8 @@ class ServiceObject
           next if node.nil?
           pre_cached_nodes[node_name] = node
 
-          # Make sure the node is allocated
-          node.allocate!
+          # Mark node as pending. User will be informed about node needing
+          # manual allocation if not allocated.
           node.crowbar["crowbar"]["pending"] = {} if node.crowbar["crowbar"]["pending"].nil?
           node.crowbar["crowbar"]["pending"]["#{bc}-#{inst}"] = val
           node.save

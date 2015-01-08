@@ -390,10 +390,16 @@ class BarclampController < ApplicationController
           flash[:notice] = answer[1] if answer[0] >= 300 and answer[0] < 400
           flash[:notice] = t('barclamp.proposal_show.commit_proposal_success') if answer[0] == 200
           if answer[0] == 202
-            flash_msg = answer[1].map { |node_dns|
-                 NodeObject.find_node_by_name(node_dns).alias
-            }.join ", "
-            flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{flash_msg}"
+            missing_nodes = answer[1].map { |node_dns| NodeObject.find_node_by_name(node_dns) }
+
+            unready_nodes = missing_nodes.map(&:alias)
+            unallocated_nodes = missing_nodes.reject(&:allocated).map(&:alias)
+
+            flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{(unready_nodes - unallocated_nodes).join(", ")}"
+
+            unless unallocated_nodes.empty?
+              flash[:alert]  = "#{t('barclamp.proposal_show.commit_proposal_queued_unallocated')}: #{unallocated_nodes.join(", ")}"
+            end
           end
         rescue StandardError => e
           flash_and_log_exception(e)

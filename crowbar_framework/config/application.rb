@@ -27,6 +27,8 @@ module Crowbar
 
     config.time_zone = "UTC"
 
+    config.action_dispatch.perform_deep_munge = false
+
     config.i18n.enforce_available_locales = true
     config.i18n.default_locale = :en
 

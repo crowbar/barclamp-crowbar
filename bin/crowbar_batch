@@ -425,7 +425,7 @@ def export(barclamps)
     if code != 200
       abort "Failed to receive list of barclamps: #{code}: #{out}"
     end
-    barclamps = out.sort_by { |x| x[1]['order'] }.map { |x| x[0] }
+    barclamps = out['barclamp'].sort_by { |x| x[1]['order'] }.map { |x| x[0] }
   end
 
   puts '---'
@@ -458,7 +458,7 @@ def export_barclamp(barclamp, alias_by_host)
     end
   end
 
-  proposals = get_proposal_list(barclamp)
+  proposals = get_proposal_list(barclamp)[barclamp]
   if proposals.empty?
     puts "# WARNING: no proposals exist for #{barclamp} barclamp"
     return

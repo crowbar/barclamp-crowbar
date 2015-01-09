@@ -5,6 +5,7 @@ end
 
 timeout 3600
 worker_processes 4
+preload_app true
 listen "<%= @web_host %>:<%= @web_port %>"
 user("<%= @user %>","<%= @group || nil %>")
 <% if node[:platform]=="suse" -%>
@@ -13,3 +14,13 @@ pid("/var/run/crowbar/crowbar.pid")
 stderr_path "<%= "#{@logdir}/#{@logname}.out" %>"
 stdout_path "<%= "#{@logdir}/#{@logname}.out" %>"
 working_directory "<%= @app_location %>"
+
+before_fork do |server, worker|
+  defined?(ActiveRecord::Base) and
+    ActiveRecord::Base.connection.disconnect!
+end
+
+after_fork do |server, worker|
+  defined?(ActiveRecord::Base) and
+    ActiveRecord::Base.establish_connection
+end

@@ -235,7 +235,7 @@ module Dsl
           else
             result
           end
-        rescue
+        rescue TypeError => e
           Rails.logger.debug "Failed to find the attribute for `#{attribute.join(", ")}`"
           ""
         end

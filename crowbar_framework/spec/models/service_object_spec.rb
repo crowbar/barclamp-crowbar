@@ -131,5 +131,91 @@ describe ServiceObject do
         dns_service.validation_errors.first.should match(/cannot be assigned to both role/)
       end
     end
+
+    describe "platform" do
+      it "allows nodes of matched platform using operators" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => ">= 10" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "allows nodes of matched platform with fancy versioning" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "10.10.0" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "allows nodes of matched platform using regular expressions" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "/10.*/" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "allows nodes of matched platform using regular expressions (multiple platforms)" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "suse" => "12.0", "ubuntu" => "/10.*/" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "does not allow nodes of a different platform" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "suse" => "12.0" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/can be used only for suse 12.0/)
+      end
+
+      it "does not allow nodes of a different platform (multiple parforms)" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "suse" => "12.0", "redhat" => "/.*/" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/can be used only for suse 12.0/)
+      end
+
+      it "does not allow nodes of a Ubuntu" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "exclude_platform" => { "ubuntu" => "/.*/" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.first.should match(/can't be used for ubuntu/)
+      end
+    end
   end
 end

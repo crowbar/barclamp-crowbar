@@ -148,8 +148,9 @@ def status()
 
   if struct[1] == 200
     string = ""
-    struct[0]["nodes"].each do |n, hash|
-      string += "#{n}   #{hash["status"]}\n" unless @noready and hash["status"] == "Ready"
+    struct[0]["nodes"].keys.sort.each do |n|
+      status = struct[0]["nodes"][n]["status"]
+      string += "#{n}   #{status}\n" unless @noready and status == "Ready"
     end
     [ "#{string}", 0 ]
   elsif struct[1] == 404

@@ -1212,6 +1212,16 @@ class NodeObject < ChefObject
     bmc_cmd("power on")
   end
 
+  def powercycle
+    set_state("reboot")
+    bmc_cmd("power cycle")
+  end
+
+  def poweroff
+    set_state("shutdown")
+    bmc_cmd("power off")
+  end
+
   def identify
     bmc_cmd("chassis identify")
   end

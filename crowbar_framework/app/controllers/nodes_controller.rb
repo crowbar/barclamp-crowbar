@@ -105,11 +105,6 @@ class NodesController < ApplicationController
             dirty = false
             node = NodeObject.find_node_by_name node_name
 
-            if node_attributes["allocate"] and not node.allocated?
-              node.allocate!
-              dirty = true
-            end
-
             unless node.alias == node_attributes["alias"]
               node.force_alias = node_attributes["alias"]
               dirty = true
@@ -130,6 +125,11 @@ class NodesController < ApplicationController
                 node.license_key = node_attributes["license_key"]
                 dirty = true
               end
+            end
+
+            if node_attributes["allocate"] and not node.allocated?
+              node.allocate!
+              dirty = true
             end
 
             unless node.intended_role == node_attributes["intended_role"]

@@ -45,7 +45,7 @@ class ==^BC-MODEL==Service < ServiceObject
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
-    @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+    @logger.debug("==*BC-MODEL== #{__method__}: entering #{all_nodes.inspect}")
     return if all_nodes.empty?
 
     # Make sure the bind hosts are in the admin network
@@ -58,14 +58,14 @@ class ==^BC-MODEL==Service < ServiceObject
 
       node.save
     end
-    @logger.debug("==*BC-MODEL== apply_role_pre_chef_call: leaving")
+    @logger.debug("==*BC-MODEL== #{__method__}: leaving")
   end
 
   # Similar to above - delete or uncomment for actions to be run after
   # chef-client runs.
   # def apply_role_post_chef_call(old_role, role, all_nodes)
-  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: entering #{all_nodes.inspect}")
-  #   @logger.debug("==*BC-MODEL== apply_role_post_chef_call: leaving")
+  #   @logger.debug("==*BC-MODEL== #{__method__}: entering #{all_nodes.inspect}")
+  #   @logger.debug("==*BC-MODEL== #{__method__}: leaving")
   # end
 
 end

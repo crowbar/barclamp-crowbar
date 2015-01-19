@@ -157,12 +157,12 @@ class ServiceObject
     elements.each do |role_name, nodes|
       nodes, failures = expand_nodes_for_all(nodes)
       unless failures.nil? || failures.empty?
-        @logger.debug "elements_to_nodes_to_roles_map: skipping items that we failed to expand: #{failures.join(", ")}"
+        @logger.debug "#{__method__}: skipping items that we failed to expand: #{failures.join(", ")}"
       end
 
       nodes.each do |node_name|
         if NodeObject.find_node_by_name(node_name).nil?
-          @logger.debug "elements_to_nodes_to_roles_map: skipping deleted node #{node_name}"
+          @logger.debug "#{__method__}: skipping deleted node #{node_name}"
           next
         end
         nodes_map[node_name] = [] if nodes_map[node_name].nil?
@@ -227,7 +227,7 @@ class ServiceObject
         end
       end
     rescue StandardError => e
-      @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
+      @logger.fatal("#{__method__}: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
     end
@@ -278,7 +278,7 @@ class ServiceObject
 #   process_queue - see what we can execute
 #
   def queue_proposal(inst, elements, deps, bc = @bc_name)
-    @logger.debug("queue proposal: enter #{inst} #{bc}")
+    @logger.debug("#{__method__}: enter #{inst} #{bc}")
     delay = []
     pre_cached_nodes = {}
     begin
@@ -323,7 +323,7 @@ class ServiceObject
         # remove from queue if it was queued before; might not be in the queue
         # because the proposal got changed since it got added to the queue
         unless preexisting_queued_item.nil?
-          @logger.debug("queue proposal: dequeuing already queued #{inst} #{bc}")
+          @logger.debug("#{__method__}: dequeuing already queued #{inst} #{bc}")
           dequeued = dequeue_proposal_no_lock(db["proposal_queue"], inst, bc)
           db.save if dequeued
         end
@@ -349,12 +349,12 @@ class ServiceObject
     prop = ProposalObject.find_proposal(bc, inst)
     prop["deployment"][bc]["crowbar-queued"] = true
     prop.save
-    @logger.debug("queue proposal: exit #{inst} #{bc}")
+    @logger.debug("#{__method__}: exit #{inst} #{bc}")
     [ delay, pre_cached_nodes ]
   end
 
   def dequeue_proposal_no_lock(queue, inst, bc = @bc_name)
-    @logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
+    @logger.debug("#{__method__}: enter #{inst} #{bc}")
     begin
       elements = nil
       # The elements = item["elements"] is on purpose to get the assignment out of the element.
@@ -369,21 +369,21 @@ class ServiceObject
       end
     rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
-      @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
+      @logger.debug("#{__method__}: exit #{inst} #{bc}: error")
       return false
     end
-    @logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
+    @logger.debug("#{__method__}: exit #{inst} #{bc}")
     true
   end
 
   def dequeue_proposal(inst, bc = @bc_name)
-    @logger.debug("dequeue proposal: enter #{inst} #{bc}")
+    @logger.debug("#{__method__}: enter #{inst} #{bc}")
     ret = false
     begin
       f = acquire_lock "queue"
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
+      @logger.debug("#{__method__}: exit #{inst} #{bc}: no entry") if db.nil?
       return [200, {}] if db.nil?
 
       queue = db["proposal_queue"]
@@ -391,12 +391,12 @@ class ServiceObject
       db.save if dequeued
     rescue StandardError => e
       @logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
-      @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
+      @logger.debug("#{__method__}: exit #{inst} #{bc}: error")
       return [400, e.message]
     ensure
       release_lock f
     end
-    @logger.debug("dequeue proposal: exit #{inst} #{bc}")
+    @logger.debug("#{__method__}: exit #{inst} #{bc}")
     return dequeued ? [200, {}] : [400, '']
   end
 
@@ -405,7 +405,7 @@ class ServiceObject
   # with our dependency algorithm
   #
   def process_queue
-    @logger.debug("process queue: enter")
+    @logger.debug("#{__method__}: enter")
     loop_again = true
     while loop_again
       loop_again = false
@@ -415,17 +415,17 @@ class ServiceObject
 
         db = ProposalObject.find_data_bag_item "crowbar/queue"
         if db.nil?
-          @logger.debug("process queue: exit: queue gone")
+          @logger.debug("#{__method__}: exit: queue gone")
           return
         end
 
         queue = db["proposal_queue"]
         if queue.nil? or queue.empty?
-          @logger.debug("process queue: exit: empty queue")
+          @logger.debug("#{__method__}: exit: empty queue")
           return
         end
 
-        @logger.debug("process queue: queue: #{queue.inspect}")
+        @logger.debug("#{__method__}: queue: #{queue.inspect}")
 
         # Test for ready
         remove_list = []
@@ -470,13 +470,13 @@ class ServiceObject
 
       rescue StandardError => e
         @logger.error("Error processing queue: #{e.message}")
-        @logger.debug("process queue: exit: error")
+        @logger.debug("#{__method__}: exit: error")
         return
       ensure
         release_lock f
       end
 
-      @logger.debug("process queue: list: #{list.inspect}")
+      @logger.debug("#{__method__}: list: #{list.inspect}")
 
       # For each ready item, apply it.
       list.each do |item|
@@ -485,11 +485,11 @@ class ServiceObject
         inst = item["inst"]
         service = eval("#{bc.camelize}Service.new @logger")
         answer = service.proposal_commit(inst, true, false)
-        @logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
+        @logger.debug("#{__method__}: item #{item.inspect}: results #{answer.inspect}")
         loop_again = true if answer[0] != 202
         $htdigest_reload = true
       end
-      @logger.debug("process queue: exit")
+      @logger.debug("#{__method__}: exit")
     end
   end
 
@@ -497,7 +497,7 @@ class ServiceObject
 # update proposal status information
 #
   def update_proposal_status(inst, status, message, bc = @bc_name)
-    @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
+    @logger.debug("#{__method__}: enter #{inst} #{bc} #{status} #{message}")
 
     prop = ProposalObject.find_proposal(bc, inst)
     unless prop.nil?
@@ -508,7 +508,7 @@ class ServiceObject
       res = true
     end
 
-    @logger.debug("update_proposal_status: exit #{inst} #{bc} #{status} #{message}")
+    @logger.debug("#{__method__}: exit #{inst} #{bc} #{status} #{message}")
     res
   end
 
@@ -542,7 +542,7 @@ class ServiceObject
   end
 
   def clean_proposal(proposal)
-    @logger.debug "clean_proposal"
+    @logger.debug "#{__method__}"
     proposal.delete("controller")
     proposal.delete("action")
     proposal.delete("barclamp")
@@ -1003,7 +1003,7 @@ class ServiceObject
   # A call is provided that receives the role and all string names of the nodes before the chef-client call
   #
   def apply_role(role, inst, in_queue)
-    @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
+    @logger.debug "#{__method__}(#{role.name}, #{inst}, #{in_queue})"
 
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
@@ -1027,7 +1027,7 @@ class ServiceObject
     new_deployment["elements"].each do |role_name, nodes|
       expanded_new_elements[role_name], failures = expand_nodes_for_all(nodes)
       unless failures.nil? || failures.empty?
-        @logger.fatal("apply_role: Failed to expand items #{failures.inspect} for role \"#{role_name}\"")
+        @logger.fatal("#{__method__}: Failed to expand items #{failures.inspect} for role \"#{role_name}\"")
         message = "Failed to apply the proposal: cannot expand list of nodes for role \"#{role_name}\", following items do not exist: #{failures.join(", ")}"
         update_proposal_status(inst, "failed", message)
         process_queue unless in_queue
@@ -1178,7 +1178,7 @@ class ServiceObject
       # Remove the roles being lost
       rlist.each do |item|
         next unless node.role? item
-        @logger.debug("AR: Removing role #{item} to #{node.name}")
+        @logger.debug("#{__method__}: Removing role #{item} to #{node.name}")
         node.delete_from_run_list item
         save_it = true
       end
@@ -1187,7 +1187,7 @@ class ServiceObject
       alist.each do |item|
         next if node.role? item
         priority = runlist_priority_map[item] || local_chef_order
-        @logger.debug("AR: Adding role #{item} to #{node.name} with priority #{priority}")
+        @logger.debug("#{__method__}: Adding role #{item} to #{node.name} with priority #{priority}")
         node.add_to_run_list(item, priority, role_map[item])
         save_it = true
       end
@@ -1197,27 +1197,27 @@ class ServiceObject
         # Add the config role
         unless node.role?(role.name)
           priority = runlist_priority_map[role.name] || local_chef_order
-          @logger.debug("AR: Adding role #{role.name} to #{node.name} with priority #{priority}")
+          @logger.debug("#{__method__}: Adding role #{role.name} to #{node.name} with priority #{priority}")
           node.add_to_run_list(role.name, priority, role_map[role.name])
           save_it = true
         end
       else
         # Remove the config role
         if node.role?(role.name)
-          @logger.debug("AR: Removing role #{role.name} to #{node.name}")
+          @logger.debug("#{__method__}: Removing role #{role.name} to #{node.name}")
           node.delete_from_run_list role.name
           save_it = true
         end
       end
 
-      @logger.debug("AR: Saving node #{node.name}") if save_it
+      @logger.debug("#{__method__}: Saving node #{node.name}") if save_it
       node.save if save_it
     end
 
     begin
       apply_role_pre_chef_call(old_role, role, all_nodes)
     rescue StandardError => e
-      @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
+      @logger.fatal("#{__method__}: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception before calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)
       restore_to_ready(all_nodes)
@@ -1244,8 +1244,8 @@ class ServiceObject
         non_admin_nodes << node_name
       end
 
-      @logger.debug("AR: Calling chef-client for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
-      @logger.debug("AR: Calling chef-client for #{role.name} on admin nodes #{admin_list.join(" ")}")
+      @logger.debug("#{__method__}: Calling chef-client for #{role.name} on non-admin nodes #{non_admin_nodes.join(" ")}")
+      @logger.debug("#{__method__}: Calling chef-client for #{role.name} on admin nodes #{admin_list.join(" ")}")
 
       #
       # XXX: We used to do this twice - do we really need twice???
@@ -1334,7 +1334,7 @@ class ServiceObject
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
     rescue StandardError => e
-      @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
+      @logger.fatal("#{__method__}: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception after calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)
       restore_to_ready(all_nodes)
@@ -1373,7 +1373,7 @@ class ServiceObject
   def add_role_to_instance_and_node(barclamp, instance, name, prop, role, newrole)
     node = NodeObject.find_node_by_name name
     if node.nil?
-      @logger.debug("ARTOI: couldn't find node #{name}. bailing")
+      @logger.debug("#{__method__}: couldn't find node #{name}. bailing")
       return false
     end
 
@@ -1386,20 +1386,20 @@ class ServiceObject
 
     prop["deployment"][barclamp]["elements"][newrole] = [] if prop["deployment"][barclamp]["elements"][newrole].nil?
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
-      @logger.debug("ARTOI: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
+      @logger.debug("#{__method__}: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
       prop["deployment"][barclamp]["elements"][newrole] << node.name
       prop.save(:applied => prop.latest_applied?)
     else
-      @logger.debug("ARTOI: node #{node.name} already in proposal: role #{newrole} for #{barclamp}")
+      @logger.debug("#{__method__}: node #{node.name} already in proposal: role #{newrole} for #{barclamp}")
     end
 
     role.override_attributes[barclamp]["elements"][newrole] = [] if role.override_attributes[barclamp]["elements"][newrole].nil?
     unless role.override_attributes[barclamp]["elements"][newrole].include?(node.name)
-      @logger.debug("ARTOI: updating role #{role.name} for node #{node.name} for barclamp: #{barclamp}/#{newrole}")
+      @logger.debug("#{__method__}: updating role #{role.name} for node #{node.name} for barclamp: #{barclamp}/#{newrole}")
       role.override_attributes[barclamp]["elements"][newrole] << node.name
       role.save
     else
-      @logger.debug("ARTOI: role #{role.name} already has node #{node.name} for barclamp: #{barclamp}/#{newrole}")
+      @logger.debug("#{__method__}: role #{role.name} already has node #{node.name} for barclamp: #{barclamp}/#{newrole}")
     end
 
     save_it = false

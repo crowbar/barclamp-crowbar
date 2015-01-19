@@ -393,7 +393,7 @@ class BarclampController < ApplicationController
             missing_nodes = answer[1].map { |node_dns| NodeObject.find_node_by_name(node_dns) }
 
             unready_nodes = missing_nodes.map(&:alias)
-            unallocated_nodes = missing_nodes.reject(&:allocated).map(&:alias)
+            unallocated_nodes = missing_nodes.reject(&:allocated?).map(&:alias)
 
             flash[:notice] = "#{t('barclamp.proposal_show.commit_proposal_queued')}: #{(unready_nodes - unallocated_nodes).join(", ")}"
 

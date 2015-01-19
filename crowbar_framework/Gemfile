@@ -17,54 +17,53 @@
 
 source "https://rubygems.org"
 
-gem "rails", "~> 4.1"
-gem "haml-rails", "~> 0.5"
-gem "sass-rails", "~> 4.0"
-gem "rainbows-rails", "~> 1.0"
+gem "rails", "~> 4.1.9"
+gem "haml-rails", "~> 0.5.3"
+gem "sass-rails", "~> 4.0.5"
+gem "rainbows-rails", "~> 1.0.1"
+gem "active_model_serializers", "~> 0.9.0"
+gem "activeresource", "~> 4.0.0"
+gem "closure-compiler", "~> 1.1.10"
+gem "dotenv", "~> 1.0.2"
+gem "hashie", "~> 3.3.1"
+gem "i18n-js", "~> 2.1.2"
+gem "js-routes", "~> 0.9.7"
+gem "kwalify", "~> 0.7.2"
+gem "redcarpet", "~> 3.2.0"
+gem "simple-navigation", "~> 3.12.2"
+gem "simple_navigation_renderers", "~> 1.0.2"
+gem "sqlite3", "~> 1.3.9"
+gem "syslogger", "~> 1.6.0"
 
-gem "active_model_serializers", "~> 0.9"
-gem "activeresource", "~> 4.0"
-gem "closure-compiler", "~> 1.1"
-gem "dotenv", "~> 1.0"
-gem "hashie", "~> 3.3"
-gem "i18n-js", "~> 2.1"
-gem "js-routes", "~> 0.9"
-gem "kwalify", "~> 0.7"
-gem "redcarpet", "~> 3.2"
-gem "simple-navigation", "~> 3.12"
-gem "simple_navigation_renderers", "~> 1.0"
-gem "sqlite3", "~> 1.3"
-gem "syslogger", "~> 1.6"
+gem "ohai", "~> 6.22.0"
+gem "chef", "~> 10.32.2"
 
-gem "ohai", "~> 6.22"
-gem "chef", "~> 10.32"
-
-gem "mixlib-shellout", "~> 1.4",
+gem "mixlib-shellout", "~> 1.4.0",
   require: "mixlib/shellout"
 
-gem "activerecord-session_store", "~> 0.1",
+gem "activerecord-session_store", "~> 0.1.0",
   require: "activerecord/session_store"
 
-gem "mime-types", "~> 1.25",
+gem "mime-types", "~> 1.25.1",
   require: "mime/types"
 
-gem "dotenv-deployment", "~> 0.2",
+gem "dotenv-deployment", "~> 0.2.0",
   require: false
 
-gem "rack-mini-profiler", "~> 0.9",
+gem "rack-mini-profiler", "~> 0.9.1",
   require: false
 
 group :development, :test do
-  gem "brakeman", "~> 2.6"
-  gem "rspec-rails", "~> 3.1"
+  gem "brakeman", "~> 2.6.3"
+  gem "rspec-rails", "~> 3.1.0"
 end
 
 group :test do
-  gem "mocha", "~> 1.1"
-  gem "sinatra", "~> 1.4"
-  gem "webmock", "~> 1.19"
+  gem "mocha", "~> 1.1.0"
+  gem "sinatra", "~> 1.4.5"
+  gem "webmock", "~> 1.19.0"
 
-  gem "simplecov", "~> 0.9", require: false
+  gem "simplecov", "~> 0.9.1", require: false
 
   if ENV["CODECLIMATE_REPO_TOKEN"]
     gem "coveralls", require: false

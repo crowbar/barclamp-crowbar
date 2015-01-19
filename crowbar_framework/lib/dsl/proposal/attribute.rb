@@ -204,7 +204,7 @@ module Dsl
       end
 
       def method_missing(method_name, *arguments, &block)
-        if view.respond_to? method_name
+        if view.respond_to?(method_name, true)
           view.send(method_name, *arguments, &block)
         else
           super
@@ -235,7 +235,7 @@ module Dsl
           else
             result
           end
-        rescue
+        rescue TypeError => e
           Rails.logger.debug "Failed to find the attribute for `#{attribute.join(", ")}`"
           ""
         end

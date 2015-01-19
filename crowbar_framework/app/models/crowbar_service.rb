@@ -30,18 +30,18 @@ class CrowbarService < ServiceObject
     return [404, "No state specified"] if state.nil?
     # FIXME: validate state
 
-    @logger.info("Crowbar transition enter: #{name} to #{state}")
+    @logger.info("#{__method__} enter: #{name} to #{state}")
 
     f = acquire_lock "BA-LOCK"
     begin
       node = NodeObject.find_node_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
-        @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
+        @logger.debug("#{__method__}: creating new node for #{name} to #{state}")
         node = NodeObject.create_new name
         self.transition_save_node = true
       end
       if node.nil?
-        @logger.error("Crowbar transition leaving: node not found nor created - #{name} to #{state}")
+        @logger.error("#{__method__} leaving: node not found nor created - #{name} to #{state}")
         return [404, "Node not found"]
       end
 
@@ -52,12 +52,12 @@ class CrowbarService < ServiceObject
       pop_it = false
 
       if %w(hardware-installing hardware-updating update).include? state
-        @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")
+        @logger.debug("#{__method__}: force run because of state #{name} to #{state}")
         pop_it = true
       end
 
       if node.crowbar["state"] != state
-        @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
+        @logger.debug("#{__method__}: state has changed so we need to do stuff for #{name} to #{state}")
 
         node.crowbar["crowbar"]["state_debug"] = {} if node.crowbar["crowbar"]["state_debug"].nil?
         if node.crowbar["crowbar"]["state_debug"][state].nil?
@@ -115,13 +115,13 @@ class CrowbarService < ServiceObject
           bc_lock = acquire_lock "#{bc}:#{rname}"
           begin
             svc_name = "#{bc.camelize}Service"
-            @logger.info("Crowbar transition: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")
+            @logger.info("#{__method__}: calling #{bc}:#{rname} for #{name} for #{state} - svc: #{svc_name}")
             service = eval("#{svc_name}.new @logger")
             answer = service.transition(rname, name, state)
             if answer[0] != 200
-              @logger.error("Crowbar transition: finished #{bc}:#{rname} for #{name} for #{state}: FAILED #{answer[1]}")
+              @logger.error("#{__method__}: finished #{bc}:#{rname} for #{name} for #{state}: FAILED #{answer[1]}")
             else
-              @logger.debug("Crowbar transition: finished #{bc}:#{rname} for #{name} for #{state}")
+              @logger.debug("#{__method__}: finished #{bc}:#{rname} for #{name} for #{state}")
               unless answer[1]["name"].nil?
                 name = answer[1]["name"]
               end
@@ -145,24 +145,24 @@ class CrowbarService < ServiceObject
       process_queue if state == "ready"
     end
 
-    @logger.debug("Crowbar transition leaving: #{name} to #{state}")
+    @logger.debug("#{__method__} leaving: #{name} to #{state}")
     [200, { :name => name } ]
   end
 
   def create_proposal
-    @logger.debug("Crowbar create_proposal enter")
+    @logger.debug("#{__method__} enter")
     base = super
-    @logger.debug("Crowbar create_proposal exit")
+    @logger.debug("#{__method__} exit")
     base
   end
 
   def apply_role (role, inst, in_queue)
-    @logger.debug("Crowbar apply_role: enter")
+    @logger.debug("#{__method__}: enter")
     answer = super
-    @logger.debug("Crowbar apply_role: super apply_role finished")
+    @logger.debug("#{__method__}: super apply_role finished")
 
     role = role.default_attributes
-    @logger.debug("Crowbar apply_role: create initial instances")
+    @logger.debug("#{__method__}: create initial instances")
     unless role["crowbar"].nil? or role["crowbar"]["instances"].nil?
       ordered_bcs = order_instances role["crowbar"]["instances"]
 #      role["crowbar"]["instances"].each do |k,plist|
@@ -181,18 +181,18 @@ class CrowbarService < ServiceObject
             id = data["id"].gsub("bc-#{k}-", "")
           end
 
-          @logger.debug("Crowbar apply_role: creating #{k}.#{id}")
+          @logger.debug("#{__method__}: creating #{k}.#{id}")
 
           # Create a service to talk to.
           service = eval("#{k.camelize}Service.new @logger")
 
-          @logger.debug("Crowbar apply_role: Calling get to see if it already exists: #{k}.#{id}")
+          @logger.debug("#{__method__}: Calling get to see if it already exists: #{k}.#{id}")
           answer = service.proposals
           if answer[0] != 200
             @logger.error("Failed to list #{k}: #{answer[0]} : #{answer[1]}")
           else
             unless answer[1].include?(id)
-              @logger.debug("Crowbar apply_role: didn't already exist, creating proposal for #{k}.#{id}")
+              @logger.debug("#{__method__}: didn't already exist, creating proposal for #{k}.#{id}")
               answer = service.proposal_create(data)
               if answer[0] != 200
                 answer[1] = "Failed to create proposal '#{id}' for barclamp '#{k}' " +
@@ -201,7 +201,7 @@ class CrowbarService < ServiceObject
               end
             end
 
-            @logger.debug("Crowbar apply_role: check to see if it is already active: #{k}.#{id}")
+            @logger.debug("#{__method__}: check to see if it is already active: #{k}.#{id}")
             answer = service.list_active
             if answer[0] != 200
               answer[1] = "Failed to list active '#{k}' proposals " +
@@ -209,7 +209,7 @@ class CrowbarService < ServiceObject
               break
             else
               unless answer[1].include?(id)
-                @logger.debug("Crowbar apply_role: #{k}.#{id} wasn't active: Activating")
+                @logger.debug("#{__method__}: #{k}.#{id} wasn't active: Activating")
                 answer = service.proposal_commit(id, false, false)
                 if answer[0] != 200
                   answer[1] = "Failed to commit proposal '#{id}' for '#{k}' " +
@@ -220,7 +220,7 @@ class CrowbarService < ServiceObject
             end
           end
 
-          @logger.fatal("Crowbar apply_role: Done with creating: #{k}.#{id}")
+          @logger.fatal("#{__method__}: Done with creating: #{k}.#{id}")
         end
         if answer[0] != 200
           break
@@ -229,9 +229,9 @@ class CrowbarService < ServiceObject
     end
 
     if answer[0] != 200
-      @logger.error("Crowbar apply_role: #{answer.inspect}")
+      @logger.error("#{__method__}: #{answer.inspect}")
     else
-      @logger.debug("Crowbar apply_role: leaving: #{answer.inspect}")
+      @logger.debug("#{__method__}: leaving: #{answer.inspect}")
     end
     answer
   end
@@ -246,7 +246,7 @@ class CrowbarService < ServiceObject
     #sort by the order value (x,y are an array with the value of
     #the hash entry
     t = tmp.sort{ |x,y| x[1][:order] <=> y[1][:order] }
-    @logger.fatal("ordered instances: #{t.inspect}")
+    @logger.fatal("#{__method__}: #{t.inspect}")
     t
   end
 

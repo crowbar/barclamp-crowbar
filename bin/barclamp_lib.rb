@@ -212,7 +212,7 @@ def list
     [ "No current configurations", 0 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0].sort.each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end
@@ -268,7 +268,7 @@ def proposal_list
     [ "No current proposals", 0 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0].sort.each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end
@@ -419,7 +419,7 @@ def element_node(element)
     [ "No nodes for #{element}", 1 ]
   else
     out = ""
-    struct[0].each do |name|
+    struct[0].sort.each do |name|
       out = out + "\n" if out != ""
       out = out + "#{name}"
     end

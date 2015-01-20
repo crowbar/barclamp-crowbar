@@ -49,161 +49,190 @@
     }
   };
 
-  LedUpdate.prototype.process = function() {
+  LedUpdate.prototype.processGroups = function(response, ignores) {
+    var self   = this;
+    var reload = false;
+    $('[data-group]').each(function(index, current) {
+      var current_handle = $(current).data('group');
+
+      if (!response.groups[current_handle]) {
+        reload = true;
+      }
+    });
+
+    if (self.$el.data('ledsingle') == undefined) {
+      $.each(response.groups, function(key, val) {
+        var current = $(
+          '[data-group="{0}"] [data-piechart]'.format(key)
+        );
+
+        if (current.length > 0) {
+          var chartVals = [
+            val.status.ready,
+            val.status.failed,
+            val.status.unknown,
+            val.status.unready + val.status.pending
+          ];
+
+          current.attr('title', val.tooltip).tooltip('destroy').tooltip({
+            html: true
+          });
+
+          current.sparkline(
+            chartVals,
+            {
+              type: 'pie',
+              tagValuesAttribute: 'data-piechart',
+              disableTooltips: true,
+              disableHighlight: true,
+              sliceColors: [
+                '#0f0',
+                '#f00',
+                '#999',
+                '#ff0'
+              ]
+            }
+          );
+        } else {
+          reload = true;
+        }
+      });
+    }
+    self.conditionalReload(reload);
+  };
+
+  LedUpdate.prototype.processNodes = function(response, ignores) {
     var self = this;
-    var ignores = [];
+    var reload = false;
+
+    $('[data-node]').each(function(index, current) {
+      var current_handle = $(current).data('node');
+
+      // Node in page not found in response, reload
+      if (!response.nodes[current_handle]) {
+        reload = true;
+      }
+    });
+
+    if (self.$el.data('ledsingle') == undefined) {
+      $.each(response.nodes, function(key, val) {
+        var current = $(
+          '[data-node="{0}"]'.format(key)
+        );
+
+        // Node in response not found in page, reload
+        if (current.length == 0) {
+          reload = true;
+        } else {
+          if(current.hasClass('unknown')) {
+            self.update(
+              current,
+              val.class,
+              val.status
+            );
+          } else {
+            self.update(
+              current,
+              val.class,
+              val.status,
+              function() {
+                current.effect('fade').effect('fade');
+              }
+            );
+          }
+
+          var text = $(
+            '[data-node-state="{0}"]'.format(key)
+          );
+
+          if (text.html() != val.status) {
+            text.html(val.status).effect('fade').effect('fade');
+          }
+        }
+      });
+    }
+
+    self.conditionalReload(reload);
+  };
+
+  LedUpdate.prototype.processProposals = function(response, ignores) {
+    var self = this;
+    $.each(response.proposals, function(key, val) {
+      var current = $(
+        '#{0}'.format(key)
+      );
+
+      if(current.hasClass('unknown')) {
+        self.update(
+          current,
+          val,
+          response['i18n'][key]['status']
+        );
+      } else {
+        self.update(
+          current,
+          val,
+          response['i18n'][key]['status'],
+          function() {
+            current.effect('fade').effect('fade');
+          }
+        );
+      }
+    });
+  };
+
+  LedUpdate.prototype.conditionalReload = function(reload) {
+    var self = this;
+    if (reload && self.$el.data('ledreload') != false) {
+      if (self.$el.data('ledredirect')) {
+        win.location = self.$el.data('ledredirect');
+      } else {
+        win.location.reload();
+      }
+    }
+  };
+
+  LedUpdate.prototype.processResponse = function(response, ignores) {
+    var self = this;
+    var reload = false;
+
+    if ($.isFunction(self.options.beforeProcess)) {
+      self.options.beforeProcess.call(this, response);
+    }
+
+    if (response.groups && $.inArray("groups", ignores) < 0) {
+      self.processGroups(response, ignores);
+    }
+
+    if (response.nodes && $.inArray("nodes", ignores) < 0) {
+      self.processNodes(response, ignores);
+    }
+
+    if (response.proposals && $.inArray("proposals", ignores) < 0) {
+      self.processProposals(response, ignores);
+    }
 
     self.destroy();
     self.animate();
 
+    if ($.isFunction(self.options.afterProcess)) {
+      self.options.afterProcess.call(this, response);
+    }
+  };
+
+  LedUpdate.prototype.process = function() {
+    var self = this;
+
+    self.destroy();
+    self.animate();
+
+    var ignores = [];
     if (this.$el.data('ledignore')) {
       ignores = this.$el.data('ledignore').split(',');
     }
 
     try {
-      $.getJSON(this.$el.data('ledupdate'), function(response) {
-        var reload = false;
-
-        if ($.isFunction(self.options.beforeProcess)) {
-          self.options.beforeProcess.call(this, response);
-        }
-
-        if (response.groups && $.inArray("groups", ignores) < 0) {
-          $('[data-group]').each(function(index, current) {
-            var current_handle = $(current).data('group');
-
-            if (!response.groups[current_handle]) {
-              reload = true;
-            }
-          });
-
-          if (self.$el.data('ledsingle') == undefined) {
-            $.each(response.groups, function(key, val) {
-              var current = $(
-                '[data-group="{0}"] [data-piechart]'.format(key)
-              );
-
-              if (current.length > 0) {
-                var chartVals = [
-                  val.status.ready,
-                  val.status.failed,
-                  val.status.unknown,
-                  val.status.unready + val.status.pending
-                ];
-
-                current.attr('title', val.tooltip).tooltip('destroy').tooltip({
-                  html: true
-                });
-
-                current.sparkline(
-                  chartVals,
-                  {
-                    type: 'pie',
-                    tagValuesAttribute: 'data-piechart',
-                    disableTooltips: true,
-                    disableHighlight: true,
-                    sliceColors: [
-                      '#0f0',
-                      '#f00',
-                      '#999',
-                      '#ff0'
-                    ]
-                  }
-                );
-              } else {
-                reload = true;
-              }
-            });
-          }
-        }
-
-        if (response.nodes && $.inArray("nodes", ignores) < 0) {
-          $('[data-node]').each(function(index, current) {
-            var current_handle = $(current).data('node');
-
-            if (!response.nodes[current_handle]) {
-              reload = true;
-            }
-          });
-
-          if (self.$el.data('ledsingle') == undefined) {
-            $.each(response.nodes, function(key, val) {
-              var current = $(
-                '[data-node="{0}"]'.format(key)
-              );
-
-              if (current.length > 0) {
-                if(current.hasClass('unknown')) {
-                  self.update(
-                    current,
-                    val.class,
-                    val.status
-                  );
-                } else {
-                  self.update(
-                    current,
-                    val.class,
-                    val.status,
-                    function() {
-                      current.effect('fade').effect('fade');
-                    }
-                  );
-                }
-
-                var text = $(
-                  '[data-node-state="{0}"]'.format(key)
-                );
-
-                if (text.html() != val.status) {
-                  text.html(val.status).effect('fade').effect('fade');
-                }
-              } else {
-                reload = true;
-              }
-            });
-          }
-        }
-
-        if (response.proposals && $.inArray("proposals", ignores) < 0) {
-          $.each(response.proposals, function(key, val) {
-            var current = $(
-              '#{0}'.format(key)
-            );
-
-            if(current.hasClass('unknown')) {
-              self.update(
-                current,
-                val,
-                response['i18n'][key]['status']
-              );
-            } else {
-              self.update(
-                current,
-                val,
-                response['i18n'][key]['status'],
-                function() {
-                  current.effect('fade').effect('fade');
-                }
-              );
-            }
-          });
-        }
-
-        self.destroy();
-        self.animate();
-
-        if ($.isFunction(self.options.afterProcess)) {
-          self.options.afterProcess.call(this, response);
-        }
-
-        if (reload && self.$el.data('ledreload') != false) {
-          if (self.$el.data('ledredirect')) {
-            win.location = self.$el.data('ledredirect');
-          } else {
-            win.location.reload();
-          }
-        }
-      });
+      $.getJSON(this.$el.data('ledupdate'), function(response) { self.processResponse(response, ignores); });
     } catch(e) {
       if (win.console) {
         console.log(e)

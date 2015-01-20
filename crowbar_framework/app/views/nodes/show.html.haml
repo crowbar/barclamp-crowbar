@@ -1,4 +1,4 @@
-.row{ "data-ledupdate" => nodes_status_path, "data-ledredirect" => dashboard_path, "data-ledignore" => "groups,proposals", "data-ledsingle" => true }
+.row{ "data-ledupdate" => nodes_status_path, "data-ledredirect" => node_path(@node.handle), "data-ledignore" => "proposals" }
   .col-xs-12
     %h1.page-header
       = t(".title")

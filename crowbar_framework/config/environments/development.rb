@@ -52,8 +52,7 @@ Rails.application.configure do
   config.log_tags = []
 
   config.logger = ActiveSupport::TaggedLogging.new(
-    Logger.new Rails.root.join("log", "development.log") # SyslogLogger.new
+    Logger.new(Rails.root.join("log", "development.log"))
   )
-
-  config.log_formatter = ::Logger::Formatter.new
+  config.logger.formatter = ::Crowbar::Logger::Formatter.new
 end

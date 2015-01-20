@@ -1,10 +1,21 @@
-- if @node.admin?
-  - if @node.bmc_set?
-    = link_to "Identify", hit_node_path(@node.handle, "identify"), :class => "btn btn-default", "data-remote" => true
-- else
-  = link_to "Reboot", hit_node_path(@node.handle, "reboot"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
-  = link_to "Shutdown", hit_node_path(@node.handle, "shutdown"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
+- if @node.bmc_set?
+  = link_to t(".identify"), hit_node_path(@node.handle, "identify"), class: "btn btn-default", remote: true
 
-  - if @node.bmc_set?
-    = link_to "Power on", hit_node_path(@node.handle, "poweron"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t("are_you_sure")
-    = link_to "Identify", hit_node_path(@node.handle, "identify"), :class => "btn btn-default", "data-remote" => true
+- unless @node.admin?
+  %button.btn.btn-default.dropdown-toggle{ type: "button", data: { toggle: "dropdown" } }
+    = t(".actions")
+    %span.caret
+
+  %ul.dropdown-menu{ role: "menu" }
+    %li{ role: "presentation" }
+      = link_to t(".reboot"), hit_node_path(@node.handle, "reboot"), role: "menuitem", remote: true
+    %li{ role: "presentation" }
+      = link_to t(".shutdown"), hit_node_path(@node.handle, "shutdown"), role: "menuitem", remote: true
+    %li.divider{ role: "presentation" }
+    - if @node.bmc_set?
+      %li{ role: "presentation" }
+        = link_to t(".poweron"), hit_node_path(@node.handle, "poweron"), role: "menuitem", remote: true, "data-confirm" => t("are_you_sure")
+    %li{ role: "presentation" }
+      = link_to t(".powercycle"), hit_node_path(@node.handle, "powercycle"), role: "menuitem", remote: true
+    %li{ role: "presentation" }
+      = link_to t(".poweroff"), hit_node_path(@node.handle, "poweroff"), role: "menuitem", remote: true

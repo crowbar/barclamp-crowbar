@@ -416,6 +416,14 @@ en:
       reinstall_tooltip: 'Rebuild the node to a pristine state using its current deployment profile'
       deallocate_tooltip: 'Remove the current allocation from the node'
       forget_tooltip: 'Remove all records of the node from the Crowbar / Chef database'
+    buttons_power:
+      actions: 'Power Actions'
+      reboot: 'Reboot'
+      shutdown: 'Shutdown'
+      poweron: 'Power On'
+      powercycle: 'Power Cycle'
+      poweroff: 'Power Off'
+      identify: 'Identify'
     form:
       allocate: 'Allocate'
       save: 'Save'

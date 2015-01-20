@@ -59,4 +59,9 @@ module CrowbarHelper
     # chef10 so we have to rescue false (see e.g. CHEF-3736)
     !!node["crowbar"].fetch("admin_node", false) rescue false
   end
+
+  def self.in_sledgehammer?(node)
+    states = [ "ready", "readying", "recovering", "applying" ]
+    not states.include?(node[:state])
+  end
 end

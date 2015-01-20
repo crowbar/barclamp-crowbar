@@ -28,7 +28,8 @@ else
   loc = File.expand_path(File.dirname(__FILE__))
 end
 
-@areas = Dir.glob("./crowbar_*").map! { |x| x.gsub("./crowbar_", "") }
+@areas = Dir.glob("./crowbar_*").select {|ex| File.executable?(ex)}
+@areas = @areas.map! { |x| x.gsub("./crowbar_", "") }
 @areas << Dir.glob(File.join(loc,"crowbar_*")).map! { |x| x.gsub(File.join(loc,"crowbar_"), "") }
 @areas = @areas.flatten.select {|a| a !~ /\.sh$/}
 

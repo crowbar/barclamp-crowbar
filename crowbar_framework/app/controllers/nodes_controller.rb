@@ -301,7 +301,15 @@ class NodesController < ApplicationController
   # GET /nodes/1.xml
   def show
     get_node_and_network(params[:id] || params[:name])
-    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
+    if @node.nil?
+      msg = "Node #{params[:id] || params[:name]}: not found"
+      if request.format == 'html'
+        flash[:notice] = msg
+        return redirect_to nodes_path
+      else
+        raise ActionController::RoutingError.new(msg)
+      end
+    end
     get_nodes_and_groups(params[:name], false)
     respond_to do |format|
       format.html # show.html.erb

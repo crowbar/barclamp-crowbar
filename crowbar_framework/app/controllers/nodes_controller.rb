@@ -313,7 +313,7 @@ class NodesController < ApplicationController
   def edit
     get_node_and_network(params[:id] || params[:name])
     if @node.nil?
-      flash[:notice] = "Node #{params[:id] || params[:name]}: not found"
+      flash[:notice] = "Node #{params[:id] || params[:name]} not found."
       return redirect_to nodes_path
     end
   end
@@ -324,7 +324,7 @@ class NodesController < ApplicationController
     end
 
     get_node_and_network(params[:id] || params[:name])
-    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]}: not found") if @node.nil?
+    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]} not found.") if @node.nil?
 
     if params[:submit] == t('nodes.form.allocate')
       if save_node
@@ -343,7 +343,7 @@ class NodesController < ApplicationController
   #this code allow us to get values of attributes by path of node
   def attribute
     @node = NodeObject.find_node_by_name(params[:name])
-    raise ActionController::RoutingError.new("Node #{params[:name]}: not found") if @node.nil?
+    raise ActionController::RoutingError.new("Node #{params[:name]} not found.") if @node.nil?
     @attribute = @node.to_hash
     params[:path].to_a.each do |element|
       @attribute = @attribute[element]

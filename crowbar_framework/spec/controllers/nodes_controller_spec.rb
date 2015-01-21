@@ -187,15 +187,24 @@ describe NodesController do
       response.should be_success
     end
 
-    it "fails for missing node" do
-      expect {
-        get :show, :id => "missing"
-      }.to raise_error(ActionController::RoutingError)
+    describe "as json" do
+      it "fails for missing node" do
+        expect {
+          get :show, :id => "missing", :format => "json"
+        }.to raise_error(ActionController::RoutingError)
+      end
+
+      it "renders json" do
+        get :show, :id => "testing", :format => "json"
+        response.should be_success
+      end
     end
 
-    it "renders json" do
-      get :show, :id => "testing", :format => "json"
-      response.should be_success
+    describe "as html" do
+      it "redirects to dashboard for missing node" do
+        get :show, :id => "missing"
+        response.should redirect_to(nodes_path)
+      end
     end
   end
 

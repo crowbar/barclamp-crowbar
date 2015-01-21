@@ -52,8 +52,7 @@ Rails.application.configure do
   config.log_tags = []
 
   config.logger = ActiveSupport::TaggedLogging.new(
-    Logger.new File.join(ENV["CROWBAR_LOG_DIR"], "production.log") # SyslogLogger.new
+    Logger.new(File.join(ENV["CROWBAR_LOG_DIR"], "production.log"))
   )
-
-  config.log_formatter = ::Logger::Formatter.new
+  config.logger.formatter = ::Crowbar::Logger::Formatter.new
 end

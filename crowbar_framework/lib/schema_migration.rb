@@ -111,6 +111,7 @@ module SchemaMigration
       return a, d
     end
 
+    puts "Running migration script #{script} (upgrade: #{is_upgrade})"
     load script
 
     if is_upgrade

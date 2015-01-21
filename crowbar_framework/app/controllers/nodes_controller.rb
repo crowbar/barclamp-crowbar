@@ -313,7 +313,7 @@ class NodesController < ApplicationController
   def edit
     get_node_and_network(params[:id] || params[:name])
     if @node.nil?
-      flash[:notice] = "Node #{params[:id] || params[:name]} not found."
+      flash[:alert] = "Node #{params[:id] || params[:name]} not found."
       return redirect_to nodes_path
     end
   end

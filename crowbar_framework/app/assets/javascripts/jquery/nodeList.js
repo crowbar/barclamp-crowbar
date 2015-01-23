@@ -70,6 +70,8 @@
             node,
             source.data('alias'),
             source.data('admin'),
+            source.data('platform'),
+            source.data('platform-version'),
             source.data('cluster'),
             true
           );
@@ -121,6 +123,8 @@
           $node.data('id'),
           $node.data('alias'),
           $node.data('admin'),
+          $node.data('platform'),
+          $node.data('platform-version'),
           $node.data('cluster'),
           false
         );
@@ -203,7 +207,7 @@
     );
   };
 
-  NodeList.prototype.insertNode = function(role, id, alias, admin, cluster, initial) {
+  NodeList.prototype.insertNode = function(role, id, alias, admin, platform, platform_version, cluster, initial) {
     var self = this;
     var $role = $(self.dataBag.roleTarget.format(role));
 
@@ -317,6 +321,40 @@
             break;
         }
       }
+
+      if (constraints.platform !== undefined && constraints.platform) {
+        var platforms = $.map(constraints.platform, function(c_version, c_platform) {
+          return (platform === c_platform) && self.equalOrMatchVersion(platform_version, c_version);
+        });
+        var is_any_true = platforms.some(function (element, index, array) {
+          return element;
+        });
+        if (!is_any_true) {
+          return self.errorMessage(
+            'barclamp.node_selector.platform'.localize().format(
+              alias,
+              role
+            )
+          );
+        }
+      }
+
+      if (constraints.exclude_platform !== undefined && constraints.exclude_platform) {
+        var platforms = $.map(constraints.exclude_platform, function(c_version, c_platform) {
+          return (platform === c_platform) && self.equalOrMatchVersion(platform_version, c_version);
+        });
+        var is_any_true = platforms.some(function (element, index, array) {
+          return element;
+        });
+        if (is_any_true) {
+          return self.errorMessage(
+            'barclamp.node_selector.exclude_platform'.localize().format(
+              alias,
+              role
+            )
+          );
+        }
+      }
     }
 
     $role.append(
@@ -357,6 +395,66 @@
     );
 
     this.dataBag.removedOld = true;
+  };
+
+  NodeList.prototype.equalOrMatchVersion = function(value, maybe_regexp) {
+    var to_version = function(version) {
+      var match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+      if (match) {
+        return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+      }
+
+      match = /^(\d+)\.(\d+)$/.exec(version);
+      if (match) {
+        return [parseInt(match[1]), parseInt(match[2]), 0];
+      }
+
+      match = /^(\d+)$/.exec(version);
+      if (match) {
+        return [parseInt(match[1]), 0, 0];
+      }
+
+      return [0, 0, 0];
+    };
+
+    var cmp = function(op, version1, version2) {
+      var as_version1 = to_version(version1);
+      var as_version2 = to_version(version2);
+      var result = as_version1.map(function(v1, i) {
+        switch (op) {
+          case ">=":
+            return v1 >= as_version2[i];
+          case ">":
+            return v1 > as_version2[i];
+          case "<=":
+            return v1 <= as_version2[i];
+          case "<":
+            return v1 < as_version2[i];
+          case "==":
+            return v1 == as_version2[i];
+          default:
+            return false;
+        }
+      });
+
+      return result.every(function(element, index, array) {
+        return element;
+      });
+    };
+
+    // First group contains the RegExp without pre and post '/'
+    var is_re = /^\/(.*)\/$/.exec(maybe_regexp);
+    if (is_re) {
+      var re = new RegExp(is_re[1]);
+      return re.test(value)
+    }
+
+    var op_value = /^(>=?|<=?)\s*([.\d]+)$/.exec(maybe_regexp);
+    if (op_value) {
+      return cmp(op_value[1], value, op_value[2]);
+    } else {
+      return cmp('==', value, maybe_regexp);
+    }
   };
 
   $.fn.nodeList = function() {

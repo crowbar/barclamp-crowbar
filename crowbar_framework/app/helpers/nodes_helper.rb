@@ -94,6 +94,8 @@ module NodesHelper
             :title => node.description(false, true),
             :admin => node.admin?,
             :group => node.group,
+            :platform => node[:platform],
+            :platform_version => node[:platform_version],
             :cluster => false
           } if node.group == group or group.nil?
         end

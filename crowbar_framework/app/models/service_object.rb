@@ -855,6 +855,36 @@ class ServiceObject
     false
   end
 
+  def violates_platform_constraint?(elements, role)
+    if role_constraints[role] && role_constraints[role].has_key?("platform")
+      constraints = role_constraints[role]["platform"]
+      elements[role].each do |element|
+        next if is_cluster? element
+        node = NodeObject.find_node_by_name(element)
+
+        return true if !constraints.any? do |platform, version|
+          node[:platform] == platform && equal_or_match_version(node[:platform_version], version)
+        end
+      end
+    end
+    false
+  end
+
+  def violates_exclude_platform_constraint?(elements, role)
+    if role_constraints[role] && role_constraints[role].has_key?("exclude_platform")
+      constraints = role_constraints[role]["exclude_platform"]
+      elements[role].each do |element|
+        next if is_cluster? element
+        node = NodeObject.find_node_by_name(element)
+
+        return true if constraints.any? do |platform, version|
+          node[:platform] == platform && equal_or_match_version(node[:platform_version], version)
+        end
+      end
+    end
+    false
+  end
+
   def violates_cluster_constraint?(elements, role)
     if role_constraints[role] && !role_constraints[role]["cluster"]
       clusters = elements[role].select {|e| is_cluster? e}
@@ -892,6 +922,16 @@ class ServiceObject
       if violates_admin_constraint?(elements, role, nodes_is_admin)
         validation_error("Role #{role} does not accept admin nodes.")
         break
+      end
+
+      if violates_platform_constraint?(elements, role)
+        platforms = role_constraints[role]["platform"].map {|k, v| [k, v].join(' ')}.join(', ')
+        validation_error("Role #{role} can be used only for #{platforms} platform(s).")
+      end
+
+      if violates_exclude_platform_constraint?(elements, role)
+        platforms = role_constraints[role]["exclude_platform"].map {|k, v| [k, v].join(' ')}.join(', ')
+        validation_error("Role #{role} can't be used for #{platforms} platform(s).")
       end
 
       if violates_cluster_constraint?(elements, role)
@@ -1574,6 +1614,37 @@ class ServiceObject
       Rack::MiniProfiler.step(name, &block)
     else
       block.call
+    end
+  end
+
+  def equal_or_match_version(value, maybe_regexp)
+    to_version = lambda do |version|
+      case version.to_s
+      when /^(\d+)\.(\d+)\.(\d+)$/
+        [ $1.to_i, $2.to_i, $3.to_i ]
+      when /^(\d+)\.(\d+)$/
+        [ $1.to_i, $2.to_i, 0 ]
+      when /^(\d+)$/
+        [ $1.to_i, 0, 0 ]
+      else
+        [0, 0, 0]
+      end
+    end
+
+    cmp = lambda do |op, version|
+      (to_version.call(value).zip to_version.call(version)).all? do |v1, v2|
+        v1.send(op, v2)
+      end
+    end
+
+    op_value = maybe_regexp.scan(/^(>=?|<=?)\s*([.\d]+)$/)
+
+    if maybe_regexp.start_with?('/') && maybe_regexp.end_with?('/')
+      Regexp.new(maybe_regexp[1..-2]).match(value)
+    elsif op_value.length > 0
+      cmp.call(op_value.first.first, op_value.first.last)
+    else
+      cmp.call('==', maybe_regexp)
     end
   end
 end

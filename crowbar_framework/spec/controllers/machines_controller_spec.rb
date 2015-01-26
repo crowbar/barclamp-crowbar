@@ -167,6 +167,8 @@ describe MachinesController do
     :shutdown,
     :reboot,
     :poweron,
+    :powercycle,
+    :poweroff,
     :allocate
   ].each do |action|
     describe "POST #{action}" do

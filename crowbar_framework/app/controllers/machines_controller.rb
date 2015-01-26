@@ -33,6 +33,8 @@ class MachinesController < BarclampController
       :shutdown,
       :reboot,
       :poweron,
+      :powercycle,
+      :poweroff,
       :allocate
     ]
 
@@ -112,6 +114,8 @@ class MachinesController < BarclampController
     :shutdown,
     :reboot,
     :poweron,
+    :powercycle,
+    :poweroff,
     :allocate
   ].each do |action|
     add_help(action, [:id], [:post])

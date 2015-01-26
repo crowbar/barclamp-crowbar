@@ -1089,6 +1089,20 @@ class NodeObject < ChefObject
     @node["ipmi"]["bmc_password"] rescue nil
   end
 
+  def ssh_cmd(cmd)
+    # Have to redirect stdin, stdout, stderr and background reboot
+    # command on the client else ssh never disconnects when client dies
+    # `timeout` and '-o ConnectTimeout=10' are there in case anything
+    # else goes wrong...
+    unless system("sudo", "-i", "-u", "root", "--",
+                  "timeout", "-k", "5s", "15s",
+                  "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}",
+                  "#{cmd} </dev/null >/dev/null 2>&1 &")
+      Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      return nil
+    end
+  end
+
   def bmc_cmd(cmd)
     if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
         !system("ipmitool", "-I", "lanplus", "-H", bmc_address, "-U", get_bmc_user, "-P", get_bmc_password, cmd)
@@ -1102,14 +1116,7 @@ class NodeObject < ChefObject
         return nil
       end
       Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
-      # Have to redirect stdin, stdout, stderr and background reboot
-      # command on the client else ssh never disconnects when client dies
-      # `timeout` and '-o ConnectTimeout=10' are there in case anything
-      # else goes wrong...
-      unless system("sudo", "-i", "-u", "root", "--", "timeout", "-k", "5s", "15s", "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}", "#{ssh_command} </dev/null >/dev/null 2>&1 &")
-        Rails.logger.warn("ssh fallback for shutdown/reboot for #{@node.name} failed - node in unknown state")
-        return nil
-      end
+      ssh_cmd(ssh_command)
     end
   end
 
@@ -1169,7 +1176,7 @@ class NodeObject < ChefObject
         Rails.logger.warn("chef client seems to be still running after 5 minutes of wait; going on with the reboot")
       end
 
-      bmc_cmd("power cycle")
+      ssh_cmd("/sbin/reboot")
     end
     results
   end
@@ -1192,17 +1199,27 @@ class NodeObject < ChefObject
 
   def reboot
     set_state("reboot")
-    bmc_cmd("power cycle")
+    ssh_cmd("/sbin/reboot")
   end
 
   def shutdown
     set_state("shutdown")
-    bmc_cmd("power off")
+    ssh_cmd("/sbin/poweroff")
   end
 
   def poweron
     set_state("poweron")
     bmc_cmd("power on")
+  end
+
+  def powercycle
+    set_state("reboot")
+    bmc_cmd("power cycle")
+  end
+
+  def poweroff
+    set_state("shutdown")
+    bmc_cmd("power off")
   end
 
   def identify

@@ -1090,6 +1090,11 @@ class NodeObject < ChefObject
   end
 
   def ssh_cmd(cmd)
+    if @node[:platform] == "windows"
+      Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} ignored - node is running Windows")
+      return nil
+    end
+
     # Have to redirect stdin, stdout, stderr and background reboot
     # command on the client else ssh never disconnects when client dies
     # `timeout` and '-o ConnectTimeout=10' are there in case anything

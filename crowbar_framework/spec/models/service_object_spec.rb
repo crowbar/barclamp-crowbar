@@ -133,16 +133,100 @@ describe ServiceObject do
     end
 
     describe "platform" do
-      it "allows nodes of matched platform using operators" do
+      it "allows nodes of matched platform using operator >=" do
         dns_service.stubs(:role_constraints).returns(
           {
             "dns-client" => {
               "admin" => true ,
-              "platform" => { "ubuntu" => ">= 10" }
+              "platform" => { "ubuntu" => ">= 10.10" }
             }
           })
         dns_service.validate_proposal_constraints(dns_proposal)
         dns_service.validation_errors.length.should be == 0
+      end
+
+      it "does not allow nodes of matched platform using operator >=" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => ">= 10.10.1" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 1
+      end
+
+      it "allows nodes of matched platform using operator >" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "> 10.09" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "does not allow nodes of matched platform using operator >" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => ">= 10.10.1" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 1
+      end
+
+      it "allows nodes of matched platform using operator <=" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "<= 10.10.1" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "does not allow nodes of matched platform using operator <=" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "<= 10.09" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 1
+      end
+
+      it "allows nodes of matched platform using operator ==" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "10.10" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 0
+      end
+
+      it "does not allow nodes of matched platform using operator ==" do
+        dns_service.stubs(:role_constraints).returns(
+          {
+            "dns-client" => {
+              "admin" => true ,
+              "platform" => { "ubuntu" => "10.10.1" }
+            }
+          })
+        dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.length.should be == 1
       end
 
       it "allows nodes of matched platform with fancy versioning" do

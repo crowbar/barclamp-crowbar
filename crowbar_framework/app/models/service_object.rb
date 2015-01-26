@@ -1631,9 +1631,29 @@ class ServiceObject
       end
     end
 
-    cmp = lambda do |op, version|
-      (to_version.call(value).zip to_version.call(version)).all? do |v1, v2|
-        v1.send(op, v2)
+    cmp = lambda do |version1, version2|
+      version1.zip(version2).each do |v|
+        ans = v[0] <=> v[1]
+        return ans if ans != 0
+      end
+      0
+    end
+
+    oper = lambda do |op, value1, value2|
+      ans = cmp.call(to_version.call(value1), to_version.call(value2))
+      case op
+      when '>'
+        ans == 1
+      when '>='
+        ans == 1 || ans == 0
+      when '<'
+        ans == -1
+      when '<='
+        ans == -1 || ans == 0
+      when '=='
+        ans == 0
+      else
+        false
       end
     end
 
@@ -1642,9 +1662,11 @@ class ServiceObject
     if maybe_regexp.start_with?('/') && maybe_regexp.end_with?('/')
       Regexp.new(maybe_regexp[1..-2]).match(value)
     elsif op_value.length > 0
-      cmp.call(op_value.first.first, op_value.first.last)
+      op_tmp = op_value.first.first
+      value_tmp = op_value.first.last
+      oper.call(op_tmp, value, value_tmp)
     else
-      cmp.call('==', maybe_regexp)
+      oper.call('==', value, maybe_regexp)
     end
   end
 end

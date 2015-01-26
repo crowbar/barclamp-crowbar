@@ -417,29 +417,40 @@
       return [0, 0, 0];
     };
 
-    var cmp = function(op, version1, version2) {
-      var as_version1 = to_version(version1);
-      var as_version2 = to_version(version2);
-      var result = as_version1.map(function(v1, i) {
-        switch (op) {
-          case ">=":
-            return v1 >= as_version2[i];
-          case ">":
-            return v1 > as_version2[i];
-          case "<=":
-            return v1 <= as_version2[i];
-          case "<":
-            return v1 < as_version2[i];
-          case "==":
-            return v1 == as_version2[i];
-          default:
-            return false;
+    var cmp = function(version1, version2) {
+      var ans = 0;
+      // version1 and version2 are arrays of the same length.  At this
+      // point this assertion is true:
+      // assert(version1.length == version2.length)
+      for (var i=0; i<version1.length; i++) {
+        if (version1[i] < version2[i]) {
+          ans = -1;
+        } else if (version1[i] > version2[i]) {
+          ans = 1;
         }
-      });
+        if (ans != 0) {
+          return ans;
+        }
+      }
+      return 0;
+    };
 
-      return result.every(function(element, index, array) {
-        return element;
-      });
+    var oper = function(op, version1, version2) {
+      var ans = cmp(to_version(version1), to_version(version2)); 
+      switch (op) {
+        case ">":
+          return ans === 1;
+        case ">=":
+          return ans === 1 || ans === 0;
+        case "<":
+          return ans === -1;
+        case "<=":
+          return ans === -1 || ans === 0;
+        case "==":
+          return ans === 0;
+        default:
+          return false;
+      }
     };
 
     // First group contains the RegExp without pre and post '/'
@@ -451,9 +462,9 @@
 
     var op_value = /^(>=?|<=?)\s*([.\d]+)$/.exec(maybe_regexp);
     if (op_value) {
-      return cmp(op_value[1], value, op_value[2]);
+      return oper(op_value[1], value, op_value[2]);
     } else {
-      return cmp('==', value, maybe_regexp);
+      return oper('==', value, maybe_regexp);
     }
   };
 

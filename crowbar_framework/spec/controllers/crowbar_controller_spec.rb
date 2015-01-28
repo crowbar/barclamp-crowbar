@@ -66,6 +66,16 @@ describe CrowbarController do
   end
 
   describe "POST transition" do
+    it "does not allow invalid states" do
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "foobarz", :name => "testing"
+      response.should be_bad_request
+    end
+
+    it "does not allow upcased states" do
+      post :transition, :barclamp => "crowbar", :id => "default", :state => "Discovering", :name => "testing"
+      response.should be_bad_request
+    end
+
     it "transitions the node into desired state" do
       RoleObject.stubs(:find_roles_by_search).returns([])
       post :transition, :barclamp => "crowbar", :id => "default", :state => "discovering", :name => "testing"

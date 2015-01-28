@@ -68,7 +68,7 @@ class BarclampController < ApplicationController
     name = params[:name] # Name of node transitioning
 
     unless NodeObject::API_REACHABLE_STATES.include?(state)
-      render :text => "State #{state} is invalid", :status => 400
+      render :text => "State '#{state}' is not valid.", :status => 400
     else
       status, response = @service_object.transition(id, name, state)
       if status != 200

@@ -4,10 +4,6 @@ rvm:
 
 gemfile: crowbar_framework/Gemfile
 
-before_install:
-  - gem update --system 1.8.23
-  - gem --version
-
 install:
   - cd crowbar_framework
   - bundle install

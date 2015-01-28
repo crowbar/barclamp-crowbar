@@ -67,17 +67,20 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    status, response = @service_object.transition(id, name, state)
-
-    if status != 200
-      render :text => response, :status => status
+    unless NodeObject::API_REACHABLE_STATES.include?(state)
+      render :text => "State #{state} is invalid", :status => 400
     else
-      # Be backward compatible with barclamps returning a node hash, passing
-      # them intact.
-      if response[:name]
-        render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+      status, response = @service_object.transition(id, name, state)
+      if status != 200
+        render :text => response, :status => status
       else
-        render :json => response
+        # Be backward compatible with barclamps returning a node hash, passing
+        # them intact.
+        if response[:name]
+          render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+        else
+          render :json => response
+        end
       end
     end
   end

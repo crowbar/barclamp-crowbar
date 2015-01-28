@@ -56,6 +56,7 @@ when "suse"
 
     ruby2.1-rubygem-activerecord-session_store
     ruby2.1-rubygem-activeresource
+    ruby2.1-rubygem-active_model_serializers
     ruby2.1-rubygem-chef
     ruby2.1-rubygem-closure-compiler
     ruby2.1-rubygem-dotenv

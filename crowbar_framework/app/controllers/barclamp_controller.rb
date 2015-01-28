@@ -67,7 +67,7 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    unless NodeObject::API_REACHABLE_STATES.include?(state)
+    unless valid_transition_states.include?(state)
       render :text => "State '#{state}' is not valid.", :status => 400
     else
       status, response = @service_object.transition(id, name, state)
@@ -514,6 +514,14 @@ class BarclampController < ApplicationController
       flash[:alert] = t(common % failure)
       flash[:alert] += ": " + answer[1].to_s unless answer[1].to_s.empty?
     end
+  end
+
+  def valid_transition_states
+    [
+      "applying", "discovered", "discovering", "hardware-installed",
+      "hardware-installing", "hardware-updated", "hardware-updating",
+      "installed", "installing", "ready", "readying", "recovering",
+    ]
   end
 
   protected

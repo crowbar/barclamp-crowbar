@@ -19,12 +19,6 @@ require 'chef/mixin/deep_merge'
 require 'timeout'
 
 class NodeObject < ChefObject
-  API_REACHABLE_STATES = [
-    "applying", "discovered", "discovering", "hardware-installed",
-    "hardware-installing", "hardware-updated", "hardware-updating",
-    "installed", "installing", "ready", "readying", "recovering",
-  ]
-
   self.chef_type = "node"
 
   def self.find(search)

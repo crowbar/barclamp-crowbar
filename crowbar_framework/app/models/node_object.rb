@@ -20,10 +20,9 @@ require 'timeout'
 
 class NodeObject < ChefObject
   API_REACHABLE_STATES = [
-    "applying", "discovered", "discovering", "hardware-install",
-    "hardware-installed", "hardware-installing", "hardware-updated",
-    "hardware-updating", "installed", "installing", "ready", "readying",
-    "recovering",
+    "applying", "discovered", "discovering", "hardware-installed",
+    "hardware-installing", "hardware-updated", "hardware-updating",
+    "installed", "installing", "ready", "readying", "recovering",
   ]
 
   self.chef_type = "node"

@@ -593,7 +593,10 @@ class ServiceObject
     # nodes that can't be added at all would not be returned.
     nodes.reject! do |node|
       elements = { role.to_s => [node] }
-      violates_admin_constraint?(elements, role) || violates_cluster_constraint?(elements, role)
+      violates_admin_constraint?(elements, role) ||
+        violates_platform_constraint?(elements, role) ||
+        violates_exclude_platform_constraint?(elements, role) ||
+        violates_cluster_constraint?(elements, role)
     end
 
     [200, nodes]

@@ -43,6 +43,9 @@ else
   gem "activerecord-session_store", version: "~> 0.1"
   require "activerecord/session_store"
 
+  gem "active_model_serializers", "~> 0.9"
+  require "active_model_serializers"
+
   gem "activeresource", version: "~> 4.0"
   require "active_resource"
 

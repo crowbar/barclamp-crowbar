@@ -39,9 +39,6 @@ else
   gem "rainbows-rails", version: "~> 1.0"
   require "rainbows-rails"
 
-  gem "ember-rails", version: "~> 1.0"
-  require "ember-rails"
-
   # general stuff
   gem "activerecord-session_store", version: "~> 0.1"
   require "activerecord/session_store"

@@ -592,11 +592,7 @@ class ServiceObject
     # from the nodes list in the case the new proposal would not be valid, so
     # nodes that can't be added at all would not be returned.
     nodes.reject! do |node|
-      elements = { role.to_s => [node] }
-      violates_admin_constraint?(elements, role) ||
-        violates_platform_constraint?(elements, role) ||
-        violates_exclude_platform_constraint?(elements, role) ||
-        violates_cluster_constraint?(elements, role)
+      node_is_valid_for_role(node, role.to_s)
     end
 
     [200, nodes]
@@ -647,6 +643,33 @@ class ServiceObject
     # Return empty string instead of nil, because the attributes referring to
     # proposals are generally required in the schema
     proposals[0] || ""
+  end
+
+  def node_is_valid_for_role(node, role)
+    elements = { role => [node] }
+    violates_admin_constraint?(elements, role) ||
+      violates_platform_constraint?(elements, role) ||
+      violates_exclude_platform_constraint?(elements, role) ||
+      violates_cluster_constraint?(elements, role)
+  end
+
+  # Helper to select nodes that make sense on proposal creation
+  def select_nodes_for_role(all_nodes, eole, preferred_intended_role = nil)
+    # do not modify array given by caller
+    valid_nodes = all_nodes.dup
+
+    valid_nodes.delete_if { |n| n.nil? }
+
+    valid_nodes.reject! do |node|
+      node_is_valid_for_role(node.name, role)
+    end
+
+    unless preferred_intended_role.nil?
+      preferred_all_nodes = valid_nodes.select { |n| n.intended_role == preferred_intended_role }
+      valid_nodes = preferred_all_nodes unless preferred_all_nodes.empty?
+    end
+
+    valid_nodes
   end
 
   #

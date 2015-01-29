@@ -67,17 +67,20 @@ class BarclampController < ApplicationController
     state = params[:state] # State of node transitioning
     name = params[:name] # Name of node transitioning
 
-    status, response = @service_object.transition(id, name, state)
-
-    if status != 200
-      render :text => response, :status => status
+    unless valid_transition_states.include?(state)
+      render :text => "State '#{state}' is not valid.", :status => 400
     else
-      # Be backward compatible with barclamps returning a node hash, passing
-      # them intact.
-      if response[:name]
-        render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+      status, response = @service_object.transition(id, name, state)
+      if status != 200
+        render :text => response, :status => status
       else
-        render :json => response
+        # Be backward compatible with barclamps returning a node hash, passing
+        # them intact.
+        if response[:name]
+          render :json => NodeObject.find_node_by_name(response[:name]).to_hash
+        else
+          render :json => response
+        end
       end
     end
   end
@@ -511,6 +514,14 @@ class BarclampController < ApplicationController
       flash[:alert] = t(common % failure)
       flash[:alert] += ": " + answer[1].to_s unless answer[1].to_s.empty?
     end
+  end
+
+  def valid_transition_states
+    [
+      "applying", "discovered", "discovering", "hardware-installed",
+      "hardware-installing", "hardware-updated", "hardware-updating",
+      "installed", "installing", "ready", "readying", "recovering",
+    ]
   end
 
   protected

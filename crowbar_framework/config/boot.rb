@@ -92,7 +92,7 @@ else
   gem "ohai", version: "~> 6.22"
   require "ohai"
 
-  gem "chef", version: "~> 10.24"
+  gem "chef", version: "~> 10.32"
   require "chef"
 
   # wirthout require

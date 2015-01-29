@@ -37,7 +37,7 @@ gem "syslogger", "~> 1.6"
 gem "uglifier", "~> 2.2"
 
 gem "ohai", "~> 6.22"
-gem "chef", "~> 10.24"
+gem "chef", "~> 10.32"
 
 gem "mixlib-shellout", "~> 1.4",
   require: "mixlib/shellout"

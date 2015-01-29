@@ -654,7 +654,7 @@ class ServiceObject
   end
 
   # Helper to select nodes that make sense on proposal creation
-  def select_nodes_for_role(all_nodes, eole, preferred_intended_role = nil)
+  def select_nodes_for_role(all_nodes, role, preferred_intended_role = nil)
     # do not modify array given by caller
     valid_nodes = all_nodes.dup
 

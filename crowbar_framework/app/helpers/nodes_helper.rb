@@ -134,9 +134,15 @@ module NodesHelper
         ]
 
         if CrowbarService.require_license_key? @node.target_platform
+          value = if @node.license_key
+            content_tag(:span, @node.license_key, "data-hidetext" => "pull-right")
+          else
+            value_for(nil, t("model.attributes.node.license_key_not_set"))
+          end
+          
           result.push [
             t("model.attributes.node.license_key"),
-            value_for(@node.license_key, t("model.attributes.node.license_key_not_set"))
+            value
           ]
         end
 

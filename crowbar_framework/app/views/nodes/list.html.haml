@@ -114,7 +114,7 @@
                   %td
                     = select_tag "node[#{node.handle}][target_platform]", platforms_for_select(node.target_platform), :class => "form-control", "data-showit" => crowbar_service.require_license_platforms.join(","), "data-showit-target" => "input[name=\"node[#{node.name}][license_key]\"]", "data-showit-direct" => "true"
                   %td
-                    = text_field_tag "node[#{node.handle}][license_key]", node.license_key, :class => "form-control"
+                    = password_field_tag "node[#{node.handle}][license_key]", node.license_key, :class => "form-control"
                 %td
                   - if node.allocated?
                     = t "complete"

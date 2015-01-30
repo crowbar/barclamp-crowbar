@@ -19,7 +19,7 @@ barclamp:
   name: 'crowbar'
   display: 'Crowbar'
   description: 'Self-referential barclamp enabling other barclamps'
-  version: 0
+  version: 1
   member:
     - 'crowbar'
 

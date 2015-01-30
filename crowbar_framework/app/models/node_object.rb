@@ -108,6 +108,19 @@ class NodeObject < ChefObject
     end
   end
 
+  def self.disabled_platforms
+    @disabled_platforms ||= begin
+      provisioner = NodeObject.find("roles:provisioner-server").first
+      if provisioner.nil?
+        []
+      else
+        provisioner["provisioner"]["available_oses"].keys.select { |p|
+          provisioner["provisioner"]["available_oses"][p]["disabled"]
+        }
+      end
+    end
+  end
+
   def self.find_node_by_public_name(name)
     nodes = self.find "crowbar_public_name:#{chef_escape(name)}"
     if nodes.length == 1

@@ -74,7 +74,7 @@ class NodeObject < ChefObject
   end
 
   def self.available_platforms
-    @@available_platforms ||= begin
+    @available_platforms ||= begin
       provisioner = NodeObject.find("roles:provisioner-server").first
       if provisioner.nil?
         []

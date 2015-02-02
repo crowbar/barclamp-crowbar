@@ -49,6 +49,9 @@ else
   gem "activeresource", version: "~> 4.0"
   require "active_resource"
 
+  gem "closure-compiler", "~> 1.1"
+  require "closure-compiler"
+
   gem "dotenv", version: "~> 1.0"
   require "dotenv"
 
@@ -81,9 +84,6 @@ else
 
   gem "syslogger", version: "~> 1.6"
   require "syslogger"
-
-  gem "uglifier", "~> 2.2"
-  require "uglifier"
 
   # chef related
   gem "mixlib-shellout", version: "~> 1.4"

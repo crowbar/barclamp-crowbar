@@ -41,10 +41,11 @@ Rails.application.configure do
 
   config.assets.debug = false
   config.assets.raise_runtime_errors = true
-  config.assets.js_compressor = :uglifier
+  config.assets.js_compressor = :closure
   config.assets.css_compressor = :sass
-  config.assets.compile = false
-  config.assets.digest = true
+  config.assets.compile = true
+  config.assets.digest = false
+  config.assets.manifest = Rails.root.join("public", "assets", "manifest.json")
 
   config.i18n.fallbacks = true
 

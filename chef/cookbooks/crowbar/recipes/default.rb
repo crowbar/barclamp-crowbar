@@ -54,6 +54,7 @@ when "suse"
     ruby2.1-rubygem-activerecord-session_store
     ruby2.1-rubygem-activeresource
     ruby2.1-rubygem-chef
+    ruby2.1-rubygem-closure-compiler
     ruby2.1-rubygem-dotenv
     ruby2.1-rubygem-dotenv-deployment
     ruby2.1-rubygem-haml-rails
@@ -72,7 +73,6 @@ when "suse"
     ruby2.1-rubygem-simple_navigation_renderers
     ruby2.1-rubygem-sqlite3
     ruby2.1-rubygem-syslogger
-    ruby2.1-rubygem-uglifier-2_2
   )
 end
 

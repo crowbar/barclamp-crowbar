@@ -1,2 +1,4 @@
 .bundle
 Gemfile.lock
+
+public/assets

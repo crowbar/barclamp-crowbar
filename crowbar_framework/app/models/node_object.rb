@@ -1335,7 +1335,7 @@ class NodeObject < ChefObject
 
       # VirtualBox does not provide stable disk ids, so we cannot rely on them
       # in that case.
-      unless @node[:dmi][:system][:product_name] =~ /VirtualBox/i
+      unless hardware =~ /VirtualBox/i
         disk_lookups.unshift "by-id"
       end
       result = disk_lookups.map do |type|

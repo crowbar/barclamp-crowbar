@@ -498,6 +498,10 @@ class NodeObject < ChefObject
     return if @node.nil?
     return if @role.nil?
     return if self.allocated?
+
+    raise "Platform #{self.target_platform} is not fully setup for installation yet." if NodeObject.disabled_platforms.include? self.target_platform
+    raise "Platform #{self.target_platform} is unknown." unless NodeObject.available_platforms.include? self.target_platform
+
     Rails.logger.info("Allocating node #{@node.name}")
     @role.save do |r|
       r.default_attributes["crowbar"]["allocated"] = true

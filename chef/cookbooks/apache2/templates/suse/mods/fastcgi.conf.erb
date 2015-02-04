@@ -3,8 +3,12 @@
 	<Directory "/srv/www/fcgi-bin">
 		AllowOverride None
 		Options None
-		Order allow,deny
+		<%- if node[:apache][:version].to_f < 2.4 %>
+		Order deny,allow
 		Deny from all
+		<%- else %>
+		Require all denied
+		<%- end %>
 	</Directory>
 </IfModule>
 
@@ -22,8 +26,12 @@
 		AllowOverride None
 		Options +ExecCGI -Includes
 		SetHandler fastcgi-script
+		<%- if node[:apache][:version].to_f < 2.4 %>
 		Order allow,deny
 		Allow from all
+		<%- else %>
+		Require all granted
+		<%- end %>
 	</Directory>
 	AddHandler fastcgi-script fcg fcgi fpl
 

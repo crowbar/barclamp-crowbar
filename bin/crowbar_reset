@@ -73,7 +73,21 @@ case "$0" in
         reset_nodes "$@"
         ;;
     *)
-        echo >&2 "BUG: $0 invoked in unknown mode"
-        exit 1
+        case "$1" in
+            proposal)
+                shift
+                ME="$ME proposal"
+                reset_proposal "$@"
+                ;;
+            nodes)
+                shift
+                ME="$ME nodes"
+                reset_nodes "$@"
+                ;;
+            *)
+                echo "Usage: $ME [proposal|nodes]"
+                exit 1
+                ;;
+        esac
         ;;
 esac

@@ -16,8 +16,4 @@
 
 admin = CrowbarHelper.is_admin?(node) ? 'admin': ''
 
-if node[:platform] == "windows"
-  log("running on OS:#{node[:platform]} #{admin}")
-else
-  log("running on OS:#{node[:platform]} on #{node[:dmi][:system][:product_name]} hardware #{admin}")
-end
+log("running on OS:#{node[:platform]} on #{node[:dmi][:system][:product_name] rescue "unknown"} hardware #{admin}")

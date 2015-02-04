@@ -49,12 +49,12 @@ def add_and_filter(file, add, filter_re)
   need_to_remove = false
   lines = []
   re = Regexp.compile("^#{add}\s*$")
-  ll = [] 
+  ll = []
   ll = IO.readlines(file) if ::File.exists?(file)
   ll.each { |l|
     need_to_add = false if l.match(re)
     unless (filter_re.nil?)
-      if md=l.match(/^#{filter_re}$/)
+      if md = l.match(/^#{filter_re}$/)
 	  if md[0].match(re)
 	    # we're adding and removing the same thing...
 	    need_to_remove = false
@@ -66,20 +66,20 @@ def add_and_filter(file, add, filter_re)
       else
 	lines << l
       end
-    else 
+    else
       lines << l
     end
-  } 
-  
+  }
+
   Chef::Log.debug("need to add: #{need_to_add} remove: #{need_to_remove}")
   updated =  need_to_add or need_to_remove
-  
+
   if need_to_remove
     lines << "#{add}\n" if need_to_add
     need_to_add = false
     open(file, "w+") {|f| f.write lines.join("") }
   end
-  open(file, "a") {|f| 
+  open(file, "a") {|f|
     f.write "#{add}\n"
   } if need_to_add
 
@@ -91,13 +91,13 @@ end
 
 
 action :add do
-  updated = add_and_filter(@new_resource.file, 
+  updated = add_and_filter(@new_resource.file,
 			   @new_resource.name, @new_resource.regexp_exclude)
   @new_resource.updated_by_last_action(true) if updated
 end
 
 action :remove do
-  updated = add_and_filter(@new_resource.file,nil, 
+  updated = add_and_filter(@new_resource.file,nil,
 			   "^#{@new_resource.name}$")
   @new_resource.updated_by_last_action(true) if updated
-end 
+end

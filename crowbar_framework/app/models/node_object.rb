@@ -58,7 +58,7 @@ class NodeObject < ChefObject
     elsif nodes.length == 0
       nil
     else
-      raise "#{I18n.t('multiple_node_alias', :scope=>'model.node')}: #{nodes.join(',')}"
+      raise "#{I18n.t('multiple_node_alias', :scope => 'model.node')}: #{nodes.join(',')}"
     end
   end
 
@@ -115,7 +115,7 @@ class NodeObject < ChefObject
     elsif nodes.length == 0
       nil
     else
-      raise "#{I18n.t('multiple_node_public_name', :scope=>'model.node')}: #{nodes.join(',')}"
+      raise "#{I18n.t('multiple_node_public_name', :scope => 'model.node')}: #{nodes.join(',')}"
     end
   end
 
@@ -324,7 +324,7 @@ class NodeObject < ChefObject
 
     if value.length>63 || value.length+ChefObject.cloud_domain.length>254
       Rails.logger.warn "Alias #{value}.#{ChefObject.cloud_domain} FQDN not saved because it exceeded the 63 character length limit or it's length (#{value.length}) will cause the total DNS max of 255 to be exeeded."
-      raise "#{I18n.t('too_long_dns_alias', :scope=>'model.node')}: #{value}.#{ChefObject.cloud_domain}"
+      raise "#{I18n.t('too_long_dns_alias', :scope => 'model.node')}: #{value}.#{ChefObject.cloud_domain}"
     end
 
     if unique_check
@@ -332,7 +332,7 @@ class NodeObject < ChefObject
 
       if node and !node.handle == handle
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
-        raise I18n.t('duplicate_alias', :scope=>'model.node') + ": " + node.name
+        raise I18n.t('duplicate_alias', :scope => 'model.node') + ": " + node.name
       end
     end
 
@@ -379,12 +379,12 @@ class NodeObject < ChefObject
     unless value.to_s.empty?
       if !(value =~ /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/)
         Rails.logger.warn "Public name #{value} not saved because it did not conform to valid DNS hostnames"
-        raise "#{I18n.t('invalid_dns_public_name', :scope=>'model.node')}: #{value}"
+        raise "#{I18n.t('invalid_dns_public_name', :scope => 'model.node')}: #{value}"
       end
 
       if value.length > 255
         Rails.logger.warn "Public name #{value} not saved because it exceeded the 255 character length limit"
-        raise "#{I18n.t('too_long_dns_public_name', :scope=>'model.node')}: #{value}"
+        raise "#{I18n.t('too_long_dns_public_name', :scope => 'model.node')}: #{value}"
       end
 
       if unique_check
@@ -392,7 +392,7 @@ class NodeObject < ChefObject
 
         if node and !node.handle == handle
           Rails.logger.warn "Public name #{value} not saved because #{node.name} already has the same public name."
-          raise I18n.t('duplicate_public_name', :scope=>'model.node') + ": " + node.name
+          raise I18n.t('duplicate_public_name', :scope => 'model.node') + ": " + node.name
         end
       end
     end
@@ -1113,9 +1113,9 @@ class NodeObject < ChefObject
         !system("ipmitool", "-I", "lanplus", "-H", bmc_address, "-U", get_bmc_user, "-P", get_bmc_password, cmd)
       case cmd
       when "power cycle"
-        ssh_command="/sbin/reboot -f"
+        ssh_command = "/sbin/reboot -f"
       when "power off"
-        ssh_command="/sbin/poweroff -f"
+        ssh_command = "/sbin/poweroff -f"
       else
         Rails.logger.warn("ipmitool #{cmd} failed for #{@node.name}.")
         return nil
@@ -1335,7 +1335,7 @@ class NodeObject < ChefObject
 
       # VirtualBox does not provide stable disk ids, so we cannot rely on them
       # in that case.
-      unless @node[:dmi][:system][:product_name] =~ /VirtualBox/i
+      unless hardware =~ /VirtualBox/i
         disk_lookups.unshift "by-id"
       end
       result = disk_lookups.map do |type|
@@ -1393,7 +1393,7 @@ class NodeObject < ChefObject
   end
 
   def set_display(attrib, value)
-    crowbar["crowbar"] = { "display"=>{} } if crowbar["crowbar"].nil?
+    crowbar["crowbar"] = { "display" => {} } if crowbar["crowbar"].nil?
     crowbar["crowbar"]["display"] = {} if crowbar["crowbar"]["display"].nil?
     crowbar["crowbar"]["display"][attrib] = (value || "").strip
   end
@@ -1412,7 +1412,7 @@ class NodeObject < ChefObject
           nodes[asset_tag].each { |key, value| default[key] = value } unless nodes[asset_tag].nil?
           # some date replacement
           default['description'] = default['description'].gsub(/DATE/,I18n::l(Time.now)) unless default['description'].nil?
-          default['alias'] =default['alias'].gsub(/NODE/,node) unless default['alias'].nil?
+          default['alias'] = default['alias'].gsub(/NODE/,node) unless default['alias'].nil?
         end
         return default
       end

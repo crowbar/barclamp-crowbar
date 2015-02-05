@@ -141,6 +141,30 @@ cookbook_file "/etc/profile.d/crowbar.sh" do
   source "crowbar.sh"
 end
 
+directory "/etc/sudoers.d" do
+  owner "root"
+  group "root"
+  mode "0750"
+  action :create
+end
+
+ruby_block "Ensure /etc/sudoers.d is included in sudoers" do
+  block do
+    f = Chef::Util::FileEdit.new("/etc/sudoers")
+    f.insert_line_if_no_match(/^#includedir \/etc\/sudoers.d\/?$/,
+                              "#includedir /etc/sudoers.d")
+    f.write_file
+  end
+end
+
+cookbook_file "/etc/sudoers.d/crowbar" do
+  owner "root"
+  group "root"
+  mode "0440"
+  action :create
+  source "sudoers.crowbar"
+end
+
 cookbook_file "/root/.chef/knife.rb" do
   owner "root"
   group "root"

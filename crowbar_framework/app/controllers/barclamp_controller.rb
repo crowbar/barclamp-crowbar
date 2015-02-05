@@ -521,6 +521,8 @@ class BarclampController < ApplicationController
       "applying", "discovered", "discovering", "hardware-installed",
       "hardware-installing", "hardware-updated", "hardware-updating",
       "installed", "installing", "ready", "readying", "recovering",
+      # used by sledgehammer / crowbar_join
+      "debug", "problem", "reboot", "shutdown"
     ]
   end
 

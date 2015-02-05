@@ -1327,6 +1327,7 @@ class NodeObject < ChefObject
           centos-6.2
           centos-6.4
           suse-11.3
+          suse-12.0
         )
         unless virtio_by_path_platforms.include?(@node[:target_platform])
           disk_lookups = []

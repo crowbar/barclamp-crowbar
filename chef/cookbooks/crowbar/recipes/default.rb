@@ -30,6 +30,7 @@ case node[:platform]
 when "ubuntu","debian"
   pkglist = %w(
     curl
+    sudo
     sqlite
     libsqlite3-dev
     libshadow-ruby1.8
@@ -40,6 +41,7 @@ when "ubuntu","debian"
 when "redhat","centos"
   pkglist = %w(
     curl
+    sudo
     sqlite
     sqlite-devel
     python-markdown
@@ -49,6 +51,7 @@ when "redhat","centos"
 when "suse"
   pkglist = %w(
     curl
+    sudo
     sqlite3
 
     ruby2.1-rubygem-activerecord-session_store
@@ -155,6 +158,7 @@ ruby_block "Ensure /etc/sudoers.d is included in sudoers" do
                               "#includedir /etc/sudoers.d")
     f.write_file
   end
+  only_if { File.exists?("/etc/sudoers") }
 end
 
 cookbook_file "/etc/sudoers.d/crowbar" do

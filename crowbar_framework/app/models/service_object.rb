@@ -1397,6 +1397,9 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) if !ran_admin
 
+    nodes_to_save = delete_remove_role_from_runlist(pending_node_actions)
+    save_node_state(nodes_to_save, __method__)
+
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
     rescue StandardError => e
@@ -1412,6 +1415,42 @@ class ServiceObject
     restore_to_ready(all_nodes)
     process_queue unless in_queue
     [200, {}]
+  end
+
+  def delete_remove_role_from_runlist(pending_node_actions)
+    # delete #{role_name}_remove role from runlist as it is not needed anymore
+    nodes_to_save = {}
+    pending_node_actions.each do |node_name, lists|
+      node = NodeObject.find_node_by_name(node_name)
+      next if node.nil?
+      save_it = false
+
+      # #{role_name}_remove role has been added before and now needs to be removed
+      rlist = lists[:add].select {|suffixed| suffixed =~ /_remove$/}
+
+      # Remove the roles being lost
+      rlist.each do |item|
+        next unless node.role? item
+        @logger.debug("Removing temporary role #{item} from #{node.name}")
+        node.delete_from_run_list item
+        save_it = true
+      end
+
+      nodes_to_save[node] = save_it
+    end
+    nodes_to_save
+  end
+
+  def save_node_state(nodes_to_save, origin)
+    saved = false
+    nodes_to_save.each do |node, save_it|
+      if save_it
+        @logger.debug("#{origin.to_s}: Saving node #{node.name}")
+        node.save
+        saved = true
+      end
+    end
+    saved
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)

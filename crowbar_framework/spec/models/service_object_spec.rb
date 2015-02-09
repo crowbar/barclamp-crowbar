@@ -302,4 +302,46 @@ describe ServiceObject do
       end
     end
   end
+
+  describe "save the state of a node" do
+    node_name = "d00-0c-29-80-2f-68.crowbar.com"
+
+    it "should save the state of a node" do
+      nodes_to_save = { NodeObject.find_node_by_name(node_name) => true }
+      service_object.save_node_state(nodes_to_save, "calling_method").should be_true
+    end
+
+    it "should not save the state of a node" do
+      nodes_to_save = { NodeObject.find_node_by_name(node_name) => false }
+      service_object.save_node_state(nodes_to_save, "calling_method").should be_false
+    end
+  end
+
+  describe "roles suffixed with _remove" do
+    node_name = "d00-0c-29-80-2f-68.crowbar.com"
+
+    describe "_remove role in the runlist" do
+      it "should delete the _remove role from the runlist" do
+        pending_node_actions = { node_name => { :remove => [], :add => ["heat-server_remove"] } }
+        nodes_to_save = service_object.delete_remove_role_from_runlist(pending_node_actions)
+        nodes_to_save.should be_an_instance_of(Hash)
+        nodes_to_save.each do |node, save_it|
+          node.should be_an_instance_of(NodeObject)
+          save_it.should be_true
+        end
+      end
+    end
+
+    describe "no _remove role in the runlist" do
+      it "should not change the node when there is no _remove role" do
+        pending_node_actions = { node_name => { :remove => [], :add => ["heat-server"] } }
+        nodes_to_save = service_object.delete_remove_role_from_runlist(pending_node_actions)
+        nodes_to_save.should be_an_instance_of(Hash)
+        nodes_to_save.each do |node, save_it|
+          node.should be_an_instance_of(NodeObject)
+          save_it.should be_false
+        end
+      end
+    end
+  end
 end

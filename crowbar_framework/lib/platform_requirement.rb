@@ -1,22 +1,27 @@
 class PlatformRequirement
-  attr_reader :as_string
+  attr_reader :required_version, :required_platform
 
   attr_reader :cmp_operator, :required_version_string
 
-  def initialize(string)
-    @as_string = string
+  def initialize(required_platform, required_version)
+    @required_version  = required_version
+    @required_platform = required_platform
 
-    @cmp_operator, @required_version_string = parse(string)
+    @cmp_operator, @required_version_string = parse(required_version)
 
     @cmp_operator ||= "=="
-    @required_version_string ||= string
+    @required_version_string ||= required_version
   end
 
-  def satisfied_by?(version)
-    if is_regexp?
-      regexp_compare(version)
+  def satisfied_by?(platform, version)
+    if required_platform == platform
+      if is_regexp?
+        regexp_compare(version)
+      else
+        version_compare(version)
+      end
     else
-      version_compare(version)
+      false
     end
   end
 
@@ -47,11 +52,11 @@ class PlatformRequirement
   end
 
   def regexp_body
-    as_string[1..-2]
+    required_version[1..-2]
   end
 
   def is_regexp?
-    as_string.start_with?('/') && as_string.end_with?('/')
+    required_version.start_with?('/') && required_version.end_with?('/')
   end
 end
 

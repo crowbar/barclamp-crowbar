@@ -889,7 +889,7 @@ class ServiceObject
         node = NodeObject.find_node_by_name(element)
 
         return true if !constraints.any? do |platform, version|
-          node[:platform] == platform && PlatformRequirement.new(version).satisfied_by?(node[:platform_version])
+          PlatformRequirement.new(platform, version).satisfied_by?(node[:platform], node[:platform_version])
         end
       end
     end
@@ -904,7 +904,7 @@ class ServiceObject
         node = NodeObject.find_node_by_name(element)
 
         return true if constraints.any? do |platform, version|
-          node[:platform] == platform && PlatformRequirement.new(version).satisfied_by?(node[:platform_version])
+          PlatformRequirement.new(platform, version).satisfied_by?(node[:platform], node[:platform_version])
         end
       end
     end

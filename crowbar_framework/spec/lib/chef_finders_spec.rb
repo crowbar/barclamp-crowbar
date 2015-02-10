@@ -24,7 +24,7 @@ describe ChefFinders do
     end
 
     it "joins multiple attributes with and" do
-      FinderKlass.build_query(:id => :something, :foo => :else).should == "foo:else and id:something"
+      FinderKlass.build_query(:foo => :else, :id => :something).should == "foo:else and id:something"
     end
 
     it "works with or as a string" do
@@ -32,7 +32,7 @@ describe ChefFinders do
     end
 
     it "works with or as a single hash" do
-      FinderKlass.build_query(:or => { :id => :something, :foo => :else }).should == "(foo:else or id:something)"
+      FinderKlass.build_query(:or => { :foo => :else, :id => :something}).should == "(foo:else or id:something)"
     end
 
     it "works with nested ors" do

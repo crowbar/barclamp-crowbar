@@ -74,7 +74,7 @@ class NodeObject < ChefObject
   end
 
   def self.available_platforms
-    @@available_platforms ||= begin
+    @available_platforms ||= begin
       provisioner = NodeObject.find("roles:provisioner-server").first
       if provisioner.nil?
         []
@@ -103,6 +103,19 @@ class NodeObject < ChefObject
           else
             platform_order_x <=> platform_order_y
           end
+        }
+      end
+    end
+  end
+
+  def self.disabled_platforms
+    @disabled_platforms ||= begin
+      provisioner = NodeObject.find("roles:provisioner-server").first
+      if provisioner.nil?
+        []
+      else
+        provisioner["provisioner"]["available_oses"].keys.select { |p|
+          provisioner["provisioner"]["available_oses"][p]["disabled"]
         }
       end
     end

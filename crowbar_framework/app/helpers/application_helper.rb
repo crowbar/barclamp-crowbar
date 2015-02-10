@@ -249,4 +249,8 @@ module ApplicationHelper
   def available_platforms
     NodeObject.available_platforms
   end
+
+  def disabled_platforms
+    NodeObject.disabled_platforms
+  end
 end

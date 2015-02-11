@@ -343,7 +343,7 @@ class NodeObject < ChefObject
     if unique_check
       node = NodeObject.find_node_by_alias value
 
-      if node and !node.handle == handle
+      if node and node.handle != handle
         Rails.logger.warn "Alias #{value} not saved because #{node.name} already has the same alias."
         raise I18n.t('duplicate_alias', :scope => 'model.node') + ": " + node.name
       end

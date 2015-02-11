@@ -151,7 +151,7 @@ class NodesController < ApplicationController
             unless node.group == node_attributes["group"]
               unless node_attributes["group"].blank? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
                 report[:group_error] = true
-                raise I18n.t("nodes.list.group_error", :node => node.name)
+                raise I18n.t("nodes.list.group_error", :failed => node.name)
               end
 
               node.group = node_attributes["group"]
@@ -368,7 +368,7 @@ class NodesController < ApplicationController
 
   def save_node
     if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-      flash[:alert] = t('nodes.list.group_error', :node => @node.name)
+      flash[:alert] = t('nodes.list.group_error', :failed => @node.name)
       return false
     end
 

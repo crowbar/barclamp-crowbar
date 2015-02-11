@@ -87,4 +87,18 @@ describe NodeObject do
       end
     end
   end
+
+  describe "alias" do
+    let(:testing_node) { NodeObject.find_node_by_name("testing") }
+    let(:admin_node) { NodeObject.find_node_by_name("admin") }
+
+    it "doesnt allow duplicates" do
+      # Stub out chef call
+      NodeObject.any_instance.stubs(:update_alias).returns(true)
+
+      expect {
+        testing_node.alias = "admin"
+      }.to raise_error(RuntimeError)
+    end
+  end
 end

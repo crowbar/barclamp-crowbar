@@ -75,7 +75,8 @@ class NodesController < ApplicationController
       :success => [],
       :failed => [],
       :duplicate_public => false,
-      :duplicate_alias => false
+      :duplicate_alias => false,
+      :group_error => false,
     }.tap do |report|
       node_values = params[:node] || {}
 
@@ -149,7 +150,8 @@ class NodesController < ApplicationController
 
             unless node.group == node_attributes["group"]
               unless node_attributes["group"].blank? or node_attributes["group"] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/
-                raise I18n.t("nodes.list.group_error", :node => node.name)
+                report[:group_error] = true
+                raise I18n.t("nodes.list.group_error", :failed => node.name)
               end
 
               node.group = node_attributes["group"]
@@ -178,6 +180,8 @@ class NodesController < ApplicationController
         "nodes.list.duplicate_alias"
       when @report[:duplicate_publics]
         "nodes.list.duplicate_public"
+      when @report[:group_error]
+        "nodes.list.group_error"
       else
         "nodes.list.failed"
       end
@@ -364,7 +368,7 @@ class NodesController < ApplicationController
 
   def save_node
     if params[:group] and params[:group] != "" and !(params[:group] =~ /^[a-zA-Z][a-zA-Z0-9._:-]+$/)
-      flash[:alert] = t('nodes.list.group_error', :node => @node.name)
+      flash[:alert] = t('nodes.list.group_error', :failed => @node.name)
       return false
     end
 

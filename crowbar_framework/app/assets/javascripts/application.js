@@ -245,6 +245,7 @@ jQuery(document).ready(function($) {
   $('#proposal_attributes, #proposal_deployment').changedState();
   $('#nodelist').nodeList();
   $('input[type=password]').hideShowPassword();
+  $('[data-hidetext]').hideShowText();
 
   setInterval(
     function() {

@@ -15,3 +15,4 @@
 //= require jquery/messages
 //= require jquery/dynamicTable
 //= require jquery/changeDetection
+//= require jquery/hideShowText

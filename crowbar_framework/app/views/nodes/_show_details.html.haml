@@ -5,9 +5,9 @@
         %td{ :colspan => 2 }
           &nbsp;
       - else
-        %th
+        %th{ :class => "col-lg-2" }
           = software.first
-        %td
+        %td{ :class => "col-lg-4" }
           = software.last
 
     - node_detail_hardware[row].tap do |hardware|
@@ -15,7 +15,7 @@
         %td{ :colspan => 2 }
           &nbsp;
       - else
-        %th
+        %th{ :class => "col-lg-2" }
           = hardware.first
-        %td
+        %td{ :class => "col-lg-4" }
           = hardware.last

@@ -889,7 +889,7 @@ class ServiceObject
         node = NodeObject.find_node_by_name(element)
 
         return true if !constraints.any? do |platform, version|
-          node[:platform] == platform && equal_or_match_version(node[:platform_version], version)
+          PlatformRequirement.new(platform, version).satisfied_by?(node[:platform], node[:platform_version])
         end
       end
     end
@@ -904,7 +904,7 @@ class ServiceObject
         node = NodeObject.find_node_by_name(element)
 
         return true if constraints.any? do |platform, version|
-          node[:platform] == platform && equal_or_match_version(node[:platform_version], version)
+          PlatformRequirement.new(platform, version).satisfied_by?(node[:platform], node[:platform_version])
         end
       end
     end
@@ -1640,59 +1640,6 @@ class ServiceObject
       Rack::MiniProfiler.step(name, &block)
     else
       block.call
-    end
-  end
-
-  def equal_or_match_version(value, maybe_regexp)
-    to_version = lambda do |version|
-      case version.to_s
-      when /^(\d+)\.(\d+)\.(\d+)$/
-        [ $1.to_i, $2.to_i, $3.to_i ]
-      when /^(\d+)\.(\d+)$/
-        [ $1.to_i, $2.to_i, 0 ]
-      when /^(\d+)$/
-        [ $1.to_i, 0, 0 ]
-      else
-        [0, 0, 0]
-      end
-    end
-
-    cmp = lambda do |version1, version2|
-      version1.zip(version2).each do |v|
-        ans = v[0] <=> v[1]
-        return ans if ans != 0
-      end
-      0
-    end
-
-    oper = lambda do |op, value1, value2|
-      ans = cmp.call(to_version.call(value1), to_version.call(value2))
-      case op
-      when '>'
-        ans == 1
-      when '>='
-        ans == 1 || ans == 0
-      when '<'
-        ans == -1
-      when '<='
-        ans == -1 || ans == 0
-      when '=='
-        ans == 0
-      else
-        false
-      end
-    end
-
-    op_value = maybe_regexp.scan(/^(>=?|<=?)\s*([.\d]+)$/)
-
-    if maybe_regexp.start_with?('/') && maybe_regexp.end_with?('/')
-      Regexp.new(maybe_regexp[1..-2]).match(value)
-    elsif op_value.length > 0
-      op_tmp = op_value.first.first
-      value_tmp = op_value.first.last
-      oper.call(op_tmp, value, value_tmp)
-    else
-      oper.call('==', value, maybe_regexp)
     end
   end
 end

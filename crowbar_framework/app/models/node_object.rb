@@ -32,8 +32,13 @@ class NodeObject < ChefObject
     if nodes.is_a?(Array) and nodes[2] != 0 and !nodes[0].nil?
       nodes[0].delete_if { |x| x.nil? }
       answer = nodes[0].map do |x|
-        NodeObject.new x
+        begin
+          NodeObject.new x
+        rescue Crowbar::Error::NotFound
+          nil
+        end
       end
+      answer.compact!
       answer.delete_if { |x| !x.has_chef_server_roles? }
     end
     return answer
@@ -134,15 +139,21 @@ class NodeObject < ChefObject
 
   def self.find_node_by_name(name)
     name += ".#{ChefObject.cloud_domain}" unless name =~ /(.*)\.(.)/
-    val = begin
-      Chef::Node.load(name)
+    begin
+      chef_node = Chef::Node.load(name)
+      unless chef_node.nil?
+        NodeObject.new(chef_node)
+      else
+        nil
+      end
     rescue Errno::ECONNREFUSED => e
       raise Crowbar::Error::ChefOffline.new
+    rescue Crowbar::Error::NotFound => e
+      nil
     rescue StandardError => e
       Rails.logger.warn("Could not recover Chef Crowbar Node on load #{name}: #{e.inspect}")
       nil
     end
-    return val.nil? ? nil : NodeObject.new(val)
   end
 
   def self.find_node_by_name_or_alias(name)
@@ -203,6 +214,7 @@ class NodeObject < ChefObject
         @role = NodeObject.create_new_role(node.name, node)
       else
         Rails.logger.fatal("Node exists without role!! #{node.name}")
+        raise Crowbar::Error::NotFound.new
       end
     end
     # deep clone of @role.default_attributes, used when saving node

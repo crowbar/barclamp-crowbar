@@ -993,8 +993,10 @@ class NodeObject < ChefObject
     res = nil
     begin
       sort_ifs.each do |intf|
-        info = self.crowbar_ohai["switch_config"][intf]["switch_"+type]
-        next if info == -1  # try next interface in case this is not in use
+        switch_config_intf = self.crowbar_ohai["switch_config"][intf]
+        # try next interface in case this is one is missing data
+        next if [switch_config_intf["switch_name"], switch_config_intf["switch_unit"], switch_config_intf["switch_port"]].include? -1
+        info = switch_config_intf["switch_"+type]
         res = info.to_s.gsub(':', '-')
         break  # if we got this far then we are done
       end

@@ -16,6 +16,7 @@ About this barclamp
 -------------------
 
 [![Build Status](https://travis-ci.org/crowbar/barclamp-crowbar.svg?branch=master)](https://travis-ci.org/crowbar/barclamp-crowbar)
+[![Code Climate](https://codeclimate.com/github/crowbar/barclamp-crowbar/badges/gpa.svg)](https://codeclimate.com/github/crowbar/barclamp-crowbar)
 
 **This is the core barclamp! Change with caution!** Information for this barclamp is maintained on the
 [Crowbar Framework Wiki](https://github.com/crowbar/crowbar/wiki)

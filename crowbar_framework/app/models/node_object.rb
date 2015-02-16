@@ -990,18 +990,18 @@ class NodeObject < ChefObject
 
   # DRY version of the switch name/unit/port code
   def switch_find_info(type)
-    info = nil
+    res = nil
     begin
       sort_ifs.each do |intf|
         info = self.crowbar_ohai["switch_config"][intf]["switch_"+type]
         next if info == -1  # try next interface in case this is not in use
-        info = info.name = name.to_s.gsub(':', '-')
+        res = info.to_s.gsub(':', '-')
         break  # if we got this far then we are done
       end
     rescue
       Rails.logger.warn("Switch #{type} Error: #{@node.name}: Switch config not detected during discovery")
     end
-    info
+    res
   end
 
   # used to determine if display information has been set or if defaults should be used

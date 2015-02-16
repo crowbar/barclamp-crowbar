@@ -63,5 +63,11 @@ group :test do
   gem "mocha", "~> 1.1"
   gem "sinatra", "~> 1.4"
   gem "webmock", "~> 1.19"
-  gem "simplecov", "~> 0.9"
+
+  gem "simplecov", "~> 0.9", require: false
+
+  if ENV["CODECLIMATE_REPO_TOKEN"]
+    gem "coveralls", require: false
+    gem "codeclimate-test-reporter", require: false
+  end
 end

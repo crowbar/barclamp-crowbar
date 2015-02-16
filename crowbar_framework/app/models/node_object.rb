@@ -563,7 +563,12 @@ class NodeObject < ChefObject
     if virtual?
       "vm-#{mac.gsub(':',"-")}"
     else
-      @node[:dmi]["chassis"]["serial_number"] rescue nil
+      asset = @node[:dmi]["chassis"]["serial_number"] rescue nil
+      if @node[:dmi]["chassis"].has_key?("asset_tag") && !@node[:dmi]["chassis"]["asset_tag"].empty?
+        "#{asset} (#{@node[:dmi]["chassis"]["asset_tag"]})"
+      else
+        asset
+      end
     end
   end
 

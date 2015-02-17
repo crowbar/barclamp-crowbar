@@ -206,7 +206,8 @@ class NodeObject < ChefObject
       end
     end
     # deep clone of @role.default_attributes, used when saving node
-    @attrs_last_saved = deep_clone(@role.default_attributes)
+    # fixing https://bugzilla.novell.com/show_bug.cgi?id=900216 with unless @role.nil?
+    @attrs_last_saved = deep_clone(@role.default_attributes) unless @role.nil?
     @node = node
   end
 

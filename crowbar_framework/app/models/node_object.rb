@@ -39,13 +39,8 @@ class NodeObject < ChefObject
         end
       end
       answer.compact!
-      answer.delete_if { |x| !x.has_chef_server_roles? }
     end
     return answer
-  end
-
-  def has_chef_server_roles?
-      return !@role.nil?
   end
 
   def self.find_all_nodes

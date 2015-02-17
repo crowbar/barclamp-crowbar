@@ -1321,12 +1321,47 @@ class NodeObject < ChefObject
     boot_device(device) and save
   end
 
+  # TODO: Remove duplicate code and use a gem/git submodule/whatever...
+  # see barclamp-deployer/chef/cookbooks/barclamp/libraries/barclamp_library.rb
+  def unique_name_already_claimed_by(device)
+    claimed_name = @node[:crowbar_wall][:claimed_disks].find do |claimed_name, v|
+      self.link_to_device?(device, claimed_name)
+    end || []
+    claimed_name.first
+  end
+
+  # TODO: Remove duplicate code and use a gem/git submodule/whatever...
+  # see barclamp-deployer/chef/cookbooks/barclamp/libraries/barclamp_library.rb
+  #
+  # is the given linkname a link to the given device? In attributes,
+  # that means that the given linkname can be found in the array
+  # @node[:block_device][device][by-{id,path,uuid}]
+  def link_to_device?(device, linkname)
+    # device is i.e. "sda", "vda", ...
+    # linkname is i.e. "/dev/disk/by-path/pci-0000:00:04.0-virtio-pci-virtio1"
+    lookup_and_name = linkname.gsub(/^\/dev\/disk\//, '').split(File::SEPARATOR, 2)
+    linked_devs = @node[:block_device][device][:disks][lookup_and_name[0]] rescue []
+    linked_devs.include?(lookup_and_name[1])
+  end
+
+  # IMPORTANT: keep these paths in sync with
+  # BarclampLibrary::Barclamp::Inventory::Disk#unique_name
+  # within the deployer barclamp to return always similar values.
+  # TODO: Remove duplicate code and use a gem/git submodule/whatever...
+  # see barclamp-deployer/chef/cookbooks/barclamp/libraries/barclamp_library.rb
   def unique_device_for(device)
+    # check first if we have already a claimed disk which points to the same
+    # device node. if so, use that as "unique device"
+    already_claimed_name = self.unique_name_already_claimed_by(device)
+    unless already_claimed_name.nil?
+      Rails.logger.debug("Use #{already_claimed_name} as unique_name " \
+                         "because already claimed by #{device}")
+      return already_claimed_name
+    end
+
     meta = @node["block_device"][device]
 
     if meta and meta["disks"]
-      # Keep these paths in sync with BarclampLibrary::Barclamp::Inventory::Disk#unique_name
-      # within the deployer barclamp to return always similar values.
       disk_lookups = ["by-path"]
 
       # If this looks like a virtio disk and the target platform is one

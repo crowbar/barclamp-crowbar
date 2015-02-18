@@ -25,19 +25,7 @@ class SupportController < ApplicationController
   end
 
   def index
-    @export = Utils::ExtendedHash.new({
-      :waiting => params[:waiting] == "true" || params[:format] == "json",
-      :counter => 0,
-      :current => params["file"].to_s.gsub("-DOT-", "."),
-      :files => {
-        :logs => [],
-        :chef => [],
-        :other => [],
-        :support_configs => [],
-        :bc_import => []
-      }
-    })
-
+    @export = default_export_hash
     export_dir.children.each do |file|
       filename = file.basename.to_s
 
@@ -164,6 +152,21 @@ class SupportController < ApplicationController
   end
 
   protected
+
+  def default_export_hash
+    Utils::ExtendedHash.new({
+      :waiting => params[:waiting] == "true" || params[:format] == "json",
+      :counter => 0,
+      :current => params["file"].to_s.gsub("-DOT-", "."),
+      :files => {
+        :logs => [],
+        :chef => [],
+        :other => [],
+        :support_configs => [],
+        :bc_import => []
+      }
+    })
+  end
 
   def import_dir
     check_dir "import"

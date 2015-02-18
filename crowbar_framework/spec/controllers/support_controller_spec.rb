@@ -18,8 +18,22 @@
 require 'spec_helper'
 
 describe SupportController do
+  render_views
+
   describe "GET index" do
     it "is successful" do
+      get :index
+      response.should be_success
+    end
+
+    it "is successful notifying about new export" do
+      @controller.stubs(:default_export_hash).returns(Utils::ExtendedHash.new({
+        :waiting => false,
+        :counter => 1,
+        :current => "foo.tar.gz",
+        :files => { :chef => ["foo.tar.gz"], :logs => [], :other => [], :support_configs => [], :bc_import => [] }
+      }))
+
       get :index
       response.should be_success
     end

@@ -669,6 +669,10 @@ class ServiceObject
       valid_nodes = preferred_all_nodes unless preferred_all_nodes.empty?
     end
 
+    if role_constraints[role] && role_constraints[role].has_key?("count") && role_constraints[role]["count"] >= 0
+      valid_nodes = valid_nodes.take(role_constraints[role]["count"])
+    end
+
     valid_nodes
   end
 

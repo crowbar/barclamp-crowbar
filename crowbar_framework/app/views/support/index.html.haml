@@ -37,7 +37,7 @@
           - files.sort.reverse.each do |file|
             %li.list-group-item
               - if @export.current == file
-                = link_to "#{file} #{badge_tag(t("new"))}".safe_html, "/export/#{file}"
+                = link_to "#{file} #{badge_tag(t("new"))}".html_safe, "/export/#{file}"
               - else
                 = link_to file, "/export/#{file}"
 

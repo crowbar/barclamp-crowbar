@@ -82,7 +82,7 @@ module RemoteNode
   # Workaround for similar issue
   # http://projects.puppetlabs.com/issues/2776
   def self.resolve_host(host)
-    `dig +short #{host}`
+    `dig +short #{host} | head -n1`
   end
 
   def self.runlevel_check_cmd(host)

@@ -17,7 +17,7 @@
 
 module NodesHelper
   def nodes_by_role(role)
-    NodeObject.find("roles:#{role}").sort_by(&:alias)
+    NodeObject.where(:roles => role).sort_by(&:alias)
   end
 
   def piechart_for(group)

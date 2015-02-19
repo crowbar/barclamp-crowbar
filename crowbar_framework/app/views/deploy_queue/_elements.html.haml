@@ -1,0 +1,12 @@
+- elements.each do |role_name, node_names|
+  %div
+    = role_name
+  %div
+    - node_names.map { |node_name| [node_name, all_nodes[node_name]] }.each do |node_name, node|
+      %span
+        - if ServiceObject.is_cluster?(node_name)
+          - nodes = ServiceObject.expand_nodes_for_all([node_name]).first.map { |cluster_node| all_nodes[cluster_node] }.compact
+          = render :partial => "dashboard/link_cluster", :locals => { :status => ServiceObject.cluster_status(nodes), :name => ServiceObject.cluster_name(node_name) || node_name }
+        - else
+          - if node
+            = render :partial => "dashboard/link_node", :locals => { :node => node }

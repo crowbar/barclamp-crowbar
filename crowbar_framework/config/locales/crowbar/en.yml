@@ -17,22 +17,29 @@
 
 en:
   deploy_queue:
+    deployed_proposal:
+      no_proposal_deployed: "No proposals are currently being deployed."
+      proposal_name: 'Proposal name'
+      nodes: 'Nodes'
+    dependencies:
+      no_dependencies: 'No dependencies'
+    missing_nodes:
+      waiting_for_clusters: 'Waiting for clusters to be ready: %{clusters}.'
+      waiting_for_nodes: 'Waiting for nodes to be ready: %{nodes}.'
+    missing_dependencies:
+      waiting_for_proposals: 'Waiting for deployment of proposals: %{props}.'
     index:
       waiting_in_queue: 'Waiting in queue'
       reason: 'Reason for being queued'
       dequeue_proposal: 'Dequeue'
       actions: 'Actions'
       currently_deployed: 'Currently deploying'
-      no_proposal_deployed: "No proposals are currently being deployed."
       deployment_queue: 'Deployment Queue'
       barclamp: 'Barclamp'
       proposal_name: 'Proposal name'
-      no_dependencies: 'No dependencies'
       dependencies: 'Dependencies'
       nodes: 'Nodes'
       deploy_queue_empty: 'The deployment queue is currently empty.'
-      waiting_for_nodes: 'Waiting for nodes to be ready: %{nodes}.'
-      waiting_for_proposals: 'Waiting for deployment of proposals: %{props}.'
   dashboard:
     role:
       nodes: 'Nodes'

@@ -1333,7 +1333,7 @@ class NodeObject < ChefObject
   # TODO: Remove duplicate code and use a gem/git submodule/whatever...
   # see barclamp-deployer/chef/cookbooks/barclamp/libraries/barclamp_library.rb
   def unique_name_already_claimed_by(device)
-    claimed_name = @node[:crowbar_wall][:claimed_disks].find do |claimed_name, v|
+    claimed_name = (crowbar_wall[:claimed_disks] || []).find do |claimed_name, v|
       self.link_to_device?(device, claimed_name)
     end || []
     claimed_name.first

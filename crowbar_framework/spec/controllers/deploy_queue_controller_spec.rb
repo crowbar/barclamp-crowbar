@@ -25,5 +25,18 @@ describe DeployQueueController do
       get :index
       response.should be_success
     end
+
+    it "is successful when there are clusters in the queue" do
+      # Proposal is in the queue
+      prop = ProposalObject.find_proposal("database", "default")
+      prop["deployment"][prop.barclamp]["crowbar-committing"] = true
+
+      # Appropriately structured queue item
+      queue_item = { "barclamp" => prop.barclamp, "inst" => prop.name, "elements" => prop.elements, "deps" => [] }
+      @controller.stubs(:deployment_queue).returns([queue_item])
+
+      get :index
+      response.should be_success
+    end
   end
 end

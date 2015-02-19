@@ -3,31 +3,8 @@
 
 %h2
   = t(".currently_deployed")
-- if @top
-  %table.table.table-bordered.table-striped
-    %thead
-      %tr
-        %th
-          = t(".proposal_name")
-        %th
-          = t(".nodes")
-    %tbody
-      %tr
-        %td
-          = @top.barclamp
-          = @top.name
-        %td
-          - @top.elements.each do |role_name, node_names|
-            %div
-              = role_name
-            %div
-              - node_names.map { |node_name| @nodes[node_name] }.each do |node|
-                %span
-                  %span.led{ :class => node.status, :title => t(node.state, :scope => "state", :default => node.state.titlecase), "data-node" => node.handle }
-                  %a{ :href => node_path(node.handle), :title => node.description }
-                    = node.alias
-- else
-  = t(".no_proposal_deployed")
+
+= render "deployed_proposal"
 
 %h2
   = t(".waiting_in_queue")
@@ -55,34 +32,12 @@
             = item["barclamp"]
             = item["inst"]
           %td
-            - item["elements"].each do |role_name, node_names|
-              %div
-                = role_name
-              %div
-                - node_names.map { |node_name| @nodes[node_name] }.each do |node|
-                  %span
-                    %span.led{ :class => node.status, :title => t(node.state, :scope => "state", :default => node.state.titlecase), "data-node" => node.handle }
-                    %a{ :href => node_path(node.handle), :title => node.description }
-                      = node.alias
+            = render :partial => "elements", :locals => { :elements => item["elements"], :all_nodes => @nodes }
           %td
-            - if item["deps"].nil? || item["deps"].empty?
-              = t(".no_dependencies")
-            - else
-              - item["deps"].map { |dep| @props["#{dep["barclamp"]}_#{dep["inst"]}"] }.each do |dep|
-                %div
-                  %span.led{ :class => dep.status, :title => t(dep.status, :scope => "state", :default => dep.status.titlecase), "data-node" => dep.name }
-                  %span
-                    = dep.barclamp
-                    = dep.name
+            = render :partial => "dependencies", :locals => { :dependencies => item["deps"], :all_proposals => @props }
           %td
-            - nodes = item["elements"].values.flatten.uniq.map { |node_name| @nodes[node_name] }.select { |n| !n.ready? }
-            - if !nodes.empty?
-              %div
-                = t(".waiting_for_nodes", :nodes => nodes.map { |n| n.alias }.to_sentence)
-            - deps = item["deps"].map { |dep| @props["#{dep["barclamp"]}_#{dep["inst"]}"] }.select { |p| p.status != 'ready' }
-            - if !deps.empty?
-              %div
-                = t(".waiting_for_proposals", :props => deps.map { |p| "#{p.barclamp} #{p.name}" }.to_sentence)
+            = render :partial => "missing_nodes", :locals => { :nodes => item["elements"].values.flatten.uniq, :all_nodes => @nodes }
+            = render :partial => "missing_dependencies", :locals => { :dependencies => item["deps"], :all_proposals => @props }
           %td
             %form{:action => update_proposal_barclamp_path(item["barclamp"], item["inst"]), :method => :post}
               = hidden_field_tag("origin", "deployment_queue", :id => "origin_#{item["barclamp"]}_#{item["inst"]}")

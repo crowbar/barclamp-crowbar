@@ -39,7 +39,7 @@ class BarclampController < ApplicationController
   def barclamp_index
     @barclamps = ServiceObject.all
     respond_to do |format|
-      format.html { render :template => 'barclamp/barclamp_index' }
+      format.html { raise ActionController::RoutingError.new('Not Found') }
       format.xml  { render :xml => @barclamps }
       format.json { render :json => @barclamps }
     end

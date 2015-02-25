@@ -34,12 +34,10 @@ describe CrowbarController do
   end
 
   describe "GET barclamp_index" do
-    it "renders list of all barclamps" do
-      skip("FIXME")
-
-      get :barclamp_index
-      response.should be_success
-      assigns(:barclamps).should include("crowbar")
+    it "renders page not found as html" do
+      expect {
+        get :barclamp_index
+      }.to raise_error(ActionController::RoutingError)
     end
 
     it "returns list of barclamp names as json" do

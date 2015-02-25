@@ -1020,7 +1020,7 @@ class NodeObject < ChefObject
 
   def switch
     if switch_name.nil?
-      self.handle[0..8]
+      "unknown"
     elsif switch_unit.nil?
       switch_name
     else

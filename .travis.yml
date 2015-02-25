@@ -2,6 +2,22 @@ language: ruby
 rvm:
   - 2.1.0
 
+branches:
+  except:
+    - old-master
+    - release/betty/master
+    - release/elefante/master
+    - release/essex-hack/master
+    - release/fledermaus/master
+    - release/fred/master
+    - release/hydrogen/master
+    - release/pebbles/master
+    - release/roxy/master
+    - /^release\/.*\/master-bootstrap-ui$/
+    - /^release\/hadoop-.*$/
+    - /^release\/mesa-.*$/
+    - /^release\/suse-cloud\/.*$/
+
 gemfile: crowbar_framework/Gemfile
 
 install:

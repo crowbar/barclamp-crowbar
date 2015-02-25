@@ -1346,8 +1346,9 @@ class NodeObject < ChefObject
   # that means that the given linkname can be found in the array
   # @node[:block_device][device][by-{id,path,uuid}]
   def link_to_device?(device, linkname)
-    # device is i.e. "sda", "vda", ...
+    # device is i.e. "/dev/sda", "/dev/vda", ...
     # linkname is i.e. "/dev/disk/by-path/pci-0000:00:04.0-virtio-pci-virtio1"
+    return true if device == linkname
     lookup_and_name = linkname.gsub(/^\/dev\/disk\//, '').split(File::SEPARATOR, 2)
     linked_devs = @node[:block_device][device][:disks][lookup_and_name[0]] rescue []
     linked_devs.include?(lookup_and_name[1])

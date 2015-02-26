@@ -24,10 +24,10 @@
   HideShowClusterConf.prototype.initialize = function() {
     var self = this;
 
-    var clusters = $.grep($(this.options.deployment_storage).readJsonAttribute(this.options.deployment_path), this.isCluster);
-    this.clusters_allocated = clusters.length;
-
-    if (this.clusters_allocated == 0) { this.root.hide(); }
+    // if a cluster is already in use, then we'll get the nodeListNodeAllocated
+    // event on page load
+    this.clusters_allocated = 0;
+    this.root.hide();
 
     $(document).on('nodeListNodeAllocated', function(evt, data) {
       if (self.isCluster(data.id)) {

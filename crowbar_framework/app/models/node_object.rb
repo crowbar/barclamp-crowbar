@@ -1351,7 +1351,7 @@ class NodeObject < ChefObject
     return true if File.join("", "dev", device) == linkname
     lookup_and_name = linkname.gsub(/^\/dev\/disk\//, '').split(File::SEPARATOR, 2)
     linked_devs = @node[:block_device][device][:disks][lookup_and_name[0]] rescue []
-    linked_devs.include?(lookup_and_name[1])
+    linked_devs.include?(lookup_and_name[1]) rescue false
   end
 
   # IMPORTANT: keep these paths in sync with

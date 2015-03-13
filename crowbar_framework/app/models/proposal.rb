@@ -3,6 +3,7 @@ class Proposal < ActiveRecord::Base
 
   validates :name, :barclamp, :properties, :presence => true
   validate  :name, :name_not_on_blacklist
+  validates :name, :uniqueness => { :scope => :barclamp }
 
   private
 

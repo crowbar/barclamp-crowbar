@@ -21,5 +21,14 @@ describe Proposal do
       expect(proposal).to_not be_valid
       expect(proposal.errors[:properties]).to_not be_empty
     end
+
+    it "is not valid if name is reserved" do
+      # Template is a name for proposal grabbed from the JSON, this should not be allowed.
+      # There is a bunch of other names that are illegal, but the list is private, see
+      # model validations.
+      proposal.name = "template"
+      expect(proposal).to_not be_valid
+      expect(proposal.errors[:name]).to_not be_empty
+    end
   end
 end

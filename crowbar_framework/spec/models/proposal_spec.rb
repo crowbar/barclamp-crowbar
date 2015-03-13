@@ -30,5 +30,18 @@ describe Proposal do
       expect(proposal).to_not be_valid
       expect(proposal.errors[:name]).to_not be_empty
     end
+
+    it "name and barclamp combination is unique" do
+      proposal = nil
+      begin
+        proposal = Proposal.create!(:barclamp => "database", :name => "default", :properties => { :foo => :bar })
+        another  = Proposal.new(:barclamp => "database", :name => "default", :properties => {:foo => :bar})
+
+        expect(another).to_not be_valid
+        expect(another.errors[:name]).to_not be_empty
+      ensure
+        proposal.destroy if proposal
+      end
+    end
   end
 end

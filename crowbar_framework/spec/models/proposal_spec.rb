@@ -1,7 +1,29 @@
 require 'spec_helper'
 
 describe Proposal do
-  let(:proposal) { Proposal.new }
+  let(:proposal) { Proposal.new(:barclamp => "crowbar")}
+
+  it "raises when barclamp is not specified in the constructor" do
+    expect {
+      Proposal.new
+    }.to raise_error(ArgumentError)
+
+    expect {
+      Proposal.new(:name => "default")
+    }.to raise_error(ArgumentError)
+  end
+
+  describe "default properties loading" do
+    it "loads the properties based on barclamp" do
+      expect(proposal.properties).to_not be_empty
+    end
+
+    it "raises an error if the barclamp template does not exist" do
+      expect {
+        Proposal.new(:barclamp => "nonexistent_barclamp")
+      }.to raise_error(Proposal::TemplateMissing)
+    end
+  end
 
   describe "validations" do
     it "is not valid without a barclamp" do
@@ -34,8 +56,8 @@ describe Proposal do
     it "name and barclamp combination is unique" do
       proposal = nil
       begin
-        proposal = Proposal.create!(:barclamp => "database", :name => "default", :properties => { :foo => :bar })
-        another  = Proposal.new(:barclamp => "database", :name => "default", :properties => {:foo => :bar})
+        proposal = Proposal.create!(:barclamp => "crowbar", :name => "default", :properties => { :foo => :bar })
+        another  = Proposal.new(:barclamp => "crowbar", :name => "default", :properties => {:foo => :bar})
 
         expect(another).to_not be_valid
         expect(another.errors[:name]).to_not be_empty

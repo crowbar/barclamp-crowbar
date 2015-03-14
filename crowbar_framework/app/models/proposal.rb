@@ -11,6 +11,7 @@ class Proposal < ActiveRecord::Base
   validates :name, :uniqueness => { :scope => :barclamp }
 
   after_initialize :load_properties_template
+  before_save      :update_proposal_id
 
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
   # method for creating them. Then the check for barclamp arg would not be needed,
@@ -41,5 +42,9 @@ class Proposal < ActiveRecord::Base
 
   def properties_template_path
     Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
+  end
+
+  def update_proposal_id
+    self.properties["id"] = "bc-#{self.barclamp}-#{self.name}"
   end
 end

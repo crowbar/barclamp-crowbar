@@ -1,7 +1,12 @@
 require 'spec_helper'
 
 describe Proposal do
-  let(:proposal) { Proposal.new(:barclamp => "crowbar")}
+  let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
+
+  it "updates the proposal id before save" do
+    proposal.save
+    expect(proposal.properties["id"]).to eq("bc-crowbar-default")
+  end
 
   it "raises when barclamp is not specified in the constructor" do
     expect {

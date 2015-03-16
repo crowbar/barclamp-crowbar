@@ -89,6 +89,14 @@ class ProposalObject < ChefObject
     @item['id']
   end
 
+  def raw_data
+    item.raw_data
+  end
+
+  def raw_data=(value)
+    item.raw_data = value
+  end
+
   def export
     super("crowbar-bc-#{barclamp}-#{name}")
   end

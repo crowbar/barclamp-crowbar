@@ -2,6 +2,31 @@ require 'spec_helper'
 
 describe Proposal do
   let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
+  let(:proposal_object) { ProposalObject.find_proposal_by_id("bc-template-crowbar") }
+
+  describe "API" do
+    let(:proposal_template) { Proposal.new(:barclamp => "crowbar", :name => "template")}
+
+    let(:public_methods) { proposal_object.public_methods }
+    it "quacks like a ProposalObject" do
+      public_methods.each do |m|
+        expect(proposal_template).to respond_to(m)
+      end
+    end
+
+    it "returns the same values as ProposalObject" do
+      public_methods.reject do |m|
+        proposal_object.method(m).arity > 0 # Only getters
+      end.reject do |m|
+        [:id]
+      end.each do |m|
+        new_implementation = proposal_template.send(m)
+        old_implementation = proposal_object.send(m)
+
+        expect(old_implementation).to eq(new_implementation), "#{m.to_s} - old (#{old_implementation}) vs. new (#{new_implementation})"
+      end
+    end
+  end
 
   it "updates the proposal id before save" do
     proposal.save

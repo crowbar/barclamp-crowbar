@@ -6,11 +6,11 @@ class Proposal < ActiveRecord::Base
 
   serialize :properties, JSON
 
-  validates :name, :barclamp, :properties, :presence => true
+  validates :name, :barclamp, :properties, presence: true
   validate  :name, :name_not_on_blacklist
-  validates :name, :uniqueness => { :scope => :barclamp }
+  validates :name, uniqueness: { scope: :barclamp }
 
-  after_initialize :load_properties_template
+  after_initialize :load_properties_template, :set_item_attribute
   before_save      :update_proposal_id
 
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory

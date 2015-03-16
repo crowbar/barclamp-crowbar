@@ -1,4 +1,11 @@
 class Proposal < ActiveRecord::Base
+  include Crowbar::ProposalMethods
+
+  # FIXME: remove this
+  class_attribute :chef_type
+
+  self.chef_type = "data_bag_item"
+
   # FIXME: add proper i18n to errors
 
   class TemplateMissing < StandardError; end
@@ -22,6 +29,14 @@ class Proposal < ActiveRecord::Base
     super
   end
 
+  def to_json
+    self.properties.to_json
+  end
+
+  def export
+    ChefObject.new.export(self.name, self)
+  end
+
   private
 
   def name_not_on_blacklist
@@ -38,6 +53,12 @@ class Proposal < ActiveRecord::Base
     raise TemplateMissing.new("Proposal template is missing or not readable for #{self.barclamp}. Please create #{properties_template_path}.")
   rescue JSON::ParserError
     raise TemplateInvalid.new("Please make sure template for #{self.barclamp} in #{properties_template_path} contains valid JSON.")
+  end
+
+  # FIXME: @item needs to be set to keep compatibility with ProposalObject
+  # and is safe to remove later
+  def set_item_attribute
+    @item = OpenStruct.new(self.properties.merge(raw_data: self.properties))
   end
 
   def properties_template_path

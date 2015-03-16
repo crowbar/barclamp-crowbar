@@ -66,7 +66,7 @@ module Crowbar
 
     #NOTE: Status is NOT accurate if the proposal has been deactivated!  You must check the role.
     def status
-      bc = @item["deployment"][self.barclamp]
+      bc = item["deployment"][self.barclamp]
       if bc.nil?
         "hold"
       else
@@ -89,7 +89,7 @@ module Crowbar
     # for locationlization, will lookup text before the :  
     def fail_reason
        s = if failed?
-         @item["deployment"][self.barclamp]["crowbar-failed"].to_s
+         item["deployment"][self.barclamp]["crowbar-failed"].to_s
        elsif status === "ready"
          "Did not fail.  Successfully applied: #{barclamp}-#{name} (status #{status})"
        else
@@ -101,15 +101,15 @@ module Crowbar
     end
     
     def description
-      @item['description']
+      item['description']
     end
     
     def elements
-      @item.raw_data['deployment'][self.barclamp]["elements"]
+      item.raw_data['deployment'][self.barclamp]["elements"]
     end
 
     def all_elements
-      @item.raw_data['deployment'][self.barclamp]["element_order"].flatten.uniq
+      item.raw_data['deployment'][self.barclamp]["element_order"].flatten.uniq
     end
 
     def role
@@ -117,17 +117,17 @@ module Crowbar
     end
 
     def crowbar_revision
-      @item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
+      item["deployment"][barclamp]["crowbar-revision"].to_i rescue 0
     end
 
     def latest_applied?
-      @item["deployment"][barclamp]["crowbar-applied"] rescue false
+      item["deployment"][barclamp]["crowbar-applied"] rescue false
     end
 
     def latest_applied=(applied)
-      @item["deployment"] ||= {}
-      @item["deployment"][barclamp] ||= {}
-      @item["deployment"][barclamp]["crowbar-applied"] = applied
+      item["deployment"] ||= {}
+      item["deployment"][barclamp] ||= {}
+      item["deployment"][barclamp]["crowbar-applied"] = applied
     end
 
     def active?
@@ -135,19 +135,19 @@ module Crowbar
     end
 
     def raw_data
-      @item.raw_data
+      item.raw_data
     end
 
     def raw_data=(value)
-      @item.raw_data = value
+      item.raw_data = value
     end
 
     def [](attrib)
-      @item[attrib]
+      item[attrib]
     end
 
     def []=(attrib, value)
-      @item[attrib] = value
+      item[attrib] = value
     end
   end
 end

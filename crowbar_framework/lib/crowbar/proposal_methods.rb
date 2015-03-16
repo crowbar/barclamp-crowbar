@@ -105,11 +105,11 @@ module Crowbar
     end
     
     def elements
-      item.raw_data['deployment'][self.barclamp]["elements"]
+      raw_data['deployment'][self.barclamp]["elements"]
     end
 
     def all_elements
-      item.raw_data['deployment'][self.barclamp]["element_order"].flatten.uniq
+      raw_data['deployment'][self.barclamp]["element_order"].flatten.uniq
     end
 
     def role
@@ -132,14 +132,6 @@ module Crowbar
 
     def active?
       !role.nil?
-    end
-
-    def raw_data
-      item.raw_data
-    end
-
-    def raw_data=(value)
-      item.raw_data = value
     end
 
     def [](attrib)

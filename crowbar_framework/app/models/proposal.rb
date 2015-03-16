@@ -17,7 +17,7 @@ class Proposal < ActiveRecord::Base
   validate  :name, :name_not_on_blacklist
   validates :name, uniqueness: { scope: :barclamp }
 
-  after_initialize :load_properties_template, :set_item_attribute
+  after_initialize :load_properties_template
   before_save      :update_proposal_id
 
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
@@ -37,6 +37,18 @@ class Proposal < ActiveRecord::Base
     ChefObject.new.export(self.name, self)
   end
 
+  def item
+    self.properties
+  end
+
+  def raw_data
+    self.properties
+  end
+
+  def raw_data=(value)
+    self.properties = value
+  end
+
   private
 
   def name_not_on_blacklist
@@ -53,12 +65,6 @@ class Proposal < ActiveRecord::Base
     raise TemplateMissing.new("Proposal template is missing or not readable for #{self.barclamp}. Please create #{properties_template_path}.")
   rescue JSON::ParserError
     raise TemplateInvalid.new("Please make sure template for #{self.barclamp} in #{properties_template_path} contains valid JSON.")
-  end
-
-  # FIXME: @item needs to be set to keep compatibility with ProposalObject
-  # and is safe to remove later
-  def set_item_attribute
-    @item = OpenStruct.new(self.properties.merge(raw_data: self.properties))
   end
 
   def properties_template_path

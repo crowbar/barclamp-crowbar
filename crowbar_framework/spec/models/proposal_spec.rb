@@ -2,23 +2,24 @@ require 'spec_helper'
 
 describe Proposal do
   let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
-  let(:proposal_object) { ProposalObject.find_proposal_by_id("bc-template-crowbar") }
 
   describe "API" do
+    let(:proposal_object)   { ProposalObject.find_proposal_by_id("bc-template-crowbar") }
     let(:proposal_template) { Proposal.new(:barclamp => "crowbar", :name => "template")}
 
-    let(:public_methods) { proposal_object.public_methods }
+    let(:checked_methods) { proposal_object.public_methods(false) + Crowbar::ProposalMethods.public_instance_methods }
+
     it "quacks like a ProposalObject" do
-      public_methods.each do |m|
+      checked_methods.each do |m|
         expect(proposal_template).to respond_to(m)
       end
     end
 
     it "returns the same values as ProposalObject" do
-      public_methods.reject do |m|
+      checked_methods.reject do |m|
         proposal_object.method(m).arity > 0 # Only getters
       end.reject do |m|
-        [:id]
+          [:id, :item, :save, :destroy, :export].include?(m) # These methods are incompatible and need attention
       end.each do |m|
         new_implementation = proposal_template.send(m)
         old_implementation = proposal_object.send(m)

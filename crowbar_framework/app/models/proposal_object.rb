@@ -126,6 +126,7 @@ class ProposalObject < ChefObject
     increment_crowbar_revision!
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
+    save_proposal_in_sqlite
     Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
@@ -136,6 +137,13 @@ class ProposalObject < ChefObject
   end
   
   private
+
+  def save_proposal_in_sqlite
+    attrs = { barclamp: self.barclamp, name: self.name }
+
+    prop = Proposal.where(attrs).first_or_initialize(attrs)
+    prop.update(attrs.merge(properties: @item.raw_data))
+  end
 
   def increment_crowbar_revision!
     @item["deployment"] ||= {}

@@ -18,6 +18,41 @@
 require 'spec_helper'
 
 describe ProposalObject do
+  describe "save" do
+    let(:proposal) { ProposalObject.find_proposal_by_id("bc-crowbar-default") }
+
+    before(:each) { Proposal.delete_all }
+
+    before { proposal.item.stubs(:save).returns(true) }
+
+    it "creates equivalent proposal model" do
+      expect {
+        proposal.save
+      }.to change {
+        Proposal.count
+      }.by(1)
+
+      # While raw_data are equivalent, the ProposalObject.item differs as
+      # Proposal doesn't store this data.
+      expect(proposal.raw_data.to_json).to eq(Proposal.last.raw_data.to_json)
+    end
+
+    it "updates changes" do
+      proposal.save
+
+      new_description = "Just a test"
+      proposal.raw_data["description"] = new_description
+
+      expect {
+        proposal.save
+      }.to_not change {
+        Proposal.count
+      }
+
+      expect(Proposal.last.description).to eq(new_description)
+    end
+  end
+
   describe "barclamp" do
     it "returns barclamp for regular proposals" do
       proposal = ProposalObject.find_proposal_by_id("bc-crowbar-default")

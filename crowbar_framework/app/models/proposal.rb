@@ -33,6 +33,15 @@ class Proposal < ActiveRecord::Base
     self.properties.to_json
   end
 
+  # FIXME: equivalent to ProposalObject.id
+  def key
+    if name == "template"
+      "bc-#{self.name}-#{self.barclamp}"
+    else
+      "bc-#{self.barclamp}-#{self.name}"
+    end
+  end
+
   def export
     ChefObject.new.export(self.name, self)
   end

@@ -70,6 +70,9 @@ class Proposal < ActiveRecord::Base
     ChefObject.new.export(self.name, self)
   end
 
+  # FIXME: this is not correct, the item of ProposalObject returns
+  # couchdb/serialization related attributes. This is equivalent to raw_data
+  # instead.
   def item
     self.properties
   end

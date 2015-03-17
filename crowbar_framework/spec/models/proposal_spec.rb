@@ -3,6 +3,74 @@ require 'spec_helper'
 describe Proposal do
   let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
 
+  describe "Finders" do
+    before do
+      Proposal.delete_all
+      Proposal.create(:barclamp => "crowbar", :name => "default")
+    end
+
+    after do
+      Proposal.delete_all
+    end
+
+    describe "interface" do
+      [
+        :all,
+        :find,
+        :find_proposals,
+        :find_barclamp,
+        :find_proposal,
+        :find_proposal_by_id,
+      ].each do |method|
+        it "responds to #{method}" do
+          expect(proposal.class).to respond_to(method)
+        end
+      end
+    end
+
+    describe "find" do
+      it "returns proposals matching a search" do
+        skip("Incompatible API, fix call sites")
+      end
+    end
+
+    describe "find_data_bag_item" do
+      it "returns a bag" do
+        skip("Data bag item still handled by ProposalObject")
+      end
+    end
+
+    describe "all" do
+      it "returns all proposals" do
+        proposals = Proposal.all
+        expect(proposals).to_not be_empty
+        expect(proposals.all? { |p| p.is_a?(Proposal) }).to be true
+      end
+    end
+
+    describe "find_proposals" do
+      it "returns all barclamp proposals with a given name" do
+        proposals = Proposal.find_proposals("crowbar")
+        expect(proposals).to_not be_empty
+        expect(proposals.all? { |p| p.key == "bc-crowbar-default" }).to be true
+      end
+    end
+
+    describe "find_barclamp" do
+      it "returns a barclamp with a given name" do
+        barclamp = Proposal.find_barclamp("crowbar")
+        expect(barclamp.key).to eq("bc-template-crowbar")
+      end
+    end
+
+    describe "find_proposal_by_id" do
+      it "returns a matching proposal" do
+        proposal = Proposal.find_proposal_by_id("bc-crowbar-default")
+        expect(proposal.key).to eq("bc-crowbar-default")
+      end
+    end
+  end
+
   describe "API" do
     let(:proposal_object)   { ProposalObject.find_proposal_by_id("bc-template-crowbar") }
     let(:proposal_template) { Proposal.new(:barclamp => "crowbar", :name => "template")}

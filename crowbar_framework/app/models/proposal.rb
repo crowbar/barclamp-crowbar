@@ -29,6 +29,30 @@ class Proposal < ActiveRecord::Base
     super
   end
 
+  def self.find_proposals(barclamp)
+    where(:barclamp => barclamp)
+  end
+
+  def self.find_barclamp(barclamp)
+    self.new(:barclamp => barclamp, :name => "template")
+  end
+
+  def self.find_proposal(barclamp, name)
+    where(:barclamp => barclamp, :name => name).first
+  end
+
+  # XXX: the networks will still be backed by ProposalObject for now,
+  # so it is not neccessary to handle them here.
+  # We still need to handle lookups for templates, though.
+  def self.find_proposal_by_id(id)
+    _, barclamp_or_template, name = *id.split("-")
+    if barclamp_or_template == "template"
+      self.new(:barclamp => name, :name => "template")
+    else
+      where(:barclamp => barclamp_or_template, :name => name).first
+    end
+  end
+
   def to_json
     self.properties.to_json
   end

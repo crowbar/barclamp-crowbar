@@ -72,14 +72,28 @@ describe Proposal do
   end
 
   describe "API" do
-    let(:proposal_object)   { ProposalObject.find_proposal_by_id("bc-template-crowbar") }
-    let(:proposal_template) { Proposal.new(:barclamp => "crowbar", :name => "template")}
+
+    before do
+      Proposal.delete_all
+
+      # Stub out item.save to prevent writes to non-existent couchdb. We also
+      # have to metadata updates, as they'd propagate into the sqlite and cause
+      # a de-sync.
+      p = ProposalObject.find_proposal_by_id("bc-crowbar-default")
+      p.stubs(:increment_crowbar_revision!).returns(true)
+      p.stubs(:latest_applied=).returns(true)
+      p.item.stubs(:save).returns(true)
+      p.save
+    end
+
+    let(:proposal_object)   { ProposalObject.find_proposal_by_id("bc-crowbar-default") }
+    let(:proposal_model)    { Proposal.where(:barclamp => "crowbar", :name => "default").first }
 
     let(:checked_methods) { proposal_object.public_methods(false) + Crowbar::ProposalMethods.public_instance_methods }
 
     it "quacks like a ProposalObject" do
       checked_methods.each do |m|
-        expect(proposal_template).to respond_to(m)
+        expect(proposal_model).to respond_to(m)
       end
     end
 
@@ -87,13 +101,20 @@ describe Proposal do
       checked_methods.reject do |m|
         proposal_object.method(m).arity > 0 # Only getters
       end.reject do |m|
-          [:id, :item, :save, :destroy, :export].include?(m) # These methods are incompatible and need attention
+          [:id, :item, :save, :destroy, :export, :role].include?(m) # These methods are incompatible and need attention
       end.each do |m|
-        new_implementation = proposal_template.send(m)
+        new_implementation = proposal_model.send(m)
         old_implementation = proposal_object.send(m)
 
         expect(old_implementation).to eq(new_implementation), "#{m.to_s} - old (#{old_implementation}) vs. new (#{new_implementation})"
       end
+
+      # Role tested separately as the instances are not equal, but it is the
+      # same role.
+      new_role = proposal_model.role
+      old_role = proposal_object.role
+
+      expect(new_role.name).to eq(old_role.name)
     end
   end
 

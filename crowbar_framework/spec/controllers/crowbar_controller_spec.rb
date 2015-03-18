@@ -243,9 +243,8 @@ describe CrowbarController do
   end
 
   describe "proposal updates" do
-    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
-
     before(:each) do
+      Proposal.any_instance.stubs(:save).returns(true)
       ProposalObject.any_instance.stubs(:save).returns(true)
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
@@ -253,12 +252,16 @@ describe CrowbarController do
     end
 
     describe "POST proposal_commit" do
+      let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create!(barclamp: "crowbar", name: "default") }
+
       it "validates a proposal" do
-        post :proposal_commit, :id => "default"
+        post :proposal_commit, :id => proposal.name
       end
     end
 
     describe "PUT proposal_update" do
+      let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+
       it "validates a proposal from command line" do
         skip("FIXME")
         prop = JSON.parse(proposal.to_json, :create_additions => false)["item"]["raw_data"].merge("id" => "default")

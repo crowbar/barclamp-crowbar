@@ -757,7 +757,7 @@ class ServiceObject
   # is computed (in apply_role) and chef client gets called on the nodes.
   # Hopefully, this will get moved into a background job.
   def proposal_commit(inst, in_queue = false, validate_after_save = true)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
+    prop = Proposal.where(barclamp: @bc_name, name: inst).first
 
     if prop.nil?
       [404, "#{I18n.t('.cannot_find', :scope=>'model.service')}: #{@bc_name}.#{inst}"]

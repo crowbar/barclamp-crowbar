@@ -133,10 +133,18 @@ class ProposalObject < ChefObject
   def destroy
     Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
+    delete_proposal_from_sqlite
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   
   private
+
+  def delete_proposal_from_sqlite
+    attrs = { barclamp: self.barclamp, name: self.name }
+
+    prop = Proposal.where(attrs).first
+    prop.destroy if prop
+  end
 
   def save_proposal_in_sqlite
     attrs = { barclamp: self.barclamp, name: self.name }

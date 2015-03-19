@@ -150,7 +150,7 @@ class ProposalObject < ChefObject
     attrs = { barclamp: self.barclamp, name: self.name }
 
     prop = Proposal.where(attrs).first_or_initialize(attrs)
-    prop.update(attrs.merge(properties: @item.raw_data))
+    prop.update(attrs.merge(properties: @item.raw_data)) if @item.raw_data != prop.raw_data
   end
 
   def increment_crowbar_revision!

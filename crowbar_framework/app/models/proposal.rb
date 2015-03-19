@@ -104,7 +104,12 @@ class Proposal < ActiveRecord::Base
   end
 
   def properties_template_path
-    Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
+    if Rails.env.production?
+      Rails.root.join("../chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
+    else
+      # XXX: this assumes barclamps are cloned in the same directory
+      Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
+    end
   end
 
   def update_proposal_id

@@ -1,0 +1,113 @@
+class Proposal < ActiveRecord::Base
+  include Crowbar::ProposalMethods
+
+  # FIXME: remove this
+  class_attribute :chef_type
+
+  self.chef_type = "data_bag_item"
+
+  # FIXME: add proper i18n to errors
+
+  class TemplateMissing < StandardError; end
+  class TemplateInvalid < StandardError; end
+
+  serialize :properties, JSON
+
+  validates :name, :barclamp, :properties, presence: true
+  validate  :name, :name_not_on_blacklist
+  validates :name, uniqueness: { scope: :barclamp }
+
+  after_initialize :load_properties_template
+  before_save      :update_proposal_id
+
+  # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
+  # method for creating them. Then the check for barclamp arg would not be needed,
+  # as we'd always know the barclamp exists.
+  def initialize(attributes = nil, options = {})
+    raise ArgumentError.new("Barclamp attribute is required") unless attributes && attributes.key?(:barclamp)
+
+    super
+  end
+
+  def self.find_proposals(barclamp)
+    where(:barclamp => barclamp)
+  end
+
+  def self.find_barclamp(barclamp)
+    self.new(:barclamp => barclamp, :name => "template")
+  end
+
+  def self.find_proposal(barclamp, name)
+    where(:barclamp => barclamp, :name => name).first
+  end
+
+  # XXX: the networks will still be backed by ProposalObject for now,
+  # so it is not neccessary to handle them here.
+  # We still need to handle lookups for templates, though.
+  def self.find_proposal_by_id(id)
+    _, barclamp_or_template, name = *id.split("-")
+    if barclamp_or_template == "template"
+      self.new(:barclamp => name, :name => "template")
+    else
+      where(:barclamp => barclamp_or_template, :name => name).first
+    end
+  end
+
+  def to_json
+    self.properties.to_json
+  end
+
+  # FIXME: equivalent to ProposalObject.id
+  def key
+    if name == "template"
+      "bc-#{self.name}-#{self.barclamp}"
+    else
+      "bc-#{self.barclamp}-#{self.name}"
+    end
+  end
+
+  def export
+    ChefObject.new.export(self.name, self)
+  end
+
+  # FIXME: this is not correct, the item of ProposalObject returns
+  # couchdb/serialization related attributes. This is equivalent to raw_data
+  # instead.
+  def item
+    self.properties
+  end
+
+  def raw_data
+    self.properties
+  end
+
+  def raw_data=(value)
+    self.properties = value
+  end
+
+  private
+
+  def name_not_on_blacklist
+    forbidden_names = ["template", "nodes", "commit", "status"]
+
+    if forbidden_names.include?(self.name)
+      self.errors.add(:name, "Name cannot be any of #{forbidden_names.to_sentence}.")
+    end
+  end
+
+  def load_properties_template
+    self.properties ||= JSON.parse(File.read(properties_template_path))
+  rescue Errno::ENOENT, Errno::EACCES
+    raise TemplateMissing.new("Proposal template is missing or not readable for #{self.barclamp}. Please create #{properties_template_path}.")
+  rescue JSON::ParserError
+    raise TemplateInvalid.new("Please make sure template for #{self.barclamp} in #{properties_template_path} contains valid JSON.")
+  end
+
+  def properties_template_path
+    Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
+  end
+
+  def update_proposal_id
+    self.properties["id"] = "bc-#{self.barclamp}-#{self.name}"
+  end
+end

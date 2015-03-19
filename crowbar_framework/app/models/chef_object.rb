@@ -51,9 +51,9 @@ class ChefObject
     str.gsub("-:") { |c| '\\' + c }
   end
 
-  def export(name = nil)
-    name ||= self.respond_to?(:name) ? self.name : "unknown"
-    file   = Rails.root.join("db", "#{self.chef_type}_#{name}.json")
-    File.open(file, "w") { |f| f.write(self.to_json) }
+  def export(name = nil, obj = self)
+    name ||= obj.respond_to?(:name) ? obj.name : "unknown"
+    file   = Rails.root.join("db", "#{obj.chef_type}_#{name}.json")
+    File.open(file, "w") { |f| f.write(obj.to_json) }
   end
 end

@@ -196,7 +196,7 @@ describe Proposal do
         expect(another).to_not be_valid
         expect(another.errors[:name]).to_not be_empty
       ensure
-        proposal.destroy if proposal
+        proposal.delete if proposal
       end
     end
   end

@@ -126,14 +126,14 @@ class ProposalObject < ChefObject
     increment_crowbar_revision!
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    save_proposal_in_sqlite
+    save_proposal_in_sqlite if options.fetch(:sync, true)
     Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
-  def destroy
+  def destroy(options = {})
     Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
-    delete_proposal_from_sqlite
+    delete_proposal_from_sqlite if options.fetch(:sync, true)
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   

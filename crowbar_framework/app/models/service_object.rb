@@ -496,6 +496,7 @@ class ServiceObject
 #
 # update proposal status information
 #
+  # FIXME: refactor into Proposal#status=()
   def update_proposal_status(inst, status, message, bc = @bc_name)
     @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
 
@@ -541,6 +542,7 @@ class ServiceObject
     end
   end
 
+  # FIXME: Move into proposal before_save filter
   def clean_proposal(proposal)
     @logger.debug "clean_proposal"
     proposal.delete("controller")
@@ -576,6 +578,9 @@ class ServiceObject
     end
   end
 
+  # FIXME: these methods operate on a proposal and the controller has access o
+  # bc_name/inst anyway. So it might be better to not pollute the inheritance
+  # chain.
   def elements
     [200, ProposalObject.find_barclamp(@bc_name).all_elements]
   end
@@ -620,6 +625,7 @@ class ServiceObject
   #
   # Utility method to find instances for barclamps we depend on
   #
+  # FIXME: a registry that could be queried for active barclamps
   def find_dep_proposal(bc, optional=false)
     begin
       const_service = self.class.get_service(bc)
@@ -679,12 +685,14 @@ class ServiceObject
   #
   # This can be overridden to provide a better creation proposal
   #
+  # FIXME: check if it is overridden and move to caller
   def create_proposal
     prop = ProposalObject.find_proposal("template", @bc_name)
     raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
     prop.raw_data
   end
 
+  # FIXME: looks like purely controller methods
   def proposal_create(params)
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
@@ -734,6 +742,8 @@ class ServiceObject
     end
   end
 
+  # FIXME: most of these can be validations on the model itself,
+  # preferrably refactored into Validator classes.
   def save_proposal!(prop, options = {})
     options.reverse_merge!(:validate_after_save => true)
     clean_proposal(prop.raw_data)
@@ -743,6 +753,9 @@ class ServiceObject
     validate_proposal_after_save(prop.raw_data) if options[:validate_after_save]
   end
 
+  # XXX: this is where proposal gets copied into a role, scheduling / ops order
+  # is computed (in apply_role) and chef client gets called on the nodes.
+  # Hopefully, this will get moved into a background job.
   def proposal_commit(inst, in_queue = false, validate_after_save = true)
     prop = ProposalObject.find_proposal(@bc_name, inst)
 
@@ -778,6 +791,7 @@ class ServiceObject
   #
   # This can be overridden.  Specific to node validation.
   #
+  # FIXME: move into validator classes
   def validate_proposal_elements proposal_elements
     proposal_elements.each do |role_and_elements|
       role, elements = role_and_elements
@@ -1039,6 +1053,7 @@ class ServiceObject
   # This is a role output function
   # Can take either a RoleObject or a Role.
   #
+  # FIXME: check if it is ever used except for controller
   def self.role_to_proposal(role, bc_name)
     proposal = {}
 

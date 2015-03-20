@@ -1,6 +1,11 @@
 require 'spec_helper'
 
 describe Proposal do
+  # The real ProposalObject won't get saved, so we need to stub this out
+  before do
+    Proposal.any_instance.stubs(:update_corresponding_proposal_object).returns(true)
+  end
+
   let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
 
   describe "Finders" do

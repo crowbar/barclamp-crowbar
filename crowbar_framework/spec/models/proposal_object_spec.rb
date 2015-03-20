@@ -25,6 +25,9 @@ describe ProposalObject do
     before(:each) { Proposal.delete_all }
 
     before do
+      Proposal.any_instance.stubs(:update_corresponding_proposal_object).returns(true)
+      Proposal.any_instance.stubs(:drop_corresponding_proposal_object).returns(true)
+
       proposal.item.stubs(:save).returns(true)
       proposal.item.stubs(:destroy).returns(true)
     end

@@ -993,7 +993,7 @@ class NodeObject < ChefObject
       if switch_port.nil? or switch_port == -1
         self.alias
       else
-        switch_name + "%05d" % switch_unit.to_i + "%05d" % switch_port.to_i
+        switch_name + "%05d" % switch_unit.to_i + "%05d" % switch_port.to_i + self.alias
       end
     rescue
        self.alias

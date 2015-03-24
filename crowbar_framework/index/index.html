@@ -70,13 +70,13 @@
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
-          <a href="/" class="navbar-brand">
+          <a href="/" class="navbar-brand dashboard">
             <span class="title">Crowbar</span>
           </a>
         </div>
         <div class="navbar-right">
           <ul class="nav navbar-nav">
-            <li><a id="dashboard" href="http://127.0.0.1:3000/">Go to dashboard</a></li>
+            <li><a class="dashboard" href="http://127.0.0.1:3000/">Go to dashboard</a></li>
           </ul>
         </div>
       </div>
@@ -91,7 +91,7 @@
         </div>
         <div class="panel-body">
           <p>
-            The Crowbar Admin Server is only running on port 3000, so please follow the link above to the Crowbar dashboard. If
+            The Crowbar Admin Server is only running on <a class="dashboard" href="http://127.0.0.1:3000/">port 3000</a>. If
             you still have problems feel free to visit the <a href="http://github.com/crowbar/crowbar/wiki">Crowbar site</a> for
             more information.
           </p>
@@ -106,7 +106,10 @@
     </div>
 
     <script>
-      document.getElementById("dashboard").href="http://" + window.location.host + ":3000";
+      var links_to_dashboard = document.getElementsByClassName("dashboard");
+      for (i = 0; i < links_to_dashboard.length; i++) {
+        links_to_dashboard[i].href="http://" + window.location.host + ":3000";
+      }
     </script>
   </body>
 </html>

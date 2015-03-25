@@ -81,12 +81,12 @@ module Crowbar
       end
     end
     
-    # nil if not appliciable, true = if success, false if failed
+    # nil if not applicable, true = if success, false if failed
     def failed?
        status === 'failed'
     end
 
-    # for locationlization, will lookup text before the :  
+    # for localization, will lookup text before the :  
     def fail_reason
        s = if failed?
          item["deployment"][self.barclamp]["crowbar-failed"].to_s

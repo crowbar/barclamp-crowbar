@@ -67,7 +67,7 @@ class Proposal < ActiveRecord::Base
   end
 
   def export
-    ChefObject.new.export(self.name, self)
+    ChefObject.export(self)
   end
 
   # FIXME: this is not correct, the item of ProposalObject returns

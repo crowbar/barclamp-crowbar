@@ -173,6 +173,12 @@ describe Proposal do
       expect(proposal.errors[:name]).to_not be_empty
     end
 
+    it "a template cannot be saved" do
+      prop = Proposal.new(:barclamp => "crowbar")
+      expect(prop.name).to eq("template")
+      expect(prop.save).to eq(false)
+    end
+
     it "name and barclamp combination is unique" do
       proposal = nil
       begin

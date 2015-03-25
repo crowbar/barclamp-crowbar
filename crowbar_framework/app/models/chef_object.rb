@@ -55,10 +55,14 @@ class ChefObject
   # can be exported in a same way as the ProposalObject. When the replacement
   # is completed, remove it and implement the export in the Proposal.
   # Also check the logging barclamp that it did not break.
-  def export(name = nil, obj = self)
+  def self.export(obj, name = nil)
     name ||= obj.respond_to?(:name) ? obj.name : "unknown"
     file   = Rails.root.join("db", "#{obj.chef_type}_#{name}.json")
     File.open(file, "w") { |f| f.write(obj.to_json) }
+  end
+
+  def export(name = nil)
+    self.class.export(self, name)
   end
 
   # Each operating system can have a different path to the init command of a

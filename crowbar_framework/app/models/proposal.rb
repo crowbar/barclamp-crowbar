@@ -1,7 +1,7 @@
 class Proposal < ActiveRecord::Base
   include Crowbar::ProposalMethods
 
-  # FIXME: remove this
+  # FIXME: remove this when the export is properly implemented
   class_attribute :chef_type
 
   self.chef_type = "data_bag_item"

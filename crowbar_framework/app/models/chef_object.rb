@@ -51,6 +51,10 @@ class ChefObject
     str.gsub("-:") { |c| '\\' + c }
   end
 
+  # FIXME: the second argument was added so that the Proposal model
+  # can be exported in a same way as the ProposalObject. When the replacement
+  # is completed, remove it and implement the export in the Proposal.
+  # Also check the logging barclamp that it did not break.
   def export(name = nil, obj = self)
     name ||= obj.respond_to?(:name) ? obj.name : "unknown"
     file   = Rails.root.join("db", "#{obj.chef_type}_#{name}.json")

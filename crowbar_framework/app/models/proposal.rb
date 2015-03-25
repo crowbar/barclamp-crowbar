@@ -17,7 +17,7 @@ class Proposal < ActiveRecord::Base
   validate  :name, :name_not_on_blacklist
   validates :name, uniqueness: { scope: :barclamp }
 
-  after_initialize :load_properties_template
+  after_initialize :load_properties_template, :set_default_name
   before_save      :update_proposal_id
 
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
@@ -110,6 +110,10 @@ class Proposal < ActiveRecord::Base
       # XXX: this assumes barclamps are cloned in the same directory
       Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
     end
+  end
+
+  def set_default_name
+    self.name ||= "template"
   end
 
   def update_proposal_id

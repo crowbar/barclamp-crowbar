@@ -1,1 +1,49 @@
-{"name":"data_bag_item_crowbar_bc-template-crowbar","_rev":"2-35230a2246b379e3c48ad96479954282","raw_data":{"attributes":{"rails":{"max_pool_size":256,"environment":"development"},"crowbar":{"barclamps":["crowbar","deployer","ipmi","network","provisioner","redhat_install","ubuntu_install","ntp","dns","nagios","ganglia","logging"],"instances":{"deployer":["default"],"nagios":["default"],"ubuntu_install":["default"],"provisioner":["default"],"network":["default"],"ipmi":["default"],"ganglia":["default"],"logging":["default"],"dns":["default"],"ntp":["default"],"redhat_install":["default"]},"web_port":3000,"run_order":{"deployer":10,"nagios":60,"ubuntu_install":14,"provisioner":1060,"network":20,"ipmi":17,"ganglia":70,"logging":40,"dns":30,"ntp":50,"redhat_install":14},"users":{"machine-install":{"password":"58de2643926c6b975f711e16177c23164eda08b6bf1e51047345e9ec905d680662ea1b63876ed8d6234d66a196580400a1907e13f9a3b6924524f382440c2910"},"crowbar":{"password":"crowbar"}},"realm":"Crowbar - By selecting OK are agreeing to the License Agreement"}},"id":"bc-template-crowbar","description":"Self-referential barclamp enabling other barclamps","deployment":{"crowbar":{"element_order":[["crowbar"]],"config":{"transitions":false,"transition_list":[],"mode":"full","environment":"crowbar-config-test"},"crowbar-revision":0,"elements":{}}}},"json_class":"Chef::DataBagItem","data_bag":"crowbar","chef_type":"data_bag_item"}
+{"name":"data_bag_item_crowbar_bc-template-crowbar","_rev":"2-35230a2246b379e3c48ad96479954282","raw_data":{
+  "id": "bc-template-crowbar",
+  "description": "Self-referential barclamp enabling other barclamps",
+  "attributes": {
+    "crowbar": {
+      "instances": {
+        "deployer": [ "default" ],
+        "ipmi": [ "default" ],
+        "provisioner": [ "default" ],
+        "network": [ "default" ],
+        "ntp": [ "default" ],
+        "dns": [ "default" ],
+        "nagios": [ "default" ],
+        "ganglia": [ "default" ],
+        "logging": [ "default" ]
+      },
+      "realm": "Crowbar - By selecting OK you are agreeing to the License Agreement",
+      "web_port": 3000,
+      "users": {
+        "machine-install": { "password": "machine_password" },
+        "crowbar": { "password": "crowbar" }
+      },
+      "simple_proposal_ui": true
+    },
+    "rails": {
+      "max_pool_size": 256,
+      "environment": "production"
+    }
+  },
+  "deployment": {
+    "crowbar": {
+      "crowbar-revision": 0,
+      "crowbar-applied": false,
+      "element_states": {
+        "crowbar": [ "all" ]
+      },
+      "elements": {},
+      "element_order": [
+        [ "crowbar" ]
+      ],
+      "config": {
+        "environment": "crowbar-config-test",
+        "mode": "full",
+        "transitions": false,
+        "transition_list": [ ]
+      }
+    }
+  }
+},"json_class":"Chef::DataBagItem","data_bag":"crowbar","chef_type":"data_bag_item"}

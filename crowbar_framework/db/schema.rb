@@ -11,9 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140526135328) do
+ActiveRecord::Schema.define(version: 20150312081459) do
 
-  create_table "sessions", force: true do |t|
+  create_table "proposals", force: :cascade do |t|
+    t.string "barclamp",   null: false
+    t.string "name",       null: false
+    t.text   "properties"
+  end
+
+  add_index "proposals", ["barclamp", "name"], name: "index_proposals_on_barclamp_and_name", unique: true
+
+  create_table "sessions", force: :cascade do |t|
     t.string   "session_id", null: false
     t.text     "data"
     t.datetime "created_at"

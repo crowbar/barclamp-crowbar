@@ -697,7 +697,7 @@ class ServiceObject
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
-      return [403,I18n.t('model.service.illegal_name')]
+      return [403,I18n.t('model.service.illegal_name', names: FORBIDDEN_PROPOSAL_NAMES.to_sentence)]
     end
 
     prop = ProposalObject.find_proposal(@bc_name, base_id)

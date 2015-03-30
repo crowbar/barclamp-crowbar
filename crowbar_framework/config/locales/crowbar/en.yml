@@ -268,7 +268,7 @@ en:
       name_exists: 'Name already exists. Please choose another.'
       too_short: 'Invalid name.  Name must have some characters.'
       illegal_chars: 'Please limit name to [A-z0-9_] without spaces.'
-      illegal_name: 'Please choose another proposal name.'
+      illegal_name: 'Please choose another proposal name. It cannot be any of %{names}.'
       already_commit: 'Proposal already being applied.'
       cannot_find: 'Failed to find proposal'
       template_missing: 'Failed to load proposal template for barclamp %{name}.'

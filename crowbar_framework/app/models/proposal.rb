@@ -91,7 +91,7 @@ class Proposal < ActiveRecord::Base
     forbidden_names = ["template", "nodes", "commit", "status"]
 
     if forbidden_names.include?(self.name)
-      self.errors.add(:name, I18n.t('model.service.illegal_name'))
+      self.errors.add(:name, I18n.t('model.service.illegal_name', names: forbidden_names.to_sentence))
     end
   end
 

@@ -6,7 +6,7 @@ describe Proposal do
   describe "Finders" do
     before do
       Proposal.delete_all
-      Proposal.create(:barclamp => "crowbar", :name => "default")
+      Proposal.create!(:barclamp => "crowbar", :name => "default")
     end
 
     after do
@@ -162,6 +162,14 @@ describe Proposal do
       proposal.properties = nil
       expect(proposal).to_not be_valid
       expect(proposal.errors[:properties]).to_not be_empty
+    end
+
+    it "is not valid with funky name" do
+      ["foo bar", "notvalideither!"].each do |name|
+        proposal.name = name
+        expect(proposal).to_not be_valid
+        expect(proposal.errors[:name]).to_not be_empty
+      end
     end
 
     it "is not valid if name is reserved" do

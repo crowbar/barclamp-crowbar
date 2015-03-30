@@ -14,7 +14,7 @@ class Proposal < ActiveRecord::Base
   validates :barclamp, :properties, presence: true
   validates :name, uniqueness: { scope: :barclamp, message: I18n.t('model.service.name_exists') }
   validates :name, presence: { message: I18n.t('model.service.too_short') }
-  validates :name, format: { with: /[^A-Za-z0-9_]/, message: I18n.t('model.service.illegal_chars') }
+  validate  :name, :name_without_invalid_chars
   validate  :name, :name_not_on_blacklist
 
   after_initialize :load_properties_template, :set_default_name
@@ -92,6 +92,12 @@ class Proposal < ActiveRecord::Base
 
     if forbidden_names.include?(self.name)
       self.errors.add(:name, I18n.t('model.service.illegal_name', names: forbidden_names.to_sentence))
+    end
+  end
+
+  def name_without_invalid_chars
+    if self.name =~ /[^A-Za-z0-9_]/
+      self.errors.add(:name, I18n.t('model.service.illegal_chars'))
     end
   end
 

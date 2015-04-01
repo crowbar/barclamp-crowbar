@@ -56,4 +56,23 @@ class ChefObject
     file   = Rails.root.join("db", "#{self.chef_type}_#{name}.json")
     File.open(file, "w") { |f| f.write(self.to_json) }
   end
+
+  # Each operating system can have a different path to the init command of a
+  # service.
+  # In order to manipulate services we can tap the provider mapping for the
+  # correct service class to determine the system's correct init command
+  # https://github.com/chef/chef/blob/master/lib/chef/platform/provider_mapping.rb
+  def self.service_command(platform, version, service_name, action)
+    provider_service_class = Chef::Platform.find(platform, version)[:service]
+    case provider_service_class.to_s
+    when "Chef::Provider::Service::Systemd"
+      "systemctl #{action} #{service_name}"
+    when "Chef::Provider::Service::Upstart"
+      "/etc/init.d/#{service_name} #{action}"
+    when "Chef::Provider::Service::Redhat"
+      "service #{service_name} #{action}"
+    else
+      nil
+    end
+  end
 end

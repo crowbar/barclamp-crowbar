@@ -1488,9 +1488,9 @@ class ServiceObject
 
   private
 
-  def wait_for_chef_clients(node)
-    unless RemoteNode.chef_ready?(node, 1200)
-      STDERR.puts "Waiting for already running chef-clients on #{node} failed"
+  def wait_for_chef_clients(node_name)
+    unless RemoteNode.chef_ready?(node_name, 1200)
+      STDERR.puts "Waiting for already running chef-clients on #{node_name} failed"
       exit(1)
     end
   end

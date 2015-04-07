@@ -123,7 +123,7 @@ class ProposalObject < ChefObject
 
   def save(options = {})
     self.latest_applied = !!options[:applied]
-    increment_crowbar_revision!
+    increment_crowbar_revision! if options.fetch(:update_revision, true)
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
     save_proposal_in_sqlite if options.fetch(:sync, true)

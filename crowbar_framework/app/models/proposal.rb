@@ -101,7 +101,7 @@ class Proposal < ActiveRecord::Base
         proposal_object.save(sync: false)
       end
     else
-      bag = Chef::DataBagItem.json_create({"raw_data" => self.properties, "data_bag" => "crowbar"})
+      bag = Chef::DataBagItem.json_create({"raw_data" => self.raw_data, "data_bag" => "crowbar"})
       proposal_object = ProposalObject.new(bag)
       proposal_object.save(sync: false)
     end

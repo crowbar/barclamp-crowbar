@@ -153,17 +153,6 @@ class ProposalObject < ChefObject
     prop.update(attrs.merge(properties: @item.raw_data)) if @item.raw_data != prop.raw_data
   end
 
-  def increment_crowbar_revision!
-    @item["deployment"] ||= {}
-    @item["deployment"][barclamp] ||= {}
-    if @item["deployment"][barclamp]["crowbar-revision"].nil?
-      @item["deployment"][barclamp]["crowbar-revision"] = 0
-    else
-      @item["deployment"][barclamp]["crowbar-revision"] += 1
-    end
-  end
-
-  
   # 'array' is the unsorted set of objects
   # 'att_sym' is the symbol of the attribute each object in array, that is represented in index_array
   # 'index_array' is the ordered array of values

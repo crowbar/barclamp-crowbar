@@ -1,5 +1,15 @@
 module Crowbar
   module ProposalMethods
+    def increment_crowbar_revision!
+      item["deployment"] ||= {}
+      item["deployment"][self.barclamp] ||= {}
+      if item["deployment"][self.barclamp]["crowbar-revision"].nil?
+        item["deployment"][self.barclamp]["crowbar-revision"] = 0
+      else
+        item["deployment"][self.barclamp]["crowbar-revision"] += 1
+      end
+    end
+
     def raw_attributes
       @raw_attributes ||= begin
         raw_data["attributes"][self.barclamp] || {}

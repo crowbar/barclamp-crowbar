@@ -22,8 +22,8 @@ class Proposal < ActiveRecord::Base
 
   # FIXME: these are safe to remove once all barclamps are converted to use
   # Proposal instead of ProposalObject
-  after_destroy :drop_corresponding_proposal_object
-  after_save    :update_corresponding_proposal_object
+  before_destroy :drop_corresponding_proposal_object
+  before_save    :update_corresponding_proposal_object
 
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
   # method for creating them. Then the check for barclamp arg would not be needed,

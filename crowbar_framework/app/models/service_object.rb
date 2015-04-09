@@ -697,13 +697,13 @@ class ServiceObject
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
-      return [403,I18n.t('model.service.illegal_name', :name => base_id)]
+      return [403,I18n.t('model.service.illegal_name', names: FORBIDDEN_PROPOSAL_NAMES.to_sentence)]
     end
 
     prop = ProposalObject.find_proposal(@bc_name, base_id)
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?
     return [400, I18n.t('model.service.too_short')] if base_id.length == 0
-    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
+    return [400, I18n.t('model.service.illegal_chars')] if base_id =~ /[^A-Za-z0-9_]/
 
     proposal = create_proposal
     proposal["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"

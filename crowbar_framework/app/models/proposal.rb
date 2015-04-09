@@ -6,16 +6,16 @@ class Proposal < ActiveRecord::Base
 
   self.chef_type = "data_bag_item"
 
-  # FIXME: add proper i18n to errors
-
   class TemplateMissing < StandardError; end
   class TemplateInvalid < StandardError; end
 
   serialize :properties, JSON
 
-  validates :name, :barclamp, :properties, presence: true
+  validates :barclamp, :properties, presence: true
+  validates :name, uniqueness: { scope: :barclamp, message: I18n.t('model.service.name_exists') }
+  validates :name, presence: { message: I18n.t('model.service.too_short') }
+  validate  :name, :name_without_invalid_chars
   validate  :name, :name_not_on_blacklist
-  validates :name, uniqueness: { scope: :barclamp }
 
   after_initialize :load_properties_template, :set_default_name
   before_save      :update_proposal_id
@@ -91,16 +91,22 @@ class Proposal < ActiveRecord::Base
     forbidden_names = ["template", "nodes", "commit", "status"]
 
     if forbidden_names.include?(self.name)
-      self.errors.add(:name, "Name cannot be any of #{forbidden_names.to_sentence}.")
+      self.errors.add(:name, I18n.t('model.service.illegal_name', names: forbidden_names.to_sentence))
+    end
+  end
+
+  def name_without_invalid_chars
+    if self.name =~ /[^A-Za-z0-9_]/
+      self.errors.add(:name, I18n.t('model.service.illegal_chars'))
     end
   end
 
   def load_properties_template
     self.properties ||= JSON.parse(File.read(properties_template_path))
   rescue Errno::ENOENT, Errno::EACCES
-    raise TemplateMissing.new("Proposal template is missing or not readable for #{self.barclamp}. Please create #{properties_template_path}.")
+    raise TemplateMissing.new(I18n.t('model.service.template_missing', name: self.name))
   rescue JSON::ParserError
-    raise TemplateInvalid.new("Please make sure template for #{self.barclamp} in #{properties_template_path} contains valid JSON.")
+    raise TemplateInvalid.new(I18n.t('model.service.template_invalid', name: self.name))
   end
 
   def properties_template_path

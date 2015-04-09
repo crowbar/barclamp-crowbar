@@ -26,7 +26,7 @@ class ChefObject
     begin
       # NOTE: We are using a global here to avoid lookups.  We need to consider some better cache/expiration strategy
       if @@CrowbarDomain.nil?
-        bag = ProposalObject.find_proposal('dns', 'default')
+        bag = Proposal.where(barclamp: 'dns', name: 'default').first
         @@CrowbarDomain = bag[:attributes][:dns][:domain] || %x{dnsdomainname}.strip
       end
       return @@CrowbarDomain

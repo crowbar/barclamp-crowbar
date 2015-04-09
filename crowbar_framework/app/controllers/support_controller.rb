@@ -109,7 +109,7 @@ class SupportController < ApplicationController
 
       NodeObject.all.each { |n| n.export }
       RoleObject.all.each { |r| r.export }
-      ProposalObject.all.each { |p| p.export }
+      Proposal.all.each { |p| p.export }
 
       filename = "crowbar-chef-#{Time.now.strftime("%Y%m%d-%H%M%S")}.tgz"
 

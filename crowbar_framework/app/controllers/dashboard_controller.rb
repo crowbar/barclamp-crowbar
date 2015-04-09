@@ -20,6 +20,6 @@ class DashboardController < ApplicationController
   def load_records
     @nodes     = NodeObject.all
     @roles     = RoleObject.all
-    @proposals = ProposalObject.all
+    @proposals = Proposal.all
   end
 end

@@ -209,7 +209,7 @@ module ProposalsHelper
     @retrieve_proposal_for ||= {}
 
     @retrieve_proposal_for[barclamp] ||= begin
-      proposals = ProposalObject.find_proposals(barclamp.to_s)
+      proposals = Proposal.where(barclamp: barclamp.to_s)
 
       unless proposals.empty? || proposals.length != 1
         proposals.first

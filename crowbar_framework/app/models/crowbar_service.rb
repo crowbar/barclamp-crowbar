@@ -99,7 +99,7 @@ class CrowbarService < ServiceObject
       #
       if state == "discovering" and node.admin?
         crole = RoleObject.find_role_by_name("crowbar-config-#{inst}")
-        db = ProposalObject.find_proposal("crowbar", inst)
+        db = Proposal.where(barclamp: "crowbar", name: inst).first
         add_role_to_instance_and_node("crowbar", inst, name, db, crole, "crowbar")
       end
 
@@ -275,7 +275,7 @@ class CrowbarService < ServiceObject
 
   def self.read_options
     # read in default proposal, to make some vaules avilable
-    proposals = ProposalObject.find_proposals("crowbar")
+    proposals = Proposal.where(barclamp: "crowbar")
     raise "Can't find any crowbar proposal" if proposals.nil? or proposals[0].nil?
     # populate options from attributes/crowbar/*-settings
     options = { :raid=>{}, :bios=>{}, :show=>[] }

@@ -73,52 +73,83 @@ class NodeObject < ChefObject
     end
   end
 
-  def self.available_platforms
+  def self.available_platforms(architecture)
     @available_platforms ||= begin
       provisioner = NodeObject.find("roles:provisioner-server").first
       if provisioner.nil?
-        []
+        {}
       else
-        availables_oses = provisioner["provisioner"]["available_oses"].keys
-        # Sort the platforms:
-        #  - first, the default platform
-        #  - between first and the Hyper-V/Windows bits: others, sorted
-        #    alphabetically
-        #  - last Hyper-V, and just before that Windows
-        platform_order = {"windows" => 90, "hyperv" => 100}
-        availables_oses.uniq.sort {|x, y|
-          platform_x, version_x = x.split('-')
-          platform_y, version_y = y.split('-')
-          platform_order_x = platform_order[platform_x] || 1
-          platform_order_y = platform_order[platform_y] || 1
+        platforms = {}
 
-          if x == default_platform
-            -1
-          elsif y == default_platform
-            1
-          elsif platform_x == platform_y
-            version_y <=> version_x
-          elsif platform_order_x == platform_order_y
-            x <=> y
-          else
-            platform_order_x <=> platform_order_y
-          end
-        }
+        arches = provisioner["provisioner"]["available_oses"].keys.map { |p|
+          provisioner["provisioner"]["available_oses"][p].keys
+        }.flatten.uniq
+
+        arches.each do |arch|
+          availables_oses = provisioner["provisioner"]["available_oses"].keys.select { |p|
+            provisioner["provisioner"]["available_oses"][p].has_key? arch
+          }
+
+          # Sort the platforms:
+          #  - first, the default platform
+          #  - between first and the Hyper-V/Windows bits: others, sorted
+          #    alphabetically
+          #  - last Hyper-V, and just before that Windows
+          platform_order = {"windows" => 90, "hyperv" => 100}
+          platforms[arch] = availables_oses.uniq.sort {|x, y|
+            platform_x, version_x = x.split('-')
+            platform_y, version_y = y.split('-')
+            platform_order_x = platform_order[platform_x] || 1
+            platform_order_y = platform_order[platform_y] || 1
+
+            if x == default_platform
+              -1
+            elsif y == default_platform
+              1
+            elsif platform_x == platform_y
+              version_y <=> version_x
+            elsif platform_order_x == platform_order_y
+              x <=> y
+            else
+              platform_order_x <=> platform_order_y
+            end
+          }
+        end
+
+        platforms
       end
     end
+
+    @available_platforms[architecture] || []
   end
 
-  def self.disabled_platforms
+  def self.disabled_platforms(architecture)
     @disabled_platforms ||= begin
       provisioner = NodeObject.find("roles:provisioner-server").first
       if provisioner.nil?
-        []
+        {}
       else
-        provisioner["provisioner"]["available_oses"].keys.select { |p|
-          provisioner["provisioner"]["available_oses"][p]["disabled"]
-        }
+        platforms = {}
+
+        arches = provisioner["provisioner"]["available_oses"].keys.map { |p|
+          provisioner["provisioner"]["available_oses"][p].keys
+        }.flatten.uniq
+
+        arches.each do |arch|
+          available_oses = provisioner["provisioner"]["available_oses"].keys.select { |p|
+            provisioner["provisioner"]["available_oses"][p].has_key? arch
+          }
+
+          platforms[arch] = available_oses.select { |p|
+            provisioner["provisioner"]["available_oses"][p][arch]["disabled"]
+          }
+        end
+
+        platforms
       end
     end
+
+    @disabled_platforms[architecture] || []
   end
 
   def self.find_node_by_public_name(name)

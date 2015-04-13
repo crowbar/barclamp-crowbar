@@ -246,11 +246,11 @@ module ApplicationHelper
     NodeObject.default_platform
   end
 
-  def available_platforms
-    NodeObject.available_platforms
+  def available_platforms(architecture)
+    NodeObject.available_platforms(architecture)
   end
 
-  def disabled_platforms
-    NodeObject.disabled_platforms
+  def disabled_platforms(architecture)
+    NodeObject.disabled_platforms(architecture)
   end
 end

@@ -302,4 +302,13 @@ describe ServiceObject do
       end
     end
   end
+
+  describe "save the state of a node" do
+    node_name = "testing.crowbar.com"
+
+    it "should save the state of a node" do
+      node = NodeObject.find_node_by_name(node_name)
+      service_object.save_node_state(node).should be true
+    end
+  end
 end

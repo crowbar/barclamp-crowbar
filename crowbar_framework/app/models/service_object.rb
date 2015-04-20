@@ -1171,6 +1171,10 @@ class ServiceObject
     # of names of Chef roles.
     run_order = []
 
+    # get databag to remember potential removal of a role
+    databag = ProposalObject.find_proposal(@bc_name, inst)
+    leftover_nodes = {}
+
     # element_order is an Array where each item represents a batch of
     # work, and the batches must be performed sequentially in this order.
     element_order.each do |elems|
@@ -1183,6 +1187,14 @@ class ServiceObject
       elems.each do |role_name|
         old_nodes = old_elements[role_name]
         new_nodes = new_elements[role_name]
+        # see if there are leftover nodes from the
+        # @bc_name proposal.elements hash and
+        # add them to leftover_nodes hash for later processing
+        nodes_to_remove = databag["deployment"][@bc_name]["elements"]["#{role_name}_remove"]
+        # returns ["node1", "node2"] || nil
+        nodes_to_remove.each do |leftover_node|
+          (leftover_nodes["#{role_name}_remove"] ||= []) << leftover_node
+        end unless nodes_to_remove.nil?
 
         @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
@@ -1193,6 +1205,15 @@ class ServiceObject
           tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
           unless tmprole.nil?
             elem_remove = tmprole.name
+            # save remove intention in #{@bc_name}-databag
+            databag["deployment"][@bc_name]["elements"][elem_remove] ||= []
+
+            old_nodes.each do |old_node|
+              @logger.debug "saving #{elem_remove} intention for #{old_node}"
+              unless databag["deployment"][@bc_name]["elements"][elem_remove].include? old_node
+                databag["deployment"][@bc_name]["elements"][elem_remove] << old_node
+              end
+            end
           end
 
           old_nodes.each do |node_name|
@@ -1234,6 +1255,9 @@ class ServiceObject
       run_order << nodes_in_batch unless nodes_in_batch.empty?
       @logger.debug "run_order #{run_order.inspect}"
     end
+
+    # save databag with the role removal intention
+    databag.save
 
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
@@ -1408,6 +1432,33 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) if !ran_admin
 
+    # are there any roles to remove from the runlist?
+    # The @bcname proposal's elements key will contain the removal intentions
+    # proposal.elements =>
+    # {
+    #   "role1_remove" => ["node1"],
+    #   "role2_remove" => ["node2", "node3"]
+    # }
+    roles_to_remove = databag["deployment"][@bc_name]["elements"].select do |r|
+      r =~ /_remove/
+    end.keys
+    # returns ["role1_remove", "role2_remove"] || {}
+    roles_to_remove.each do |role_to_remove|
+      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"][role_to_remove]
+      # returns ["node1", "node2"]
+      # are there any leftover nodes where runlist removal
+      # has not been performed?
+      unless leftover_nodes[role_to_remove].nil?
+        # concatenate the leftover_nodes with
+        # the actual nodes that have a _remove role
+        nodes_with_role_to_remove.concat(leftover_nodes[role_to_remove])
+      end
+
+      nodes_with_role_to_remove.each do |node_name|
+        delete_remove_role_from_runlist(node_name, role_to_remove, inst)
+      end
+    end
+
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
     rescue StandardError => e
@@ -1426,6 +1477,37 @@ class ServiceObject
   ensure
     # start chef daemon on all nodes
     chef_daemon(:start, chef_daemon_nodes)
+  end
+
+  def delete_remove_role_from_runlist(node_name, role_to_remove, inst)
+    databag = ProposalObject.find_proposal(@bc_name, inst)
+    node = NodeObject.find_node_by_name(node_name)
+    return if node.nil?
+
+    # delete #{role_name}_remove role from runlist as it is not needed anymore
+    return unless node.role? role_to_remove
+    @logger.debug("Removing temporary role #{role_to_remove} from #{node.name}")
+    node.delete_from_run_list(role_to_remove)
+    save_node_state(node)
+
+    # delete nodes from databag with no more _remove roles
+    databag["deployment"][@bc_name]["elements"][role_to_remove].delete(
+      node_name
+    )
+    databag.save
+
+    # delete remove intention from databag, as it has been done successfully
+    if databag["deployment"][@bc_name]["elements"][role_to_remove].empty?
+      databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
+      databag.save
+    end
+  end
+
+  def save_node_state(node)
+    # determine the calling method
+    origin = caller[0][/`.*'/][1..-2]
+    @logger.debug("#{origin}: Saving node #{node.name}")
+    !!node.save
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)

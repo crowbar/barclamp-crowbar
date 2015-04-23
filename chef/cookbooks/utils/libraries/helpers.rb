@@ -18,9 +18,18 @@ module CrowbarHelper
     if use_cluster && defined?(CrowbarPacemakerHelper)
       # loose dependency on the pacemaker cookbook
       cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
-      "#{cluster_vhostname}.#{node[:domain]}"
+
+      admin_name = CrowbarPacemakerHelper.cluster_haproxy_vadmin_name(node)
+      admin_fqdn = "#{cluster_vhostname}.#{node[:domain]}"
     else
-      node[:fqdn]
+      admin_name = node[:crowbar][:admin_name]
+      admin_fqdn = node[:fqdn]
+    end
+
+    if admin_name.nil? || admin_name.empty?
+      admin_fqdn
+    else
+      admin_name
     end
   end
 

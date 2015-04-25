@@ -82,7 +82,7 @@ describe Proposal do
       Proposal.delete_all
 
       # Stub out item.save to prevent writes to non-existent couchdb. We also
-      # have to metadata updates, as they'd propagate into the sqlite and cause
+      # have to stub out metadata updates, as they'd propagate into the sqlite and cause
       # a de-sync.
       p = ProposalObject.find_proposal_by_id("bc-crowbar-default")
       p.stubs(:increment_crowbar_revision!).returns(true)

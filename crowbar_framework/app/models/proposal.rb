@@ -97,13 +97,14 @@ class Proposal < ActiveRecord::Base
     proposal_object = ProposalObject.find_proposal_by_id(self.key)
     if proposal_object
       if proposal_object.raw_data != self.raw_data
+        increment_crowbar_revision!
         proposal_object.raw_data = self.raw_data
-        proposal_object.save(sync: false)
+        proposal_object.save(sync: false, update_revision: false)
       end
     else
       bag = Chef::DataBagItem.json_create({"raw_data" => self.raw_data, "data_bag" => "crowbar"})
       proposal_object = ProposalObject.new(bag)
-      proposal_object.save(sync: false)
+      proposal_object.save(sync: false, update_revision: false)
     end
   end
 

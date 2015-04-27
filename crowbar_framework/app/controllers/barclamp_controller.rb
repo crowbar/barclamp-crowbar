@@ -175,7 +175,7 @@ class BarclampController < ApplicationController
     return render :text => @proposals, :status => ret[0] if ret[0] != 200
     respond_to do |format|
       format.html {
-        @proposals.map! { |p| Proposal.where(barclamp: @bc_name, name: p).first }
+        @proposals = @proposals.map { |p| Proposal.where(barclamp: @bc_name, name: p).first }
         render :template => 'barclamp/proposals'
       }
       format.xml  { render :xml => @proposals }

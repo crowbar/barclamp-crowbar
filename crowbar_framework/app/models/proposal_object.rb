@@ -123,17 +123,17 @@ class ProposalObject < ChefObject
 
   def save(options = {})
     self.latest_applied = !!options[:applied]
-    increment_crowbar_revision!
+    increment_crowbar_revision! if options.fetch(:update_revision, true)
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.save
-    save_proposal_in_sqlite
+    save_proposal_in_sqlite if options.fetch(:sync, true)
     Rails.logger.debug("Done saving data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
 
-  def destroy
+  def destroy(options = {})
     Rails.logger.debug("Destroying data bag item: #{@item["id"]} - #{crowbar_revision}")
     @item.destroy(@item.data_bag, @item["id"])
-    delete_proposal_from_sqlite
+    delete_proposal_from_sqlite if options.fetch(:sync, true)
     Rails.logger.debug("Done removal of data bag item: #{@item["id"]} - #{crowbar_revision}")
   end
   
@@ -153,17 +153,6 @@ class ProposalObject < ChefObject
     prop.update(attrs.merge(properties: @item.raw_data)) if @item.raw_data != prop.raw_data
   end
 
-  def increment_crowbar_revision!
-    @item["deployment"] ||= {}
-    @item["deployment"][barclamp] ||= {}
-    if @item["deployment"][barclamp]["crowbar-revision"].nil?
-      @item["deployment"][barclamp]["crowbar-revision"] = 0
-    else
-      @item["deployment"][barclamp]["crowbar-revision"] += 1
-    end
-  end
-
-  
   # 'array' is the unsorted set of objects
   # 'att_sym' is the symbol of the attribute each object in array, that is represented in index_array
   # 'index_array' is the ordered array of values

@@ -1,6 +1,11 @@
 require 'spec_helper'
 
 describe Proposal do
+  # The real ProposalObject won't get saved, so we need to stub this out
+  before do
+    Proposal.any_instance.stubs(:update_corresponding_proposal_object).returns(true)
+  end
+
   let(:proposal) { Proposal.new(:barclamp => "crowbar", :name => "default")}
 
   describe "Finders" do
@@ -77,7 +82,7 @@ describe Proposal do
       Proposal.delete_all
 
       # Stub out item.save to prevent writes to non-existent couchdb. We also
-      # have to metadata updates, as they'd propagate into the sqlite and cause
+      # have to stub out metadata updates, as they'd propagate into the sqlite and cause
       # a de-sync.
       p = ProposalObject.find_proposal_by_id("bc-crowbar-default")
       p.stubs(:increment_crowbar_revision!).returns(true)
@@ -196,7 +201,7 @@ describe Proposal do
         expect(another).to_not be_valid
         expect(another.errors[:name]).to_not be_empty
       ensure
-        proposal.destroy if proposal
+        proposal.delete if proposal
       end
     end
   end

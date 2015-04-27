@@ -101,6 +101,10 @@ RSpec.configure do |config|
   # https://relishapp.com/rspec/rspec-rails/v/3-0/docs
   config.infer_spec_type_from_file_location!
 
+  config.before do
+    ChefObject.stubs(:cloud_domain).returns("crowbar.com")
+  end
+
   config.append_before(:each) do
     stub_request(:any, /localhost:4000/).to_rack(OfflineChef)
   end

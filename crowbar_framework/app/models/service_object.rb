@@ -609,7 +609,7 @@ class ServiceObject
 
   def proposals
     props = proposals_raw
-    props.map! { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
+    props = props.map { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
     [200, props]
   end
 

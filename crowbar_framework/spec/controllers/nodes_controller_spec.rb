@@ -21,6 +21,8 @@ describe NodesController do
   render_views
 
   before do
+    ProposalObject.any_instance.stubs(:save).returns(true)
+    Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default")
     NodeObject.any_instance.stubs(:system).returns(true)
   end
 

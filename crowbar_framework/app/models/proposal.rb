@@ -9,7 +9,7 @@ class Proposal < ActiveRecord::Base
   class TemplateMissing < StandardError; end
   class TemplateInvalid < StandardError; end
 
-  serialize :properties, JSON
+  serialize :properties, Utils::JSONWithIndifferentAccess
 
   validates :barclamp, :properties, presence: true
   validates :name, uniqueness: { scope: :barclamp, message: I18n.t('model.service.name_exists') }
@@ -128,7 +128,7 @@ class Proposal < ActiveRecord::Base
   end
 
   def load_properties_template
-    self.properties ||= JSON.parse(File.read(properties_template_path))
+    self.properties ||= Utils::JSONWithIndifferentAccess.load(File.read(properties_template_path))
   rescue Errno::ENOENT, Errno::EACCES
     raise TemplateMissing.new(I18n.t('model.service.template_missing', name: self.name))
   rescue JSON::ParserError

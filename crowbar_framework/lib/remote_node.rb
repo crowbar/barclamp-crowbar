@@ -24,7 +24,7 @@ module RemoteNode
   # @param host [string] hostname or IP
   # @param timeout [integer] timeout in seconds
 
-  def self.ready?(host, timeout = 60, sleep_time = 10)
+  def self.ready?(host, timeout = 60, sleep_time = 10, options = {})
     timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
     msg = "Waiting for host, next attempt in #{sleep_time} seconds until #{timeout_at}"
@@ -32,17 +32,17 @@ module RemoteNode
     nobj = NodeObject.find_node_by_name(host)
     reboot_requesttime = nobj[:crowbar_wall][:wait_for_reboot_requesttime] || 0
 
-    self.wait_until(msg, timeout_at.to_i, sleep_time) do
-      self.port_open?(ip, 22) && self.reboot_done?(ip, reboot_requesttime) && self.ssh_cmd(ip, runlevel_check_cmd(host))
+    self.wait_until(msg, timeout_at.to_i, sleep_time, options) do
+      self.port_open?(ip, 22) && self.reboot_done?(ip, reboot_requesttime, options) && self.ssh_cmd(ip, runlevel_check_cmd(host))
     end
   end
 
   # wait until no other chef-clients are currently running on the host
-  def self.chef_ready?(host, timeout = 60, sleep_time = 10)
+  def self.chef_ready?(host, timeout = 60, sleep_time = 10, options = {})
     timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
     msg = "Waiting for already running chef-client, next attempt in #{sleep_time} seconds until #{timeout_at}"
-    self.wait_until(msg, timeout_at.to_i, sleep_time) do
+    self.wait_until(msg, timeout_at.to_i, sleep_time, options) do
       self.port_open?(ip, 22) && !self.chef_clients_running?(ip)
     end
   end
@@ -64,11 +64,11 @@ module RemoteNode
     end
   end
 
-  def self.reboot_done?(host_or_ip, reboot_requesttime)
+  def self.reboot_done?(host_or_ip, reboot_requesttime, options = {})
     # if reboot_requesttime is zero, we don't know when the reboot was requested.
     # in this case return true so the process can continue
     if reboot_requesttime > 0
-      boottime = self.ssh_cmd_get_boottime(host_or_ip)
+      boottime = self.ssh_cmd_get_boottime(host_or_ip, options)
       if boottime > 0 and boottime <= reboot_requesttime
         false
       else
@@ -99,14 +99,16 @@ module RemoteNode
   end
 
   # Polls until yielded block returns true or a timeout is reached
-  def self.wait_until(msg, timeout_at, sleep_time = 10)
+  def self.wait_until(msg, timeout_at, sleep_time = 10, options = {})
+    logger = options.fetch(:logger, nil)
+
     done = block_given? ? yield : false
 
     while Time.now.to_i < timeout_at && !done do
       done = block_given? ? yield : false
 
       unless done
-        puts msg
+        logger ? logger.info(msg) : puts(msg)
         sleep(sleep_time)
       end
     end
@@ -120,13 +122,16 @@ module RemoteNode
   end
 
   # get boot time of the given host or 0 if command can not be executed
-  def self.ssh_cmd_get_boottime(host_or_ip)
+  def self.ssh_cmd_get_boottime(host_or_ip, options = {})
+    logger = options.fetch(:logger, nil)
+
     ssh_cmd = self.ssh_cmd_base(host_or_ip)
     ssh_cmd << "'echo $(($(date +%s) - $(cat /proc/uptime|cut -d \" \" -f 1|cut -d \".\" -f 1)))'"
     ssh_cmd = ssh_cmd.map{|x| x.chomp}.join(" ")
     retval = `#{ssh_cmd}`.split(" ")[0].to_i
     if $?.exitstatus != 0
-      puts "ssh-cmd '#{ssh_cmd}' to get datetime not successful"
+      msg = "ssh-cmd '#{ssh_cmd}' to get datetime not successful"
+      logger ? logger.info(msg) : puts(msg)
       retval = 0
     end
     return retval

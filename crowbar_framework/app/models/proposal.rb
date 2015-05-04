@@ -94,6 +94,8 @@ class Proposal < ActiveRecord::Base
 
   # XXX: we need to be careful to not create an endless loop
   def update_corresponding_proposal_object
+    return if self.key =~ /_network$/
+
     proposal_object = ProposalObject.find_proposal_by_id(self.key)
     if proposal_object
       if proposal_object.raw_data != self.raw_data
@@ -109,6 +111,8 @@ class Proposal < ActiveRecord::Base
   end
 
   def drop_corresponding_proposal_object
+    return if self.key =~ /_network$/
+
     proposal_object = ProposalObject.find_proposal_by_id(self.key)
     proposal_object.destroy(sync: false) if proposal_object
   end

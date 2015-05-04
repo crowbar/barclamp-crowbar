@@ -21,6 +21,8 @@ describe CrowbarController do
   render_views
 
   before do
+    ProposalObject.any_instance.stubs(:save).returns(true)
+    Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default")
     CrowbarService.any_instance.stubs(:apply_role).returns([200, "OK"])
   end
 

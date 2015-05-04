@@ -16,3 +16,4 @@
 #
 
 require "utils/extended_hash"
+require "utils/json_with_indifferent_access"

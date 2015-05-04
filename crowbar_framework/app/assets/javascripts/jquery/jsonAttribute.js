@@ -197,7 +197,7 @@
 
   JsonAttribute.prototype.splitString = function(value) {
     return $.map(
-      value.split(','),
+      value.replace(/,+/g, ',').split(','),
       $.trim
     );
   };

@@ -722,14 +722,14 @@ class ServiceObject
     # When we create a proposal, it might be "invalid", as some roles might be missing
     # This is OK, as the next step for the user is to add nodes to the roles
     # But we need to skip the after_save validations in the _proposal_update
-    _proposal_update(proposal, false)
+    _proposal_update(@bc_name, params["id"] || params[:name], proposal, false)
   end
 
   def proposal_edit(params, validate_after_save = true)
     params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
-    _proposal_update(proposal, validate_after_save)
+    _proposal_update(@bc_name, params["id"] || params[:name], proposal, validate_after_save)
   end
 
   def proposal_delete(inst)
@@ -776,7 +776,7 @@ class ServiceObject
         response = [500, e.message]
       ensure
         # Make sure we unmark the wall
-        prop = Proposal.where(barclamp: @bc_name, name: inst).reload
+        prop = Proposal.where(barclamp: @bc_name, name: inst).first.reload
         prop["deployment"][@bc_name]["crowbar-committing"] = false
         prop.latest_applied = (response.first == 200)
         prop.save
@@ -1031,16 +1031,12 @@ class ServiceObject
     end
   end
 
-  def _proposal_update(proposal, validate_after_save = true)
-    data_bag_item = Chef::DataBagItem.new
+  def _proposal_update(bc_name, inst, proposal, validate_after_save = true)
+    prop = Proposal.new(barclamp: bc_name, name: inst)
 
     begin
-      data_bag_item.raw_data = proposal
-      data_bag_item.data_bag "crowbar"
-
-      prop = ProposalObject.new data_bag_item
+      prop.properties = proposal
       save_proposal!(prop, :validate_after_save => validate_after_save)
-
       Rails.logger.info "saved proposal"
       [200, {}]
     rescue Net::HTTPServerException => e

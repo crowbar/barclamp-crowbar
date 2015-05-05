@@ -25,6 +25,6 @@ class DeployQueueController < ApplicationController
   end
 
   def deployment_queue
-    ProposalObject.find_data_bag_item("crowbar/queue")["proposal_queue"] rescue []
+    Chef::DataBag.load("crowbar/queue")["proposal_queue"] rescue []
   end
 end

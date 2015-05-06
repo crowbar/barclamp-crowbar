@@ -1,4 +1,7 @@
 .bundle
+.ruby-version
 Gemfile.lock
 
 public/assets
+coverage/
+

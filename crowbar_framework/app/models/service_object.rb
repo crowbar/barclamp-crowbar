@@ -98,12 +98,15 @@ class ServiceObject
   end
 
   def self.all
-    bc = {}
-    ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|
-      bc[bag.item.name[/#{ProposalObject::BC_PREFIX}(.*)/,1]] = bag.item[:description]
-    end
-    bc.delete_if { |k, v| bc.has_key? k[/^(.*)-(.*)/,0] }
-    return bc
+    # The catalog contains more than just barclamps - it has also barclamp
+    # groups. So we filter out barclamps by attempting to create a proposal
+    # (which loads the barclamps JSON metadata). Only those that pass
+    # are valid barclamps.
+    BarclampCatalog.barclamps.map do |name, attrs|
+      Proposal.new(barclamp: name) rescue nil
+    end.compact.map do |prop|
+      [prop.barclamp, prop["description"]]
+    end.to_h
   end
 
   def self.run_order(bc, cat = nil)

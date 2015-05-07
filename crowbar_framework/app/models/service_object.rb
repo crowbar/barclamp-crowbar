@@ -725,14 +725,15 @@ class ServiceObject
     # When we create a proposal, it might be "invalid", as some roles might be missing
     # This is OK, as the next step for the user is to add nodes to the roles
     # But we need to skip the after_save validations in the _proposal_update
-    _proposal_update(@bc_name, params["id"] || params[:name], proposal, false)
+    _proposal_update(@bc_name, base_id, proposal, false)
   end
 
   def proposal_edit(params, validate_after_save = true)
-    params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
+    base_id = params["id"] || params[:name]
+    params["id"] = "bc-#{@bc_name}-#{base_id}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
-    _proposal_update(@bc_name, params["id"] || params[:name], proposal, validate_after_save)
+    _proposal_update(@bc_name, base_id, proposal, validate_after_save)
   end
 
   def proposal_delete(inst)

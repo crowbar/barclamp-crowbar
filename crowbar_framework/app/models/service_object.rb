@@ -287,7 +287,7 @@ class ServiceObject
     begin
       f = acquire_lock "queue"
 
-      db = Chef::DataBag.load "crowbar/queue"
+      db = Chef::DataBag.load("crowbar/queue") rescue nil
       if db.nil?
         db = Chef::DataBagItem.new
         db.data_bag "crowbar"
@@ -385,7 +385,7 @@ class ServiceObject
     begin
       f = acquire_lock "queue"
 
-      db = Chef::DataBag.load "crowbar/queue"
+      db = Chef::DataBag.load("crowbar/queue") rescue nil
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
       return [200, {}] if db.nil?
 
@@ -416,7 +416,7 @@ class ServiceObject
       begin
         f = acquire_lock "queue"
 
-        db = Chef::DataBag.load "crowbar/queue"
+        db = Chef::DataBag.load("crowbar/queue") rescue nil
         if db.nil?
           @logger.debug("process queue: exit: queue gone")
           return

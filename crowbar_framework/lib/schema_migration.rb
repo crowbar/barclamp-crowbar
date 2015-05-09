@@ -34,10 +34,16 @@ module SchemaMigration
     all_scripts = find_scripts_for_bc(bc_name)
     return if all_scripts.empty?
 
+    begin
+      validator = CrowbarValidator.new("#{data_bags_dir}/bc-template-#{bc_name}.schema")
+    rescue StandardError => e
+      raise "Failed to load databag schema for #{bc_name}: #{e.message}"
+    end
+
     props = ProposalObject.find_proposals bc_name
 
     props.each do |prop|
-      migrate_proposal(bc_name, template, all_scripts, prop)
+      migrate_proposal(bc_name, validator, template, all_scripts, prop)
 
       # Attempt to do migration for the matching committed proposal
       # Note: we don't want to commit the proposal we just migrated, because it
@@ -54,9 +60,12 @@ module SchemaMigration
 
   private
 
+  def self.data_bags_dir
+    Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
+  end
+
   def self.get_migrate_dir(bc_name)
-    data_bags_path_prefix = Rails.root.join("..", "chef", "data_bags", "crowbar").expand_path
-    return File.join(data_bags_path_prefix, 'migrate', bc_name)
+    return File.join(data_bags_dir, 'migrate', bc_name)
   end
 
   def self.find_scripts_for_bc(bc_name)
@@ -143,7 +152,11 @@ module SchemaMigration
     scripts.each do |script|
       # we only pass attributes and deployment to not encourage direct access
       # to the proposal
-      attributes, deployment = run_script(script, is_upgrade, template['attributes'][bc_name], template['deployment'][bc_name], attributes, deployment)
+      begin
+        attributes, deployment = run_script(script, is_upgrade, template['attributes'][bc_name], template['deployment'][bc_name], attributes, deployment)
+      rescue StandardError => e
+        raise "error while executing migration script #{script}:\n#{e.message}"
+      end
     end
 
     deployment['schema-revision'] = schema_revision
@@ -151,16 +164,28 @@ module SchemaMigration
     return attributes, deployment
   end
 
-  def self.migrate_proposal(bc_name, template, all_scripts, proposal)
+  def self.migrate_proposal(bc_name, validator, template, all_scripts, proposal)
     attributes = proposal['attributes'][bc_name]
     deployment = proposal['deployment'][bc_name]
 
-    (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    begin
+      (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    rescue StandardError => e
+      raise "Failed to migrate proposal #{proposal.name} for #{bc_name}: #{e.message}"
+    end
 
     return if attributes.nil? || deployment.nil?
 
     proposal['attributes'][bc_name] = attributes
     proposal['deployment'][bc_name] = deployment
+
+    errors = validator.validate(proposal.raw_data)
+    unless errors.empty?
+      error_lines = errors.map {|e| e.message}
+      error_lines.unshift "Failed to validate migrated proposal #{proposal.name} for #{bc_name}:"
+      raise error_lines.join("\n")
+    end
+
     proposal.save
   end
 
@@ -168,7 +193,11 @@ module SchemaMigration
     attributes = role.default_attributes[bc_name]
     deployment = role.override_attributes[bc_name]
 
-    (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    begin
+      (attributes, deployment) = migrate_object(bc_name, template, all_scripts, attributes, deployment)
+    rescue StandardError => e
+      raise "Failed to migrate role #{role.name} for #{bc_name}: #{e.message}"
+    end
 
     return if attributes.nil? || deployment.nil?
 

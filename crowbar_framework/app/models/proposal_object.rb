@@ -140,6 +140,8 @@ class ProposalObject < ChefObject
   private
 
   def delete_proposal_from_sqlite
+    return if self.id =~ /_network/
+
     attrs = { barclamp: self.barclamp, name: self.name }
 
     prop = Proposal.where(attrs).first
@@ -147,6 +149,8 @@ class ProposalObject < ChefObject
   end
 
   def save_proposal_in_sqlite
+    return if self.id =~ /_network/
+
     attrs = { barclamp: self.barclamp, name: self.name }
 
     prop = Proposal.where(attrs).first_or_initialize(attrs)

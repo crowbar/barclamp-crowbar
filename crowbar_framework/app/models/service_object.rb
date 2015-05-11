@@ -780,7 +780,7 @@ class ServiceObject
         response = [500, e.message]
       ensure
         # Make sure we unmark the wall
-        prop = Proposal.where(barclamp: @bc_name, name: inst).first.reload
+        prop.reload
         prop["deployment"][@bc_name]["crowbar-committing"] = false
         prop.latest_applied = (response.first == 200)
         prop.save

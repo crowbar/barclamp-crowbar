@@ -94,7 +94,9 @@ class Proposal < ActiveRecord::Base
 
   # XXX: we need to be careful to not create an endless loop
   def update_corresponding_proposal_object
-    return if self.key =~ /_network$/
+    # XXX: Do not save other network proposals - its a network configuration
+    # this is transitional code, as soon as network uses databags, this can go away.
+    return if self.barclamp == "network" && self.name != "default"
 
     proposal_object = ProposalObject.find_proposal_by_id(self.key)
     if proposal_object
@@ -111,7 +113,9 @@ class Proposal < ActiveRecord::Base
   end
 
   def drop_corresponding_proposal_object
-    return if self.key =~ /_network$/
+    # XXX: Do not save other network proposals - its a network configuration
+    # this is transitional code, as soon as network uses databags, this can go away.
+    return if self.barclamp == "network" && self.name != "default"
 
     proposal_object = ProposalObject.find_proposal_by_id(self.key)
     proposal_object.destroy(sync: false) if proposal_object

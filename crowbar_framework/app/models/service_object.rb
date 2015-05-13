@@ -1036,7 +1036,7 @@ class ServiceObject
   end
 
   def _proposal_update(bc_name, inst, proposal, validate_after_save = true)
-    prop = Proposal.new(barclamp: bc_name, name: inst)
+    prop = Proposal.where(barclamp: bc_name, name: inst).first_or_initialize(barclamp: bc_name, name: inst)
 
     begin
       prop.properties = proposal

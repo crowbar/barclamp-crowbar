@@ -7,8 +7,12 @@
   <Directory <%= @params[:docroot] %>>
     Options FollowSymLinks
     AllowOverride None
+    <%- if node[:apache][:version].to_f < 2.4 %>
     Order allow,deny
     Allow from all
+    <%- else %>
+    Require all granted
+    <%- end %>
   </Directory>
   
   <Directory />
@@ -19,9 +23,13 @@
   <Location /server-status>
     SetHandler server-status
 
+    <%- if node[:apache][:version].to_f < 2.4 %>
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
+    <%- else %>
+    Require local
+    <%- end %>
   </Location>
 
   LogLevel info

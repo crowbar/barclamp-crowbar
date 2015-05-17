@@ -17,8 +17,12 @@ Alias /icons/ "<%= node[:apache][:icondir] %>"
 <Directory "<%= node[:apache][:icondir] %>">
     Options Indexes MultiViews
     AllowOverride None
+    <%- if node[:apache][:version].to_f < 2.4 %>
     Order allow,deny
     Allow from all
+    <%- else %>
+    Require all granted
+    <%- end %>
 </Directory>
 
 </IfModule>

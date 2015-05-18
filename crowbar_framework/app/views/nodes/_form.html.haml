@@ -26,7 +26,7 @@
       - else
         .form-group
           = f.label :target_platform, t('.target_platform')
-          = select_tag :target_platform, platforms_for_select(@node.target_platform), :class => "form-control", "data-showit" => [crowbar_service.require_license_platforms.join(","), crowbar_service.support_software_raid.join(",")].join(";"), "data-showit-target" => "#license_key_container;#raid_type,#raid_disks"
+          = select_tag :target_platform, platforms_for_select(@node.target_platform, @node.architecture), :class => "form-control", "data-showit" => [crowbar_service.require_license_platforms.join(","), crowbar_service.support_software_raid.join(",")].join(";"), "data-showit-target" => "#license_key_container;#raid_type,#raid_disks"
 
         .form-group
           #license_key_container

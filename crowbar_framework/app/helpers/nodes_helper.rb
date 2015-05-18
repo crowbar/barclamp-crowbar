@@ -192,7 +192,7 @@ module NodesHelper
 
         result.push [
           t("model.attributes.node.cpu"),
-          dash_or(@node.cpu)
+          dash_or(@node.cpu_arch)
         ]
 
         result.push [

@@ -16,11 +16,11 @@
 #
 
 module FormHelper
-  def platforms_for_select(selected)
+  def platforms_for_select(selected, architecture)
     options_for_select(
-      available_platforms.map { |p| [crowbar_service.pretty_target_platform(p), p] },
+      available_platforms(architecture).map { |p| [crowbar_service.pretty_target_platform(p), p] },
       selected: selected.to_s,
-      disabled: disabled_platforms
+      disabled: disabled_platforms(architecture)
     )
   end
 

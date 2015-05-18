@@ -6,9 +6,13 @@
 
         <Proxy *>
                 AddDefaultCharset off
+                <%- if node[:apache][:version].to_f < 2.4 %>
                 Order deny,allow
                 Deny from all
                 #Allow from .example.com
+                <%- else %>
+                Require all denied
+                <%- end %>
         </Proxy>
 
         # Enable/disable the handling of HTTP/1.1 "Via:" headers.

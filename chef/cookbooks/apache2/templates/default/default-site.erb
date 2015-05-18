@@ -9,8 +9,12 @@
         <Directory /var/www/>
                 Options Indexes FollowSymLinks MultiViews
                 AllowOverride None
+                <%- if node[:apache][:version].to_f < 2.4 %>
                 Order allow,deny
                 allow from all
+                <%- else %>
+                Require all granted
+                <%- end %>
                 # This directive allows us to have apache2's default start page
                 # in /apache2-default/, but still have / go to the right place
                 #RedirectMatch ^/$ /apache2-default/
@@ -20,8 +24,12 @@
         <Directory "/usr/lib/cgi-bin">
                 AllowOverride None
                 Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                <%- if node[:apache][:version].to_f < 2.4 %>
                 Order allow,deny
                 Allow from all
+                <%- else %>
+                Require all granted
+                <%- end %>
         </Directory>
 
         ErrorLog <%= node[:apache][:log_dir] %>/error.log 
@@ -37,9 +45,13 @@
         <Directory "/usr/share/doc/">
             Options Indexes MultiViews FollowSymLinks
             AllowOverride None
+            <%- if node[:apache][:version].to_f < 2.4 %>
             Order deny,allow
             Deny from all
             Allow from 127.0.0.0/255.0.0.0 ::1/128
+            <%- else %>
+            Require local
+            <%- end %>
         </Directory>
 
         <% if node[:platform] == "centos" || node[:platform] == "redhat" || node[:platform] == "fedora" -%>

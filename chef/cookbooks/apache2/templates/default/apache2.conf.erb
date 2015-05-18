@@ -105,8 +105,12 @@ AccessFileName .htaccess
 # viewed by Web clients. 
 #
 <Files ~ "^\.ht">
+    <%- if node[:apache][:version].to_f < 2.4 %>
     Order allow,deny
     Deny from all
+    <%- else %>
+    Require all denied
+    <%- end %>
 </Files>
 
 #

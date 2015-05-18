@@ -7,10 +7,14 @@
 #
 <Location /server-status>
     SetHandler server-status
+    <%- if node[:apache][:version].to_f < 2.4 %>
     Order deny,allow
     Deny from all
     Allow from localhost ip6-localhost
 #    Allow from .example.com
+    <%- else %>
+    Require local
+    <%- end %>
 </Location>
 
 </IfModule>

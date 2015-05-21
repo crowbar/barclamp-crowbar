@@ -140,6 +140,8 @@ class ProposalObject < ChefObject
   private
 
   def delete_proposal_from_sqlite
+    # XXX: Leave network proposals alone - its a network configuration
+    # this is transitional code, as soon as network uses databags, this can go away.
     return if self.id =~ /_network/
 
     attrs = { barclamp: self.barclamp, name: self.name }
@@ -149,6 +151,8 @@ class ProposalObject < ChefObject
   end
 
   def save_proposal_in_sqlite
+    # XXX: Leave network proposals alone - its a network configuration
+    # this is transitional code, as soon as network uses databags, this can go away.
     return if self.id =~ /_network/
 
     attrs = { barclamp: self.barclamp, name: self.name }

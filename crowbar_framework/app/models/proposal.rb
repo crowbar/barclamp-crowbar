@@ -20,11 +20,6 @@ class Proposal < ActiveRecord::Base
   after_initialize :load_properties_template, :set_default_name
   before_save      :update_proposal_id
 
-  # FIXME: these are safe to remove once all barclamps are converted to use
-  # Proposal instead of ProposalObject
-  before_destroy :drop_corresponding_proposal_object
-  before_save    :update_corresponding_proposal_object
-
   # XXX: a 'registered' barclamp could have a has_many :proposals and have a factory
   # method for creating them. Then the check for barclamp arg would not be needed,
   # as we'd always know the barclamp exists.
@@ -32,30 +27,6 @@ class Proposal < ActiveRecord::Base
     raise ArgumentError.new("Barclamp attribute is required") unless attributes && attributes.key?(:barclamp)
 
     super
-  end
-
-  def self.find_proposals(barclamp)
-    where(:barclamp => barclamp)
-  end
-
-  def self.find_barclamp(barclamp)
-    self.new(:barclamp => barclamp, :name => "template")
-  end
-
-  def self.find_proposal(barclamp, name)
-    where(:barclamp => barclamp, :name => name).first
-  end
-
-  # XXX: the networks will still be backed by ProposalObject for now,
-  # so it is not neccessary to handle them here.
-  # We still need to handle lookups for templates, though.
-  def self.find_proposal_by_id(id)
-    _, barclamp_or_template, name = *id.split("-")
-    if barclamp_or_template == "template"
-      self.new(:barclamp => name, :name => "template")
-    else
-      where(:barclamp => barclamp_or_template, :name => name).first
-    end
   end
 
   def to_json
@@ -91,35 +62,6 @@ class Proposal < ActiveRecord::Base
   end
 
   private
-
-  # XXX: we need to be careful to not create an endless loop
-  def update_corresponding_proposal_object
-    # XXX: Do not save other network proposals - its a network configuration
-    # this is transitional code, as soon as network uses databags, this can go away.
-    return if self.barclamp == "network" && self.name != "default"
-
-    proposal_object = ProposalObject.find_proposal_by_id(self.key)
-    if proposal_object
-      if proposal_object.raw_data != self.raw_data
-        increment_crowbar_revision!
-        proposal_object.raw_data = self.raw_data
-        proposal_object.save(sync: false, update_revision: false)
-      end
-    else
-      bag = Chef::DataBagItem.json_create({"raw_data" => self.raw_data, "data_bag" => "crowbar"})
-      proposal_object = ProposalObject.new(bag)
-      proposal_object.save(sync: false, update_revision: false)
-    end
-  end
-
-  def drop_corresponding_proposal_object
-    # XXX: Do not save other network proposals - its a network configuration
-    # this is transitional code, as soon as network uses databags, this can go away.
-    return if self.barclamp == "network" && self.name != "default"
-
-    proposal_object = ProposalObject.find_proposal_by_id(self.key)
-    proposal_object.destroy(sync: false) if proposal_object
-  end
 
   def name_not_on_blacklist
     forbidden_names = ["template", "nodes", "commit", "status"]

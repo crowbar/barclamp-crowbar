@@ -21,7 +21,6 @@ describe CrowbarController do
   render_views
 
   before do
-    ProposalObject.any_instance.stubs(:save).returns(true)
     Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default")
     CrowbarService.any_instance.stubs(:apply_role).returns([200, "OK"])
   end
@@ -229,7 +228,7 @@ describe CrowbarController do
   end
 
   describe "PUT proposal_create" do
-    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+    let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
 
     # We don't validate_proposal_after_save as freshly created proposals can be
     # missing nodes. However, this is ok, as users will assign roles to them
@@ -247,7 +246,6 @@ describe CrowbarController do
   describe "proposal updates" do
     before(:each) do
       Proposal.any_instance.stubs(:save).returns(true)
-      ProposalObject.any_instance.stubs(:save).returns(true)
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_after_save).at_least_once
@@ -262,7 +260,7 @@ describe CrowbarController do
     end
 
     describe "PUT proposal_update" do
-      let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+      let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
 
       it "validates a proposal from command line" do
         skip("FIXME")

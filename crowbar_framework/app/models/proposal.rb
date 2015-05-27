@@ -86,12 +86,11 @@ class Proposal < ActiveRecord::Base
   end
 
   def properties_template_path
-    if Rails.env.production?
-      Rails.root.join("../chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
-    else
-      # XXX: this assumes barclamps are cloned in the same directory
-      Rails.root.join("../../barclamp-#{self.barclamp}/chef/data_bags/crowbar/bc-template-#{self.barclamp}.json").expand_path
-    end
+    properties_template_dir.join("bc-template-#{self.barclamp}.json").expand_path
+  end
+
+  def properties_template_dir
+    Rails.root.join("../chef/data_bags/crowbar/")
   end
 
   def set_default_name

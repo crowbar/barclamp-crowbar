@@ -263,9 +263,7 @@ describe CrowbarController do
       let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
 
       it "validates a proposal from command line" do
-        skip("FIXME")
-        prop = JSON.parse(proposal.to_json, :create_additions => false)["item"]["raw_data"].merge("id" => "default")
-        put :proposal_update, prop
+        put :proposal_update, JSON.parse(proposal.to_json).merge("id" => "default")
       end
 
       it "validates a proposal from the UI" do

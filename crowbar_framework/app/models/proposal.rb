@@ -80,9 +80,9 @@ class Proposal < ActiveRecord::Base
   def load_properties_template
     self.properties ||= Utils::JSONWithIndifferentAccess.load(File.read(properties_template_path))
   rescue Errno::ENOENT, Errno::EACCES
-    raise TemplateMissing.new(I18n.t('model.service.template_missing', name: self.name))
+    raise TemplateMissing.new(I18n.t('model.service.template_missing', name: self.barclamp))
   rescue JSON::ParserError
-    raise TemplateInvalid.new(I18n.t('model.service.template_invalid', name: self.name))
+    raise TemplateInvalid.new(I18n.t('model.service.template_invalid', name: self.barclamp))
   end
 
   def properties_template_path

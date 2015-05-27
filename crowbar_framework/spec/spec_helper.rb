@@ -103,6 +103,8 @@ RSpec.configure do |config|
 
   config.before do
     ChefObject.stubs(:cloud_domain).returns("crowbar.com")
+
+    Proposal.any_instance.stubs(:properties_template_dir).returns(Rails.root.join("spec/fixtures/data_bags"))
   end
 
   config.append_before(:each) do

@@ -1,0 +1,42 @@
+{
+  "id": "bc-template-dns",
+  "description": "Manages the DNS subsystem for the cluster",
+  "attributes": {
+    "dns": {
+      "domain": "pod.your.cloud.org",
+      "forwarders": [ ],
+      "allow_transfer": [ ],
+      "nameservers": [ ],
+      "records": { },
+      "auto_assign_server": true
+    }
+  },
+  "deployment": {
+    "dns": {
+      "crowbar-revision": 0,
+      "crowbar-applied": false,
+      "schema-revision": 4,
+      "element_states": {
+        "dns-server": [ "readying", "ready", "applying" ],
+        "dns-client": [ "all" ]
+      },
+      "elements": {},
+      "element_order": [
+        [ "dns-server" ],
+        [ "dns-client" ]
+      ],
+      "element_run_list_order": {
+        "dns-server": 30,
+        "dns-client": 31
+      },
+      "config": {
+        "environment": "dns-base-config",
+        "mode": "full",
+        "transitions": true,
+        "transition_list": [
+          "discovered"
+        ]
+      }
+    }
+  }
+}

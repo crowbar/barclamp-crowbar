@@ -43,12 +43,12 @@ proposals:
   deployment:
     elements:
       database-server:
-        - @@controller1@@
+        - "@@controller1@@"
 - barclamp: rabbitmq
   deployment:
     elements:
       rabbitmq-server:
-        - @@controller1@@
+        - "@@controller1@@"
 ```
 
 ### Top-level proposal attributes
@@ -108,6 +108,18 @@ node.  For example if `controller1` is a Crowbar alias for node
 `d52-54-02-77-77-02.mycloud.com`, then `@@controller1@@` will be
 substituted for that hostname.  This allows YAML files to be reused
 across environments.
+
+However, the
+[`@` character is a reserved indicator in YAML](http://yaml.org/spec/1.2/spec.html#id2774228),
+so the string should be quoted, e.g.:
+
+```
+- barclamp: rabbitmq
+  deployment:
+    elements:
+      rabbitmq-server:
+        - "@@controller1@@"
+```
 
 ## Options
 

@@ -11,7 +11,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150312081459) do
+ActiveRecord::Schema.define(version: 20150605130326) do
+
+  create_table "proposal_versions", force: :cascade do |t|
+    t.integer  "proposal_id", null: false
+    t.string   "event",       null: false
+    t.string   "barclamp",    null: false
+    t.string   "name",        null: false
+    t.text     "properties"
+    t.datetime "created_at"
+  end
+
+  add_index "proposal_versions", ["proposal_id"], name: "index_proposal_versions_on_proposal_id"
 
   create_table "proposals", force: :cascade do |t|
     t.string "barclamp",   null: false
@@ -22,7 +33,7 @@ ActiveRecord::Schema.define(version: 20150312081459) do
   add_index "proposals", ["barclamp", "name"], name: "index_proposals_on_barclamp_and_name", unique: true
 
   create_table "sessions", force: :cascade do |t|
-    t.string   "session_id", null: false
+    t.string   "session_id", limit: 255, null: false
     t.text     "data"
     t.datetime "created_at"
     t.datetime "updated_at"

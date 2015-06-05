@@ -1,6 +1,8 @@
 class Proposal < ActiveRecord::Base
   include Crowbar::ProposalMethods
 
+  has_many :proposal_versions
+
   # FIXME: remove this when the export is properly implemented
   class_attribute :chef_type
 

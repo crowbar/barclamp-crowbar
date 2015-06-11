@@ -25,7 +25,7 @@ class Chef
       # There are two conventions to filter by barclamp proposal:
       #  1) Other barclamp cookbook: node[@cookbook_name][$OTHER_BC_NAME_instance]
       #  2) Same cookbook: node[@cookbook_name][:config][:environment]
-      if barclamp == cookbook_name
+      if node[barclamp] && node[barclamp][:config] && (barclamp == cookbook_name)
         env = node[barclamp][:config][:environment]
       else
         env = "#{barclamp}-config-#{node[cookbook_name]["#{barclamp}_instance"]}"

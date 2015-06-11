@@ -1053,6 +1053,25 @@ class NodeObject < ChefObject
     @node["ipmi"]["bmc_password"] rescue nil
   end
 
+  def ssh_cmd(cmd)
+    if @node[:platform] == "windows"
+      Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} ignored - node is running Windows")
+      return nil
+    end
+
+    # Have to redirect stdin, stdout, stderr and background reboot
+    # command on the client else ssh never disconnects when client dies
+    # `timeout` and '-o ConnectTimeout=10' are there in case anything
+    # else goes wrong...
+    unless system("sudo", "-i", "-u", "root", "--",
+                  "timeout", "-k", "5s", "15s",
+                  "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}",
+                  "#{cmd} </dev/null >/dev/null 2>&1 &")
+      Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      return nil
+    end
+  end
+
   def bmc_cmd(cmd)
     if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
         !system("ipmitool", "-I", "lanplus", "-H", bmc_address, "-U", get_bmc_user, "-P", get_bmc_password, cmd)

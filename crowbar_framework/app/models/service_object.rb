@@ -1107,7 +1107,7 @@ class ServiceObject
     new_elements = expanded_new_elements
 
     # stop chef daemon on all nodes
-    chef_daemon_nodes = new_elements.values.flatten
+    chef_daemon_nodes = new_elements.values.flatten.uniq
     chef_daemon(:stop, chef_daemon_nodes)
 
     # save list of expanded elements, as this is needed when we look at the

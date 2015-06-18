@@ -25,11 +25,29 @@
 	AddType application/x-x509-ca-cert .crt
 	AddType application/x-pkcs7-crl    .crl
 
+	#   SSL Cipher Suite:
+	#   List the ciphers that the client is permitted to negotiate.
+	#   See the mod_ssl documentation for a complete list.
+	#
+	SSLCipherSuite ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+
+	#   SSLHonorCipherOrder
+	#   If SSLHonorCipherOrder is disabled, then the client's preferences
+	#   for chosing the cipher during the TLS handshake are used.
+	#   If set to on, then the above SSLCipherSuite is used, in the order
+	#   given, with the first supported match on both ends.
+	SSLHonorCipherOrder on
+
 	#   Pass Phrase Dialog:
 	#   Configure the pass phrase gathering process.
 	#   The filtering dialog program (`builtin' is a internal
 	#   terminal dialog) has to provide the pass phrase on stdout.
+	<IfDefine SYSTEMD>
+	SSLPassPhraseDialog exec:/usr/sbin/apache2-systemd-ask-pass
+	</IfDefine>
+	<IfDefine !SYSTEMD>
 	SSLPassPhraseDialog  builtin
+	</IfDefine>
 
 	#   Inter-Process Session Cache:
 	#   Configure the SSL Session Cache: First the mechanism 
@@ -38,17 +56,24 @@
 	#   Note that on most platforms shared memory segments are not allowed to be on 
 	#   network-mounted drives, so in that case you need to use the dbm method.
 	#SSLSessionCache        none
-	#SSLSessionCache         dbm:/var/lib/apache2/ssl_scache
-	#SSLSessionCache        shmht:/var/lib/apache2/ssl_scache(512000)
-	SSLSessionCache         shmcb:/var/lib/apache2/ssl_scache(512000)
-	SSLSessionCacheTimeout  600
 
+	#<IfModule socache_dbm>
+	#SSLSessionCache         dbm:/var/lib/apache2/ssl_scache
+	#</IfModule>
+
+	<IfVersion < 2.4>
 	#   This configures the SSL engine's semaphore (aka. lock) which is
 	#   used for mutual exclusion of operations which have to be done in a
 	#   synchronized way between the pre-forked Apache server processes.
 	#   "default" tells the SSL Module to pick the default locking
 	#   implementation as determined by the platform and APR.
 	SSLMutex  default
+	</IfVersion>
+
+	<IfModule socache_shmcb>
+	SSLSessionCache         shmcb:/var/lib/apache2/ssl_scache(512000)
+	</IfModule>
+	SSLSessionCacheTimeout  300
 
 	#   Pseudo Random Number Generator (PRNG):
 	#   Configure one or more sources to seed the PRNG of the 

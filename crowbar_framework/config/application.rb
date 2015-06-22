@@ -36,6 +36,8 @@ module Crowbar
       Rails.root.join("config", "locales", "**", "*.{rb,yml}").to_s
     ]
 
+    config.active_record.observers = [:proposal_observer] unless Rails.env.test?
+
     config.generators do |g|
       g.assets false
       g.helper false

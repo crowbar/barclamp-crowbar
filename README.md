@@ -24,6 +24,15 @@ About this barclamp
 **This is the core barclamp! Change with caution!** Information for this barclamp is maintained on the
 [Crowbar Framework Wiki](https://github.com/crowbar/crowbar/wiki)
 
+Contact
+-------
+
+To get in contact with the developers you have multiple options, all of them are listed below:
+
+* [Google Mailinglist](https://groups.google.com/forum/#!forum/crowbar)
+* [Gitter Chat](https://gitter.im/crowbar)
+* [Freenode Webchat](http://webchat.freenode.net/?channels=%23crowbar)
+
 Legals
 ------
 

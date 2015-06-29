@@ -36,6 +36,9 @@ when "ubuntu","debian"
     libshadow-ruby1.8
     markdown
   )
+  unless search(:node, "platform:windows").empty?
+    pkglist.push "smbclient"
+  end
 
   rainbows_path = "/var/lib/gems/1.8/bin/"
 when "redhat","centos"
@@ -46,6 +49,9 @@ when "redhat","centos"
     sqlite-devel
     python-markdown
   )
+  unless search(:node, "platform:windows").empty?
+    pkglist.push "samba-client"
+  end
 
   rainbows_path = ""
 when "suse"
@@ -78,6 +84,9 @@ when "suse"
     ruby2.1-rubygem-sqlite3
     ruby2.1-rubygem-syslogger
   )
+  unless search(:node, "platform:windows").empty?
+    pkglist.push "samba-client"
+  end
 end
 
 pkglist.each do |p|

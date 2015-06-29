@@ -1138,6 +1138,30 @@ class NodeObject < ChefObject
     end
   end
 
+  def net_rpc_cmd(cmd)
+    case cmd
+    when :power_cycle
+      unless system("net", "rpc", "shutdown", "-f", "-r", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
+        Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      end
+    when :power_off
+      unless system("net", "rpc", "shutdown", "-f", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
+        Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      end
+    when :reboot
+      unless system("net", "rpc", "shutdown", "-r", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
+        Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      end
+    when :shutdown
+      unless system("net", "rpc", "shutdown", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
+        Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+      end
+    else
+      Rails.logger.warn("samba command #{cmd} failed for #{@node.name}.")
+    end
+  end
+
+
   def bmc_cmd(cmd)
     if bmc_address.nil? || get_bmc_user.nil? || get_bmc_password.nil? ||
         !system("ipmitool", "-I", "lanplus", "-H", bmc_address, "-U", get_bmc_user, "-P", get_bmc_password, cmd)
@@ -1210,8 +1234,11 @@ class NodeObject < ChefObject
       rescue Timeout::Error
         Rails.logger.warn("chef client seems to be still running after 5 minutes of wait; going on with the reboot")
       end
-
-      ssh_cmd("/sbin/reboot")
+      if @node[:platform] == "windows"
+        net_rpc_cmd(:power_cycle)
+      else
+        ssh_cmd("/sbin/reboot")
+      end
     end
     results
   end
@@ -1234,12 +1261,20 @@ class NodeObject < ChefObject
 
   def reboot
     set_state("reboot")
-    ssh_cmd("/sbin/reboot")
+    if @node[:platform] == "windows"
+      net_rpc_cmd(:reboot)
+    else
+      ssh_cmd("/sbin/reboot")
+    end
   end
 
   def shutdown
     set_state("shutdown")
-    ssh_cmd("/sbin/poweroff")
+    if @node[:platform] == "windows"
+      net_rpc_cmd(:shutdown)
+    else
+      ssh_cmd("/sbin/poweroff")
+    end
   end
 
   def poweron
@@ -1249,12 +1284,20 @@ class NodeObject < ChefObject
 
   def powercycle
     set_state("reboot")
-    bmc_cmd("power cycle")
+    if @node[:platform] == "windows"
+      net_rpc_cmd(:power_cycle)
+    else
+      bmc_cmd("power cycle")
+    end
   end
 
   def poweroff
     set_state("shutdown")
-    bmc_cmd("power off")
+    if @node[:platform] == "windows"
+      net_rpc_cmd(:power_off)
+    else
+      bmc_cmd("power off")
+    end
   end
 
   def identify
@@ -1501,3 +1544,4 @@ class NodeObject < ChefObject
     {}
   end
 end
+

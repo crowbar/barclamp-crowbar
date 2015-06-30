@@ -219,6 +219,11 @@ class NodesController < ApplicationController
         })
       end
     end
+
+    #UI-only method
+    respond_to do |format|
+      format.html
+    end
   end
 
   def group_change

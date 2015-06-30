@@ -1,6 +1,5 @@
-#
 # Copyright 2011-2013, Dell
-# Copyright 2013, SUSE LINUX Products GmbH
+# Copyright 2013-2015, SUSE LINUX GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,4 +30,4 @@ version: 'Version CROWBAR_VERSION'
 
 # The provider will get displayed on the footer of crowbar to show who provides
 # this nice project ;-)
-provider: '<a href="http://dell.com/cloud" target="_blank"><img src="/assets/dell/dell.png" alt="Dell, Inc." /> CloudEdge Solutions team</a>'
+provider: '<a href="https://crowbar.github.io/" target="_blank">Crowbar</a>'

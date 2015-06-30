@@ -154,6 +154,12 @@ describe NodesController do
       get :families
       assigns(:families).keys.should include(node.family.to_s)
     end
+
+    it "as json is not acceptable" do
+      expect {
+        get :families, :format => "json"
+      }.to raise_error
+    end
   end
 
   describe "GET status" do

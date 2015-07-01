@@ -1,4 +1,4 @@
-AllCopy:
+AllCops:
   RunRailsCops: true
   DisplayCopNames: true
 

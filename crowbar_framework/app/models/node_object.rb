@@ -1435,7 +1435,12 @@ class NodeObject < ChefObject
 
     meta = @node["block_device"][device]
 
-    if meta and meta["disks"]
+    if meta
+      # For some disk (e.g. virtio without serial number on SLE12)
+      # meta["disks"] is empty. In that case we can't get a "more unique"
+      # name than "vdX"
+      return "/dev/#{device}" unless meta["disks"]
+
       disk_lookups = ["by-path"]
 
       # If this looks like a virtio disk and the target platform is one

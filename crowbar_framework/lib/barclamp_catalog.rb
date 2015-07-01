@@ -64,12 +64,13 @@ class BarclampCatalog
   end
 
   def display_name(barclamp)
-    display = barclamps[barclamp]['display']
-
-    if display.nil? or display.empty?
-      barclamp.titlecase
+    if barclamps[barclamp] && !barclamps[barclamp]["display"].blank?
+      barclamps[barclamp]["display"]
     else
-      display
+      Rails.logger.warn(
+        "Could not find barclamp #{barclamp} in the crowbar catalog."
+      )
+      barclamp.titleize
     end
   end
 

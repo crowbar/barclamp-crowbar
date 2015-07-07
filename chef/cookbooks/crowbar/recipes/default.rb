@@ -353,9 +353,8 @@ else
     not_if "test -L /usr/sbin/rccrowbar"
   end
 
-  bash "Enable crowbar service" do
-    code "/sbin/chkconfig crowbar on"
-    not_if "/sbin/chkconfig crowbar | grep -q on"
+  service "crowbar" do
+    action :enable
   end
 end
 

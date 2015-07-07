@@ -357,7 +357,7 @@ else
     bash "insserv crowbar service" do
       code "insserv crowbar"
       action :nothing
-      subscribes :run, resources(:cookbook_file=> "/etc/init.d/crowbar"), :delayed
+      subscribes :run, resources("cookbook_file[/etc/init.d/crowbar]"), :delayed
     end
   else
     cookbook_file "/etc/tmpfiles.d/crowbar.conf" do

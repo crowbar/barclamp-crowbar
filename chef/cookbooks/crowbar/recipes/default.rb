@@ -352,6 +352,13 @@ else
     to "/etc/init.d/crowbar"
   end
 
+  # Make sure that any dependency change is taken into account
+  bash "insserv crowbar service" do
+    code "insserv crowbar"
+    action :nothing
+    subscribes :run, resources(:cookbook_file=> "/etc/init.d/crowbar"), :delayed
+  end
+
   service "crowbar" do
     action :enable
   end

@@ -339,24 +339,56 @@ if node[:platform] != "suse"
     end
   end
 else
-  cookbook_file "/etc/init.d/crowbar" do
-    owner "root"
-    group "root"
-    mode "0755"
-    action :create
-    source "crowbar.suse"
-  end
+  if node["platform_version"].to_f < 12.0
+    cookbook_file "/etc/init.d/crowbar" do
+      owner "root"
+      group "root"
+      mode "0755"
+      action :create
+      source "crowbar.suse"
+    end
 
-  link "/usr/sbin/rccrowbar" do
-    action :create
-    to "/etc/init.d/crowbar"
-  end
+    link "/usr/sbin/rccrowbar" do
+      action :create
+      to "/etc/init.d/crowbar"
+    end
 
-  # Make sure that any dependency change is taken into account
-  bash "insserv crowbar service" do
-    code "insserv crowbar"
-    action :nothing
-    subscribes :run, resources(:cookbook_file=> "/etc/init.d/crowbar"), :delayed
+    # Make sure that any dependency change is taken into account
+    bash "insserv crowbar service" do
+      code "insserv crowbar"
+      action :nothing
+      subscribes :run, resources(:cookbook_file=> "/etc/init.d/crowbar"), :delayed
+    end
+  else
+    cookbook_file "/etc/tmpfiles.d/crowbar.conf" do
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+      source "crowbar.tmpfiles"
+    end
+
+    bash "create tmpfiles.d files for crowbar" do
+      code "systemd-tmpfiles --create /etc/tmpfiles.d/crowbar.conf"
+      action :nothing
+      subscribes :run, resources("cookbook_file[/etc/tmpfiles.d/crowbar.conf]"), :immediately
+    end
+
+    # Use a systemd .service file on SLE12
+    cookbook_file "/etc/systemd/system/crowbar.service" do
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+      source "crowbar.service"
+    end
+
+    # Make sure that any dependency change is taken into account
+    bash "reload systemd after crowbar update" do
+      code "systemctl daemon-reload"
+      action :nothing
+      subscribes :run, resources("cookbook_file[/etc/systemd/system/crowbar.service]"), :immediately
+    end
   end
 
   service "crowbar" do

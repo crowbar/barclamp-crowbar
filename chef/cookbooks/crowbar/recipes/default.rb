@@ -219,21 +219,13 @@ if node[:platform] != "suse"
     mode "0644"
     action :create
   end
-else
-  directory "/var/run/crowbar" do
-    owner "crowbar"
-    group "crowbar"
-    mode "0700"
-    action :create
-  end
 end
 
 directory "/var/run/crowbar" do
   owner "crowbar"
   group "crowbar"
-  mode  "0755"
+  mode "0700"
   action :create
-  only_if { node[:platform] == "ubuntu" }
 end
 
 # mode 0755 so subdirs can be nfs mounted to admin-exported shares

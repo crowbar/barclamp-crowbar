@@ -350,7 +350,6 @@ else
   link "/usr/sbin/rccrowbar" do
     action :create
     to "/etc/init.d/crowbar"
-    not_if "test -L /usr/sbin/rccrowbar"
   end
 
   service "crowbar" do

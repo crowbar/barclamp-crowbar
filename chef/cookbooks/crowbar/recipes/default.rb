@@ -268,11 +268,6 @@ else
   realm = nil
 end
 
-bash "set permissions" do
-  code "chown -R crowbar:crowbar /opt/dell/crowbar_framework"
-  not_if "ls -al /opt/dell/crowbar_framework/README | grep -q crowbar"
-end
-
 cookbook_file "/opt/dell/crowbar_framework/config.ru" do
   source "config.ru"
   owner "crowbar"

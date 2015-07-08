@@ -1,0 +1,9 @@
+Lint/UnusedMethodArgument:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 25
+
+Style/RedundantReturn:
+  Exclude:
+    - "chef/data_bags/crowbar/migrate/*"

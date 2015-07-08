@@ -42,6 +42,20 @@ module FormHelper
     )
   end
 
+  def disk_roles_for_select(selected)
+    options_for_select(
+      [
+        [t(".disk_role_undecided"), ""],
+        [t(".disk_role_ceph"), "Ceph"],
+        [t(".disk_role_cinder"), "Cinder"],
+        [t(".disk_role_swift"), "Swift"],
+        [t(".disk_role_drbd"), "LVM_DRBD"],
+        [t(".disk_role_sbd"), "sbd"]
+      ],
+      selected.to_s
+    )
+  end
+
   def booleans_for_select(selected)
     options_for_select(
       [

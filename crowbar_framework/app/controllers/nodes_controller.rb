@@ -138,8 +138,8 @@ class NodesController < ApplicationController
               dirty = true
             end
 
-            unless node.disks_roles == node_attributes["disks_roles"]
-              node.disks_roles = node_attributes["disks_roles"]
+            unless node.disk_roles == node_attributes["disk_roles"]
+              node.disk_roles = node_attributes["disk_roles"]
               dirty = true
             end
 
@@ -404,7 +404,7 @@ class NodesController < ApplicationController
         :description   => :description,
         :availability_zone => :availability_zone,
         :intended_role => :intended_role,
-        :disks_roles   => :disks_roles,
+        :disk_roles    => :disk_roles,
         :raid_type     => :raid_type,
         :raid_disks    => :raid_disks
       }.each do |attr, param|

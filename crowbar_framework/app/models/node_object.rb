@@ -256,26 +256,25 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["intended_role"] = value
   end
 
-  def disks_roles=(value)
+  def disk_roles=(value)
     @node["crowbar_wall"] ||= {}
-    @node["crowbar_wall"]["disks_roles"] = value
+    @node["crowbar_wall"]["disk_roles"] = value
   end
 
-  def disks_roles
-
-    disks_roles = crowbar_wall["disks_roles"] || {}
+  def disk_roles
+    disk_roles = crowbar_wall["disk_roles"] || {}
 
     # Check for current unclaimed disks, and add unclaimed disk to
-    # disks_roles hash if it is not there yet.
+    # disk_roles hash if it is not there yet.
     # (New disk could have been added to the node)
-    unclaimed_physical_drives.each do |d, data|
+    unclaimed_physical_drives.each do |d, _data|
       unique_name = unique_device_for(d)
-      unless disks_roles[unique_name]
-        crowbar_wall["disks_roles"] ||= {}
-        crowbar_wall["disks_roles"][unique_name] = { "name" => unique_name, "role" => ""}
+      unless disk_roles[unique_name]
+        crowbar_wall["disk_roles"] ||= {}
+        crowbar_wall["disk_roles"][unique_name] = ""
       end
     end
-    crowbar_wall["disks_roles"] || {}
+    crowbar_wall["disk_roles"] || {}
   end
 
   def raid_type

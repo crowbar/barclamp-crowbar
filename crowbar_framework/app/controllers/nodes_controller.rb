@@ -138,6 +138,11 @@ class NodesController < ApplicationController
               dirty = true
             end
 
+            unless node.disks_roles == node_attributes["disks_roles"]
+              node.disks_roles = node_attributes["disks_roles"]
+              dirty = true
+            end
+
             if view_context.crowbar_options[:show].include?(:bios) and not [node.bios_set, "not_set"].include? node_attributes["bios"]
               node.bios_set = node_attributes["bios"]
               dirty = true
@@ -399,6 +404,7 @@ class NodesController < ApplicationController
         :description   => :description,
         :availability_zone => :availability_zone,
         :intended_role => :intended_role,
+        :disks_roles   => :disks_roles,
         :raid_type     => :raid_type,
         :raid_disks    => :raid_disks
       }.each do |attr, param|

@@ -1448,7 +1448,9 @@ class ServiceObject
       # executed the role, hence the delete()
       nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
       nodes_with_role_to_remove.each do |node_name|
-        delete_remove_role_from_runlist(node_name, role_to_remove, inst)
+        node = pre_cached_nodes[node_name]
+        node.delete_from_run_list(role_to_remove)
+        save_node_state(node)
       end
     end
 
@@ -1473,30 +1475,6 @@ class ServiceObject
   ensure
     # start chef daemon on all nodes
     chef_daemon(:start, chef_daemon_nodes)
-  end
-
-  def delete_remove_role_from_runlist(node_name, role_to_remove, inst)
-    databag = ProposalObject.find_proposal(@bc_name, inst)
-    node = NodeObject.find_node_by_name(node_name)
-    return if node.nil?
-
-    # delete #{role_name}_remove role from runlist as it is not needed anymore
-    return unless node.role? role_to_remove
-    @logger.debug("Removing temporary role #{role_to_remove} from #{node.name}")
-    node.delete_from_run_list(role_to_remove)
-    save_node_state(node)
-
-    # delete nodes from databag with no more _remove roles
-    databag["deployment"][@bc_name]["elements"][role_to_remove].delete(
-      node_name
-    )
-    databag.save
-
-    # delete remove intention from databag, as it has been done successfully
-    if databag["deployment"][@bc_name]["elements"][role_to_remove].empty?
-      databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
-      databag.save
-    end
   end
 
   def save_node_state(node)

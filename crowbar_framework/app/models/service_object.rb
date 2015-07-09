@@ -1173,6 +1173,7 @@ class ServiceObject
 
     # get databag to remember potential removal of a role
     databag = ProposalObject.find_proposal(@bc_name, inst)
+    save_databag = false
     leftover_nodes = {}
 
     # element_order is an Array where each item represents a batch of
@@ -1212,6 +1213,7 @@ class ServiceObject
               @logger.debug "saving #{elem_remove} intention for #{old_node}"
               unless databag["deployment"][@bc_name]["elements"][elem_remove].include? old_node
                 databag["deployment"][@bc_name]["elements"][elem_remove] << old_node
+                save_databag ||= true
               end
             end
           end
@@ -1257,7 +1259,7 @@ class ServiceObject
     end
 
     # save databag with the role removal intention
-    databag.save
+    databag.save if save_databag
 
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []

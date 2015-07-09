@@ -1297,6 +1297,10 @@ class ServiceObject
     # of names of Chef roles.
     run_order = []
 
+    # get databag to remember potential removal of a role
+    databag = ProposalObject.find_proposal(@bc_name, inst)
+    save_databag = false
+
     # element_order is an Array where each item represents a batch of roles and
     # the batches must be applied sequentially in this order.
     element_order.each do |roles|
@@ -1319,11 +1323,15 @@ class ServiceObject
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
+        remove_role_name = "#{role_name}_remove"
+
+        # Also act on nodes that were to be removed last time, but couldn't due
+        # to possibly some error on last application
+        old_nodes += (databag["deployment"][@bc_name]["elements"].delete(remove_role_name) || [])
+
         # We already have nodes with old version of this role.
         unless old_nodes.empty?
-
           # Lookup remove-role.
-          remove_role_name = "#{role_name}_remove"
           tmprole = RoleObject.find_role_by_name remove_role_name
           use_remove_role = !tmprole.nil?
 
@@ -1351,7 +1359,15 @@ class ServiceObject
               # stopping a service, or removing packages.
               # FIXME: it's not clear how/who should be responsible for
               # removing them from the node records.
-              pending_node_actions[node_name][:add] << remove_role_name if use_remove_role
+              if use_remove_role
+                pending_node_actions[node_name][:add] << remove_role_name
+
+                # Save remove intention in #{@bc_name}-databag; we will remove
+                # the intention after a successful apply_role.
+                databag["deployment"][@bc_name]["elements"][remove_role_name] ||= []
+                databag["deployment"][@bc_name]["elements"][remove_role_name] << node_name
+                save_databag ||= true
+              end
 
               nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
             end
@@ -1398,6 +1414,9 @@ class ServiceObject
       run_order << nodes_in_batch unless nodes_in_batch.empty?
       @logger.debug "run_order #{run_order.inspect}"
     end
+
+    # save databag with the role removal intention
+    databag.save if save_databag
 
     # mark nodes as applying; beware that all_nodes do not contain nodes that
     # are actually removed
@@ -1596,6 +1615,30 @@ class ServiceObject
 
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) if !ran_admin
+
+    # are there any roles to remove from the runlist?
+    # The @bcname proposal's elements key will contain the removal intentions
+    # proposal.elements =>
+    # {
+    #   "role1_remove" => ["node1"],
+    #   "role2_remove" => ["node2", "node3"]
+    # }
+    roles_to_remove = databag["deployment"][@bc_name]["elements"].keys.select do |r|
+      r =~ /_remove$/
+    end
+    roles_to_remove.each do |role_to_remove|
+      # No need to remember the nodes with the role to remove, now that we've
+      # executed the role, hence the delete()
+      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
+      nodes_with_role_to_remove.each do |node_name|
+        node = pre_cached_nodes[node_name]
+        node.delete_from_run_list(role_to_remove)
+        node.save
+      end
+    end
+
+    # Save if we did a change
+    databag.save unless roles_to_remove.empty?
 
     # Post deploy callback
     begin

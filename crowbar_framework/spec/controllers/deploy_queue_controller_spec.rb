@@ -27,7 +27,7 @@ describe DeployQueueController do
       ServiceObject.stubs(:is_cluster?).returns(true)
     end
 
-    let(:prop) { ProposalObject.find_proposal("database", "default") }
+    let(:prop) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
 
     it "is successful" do
       get :index

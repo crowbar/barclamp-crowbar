@@ -26,7 +26,7 @@ class ChefObject
     begin
       # NOTE: We are using a global here to avoid lookups.  We need to consider some better cache/expiration strategy
       if @@CrowbarDomain.nil?
-        bag = ProposalObject.find_proposal('dns', 'default')
+        bag = Proposal.where(barclamp: 'dns', name: 'default').first
         @@CrowbarDomain = bag[:attributes][:dns][:domain] || %x{dnsdomainname}.strip
       end
       return @@CrowbarDomain
@@ -51,10 +51,18 @@ class ChefObject
     str.gsub("-:") { |c| '\\' + c }
   end
 
+  # FIXME: the second argument was added so that the Proposal model
+  # can be exported in a same way as the ProposalObject. When the replacement
+  # is completed, remove it and implement the export in the Proposal.
+  # Also check the logging barclamp that it did not break.
+  def self.export(obj, name = nil)
+    name ||= obj.respond_to?(:name) ? obj.name : "unknown"
+    file   = Rails.root.join("db", "#{obj.chef_type}_#{name}.json")
+    File.open(file, "w") { |f| f.write(obj.to_json) }
+  end
+
   def export(name = nil)
-    name ||= self.respond_to?(:name) ? self.name : "unknown"
-    file   = Rails.root.join("db", "#{self.chef_type}_#{name}.json")
-    File.open(file, "w") { |f| f.write(self.to_json) }
+    self.class.export(self, name)
   end
 
   # Each operating system can have a different path to the init command of a

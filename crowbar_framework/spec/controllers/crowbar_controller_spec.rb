@@ -21,6 +21,7 @@ describe CrowbarController do
   render_views
 
   before do
+    Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default")
     CrowbarService.any_instance.stubs(:apply_role).returns([200, "OK"])
   end
 
@@ -227,7 +228,7 @@ describe CrowbarController do
   end
 
   describe "PUT proposal_create" do
-    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+    let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
 
     # We don't validate_proposal_after_save as freshly created proposals can be
     # missing nodes. However, this is ok, as users will assign roles to them
@@ -243,26 +244,26 @@ describe CrowbarController do
   end
 
   describe "proposal updates" do
-    let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
-
     before(:each) do
-      ProposalObject.any_instance.stubs(:save).returns(true)
+      Proposal.any_instance.stubs(:save).returns(true)
       CrowbarService.any_instance.expects(:validate_proposal).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_elements).returns(true).at_least_once
       CrowbarService.any_instance.expects(:validate_proposal_after_save).at_least_once
     end
 
     describe "POST proposal_commit" do
+      let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create!(barclamp: "crowbar", name: "default") }
+
       it "validates a proposal" do
-        post :proposal_commit, :id => "default"
+        post :proposal_commit, :id => proposal.name
       end
     end
 
     describe "PUT proposal_update" do
+      let(:proposal) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
+
       it "validates a proposal from command line" do
-        skip("FIXME")
-        prop = JSON.parse(proposal.to_json, :create_additions => false)["item"]["raw_data"].merge("id" => "default")
-        put :proposal_update, prop
+        put :proposal_update, JSON.parse(proposal.to_json).merge("id" => "default")
       end
 
       it "validates a proposal from the UI" do

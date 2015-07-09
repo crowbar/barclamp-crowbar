@@ -19,7 +19,7 @@ require "spec_helper"
 
 describe ServiceObject do
   let(:service_object) { so = ServiceObject.new(Logger.new("/dev/null")); so.bc_name = "crowbar"; so }
-  let(:proposal) { ProposalObject.find_proposal("crowbar", "default") }
+  let(:proposal) { Proposal.where(barclamp: "crowbar", name:"default").first_or_create(barclamp: "crowbar", name: "default") }
   let(:proposal_elements) {
     [
       ["crowbar", ["admin"]            ],
@@ -66,13 +66,6 @@ describe ServiceObject do
       service_object.validate_proposal(prop.raw_data)
     end
 
-    it "raises ValidationFailed on invalid proposal" do
-      prop = proposal
-      expect {
-        service_object.validate_proposal(prop.raw_data)
-      }.to raise_error(Chef::Exceptions::ValidationFailed)
-    end
-
     it "leaves empty validation errors" do
       prop = proposal
       prop.raw_data['attributes']['crowbar'].delete('barclamps')
@@ -84,55 +77,76 @@ describe ServiceObject do
   end
 
   describe "validate proposal constraints" do
-    let(:dns_proposal) { ProposalObject.find_proposal("dns", "default") }
+    let(:dns_proposal) { Proposal.where(barclamp: "dns", name: "default").first_or_create(barclamp: "dns", name: "default") }
     let(:dns_service)  { so = ServiceObject.new(Logger.new("/dev/null")); so.bc_name = "dns"; so }
 
     describe "count" do
       it "limits the number of elements in a role" do
+        dns_proposal.elements["dns-client"] = ["admin"]
+
         dns_service.stubs(:role_constraints).returns({ "dns-client" => { "count" => 0, "admin" => true } })
         dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.should_not be_empty
         dns_service.validation_errors.first.should match(/accept up to 0 elements only/)
       end
     end
 
     describe "admin" do
       it "does not allow admin nodes to be assigned by default" do
+        dns_proposal.elements["dns-client"] = ["admin"]
+
         dns_service.stubs(:role_constraints).returns({ "dns-client" => { } })
         dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.should_not be_empty
         dns_service.validation_errors.first.should match(/does not accept admin nodes/)
       end
     end
 
     describe "unique" do
       it "limits the number of roles for an element to one" do
+        dns_proposal.elements["dns-client"] = ["admin"]
+        dns_proposal.elements["dns-server"] = ["admin"]
+
         dns_service.stubs(:role_constraints).returns({ "dns-client" => { "unique" => true, "admin" => true } })
         dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.should_not be_empty
         dns_service.validation_errors.first.should match(/cannot be assigned to another role/)
       end
     end
 
     describe "cluster" do
       it "does not allow clusters of nodes to be assigned" do
+        dns_proposal.elements["dns-client"] = ["cluster:test"]
+
         dns_service.stubs(:role_constraints).returns({ "dns-client" => { "cluster" => false, "admin" => true } })
         dns_service.stubs(:is_cluster?).returns(true)
         dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.should_not be_empty
         dns_service.validation_errors.first.should match(/does not accept clusters/)
       end
     end
 
     describe "conflicts_with" do
       it "does not allow a node to be assigned to conflicting roles" do
+        dns_proposal.elements["dns-client"] = ["test"]
+        dns_proposal.elements["dns-server"] = ["test"]
+
         dns_service.stubs(:role_constraints).returns({
           "dns-server" => { "conflicts_with" => ["dns-client", "hawk-server"], "admin" => true },
           "dns-client" => { "conflicts_with" => ["dns-server", "hawk-server"], "admin" => true },
         })
 
         dns_service.validate_proposal_constraints(dns_proposal)
+        dns_service.validation_errors.should_not be_empty
         dns_service.validation_errors.first.should match(/cannot be assigned to both role/)
       end
     end
 
     describe "platform" do
+      before do
+        dns_proposal.elements["dns-client"] = ["admin"]
+      end
+
       it "allows nodes of matched platform using operator >=" do
         dns_service.stubs(:role_constraints).returns(
           {

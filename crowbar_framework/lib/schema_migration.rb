@@ -25,7 +25,7 @@ module SchemaMigration
   end
 
   def self.run_for_bc bc_name
-    template = ProposalObject.find_proposal("template", bc_name)
+    template = Proposal.new(barclamp: bc_name)
 
     return if template.nil?
     return if template["deployment"].nil?
@@ -40,7 +40,7 @@ module SchemaMigration
       raise "Failed to load databag schema for #{bc_name}: #{e.message}"
     end
 
-    props = ProposalObject.find_proposals bc_name
+    props = Proposal.where(barclamp: bc_name)
 
     props.each do |prop|
       migrate_proposal(bc_name, validator, template, all_scripts, prop)

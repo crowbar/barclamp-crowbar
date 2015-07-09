@@ -374,7 +374,7 @@ module NodesHelper
   end
 
   def node_barclamp_list(node)
-    all_proposals = ProposalObject.all
+    all_proposals = Proposal.all
 
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
       node_barclamps(node).map do |role|
@@ -445,7 +445,7 @@ module NodesHelper
 
   def node_role_list(node)
     all_roles     = RoleObject.all
-    all_proposals = ProposalObject.all
+    all_proposals = Proposal.all
 
     list_items = ActiveSupport::OrderedHash.new.tap do |listing|
       node_roles(node).map do |role|

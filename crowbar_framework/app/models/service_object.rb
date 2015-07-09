@@ -72,7 +72,7 @@ class ServiceObject
   end
 
   def simple_proposal_ui?
-    proposals = ProposalObject.find_proposals("crowbar")
+    proposals = Proposal.where(barclamp: "crowbar")
 
     result = false
     unless proposals[0].nil? or proposals[0]["attributes"].nil? or proposals[0]["attributes"]["crowbar"].nil?
@@ -98,12 +98,15 @@ class ServiceObject
   end
 
   def self.all
-    bc = {}
-    ProposalObject.find("#{ProposalObject::BC_PREFIX}*").each do |bag|
-      bc[bag.item.name[/#{ProposalObject::BC_PREFIX}(.*)/,1]] = bag.item[:description]
-    end
-    bc.delete_if { |k, v| bc.has_key? k[/^(.*)-(.*)/,0] }
-    return bc
+    # The catalog contains more than just barclamps - it has also barclamp
+    # groups. So we filter out barclamps by attempting to create a proposal
+    # (which loads the barclamps JSON metadata). Only those that pass
+    # are valid barclamps.
+    BarclampCatalog.barclamps.map do |name, attrs|
+      Proposal.new(barclamp: name) rescue nil
+    end.compact.map do |prop|
+      [prop.barclamp, prop["description"]]
+    end.to_h
   end
 
   def self.run_order(bc, cat = nil)
@@ -284,13 +287,13 @@ class ServiceObject
     begin
       f = acquire_lock "queue"
 
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
+      db = Chef::DataBag.load("crowbar/queue") rescue nil
       if db.nil?
-        new_queue = Chef::DataBagItem.new
-        new_queue.data_bag "crowbar"
-        new_queue["id"] = "queue"
-        new_queue["proposal_queue"] = []
-        db = ProposalObject.new new_queue
+        db = Chef::DataBagItem.new
+        db.data_bag "crowbar"
+        db["id"] = "queue"
+        db["proposal_queue"] = []
+        db.save
       end
 
       preexisting_queued_item = nil
@@ -306,7 +309,7 @@ class ServiceObject
       queue_me = false
 
       deps.each do |dep|
-        prop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+        prop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
 
         # queue if prop doesn't exist
         queue_me = true if prop.nil?
@@ -346,7 +349,7 @@ class ServiceObject
       release_lock f
     end
 
-    prop = ProposalObject.find_proposal(bc, inst)
+    prop = Proposal.where(barclamp: bc, name: inst).first
     prop["deployment"][bc]["crowbar-queued"] = true
     prop.save
     @logger.debug("queue proposal: exit #{inst} #{bc}")
@@ -362,7 +365,7 @@ class ServiceObject
 
       remove_pending_elements(bc, inst, elements) if elements
 
-      prop = ProposalObject.find_proposal(bc, inst)
+      prop = Proposal.where(barclamp: bc, name: inst).first
       unless prop.nil?
         prop["deployment"][bc]["crowbar-queued"] = false
         prop.save
@@ -382,7 +385,7 @@ class ServiceObject
     begin
       f = acquire_lock "queue"
 
-      db = ProposalObject.find_data_bag_item "crowbar/queue"
+      db = Chef::DataBag.load("crowbar/queue") rescue nil
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
       return [200, {}] if db.nil?
 
@@ -413,7 +416,7 @@ class ServiceObject
       begin
         f = acquire_lock "queue"
 
-        db = ProposalObject.find_data_bag_item "crowbar/queue"
+        db = Chef::DataBag.load("crowbar/queue") rescue nil
         if db.nil?
           @logger.debug("process queue: exit: queue gone")
           return
@@ -430,7 +433,7 @@ class ServiceObject
         # Test for ready
         remove_list = []
         queue.each do |item|
-          prop = ProposalObject.find_proposal(item["barclamp"], item["inst"])
+          prop = Proposal.where(barclamp: item["barclamp"], name: item["inst"]).first
           if prop.nil?
             remove_list << item
             next
@@ -439,7 +442,7 @@ class ServiceObject
           queue_me = false
           # Make sure the deps if we aren't being queued.
           item["deps"].each do |dep|
-            depprop = ProposalObject.find_proposal(dep["barclamp"], dep["inst"])
+            depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
 
             # queue if depprop doesn't exist
             queue_me = true if depprop.nil?
@@ -496,10 +499,11 @@ class ServiceObject
 #
 # update proposal status information
 #
+  # FIXME: refactor into Proposal#status=()
   def update_proposal_status(inst, status, message, bc = @bc_name)
     @logger.debug("update_proposal_status: enter #{inst} #{bc} #{status} #{message}")
 
-    prop = ProposalObject.find_proposal(bc, inst)
+    prop = Proposal.where(barclamp: bc, name: inst).first
     unless prop.nil?
       prop["deployment"][bc]["crowbar-status"] = status
       prop["deployment"][bc]["crowbar-failed"] = message
@@ -541,6 +545,7 @@ class ServiceObject
     end
   end
 
+  # FIXME: Move into proposal before_save filter
   def clean_proposal(proposal)
     @logger.debug "clean_proposal"
     proposal.delete("controller")
@@ -576,8 +581,11 @@ class ServiceObject
     end
   end
 
+  # FIXME: these methods operate on a proposal and the controller has access o
+  # bc_name/inst anyway. So it might be better to not pollute the inheritance
+  # chain.
   def elements
-    [200, ProposalObject.find_barclamp(@bc_name).all_elements]
+    [200, Proposal.new(barclamp: @bc_name).all_elements]
   end
 
   def element_info(role = nil)
@@ -585,7 +593,7 @@ class ServiceObject
 
     return [200, nodes] unless role
 
-    valid_roles = ProposalObject.find_barclamp(@bc_name).all_elements
+    valid_roles = Proposal.new(barclamp: @bc_name).all_elements
     return [400, "No role #{role} found for #{@bc_name}."] if !valid_roles.include?(role)
 
     # FIXME: we could try adding each node in turn to existing proposal's 'elements' and removing it
@@ -599,17 +607,17 @@ class ServiceObject
   end
 
   def proposals_raw
-    ProposalObject.find_proposals(@bc_name)
+    Proposal.where(barclamp: @bc_name)
   end
 
   def proposals
     props = proposals_raw
-    props.map! { |p| p["id"].gsub("bc-#{@bc_name}-", "") } unless props.empty?
+    props = props.map { |p| p["id"].gsub("bc-#{@bc_name}-", "") }
     [200, props]
   end
 
   def proposal_show(inst)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
+    prop = Proposal.where(barclamp: @bc_name, name: inst).first
     if prop.nil?
       [404, {}]
     else
@@ -620,6 +628,7 @@ class ServiceObject
   #
   # Utility method to find instances for barclamps we depend on
   #
+  # FIXME: a registry that could be queried for active barclamps
   def find_dep_proposal(bc, optional=false)
     begin
       const_service = self.class.get_service(bc)
@@ -679,23 +688,25 @@ class ServiceObject
   #
   # This can be overridden to provide a better creation proposal
   #
+  # FIXME: check if it is overridden and move to caller
   def create_proposal
-    prop = ProposalObject.find_proposal("template", @bc_name)
+    prop = Proposal.new(barclamp: @bc_name)
     raise(I18n.t('model.service.template_missing', :name => @bc_name )) if prop.nil?
     prop.raw_data
   end
 
+  # FIXME: looks like purely controller methods
   def proposal_create(params)
     base_id = params["id"]
     params["id"] = "bc-#{@bc_name}-#{params["id"]}"
     if FORBIDDEN_PROPOSAL_NAMES.any?{|n| n == base_id}
-      return [403,I18n.t('model.service.illegal_name', :name => base_id)]
+      return [403,I18n.t('model.service.illegal_name', names: FORBIDDEN_PROPOSAL_NAMES.to_sentence)]
     end
 
-    prop = ProposalObject.find_proposal(@bc_name, base_id)
+    prop = Proposal.where(barclamp: @bc_name, name: base_id).first
     return [400, I18n.t('model.service.name_exists')] unless prop.nil?
     return [400, I18n.t('model.service.too_short')] if base_id.length == 0
-    return [400, I18n.t('model.service.illegal_chars', :name => base_id)] if base_id =~ /[^A-Za-z0-9_]/
+    return [400, I18n.t('model.service.illegal_chars')] if base_id =~ /[^A-Za-z0-9_]/
 
     proposal = create_proposal
     proposal["deployment"][@bc_name]["config"]["environment"] = "#{@bc_name}-config-#{base_id}"
@@ -714,18 +725,19 @@ class ServiceObject
     # When we create a proposal, it might be "invalid", as some roles might be missing
     # This is OK, as the next step for the user is to add nodes to the roles
     # But we need to skip the after_save validations in the _proposal_update
-    _proposal_update(proposal, false)
+    _proposal_update(@bc_name, base_id, proposal, false)
   end
 
   def proposal_edit(params, validate_after_save = true)
-    params["id"] = "bc-#{@bc_name}-#{params["id"] || params[:name]}"
+    base_id = params["id"] || params[:name]
+    params["id"] = "bc-#{@bc_name}-#{base_id}"
     proposal = {}.merge(params)
     clean_proposal(proposal)
-    _proposal_update(proposal, validate_after_save)
+    _proposal_update(@bc_name, base_id, proposal, validate_after_save)
   end
 
   def proposal_delete(inst)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
+    prop = Proposal.where(barclamp: @bc_name, name: inst).first
     if prop.nil?
       [404, {}]
     else
@@ -734,6 +746,8 @@ class ServiceObject
     end
   end
 
+  # FIXME: most of these can be validations on the model itself,
+  # preferrably refactored into Validator classes.
   def save_proposal!(prop, options = {})
     options.reverse_merge!(:validate_after_save => true)
     clean_proposal(prop.raw_data)
@@ -743,8 +757,11 @@ class ServiceObject
     validate_proposal_after_save(prop.raw_data) if options[:validate_after_save]
   end
 
+  # XXX: this is where proposal gets copied into a role, scheduling / ops order
+  # is computed (in apply_role) and chef client gets called on the nodes.
+  # Hopefully, this will get moved into a background job.
   def proposal_commit(inst, in_queue = false, validate_after_save = true)
-    prop = ProposalObject.find_proposal(@bc_name, inst)
+    prop = Proposal.where(barclamp: @bc_name, name: inst).first
 
     if prop.nil?
       [404, "#{I18n.t('.cannot_find', :scope=>'model.service')}: #{@bc_name}.#{inst}"]
@@ -763,9 +780,10 @@ class ServiceObject
         response = [500, e.message]
       ensure
         # Make sure we unmark the wall
-        prop = ProposalObject.find_proposal(@bc_name, inst)
+        prop.reload
         prop["deployment"][@bc_name]["crowbar-committing"] = false
-        prop.save(:applied => (response.first == 200))
+        prop.latest_applied = (response.first == 200)
+        prop.save
       end
       response
     end
@@ -778,6 +796,7 @@ class ServiceObject
   #
   # This can be overridden.  Specific to node validation.
   #
+  # FIXME: move into validator classes
   def validate_proposal_elements proposal_elements
     proposal_elements.each do |role_and_elements|
       role, elements = role_and_elements
@@ -1016,16 +1035,12 @@ class ServiceObject
     end
   end
 
-  def _proposal_update(proposal, validate_after_save = true)
-    data_bag_item = Chef::DataBagItem.new
+  def _proposal_update(bc_name, inst, proposal, validate_after_save = true)
+    prop = Proposal.where(barclamp: bc_name, name: inst).first_or_initialize(barclamp: bc_name, name: inst)
 
     begin
-      data_bag_item.raw_data = proposal
-      data_bag_item.data_bag "crowbar"
-
-      prop = ProposalObject.new data_bag_item
+      prop.properties = proposal
       save_proposal!(prop, :validate_after_save => validate_after_save)
-
       Rails.logger.info "saved proposal"
       [200, {}]
     rescue Net::HTTPServerException => e
@@ -1039,6 +1054,7 @@ class ServiceObject
   # This is a role output function
   # Can take either a RoleObject or a Role.
   #
+  # FIXME: check if it is ever used except for controller
   def self.role_to_proposal(role, bc_name)
     proposal = {}
 
@@ -1468,7 +1484,7 @@ class ServiceObject
     unless prop["deployment"][barclamp]["elements"][newrole].include?(node.name)
       @logger.debug("ARTOI: updating proposal with node #{node.name}, role #{newrole} for deployment of #{barclamp}")
       prop["deployment"][barclamp]["elements"][newrole] << node.name
-      prop.save(:applied => prop.latest_applied?)
+      prop.save
     else
       @logger.debug("ARTOI: node #{node.name} already in proposal: role #{newrole} for #{barclamp}")
     end

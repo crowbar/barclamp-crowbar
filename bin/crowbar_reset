@@ -18,6 +18,7 @@
 #   reset_nodes
 
 ME="`basename $0`"
+RAILS_ROOT="/opt/dell/crowbar_framework"
 
 main () {
     if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
@@ -38,11 +39,15 @@ EOF
 
     bc="$1" proposal="${2:-default}"
     data_bag="bc-${bc}-${proposal}"
-    editor=$( cat <<-EOF
-      sed -i 's/"crowbar-committing": true/"crowbar-committing": false/'
-EOF
-    )
-    knife data bag edit crowbar $data_bag -e "$editor"
+
+    cmd="p = Proposal.where(barclamp: '"$bc"', name: '"$proposal"').first;
+         raise(ActiveRecord::RecordNotFound.new) unless p;
+         p['deployment']['"$bc"']['crowbar-committing'] = false;
+         p.save;"
+
+    pushd "$RAILS_ROOT"
+    RAILS_ENV=production rails r "$cmd"
+    popd
 }
 
 # unblocking nodes stuck in applying

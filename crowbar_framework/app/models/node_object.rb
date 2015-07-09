@@ -723,7 +723,8 @@ class NodeObject < ChefObject
 
   def save
     increment_crowbar_revision!
-    Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision}")
+    origin = caller[0][/`.*'/][1..-2]
+    Rails.logger.debug("Saving node: #{@node.name} - #{crowbar_revision} (caller: #{origin})")
 
     # helper function to remove from node elements that were removed from the
     # role attributes; this is something that

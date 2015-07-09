@@ -1199,9 +1199,7 @@ class ServiceObject
         unless old_nodes.empty?
           elem_remove = nil
           tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
-          unless tmprole.nil?
-            elem_remove = tmprole.name
-          end
+          elem_remove = tmprole.name unless tmprole.nil?
 
           old_nodes.each do |node_name|
             # Don't add deleted nodes to the run order

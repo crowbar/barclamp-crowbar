@@ -1443,11 +1443,16 @@ class ServiceObject
     end.keys
     # returns ["role1_remove", "role2_remove"] || {}
     roles_to_remove.each do |role_to_remove|
-      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"][role_to_remove]
+      # No need to remember the nodes with the role to remove, now that we've
+      # executed the role, hence the delete()
+      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
       nodes_with_role_to_remove.each do |node_name|
         delete_remove_role_from_runlist(node_name, role_to_remove, inst)
       end
     end
+
+    # Save if we did a change
+    databag.save unless roles_to_remove.empty?
 
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)

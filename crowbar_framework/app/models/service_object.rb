@@ -1449,7 +1449,7 @@ class ServiceObject
       nodes_with_role_to_remove.each do |node_name|
         node = pre_cached_nodes[node_name]
         node.delete_from_run_list(role_to_remove)
-        save_node_state(node)
+        node.save
       end
     end
 
@@ -1474,13 +1474,6 @@ class ServiceObject
   ensure
     # start chef daemon on all nodes
     chef_daemon(:start, chef_daemon_nodes)
-  end
-
-  def save_node_state(node)
-    # determine the calling method
-    origin = caller[0][/`.*'/][1..-2]
-    @logger.debug("#{origin}: Saving node #{node.name}")
-    !!node.save
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)

@@ -1308,15 +1308,15 @@ class ServiceObject
       nodes_in_batch = []
 
       roles.each do |role_name|
-        old_nodes = old_elements[role_name]
-        new_nodes = new_elements[role_name]
+        old_nodes = old_elements[role_name] || []
+        new_nodes = new_elements[role_name] || []
 
         @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
         # We already have nodes with old version of this role.
-        unless old_nodes.nil?
+        unless old_nodes.empty?
 
           # Lookup remove-role.
           elem_remove = nil
@@ -1334,7 +1334,7 @@ class ServiceObject
             end
 
             # An old node that is not in the new deployment, drop it
-            if new_nodes.nil? or !new_nodes.include?(node_name)
+            unless new_nodes.include?(node_name)
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
 
@@ -1352,9 +1352,8 @@ class ServiceObject
           end
         end
 
-        # If new_nodes are nil, we are just removing the proposal.
-        # FIXME: wouldnt they be only empty then?
-        unless new_nodes.nil?
+        # If new_nodes is empty, we are just removing the proposal.
+        unless new_nodes.empty?
           new_nodes.each do |node_name|
             # Don't add deleted nodes to the run order
             #
@@ -1375,7 +1374,7 @@ class ServiceObject
             all_nodes << node_name unless all_nodes.include?(node_name)
 
             # A new node that we did not know before
-            if old_nodes.nil? or !old_nodes.include?(node_name)
+            unless old_nodes.include?(node_name)
               @logger.debug "add node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
               pending_node_actions[node_name][:add] << role_name

@@ -1440,7 +1440,7 @@ class ServiceObject
     #   "role2_remove" => ["node2", "node3"]
     # }
     roles_to_remove = databag["deployment"][@bc_name]["elements"].select do |r|
-      r =~ /_remove/
+      r =~ /_remove$/
     end.keys
     # returns ["role1_remove", "role2_remove"] || {}
     roles_to_remove.each do |role_to_remove|

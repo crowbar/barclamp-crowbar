@@ -1439,10 +1439,9 @@ class ServiceObject
     #   "role1_remove" => ["node1"],
     #   "role2_remove" => ["node2", "node3"]
     # }
-    roles_to_remove = databag["deployment"][@bc_name]["elements"].select do |r|
+    roles_to_remove = databag["deployment"][@bc_name]["elements"].keys.select do |r|
       r =~ /_remove$/
-    end.keys
-    # returns ["role1_remove", "role2_remove"] || {}
+    end
     roles_to_remove.each do |role_to_remove|
       # No need to remember the nodes with the role to remove, now that we've
       # executed the role, hence the delete()

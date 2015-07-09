@@ -1308,6 +1308,10 @@ class ServiceObject
       nodes_in_batch = []
 
       roles.each do |role_name|
+        # Ignore _remove roles in case they're listed here, as we automatically
+        # handle them
+        next if role_name =~ /_remove$/
+
         old_nodes = old_elements[role_name] || []
         new_nodes = new_elements[role_name] || []
 

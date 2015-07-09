@@ -1189,14 +1189,14 @@ class ServiceObject
         # handle them
         next if role_name =~ /_remove$/
 
-        old_nodes = old_elements[role_name]
-        new_nodes = new_elements[role_name]
+        old_nodes = old_elements[role_name] || []
+        new_nodes = new_elements[role_name] || []
 
         @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
-        unless old_nodes.nil?
+        unless old_nodes.empty?
           elem_remove = nil
           tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
           unless tmprole.nil?
@@ -1222,7 +1222,7 @@ class ServiceObject
               next
             end
 
-            if new_nodes.nil? or !new_nodes.include?(node_name)
+            unless new_nodes.include?(node_name)
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
               pending_node_actions[node_name][:remove] << role_name
@@ -1232,7 +1232,7 @@ class ServiceObject
           end
         end
 
-        unless new_nodes.nil?
+        unless new_nodes.empty?
           new_nodes.each do |node_name|
             # Don't add deleted nodes to the run order
             if NodeObject.find_node_by_name(node_name).nil?
@@ -1241,7 +1241,7 @@ class ServiceObject
             end
 
             all_nodes << node_name unless all_nodes.include?(node_name)
-            if old_nodes.nil? or !old_nodes.include?(node_name)
+            unless old_nodes.include?(node_name)
               @logger.debug "add node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
               pending_node_actions[node_name][:add] << role_name

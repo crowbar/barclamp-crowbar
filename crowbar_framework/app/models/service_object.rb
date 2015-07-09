@@ -1326,12 +1326,16 @@ class ServiceObject
           end
 
           old_nodes.each do |node_name|
+            node = NodeObject.find_node_by_name(node_name)
+
             # Don't add deleted nodes to the run order, they clearly won't have
             # the old role
-            if NodeObject.find_node_by_name(node_name).nil?
+            if node.nil?
               @logger.debug "skipping deleted node #{node_name}"
               next
             end
+
+            pre_cached_nodes[node_name] = node
 
             # An old node that is not in the new deployment, drop it
             unless new_nodes.include?(node_name)
@@ -1355,6 +1359,8 @@ class ServiceObject
         # If new_nodes is empty, we are just removing the proposal.
         unless new_nodes.empty?
           new_nodes.each do |node_name|
+            node = NodeObject.find_node_by_name(node_name)
+
             # Don't add deleted nodes to the run order
             #
             # Q: Why don't we just bail out instead?
@@ -1366,10 +1372,12 @@ class ServiceObject
             # have some alias that be used to assign all existing nodes to a
             # role (which would be an improvement over the requirement to
             # explicitly list all nodes).
-            if NodeObject.find_node_by_name(node_name).nil?
+            if node.nil?
               @logger.debug "skipping deleted node #{node_name}"
               next
             end
+
+            pre_cached_nodes[node_name] = node
 
             all_nodes << node_name unless all_nodes.include?(node_name)
 
@@ -1404,7 +1412,10 @@ class ServiceObject
       # pre_cached_nodes contains only new_nodes, we need to look up the
       # old ones as well.
       node = pre_cached_nodes[node_name]
-      node = NodeObject.find_node_by_name(node_name) if node.nil?
+      if node.nil?
+        node = NodeObject.find_node_by_name(node_name)
+        pre_cached_nodes[node_name] = node
+      end
       next if node.nil?
 
       admin_nodes << node_name if node.admin?
@@ -1509,7 +1520,7 @@ class ServiceObject
       pids = {}
       unless non_admin_nodes.empty?
         non_admin_nodes.each do |node|
-          nobj = NodeObject.find_node_by_name(node)
+          nobj = pre_cached_nodes[node] || NodeObject.find_node_by_name(node)
           unless nobj[:platform] == "windows"
             filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "chef-client", filename)

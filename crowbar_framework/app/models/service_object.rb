@@ -1201,18 +1201,6 @@ class ServiceObject
           tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
           unless tmprole.nil?
             elem_remove = tmprole.name
-            # save remove intention in #{@bc_name}-databag
-            databag["deployment"][@bc_name]["elements"][elem_remove] ||= []
-
-            old_nodes.each do |old_node|
-              @logger.debug "saving #{elem_remove} intention for #{old_node}"
-              # We append to any potential nodes to be removed, that were
-              # leftover of a failing apply_role earlier on
-              unless databag["deployment"][@bc_name]["elements"][elem_remove].include? old_node
-                databag["deployment"][@bc_name]["elements"][elem_remove] << old_node
-                save_databag ||= true
-              end
-            end
           end
 
           old_nodes.each do |node_name|
@@ -1226,7 +1214,22 @@ class ServiceObject
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
               pending_node_actions[node_name][:remove] << role_name
-              pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
+
+              unless elem_remove.nil?
+                pending_node_actions[node_name][:add] << elem_remove
+
+                # Save remove intention in #{@bc_name}-databag; note that we
+                # keep the previous value that was before the call to this
+                # method on purpose: this can happen if a node got removed in
+                # an earlier code, but apply_role didn't fully complete. We
+                # will remove the intention after a successful apply_role.
+                databag["deployment"][@bc_name]["elements"][elem_remove] ||= []
+                unless databag["deployment"][@bc_name]["elements"][elem_remove].include? old_node
+                  databag["deployment"][@bc_name]["elements"][elem_remove] << old_node
+                  save_databag ||= true
+                end
+              end
+
               nodes_in_batch << node_name
             end
           end

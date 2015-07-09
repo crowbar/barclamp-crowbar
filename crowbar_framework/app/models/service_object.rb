@@ -1323,11 +1323,9 @@ class ServiceObject
         unless old_nodes.empty?
 
           # Lookup remove-role.
-          elem_remove = nil
-          tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
-          unless tmprole.nil?
-            elem_remove = tmprole.name
-          end
+          remove_role_name = "#{role_name}_remove"
+          tmprole = RoleObject.find_role_by_name remove_role_name
+          use_remove_role = !tmprole.nil?
 
           old_nodes.each do |node_name|
             node = NodeObject.find_node_by_name(node_name)
@@ -1353,7 +1351,7 @@ class ServiceObject
               # stopping a service, or removing packages.
               # FIXME: it's not clear how/who should be responsible for
               # removing them from the node records.
-              pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
+              pending_node_actions[node_name][:add] << remove_role_name if use_remove_role
 
               nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
             end

@@ -1351,7 +1351,7 @@ class ServiceObject
               # removing them from the node records.
               pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
 
-              nodes_in_batch << node_name
+              nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
             end
           end
         end

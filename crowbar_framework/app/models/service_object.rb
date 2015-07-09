@@ -157,10 +157,13 @@ class ServiceObject
   # Create map with nodes and their element list
   # Transform ( {role => [nodes], role1 => [nodes]} hash to { node => [roles], node1 => [roles]},
   # accounting for clusters
-  def elements_to_nodes_to_roles_map(elements)
+  def elements_to_nodes_to_roles_map(elements, element_order = [])
     nodes_map = {}
+    active_elements = element_order.flatten
 
     elements.each do |role_name, nodes|
+      next unless active_elements.include?(role_name)
+
       # Expand clusters to individual nodes
       nodes, failures = expand_nodes_for_all(nodes)
       unless failures.nil? || failures.empty?
@@ -196,8 +199,8 @@ class ServiceObject
   end
 
   # Get a hash of {node => [roles], node1 => [roles]}
-  def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
-    nodes_map = elements_to_nodes_to_roles_map(elements)
+  def add_pending_elements(bc, inst, element_order, elements, queue_me, pre_cached_nodes = {})
+    nodes_map = elements_to_nodes_to_roles_map(elements, element_order)
 
     # We need to be sure that we're the only ones modifying the node records at this point.
     # This will work for preventing changes from rails app, but not necessarily chef.
@@ -304,7 +307,7 @@ class ServiceObject
   # Receives proposal info (name, barclamp), list of nodes (elements), on which the proposal
   # should be applied, and list of dependencies - a list of {barclamp, name/inst} hashes.
   # It adds them to the queue, if possible.
-  def queue_proposal(inst, elements, deps, bc = @bc_name)
+  def queue_proposal(inst, element_order, elements, deps, bc = @bc_name)
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     delay = []
     pre_cached_nodes = {}
@@ -356,7 +359,7 @@ class ServiceObject
 
       # Delay is a list of nodes that are not in ready state. pre_cached_nodes
       # is an uninteresting optimization.
-      delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)
+      delay, pre_cached_nodes = add_pending_elements(bc, inst, element_order, elements, queue_me)
 
       # We have all nodes ready.
       if delay.empty?
@@ -513,7 +516,8 @@ class ServiceObject
           end
           next if queue_me
 
-          nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"])
+          nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"],
+                                                     prop["deployment"][item["barclamp"]]["element_order"])
           delay, pre_cached_nodes = elements_not_ready(nodes_map.keys)
           list << item if delay.empty?
         end
@@ -1201,7 +1205,7 @@ class ServiceObject
     # Attempt to queue the proposal.  If delay is empty, then run it.
     #
     deps = proposal_dependencies(role)
-    delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)
+    delay, pre_cached_nodes = queue_proposal(inst, element_order, new_elements, deps)
     return [202, delay] unless delay.empty?
 
     @logger.debug "delay empty - running proposal"

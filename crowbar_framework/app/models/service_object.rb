@@ -1228,7 +1228,7 @@ class ServiceObject
                 end
               end
 
-              nodes_in_batch << node_name
+              nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
             end
           end
         end

@@ -1174,7 +1174,6 @@ class ServiceObject
     # get databag to remember potential removal of a role
     databag = ProposalObject.find_proposal(@bc_name, inst)
     save_databag = false
-    leftover_nodes = {}
 
     # element_order is an Array where each item represents a batch of
     # work, and the batches must be performed sequentially in this order.
@@ -1192,14 +1191,6 @@ class ServiceObject
 
         old_nodes = old_elements[role_name]
         new_nodes = new_elements[role_name]
-        # see if there are leftover nodes from the
-        # @bc_name proposal.elements hash and
-        # add them to leftover_nodes hash for later processing
-        nodes_to_remove = databag["deployment"][@bc_name]["elements"]["#{role_name}_remove"]
-        # returns ["node1", "node2"] || nil
-        nodes_to_remove.each do |leftover_node|
-          (leftover_nodes["#{role_name}_remove"] ||= []) << leftover_node
-        end unless nodes_to_remove.nil?
 
         @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
@@ -1215,6 +1206,8 @@ class ServiceObject
 
             old_nodes.each do |old_node|
               @logger.debug "saving #{elem_remove} intention for #{old_node}"
+              # We append to any potential nodes to be removed, that were
+              # leftover of a failing apply_role earlier on
               unless databag["deployment"][@bc_name]["elements"][elem_remove].include? old_node
                 databag["deployment"][@bc_name]["elements"][elem_remove] << old_node
                 save_databag ||= true
@@ -1451,15 +1444,6 @@ class ServiceObject
     # returns ["role1_remove", "role2_remove"] || {}
     roles_to_remove.each do |role_to_remove|
       nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"][role_to_remove]
-      # returns ["node1", "node2"]
-      # are there any leftover nodes where runlist removal
-      # has not been performed?
-      unless leftover_nodes[role_to_remove].nil?
-        # concatenate the leftover_nodes with
-        # the actual nodes that have a _remove role
-        nodes_with_role_to_remove.concat(leftover_nodes[role_to_remove])
-      end
-
       nodes_with_role_to_remove.each do |node_name|
         delete_remove_role_from_runlist(node_name, role_to_remove, inst)
       end

@@ -1,9 +1,12 @@
+Style/RedundantReturn:
+  Exclude:
+    - "chef/data_bags/crowbar/migrate/*"
+
 Lint/UnusedMethodArgument:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 25
+  Max: 50
 
-Style/RedundantReturn:
-  Exclude:
-    - "chef/data_bags/crowbar/migrate/*"
+Metrics/LineLength:
+  Max: 150

@@ -256,6 +256,18 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["intended_role"] = value
   end
 
+  def disks_roles
+    disks_roles = {}
+
+    unclaimed_physical_drives.each do |d, _data|
+      unique_name = unique_device_for(d)
+      unless disks_roles[unique_name]
+        disks_roles[unique_name] = ""
+      end
+    end
+    disks_roles
+  end
+
   def raid_type
     crowbar_wall["raid_type"] || "single"
   end

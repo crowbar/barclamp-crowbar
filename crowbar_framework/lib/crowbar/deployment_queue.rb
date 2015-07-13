@@ -73,13 +73,8 @@ module Crowbar
       begin
         f = file_lock.acquire("queue", logger: logger)
 
-        preexisting_queued_item = nil
-        proposal_queue.proposals.each do |item|
-          # Am I already in the queue
-          if item["barclamp"] == bc and item["inst"] == inst
-            preexisting_queued_item = item
-            break
-          end
+        preexisting_queued_item = proposal_queue.proposals.find do |item|
+          item["barclamp"] == bc && item["inst"] == inst
         end
 
         # Make sure the deps if we aren't being queued.

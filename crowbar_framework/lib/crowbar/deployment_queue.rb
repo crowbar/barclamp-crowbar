@@ -108,35 +108,7 @@ module Crowbar
       [ delay, pre_cached_nodes ]
     end
 
-    # Removes the proposal reference from the queue, updates the proposal as not queued
-    # and drops the 'pending roles' from the affected nodes.
-    def dequeue_proposal_no_lock(bc, inst, queue)
-      logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
-      begin
-        elements = nil
-
-        # The elements = item["elements"] is on purpose to get the assignment out of the element.
-        # Find the proposal to delete, get its elements (nodes)
-        queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and ((elements = item["elements"]) or true)}
-
-        # Remove the pending roles for the current proposal from the node records.
-        remove_pending_elements(bc, inst, elements) if elements
-
-        # Mark the proposal as not in the queue
-        prop = Proposal.where(barclamp: bc, name: inst).first
-        unless prop.nil?
-          prop["deployment"][bc]["crowbar-queued"] = false
-          prop.save
-        end
-      rescue StandardError => e
-        logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
-        logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
-        return false
-      end
-      logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
-      true
-    end
-
+    # Locking wrapper around dequeue_proposal_no_lock
     def dequeue_proposal(bc, inst)
       logger.debug("dequeue proposal: enter #{inst} #{bc}")
       ret = false
@@ -281,6 +253,35 @@ module Crowbar
 
     def file_lock
       FileLock
+    end
+
+    # Removes the proposal reference from the queue, updates the proposal as not queued
+    # and drops the 'pending roles' from the affected nodes.
+    def dequeue_proposal_no_lock(bc, inst, queue)
+      logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
+      begin
+        elements = nil
+
+        # The elements = item["elements"] is on purpose to get the assignment out of the element.
+        # Find the proposal to delete, get its elements (nodes)
+        queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and ((elements = item["elements"]) or true)}
+
+        # Remove the pending roles for the current proposal from the node records.
+        remove_pending_elements(bc, inst, elements) if elements
+
+        # Mark the proposal as not in the queue
+        prop = Proposal.where(barclamp: bc, name: inst).first
+        unless prop.nil?
+          prop["deployment"][bc]["crowbar-queued"] = false
+          prop.save
+        end
+      rescue StandardError => e
+        logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
+        logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}: error")
+        return false
+      end
+      logger.debug("dequeue proposal_no_lock: exit #{inst} #{bc}")
+      true
     end
 
     # Each node keeps a list of roles (belonging to the current proposal) that

@@ -15,7 +15,7 @@ module Crowbar
       delay = []
       pre_cached_nodes = {}
       begin
-        f = acquire_lock "queue"
+        f = file_lock.acquire("queue", logger: logger)
 
         db = Chef::DataBag.load("crowbar/queue") rescue nil
         if db.nil?
@@ -97,7 +97,7 @@ module Crowbar
       rescue StandardError => e
         logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
       ensure
-        release_lock f
+        file_lock.release(f)
       end
 
       # Mark the proposal as in the queue
@@ -141,7 +141,7 @@ module Crowbar
       logger.debug("dequeue proposal: enter #{inst} #{bc}")
       ret = false
       begin
-        f = acquire_lock "queue"
+        f = file_lock.acquire("queue", logger: logger)
 
         db = Chef::DataBag.load("crowbar/queue") rescue nil
         logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
@@ -155,7 +155,7 @@ module Crowbar
         logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
         return [400, e.message]
       ensure
-        release_lock f
+        file_lock.release(f)
       end
       logger.debug("dequeue proposal: exit #{inst} #{bc}")
       return dequeued ? [200, {}] : [400, '']
@@ -177,7 +177,7 @@ module Crowbar
         # Proposals which reference non-ready nodes are also skipped.
         list = []
         begin
-          f = acquire_lock "queue"
+          f = file_lock.acquire("queue", logger: logger)
 
           db = Chef::DataBag.load("crowbar/queue") rescue nil
           if db.nil?
@@ -244,7 +244,7 @@ module Crowbar
           logger.debug("process queue: exit: error")
           return
         ensure
-          release_lock f
+          file_lock.release(f)
         end
 
         logger.debug("process queue: list: #{list.inspect}")
@@ -279,6 +279,10 @@ module Crowbar
 
     private
 
+    def file_lock
+      FileLock
+    end
+
     # Each node keeps a list of roles (belonging to the current proposal) that
     # are to be applied to it under crowbar.pending.barclamp-name hash.
     # When we finish deploying and also when we dequeue the proposal, the list
@@ -288,7 +292,7 @@ module Crowbar
       nodes_map = elements_to_nodes_to_roles_map(elements)
 
       # Remove the entries from the nodes.
-      f = acquire_lock "BA-LOCK"
+      f = file_lock.acquire("BA-LOCK", logger: logger)
       begin
         nodes_map.each do |node_name, data|
           node = NodeObject.find_node_by_name(node_name)
@@ -299,7 +303,7 @@ module Crowbar
           end
         end
       ensure
-        release_lock f
+        file_lock.release(f)
       end
     end
 
@@ -340,7 +344,7 @@ module Crowbar
       # We need to be sure that we're the only ones modifying the node records at this point.
       # This will work for preventing changes from rails app, but not necessarily chef.
       # Tough luck.
-      f = acquire_lock "BA-LOCK"
+      f = file_lock.acquire("BA-LOCK", logger: logger)
 
       # Delay is the list of nodes that are not ready and are needed for this deploy to run
       delay = []
@@ -385,7 +389,7 @@ module Crowbar
       rescue StandardError => e
         logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
       ensure
-        release_lock f
+        file_lock.release(f)
       end
 
       [ delay, pre_cached_nodes ]

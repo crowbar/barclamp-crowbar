@@ -1717,14 +1717,21 @@ class ServiceObject
   end
 
   def chef_daemon(action, node_list)
+    wait_nodes = []
+
     node_list.each do |node_name|
       node = NodeObject.find_node_by_name(node_name)
+
+      # we can't connect to windows nodes
+      next if node[:platform] == "windows"
+
       @logger.debug "apply_role: #{action.to_s} chef service on #{node_name}"
       node.run_service :chef, action
+      wait_nodes << node_name
     end
 
     # wait for chef clients on all nodes
-    node_list.each do |node_name|
+    wait_nodes.each do |node_name|
       wait_for_chef_clients(node_name, :logger => true)
     end if action == :stop
   end

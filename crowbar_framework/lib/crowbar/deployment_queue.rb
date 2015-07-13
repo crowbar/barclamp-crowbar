@@ -112,17 +112,6 @@ module Crowbar
       return dequeued ? [200, {}] : [400, '']
     end
 
-    # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
-    def dependencies_satisfied?(item)
-      item["deps"].all? do |dep|
-        depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
-        depprop_queued   = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-        depprop_deployed = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-
-        depprop && !depprop_queued && depprop_deployed
-      end
-    end
-
     #
     # NOTE: If dependencies don't form a DAG (Directed Acyclic Graph) then we have a problem
     # with our dependency algorithm
@@ -214,6 +203,18 @@ module Crowbar
     end
 
     private
+
+    # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
+    def dependencies_satisfied?(item)
+      item["deps"].all? do |dep|
+        depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
+        depprop_queued   = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+        depprop_deployed = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+
+        depprop && !depprop_queued && depprop_deployed
+      end
+    end
+
 
     def file_lock
       FileLock

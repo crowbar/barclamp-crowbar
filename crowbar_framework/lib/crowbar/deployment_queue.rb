@@ -81,30 +81,9 @@ module Crowbar
           item["barclamp"] == bc && item["inst"] == inst
         end
 
-        # Make sure the deps if we aren't being queued.
         # If queue_me is true, the delay contains all elements, otherwise, only
         # nodes that are not ready.
-        # FIXME: why do we need to do this? Because we will retry/wait?
-        # FIXME: this nicely duplicates the code in process_queue
-        # * any of the dependencies does not exist
-        # * any of the dependencies is already queued
-        # * any of the dependencies failed to apply or was not applied at all
-        queue_me = false
-
-        deps.each do |dep|
-          prop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
-
-          # queue if prop doesn't exist
-          queue_me = true if prop.nil?
-
-          # queue if dep is queued
-          queued = prop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-          queue_me = true if queued
-
-          # queue if dep has never run or failed
-          success = (prop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-          queue_me = true unless success
-        end
+        queue_me = !dependencies_satisfied?(item)
 
         # Delay is a list of nodes that are not in ready state. pre_cached_nodes
         # is an uninteresting optimization.
@@ -176,6 +155,17 @@ module Crowbar
       return dequeued ? [200, {}] : [400, '']
     end
 
+    # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
+    def dependencies_satisfied?(deps)
+      item["deps"].all? do |dep|
+        depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
+        depprop_queued   = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
+        depprop_deployed = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
+
+        depprop && !depprop_queued && depprop_deployed
+      end
+    end
+
     #
     # NOTE: If dependencies don't form a DAG (Directed Acyclic Graph) then we have a problem
     # with our dependency algorithm
@@ -209,21 +199,7 @@ module Crowbar
               next
             end
 
-            queue_me = false
-            # Make sure the deps if we aren't being queued.
-            item["deps"].each do |dep|
-              depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
-
-              # queue if depprop doesn't exist
-              queue_me = true if depprop.nil?
-              # queue if dep is queued
-              queued = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
-              queue_me = true if queued
-              # queue if dep has never run or failed
-              success = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false
-              queue_me = true unless success
-            end
-            next if queue_me
+            next unless dependencies_satisfied?(item)
 
             nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"],
                                                        prop["deployment"][item["barclamp"]]["element_order"])

@@ -14,12 +14,53 @@
 # limitations under the License.
 #
 module Crowbar
+  class ProposalQueue
+
+    def initialize
+      @db = load_db || create_db
+    end
+
+    def proposals
+      @db["proposal_queue"]
+    end
+
+    def <<(item)
+      @db["proposal_queue"] << item
+      @db.save
+    end
+
+    def delete(item)
+      @db["proposal_queue"].delete_if { |i| i == item }
+      @db.save
+    end
+
+    def empty?
+      @db["proposal_queue"].empty?
+    end
+
+    private
+
+    def load_db
+      Chef::DataBag.load("crowbar/queue") rescue nil
+    end
+
+    def create_db
+      db = Chef::DataBagItem.new
+      db.data_bag "crowbar"
+      db["id"] = "queue"
+      db["proposal_queue"] = []
+      db.save
+    end
+
+  end
+
   class DeploymentQueue
 
-    attr_reader :logger
+    attr_reader :logger, :proposal_queue
 
     def initialize(logger: Rails.logger)
       @logger = logger
+      @proposal_queue = ProposalQueue.new
     end
 
     # Receives proposal info (name, barclamp), list of nodes (elements), on which the proposal
@@ -32,17 +73,8 @@ module Crowbar
       begin
         f = file_lock.acquire("queue", logger: logger)
 
-        db = Chef::DataBag.load("crowbar/queue") rescue nil
-        if db.nil?
-          db = Chef::DataBagItem.new
-          db.data_bag "crowbar"
-          db["id"] = "queue"
-          db["proposal_queue"] = []
-          db.save
-        end
-
         preexisting_queued_item = nil
-        db["proposal_queue"].each do |item|
+        proposal_queue.proposals.each do |item|
           # Am I already in the queue
           if item["barclamp"] == bc and item["inst"] == inst
             preexisting_queued_item = item
@@ -91,8 +123,7 @@ module Crowbar
           # because the proposal got changed since it got added to the queue
           unless preexisting_queued_item.nil?
             logger.debug("queue proposal: dequeuing already queued #{inst} #{bc}")
-            dequeued = dequeue_proposal_no_lock(db["proposal_queue"], inst, bc)
-            db.save if dequeued
+            dequeue_proposal_no_lock(bc, inst)
           end
 
           return [ delay, pre_cached_nodes ]
@@ -101,14 +132,12 @@ module Crowbar
         # Delay not empty, we're missing some nodes.
         # And proposal is not in queue
         if preexisting_queued_item.nil?
-          db["proposal_queue"] << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
+          proposal_queue << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
         else
           # Update (overwrite) item that is already in queue
           preexisting_queued_item["elements"] = elements
           preexisting_queued_item["deps"] = deps
         end
-
-        db.save
       rescue StandardError => e
         logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
       ensure
@@ -130,13 +159,12 @@ module Crowbar
       begin
         f = file_lock.acquire("queue", logger: logger)
 
-        db = Chef::DataBag.load("crowbar/queue") rescue nil
-        logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
-        return [200, {}] if db.nil?
+        if proposal_queue.empty?
+          logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry")
+          return [200, {}]
+        end
 
-        queue = db["proposal_queue"]
-        dequeued = dequeue_proposal_no_lock(queue, inst, bc)
-        db.save if dequeued
+        dequeue_proposal_no_lock(bc, inst)
       rescue StandardError => e
         logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
         logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
@@ -166,23 +194,15 @@ module Crowbar
         begin
           f = file_lock.acquire("queue", logger: logger)
 
-          db = Chef::DataBag.load("crowbar/queue") rescue nil
-          if db.nil?
-            logger.debug("process queue: exit: queue gone")
-            return
-          end
-
-          queue = db["proposal_queue"]
-          if queue.nil? or queue.empty?
+          if proposal_queue.empty?
             logger.debug("process queue: exit: empty queue")
             return
           end
-
           logger.debug("process queue: queue: #{queue.inspect}")
 
           # Test for ready
           remove_list = []
-          queue.each do |item|
+          proposal_queue.proposals.each do |item|
             prop = Proposal.where(barclamp: item["barclamp"], name: item["inst"]).first
             if prop.nil?
               remove_list << item
@@ -215,17 +235,13 @@ module Crowbar
           # that are deleted (remove_list). This leaves in the queue only proposals
           # which are still waiting for nodes (delay not empty), or for which deps are not
           # ready/created/deployed (queue_me = true).
-          save_db = false
           remove_list.each do |iii|
-            save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+            dequeue_proposal_no_lock(iii["barclamp"], iii["inst"])
           end
 
           list.each do |iii|
-            save_db |= dequeue_proposal_no_lock(db["proposal_queue"], iii["inst"], iii["barclamp"])
+            dequeue_proposal_no_lock(iii["barclamp"], iii["inst"])
           end
-
-          db.save if save_db
-
         rescue StandardError => e
           logger.error("Error processing queue: #{e.message}")
           logger.debug("process queue: exit: error")
@@ -272,17 +288,19 @@ module Crowbar
 
     # Removes the proposal reference from the queue, updates the proposal as not queued
     # and drops the 'pending roles' from the affected nodes.
-    def dequeue_proposal_no_lock(bc, inst, queue)
+    def dequeue_proposal_no_lock(bc, inst)
       logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
       begin
-        elements = nil
-
-        # The elements = item["elements"] is on purpose to get the assignment out of the element.
         # Find the proposal to delete, get its elements (nodes)
-        queue.delete_if { |item| item["barclamp"] == bc and item["inst"] == inst and ((elements = item["elements"]) or true)}
+        item = queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
 
-        # Remove the pending roles for the current proposal from the node records.
-        remove_pending_elements(bc, inst, elements) if elements
+        if item
+          elements = item["elements"]
+          proposal_queue.delete(item)
+
+          # Remove the pending roles for the current proposal from the node records.
+          remove_pending_elements(bc, inst, elements) if elements
+        end
 
         # Mark the proposal as not in the queue
         prop = Proposal.where(barclamp: bc, name: inst).first

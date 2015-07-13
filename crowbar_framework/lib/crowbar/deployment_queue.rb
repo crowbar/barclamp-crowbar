@@ -15,6 +15,7 @@
 #
 module Crowbar
   class DeploymentQueue
+    include CrowbarPacemakerProxy
 
     attr_reader :logger, :proposal_queue
 
@@ -90,7 +91,7 @@ module Crowbar
     # Locking wrapper around dequeue_proposal_no_lock
     def dequeue_proposal(bc, inst)
       logger.debug("dequeue proposal: enter #{inst} #{bc}")
-      ret = false
+      dequeued = false
       begin
         f = file_lock.acquire("queue", logger: logger)
 
@@ -99,7 +100,7 @@ module Crowbar
           return [200, {}]
         end
 
-        dequeue_proposal_no_lock(bc, inst)
+        dequeued = dequeue_proposal_no_lock(bc, inst)
       rescue StandardError => e
         logger.error("Error dequeuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
         logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
@@ -112,7 +113,7 @@ module Crowbar
     end
 
     # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
-    def dependencies_satisfied?(deps)
+    def dependencies_satisfied?(item)
       item["deps"].all? do |dep|
         depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
         depprop_queued   = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
@@ -144,7 +145,7 @@ module Crowbar
             logger.debug("process queue: exit: empty queue")
             return
           end
-          logger.debug("process queue: queue: #{queue.inspect}")
+          logger.debug("process queue: queue: #{proposal_queue.proposals.inspect}")
 
           # Test for ready
           remove_list = []

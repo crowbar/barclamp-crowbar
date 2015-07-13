@@ -268,7 +268,7 @@ module Crowbar
       logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
       begin
         # Find the proposal to delete, get its elements (nodes)
-        item = queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
+        item = proposal_queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
 
         if item
           elements = item["elements"]

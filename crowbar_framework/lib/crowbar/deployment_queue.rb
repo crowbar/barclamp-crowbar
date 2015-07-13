@@ -19,9 +19,9 @@ module Crowbar
 
     attr_reader :logger, :proposal_queue
 
-    def initialize(logger: Rails.logger)
-      @logger = logger
-      @proposal_queue = ProposalQueue.new
+    def initialize(logger: Rails.logger, queue: ProposalQueue.new)
+      @logger         = logger
+      @proposal_queue = queue
     end
 
     # Receives proposal info (name, barclamp), list of nodes (elements), on which the proposal

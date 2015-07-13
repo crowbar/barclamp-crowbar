@@ -29,6 +29,10 @@ module Crowbar
       @db.save
     end
 
+    def save
+      @db.save
+    end
+
     def delete(item)
       @db["proposal_queue"].delete_if { |i| i == item }
       @db.save
@@ -132,6 +136,7 @@ module Crowbar
           # Update (overwrite) item that is already in queue
           preexisting_queued_item["elements"] = elements
           preexisting_queued_item["deps"] = deps
+          proposal_queue.save
         end
       rescue StandardError => e
         logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")

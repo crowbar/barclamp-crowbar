@@ -17,7 +17,14 @@
 module Crowbar
   class Product
     def self.is_ses?
-      BarclampCatalog.barclamps.key?("suse_enterprise_storage")
+      # This checks if the product is SUSE Enterprise Storage.  It's not
+      # enough to just check if 'suse_enterprise_storage' is in BarclampCatalog,
+      # because that'll be true if the ceph barclamp is installed (as it's
+      # a member of suse_enterprise_storage), so we also need to make sure
+      # that suse_enterprise_storage is a member of itself, which will only
+      # be true if the suse_enterprise_storage barclamp is actually installed.
+      BarclampCatalog.barclamps.key?("suse_enterprise_storage") &&
+        BarclampCatalog.members("suse_enterprise_storage").key?("suse_enterprise_storage")
     end
   end
 end

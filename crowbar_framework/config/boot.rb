@@ -89,7 +89,7 @@ else
   gem "mixlib-shellout", version: "~> 1.4"
   require "mixlib/shellout"
 
-  gem "ohai", version: "~> 6.22"
+  gem "ohai", version: "~> 6.24"
   require "ohai"
 
   gem "chef", version: "~> 10.32"

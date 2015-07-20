@@ -43,13 +43,13 @@ else
   gem "activerecord-session_store", version: "~> 0.1"
   require "activerecord/session_store"
 
-  gem "active_model_serializers", "~> 0.9"
+  gem "active_model_serializers", version: "~> 0.9"
   require "active_model_serializers"
 
   gem "activeresource", version: "~> 4.0"
   require "active_resource"
 
-  gem "closure-compiler", "~> 1.1"
+  gem "closure-compiler", version: "~> 1.1"
   require "closure-compiler"
 
   gem "dotenv", version: "~> 1.0"

@@ -405,6 +405,13 @@ class NodesController < ApplicationController
         @node.send("#{attr}=", params[param]) if params.key?(param)
       end
 
+      # claim marked disks now
+      if params.key?(:disks_roles)
+        params[:disks_roles].each do |name, role|
+          @node.disk_claim(name, role) unless role.empty?
+        end
+      end
+
       unless @node.allocated?
         @node.target_platform = params[:target_platform] || view_context.default_platform
         @node.license_key = params[:license_key]

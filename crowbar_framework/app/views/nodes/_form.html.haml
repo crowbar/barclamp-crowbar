@@ -113,6 +113,35 @@
           %span.help-block
             = t('.availability_zone_hint')
 
+
+      .form-group
+      = f.label :disks_roles, t('.disks_roles')
+
+      %table.table.table-middle
+        %thead
+          %tr
+            %th.col-sm-3
+              = t(".disk_name")
+            %th.col-sm-2
+              = t(".disk_role")
+        %tbody
+          - @node.crowbar_wall["claimed_disks"].each do |disk_name, disk|
+            %tr
+              %td
+                %span.form-control{ :disabled => "disabled" }
+                  = disk_name
+              %td
+                %span.form-control{ :disabled => "disabled" }
+                  = disk["owner"]
+
+          - @node.disks_roles.each do |disk_name, disk_role|
+            %tr
+              %td
+                %span.form-control{ :disabled => "disabled" }
+                  = disk_name
+              %td
+                = select_tag "disks_roles[#{disk_name}]", disk_roles_for_select(disk_role), :class => "form-control"
+
     .panel-footer.text-right
       .btn-group
         = link_to t("cancel"), node_path(@node.handle), :class => "btn btn-default"

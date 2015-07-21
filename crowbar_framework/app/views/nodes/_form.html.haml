@@ -125,7 +125,7 @@
             %th.col-sm-2
               = t(".disk_role")
         %tbody
-          - @node.crowbar_wall["claimed_disks"].each do |disk_name, disk|
+          - (@node.crowbar_wall["claimed_disks"] || {}).each do |disk_name, disk|
             %tr
               %td
                 %span.form-control{ :disabled => "disabled" }

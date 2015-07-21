@@ -257,13 +257,12 @@ class NodeObject < ChefObject
   end
 
   def disk_roles=(value)
-    @node["crowbar_wall"] ||= {}
-    @node["crowbar_wall"]["disk_roles"] = value
+    @node.set["crowbar_wall"] ||= {}
+    @node.set["crowbar_wall"]["disk_roles"] = value
   end
 
   # remove devices that were claimed after they role was set
   def drop_claimed_disks_from_roles
-    return unless crowbar_wall["disk_roles"]
     crowbar_wall["disk_roles"].keys.each do |name|
       if crowbar_wall[:claimed_disks][name]
         crowbar_wall["disk_roles"].delete(name)
@@ -278,16 +277,18 @@ class NodeObject < ChefObject
     unclaimed_physical_drives.each do |d|
       unique_name = unique_device_for(d[0])
       unless crowbar_wall["disk_roles"][unique_name]
-        crowbar_wall["disk_roles"] ||= {}
         crowbar_wall["disk_roles"][unique_name] = ""
       end
     end
   end
 
-  def disk_roles
-    drop_claimed_disks_from_roles
-    add_unclaimed_disks_to_roles
-    crowbar_wall["disk_roles"] || {}
+  def disk_roles(refresh = false)
+    crowbar_wall["disk_roles"] ||= {}
+    if refresh
+      drop_claimed_disks_from_roles
+      add_unclaimed_disks_to_roles
+    end
+    crowbar_wall["disk_roles"]
   end
 
   def raid_type

@@ -277,13 +277,6 @@ else
   realm = nil
 end
 
-cookbook_file "/opt/dell/crowbar_framework/config.ru" do
-  source "config.ru"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-end
-
 template "/opt/dell/crowbar_framework/rainbows.cfg" do
   source "rainbows.cfg.erb"
   owner "crowbar"

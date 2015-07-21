@@ -157,10 +157,13 @@ class ServiceObject
   # Create map with nodes and their element list
   # Transform ( {role => [nodes], role1 => [nodes]} hash to { node => [roles], node1 => [roles]},
   # accounting for clusters
-  def elements_to_nodes_to_roles_map(elements)
+  def elements_to_nodes_to_roles_map(elements, element_order = [])
     nodes_map = {}
+    active_elements = element_order.flatten
 
     elements.each do |role_name, nodes|
+      next unless active_elements.include?(role_name)
+
       # Expand clusters to individual nodes
       nodes, failures = expand_nodes_for_all(nodes)
       unless failures.nil? || failures.empty?
@@ -196,8 +199,8 @@ class ServiceObject
   end
 
   # Get a hash of {node => [roles], node1 => [roles]}
-  def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
-    nodes_map = elements_to_nodes_to_roles_map(elements)
+  def add_pending_elements(bc, inst, element_order, elements, queue_me, pre_cached_nodes = {})
+    nodes_map = elements_to_nodes_to_roles_map(elements, element_order)
 
     # We need to be sure that we're the only ones modifying the node records at this point.
     # This will work for preventing changes from rails app, but not necessarily chef.
@@ -216,18 +219,7 @@ class ServiceObject
         delay, pre_cached_nodes = elements_not_ready(nodes_map.keys, pre_cached_nodes)
       end
 
-      # We have all nodes we'll ever need. Mark them as applying and this proposal
-      # as the 'author'
-      if delay.empty?
-        nodes_map.each do |node_name, val|
-          node = pre_cached_nodes[node_name]
-
-          # Nothing to wait for so mark them applying now.
-          node.crowbar['state'] = 'applying'
-          node.crowbar['state_owner'] = "#{bc}-#{inst}"
-          node.save
-        end
-      else
+      unless delay.empty?
         # Update all nodes affected by this proposal deploy (elements) -> add info that this proposal
         # will add list of roles to node's crowbar.pending hash.
         nodes_map.each do |node_name, val|
@@ -277,6 +269,22 @@ class ServiceObject
     end
   end
 
+  def set_to_applying(nodes, inst)
+    f = acquire_lock "BA-LOCK"
+    begin
+      nodes.each do |node_name|
+        node = NodeObject.find_node_by_name(node_name)
+        next if node.nil?
+
+        node.crowbar["state"] = "applying"
+        node.crowbar["state_owner"] = "#{@bc_name}-#{inst}"
+        node.save
+      end
+    ensure
+      release_lock f
+    end
+  end
+
   def restore_to_ready(nodes)
     f = acquire_lock "BA-LOCK"
     begin
@@ -284,7 +292,6 @@ class ServiceObject
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
 
-        # Nothing to delay so mark them applying.
         node.crowbar['state'] = 'ready'
         node.crowbar['state_owner'] = ""
         node.save
@@ -304,7 +311,7 @@ class ServiceObject
   # Receives proposal info (name, barclamp), list of nodes (elements), on which the proposal
   # should be applied, and list of dependencies - a list of {barclamp, name/inst} hashes.
   # It adds them to the queue, if possible.
-  def queue_proposal(inst, elements, deps, bc = @bc_name)
+  def queue_proposal(inst, element_order, elements, deps, bc = @bc_name)
     @logger.debug("queue proposal: enter #{inst} #{bc}")
     delay = []
     pre_cached_nodes = {}
@@ -356,7 +363,7 @@ class ServiceObject
 
       # Delay is a list of nodes that are not in ready state. pre_cached_nodes
       # is an uninteresting optimization.
-      delay, pre_cached_nodes = add_pending_elements(bc, inst, elements, queue_me)
+      delay, pre_cached_nodes = add_pending_elements(bc, inst, element_order, elements, queue_me)
 
       # We have all nodes ready.
       if delay.empty?
@@ -513,7 +520,8 @@ class ServiceObject
           end
           next if queue_me
 
-          nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"])
+          nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"],
+                                                     prop["deployment"][item["barclamp"]]["element_order"])
           delay, pre_cached_nodes = elements_not_ready(nodes_map.keys)
           list << item if delay.empty?
         end
@@ -1201,7 +1209,7 @@ class ServiceObject
     # Attempt to queue the proposal.  If delay is empty, then run it.
     #
     deps = proposal_dependencies(role)
-    delay, pre_cached_nodes = queue_proposal(inst, new_elements, deps)
+    delay, pre_cached_nodes = queue_proposal(inst, element_order, new_elements, deps)
     return [202, delay] unless delay.empty?
 
     @logger.debug "delay empty - running proposal"
@@ -1289,6 +1297,10 @@ class ServiceObject
     # of names of Chef roles.
     run_order = []
 
+    # get databag to remember potential removal of a role
+    databag = ProposalObject.find_proposal(@bc_name, inst)
+    save_databag = false
+
     # element_order is an Array where each item represents a batch of roles and
     # the batches must be applied sequentially in this order.
     element_order.each do |roles|
@@ -1300,33 +1312,43 @@ class ServiceObject
       nodes_in_batch = []
 
       roles.each do |role_name|
-        old_nodes = old_elements[role_name]
-        new_nodes = new_elements[role_name]
+        # Ignore _remove roles in case they're listed here, as we automatically
+        # handle them
+        next if role_name =~ /_remove$/
+
+        old_nodes = old_elements[role_name] || []
+        new_nodes = new_elements[role_name] || []
 
         @logger.debug "role_name #{role_name.inspect}"
         @logger.debug "old_nodes #{old_nodes.inspect}"
         @logger.debug "new_nodes #{new_nodes.inspect}"
 
-        # We already have nodes with old version of this role.
-        unless old_nodes.nil?
+        remove_role_name = "#{role_name}_remove"
 
+        # Also act on nodes that were to be removed last time, but couldn't due
+        # to possibly some error on last application
+        old_nodes += (databag["deployment"][@bc_name]["elements"].delete(remove_role_name) || [])
+
+        # We already have nodes with old version of this role.
+        unless old_nodes.empty?
           # Lookup remove-role.
-          elem_remove = nil
-          tmprole = RoleObject.find_role_by_name "#{role_name}_remove"
-          unless tmprole.nil?
-            elem_remove = tmprole.name
-          end
+          tmprole = RoleObject.find_role_by_name remove_role_name
+          use_remove_role = !tmprole.nil?
 
           old_nodes.each do |node_name|
+            node = NodeObject.find_node_by_name(node_name)
+
             # Don't add deleted nodes to the run order, they clearly won't have
             # the old role
-            if NodeObject.find_node_by_name(node_name).nil?
+            if node.nil?
               @logger.debug "skipping deleted node #{node_name}"
               next
             end
 
+            pre_cached_nodes[node_name] = node
+
             # An old node that is not in the new deployment, drop it
-            if new_nodes.nil? or !new_nodes.include?(node_name)
+            unless new_nodes.include?(node_name)
               @logger.debug "remove node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
 
@@ -1337,17 +1359,26 @@ class ServiceObject
               # stopping a service, or removing packages.
               # FIXME: it's not clear how/who should be responsible for
               # removing them from the node records.
-              pending_node_actions[node_name][:add] << elem_remove unless elem_remove.nil?
+              if use_remove_role
+                pending_node_actions[node_name][:add] << remove_role_name
 
-              nodes_in_batch << node_name
+                # Save remove intention in #{@bc_name}-databag; we will remove
+                # the intention after a successful apply_role.
+                databag["deployment"][@bc_name]["elements"][remove_role_name] ||= []
+                databag["deployment"][@bc_name]["elements"][remove_role_name] << node_name
+                save_databag ||= true
+              end
+
+              nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
             end
           end
         end
 
-        # If new_nodes are nil, we are just removing the proposal.
-        # FIXME: wouldnt they be only empty then?
-        unless new_nodes.nil?
+        # If new_nodes is empty, we are just removing the proposal.
+        unless new_nodes.empty?
           new_nodes.each do |node_name|
+            node = NodeObject.find_node_by_name(node_name)
+
             # Don't add deleted nodes to the run order
             #
             # Q: Why don't we just bail out instead?
@@ -1359,15 +1390,17 @@ class ServiceObject
             # have some alias that be used to assign all existing nodes to a
             # role (which would be an improvement over the requirement to
             # explicitly list all nodes).
-            if NodeObject.find_node_by_name(node_name).nil?
+            if node.nil?
               @logger.debug "skipping deleted node #{node_name}"
               next
             end
 
+            pre_cached_nodes[node_name] = node
+
             all_nodes << node_name unless all_nodes.include?(node_name)
 
             # A new node that we did not know before
-            if old_nodes.nil? or !old_nodes.include?(node_name)
+            unless old_nodes.include?(node_name)
               @logger.debug "add node #{node_name}"
               pending_node_actions[node_name] = { :remove => [], :add => [] } if pending_node_actions[node_name].nil?
               pending_node_actions[node_name][:add] << role_name
@@ -1382,6 +1415,14 @@ class ServiceObject
       @logger.debug "run_order #{run_order.inspect}"
     end
 
+    # save databag with the role removal intention
+    databag.save if save_databag
+
+    # mark nodes as applying; beware that all_nodes do not contain nodes that
+    # are actually removed
+    applying_nodes = run_order.flatten
+    set_to_applying(applying_nodes, inst)
+
     # Part III: Update run lists of nodes to reflect new deployment. I.e. write
     # through the deployment schedule in pending node actions into run lists.
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
@@ -1392,7 +1433,10 @@ class ServiceObject
       # pre_cached_nodes contains only new_nodes, we need to look up the
       # old ones as well.
       node = pre_cached_nodes[node_name]
-      node = NodeObject.find_node_by_name(node_name) if node.nil?
+      if node.nil?
+        node = NodeObject.find_node_by_name(node_name)
+        pre_cached_nodes[node_name] = node
+      end
       next if node.nil?
 
       admin_nodes << node_name if node.admin?
@@ -1461,7 +1505,7 @@ class ServiceObject
       @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception before calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)
-      restore_to_ready(all_nodes)
+      restore_to_ready(applying_nodes)
       process_queue unless in_queue
       return [ 405, message ]
     end
@@ -1497,7 +1541,7 @@ class ServiceObject
       pids = {}
       unless non_admin_nodes.empty?
         non_admin_nodes.each do |node|
-          nobj = NodeObject.find_node_by_name(node)
+          nobj = pre_cached_nodes[node] || NodeObject.find_node_by_name(node)
           unless nobj[:platform] == "windows"
             filename = "#{ENV['CROWBAR_LOG_DIR']}/chef-client/#{node}.log"
             pid = run_remote_chef_client(node, "chef-client", filename)
@@ -1526,7 +1570,7 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} \n"+ get_log_lines("#{pids[baddie[0]]}")
             end
             update_proposal_status(inst, "failed", message)
-            restore_to_ready(all_nodes)
+            restore_to_ready(applying_nodes)
             process_queue unless in_queue
             return [ 405, message ]
           end
@@ -1561,7 +1605,7 @@ class ServiceObject
               message = message + "#{pids[baddie[0]]} \n "+ get_log_lines("#{pids[baddie[0]]}")
             end
             update_proposal_status(inst, "failed", message)
-            restore_to_ready(all_nodes)
+            restore_to_ready(applying_nodes)
             process_queue unless in_queue
             return [ 405, message ]
           end
@@ -1572,6 +1616,30 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path.to_s) if !ran_admin
 
+    # are there any roles to remove from the runlist?
+    # The @bcname proposal's elements key will contain the removal intentions
+    # proposal.elements =>
+    # {
+    #   "role1_remove" => ["node1"],
+    #   "role2_remove" => ["node2", "node3"]
+    # }
+    roles_to_remove = databag["deployment"][@bc_name]["elements"].keys.select do |r|
+      r =~ /_remove$/
+    end
+    roles_to_remove.each do |role_to_remove|
+      # No need to remember the nodes with the role to remove, now that we've
+      # executed the role, hence the delete()
+      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
+      nodes_with_role_to_remove.each do |node_name|
+        node = pre_cached_nodes[node_name]
+        node.delete_from_run_list(role_to_remove)
+        node.save
+      end
+    end
+
+    # Save if we did a change
+    databag.save unless roles_to_remove.empty?
+
     # Post deploy callback
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
@@ -1579,13 +1647,13 @@ class ServiceObject
       @logger.fatal("apply_role: Exception #{e.message} #{e.backtrace.join("\n")}")
       message = "Failed to apply the proposal: exception after calling chef (#{e.message})"
       update_proposal_status(inst, "failed", message)
-      restore_to_ready(all_nodes)
+      restore_to_ready(applying_nodes)
       process_queue unless in_queue
       return [ 405, message ]
     end
 
     update_proposal_status(inst, "success", "")
-    restore_to_ready(all_nodes)
+    restore_to_ready(applying_nodes)
     process_queue unless in_queue
     [200, {}]
   ensure

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-source "https://rubygems.org"
+source "http://rubygems.org"
 
 gem "rails", "~> 4.1.9"
 gem "haml-rails", "~> 0.5.3"

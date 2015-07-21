@@ -22,7 +22,6 @@ if node[:platform] != "suse"
 end
 
 pkglist = ()
-rainbows_path = ""
 logdir = "/var/log/crowbar"
 crowbar_home = "/home/crowbar"
 
@@ -39,8 +38,6 @@ when "ubuntu","debian"
   unless search(:node, "platform:windows").empty?
     pkglist.push "smbclient"
   end
-
-  rainbows_path = "/var/lib/gems/1.8/bin/"
 when "redhat","centos"
   pkglist = %w(
     curl
@@ -52,8 +49,6 @@ when "redhat","centos"
   unless search(:node, "platform:windows").empty?
     pkglist.push "samba-client"
   end
-
-  rainbows_path = ""
 when "suse"
   pkglist = %w(
     curl

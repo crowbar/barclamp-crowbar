@@ -299,21 +299,6 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
             :app_location => "/opt/dell/crowbar_framework")
 end
 
-template "/opt/dell/crowbar_framework/rainbows-dev.cfg" do
-  source "rainbows.cfg.erb"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
-  variables(:web_host => "0.0.0.0",
-            :web_port => node["crowbar"]["web_port"] || 3000,
-            :user => "crowbar",
-            :concurrency_model => "EventMachine",
-            :group => "crowbar",
-            :logdir => logdir,
-            :logname => "development",
-            :app_location => "/opt/dell/crowbar_framework")
-end
-
 if node[:platform] != "suse"
   %w(chef-server-api chef-server-webui chef-solr rabbitmq-server).each do |f|
     file "/etc/logrotate.d/#{f}" do

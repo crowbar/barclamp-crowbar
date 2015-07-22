@@ -22,7 +22,6 @@ if node[:platform] != "suse"
 end
 
 pkglist = ()
-rainbows_path = ""
 logdir = "/var/log/crowbar"
 crowbar_home = "/home/crowbar"
 
@@ -39,8 +38,6 @@ when "ubuntu","debian"
   unless search(:node, "platform:windows").empty?
     pkglist.push "smbclient"
   end
-
-  rainbows_path = "/var/lib/gems/1.8/bin/"
 when "redhat","centos"
   pkglist = %w(
     curl
@@ -52,8 +49,6 @@ when "redhat","centos"
   unless search(:node, "platform:windows").empty?
     pkglist.push "samba-client"
   end
-
-  rainbows_path = ""
 when "suse"
   pkglist = %w(
     curl
@@ -275,13 +270,6 @@ unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"][
 else
   web_port = 3000
   realm = nil
-end
-
-cookbook_file "/opt/dell/crowbar_framework/config.ru" do
-  source "config.ru"
-  owner "crowbar"
-  group "crowbar"
-  mode "0644"
 end
 
 template "/opt/dell/crowbar_framework/rainbows.cfg" do

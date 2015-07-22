@@ -1297,9 +1297,9 @@ class ServiceObject
     # of names of Chef roles.
     run_order = []
 
-    # get databag to remember potential removal of a role
-    databag = ProposalObject.find_proposal(@bc_name, inst)
-    save_databag = false
+    # get proposal to remember potential removal of a role
+    proposal = Proposal.where(barclamp: @bc_name, name: inst).first
+    save_proposal = false
 
     # element_order is an Array where each item represents a batch of roles and
     # the batches must be applied sequentially in this order.
@@ -1327,7 +1327,7 @@ class ServiceObject
 
         # Also act on nodes that were to be removed last time, but couldn't due
         # to possibly some error on last application
-        old_nodes += (databag["deployment"][@bc_name]["elements"].delete(remove_role_name) || [])
+        old_nodes += (proposal.elements.delete(remove_role_name) || [])
 
         # We already have nodes with old version of this role.
         unless old_nodes.empty?
@@ -1364,9 +1364,9 @@ class ServiceObject
 
                 # Save remove intention in #{@bc_name}-databag; we will remove
                 # the intention after a successful apply_role.
-                databag["deployment"][@bc_name]["elements"][remove_role_name] ||= []
-                databag["deployment"][@bc_name]["elements"][remove_role_name] << node_name
-                save_databag ||= true
+                proposal.elements.remove_role_name ||= []
+                proposal.elements.remove_role_name << node_name
+                save_proposal ||= true
               end
 
               nodes_in_batch << node_name unless nodes_in_batch.include?(node_name)
@@ -1416,7 +1416,7 @@ class ServiceObject
     end
 
     # save databag with the role removal intention
-    databag.save if save_databag
+    proposal.save if save_proposal
 
     # mark nodes as applying; beware that all_nodes do not contain nodes that
     # are actually removed
@@ -1623,13 +1623,13 @@ class ServiceObject
     #   "role1_remove" => ["node1"],
     #   "role2_remove" => ["node2", "node3"]
     # }
-    roles_to_remove = databag["deployment"][@bc_name]["elements"].keys.select do |r|
+    roles_to_remove = proposal.elements.keys.select do |r|
       r =~ /_remove$/
     end
     roles_to_remove.each do |role_to_remove|
       # No need to remember the nodes with the role to remove, now that we've
       # executed the role, hence the delete()
-      nodes_with_role_to_remove = databag["deployment"][@bc_name]["elements"].delete(role_to_remove)
+      nodes_with_role_to_remove = proposal.elements.delete(role_to_remove)
       nodes_with_role_to_remove.each do |node_name|
         node = pre_cached_nodes[node_name]
         node.delete_from_run_list(role_to_remove)
@@ -1638,7 +1638,7 @@ class ServiceObject
     end
 
     # Save if we did a change
-    databag.save unless roles_to_remove.empty?
+    proposal.save unless roles_to_remove.empty?
 
     # Post deploy callback
     begin

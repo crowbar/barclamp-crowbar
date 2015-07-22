@@ -228,21 +228,13 @@ if node[:platform] != "suse"
     mode "0644"
     action :create
   end
-else
-  directory "/var/run/crowbar" do
-    owner "crowbar"
-    group "crowbar"
-    mode "0700"
-    action :create
-  end
 end
 
 directory "/var/run/crowbar" do
   owner "crowbar"
   group "crowbar"
-  mode  "0755"
+  mode "0700"
   action :create
-  only_if { node[:platform] == "ubuntu" }
 end
 
 # mode 0755 so subdirs can be nfs mounted to admin-exported shares
@@ -283,11 +275,6 @@ unless node["crowbar"].nil? or node["crowbar"]["users"].nil? or node["crowbar"][
 else
   web_port = 3000
   realm = nil
-end
-
-bash "set permissions" do
-  code "chown -R crowbar:crowbar /opt/dell/crowbar_framework"
-  not_if "ls -al /opt/dell/crowbar_framework/README | grep -q crowbar"
 end
 
 cookbook_file "/opt/dell/crowbar_framework/config.ru" do
@@ -361,23 +348,60 @@ if node[:platform] != "suse"
     end
   end
 else
-  cookbook_file "/etc/init.d/crowbar" do
-    owner "root"
-    group "root"
-    mode "0755"
-    action :create
-    source "crowbar.suse"
+  if node["platform_version"].to_f < 12.0
+    cookbook_file "/etc/init.d/crowbar" do
+      owner "root"
+      group "root"
+      mode "0755"
+      action :create
+      source "crowbar.suse"
+    end
+
+    link "/usr/sbin/rccrowbar" do
+      action :create
+      to "/etc/init.d/crowbar"
+    end
+
+    # Make sure that any dependency change is taken into account
+    bash "insserv crowbar service" do
+      code "insserv crowbar"
+      action :nothing
+      subscribes :run, resources("cookbook_file[/etc/init.d/crowbar]"), :delayed
+    end
+  else
+    cookbook_file "/etc/tmpfiles.d/crowbar.conf" do
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+      source "crowbar.tmpfiles"
+    end
+
+    bash "create tmpfiles.d files for crowbar" do
+      code "systemd-tmpfiles --create /etc/tmpfiles.d/crowbar.conf"
+      action :nothing
+      subscribes :run, resources("cookbook_file[/etc/tmpfiles.d/crowbar.conf]"), :immediately
+    end
+
+    # Use a systemd .service file on SLE12
+    cookbook_file "/etc/systemd/system/crowbar.service" do
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+      source "crowbar.service"
+    end
+
+    # Make sure that any dependency change is taken into account
+    bash "reload systemd after crowbar update" do
+      code "systemctl daemon-reload"
+      action :nothing
+      subscribes :run, resources("cookbook_file[/etc/systemd/system/crowbar.service]"), :immediately
+    end
   end
 
-  link "/usr/sbin/rccrowbar" do
-    action :create
-    to "/etc/init.d/crowbar"
-    not_if "test -L /usr/sbin/rccrowbar"
-  end
-
-  bash "Enable crowbar service" do
-    code "/sbin/chkconfig crowbar on"
-    not_if "/sbin/chkconfig crowbar | grep -q on"
+  service "crowbar" do
+    action :enable
   end
 end
 

@@ -1,0 +1,3 @@
+# Not using RuntimeDirectory= in crowbar.service due to looper_chef_client.sh
+# which also uses the runtime directory
+d /var/run/crowbar  0700  crowbar  crowbar  -

@@ -134,12 +134,14 @@ module Crowbar
             logger.debug("process queue: exit: empty queue")
             return
           end
+
           logger.debug("process queue: queue: #{proposal_queue.proposals.inspect}")
 
           # Test for ready
           remove_list = []
           proposal_queue.proposals.each do |item|
             prop = Proposal.where(barclamp: item["barclamp"], name: item["inst"]).first
+
             if prop.nil?
               remove_list << item
               next
@@ -174,35 +176,44 @@ module Crowbar
 
         logger.debug("process queue: list: #{list.inspect}")
 
+        results = commit_proposals(list)
+
+        # 202 means some nodes are not ready, bail out in that case
+        # We're re-running the whole apply continuously, until there
+        # are no items left in the queue.
+        # FIXME: This is lame, because from the user perspective, we're still
+        # applying the first barclamp, while this part was in fact already
+        # completed and we're applying next item(s) in the queue.
+        loop_again = true if results.any? { |state| state != 202 }
+
         # For each ready item, apply it.
-        list.each do |item|
-          logger.debug("process queue: item to do: #{item.inspect}")
-
-          bc = item["barclamp"]
-          inst = item["inst"]
-          service = eval("#{bc.camelize}Service.new logger")
-
-          # This will call apply_role and chef-client.
-          # Params: (inst, in_queue, validate_after_save)
-          answer = service.proposal_commit(inst, true, false)
-
-          logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
-
-          # 202 means some nodes are not ready, bail out in that case
-          # We're re-running the whole apply continuously, until there
-          # are no items left in the queue.
-          # FIXME: This is lame, because from the user perspective, we're still
-          # applying the first barclamp, while this part was in fact already
-          # completed and we're applying next item(s) in the queue.
-          loop_again = true if answer[0] != 202
-
-          $htdigest_reload = true
-        end
         logger.debug("process queue: exit")
       end
     end
 
     private
+
+    def commit_proposals(list)
+      list.map do |item|
+        logger.debug("process queue: item to do: #{item.inspect}")
+
+        bc = item["barclamp"]
+        inst = item["inst"]
+
+        service = eval("#{bc.camelize}Service.new logger")
+
+        # This will call apply_role and chef-client.
+        # Params: (inst, in_queue, validate_after_save)
+        status, message = service.proposal_commit(inst, true, false)
+
+        logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
+
+        # FIXME: this is perhaps no longer needed
+        $htdigest_reload = true
+
+        status
+      end
+    end
 
     # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
     def dependencies_satisfied?(item)

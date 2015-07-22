@@ -40,7 +40,7 @@ module Crowbar
 
         # If queue_me is true, the delay contains all elements, otherwise, only
         # nodes that are not ready.
-        queue_me = !dependencies_satisfied?(item)
+        queue_me = !dependencies_satisfied?(deps)
 
         # Delay is a list of nodes that are not in ready state. pre_cached_nodes
         # is an uninteresting optimization.

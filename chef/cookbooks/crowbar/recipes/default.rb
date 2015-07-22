@@ -405,6 +405,36 @@ else
   end
 end
 
+include_recipe "apache2"
+
+apache_module "proxy" do
+  conf true
+end
+
+apache_module "proxy_balancer" do
+  conf false
+end
+
+apache_module "proxy_http" do
+  conf false
+end
+
+apache_module "rewrite" do
+  conf false
+end
+
+template "#{node[:apache][:dir]}/vhosts.d/crowbar.conf" do
+  source "apache.conf.erb"
+  mode 0644
+
+  variables(
+    port: node["crowbar"]["web_port"] || 3000,
+    logfile: "/var/log/apache2/crowbar-access_log",
+    errorlog: "/var/log/apache2/crowbar-error_log"
+  )
+
+  notifies :reload, resources(service: "apache2")
+end
 
 # The below code swiped from:
 # https://github.com/opscode-cookbooks/chef-server/blob/chef10/recipes/default.rb

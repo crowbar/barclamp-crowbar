@@ -396,7 +396,7 @@ class ServiceObject
 
       db.save
     rescue StandardError => e
-      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
+      @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
     ensure
       release_lock f
     end
@@ -542,7 +542,7 @@ class ServiceObject
         db.save if save_db
 
       rescue StandardError => e
-        @logger.error("Error processing queue: #{e.message}")
+        @logger.error("Error processing queue: #{e.message} #{e.backtrace.join("\n")}")
         @logger.debug("process queue: exit: error")
         return
       ensure
@@ -858,8 +858,10 @@ class ServiceObject
         save_proposal!(prop, :validate_after_save => validate_after_save)
         response = active_update prop.raw_data, inst, in_queue
       rescue Chef::Exceptions::ValidationFailed => e
+        @logger.error ([e.message] + e.backtrace).join("\n")
         response = [400, "Failed to validate proposal: #{e.message}"]
       rescue StandardError => e
+        @logger.error ([e.message] + e.backtrace).join("\n")
         response = [500, e.message]
       ensure
         # Make sure we unmark the wall
@@ -1127,8 +1129,10 @@ class ServiceObject
       Rails.logger.info "saved proposal"
       [200, {}]
     rescue Net::HTTPServerException => e
+      Rails.logger.error ([e.message] + e.backtrace).join("\n")
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
+      Rails.logger.error ([e2.message] + e2.backtrace).join("\n")
       [400, "Failed to validate proposal: #{e2.message}"]
     end
   end
@@ -1894,8 +1898,10 @@ class ServiceObject
       role = ServiceObject.proposal_to_role(proposal, @bc_name)
       profile("Apply role #{role.name} #{inst}") { apply_role(role, inst, in_queue) }
     rescue Net::HTTPServerException => e
+      Rails.logger.error ([e.message] + e.backtrace).join("\n")
       [e.response.code, {}]
     rescue Chef::Exceptions::ValidationFailed => e2
+      Rails.logger.error ([e2.message] + e2.backtrace).join("\n")
       [400, e2.message]
     end
   end

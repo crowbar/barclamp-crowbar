@@ -1364,8 +1364,8 @@ class ServiceObject
 
                 # Save remove intention in #{@bc_name}-databag; we will remove
                 # the intention after a successful apply_role.
-                proposal.elements.remove_role_name ||= []
-                proposal.elements.remove_role_name << node_name
+                proposal.elements[remove_role_name] ||= []
+                proposal.elements[remove_role_name] << node_name
                 save_proposal ||= true
               end
 

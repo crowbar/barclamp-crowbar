@@ -100,25 +100,6 @@ class MachinesController < BarclampController
     end
   end
 
-  add_help(:identify, [:id], [:post])
-  def identify
-    @machine.identify
-
-    respond_to do |format|
-      format.json { head :ok }
-    end
-  end
-
-  add_help(:delete, [:id], [:delete])
-  def delete
-    raise "Not allowed for admin nodes" if @machine.admin?
-    @machine.delete
-
-    respond_to do |format|
-      format.json { head :ok }
-    end
-  end
-
   [
     :update,
     :identify
@@ -148,7 +129,9 @@ class MachinesController < BarclampController
     :poweron,
     :powercycle,
     :poweroff,
-    :allocate
+    :allocate,
+    :delete,
+    :identify
   ].each do |action|
     add_help(action, [:id], [:post])
     define_method action do

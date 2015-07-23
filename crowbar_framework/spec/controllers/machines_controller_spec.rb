@@ -172,25 +172,6 @@ describe MachinesController do
     end
   end
 
-
-  describe "DELETE delete" do
-    context "for existent node" do
-      it "invokes delete" do
-        NodeObject.any_instance.expects(:delete).once
-
-        delete :delete, :name => "testing", :format => "json"
-        response.should be_success
-      end
-    end
-
-    context "for non-existent node" do
-      it "renders 404" do
-        delete :delete, :name => "nonexistent", :format => "json"
-        response.should be_not_found
-      end
-    end
-  end
-
   [
     :update,
     :identify
@@ -226,7 +207,8 @@ describe MachinesController do
     :poweron,
     :powercycle,
     :poweroff,
-    :allocate
+    :allocate,
+    :delete
   ].each do |action|
     describe "POST #{action}" do
       context "for existent node" do

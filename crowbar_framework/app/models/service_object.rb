@@ -194,15 +194,15 @@ class ServiceObject
 #
 
   def queue_proposal(inst, element_order, elements, deps, bc = @bc_name)
-    Crowbar::DeploymentQueue.new(@logger).queue_proposal(bc, inst, elements, element_order, deps)
+    Crowbar::DeploymentQueue.new(logger: @logger).queue_proposal(bc, inst, elements, element_order, deps)
   end
 
   def dequeue_proposal(inst, bc = @bc_name)
-    Crowbar::DeploymentQueue.new(@logger).dequeue_proposal(bc, inst)
+    Crowbar::DeploymentQueue.new(logger: @logger).dequeue_proposal(bc, inst)
   end
 
   def process_queue
-    Crowbar::DeploymentQueue.new(@logger).process_queue
+    Crowbar::DeploymentQueue.new(logger: @logger).process_queue
   end
 #
 # update proposal status information

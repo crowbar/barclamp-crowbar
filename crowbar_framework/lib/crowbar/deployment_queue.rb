@@ -75,7 +75,7 @@ module Crowbar
           proposal_queue.save
         end
       rescue StandardError => e
-        logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
+        logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
       ensure
         file_lock.release(f)
       end
@@ -167,7 +167,7 @@ module Crowbar
             dequeue_proposal_no_lock(iii["barclamp"], iii["inst"])
           end
         rescue StandardError => e
-          logger.error("Error processing queue: #{e.message}")
+          logger.error("Error processing queue: #{e.message} #{e.backtrace.join("\n")}")
           logger.debug("process queue: exit: error")
           return
         ensure

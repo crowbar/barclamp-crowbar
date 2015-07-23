@@ -147,7 +147,7 @@ module Crowbar
               next
             end
 
-            next unless dependencies_satisfied?(item)
+            next unless dependencies_satisfied?(item["deps"])
 
             nodes_map = elements_to_nodes_to_roles_map(prop["deployment"][item["barclamp"]]["elements"],
                                                        prop["deployment"][item["barclamp"]]["element_order"])
@@ -216,8 +216,8 @@ module Crowbar
     end
 
     # Deps are satisfied if all exist, have been deployed and are not in the queue ATM.
-    def dependencies_satisfied?(item)
-      item["deps"].all? do |dep|
+    def dependencies_satisfied?(deps)
+      deps.all? do |dep|
         depprop = Proposal.where(barclamp: dep["barclamp"], name: dep["inst"]).first
         depprop_queued   = depprop["deployment"][dep["barclamp"]]["crowbar-queued"] rescue false
         depprop_deployed = (depprop["deployment"][dep["barclamp"]]["crowbar-status"] == "success") rescue false

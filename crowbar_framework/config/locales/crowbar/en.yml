@@ -589,6 +589,14 @@ en:
   error:
     warning: 'Warning'
     no_nodes_found: 'No nodes found'
+    cannot_save_node: 'Cannot save node'
+    ipmi_failed: 'ipmitool %{cmd} failed for %{node}'
+    already_allocated: 'Node already allocated'
+    running_windows: 'Node is running Windows'
+    unknown_state: 'Node in unknown state'
+    unknown_cmd: 'Unknown command %{cmd}'
+    node_not_found: 'Node not found'
+    role_not_found: 'Role not found'
 
   state:
     unknown: 'Unknown'

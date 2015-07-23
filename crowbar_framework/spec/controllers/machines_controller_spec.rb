@@ -122,24 +122,56 @@ describe MachinesController do
     end
   end
 
+  describe "POST role" do
+    context "for existent node" do
+      it "assignes role compute" do
+        NodeObject.any_instance.expects(:intended_role=).with("compute").once
+
+        post :role, name: "testing", role: "compute", format: "json"
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    it "return 404 (not found) http status when node does not exists" do
+      post :role, name: "nonexistent", format: "json"
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "return 422 (unprocessable_entity) http status when save fails" do
+      NodeObject.any_instance.stubs(:save).returns(false)
+      NodeObject.any_instance.expects(:intended_role=).with("compute").once
+
+      post :role, name: "testing", role: "compute", format: "json"
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
   describe "POST rename" do
     context "for existent node" do
       it "renames a node to tester" do
         NodeObject.any_instance.expects(:alias=).with("tester").once
-        NodeObject.any_instance.expects(:save).once
 
         post :rename, :name => "testing", :alias => "tester", :format => "json"
         response.should be_success
       end
     end
 
-    context "for non-existent node" do
-      it "renders 404" do
-        post :rename, :name => "nonexistent", :format => "json"
-        response.should be_not_found
-      end
+    it "return 404 (not found) http status when node does not exists" do
+      post :rename, :name => "nonexistent", :format => "json"
+      response.should be_not_found
+    end
+
+    it "return 422 (unprocessable_entity) http status when save fails" do
+      NodeObject.any_instance.stubs(:save).returns(false)
+      NodeObject.any_instance.expects(:alias=).with("tester").once
+
+      post :rename, :name => "testing", :alias => "tester", :format => "json"
+
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
+
 
   describe "DELETE delete" do
     context "for existent node" do
@@ -160,10 +192,35 @@ describe MachinesController do
   end
 
   [
-    :reinstall,
     :update,
+    :identify
+  ].each do |action|
+    describe "POST #{action}" do
+      context "for existent node" do
+        it "invokes #{action}" do
+          NodeObject.any_instance.expects(action).once
+
+          post action, name: "testing", format: "json"
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context "for non-existent node" do
+        it "return 404 (not found) http status" do
+          post action, name: "nonexistent", format: "json"
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it "prevents #{action}" do
+          NodeObject.any_instance.expects(action).never
+        end
+      end
+    end
+  end
+
+  [
+    :reinstall,
     :reset,
-    :identify,
     :shutdown,
     :reboot,
     :poweron,
@@ -178,6 +235,12 @@ describe MachinesController do
 
           post action, :name => "testing", :format => "json"
           response.should be_success
+        end
+
+        it "return 403 (forbidden) http status for admin node" do
+          NodeObject.any_instance.stubs(:admin?).returns(true)
+          post action, name: "testing", format: "json"
+          expect(response).to have_http_status(:forbidden)
         end
       end
 

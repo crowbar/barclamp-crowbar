@@ -111,25 +111,32 @@
       %table.table.table-middle
         %thead
           %tr
+            %th.col-sm-2
+              = t(".disk_short")
             %th.col-sm-3
-              = t(".disk_name")
+              = t(".disk_unique")
             %th.col-sm-2
               = t(".disk_role")
         %tbody
-          - (@node.crowbar_wall["claimed_disks"] || {}).each do |disk_name, disk|
+          - all_disks = all_disks_info
+          - (@node.crowbar_wall["claimed_disks"] || {}).each do |unique_name, disk|
             %tr
               %td
-                = disk_name
+                = all_disks.fetch(unique_name, "-")
+              %td
+                = unique_name
               %td
                 %span.form-control{ :disabled => "disabled" }
                   = beautify_disk_owner(disk["owner"])
 
-          - @node.disk_roles.each do |disk_name, disk_role|
+          - @node.disk_roles(true).each do |unique_name, disk_role|
             %tr
               %td
-                = disk_name
+                = all_disks.fetch(unique_name, "-")
               %td
-                = select_tag "disk_roles[#{disk_name}]", disk_roles_for_select(disk_role), :class => "form-control"
+                = unique_name
+              %td
+                = select_tag "disk_roles[#{unique_name}]", disk_roles_for_select(disk_role), :class => "form-control"
 
       - if have_openstack
         .form-group

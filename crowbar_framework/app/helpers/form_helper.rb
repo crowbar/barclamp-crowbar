@@ -90,9 +90,27 @@ module FormHelper
     )
   end
 
+  def disk_dev(name)
+    "/dev/#{name}"
+  end
+
+  def disk_size(size)
+    number_to_human_size(size.to_i * 512)
+  end
+
+  # map unique name of each disk to short one with its size
+  def all_disks_info
+    all_disks = {}
+    @node.physical_drives.map do |name, drive|
+      unique_name = @node.unique_device_for(name)
+      all_disks[unique_name] = "#{disk_dev(name)} (#{disk_size(drive["size"])})"
+    end
+    all_disks
+  end
+
   def drives_for_select(selected)
     available = @node.physical_drives.map do |name, drive|
-      ["/dev/#{name} (#{number_to_human_size(drive["size"].to_i * 512)})", "/dev/#{name}"]
+      ["#{disk_dev(name)} (#{disk_size(drive["size"])})", "#{disk_dev(name)}"]
     end.sort
 
     options_for_select(

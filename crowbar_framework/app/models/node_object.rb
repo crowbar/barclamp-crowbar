@@ -283,6 +283,7 @@ class NodeObject < ChefObject
   end
 
   def disk_roles(refresh = false)
+    @node["crowbar_wall"] ||= {}
     crowbar_wall["disk_roles"] ||= {}
     if refresh
       drop_claimed_disks_from_roles

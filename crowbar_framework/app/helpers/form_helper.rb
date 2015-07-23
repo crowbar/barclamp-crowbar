@@ -42,6 +42,17 @@ module FormHelper
     )
   end
 
+  def beautify_disk_owner(owner)
+    @owner2label ||= {
+      "Ceph" => t(".disk_role_ceph"),
+      "Cinder" => t(".disk_role_cinder"),
+      "Swift" => t(".disk_role_swift"),
+      "LVM_DRBD" => t(".disk_role_drbd"),
+      "sbd" => t(".disk_role_sbd")
+    }
+    @owner2label.fetch(owner, owner)
+  end
+
   def disk_roles_for_select(selected)
     options_for_select(
       [

@@ -105,15 +105,6 @@
         %span.help-block
           = t('.intended_role_hint')
 
-      - if have_openstack
-        .form-group
-          = f.label :availability_zone, t('.availability_zone')
-          = text_field_tag :availability_zone, @node.availability_zone, :class => "form-control"
-
-          %span.help-block
-            = t('.availability_zone_hint')
-
-
       .form-group
       = f.label :disk_roles, t('.disk_roles')
 
@@ -128,19 +119,25 @@
           - (@node.crowbar_wall["claimed_disks"] || {}).each do |disk_name, disk|
             %tr
               %td
-                %span.form-control{ :disabled => "disabled" }
-                  = disk_name
+                = disk_name
               %td
                 %span.form-control{ :disabled => "disabled" }
-                  = disk["owner"]
+                  = beautify_disk_owner(disk["owner"])
 
           - @node.disk_roles.each do |disk_name, disk_role|
             %tr
               %td
-                %span.form-control{ :disabled => "disabled" }
-                  = disk_name
+                = disk_name
               %td
                 = select_tag "disk_roles[#{disk_name}]", disk_roles_for_select(disk_role), :class => "form-control"
+
+      - if have_openstack
+        .form-group
+          = f.label :availability_zone, t('.availability_zone')
+          = text_field_tag :availability_zone, @node.availability_zone, :class => "form-control"
+
+          %span.help-block
+            = t('.availability_zone_hint')
 
     .panel-footer.text-right
       .btn-group

@@ -68,7 +68,7 @@ class NodeObject < ChefObject
       unless provisioner.nil? || provisioner["provisioner"]["default_os"].nil?
          provisioner["provisioner"]["default_os"]
       else
-        admin = NodeObject.find("role:crowbar").select { |n| n.admin? }.first
+        admin = NodeObject.find("role:crowbar").find { |n| n.admin? }
         if admin.nil?
           ""
         else

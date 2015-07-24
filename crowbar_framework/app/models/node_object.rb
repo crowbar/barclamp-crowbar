@@ -63,12 +63,17 @@ class NodeObject < ChefObject
   end
 
   def self.default_platform
-    @@default_platform ||= begin
-      admin = NodeObject.find("role:crowbar").select { |n| n.admin? }.first
-      if admin.nil?
-        ""
+    @default_platform ||= begin
+      provisioner = NodeObject.find("roles:provisioner-server").first
+      unless provisioner.nil? || provisioner["provisioner"]["default_os"].nil?
+         provisioner["provisioner"]["default_os"]
       else
-        "#{admin[:platform]}-#{admin[:platform_version]}"
+        admin = NodeObject.find("role:crowbar").find { |n| n.admin? }
+        if admin.nil?
+          ""
+        else
+          "#{admin[:platform]}-#{admin[:platform_version]}"
+        end
       end
     end
   end

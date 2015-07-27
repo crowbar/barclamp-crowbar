@@ -39,7 +39,7 @@ describe MachinesController do
       end
 
       it "results in filled nodes hash" do
-        get :index, :format => "json"
+        get :index, format: "json"
         json = JSON.parse(response.body)
 
         expect(json["nodes"]).to be_a(Array)
@@ -148,13 +148,13 @@ describe MachinesController do
       it "renames a node to tester" do
         NodeObject.any_instance.expects(:alias=).with("tester").once
 
-        post :rename, :name => "testing", :alias => "tester", :format => "json"
+        post :rename, name: "testing", alias: "tester", format: "json"
         expect(response).to have_http_status(:ok)
       end
     end
 
     it "return 404 (not found) http status when node does not exists" do
-      post :rename, :name => "nonexistent", :format => "json"
+      post :rename, name: "nonexistent", format: "json"
       expect(response).to have_http_status(:not_found)
     end
 
@@ -162,7 +162,7 @@ describe MachinesController do
       NodeObject.any_instance.stubs(:save).returns(false)
       NodeObject.any_instance.expects(:alias=).with("tester").once
 
-      post :rename, :name => "testing", :alias => "tester", :format => "json"
+      post :rename, name: "testing", alias: "tester", format: "json"
 
       expect(response).to have_http_status(:unprocessable_entity)
     end
@@ -211,7 +211,7 @@ describe MachinesController do
         it "invokes #{action}" do
           NodeObject.any_instance.expects(action).once
 
-          post action, :name => "testing", :format => "json"
+          post action, name: "testing", format: "json"
           expect(response).to have_http_status(:ok)
         end
 

@@ -40,7 +40,7 @@ class MachinesController < BarclampController
 
   rescue_from StandardError do |exception|
     log_exception exception
-    render :json => { :error => exception.message }, :status => :internal_server_error
+    render json: { error: exception.message }, status: :internal_server_error
   end
 
   add_help(:index)
@@ -57,7 +57,7 @@ class MachinesController < BarclampController
     end
 
     respond_to do |format|
-      format.json { render :json => { :nodes => @nodes }, :status => :ok }
+      format.json { render json: { nodes: @nodes } }
     end
   end
 

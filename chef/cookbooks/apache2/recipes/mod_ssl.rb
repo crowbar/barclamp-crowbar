@@ -33,6 +33,7 @@ if node.platform == "suse"
   execute "/usr/sbin/a2enflag SSL" do
     command "/usr/sbin/a2enflag SSL"
   end
+  apache_module "version"
 end
 
 unless node[:apache][:listen_ports].include?("443")

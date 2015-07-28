@@ -206,7 +206,7 @@ module Crowbar
         # Params: (inst, in_queue, validate_after_save)
         status, message = service.proposal_commit(inst, true, false)
 
-        logger.debug("process queue: item #{item.inspect}: results #{answer.inspect}")
+        logger.debug("process queue: item #{item.inspect}: results #{message.inspect}")
 
         # FIXME: this is perhaps no longer needed
         $htdigest_reload = true

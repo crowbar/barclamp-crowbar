@@ -44,7 +44,6 @@ require "easy_diff"
 require "chef/mixin/deep_merge"
 require "pp"
 
-ALIAS_REGEXP = /"(@@[^ @]+@@)"/
 ALIAS_TEMPLATE = '@@%s@@'
 
 INDENT = '   '
@@ -540,8 +539,7 @@ def export_proposal(barclamp, template, proposal, alias_by_host)
 end
 
 def batch_to_yaml(data)
-  data.to_yaml.sub('---', '').strip.
-    gsub(ALIAS_REGEXP, '\1')
+  data.to_yaml.sub('---', '').strip
 end
 
 def print_yaml(data)

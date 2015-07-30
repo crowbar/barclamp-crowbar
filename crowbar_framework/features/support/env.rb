@@ -1,6 +1,6 @@
 #
 # Copyright 2011-2013, Dell
-# Copyright 2013-2014, SUSE LINUX Products GmbH
+# Copyright 2013-2015, SUSE Linux GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,23 +15,16 @@
 # limitations under the License.
 #
 
-default: &default
-  adapter: sqlite3
-  pool: 5
-  timeout: 5000
+require "cucumber/rails"
 
-development:
-  <<: *default
-  database: db/development.sqlite3
+ActionController::Base.tap do |config|
+  config.allow_rescue = false
+end
 
-test:
-  <<: *default
-  database: db/test.sqlite3
+DatabaseCleaner.tap do |config|
+  config.strategy = :transaction
+end
 
-cucumber:
-  <<: *default
-  database: db/test.sqlite3
-
-production:
-  <<: *default
-  database: db/production.sqlite3
+Cucumber::Rails::Database.tap do |config|
+  config.javascript_strategy = :truncation
+end

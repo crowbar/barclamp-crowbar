@@ -135,7 +135,7 @@ def get_aliases
     get_json("/")
   end
 
-  abort "Couldn't get aliases" unless status == 200
+  abort "Couldn't get aliases: #{status}: #{body}" unless status == 200
 
   host_by_alias = {}
   alias_by_host = {}

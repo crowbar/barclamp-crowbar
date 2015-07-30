@@ -313,20 +313,38 @@ def wipe_attribute(new_json, barclamp, attribute)
 end
 
 def merge_attributes(new_json, barclamp, proposal)
+  attrs = proposal["attributes"]
+
   to_merge = {
     "attributes" => {
-      barclamp => proposal["attributes"]
+      barclamp => attrs
     },
     "deployment" => {
       barclamp => proposal["deployment"]
     },
   }
 
+  prevent_password_lockout(attrs) if barclamp == 'crowbar'
+
   # easy_merge! seems to have problems with Arrays of Hashes :-/
   #new_json.easy_merge! to_merge
 
   #new_json.extend Chef::Mixin::DeepMerge
   Chef::Mixin::DeepMerge.deep_merge!(to_merge, new_json)
+end
+
+def prevent_password_lockout(attrs)
+  return unless attrs
+
+  users = attrs['users']
+  return unless users && users[@username]
+
+  if @password != users[@username]['password']
+    warn "Refusing to change password for '#{@username}' user " + \
+         #"from #{@password} to #{users[@username]['password']} " + \
+         "which would lock myself out!"
+  end
+  users.delete @username
 end
 
 def commit_proposal(barclamp, name)

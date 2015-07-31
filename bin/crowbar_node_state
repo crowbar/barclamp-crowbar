@@ -26,7 +26,7 @@ require 'getoptlong'
 @debug = false
 @hostname = ENV["CROWBAR_IP"]
 @hostname = "127.0.0.1" unless @hostname
-@port = 80
+@port = 3000
 @headers = {
   "Accept" => "application/json",
   "Content-Type" => "application/json"
@@ -40,7 +40,7 @@ require 'getoptlong'
 
 #
 # Parsing options can be added by adding to this list before calling opt_parse
-#
+# 
 @options = [
     [ [ '--help', '-h', GetoptLong::NO_ARGUMENT ], "--help or -h - help" ],
     [ [ '--username', '-U', GetoptLong::REQUIRED_ARGUMENT ], "--username <username> or -U <username>  - specifies the username to use" ],
@@ -123,7 +123,7 @@ def authenticate(req, uri, data = nil)
   end
 
   res
-end
+end  
 
 def get_json(path)
   uri = URI.parse("http://#{@hostname}:#{@port}/nodes#{path}")

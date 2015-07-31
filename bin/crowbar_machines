@@ -28,7 +28,7 @@ require "utils/extended_hash"
 
 @debug = false
 @hostname = ENV["CROWBAR_IP"] || "127.0.0.1"
-@port = ENV["CROWBAR_PORT"] || 80
+@port = ENV["CROWBAR_PORT"] || 3000
 @data = "{}"
 @allow_zero_args = false
 @timeout = 500
@@ -36,7 +36,7 @@ require "utils/extended_hash"
 @crowbar_key_file = '/etc/crowbar.install.key'
 
 @hostname = "127.0.0.1" unless @hostname
-@port = 80 unless @port
+@port = 3000 unless @port
 
 @headers = {
   "Accept" => "application/json",

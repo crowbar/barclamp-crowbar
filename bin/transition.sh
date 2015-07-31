@@ -30,7 +30,7 @@ post_state() {
       -L -X POST --data-binary "{ \"name\": \"$1\", \"state\": \"$2\" }" \
       -H "Accept: application/json" -H "Content-Type: application/json")
   [[ $CROWBAR_KEY ]] && curlargs+=(-u "$CROWBAR_KEY" --digest --anyauth)
-  curl "${curlargs[@]}" "http://${HOST}/crowbar/crowbar/1.0/transition/default"
+  curl "${curlargs[@]}" "http://${HOST}:3000/crowbar/crowbar/1.0/transition/default"
 }
 
 if [ "$1" == "" ]

@@ -277,7 +277,7 @@ template "/opt/dell/crowbar_framework/rainbows.cfg" do
   owner "crowbar"
   group "crowbar"
   mode "0644"
-  variables(:web_host => "127.0.0.1",
+  variables(:web_host => "0.0.0.0",
             :web_port => node["crowbar"]["web_port"] || 3000,
             :user => "crowbar",
             :concurrency_model => "EventMachine",

@@ -1,5 +1,5 @@
 #
-# Copyright 2015, SUSE LINUX Products GmbH
+# Copyright 2015, SUSE LINUX GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

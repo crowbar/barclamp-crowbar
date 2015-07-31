@@ -337,18 +337,7 @@ module Crowbar
           delay, pre_cached_nodes = elements_not_ready(nodes_map.keys, pre_cached_nodes)
         end
 
-        # We have all nodes we'll ever need. Mark them as applying and this proposal
-        # as the 'author'
-        if delay.empty?
-          nodes_map.each do |node_name, val|
-            node = pre_cached_nodes[node_name]
-
-            # Nothing to wait for so mark them applying now.
-            node.crowbar['state'] = 'applying'
-            node.crowbar['state_owner'] = "#{bc}-#{inst}"
-            node.save
-          end
-        else
+        unless delay.empty?
           # Update all nodes affected by this proposal deploy (elements) -> add info that this proposal
           # will add list of roles to node's crowbar.pending hash.
           nodes_map.each do |node_name, val|

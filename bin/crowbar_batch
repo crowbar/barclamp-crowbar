@@ -102,6 +102,7 @@ def build(input_file)
   end
 
   data = YAML.load(input_data)
+  abort "#{input_file} is empty" unless data
 
   global_options = data["global_options"] || {}
 

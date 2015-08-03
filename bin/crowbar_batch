@@ -108,8 +108,7 @@ def build(input_file)
 
   proposals = data["proposals"]
   if ! proposals || proposals.empty?
-    warn "#{input_file} didn't contain any proposals"
-    exit(-1)
+    abort "#{input_file} didn't contain any proposals"
   end
 
   begin

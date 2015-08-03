@@ -96,6 +96,11 @@ def build(input_file)
     input_data.gsub!(ALIAS_TEMPLATE % aliaz, hostname)
   end
 
+  unknown_aliases = input_data.to_enum(:scan, ALIAS_REGEXP).map { Regexp.last_match.to_s }
+  unless unknown_aliases.empty?
+    abort "Some of the aliases in the YAML file are not known to Crowbar:\n- #{unknown_aliases.uniq.join("\n- ")}"
+  end
+
   data = YAML.load(input_data)
 
   global_options = data["global_options"] || {}

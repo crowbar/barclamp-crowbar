@@ -45,9 +45,9 @@ EOF
          p['deployment']['"$bc"']['crowbar-committing'] = false;
          p.save;"
 
-    pushd "$RAILS_ROOT"
+    pushd "$RAILS_ROOT" > /dev/null
     RAILS_ENV=production rails r "$cmd"
-    popd
+    popd > /dev/null
 }
 
 # unblocking nodes stuck in applying

@@ -27,7 +27,7 @@ module RemoteNode
   def self.ready?(host, timeout = 60, sleep_time = 10, options = {})
     timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
-    msg = "Waiting for host, next attempt in #{sleep_time} seconds until #{timeout_at}"
+    msg = "Waiting for host #{host} (#{ip}); next attempt in #{sleep_time} seconds until #{timeout_at}"
 
     nobj = NodeObject.find_node_by_name(host)
     reboot_requesttime = nobj[:crowbar_wall][:wait_for_reboot_requesttime] || 0
@@ -41,7 +41,7 @@ module RemoteNode
   def self.chef_ready?(host, timeout = 60, sleep_time = 10, options = {})
     timeout_at = Time.now + timeout
     ip         = self.resolve_host(host)
-    msg = "Waiting for already running chef-client, next attempt in #{sleep_time} seconds until #{timeout_at}"
+    msg = "Waiting for already running chef-client on #{host} (#{ip}); next attempt in #{sleep_time} seconds until #{timeout_at}"
     self.wait_until(msg, timeout_at.to_i, sleep_time, options) do
       self.port_open?(ip, 22) && !self.chef_clients_running?(ip)
     end

@@ -89,7 +89,8 @@ def build(input_file)
 
   host_by_alias = get_aliases[0]
 
-  input_data = File.open(input_file).readlines.join('')
+  abort "#{input_file} does not exist" unless File.file?(input_file)
+  input_data = IO.read(input_file)
 
   # Translate @@alias@@ to Chef node name
   host_by_alias.each do |aliaz, hostname|

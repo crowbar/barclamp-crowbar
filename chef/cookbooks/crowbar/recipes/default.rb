@@ -386,6 +386,11 @@ else
       action :nothing
       subscribes :run, resources("cookbook_file[/etc/systemd/system/crowbar.service]"), :immediately
     end
+
+    link "/usr/sbin/rccrowbar" do
+      action :create
+      to "service"
+    end
   end
 
   service "crowbar" do

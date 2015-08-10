@@ -33,7 +33,7 @@ module Crowbar
       pre_cached_nodes = {}
       begin
         f = file_lock.acquire("queue", logger: logger)
-        preexisting_queued_item = @proposal_queue.proposals.find do |item|
+        preexisting_queued_item = @proposal_queue.proposals.detect do |item|
           item["barclamp"] == bc && item["inst"] == inst
         end unless @proposal_queue.empty?
 
@@ -236,7 +236,7 @@ module Crowbar
       logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
       begin
         # Find the proposal to delete, get its elements (nodes)
-        item = @proposal_queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
+        item = @proposal_queue.proposals.detect { |i| i["barclamp"] == bc && i["inst"] == inst }
 
         if item
           elements = item["elements"]

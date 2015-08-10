@@ -19,9 +19,9 @@ module Crowbar
 
     attr_reader :logger, :proposal_queue
 
-    def initialize(logger: Rails.logger, queue: ProposalQueue.new)
+    def initialize(logger: Rails.logger)
       @logger         = logger
-      @proposal_queue = queue
+      @proposal_queue = ::ProposalQueue.find("queue")
     end
 
     # Receives proposal info (name, barclamp), list of nodes (elements), on which the proposal
@@ -33,10 +33,9 @@ module Crowbar
       pre_cached_nodes = {}
       begin
         f = file_lock.acquire("queue", logger: logger)
-
-        preexisting_queued_item = proposal_queue.proposals.find do |item|
+        preexisting_queued_item = @proposal_queue.proposals.find do |item|
           item["barclamp"] == bc && item["inst"] == inst
-        end
+        end unless @proposal_queue.empty?
 
         # If queue_me is true, the delay contains all elements, otherwise, only
         # nodes that are not ready.
@@ -67,12 +66,12 @@ module Crowbar
         # Delay not empty, we're missing some nodes.
         # And proposal is not in queue
         if preexisting_queued_item.nil?
-          proposal_queue << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
+          @proposal_queue << { "barclamp" => bc, "inst" => inst, "elements" => elements, "deps" => deps }
         else
           # Update (overwrite) item that is already in queue
           preexisting_queued_item["elements"] = elements
           preexisting_queued_item["deps"] = deps
-          proposal_queue.save
+          @proposal_queue.save
         end
       rescue StandardError => e
         logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message} #{e.backtrace.join("\n")}")
@@ -95,7 +94,7 @@ module Crowbar
       begin
         f = file_lock.acquire("queue", logger: logger)
 
-        if proposal_queue.empty?
+        if @proposal_queue.empty?
           logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry")
           return [200, {}]
         end
@@ -130,16 +129,16 @@ module Crowbar
         begin
           f = file_lock.acquire("queue", logger: logger)
 
-          if proposal_queue.empty?
+          if @proposal_queue.empty?
             logger.debug("process queue: exit: empty queue")
             return
           end
 
-          logger.debug("process queue: queue: #{proposal_queue.proposals.inspect}")
+          logger.debug("process queue: queue: #{@proposal_queue.proposals.inspect}")
 
           # Test for ready
           remove_list = []
-          proposal_queue.proposals.each do |item|
+          @proposal_queue.proposals.each do |item|
             prop = Proposal.where(barclamp: item["barclamp"], name: item["inst"]).first
 
             if prop.nil?
@@ -237,11 +236,11 @@ module Crowbar
       logger.debug("dequeue_proposal_no_lock: enter #{inst} #{bc}")
       begin
         # Find the proposal to delete, get its elements (nodes)
-        item = proposal_queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
+        item = @proposal_queue.proposals.find { |i| i["barclamp"] == bc && i["inst"] == inst }
 
         if item
           elements = item["elements"]
-          proposal_queue.delete(item)
+          @proposal_queue.delete(item)
 
           # Remove the pending roles for the current proposal from the node records.
           remove_pending_elements(bc, inst, elements) if elements

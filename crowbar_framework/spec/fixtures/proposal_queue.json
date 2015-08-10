@@ -1,0 +1,30 @@
+{
+  "proposal_queue":[
+    {
+      "barclamp":"glance",
+      "inst":"default",
+      "elements":{
+        "glance-server":["d52-54-01-77-77-01.emil.suse.de"]
+      },
+      "deps":[
+        {"barclamp":"database", "inst":"default"},
+        {"barclamp":"rabbitmq", "inst":"proposal"},
+        {"barclamp":"keystone", "inst":"default"}
+      ]
+    },
+    {
+      "barclamp":"cinder",
+      "inst":"default",
+      "elements":{
+        "cinder-controller":["d52-54-01-77-77-01.emil.suse.de"],
+        "cinder-volume":["d52-54-02-77-77-02.emil.suse.de", "d52-54-01-77-77-01.emil.suse.de"]
+      },
+      "deps":[
+        {"barclamp":"database", "inst":"default"},
+        {"barclamp":"keystone", "inst":"default"},
+        {"barclamp":"glance", "inst":"default"},
+        {"barclamp":"rabbitmq", "inst":"proposal"}
+      ]
+    }
+  ]
+}

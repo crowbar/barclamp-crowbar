@@ -89,21 +89,27 @@ def build(input_file)
 
   host_by_alias = get_aliases[0]
 
-  input_data = File.open(input_file).readlines.join('')
+  abort "#{input_file} does not exist" unless File.file?(input_file)
+  input_data = IO.read(input_file)
 
   # Translate @@alias@@ to Chef node name
   host_by_alias.each do |aliaz, hostname|
     input_data.gsub!(ALIAS_TEMPLATE % aliaz, hostname)
   end
 
+  unknown_aliases = input_data.to_enum(:scan, ALIAS_REGEXP).map { Regexp.last_match.to_s }
+  unless unknown_aliases.empty?
+    abort "Some of the aliases in the YAML file are not known to Crowbar:\n- #{unknown_aliases.uniq.join("\n- ")}"
+  end
+
   data = YAML.load(input_data)
+  abort "#{input_file} is empty" unless data
 
   global_options = data["global_options"] || {}
 
   proposals = data["proposals"]
   if ! proposals || proposals.empty?
-    warn "#{input_file} didn't contain any proposals"
-    exit(-1)
+    abort "#{input_file} didn't contain any proposals"
   end
 
   begin

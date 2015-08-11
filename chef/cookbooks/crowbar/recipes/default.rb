@@ -78,6 +78,7 @@ when "suse"
     ruby2.1-rubygem-simple_navigation_renderers
     ruby2.1-rubygem-sqlite3
     ruby2.1-rubygem-syslogger
+    ruby2.1-rubygem-yaml_db
   )
   unless search(:node, "platform:windows").empty?
     pkglist.push "samba-client"

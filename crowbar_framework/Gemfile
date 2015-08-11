@@ -34,6 +34,7 @@ gem "simple-navigation", "~> 3.12.2"
 gem "simple_navigation_renderers", "~> 1.0.2"
 gem "sqlite3", "~> 1.3.9"
 gem "syslogger", "~> 1.6.0"
+gem "yaml_db", "~> 0.3.0"
 
 gem "ohai", "~> 6.24.2"
 gem "chef", "~> 10.32.2"

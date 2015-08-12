@@ -825,6 +825,14 @@ class ServiceObject
     # Initialize variables used in ensure at the end of the method
     chef_daemon_nodes = []
 
+    # get all nodes except the admin node and windows nodes which don't have ssh
+    nodes_without_admin = []
+    NodeObject.find_all_nodes.each do |node|
+      unless node[:platform] == "windows" || node.admin?
+        nodes_without_admin << node.name
+      end
+    end
+    apply_lock = Crowbar::Lock.new(logger: @logger, path: "/var/chef/cache/daemon-pause-file.lock", remote: nodes_without_admin).acquire
 
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
@@ -1281,6 +1289,8 @@ class ServiceObject
     restore_to_ready(applying_nodes)
     process_queue unless in_queue
     [200, {}]
+  ensure
+    apply_lock.release
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)

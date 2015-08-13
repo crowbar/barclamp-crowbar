@@ -1034,10 +1034,6 @@ class ServiceObject
     end
     new_elements = expanded_new_elements
 
-    # stop chef daemon on all nodes
-    chef_daemon_nodes = new_elements.values.flatten
-    chef_daemon(:stop, chef_daemon_nodes)
-
     # save list of expanded elements, as this is needed when we look at the
     # old role
     if new_elements != new_deployment["elements"]
@@ -1348,9 +1344,6 @@ class ServiceObject
     restore_to_ready(all_nodes)
     process_queue unless in_queue
     [200, {}]
-  ensure
-    # start chef daemon on all nodes
-    chef_daemon(:start, chef_daemon_nodes)
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
@@ -1474,19 +1467,6 @@ class ServiceObject
       # check if we need to wait for a node reboot
       wait_for_reboot(node)
     }
-  end
-
-  def chef_daemon(action, node_list)
-    node_list.each do |node_name|
-      node = NodeObject.find_node_by_name(node_name)
-      @logger.debug "apply_role: #{action.to_s} chef service on #{node_name}"
-      node.run_service :chef, action
-    end
-
-    # wait for chef clients on all nodes
-    node_list.each do |node_name|
-      wait_for_chef_clients(node_name, :logger => true)
-    end if action == :stop
   end
 
   private

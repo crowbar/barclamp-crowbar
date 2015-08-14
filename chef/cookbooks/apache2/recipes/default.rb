@@ -19,9 +19,9 @@
 
 package "apache2" do
   case node[:platform]
-  when "centos","redhat","fedora","suse"
+  when "centos", "redhat", "fedora"
     package_name "httpd"
-  when "debian","ubuntu"
+  when "debian", "ubuntu", "suse"
     package_name "apache2"
   when "arch"
     package_name "apache"

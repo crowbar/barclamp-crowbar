@@ -1,4 +1,5 @@
 language: ruby
+sudo: false
 rvm:
   - 2.1.0
 
@@ -28,3 +29,6 @@ install:
 script:
   - bundle exec rake spec
   - bundle exec rake brakeman:run
+  - bundle exec bundle-audit update
+    # ignore rest-client issues, chef 10 requires that
+  - bundle exec bundle-audit check --ignore CVE-2015-1820 OSVDB-117461

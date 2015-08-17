@@ -25,6 +25,6 @@ class DeployQueueController < ApplicationController
   end
 
   def deployment_queue
-    ProposalQueue.find("queue").proposals rescue []
+    ProposalQueue.ordered.all rescue []
   end
 end

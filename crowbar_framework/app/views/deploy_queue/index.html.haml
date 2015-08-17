@@ -30,16 +30,16 @@
         %tr
           %td
             = item["barclamp"]
-            = item["inst"]
+            = item["name"]
           %td
-            = render :partial => "elements", :locals => { :elements => item["elements"], :all_nodes => @nodes }
+            = render :partial => "elements", :locals => { :elements => item.properties["elements"], :all_nodes => @nodes }
           %td
-            = render :partial => "dependencies", :locals => { :dependencies => item["deps"], :all_proposals => @props }
+            = render :partial => "dependencies", :locals => { :dependencies => item.properties["deps"], :all_proposals => @props }
           %td
-            = render :partial => "missing_nodes", :locals => { :nodes => item["elements"].values.flatten.uniq, :all_nodes => @nodes }
-            = render :partial => "missing_dependencies", :locals => { :dependencies => item["deps"], :all_proposals => @props }
+            = render :partial => "missing_nodes", :locals => { :nodes => item.properties["elements"].values.flatten.uniq, :all_nodes => @nodes }
+            = render :partial => "missing_dependencies", :locals => { :dependencies => item.properties["deps"], :all_proposals => @props }
           %td
-            %form{:action => update_proposal_barclamp_path(item["barclamp"], item["inst"]), :method => :post}
-              = hidden_field_tag("origin", "deployment_queue", :id => "origin_#{item["barclamp"]}_#{item["inst"]}")
-              = hidden_field_tag("name", item["inst"], :id => "name_#{item["barclamp"]}_#{item["inst"]}")
+            %form{:action => update_proposal_barclamp_path(item["barclamp"], item["name"]), :method => :post}
+              = hidden_field_tag("origin", "deployment_queue", :id => "origin_#{item["barclamp"]}_#{item["name"]}")
+              = hidden_field_tag("name", item["name"], :id => "name_#{item["barclamp"]}_#{item["name"]}")
               %input.btn.btn-default{:type => "submit", :name => "submit", :value => t("barclamp.proposal_show.dequeue_proposal") }

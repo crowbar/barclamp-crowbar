@@ -1,12 +1,10 @@
 class CreateProposalQueues < ActiveRecord::Migration
   def change
-    create_table :proposal_queues, id: false do |t|
+    create_table :proposal_queues do |t|
+      t.string :barclamp
       t.string :name
       t.text :properties
+      t.datetime :created_at
     end
-
-    add_index :proposal_queues, :name, unique: true
-
-    ProposalQueue.create(name: "queue", properties: { "proposal_queue" => [] })
   end
 end

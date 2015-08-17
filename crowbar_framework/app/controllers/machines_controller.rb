@@ -40,7 +40,7 @@ class MachinesController < BarclampController
 
   rescue_from StandardError do |exception|
     log_exception exception
-    render :json => { :error => exception.message }, :status => 500
+    render json: { error: exception.message }, status: :internal_server_error
   end
 
   add_help(:index)
@@ -57,7 +57,7 @@ class MachinesController < BarclampController
     end
 
     respond_to do |format|
-      format.json { render :json => { :nodes => @nodes }, :status => 200 }
+      format.json { render json: { nodes: @nodes } }
     end
   end
 
@@ -71,60 +71,86 @@ class MachinesController < BarclampController
   add_help(:role, [:id])
   def role
     @machine.intended_role = params[:role]
-    @machine.save
 
     respond_to do |format|
-      format.json { head :ok }
+      if @machine.save
+        format.json { head :ok }
+      else
+        format.json do
+          render json: { error: "#{I18n.t("cannot_save_node", scope: "error")} #{@machine.name}" },
+                 status: :unprocessable_entity
+        end
+      end
     end
   end
 
   add_help(:rename, [:id])
   def rename
     @machine.alias = params[:alias]
-    @machine.save
 
     respond_to do |format|
-      format.json { head :ok }
+      if @machine.save
+        format.json { head :ok }
+      else
+        format.json do
+          render json: { error: "#{I18n.t("cannot_save_node", scope: "error")} #{@machine.name}" },
+                 status: :unprocessable_entity
+        end
+      end
     end
   end
 
-  add_help(:identify, [:id], [:post])
-  def identify
-    @machine.identify
+  [
+    :update,
+    :identify
+  ].each do |action|
+    add_help(action, [:id], [:post])
+    define_method action do
+      error_code, error_message = @machine.send(action)
 
-    respond_to do |format|
-      format.json { head :ok }
-    end
-  end
-
-  add_help(:delete, [:id], [:delete])
-  def delete
-    raise "Not allowed for admin nodes" if @machine.admin?
-    @machine.delete
-
-    respond_to do |format|
-      format.json { head :ok }
+      respond_to do |format|
+        case error_code
+        when 200
+          format.json { head :ok }
+        else
+          format.json do
+            render json: { error: error_message }, status: error_code
+          end
+        end
+      end
     end
   end
 
   [
     :reinstall,
-    :update,
     :reset,
     :shutdown,
     :reboot,
     :poweron,
     :powercycle,
     :poweroff,
-    :allocate
+    :allocate,
+    :delete,
+    :identify
   ].each do |action|
     add_help(action, [:id], [:post])
     define_method action do
-      raise "Not allowed for admin nodes" if @machine.admin?
-      @machine.send(action)
+      if @machine.admin?
+        error_code = :forbidden
+        error_message = "Not allowed for admin nodes"
+      else
+        error_code, error_message = @machine.send(action)
+      end
 
       respond_to do |format|
-        format.json { head :ok }
+        case error_code
+        when 200
+          format.json { head :ok }
+        else
+          format.json do
+            render json: { error: error_message }, status: error_code
+          end
+        end
       end
     end
   end

@@ -507,13 +507,15 @@ class NodeObject < ChefObject
   end
 
   def allocate!
-    return if @node.nil?
-    return if @role.nil?
-    return if self.allocated?
+    return [404, I18n.t("node_not_found", scope: "error")] if @node.nil?
+    return [404, I18n.t("role_not_found", scope: "error")] if @role.nil?
+    return [422, I18n.t("already_allocated", scope: "error")] if self.allocated?
     Rails.logger.info("Allocating node #{@node.name}")
     @role.save do |r|
       r.default_attributes["crowbar"]["allocated"] = true
     end
+
+    [200, {}]
   end
 
   def allocate
@@ -1128,7 +1130,7 @@ class NodeObject < ChefObject
   def ssh_cmd(cmd)
     if @node[:platform] == "windows"
       Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} ignored - node is running Windows")
-      return nil
+      return [400, I18n.t("running_windows", scope: "error")]
     end
 
     # Have to redirect stdin, stdout, stderr and background reboot
@@ -1140,8 +1142,10 @@ class NodeObject < ChefObject
                   "ssh", "-o", "ConnectTimeout=10", "root@#{@node.name}",
                   "#{cmd} </dev/null >/dev/null 2>&1 &")
       Rails.logger.warn("ssh command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
-      return nil
+      return [422, I18n.t("unknown_state", scope: "error")]
     end
+
+    [200, {}]
   end
 
   def net_rpc_cmd(cmd)
@@ -1149,21 +1153,26 @@ class NodeObject < ChefObject
     when :power_cycle
       unless system("net", "rpc", "shutdown", "-f", "-r", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
         Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+        [422, I18n.t("unknown_state", scope: "error")]
       end
     when :power_off
       unless system("net", "rpc", "shutdown", "-f", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
         Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+        [422, I18n.t("unknown_state", scope: "error")]
       end
     when :reboot
       unless system("net", "rpc", "shutdown", "-r", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
         Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+        [422, I18n.t("unknown_state", scope: "error")]
       end
     when :shutdown
       unless system("net", "rpc", "shutdown", "-I", @node.name ,"-U", "Administrator%#{@node[:provisioner][:windows][:admin_password]}")
         Rails.logger.warn("samba command \"#{cmd}\" for #{@node.name} failed - node in unknown state")
+        [422, I18n.t("unknown_stat", scope: "error")]
       end
     else
-      Rails.logger.warn("samba command #{cmd} failed for #{@node.name}.")
+      Rails.logger.warn("Unknown command #{cmd} for #{@node.name}.")
+      [400, I18n.t("unknown_cmd", scope: "error", cmd: cmd)]
     end
   end
 
@@ -1178,17 +1187,19 @@ class NodeObject < ChefObject
         ssh_command = "/sbin/poweroff -f"
       else
         Rails.logger.warn("ipmitool #{cmd} failed for #{@node.name}.")
-        return nil
+        return [422, I18n.t("ipmi_failed", scope: "error", cmd: cmd, node: @node.name)]
       end
       Rails.logger.warn("failed ipmitool #{cmd}, falling back to ssh for #{@node.name}")
-      ssh_cmd(ssh_command)
+      return ssh_cmd(ssh_command)
     end
+
+    [200, {}]
   end
 
   def set_state(state)
     # use the real transition function for this
     cb = CrowbarService.new Rails.logger
-    results = cb.transition "default", @node.name, state
+    result = cb.transition "default", @node.name, state
 
     if %w(reset reinstall update).include? state
       # wait with reboot for the finish of configuration update by local chef-client
@@ -1246,7 +1257,7 @@ class NodeObject < ChefObject
         ssh_cmd("/sbin/reboot")
       end
     end
-    results
+    result
   end
 
   def update
@@ -1555,4 +1566,3 @@ class NodeObject < ChefObject
     {}
   end
 end
-

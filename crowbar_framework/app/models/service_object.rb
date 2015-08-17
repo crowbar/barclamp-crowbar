@@ -140,23 +140,11 @@ class ServiceObject
   end
 
 #
-# Locking Routines
-#
-  def acquire_lock(name)
-    FileLock.acquire(name, :logger => @logger)
-  end
-
-  def release_lock(f)
-    FileLock.release(f, :logger => @logger)
-  end
-
-#
 # Helper routines for queuing
 #
 
   def set_to_applying(nodes, inst)
-    f = acquire_lock "BA-LOCK"
-    begin
+    Crowbar::Lock.new(logger: @logger, path: Rails.root.join("tmp", "BA-LOCK.lock")).with_lock do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -165,14 +153,11 @@ class ServiceObject
         node.crowbar["state_owner"] = "#{@bc_name}-#{inst}"
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 
   def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
-    begin
+    Crowbar::Lock.new(logger: @logger, path: Rails.root.join("tmp", "BA-LOCK.lock")).with_lock do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -181,8 +166,6 @@ class ServiceObject
         node.crowbar['state_owner'] = ""
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 
@@ -825,6 +808,14 @@ class ServiceObject
     # Initialize variables used in ensure at the end of the method
     chef_daemon_nodes = []
 
+    # get all nodes except the admin node and windows nodes which don't have ssh
+    nodes_without_admin = []
+    NodeObject.find_all_nodes.each do |node|
+      unless node[:platform] == "windows" || node.admin?
+        nodes_without_admin << node.name
+      end
+    end
+    apply_lock = Crowbar::Lock.new(logger: @logger, path: "/var/chef/cache/daemon-pause-file.lock", remote: nodes_without_admin).acquire
 
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
@@ -856,10 +847,6 @@ class ServiceObject
       end
     end
     new_elements = expanded_new_elements
-
-    # stop chef daemon on all nodes
-    chef_daemon_nodes = new_elements.values.flatten.uniq
-    chef_daemon(:stop, chef_daemon_nodes)
 
     # save list of expanded elements, as this is needed when we look at the old
     # role. See below the comments for old_elements.
@@ -1286,8 +1273,7 @@ class ServiceObject
     process_queue unless in_queue
     [200, {}]
   ensure
-    # start chef daemon on all nodes
-    chef_daemon(:start, chef_daemon_nodes)
+    apply_lock.release
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
@@ -1411,26 +1397,6 @@ class ServiceObject
       # check if we need to wait for a node reboot
       wait_for_reboot(node)
     }
-  end
-
-  def chef_daemon(action, node_list)
-    wait_nodes = []
-
-    node_list.each do |node_name|
-      node = NodeObject.find_node_by_name(node_name)
-
-      # we can't connect to windows nodes
-      next if node[:platform] == "windows"
-
-      @logger.debug "apply_role: #{action.to_s} chef service on #{node_name}"
-      node.run_service :chef, action
-      wait_nodes << node_name
-    end
-
-    # wait for chef clients on all nodes
-    wait_nodes.each do |node_name|
-      wait_for_chef_clients(node_name, :logger => true)
-    end if action == :stop
   end
 
   private

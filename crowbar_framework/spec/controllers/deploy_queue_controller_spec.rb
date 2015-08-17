@@ -28,6 +28,10 @@ describe DeployQueueController do
     end
 
     let(:prop) { Proposal.where(barclamp: "crowbar", name: "default").first_or_create(barclamp: "crowbar", name: "default") }
+    let(:queue) do
+      ProposalQueue.first_or_create(barclamp: "crowbar", name: "default", properties: { elements: prop.elements, deps: [] })
+      ProposalQueue.all
+    end
 
     it "is successful" do
       get :index
@@ -50,8 +54,7 @@ describe DeployQueueController do
 
       it "is successful when there are clusters in the queue" do
         # Is queued
-        queue_item = { "barclamp" => prop.barclamp, "inst" => prop.name, "elements" => prop.elements, "deps" => [] }
-        @controller.stubs(:deployment_queue).returns([queue_item])
+        @controller.stubs(:deployment_queue).returns(queue)
 
         get :index
         response.should be_success
@@ -73,8 +76,7 @@ describe DeployQueueController do
       end
 
       it "is successful for clusters in the queue" do
-        queue_item = { "barclamp" => prop.barclamp, "inst" => prop.name, "elements" => prop.elements, "deps" => [] }
-        @controller.stubs(:deployment_queue).returns([queue_item])
+        @controller.stubs(:deployment_queue).returns(queue)
 
         get :index
         response.should be_success

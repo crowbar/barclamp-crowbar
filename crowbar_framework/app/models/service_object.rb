@@ -140,23 +140,11 @@ class ServiceObject
   end
 
 #
-# Locking Routines
-#
-  def acquire_lock(name)
-    FileLock.acquire(name, :logger => @logger)
-  end
-
-  def release_lock(f)
-    FileLock.release(f, :logger => @logger)
-  end
-
-#
 # Helper routines for queuing
 #
 
   def set_to_applying(nodes, inst)
-    f = acquire_lock "BA-LOCK"
-    begin
+    Crowbar::Lock.new(logger: @logger, path: Rails.root.join("tmp", "BA-LOCK.lock")).with_lock do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -165,14 +153,11 @@ class ServiceObject
         node.crowbar["state_owner"] = "#{@bc_name}-#{inst}"
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 
   def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
-    begin
+    Crowbar::Lock.new(logger: @logger, path: Rails.root.join("tmp", "BA-LOCK.lock")).with_lock do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -181,8 +166,6 @@ class ServiceObject
         node.crowbar['state_owner'] = ""
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 

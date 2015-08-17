@@ -1075,9 +1075,6 @@ class ServiceObject
   def apply_role(role, inst, in_queue)
     @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
 
-    # Initialize variables used in ensure at the end of the method
-    chef_daemon_nodes = []
-
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
@@ -1109,8 +1106,14 @@ class ServiceObject
     end
     new_elements = expanded_new_elements
 
-    # save list of expanded elements, as this is needed when we look at the
-    # old role
+    # Don't start until all intervallic runs are done.  This avoids
+    # some of the orchestration problems described in:
+    #
+    #   https://bugzilla.suse.com/show_bug.cgi?id=857375
+    wait_for_chef_daemons(new_elements.values.flatten.uniq)
+
+    # save list of expanded elements, as this is needed when we look at the old
+    # role. See below the comments for old_elements.
     if new_elements != new_deployment["elements"]
       new_deployment["elements_expanded"] = new_elements
     else
@@ -1542,6 +1545,17 @@ class ServiceObject
       # check if we need to wait for a node reboot
       wait_for_reboot(node)
     }
+  end
+
+  def wait_for_chef_daemons(node_list)
+    node_list.each do |node_name|
+      node = NodeObject.find_node_by_name(node_name)
+
+      # we can't connect to windows nodes
+      next if node[:platform] == "windows"
+
+      wait_for_chef_clients(node_name, logger: true)
+    end
   end
 
   private

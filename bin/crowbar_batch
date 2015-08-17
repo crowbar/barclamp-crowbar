@@ -41,7 +41,6 @@ require "open3"
 require "tempfile"
 
 require "easy_diff"
-require "chef/mixin/deep_merge"
 require "pp"
 
 ALIAS_TEMPLATE = '@@%s@@'
@@ -328,11 +327,24 @@ def merge_attributes(new_json, barclamp, proposal)
     },
   }
 
-  # easy_merge! seems to have problems with Arrays of Hashes :-/
-  #new_json.easy_merge! to_merge
-
-  #new_json.extend Chef::Mixin::DeepMerge
-  Chef::Mixin::DeepMerge.deep_merge!(to_merge, new_json)
+  # In easy_diff 0.0.4, #easy_merge! fails to handle merging of Arrays
+  # of Hashes, so we used Chef::Mixin::DeepMerge.deep_merge! instead.
+  # A solution for this issue has since been provided:
+  #
+  #   https://github.com/Blargel/easy_diff/pull/5
+  #
+  # Additionally #deep_merge! didn't correctly merge Arrays at all.
+  # One example is with the neutron.ml2_type_drivers attribute, which
+  # defaults to ["gre"] whereas mkcloud often sets it to ["gre",
+  # "vlan"].  easy_diff's comparison correctly reports no removals and
+  # "vlan" as the only addition, but when this addition is fed to
+  # #deep_merge!, it resulted in the array being overwritten, so it
+  # would end up as ["vlan"], not ["gre", "vlan"].
+  #
+  # Since #easy_merge! comes from the same easy_diff gem as
+  # #easy_diff, in theory they should work nicely together, so it's
+  # better to stick with that.
+  new_json.easy_merge! to_merge
 end
 
 def commit_proposal(barclamp, name)

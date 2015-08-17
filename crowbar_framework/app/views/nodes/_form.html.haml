@@ -105,6 +105,43 @@
         %span.help-block
           = t('.intended_role_hint')
 
+      .form-group
+      = f.label :disk_roles, t('.disk_roles')
+
+      - if @node.allocated?
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-2
+                = t(".disk_short")
+              %th.col-sm-3
+                = t(".disk_unique")
+              %th.col-sm-2
+                = t(".disk_role")
+          %tbody
+            - all_disks = all_disks_info
+            - (@node.crowbar_wall["claimed_disks"] || {}).each do |unique_name, disk|
+              %tr
+                %td
+                  = all_disks.fetch(unique_name, "-")
+                %td
+                  = unique_name
+                %td
+                  %span.form-control{ :disabled => "disabled" }
+                    = beautify_disk_owner(disk["owner"])
+
+            - @node.disk_roles(true).each do |unique_name, disk_role|
+              %tr
+                %td
+                  = all_disks.fetch(unique_name, "-")
+                %td
+                  = unique_name
+                %td
+                  = select_tag "disk_roles[#{unique_name}]", disk_roles_for_select(disk_role), :class => "form-control"
+      - else
+        %span.help-block
+          = t('.disk_roles_not_available')
+
       - if have_openstack
         .form-group
           = f.label :availability_zone, t('.availability_zone')

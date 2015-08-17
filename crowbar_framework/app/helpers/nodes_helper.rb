@@ -96,7 +96,8 @@ module NodesHelper
             :group => node.group,
             :platform => node[:platform],
             :platform_version => node[:platform_version],
-            :cluster => false
+            :cluster => false,
+            :disk_roles => node.disk_roles.to_hash
           } if node.group == group or group.nil?
         end
       end.sort_by{ |k, v| v[:alias] }

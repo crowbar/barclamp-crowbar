@@ -42,6 +42,31 @@ module FormHelper
     )
   end
 
+  def beautify_disk_owner(owner)
+    @owner2label ||= {
+      "Ceph" => t(".disk_role_ceph"),
+      "Cinder" => t(".disk_role_cinder"),
+      "Swift" => t(".disk_role_swift"),
+      "LVM_DRBD" => t(".disk_role_drbd"),
+      "sbd" => t(".disk_role_sbd")
+    }
+    @owner2label.fetch(owner, owner)
+  end
+
+  def disk_roles_for_select(selected)
+    options_for_select(
+      [
+        [t(".disk_role_undecided"), ""],
+        [t(".disk_role_ceph"), "Ceph"],
+        [t(".disk_role_cinder"), "Cinder"],
+        [t(".disk_role_swift"), "Swift"],
+        [t(".disk_role_drbd"), "LVM_DRBD"],
+        [t(".disk_role_sbd"), "sbd"]
+      ],
+      selected.to_s
+    )
+  end
+
   def booleans_for_select(selected)
     options_for_select(
       [
@@ -65,9 +90,27 @@ module FormHelper
     )
   end
 
+  def disk_dev(name)
+    "/dev/#{name}"
+  end
+
+  def disk_size(size)
+    number_to_human_size(size.to_i * 512)
+  end
+
+  # map unique name of each disk to short one with its size
+  def all_disks_info
+    all_disks = {}
+    @node.physical_drives.map do |name, drive|
+      unique_name = @node.unique_device_for(name)
+      all_disks[unique_name] = "#{disk_dev(name)} (#{disk_size(drive["size"])})"
+    end
+    all_disks
+  end
+
   def drives_for_select(selected)
     available = @node.physical_drives.map do |name, drive|
-      ["/dev/#{name} (#{number_to_human_size(drive["size"].to_i * 512)})", "/dev/#{name}"]
+      ["#{disk_dev(name)} (#{disk_size(drive["size"])})", "#{disk_dev(name)}"]
     end.sort
 
     options_for_select(

@@ -17,52 +17,70 @@
 
 module Crowbar
   class Lock
-    def self.with_lock(name, options = {})
-      flock = acquire(name, options)
-      yield if block_given?
-    ensure
-      release(flock, options) if flock
+    attr_accessor :logger, :path, :name
+    attr_reader :path, :name, :file
+
+    def initialize(options = {})
+      @logger = options.fetch :logger, Rails.logger
+      @name = options.fetch :name, "default.lock"
+      @path = options.fetch :path, Rails.root.join("tmp", @name) # full path to lockfile
+      @locked = false
+      @file = nil
     end
 
-    def self.acquire(name, options = {})
-      logger = options.fetch(:logger) { self.logger }
+    def self.with_lock(options = {})
+      new(options).with_lock do
+        yield
+      end
+    end
 
+    def with_lock
+      acquire
+      yield if block_given?
+    ensure
+      release
+    end
+
+    def locked?
+      @locked
+    end
+
+    def acquire
       logger.debug("Acquire #{name} lock enter as uid #{Process.uid}")
-      path = "tmp/#{name}.lock"
       begin
-        f = File.new(path, File::RDWR|File::CREAT, 0644)
+        @file ||= File.new(path, File::RDWR | File::CREAT, 0644)
       rescue
         logger.error("Couldn't open #{path} for locking: #$!")
         logger.error("cwd was #{Dir.getwd})")
         raise "Couldn't open #{path} for locking: #$!"
       end
       logger.debug("Acquiring #{name} lock")
-      rc = false
       count = 0
-      while rc == false do
-        count = count + 1
-        logger.debug("Attempt #{name} Lock: #{count}")
-        rc = f.flock(File::LOCK_EX|File::LOCK_NB)
-        sleep 1 if rc == false
+      loop do
+        count += 1
+        logger.debug("Lock #{path} attempt #{count}")
+        if file.flock(File::LOCK_EX | File::LOCK_NB)
+          break
+        end
+        sleep 1
       end
-      logger.debug("Acquire #{name} lock exit: #{f.inspect}, #{rc}")
-      f
+      logger.debug("Acquire #{name} lock exit: #{file.inspect}")
+      @locked = true
+      self
     end
 
-    def self.release(f, options = {})
-      logger = options.fetch(:logger) { self.logger }
-      logger.debug("Release lock enter: #{f.inspect}")
-      if f
-        f.flock(File::LOCK_UN)
-        f.close
+    def release
+      logger.debug("Release #{name} lock enter: #{file.inspect}")
+      if @file
+        @file.flock(File::LOCK_UN) if locked?
+        @file.close unless @file.closed?
+        @file = nil
       else
-        logger.warn("release_lock called without valid file")
+        logger.warn("release called without valid file")
       end
-      logger.debug("Release lock exit")
-    end
-
-    def self.logger
-      defined?(Rails) ? Rails.logger : Logger.new(STDERR)
+      logger.debug("Release #{name} lock exit")
+      @locked = false
+      self
     end
   end
 end

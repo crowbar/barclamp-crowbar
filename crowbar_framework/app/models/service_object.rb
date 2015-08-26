@@ -139,12 +139,18 @@ class ServiceObject
 #
 # Locking Routines
 #
-  def acquire_lock(name)
-    Crowbar::Lock.acquire(name, logger: @logger)
+  def new_lock(name)
+    Crowbar::Lock.new(name: name, logger: @logger)
   end
 
-  def release_lock(f)
-    Crowbar::Lock.release(f, logger: @logger)
+  def acquire_lock(name)
+    new_lock(name).acquire
+  end
+
+  def with_lock(name)
+    new_lock(name).with_lock do
+      yield
+    end
   end
 
 #
@@ -190,7 +196,7 @@ class ServiceObject
   def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
     nodes_map = elements_to_nodes_to_roles_map(elements)
 
-    f = acquire_lock "BA-LOCK"
+    ba_lock = acquire_lock "BA-LOCK"
     delay = []
     pre_cached_nodes = {}
     begin
@@ -229,7 +235,7 @@ class ServiceObject
     rescue StandardError => e
       @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
-      release_lock f
+      ba_lock.release
     end
 
     [ delay, pre_cached_nodes ]
@@ -239,8 +245,7 @@ class ServiceObject
     nodes_map = elements_to_nodes_to_roles_map(elements)
 
     # Remove the entries from the nodes.
-    f = acquire_lock "BA-LOCK"
-    begin
+    with_lock "BA-LOCK" do
       nodes_map.each do |node_name, data|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -249,14 +254,11 @@ class ServiceObject
           node.save
         end
       end
-    ensure
-      release_lock f
     end
   end
 
   def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
-    begin
+    with_lock "BA-LOCK" do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -266,8 +268,6 @@ class ServiceObject
         node.crowbar['state_owner'] = ""
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 
@@ -282,7 +282,7 @@ class ServiceObject
     delay = []
     pre_cached_nodes = {}
     begin
-      f = acquire_lock "queue"
+      queue_lock = acquire_lock "queue"
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       if db.nil?
@@ -343,7 +343,7 @@ class ServiceObject
     rescue StandardError => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
     ensure
-      release_lock f
+      queue_lock.release
     end
 
     prop = ProposalObject.find_proposal(bc, inst)
@@ -380,7 +380,7 @@ class ServiceObject
     @logger.debug("dequeue proposal: enter #{inst} #{bc}")
     ret = false
     begin
-      f = acquire_lock "queue"
+      queue_lock = acquire_lock "queue"
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
@@ -394,7 +394,7 @@ class ServiceObject
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return [400, e.message]
     ensure
-      release_lock f
+      queue_lock.release
     end
     @logger.debug("dequeue proposal: exit #{inst} #{bc}")
     return dequeued ? [200, {}] : [400, '']
@@ -411,7 +411,7 @@ class ServiceObject
       loop_again = false
       list = []
       begin
-        f = acquire_lock "queue"
+        queue_lock = acquire_lock "queue"
 
         db = ProposalObject.find_data_bag_item "crowbar/queue"
         if db.nil?
@@ -473,7 +473,7 @@ class ServiceObject
         @logger.debug("process queue: exit: error")
         return
       ensure
-        release_lock f
+        queue_lock.release
       end
 
       @logger.debug("process queue: list: #{list.inspect}")

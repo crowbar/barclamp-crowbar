@@ -286,7 +286,7 @@ class RoleObject < ChefObject
 
   def save
     Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
-    role_lock = FileLock.acquire "role:#{@role.name}"
+    role_lock = Crowbar::Lock.acquire "role:#{@role.name}"
     begin
       upstream_role = RoleObject.find_role_by_name(@role.name)
       ### We assume that if we can not find the role, it has just
@@ -308,7 +308,7 @@ class RoleObject < ChefObject
       increment_crowbar_revision!
       @role.save
     ensure
-      FileLock.release role_lock
+      Crowbar::Lock.release role_lock
     end
     Rails.logger.debug("Done saving role: #{@role.name} - #{crowbar_revision}")
   end
@@ -316,10 +316,10 @@ class RoleObject < ChefObject
   def destroy
     Rails.logger.debug("Destroying role: #{@role.name} - #{crowbar_revision}")
     begin
-      role_lock = FileLock.acquire "role:#{@role.name}"
+      role_lock = Crowbar::Lock.acquire "role:#{@role.name}"
       @role.destroy
     ensure
-      FileLock.release role_lock
+      Crowbar::Lock.release role_lock
     end
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")
   end

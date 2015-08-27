@@ -1106,12 +1106,6 @@ class ServiceObject
     end
     new_elements = expanded_new_elements
 
-    # Don't start until all intervallic runs are done.  This avoids
-    # some of the orchestration problems described in:
-    #
-    #   https://bugzilla.suse.com/show_bug.cgi?id=857375
-    wait_for_chef_daemons(new_elements.values.flatten.uniq)
-
     # save list of expanded elements, as this is needed when we look at the old
     # role. See below the comments for old_elements.
     if new_elements != new_deployment["elements"]
@@ -1234,6 +1228,46 @@ class ServiceObject
       @logger.debug "run_order #{run_order.inspect}"
     end
 
+    applying_nodes = run_order.flatten.uniq.sort
+
+    # Prevent any intervallic runs from running whilst we apply the
+    # proposal, in order to avoid the orchestration problems described
+    # in https://bugzilla.suse.com/show_bug.cgi?id=857375
+    #
+    # First we pause the chef-client daemons by ensuring a magic
+    # pause-file.lock exists which the daemons will honour due to a
+    # custom patch:
+    nodes_to_lock = applying_nodes.reject do |node_name|
+      node = NodeObject.find_node_by_name(node_name)
+      node[:platform] == "windows" || node.admin?
+    end
+
+    begin
+      apply_locks = nodes_to_lock.map do |node|
+        Crowbar::Lock::SharedNonBlocking.new(
+          logger: @logger,
+          path: "/var/chef/cache/pause-file.lock",
+          node: node,
+          owner: "apply_role-#{role.name}-#{inst}-#{Process.pid}",
+          reason: "apply_role(#{role.name}, #{inst}, #{in_queue}) pid #{Process.pid}"
+        ).acquire
+      end
+    rescue Crowbar::Error::LockingFailure => e
+      message = "Failed to apply the proposal: #{e.message}"
+      update_proposal_status(inst, "failed", message)
+      return [409, message] # 409 is 'Conflict'
+    end
+
+    # Now that we've ensured no new intervallic runs can be started,
+    # wait for any which started before we paused the daemons.
+    wait_for_chef_daemons(applying_nodes)
+
+    # By this point, no intervallic runs should be running, and no
+    # more will be able to start running until we release the locks
+    # after the proposal has finished applying.
+
+    # Part III: Update run lists of nodes to reflect new deployment. I.e. write
+    # through the deployment schedule in pending node actions into run lists.
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
     pending_node_actions.each do |node_name, lists|
@@ -1422,6 +1456,8 @@ class ServiceObject
     restore_to_ready(all_nodes)
     process_queue unless in_queue
     [200, {}]
+  ensure
+    apply_locks.each(&:release) if apply_locks
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)

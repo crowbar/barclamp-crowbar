@@ -2,7 +2,7 @@ require "spec_helper"
 require "timeout"
 
 describe Crowbar::Lock do
-  let(:lock) { Crowbar::Lock.new }
+  let(:lock) { subject.class.new }
 
   after(:each) do
     lock.release
@@ -10,7 +10,7 @@ describe Crowbar::Lock do
 
   context "when a lock is acquired" do
     it "returns a lock object" do
-      expect(lock.acquire).to be_an_instance_of(Crowbar::Lock)
+      expect(lock.acquire).to be_an_instance_of(subject.class)
     end
 
     it "sets a lock object to locked" do
@@ -29,7 +29,7 @@ describe Crowbar::Lock do
 
     it "is an exclusive lock" do
       # Check that one of two attempts racing to obtain lock will win
-      lock2 = Crowbar::Lock.new
+      lock2 = subject.class.new
       lock.acquire
       expect {
         Timeout::timeout(1) do
@@ -42,7 +42,7 @@ describe Crowbar::Lock do
 
     it "keeps locks with different paths independent" do
       # Check that one of two attempts racing to obtain lock will win
-      lock2 = Crowbar::Lock.new(path: lock.path.to_s + '2')
+      lock2 = subject.class.new(path: lock.path.to_s + "2")
       lock.acquire
       lock2.acquire
       expect(lock2.locked?).to be true
@@ -53,7 +53,7 @@ describe Crowbar::Lock do
   context "when a lockfile is released" do
     it "returns a lock object" do
       lock.acquire
-      expect(lock.release).to be_an_instance_of(Crowbar::Lock)
+      expect(lock.release).to be_an_instance_of(subject.class)
     end
 
     it "unlocks a lock object" do

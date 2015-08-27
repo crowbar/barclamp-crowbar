@@ -44,43 +44,5 @@ module Crowbar
     def locked?
       @locked
     end
-
-    def acquire
-      logger.debug("Acquire #{name} lock enter as uid #{Process.uid}")
-      begin
-        @file ||= File.new(path, File::RDWR | File::CREAT, 0644)
-      rescue
-        logger.error("Couldn't open #{path} for locking: #$!")
-        logger.error("cwd was #{Dir.getwd})")
-        raise "Couldn't open #{path} for locking: #$!"
-      end
-      logger.debug("Acquiring #{name} lock")
-      count = 0
-      loop do
-        count += 1
-        logger.debug("Lock #{path} attempt #{count}")
-        if file.flock(File::LOCK_EX | File::LOCK_NB)
-          break
-        end
-        sleep 1
-      end
-      logger.debug("Acquire #{name} lock exit: #{file.inspect}")
-      @locked = true
-      self
-    end
-
-    def release
-      logger.debug("Release #{name} lock enter: #{file.inspect}")
-      if @file
-        @file.flock(File::LOCK_UN) if locked?
-        @file.close unless @file.closed?
-        @file = nil
-      else
-        logger.warn("release called without valid file")
-      end
-      logger.debug("Release #{name} lock exit")
-      @locked = false
-      self
-    end
   end
 end

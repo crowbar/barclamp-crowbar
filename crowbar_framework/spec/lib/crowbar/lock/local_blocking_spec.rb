@@ -1,7 +1,7 @@
 require "spec_helper"
 require "timeout"
 
-describe Crowbar::Lock do
+describe Crowbar::Lock::LocalBlocking do
   let(:lock) { subject.class.new }
 
   after(:each) do

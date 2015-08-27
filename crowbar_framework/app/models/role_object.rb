@@ -286,7 +286,7 @@ class RoleObject < ChefObject
 
   def save
     Rails.logger.debug("Saving role: #{@role.name} - #{crowbar_revision}")
-    Crowbar::Lock.with_lock(name: "role:#{@role.name}") do
+    Crowbar::Lock::LocalBlocking.with_lock(name: "role:#{@role.name}") do
       upstream_role = RoleObject.find_role_by_name(@role.name)
       ### We assume that if we can not find the role, it has just
       # been created. TODO: If it was actually deleted meanwhile,
@@ -312,7 +312,7 @@ class RoleObject < ChefObject
 
   def destroy
     Rails.logger.debug("Destroying role: #{@role.name} - #{crowbar_revision}")
-    Crowbar::Lock.with_lock(name: "role:#{@role.name}") do
+    Crowbar::Lock::LocalBlocking.with_lock(name: "role:#{@role.name}") do
       @role.destroy
     end
     Rails.logger.debug("Done removing role: #{@role.name} - #{crowbar_revision}")

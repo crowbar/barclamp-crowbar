@@ -85,6 +85,12 @@ module RemoteNode
     system(*ssh)
   end
 
+  def pipe_ssh_cmd(host_or_ip, cmd, stdin)
+    ssh = ssh_cmd_base(host_or_ip)
+    ssh << cmd
+    Open3.capture3(*ssh, stdin_data: stdin)
+  end
+
   private
 
   # are there some chef-clients running on the host?

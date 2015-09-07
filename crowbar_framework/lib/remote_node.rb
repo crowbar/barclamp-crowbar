@@ -53,7 +53,7 @@ module RemoteNode
     # in this case return true so the process can continue
     if reboot_requesttime > 0
       boottime = ssh_cmd_get_boottime(host_or_ip, options)
-      if boottime > 0 and boottime <= reboot_requesttime
+      if boottime > 0 && boottime <= reboot_requesttime
         false
       else
         true
@@ -69,14 +69,14 @@ module RemoteNode
 
     ssh_cmd = ssh_cmd_base(host_or_ip)
     ssh_cmd << "'echo $(($(date +%s) - $(cat /proc/uptime|cut -d \" \" -f 1|cut -d \".\" -f 1)))'"
-    ssh_cmd = ssh_cmd.map{ |x| x.chomp }.join(" ")
+    ssh_cmd = ssh_cmd.map(&:chomp).join(" ")
     retval = `#{ssh_cmd}`.split(" ")[0].to_i
     if $?.exitstatus != 0
       msg = "ssh-cmd '#{ssh_cmd}' to get datetime not successful"
       logger ? logger.info(msg) : puts(msg)
       retval = 0
     end
-    return retval
+    retval
   end
 
   def ssh_cmd(host_or_ip, cmd)
@@ -98,7 +98,7 @@ module RemoteNode
   def chef_clients_running?(host_or_ip)
     ssh_cmd = ssh_cmd_base(host_or_ip)
     ssh_cmd << "'if test -f /var/chef/cache/chef-client-running.pid; then flock -n /var/chef/cache/chef-client-running.pid true; fi'"
-    ssh_cmd = ssh_cmd.map{|x| x.chomp}.join(" ")
+    ssh_cmd = ssh_cmd.map(&:chomp).join(" ")
     res = `#{ssh_cmd}`
     case $?.exitstatus
     when 0

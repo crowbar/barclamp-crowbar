@@ -111,7 +111,7 @@ module RemoteNode
   # Workaround for similar issue
   # http://projects.puppetlabs.com/issues/2776
   def resolve_host(host)
-    `dig +short #{host} | head -n1`
+    `dig +short #{host} | head -n1`.rstrip
   end
 
   def runlevel_check_cmd(host)

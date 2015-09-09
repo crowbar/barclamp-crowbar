@@ -1000,9 +1000,6 @@ class ServiceObject
   def apply_role(role, inst, in_queue)
     @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
 
-    # Initialize variables used in ensure at the end of the method
-    chef_daemon_nodes = []
-
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 

@@ -1,6 +1,0 @@
-/var/log/chef/server*log /var/log/chef/expander*log /var/log/chef/*.jetty.log /var/log/chef/merb*log /var/log/chef/solr.log /var/log/rabbitmq/*.log {
-  rotate 12
-  weekly
-  compress
-  copytruncate
-}

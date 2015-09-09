@@ -1,1 +1,0 @@
-{"name":"data_bag_item_crowbar_queue","data_bag":"crowbar","chef_type":"data_bag_item","json_class":"Chef::DataBagItem","raw_data":{"id":"queue","proposal_queue":[]}}

@@ -1,6 +1,0 @@
-- flash.each do |key, message|
-  .alert.alert-dismissable{ :class => "alert-#{flash_for key}"}
-    %button.close{ :type => "button", "data-dismiss" => "alert", "aria-hidden" => true }
-      &times;
-
-    = simple_format(message)

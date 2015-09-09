@@ -1,9 +1,0 @@
-- unless @node.admin?
-  = link_to "Forget", hit_node_path(@node.handle, "delete"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t(".confirm_forget"), :title => t(".forget_tooltip")
-
-  - if crowbar_options[:show].include? :bios or crowbar_options[:show].include? :raid
-    = link_to "Hardware Update", hit_node_path(@node.handle, "update"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t(".confirm_hw_update"), :title => t(".hw_update_tooltip")
-
-  - if @node.allocated?
-    = link_to "Reinstall", hit_node_path(@node.handle, "reinstall"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t(".confirm_reinstall"), :title => t(".reinstall_tooltip")
-    = link_to "Deallocate", hit_node_path(@node.handle, "reset"), :class => "btn btn-default", "data-remote" => true, "data-confirm" => t(".confirm_deallocate"), :title => t(".deallocate_tooltip")

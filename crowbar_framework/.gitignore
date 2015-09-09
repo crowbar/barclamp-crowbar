@@ -1,7 +1,0 @@
-.bundle
-Gemfile.lock
-
-public/assets
-
-coverage/
-.ruby-version

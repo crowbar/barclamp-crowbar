@@ -47,8 +47,10 @@ class CrowbarService < ServiceObject
 
     @logger.info("Crowbar transition enter: #{name} to #{state}")
 
-    f = acquire_lock "BA-LOCK"
-    begin
+    pop_it = false
+    node = nil
+
+    with_lock "BA-LOCK" do
       node = NodeObject.find_node_by_name name
       if node.nil? and (state == "discovering" or state == "testing")
         @logger.debug("Crowbar transition: creating new node for #{name} to #{state}")
@@ -63,8 +65,6 @@ class CrowbarService < ServiceObject
       if state == "readying"
         transition_to_readying inst, name, state, node
       end
-
-      pop_it = false
 
       if %w(hardware-installing hardware-updating update).include? state
         @logger.debug("Crowbar transition: force run because of state #{name} to #{state}")
@@ -88,8 +88,6 @@ class CrowbarService < ServiceObject
       end
 
       node.save if transition_save_node
-    ensure
-      release_lock f
     end
 
     if pop_it
@@ -146,7 +144,7 @@ class CrowbarService < ServiceObject
             @logger.fatal("#{e.backtrace.join("\n")}")
             return [500, "#{bc} transition to #{rname} failed.\n#{e.message}\n#{e.backtrace.join("\n")}"]
           ensure
-            release_lock bc_lock
+            bc_lock.release
           end
         end
       end

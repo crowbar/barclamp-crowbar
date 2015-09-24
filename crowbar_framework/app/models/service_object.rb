@@ -139,12 +139,18 @@ class ServiceObject
 #
 # Locking Routines
 #
-  def acquire_lock(name)
-    FileLock.acquire(name, :logger => @logger)
+  def new_lock(name)
+    Crowbar::Lock::LocalBlocking.new(name: name, logger: @logger)
   end
 
-  def release_lock(f)
-    FileLock.release(f, :logger => @logger)
+  def acquire_lock(name)
+    new_lock(name).acquire
+  end
+
+  def with_lock(name)
+    new_lock(name).with_lock do
+      yield
+    end
   end
 
 #
@@ -190,7 +196,7 @@ class ServiceObject
   def add_pending_elements(bc, inst, elements, queue_me, pre_cached_nodes = {})
     nodes_map = elements_to_nodes_to_roles_map(elements)
 
-    f = acquire_lock "BA-LOCK"
+    ba_lock = acquire_lock "BA-LOCK"
     delay = []
     pre_cached_nodes = {}
     begin
@@ -229,7 +235,7 @@ class ServiceObject
     rescue StandardError => e
       @logger.fatal("add_pending_elements: Exception #{e.message} #{e.backtrace.join("\n")}")
     ensure
-      release_lock f
+      ba_lock.release
     end
 
     [ delay, pre_cached_nodes ]
@@ -239,8 +245,7 @@ class ServiceObject
     nodes_map = elements_to_nodes_to_roles_map(elements)
 
     # Remove the entries from the nodes.
-    f = acquire_lock "BA-LOCK"
-    begin
+    with_lock "BA-LOCK" do
       nodes_map.each do |node_name, data|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -249,14 +254,11 @@ class ServiceObject
           node.save
         end
       end
-    ensure
-      release_lock f
     end
   end
 
   def restore_to_ready(nodes)
-    f = acquire_lock "BA-LOCK"
-    begin
+    with_lock "BA-LOCK" do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
         next if node.nil?
@@ -266,8 +268,6 @@ class ServiceObject
         node.crowbar['state_owner'] = ""
         node.save
       end
-    ensure
-      release_lock f
     end
   end
 
@@ -282,7 +282,7 @@ class ServiceObject
     delay = []
     pre_cached_nodes = {}
     begin
-      f = acquire_lock "queue"
+      queue_lock = acquire_lock "queue"
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       if db.nil?
@@ -343,7 +343,7 @@ class ServiceObject
     rescue StandardError => e
       @logger.error("Error queuing proposal for #{bc}:#{inst}: #{e.message}")
     ensure
-      release_lock f
+      queue_lock.release
     end
 
     prop = ProposalObject.find_proposal(bc, inst)
@@ -380,7 +380,7 @@ class ServiceObject
     @logger.debug("dequeue proposal: enter #{inst} #{bc}")
     ret = false
     begin
-      f = acquire_lock "queue"
+      queue_lock = acquire_lock "queue"
 
       db = ProposalObject.find_data_bag_item "crowbar/queue"
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: no entry") if db.nil?
@@ -394,7 +394,7 @@ class ServiceObject
       @logger.debug("dequeue proposal: exit #{inst} #{bc}: error")
       return [400, e.message]
     ensure
-      release_lock f
+      queue_lock.release
     end
     @logger.debug("dequeue proposal: exit #{inst} #{bc}")
     return dequeued ? [200, {}] : [400, '']
@@ -411,7 +411,7 @@ class ServiceObject
       loop_again = false
       list = []
       begin
-        f = acquire_lock "queue"
+        queue_lock = acquire_lock "queue"
 
         db = ProposalObject.find_data_bag_item "crowbar/queue"
         if db.nil?
@@ -473,7 +473,7 @@ class ServiceObject
         @logger.debug("process queue: exit: error")
         return
       ensure
-        release_lock f
+        queue_lock.release
       end
 
       @logger.debug("process queue: list: #{list.inspect}")
@@ -1075,9 +1075,6 @@ class ServiceObject
   def apply_role(role, inst, in_queue)
     @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
 
-    # Initialize variables used in ensure at the end of the method
-    chef_daemon_nodes = []
-
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
@@ -1109,8 +1106,8 @@ class ServiceObject
     end
     new_elements = expanded_new_elements
 
-    # save list of expanded elements, as this is needed when we look at the
-    # old role
+    # save list of expanded elements, as this is needed when we look at the old
+    # role. See below the comments for old_elements.
     if new_elements != new_deployment["elements"]
       new_deployment["elements_expanded"] = new_elements
     else
@@ -1231,6 +1228,46 @@ class ServiceObject
       @logger.debug "run_order #{run_order.inspect}"
     end
 
+    applying_nodes = run_order.flatten.uniq.sort
+
+    # Prevent any intervallic runs from running whilst we apply the
+    # proposal, in order to avoid the orchestration problems described
+    # in https://bugzilla.suse.com/show_bug.cgi?id=857375
+    #
+    # First we pause the chef-client daemons by ensuring a magic
+    # pause-file.lock exists which the daemons will honour due to a
+    # custom patch:
+    nodes_to_lock = applying_nodes.reject do |node_name|
+      node = NodeObject.find_node_by_name(node_name)
+      node[:platform] == "windows" || node.admin?
+    end
+
+    begin
+      apply_locks = nodes_to_lock.map do |node|
+        Crowbar::Lock::SharedNonBlocking.new(
+          logger: @logger,
+          path: "/var/chef/cache/pause-file.lock",
+          node: node,
+          owner: "apply_role-#{role.name}-#{inst}-#{Process.pid}",
+          reason: "apply_role(#{role.name}, #{inst}, #{in_queue}) pid #{Process.pid}"
+        ).acquire
+      end
+    rescue Crowbar::Error::LockingFailure => e
+      message = "Failed to apply the proposal: #{e.message}"
+      update_proposal_status(inst, "failed", message)
+      return [409, message] # 409 is 'Conflict'
+    end
+
+    # Now that we've ensured no new intervallic runs can be started,
+    # wait for any which started before we paused the daemons.
+    wait_for_chef_daemons(applying_nodes)
+
+    # By this point, no intervallic runs should be running, and no
+    # more will be able to start running until we release the locks
+    # after the proposal has finished applying.
+
+    # Part III: Update run lists of nodes to reflect new deployment. I.e. write
+    # through the deployment schedule in pending node actions into run lists.
     @logger.debug "Clean the run_lists for #{pending_node_actions.inspect}"
     admin_nodes = []
     pending_node_actions.each do |node_name, lists|
@@ -1419,6 +1456,8 @@ class ServiceObject
     restore_to_ready(all_nodes)
     process_queue unless in_queue
     [200, {}]
+  ensure
+    apply_locks.each(&:release) if apply_locks
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
@@ -1542,6 +1581,17 @@ class ServiceObject
       # check if we need to wait for a node reboot
       wait_for_reboot(node)
     }
+  end
+
+  def wait_for_chef_daemons(node_list)
+    node_list.each do |node_name|
+      node = NodeObject.find_node_by_name(node_name)
+
+      # we can't connect to windows nodes
+      next if node[:platform] == "windows"
+
+      wait_for_chef_clients(node_name, logger: true)
+    end
   end
 
   private

@@ -1000,9 +1000,6 @@ class ServiceObject
   def apply_role(role, inst, in_queue)
     @logger.debug "apply_role(#{role.name}, #{inst}, #{in_queue})"
 
-    # Initialize variables used in ensure at the end of the method
-    chef_daemon_nodes = []
-
     # Query for this role
     old_role = RoleObject.find_role_by_name(role.name)
 
@@ -1458,7 +1455,7 @@ class ServiceObject
       ssh_cmd = ssh.dup << command
 
       # check if there are currently other chef-client runs on the node
-      wait_for_chef_clients(node, :logger => false)
+      wait_for_chef_clients(node)
       # check if the node is currently rebooting
       wait_for_reboot(node)
 
@@ -1471,15 +1468,9 @@ class ServiceObject
 
   private
 
-  def wait_for_chef_clients(node_name, options = {})
-    options = if options.fetch(:logger)
-      {:logger => @logger}
-    else
-      {}
-    end
-    @logger.debug("wait_for_chef_clients: Waiting for already running chef-clients on #{node_name}.")
-    unless RemoteNode.chef_ready?(node_name, 1200, 10, options)
-      @logger.error("Waiting for already running chef-clients on #{node_name} failed.")
+  def wait_for_chef_clients(node)
+    unless RemoteNode.chef_ready?(node, 1200)
+      STDERR.puts "Waiting for already running chef-clients on #{node} failed"
       exit(1)
     end
   end

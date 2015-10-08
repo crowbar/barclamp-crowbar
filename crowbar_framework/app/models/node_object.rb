@@ -1180,19 +1180,6 @@ class NodeObject < ChefObject
     @node["crowbar_wall"]["status"]["ipmi"]["address_set"]
   end
 
-  def run_service(service_name, action)
-    platform, version = @node["platform"], @node["platform_version"]
-    case service_name
-    when :chef
-      service_cmd = ChefObject.service_command(platform, version, "chef-client", action)
-    end
-    if service_cmd.nil?
-      Rails.logger.error("run_service: service command for #{platform} #{version} could not be determined")
-    else
-      ssh_cmd(service_cmd)
-    end
-  end
-
   def disk_owner(device)
     if device
       crowbar_wall[:claimed_disks][device][:owner] rescue ""

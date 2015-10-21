@@ -105,18 +105,14 @@ class NodesController < ApplicationController
           begin
             dirty = false
             node = NodeObject.find_node_by_name node_name
+            is_allocated = node.allocated?
 
-            unless node.alias == node_attributes["alias"]
-              node.force_alias = node_attributes["alias"]
+            if node_attributes["allocate"] and not is_allocated
+              node.allocate!
               dirty = true
             end
 
-            unless node.public_name == node_attributes["public_name"]
-              node.force_public_name = node_attributes["public_name"]
-              dirty = true
-            end
-
-            unless node.allocated?
+            unless is_allocated
               unless node.target_platform == node_attributes["target_platform"]
                 node.target_platform = node_attributes["target_platform"]
                 dirty = true
@@ -128,8 +124,13 @@ class NodesController < ApplicationController
               end
             end
 
-            if node_attributes["allocate"] and not node.allocated?
-              node.allocate!
+            unless node.alias == node_attributes["alias"]
+              node.force_alias = node_attributes["alias"]
+              dirty = true
+            end
+
+            unless node.public_name == node_attributes["public_name"]
+              node.force_public_name = node_attributes["public_name"]
               dirty = true
             end
 

@@ -427,7 +427,7 @@ class NodesController < ApplicationController
     @node = NodeObject.find_node_by_name(node_name) if @node.nil?
     if @node
       # If we're in discovery mode, then we have a temporary DHCP IP address.
-      if not ['discovering', 'discovered', 'hardware-installing', 'hardware-installed'].include? @node.state
+      if !["discovering", "discovered"].include?(@node.state)
         intf_if_map = @node.build_node_map
         # build network information (this may need to move into the object)
         @node.networks.each do |intf, data|

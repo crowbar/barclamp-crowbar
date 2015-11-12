@@ -96,6 +96,7 @@ en:
     show_index:
       created_on: 'Created on %{date}'
       failed: 'Error: %{message}'
+      blockui_message: 'Processing, please wait...'
     show_simplified_index:
       created_on: 'Created on %{date}'
       failed: 'Error: %{message}'

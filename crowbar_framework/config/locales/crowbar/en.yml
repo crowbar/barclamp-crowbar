@@ -338,6 +338,7 @@ en:
         unknown: '%{count} Unknown'
         unready: '%{count} Not Ready'
         pending: '%{count} Pending'
+        upgrade: '%{count} Upgrade State'
       default_new: 'New group'
       add: 'Add'
       add_group_error: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'

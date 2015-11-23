@@ -44,6 +44,7 @@ module NodesHelper
       result.push t("unknown", :count => values[1], :scope => "nodes.index.status_pie") if values[1] > 0
       result.push t("unready", :count => values[2], :scope => "nodes.index.status_pie") if values[2] > 0
       result.push t("pending", :count => values[3], :scope => "nodes.index.status_pie") if values[3] > 0
+      result.push t("crowbar_upgrade", :count => values[4], :scope => "nodes.index.status_pie") if values[4] > 0
     end.join(tag(:br))
   end
 
@@ -58,6 +59,7 @@ module NodesHelper
       else
         result.push group[:status]["unready"] + group[:status]["pending"]
       end
+      result.push group[:status]["crowbar-upgrade"]
     end
   end
 

@@ -456,6 +456,8 @@ class NodeObject < ChefObject
       "failed"    #flashing red
     when "hardware-installing", "hardware-install", "hardware-installed", "hardware-updated", "hardware-updating"
       "building"  #yellow
+    when "upgrade"
+      "upgrade" #blue
     else # including: installing, installed, reinstall, reboot, recovering, readying, applying
       "unready"   #spinner
     end

@@ -257,17 +257,28 @@ class ServiceObject
     end
   end
 
+  def restore_node_to_ready(node)
+    node.crowbar['state'] = 'ready'
+    node.crowbar['state_owner'] = ""
+    node.save
+  end
+
   def restore_to_ready(nodes)
     with_lock "BA-LOCK" do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
-        next if node.nil?
-
-        # Nothing to delay so mark them applying.
-        node.crowbar['state'] = 'ready'
-        node.crowbar['state_owner'] = ""
-        node.save
+        next if node.nil? || node.crowbar['state'] == 'upgrade'
+          # Nothing to delay so mark them applying.
+          restore_node_to_ready(node)
       end
+    end
+  end
+
+  def remove_upgrade_state(nodes)
+    nodes.each do |node_name|
+      node = NodeObject.find_node_by_name(node_name)
+      next if node.nil?
+        restore_node_to_ready(node)
     end
   end
 

@@ -267,9 +267,12 @@ class ServiceObject
     with_lock "BA-LOCK" do
       nodes.each do |node_name|
         node = NodeObject.find_node_by_name(node_name)
-        next if node.nil? || node.crowbar['state'] == 'upgrade'
-          # Nothing to delay so mark them applying.
-          restore_node_to_ready(node)
+        # Nodes with 'crowbar_upgrade' state need to stay in that state
+        # even after applying relevant roles. They could be brought back to
+        # being ready only by explicit user's action (reverting the upgrade).
+        next if node.nil? || node.crowbar['state'] == 'crowbar_upgrade'
+        # Nothing to delay so mark them applying.
+        restore_node_to_ready(node)
       end
     end
   end

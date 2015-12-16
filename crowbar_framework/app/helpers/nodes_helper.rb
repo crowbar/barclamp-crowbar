@@ -59,7 +59,7 @@ module NodesHelper
       else
         result.push group[:status]["unready"] + group[:status]["pending"]
       end
-      result.push group[:status]["crowbar-upgrade"]
+      result.push group[:status]["crowbar_upgrade"]
     end
   end
 

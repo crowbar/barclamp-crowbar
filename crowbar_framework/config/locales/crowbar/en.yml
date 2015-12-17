@@ -78,6 +78,7 @@ en:
     utils:
       title: 'Utilities'
       logs: 'Exported Items'
+      upgrade: 'Upgrade to Cloud 6'
     help:
       title: 'Help'
       docs: 'Documentation'
@@ -388,6 +389,10 @@ en:
       nics: 'NICs'
       cpu: 'CPU Type'
       hardware: 'Platform'
+    upgrade:
+      next: 'Next'
+      title: 'Upgrade to Cloud 6'
+      upgrade_hint: 'Please make sure you have all the latest maintenance updates installed. To start the upgrade process, click Next.'
     new:
       title: 'Add node'
     edit:

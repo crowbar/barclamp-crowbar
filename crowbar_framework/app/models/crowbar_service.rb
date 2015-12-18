@@ -28,6 +28,14 @@ class CrowbarService < ServiceObject
             "suse" => "12.0",
             "windows" => "/.*/"
           }
+        },
+        "crowbar-upgrade" => {
+          "unique" => false,
+          "count" => -1,
+          "admin" => false,
+          "exclude_platform" => {
+            "windows" => "/.*/"
+          }
         }
       }
     end
@@ -167,6 +175,18 @@ class CrowbarService < ServiceObject
     base = super
     @logger.debug("Crowbar create_proposal exit")
     base
+  end
+
+  def apply_role_pre_chef_call(old_role, role, all_nodes)
+    @logger.debug("crowbar apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+    all_nodes.each do |n|
+      node = NodeObject.find_node_by_name n
+      # value of crowbar_wall["crowbar-upgrade"] indicates that the role should be executed
+      # but node state should not be changed: this is needed when reverting node state to ready
+      if node.role?("crowbar-upgrade") && node.crowbar_wall["crowbar-upgrade"]
+        node.set_state("crowbar-upgrade")
+      end
+    end
   end
 
   def apply_role (role, inst, in_queue)

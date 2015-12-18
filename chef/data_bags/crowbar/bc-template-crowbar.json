@@ -31,17 +31,24 @@
     "crowbar": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
+      "schema-revision": 1,
       "element_states": {
-        "crowbar": [ "all" ]
+        "crowbar": [ "all" ],
+        "crowbar-upgrade": [ "readying", "ready", "applying", "crowbar_upgrade" ]
       },
       "elements": {},
       "element_order": [
-        [ "crowbar" ]
+        [ "crowbar" ],
+        [ "crowbar-upgrade" ]
       ],
+      "element_run_list_order": {
+        "crowbar": 10,
+        "crowbar-upgrade": 2000
+      },
       "config": {
         "environment": "crowbar-config-test",
         "mode": "full",
-        "transitions": false,
+        "transitions": true,
         "transition_list": [ ]
       }
     }

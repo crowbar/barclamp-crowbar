@@ -6,4 +6,4 @@
       = t(".upgrade_hint")
 
     .btn-group
-      %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t(".next") }
+      = button_to t(".next"), running_upgrade_path, class: "btn btn-default"

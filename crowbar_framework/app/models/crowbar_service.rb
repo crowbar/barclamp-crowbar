@@ -18,6 +18,11 @@
 class CrowbarService < ServiceObject
   attr_accessor :transition_save_node
 
+  def initialize(thelogger)
+    super(thelogger)
+    @bc_name = "crowbar"
+  end
+
   class << self
     def role_constraints
       {
@@ -177,14 +182,54 @@ class CrowbarService < ServiceObject
     base
   end
 
+  def prepare_nodes_for_crowbar_upgrade
+    proposal = ProposalObject.find_proposal('crowbar', 'default')
+
+    # add all nodes new role which prepares them for the upgrade
+    nodes_to_upgrade = []
+    NodeObject.all.each do |node|
+      if node.state == "ready" && !node.admin?
+        node["crowbar_wall"]["crowbar_upgrade"] = true
+        node.save
+        nodes_to_upgrade.push node.name
+      end
+    end
+
+    # adapt current proposal, so the nodes get crowbar-upgrade role
+    proposal["deployment"]["crowbar"]["elements"]["crowbar-upgrade"] = nodes_to_upgrade
+    proposal.save
+    # commit the proposal so chef recipe get executed
+    self.proposal_commit("default", false, false)
+  end
+
+  def revert_nodes_from_crowbar_upgrade
+    proposal = ProposalObject.find_proposal('crowbar', 'default')
+
+    NodeObject.all.each do |node|
+      if node.state == "crowbar_upgrade"
+        # revert nodes to previous state; mark the wall so apply does not change state again
+        node["crowbar_wall"]["crowbar_upgrade"] = false
+        node.save
+        node.set_state("ready")
+      end
+    end
+
+    # commit current proposal (with the crowbar-upgrade role still assigned to nodes),
+    # so the recipe is executed when nodes have 'ready' state
+    self.proposal_commit("default", false, false)
+    # now remove the nodes from upgrade role
+    proposal["deployment"]["crowbar"]["elements"]["crowbar-upgrade"] = []
+    proposal.save
+  end
+
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("crowbar apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     all_nodes.each do |n|
       node = NodeObject.find_node_by_name n
-      # value of crowbar_wall["crowbar-upgrade"] indicates that the role should be executed
+      # value of crowbar_wall["crowbar_upgrade"] indicates that the role should be executed
       # but node state should not be changed: this is needed when reverting node state to ready
-      if node.role?("crowbar-upgrade") && node.crowbar_wall["crowbar-upgrade"]
-        node.set_state("crowbar-upgrade")
+      if node.role?("crowbar-upgrade") && node.crowbar_wall["crowbar_upgrade"]
+        node.set_state("crowbar_upgrade")
       end
     end
   end

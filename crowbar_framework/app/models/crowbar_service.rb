@@ -189,9 +189,14 @@ class CrowbarService < ServiceObject
     nodes_to_upgrade = []
     NodeObject.all.each do |node|
       if node.state == "ready" && !node.admin?
-        node["crowbar_wall"]["crowbar_upgrade"] = true
-        node.save
-        nodes_to_upgrade.push node.name
+        if node[:platform] == "windows"
+          # for Hyper-V nodes, only change the state, but do not run chef-client
+          node.set_state("crowbar_upgrade")
+        else
+          node["crowbar_wall"]["crowbar_upgrade"] = true
+          node.save
+          nodes_to_upgrade.push node.name
+        end
       end
     end
 

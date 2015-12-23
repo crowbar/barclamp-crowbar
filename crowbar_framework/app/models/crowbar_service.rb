@@ -62,8 +62,9 @@ class CrowbarService < ServiceObject
         return [404, "Node not found"]
       end
 
-      if state == "readying"
-        transition_to_readying inst, name, state, node
+      if state == "ready" && !node.admin?
+        # we need to claim raids when we already have ohai data, i.e. after first chef-client run
+        process_raid_claims node
       end
 
       if %w(hardware-installing hardware-updating update).include? state
@@ -310,12 +311,6 @@ class CrowbarService < ServiceObject
   end
 
   protected
-
-  def transition_to_readying(inst, name, state, node = nil)
-    only_unless_admin node do
-      process_raid_claims node
-    end
-  end
 
   def process_raid_claims(node)
     unless node.raid_type == "single"

@@ -1360,7 +1360,7 @@ class NodeObject < ChefObject
     if device
       crowbar_wall[:claimed_disks] ||= {}
 
-      unless disk_owner(device) == owner
+      if owner.empty? || disk_owner(device) != owner
         return false
       end
 

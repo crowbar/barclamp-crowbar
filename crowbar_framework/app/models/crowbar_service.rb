@@ -185,18 +185,25 @@ class CrowbarService < ServiceObject
   def prepare_nodes_for_crowbar_upgrade
     proposal = ProposalObject.find_proposal('crowbar', 'default')
 
-    # add all nodes new role which prepares them for the upgrade
+    # To all nodes, add a new role which prepares them for the upgrade
     nodes_to_upgrade = []
-    NodeObject.all.each do |node|
-      if node.state == "ready" && !node.admin?
-        if node[:platform] == "windows"
-          # for Hyper-V nodes, only change the state, but do not run chef-client
-          node.set_state("crowbar_upgrade")
-        else
-          node["crowbar_wall"]["crowbar_upgrade"] = true
-          node.save
-          nodes_to_upgrade.push node.name
-        end
+    all_nodes = NodeObject.all
+    not_ready = all_nodes.select { |n| !n.admin? && n.state != "ready" }.map { |n| n.name }
+
+    unless not_ready.empty?
+      raise I18n.t("upgrade.upgrade.nodes_not_ready", :nodes => not_ready.join(', '))
+    end
+
+    all_nodes.each do |node|
+      next if node.admin?
+
+      if node[:platform] == "windows"
+        # for Hyper-V nodes, only change the state, but do not run chef-client
+        node.set_state("crowbar_upgrade")
+      else
+        node["crowbar_wall"]["crowbar_upgrade"] = true
+        node.save
+        nodes_to_upgrade.push node.name
       end
     end
 

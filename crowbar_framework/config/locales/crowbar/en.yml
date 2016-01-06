@@ -470,6 +470,12 @@ en:
         raid10: 'RAID 10'
       raid_disks_selected: 'Failed to save %{node}: Not enough disks selected for this RAID level'
 
+  upgrade:
+    upgrade:
+      nodes_not_ready: | 
+        Some nodes are not ready: %{nodes}.
+        Fix the state of nodes before proceeding with the upgrade.
+
   support:
     index:
       title: 'Exported Files'

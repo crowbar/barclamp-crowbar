@@ -18,7 +18,7 @@
       = render :partial => "show_barclamps"
       = render :partial => "show_roles"
 
-  - if @node.bmc_set? or not @node.admin?
+  - if (@node.bmc_set? or not @node.admin?) && @node.state != "crowbar_upgrade"
     .panel-footer
       .btn-group.pull-right
         = render :partial => "buttons_power"

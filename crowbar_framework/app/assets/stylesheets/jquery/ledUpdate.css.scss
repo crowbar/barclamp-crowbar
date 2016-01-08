@@ -46,4 +46,10 @@
   &.in_process {
     background: image-url("jquery/ledUpdate/yellow-green-spin.png");
   }
+
+  &.crowbar_upgrade,
+  &.blue {
+    background: image-url("jquery/ledUpdate/blue.png");
+  }
+
 }

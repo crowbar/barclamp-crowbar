@@ -338,6 +338,7 @@ en:
         unknown: '%{count} Unknown'
         unready: '%{count} Not Ready'
         pending: '%{count} Pending'
+        crowbar_upgrade: '%{count} Upgrade'
       default_new: 'New group'
       add: 'Add'
       add_group_error: 'Group name should start with a letter and only contain letters, digits, -, _, ., or :.'
@@ -468,6 +469,12 @@ en:
         raid6: 'RAID 6'
         raid10: 'RAID 10'
       raid_disks_selected: 'Failed to save %{node}: Not enough disks selected for this RAID level'
+
+  upgrade:
+    upgrade:
+      nodes_not_ready: | 
+        Some nodes are not ready: %{nodes}.
+        Fix the state of nodes before proceeding with the upgrade.
 
   support:
     index:

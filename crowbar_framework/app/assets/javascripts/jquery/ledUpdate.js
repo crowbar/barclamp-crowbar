@@ -71,6 +71,7 @@
             val.status.ready,
             val.status.failed,
             val.status.unknown,
+            val.status.crowbar_upgrade,
             val.status.unready + val.status.pending
           ];
 

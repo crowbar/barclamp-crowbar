@@ -6,4 +6,4 @@
       = t(".upgrade_hint")
 
     .btn-group
-      = button_to t(".next"), running_upgrade_path, class: "btn btn-default"
+      = button_to t(".next"), upgrade_path, method: :put, class: "btn btn-default"

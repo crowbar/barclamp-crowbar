@@ -73,7 +73,10 @@ Rails.application.routes.draw do
   get 'utils/upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /[^\/]+/ }, :as => 'utils_upload'
   get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
 
-  resource :upgrade, only: [:show, :upgrade]
+  resource :upgrade, only: [:show, :upgrade] do
+    post 'start'
+    post 'reset'
+  end
 
   # barclamps
   get 'crowbar/:controller/1.0/help', :action => 'help', :as => 'help_barclamp'

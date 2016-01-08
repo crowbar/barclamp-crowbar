@@ -1,10 +1,10 @@
 .row
-  .col-xs-12
-    %h1.page-header
-      = t('.title')
-    .alert.alert-info
-      = t('.info')
+   .col-xs-12
+     %h1.page-header
+        = t('.title')
+     .alert.alert-info
+        = t('.info')
 
-    .btn-group
-      %input.btn.btn-default{ :type => "submit", :name => "submit", :value => t('.next') }
-        = button_to t(".reset"), upgrade_path, method: :put, class: "btn btn-default"
+     .btn-group
+        = button_to t(".next"), start_upgrade_path, class: "btn btn-default"
+        = button_to t(".reset"), reset_upgrade_path, class: "btn btn-default"

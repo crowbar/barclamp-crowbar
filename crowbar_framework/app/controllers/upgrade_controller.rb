@@ -1,11 +1,11 @@
-class UpgradeController < ApplicationController
-  def upgrade
+class UpgradesController < ApplicationController
+  def show
     respond_to do |format|
       format.html
     end
   end
 
-  def running_upgrade
+  def update
     respond_to do |format|
       format.html
     end

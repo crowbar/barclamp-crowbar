@@ -72,9 +72,8 @@ Rails.application.routes.draw do
   get 'utils/import/:id', :controller=>'support', :action=>'import', :constraints => { :id => /[^\/]+/ }, :as => 'utils_import'
   get 'utils/upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /[^\/]+/ }, :as => 'utils_upload'
   get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
-  get "utils/upgrade", controller: "upgrade", action: "upgrade", as: "upgrade_start"
-  post 'utils/running_upgrade', :controller => 'upgrade', :action => 'running_upgrade', :as => 'running_upgrade'
-  post 'utils/upgrade', :controller => 'upgrade', :action => 'upgrade', :as => 'upgrade'
+
+  resource :upgrade, only: [:show, :upgrade]
 
   # barclamps
   get 'crowbar/:controller/1.0/help', :action => 'help', :as => 'help_barclamp'

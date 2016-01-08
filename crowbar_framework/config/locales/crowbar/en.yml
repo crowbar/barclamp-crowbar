@@ -470,12 +470,12 @@ en:
         raid10: 'RAID 10'
       raid_disks_selected: 'Failed to save %{node}: Not enough disks selected for this RAID level'
 
-  upgrade:
-    upgrade:
+  upgrades:
+    show:
       next: 'Next'
       title: 'Upgrade to Cloud 6'
       upgrade_hint: 'Please make sure you have all the latest maintenance updates installed. To start the upgrade process, click Next.'
-    running_upgrade:
+    update:
       title: 'Upgrade to Cloud 6'
       info: 'Nodes were prepared for upgrade. Click Back to revert this action. Click Next to continue with the Upgrade'
       reset: 'Reset Upgrade'

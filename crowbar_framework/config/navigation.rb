@@ -37,7 +37,7 @@ SimpleNavigation::Configuration.run do |navigation|
     end
     level1.item :utils, t("nav.utils.title"), utils_path do |level2|
       level2.item :logs, t("nav.utils.logs"), utils_path
-      level2.item :logs, t("nav.utils.upgrade"), upgrade_path
+      level2.item :logs, t("upgrade_title"), upgrade_path
     end
   end
 end

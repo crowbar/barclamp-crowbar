@@ -74,8 +74,10 @@ Rails.application.routes.draw do
   get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
 
   resource :upgrade, only: [:show, :upgrade] do
-    post 'start'
-    post 'reset'
+    collection do
+      post 'start'
+      post 'reset'
+    end
   end
 
   # barclamps

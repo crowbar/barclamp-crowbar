@@ -1,10 +1,10 @@
 .row
    .col-xs-12
      %h1.page-header
-        = t('.title')
+        = t('upgrade_title')
      .alert.alert-info
         = t('.info')
 
      .btn-group
-        = button_to t(".next"), start_upgrade_path, class: "btn btn-default"
+        = button_to t("next"), start_upgrade_path, class: "btn btn-default"
         = button_to t(".reset"), reset_upgrade_path, class: "btn btn-default"

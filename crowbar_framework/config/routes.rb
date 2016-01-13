@@ -72,6 +72,9 @@ Rails.application.routes.draw do
   get 'utils/import/:id', :controller=>'support', :action=>'import', :constraints => { :id => /[^\/]+/ }, :as => 'utils_import'
   get 'utils/upload/:id', :controller=>'support', :action=>'upload', :constraints => { :id => /[^\/]+/ }, :as => 'utils_upload'
   get 'utils/restart/:id(.:format)', :controller=>'support', :action=>'restart', :as => 'restart'
+  get "utils/backup/download/:name/:created_at", controller: "backup", action: "download", as: "backup_download"
+  delete "utils/backup/delete/:name/:created_at", controller: "backup", action: "delete", as: "backup_delete"
+  post "utils/backup", controller: "backup", action: "backup", as: "backup_create"
 
   # barclamps
   get 'crowbar/:controller/1.0/help', :action => 'help', :as => 'help_barclamp'

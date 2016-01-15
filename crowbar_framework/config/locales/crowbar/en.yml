@@ -536,14 +536,23 @@ en:
       two_words_connector: ' and '
       last_word_connector: ' and '
 
+  backup:
+    backup: 'Backup'
+    crowbar: 'Crowbar'
+    openstack: 'OpenStack'
+    crowbar_openstack: 'Crowbar & OpenStack'
+    invalid_filename_format: 'Wrong file format, please use [FILENAME]-[YYYYMMDD]-[HHMMSS].tar.gz'
+    invalid_filename: 'Invalid filename. Please dont use whitespace or special characters'
+    missing_backup: 'Backup does not exist'
+
   # Global
   overview: 'Overview'
   show: 'View'
   all: 'All'
   destroy: 'Remove'
   back: 'Go Back'
-  cancel: 'Cancel'
   edit: 'Edit'
+  delete: 'Delete'
   actions: 'Actions'
   are_you_sure: 'Are you sure?'
   unknown: 'Unknown'

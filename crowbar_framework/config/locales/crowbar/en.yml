@@ -551,6 +551,7 @@ en:
   all: 'All'
   destroy: 'Remove'
   back: 'Go Back'
+  cancel: 'Cancel'
   edit: 'Edit'
   delete: 'Delete'
   actions: 'Actions'

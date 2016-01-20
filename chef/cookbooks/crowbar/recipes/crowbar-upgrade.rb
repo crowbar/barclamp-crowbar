@@ -17,11 +17,14 @@
 # limitations under the License.
 #
 
-# Check for node state: if it is not 'crowbar-upgrading', we're returning
-# from previous upgrade state and need to re-enable chef-client
-# otherwise do the disabling stuff bellow:
+# Check for step in the upgrade process: if it is not 'crowbar_upgrade',
+# we're returning # from previous upgrade state and need to re-enable chef-client
 
-if node["crowbar_wall"]["crowbar_upgrade"]
+return unless node[:platform_family] == "suse"
+
+upgrade_step = node["crowbar_wall"]["crowbar_upgrade_step"] || "none"
+case upgrade_step
+when "crowbar_upgrade"
 
   # Disable openstack services
   # We don't know which openstack services are enabled on the node and
@@ -39,31 +42,28 @@ if node["crowbar_wall"]["crowbar_upgrade"]
         fi
       done
     EOF
-    only_if { node[:platform] == "suse" }
   end
 
   # Disable crowbar-join
   service "crowbar_join" do
     # do not stop it, it would change node's state
     action :disable
-    only_if { node[:platform] == "suse" }
   end
 
   # Disable chef-client
   service "chef-client" do
     action [:disable, :stop]
-    only_if { node[:platform] == "suse" }
   end
 
-else
+when "revert_to_ready"
 
   service "crowbar_join" do
     action :enable
-    only_if { node[:platform] == "suse" }
   end
 
   service "chef-client" do
     action [:enable, :start]
-    only_if { node[:platform] == "suse" }
   end
+else
+  Chef::Log.warn("Invalid upgrade step given: #{upgrade_step}")
 end

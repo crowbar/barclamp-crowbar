@@ -1,0 +1,22 @@
+%section
+  .container
+    .row
+      .panel.panel-default
+        .panel-heading
+          %h4 Step1: Prepare for Upgrade to Cloud 6
+        .panel-body
+          %p
+            = button_to "Prepare Nodes for Crowbar Upgrade", prepare_nodes_upgrade_path, class: "btn btn-success center-block", method: :get
+
+%section
+  .container
+    .row
+      .panel.panel-default
+        .panel-heading
+          %h4 Step 2: Download Backup
+        .panel-body
+          %p
+            To Abort the Backup please click here:
+            = button_to "Revert Nodes to Ready", revert_nodes_upgrade_path, class: "btn btn-success center-block", method: :get
+          %p
+            Otherwise please download the backup created in /var/lib/crowbar/backup/ from the admin node and reinstall the node with Cloud 6

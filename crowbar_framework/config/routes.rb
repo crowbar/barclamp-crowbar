@@ -121,5 +121,12 @@ Rails.application.routes.draw do
   get 'crowbar/:barclamp', :action => 'versions', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/:action/:id', :controller => 'barclamp'
 
+  resource :upgrade, only: [:show] do
+    collection do
+      get :prepare_nodes
+      get :revert_nodes
+    end
+  end
+
   match '/:controller/:action/*(:.format)', :via => [:get, :post, :put, :patch, :delete]
 end

@@ -87,6 +87,13 @@ class CrowbarService < ServiceObject
       if node.crowbar["state"] != state
         @logger.debug("Crowbar transition: state has changed so we need to do stuff for #{name} to #{state}")
 
+        # Do not allow change to shutdown state from crowbar_upgrade
+        # (we need to reboot the nodes for upgrade, but without changing the state)
+        if node.crowbar["state"] == "crowbar_upgrade" && state == "shutdown"
+          @logger.debug("current node state is crowbar_upgrade; ignoring change to shutdown")
+          return [200, { name: name }]
+        end
+
         node.crowbar["crowbar"]["state_debug"] = {} if node.crowbar["crowbar"]["state_debug"].nil?
         if node.crowbar["crowbar"]["state_debug"][state].nil?
           node.crowbar["crowbar"]["state_debug"][state] = 1

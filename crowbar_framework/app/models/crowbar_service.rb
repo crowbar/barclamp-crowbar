@@ -240,7 +240,7 @@ class CrowbarService < ServiceObject
       node = NodeObject.find_node_by_name n
       # value of crowbar_wall["crowbar_upgrade"] indicates that the role should be executed
       # but node state should not be changed: this is needed when reverting node state to ready
-      if node.role?("crowbar-upgrade") && node.crowbar_wall["crowbar_upgrade_step"]
+      if node.role?("crowbar-upgrade") && node.crowbar_wall["crowbar_upgrade_step"] != "revert_to_ready"
         node.set_state("crowbar_upgrade")
       end
     end

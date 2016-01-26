@@ -659,12 +659,7 @@ class NodeObject < ChefObject
     crowbar["run_list_map"] = {} if crowbar["run_list_map"].nil?
 
     # Cull by state
-    node_state = self.crowbar["state"]
-    map = crowbar["run_list_map"].select do |k, v|
-      v["states"].include?(node_state) ||
-      # When node is in upgrade state, allow only upgrade specific recipes
-      (v["states"].include?("all") && node_state != "crowbar_upgrade")
-    end
+    map = crowbar["run_list_map"].select { |k,v| v["states"].include?("all") or v["states"].include?(self.crowbar['state']) }
 
     # Ruby 1.8 vs. 1.9 compatibility. Select returns Hash in 1.9 instead of
     # an array, so map it back to [key, val] pairs.

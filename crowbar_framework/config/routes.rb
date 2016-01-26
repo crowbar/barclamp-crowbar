@@ -121,10 +121,23 @@ Rails.application.routes.draw do
   get 'crowbar/:barclamp', :action => 'versions', :controller => 'barclamp'
   post 'crowbar/:barclamp/1.0/:action/:id', :controller => 'barclamp'
 
-  resource :upgrade, only: [:show] do
-    collection do
-      get :prepare_nodes
-      get :revert_nodes
+  scope :installer do
+    root to: "installer#index",
+      as: "installer_root"
+
+    resource :upgrade,
+      only: [:show],
+      controller: "installer/upgrades" do
+      member do
+        get :prepare
+        post :prepare
+        get :download
+        post :download
+        get :file
+        get :abort
+        get :confirm
+        post :confirm
+      end
     end
   end
 

@@ -73,6 +73,9 @@ nav:
     logs:
       order: 10
       route: 'utils_path'
+    upgrade:
+      order: 20
+      route: 'prepare_upgrade_path'
   help:
     order: 80
     route: 'docs_path'

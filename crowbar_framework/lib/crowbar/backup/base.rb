@@ -40,6 +40,10 @@ module Crowbar
               "/root/.ssh"
             ],
             [
+              "root/.chef",
+              "/root/.chef"
+            ],
+            [
               "data",
               "/var/lib/crowbar"
             ],
@@ -78,6 +82,14 @@ module Crowbar
             [
               "keys/tftp-validation.pem",
               "/srv/tftpboot/validation.pem"
+            ],
+            [
+              "keys/cert.pem",
+              "/etc/chef/certificates/cert.pem"
+            ],
+            [
+              "keys/key.pem",
+              "/etc/chef/certificates/key.pem"
             ]
           ]
         end

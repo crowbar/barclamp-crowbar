@@ -107,7 +107,6 @@ module Crowbar
             # copy files with higher permissions
             dest = data_dir.join(destination).to_s
             system("sudo", "cp", "-a", source, dest)
-            system("sudo", "chown", "-R", "crowbar:crowbar", dest)
           end
         end
       end

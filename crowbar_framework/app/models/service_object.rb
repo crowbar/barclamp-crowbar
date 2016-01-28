@@ -1261,6 +1261,8 @@ class ServiceObject
     rescue Crowbar::Error::LockingFailure => e
       message = "Failed to apply the proposal: #{e.message}"
       update_proposal_status(inst, "failed", message)
+      restore_to_ready(applying_nodes)
+      process_queue unless in_queue
       return [409, message] # 409 is 'Conflict'
     end
 

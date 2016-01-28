@@ -66,7 +66,7 @@ class Backup
     Crowbar::Backup::Export.new(dir).export
     Dir.chdir(dir) do
       system(
-        "tar czf #{path} *"
+        "sudo tar czf #{path} *"
       )
       saved = true
     end

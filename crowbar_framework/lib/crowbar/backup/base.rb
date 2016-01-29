@@ -60,10 +60,6 @@ module Crowbar
               "/etc/resolv.conf"
             ],
             [
-              "keys/crowbar-client.pem",
-              "/opt/dell/crowbar_framework/config/client.pem"
-            ],
-            [
               "keys/webui.pem",
               "/etc/chef/webui.pem"
             ],

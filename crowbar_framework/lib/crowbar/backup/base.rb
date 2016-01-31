@@ -40,6 +40,10 @@ module Crowbar
               "/root/.ssh"
             ],
             [
+              "root/.chef",
+              "/root/.chef"
+            ],
+            [
               "data",
               "/var/lib/crowbar"
             ],
@@ -54,10 +58,6 @@ module Crowbar
             [
               "configs/resolv.conf.forwarders",
               "/etc/resolv.conf"
-            ],
-            [
-              "keys/crowbar-client.pem",
-              "/opt/dell/crowbar_framework/config/client.pem"
             ],
             [
               "keys/webui.pem",
@@ -78,6 +78,14 @@ module Crowbar
             [
               "keys/tftp-validation.pem",
               "/srv/tftpboot/validation.pem"
+            ],
+            [
+              "keys/cert.pem",
+              "/etc/chef/certificates/cert.pem"
+            ],
+            [
+              "keys/key.pem",
+              "/etc/chef/certificates/key.pem"
             ]
           ]
         end

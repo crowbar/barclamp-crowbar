@@ -1249,18 +1249,25 @@ class ServiceObject
     end
 
     begin
-      apply_locks = nodes_to_lock.map do |node|
-        Crowbar::Lock::SharedNonBlocking.new(
+      apply_locks = []
+      # do not use a map to set apply_locks: if there's a failure, we need the
+      # variable to contain the locks that were acquired; with a map, the
+      # variable would be empty.
+      nodes_to_lock.each do |node|
+        apply_lock = Crowbar::Lock::SharedNonBlocking.new(
           logger: @logger,
           path: "/var/chef/cache/pause-file.lock",
           node: node,
           owner: "apply_role-#{role.name}-#{inst}-#{Process.pid}",
           reason: "apply_role(#{role.name}, #{inst}, #{in_queue}) pid #{Process.pid}"
         ).acquire
+        apply_locks.push(apply_lock)
       end
     rescue Crowbar::Error::LockingFailure => e
       message = "Failed to apply the proposal: #{e.message}"
       update_proposal_status(inst, "failed", message)
+      restore_to_ready(applying_nodes)
+      process_queue unless in_queue
       return [409, message] # 409 is 'Conflict'
     end
 

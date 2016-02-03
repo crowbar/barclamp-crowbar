@@ -17,6 +17,8 @@
 
 module Installer
   class UpgradesController < ApplicationController
+    before_filter :hide_navigation, :except => :prepare
+
     def prepare
       if request.post?
         url = begin
@@ -110,6 +112,10 @@ module Installer
           redirect_to root_url
         end
       end
+    end
+
+    def hide_navigation
+      @hide_navigation = true
     end
 
     def meta_title

@@ -78,6 +78,7 @@ en:
     utils:
       title: 'Utilities'
       logs: 'Exported Items'
+      upgrade: 'Upgrade to Cloud 6'
     help:
       title: 'Help'
       docs: 'Documentation'
@@ -545,6 +546,60 @@ en:
     invalid_filename: 'Invalid filename. Please dont use whitespace or special characters'
     missing_backup: 'Backup does not exist'
 
+  installer:
+    title: 'Installer'
+    index:
+      header: 'What do you want to do?'
+      install: 'Install from scratch'
+      restore: 'Restore from backup'
+      upgrade: 'Upgrade from backup'
+    upgrades:
+      title: 'Upgrade'
+      header: '%{product}: Upgrade from backup'
+      backup_error: 'Failed to create backup'
+      nav:
+        prepare: 'Prepare upgrade'
+        download: 'Data download'
+        confirm: 'Confirm upgrade'
+        start: 'Start upgrade'
+        repos: 'Repositories'
+        services: 'Stop services'
+        backup: 'Data backup'
+        nodes: 'Upgrading nodes'
+        finish: 'Upgrade finished'
+        restore: 'Restore from backup'
+      prepare:
+        cancel: 'Back to selection'
+        continue: 'Begin Upgrade Process'
+        header: 'Start upgrade'
+        description: |
+          Lorem Ipsum is simply dummy text of the printing and typesetting
+          industry. Lorem Ipsum has been the industry's standard dummy text ever
+          since the 1500s, when an unknown printer took a galley of type and
+          scrambled it to make a type specimen book.
+      download:
+        cancel: 'Back to selection'
+        continue: 'Continue Upgrade Process'
+        abort: 'Abort Upgrade'
+        download: 'Download Upgrade Data'
+        header: 'Download the Upgrade Data'
+        description: |
+          The upgrade data should be saved in a safe place as
+          it is required to complete the upgrade.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
+          at porttitor sem. Aliquam erat volutpat. Donec placerat nisl magna,
+          et faucibus arcu condimentum sed.Lorem ipsum
+          dolor sit amet, consectetur adipiscing elit.
+      confirm:
+        header: 'Confirm Download of Upgrade Data'
+        confirm: 'Confirm'
+        description: |
+          Please reinstall Crowbar with SUSE OpenStack Cloud 6,
+          making sure to use the same configuration used to
+          install SUSE OpenStack Cloud 5.
+        link: 'Manual download link:'
+        question: 'I have downloaded the upgrade data and I am ready to proceed with the upgrade.'
+
   # Global
   overview: 'Overview'
   show: 'View'
@@ -580,7 +635,8 @@ en:
   new: 'New Item!'
   next: 'Next'
   prev: 'Previous'
-
+  progress:
+    steps: '%{curr} of %{total}'
   # node.raid_set
   raid:
     JBODOnly: 'JBOD'

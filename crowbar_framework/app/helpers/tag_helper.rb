@@ -61,4 +61,33 @@ module TagHelper
       :class => "badge #{clazz}".strip
     )
   end
+
+  def progress_steps(current, min, max)
+    width = if current == max
+      100
+    else
+      100 / (max - min) * (current - min)
+    end
+
+    content_tag(
+      :div,
+      content_tag(
+        :div,
+        t(
+          "progress.steps",
+          curr: current,
+          total: max
+        ),
+        style: "width: #{width.floor}%;",
+        role: "progressbar",
+        class: "progress-bar progress-bar-info progress-bar-striped",
+        aria: {
+          valuenow: current,
+          valuemin: min,
+          valuemax: max
+        }
+      ),
+      class: "progress"
+    )
+  end 
 end

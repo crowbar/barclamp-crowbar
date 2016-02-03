@@ -1,0 +1,34 @@
+.row
+  .col-lg-12
+    = form_tag download_upgrade_path, method: "post" do
+      .panel.panel-default
+        .panel-heading
+          %h2
+            = t("installer.upgrades.header", product: branding_config.page_title)
+
+        .panel-plain.wizard
+          = render partial: "nav", locals: { active: :download }
+
+          .wizard-body.col-lg-9
+            %h2
+              = t(".header")
+
+            %p
+              = t(".description")
+            %p
+              = link_to icon_tag("circle-arrow-down", t(".download")),
+                file_upgrade_path,
+                class: "btn btn-primary center-block"
+
+        .panel-footer
+          .row
+            .col-lg-3
+              = progress_steps 2, 1, 8
+
+            .col-lg-9.text-right
+              .btn-group{ role: "group" }
+                = link_to icon_tag("chevron-left", t(".abort")),
+                  abort_upgrade_path,
+                  class: "btn btn-danger"
+                = button_tag icon_tag("chevron-right", t(".continue")),
+                  class: "btn btn-primary"

@@ -1,0 +1,36 @@
+.row
+  .col-lg-12
+    = form_tag confirm_upgrade_path, method: "post" do
+      .panel.panel-default
+        .panel-heading
+          %h2
+            = t("installer.upgrades.header", product: branding_config.page_title)
+
+        .panel-plain.wizard
+          = render partial: "nav", locals: { active: :confirm }
+
+          .wizard-body.col-lg-9
+            %h2
+              = t(".header")
+
+            %p
+              = t(".description")
+            %p
+              = t(".link")
+              %a{ :href => "Link/to/the/download/data/update-data-filename.ext" }
+                Link/to/the/download/data/update-data-filename.ext
+            %p
+              = t(".question")
+
+        .panel-footer
+          .row
+            .col-lg-3
+              = progress_steps 3, 1, 8
+
+            .col-lg-9.text-right
+              .btn-group{ role: "group" }
+                = link_to icon_tag("chevron-left", t("back")),
+                  download_upgrade_path,
+                  class: "btn btn-default"
+                = button_tag icon_tag("chevron-right", t(".confirm")),
+                  class: "btn btn-primary"

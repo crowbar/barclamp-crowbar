@@ -43,6 +43,67 @@
       margin-bottom: 0;
     }
   }
+
+  .panel-plain {
+    @include clearfix;
+  }
+
+  .panel-footer {
+    .progress {
+      background-color: lighten(#f5f5f5, 50%);
+      margin: 6px 0;
+    }
+  }
+}
+
+.wizard {
+  .wizard-nav {
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+
+    li {
+      line-height: 40px;
+
+      &.active {
+        a {
+          background-color: #08c;
+          color: #fff;
+        }
+      }
+
+      a {
+        background-color: #f5f5f5;
+        color: #b4b4b4;
+        cursor: default;
+        padding: 3px 15px 3px 20px;
+      }
+    }
+  }
+
+  .wizard-body {
+    padding: 30px;
+  }
+}
+
+h1,
+h2,
+h3.modal-title {
+  color: #2a8d8e;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: normal;
+}
+
+h2 {
+  font-size: 23px;
+}
+
+h3,
+h3.modal-title {
+  font-size: 19px;
 }
 
 .dropdown-menu {  

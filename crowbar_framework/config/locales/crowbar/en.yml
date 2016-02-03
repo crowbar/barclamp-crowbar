@@ -577,6 +577,7 @@ en:
           industry. Lorem Ipsum has been the industry's standard dummy text ever
           since the 1500s, when an unknown printer took a galley of type and
           scrambled it to make a type specimen book.
+        blockui_message: 'Preparing upgrade...'
       download:
         cancel: 'Back to selection'
         continue: 'Continue Upgrade Process'
@@ -590,6 +591,7 @@ en:
           at porttitor sem. Aliquam erat volutpat. Donec placerat nisl magna,
           et faucibus arcu condimentum sed.Lorem ipsum
           dolor sit amet, consectetur adipiscing elit.
+        blockui_message: 'Aborting upgrade...'
       confirm:
         header: 'Confirm Download of Upgrade Data'
         description: |

@@ -598,7 +598,6 @@ en:
           Please reinstall Crowbar with SUSE OpenStack Cloud 6,
           making sure to use the same configuration used to
           install SUSE OpenStack Cloud 5.
-        link: 'Manual download link:'
         question: 'I have downloaded the upgrade data and I am ready to proceed with the upgrade.'
 
   # Global

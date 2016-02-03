@@ -592,7 +592,6 @@ en:
           dolor sit amet, consectetur adipiscing elit.
       confirm:
         header: 'Confirm Download of Upgrade Data'
-        confirm: 'Confirm'
         description: |
           Please reinstall Crowbar with SUSE OpenStack Cloud 6,
           making sure to use the same configuration used to

@@ -59,16 +59,8 @@ module Installer
     end
 
     def confirm
-      if request.post?
-        respond_to do |format|
-          format.html do
-            redirect_to root_url
-          end
-        end
-      else
-        respond_to do |format|
-          format.html
-        end
+      respond_to do |format|
+        format.html
       end
     end
 

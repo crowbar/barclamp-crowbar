@@ -38,7 +38,8 @@ when "crowbar_upgrade"
                /etc/init.d/ovs-usurp-config-* \
                /etc/init.d/drbd \
                /etc/init.d/hawk \
-               /etc/init.d/openais;
+               /etc/init.d/openais \
+               /etc/init.d/openais-shutdown;
       do
         if test -e $i
         then

@@ -19,10 +19,11 @@
         .panel-footer
           .row
             .col-lg-3
-              = progress_steps 1, 1, 8
+              = progress_steps 1, 1, 10
 
             .col-lg-9.text-right
               .btn-group{ role: "group" }
                 = button_tag icon_tag("chevron-right", t(".continue")),
-                  class: "btn btn-primary"
+                  class: "btn btn-primary",
+                  data: { blockui: t(".blockui_message") }
 

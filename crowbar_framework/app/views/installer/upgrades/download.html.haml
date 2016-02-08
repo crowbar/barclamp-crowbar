@@ -15,20 +15,21 @@
 
             %p
               = t(".description")
-            %p
+            %p.text-center
               = link_to icon_tag("circle-arrow-down", t(".download")),
                 file_upgrade_path,
-                class: "btn btn-primary center-block"
+                class: "btn btn-primary btn-lg"
 
         .panel-footer
           .row
             .col-lg-3
-              = progress_steps 2, 1, 8
+              = progress_steps 2, 1, 10
 
             .col-lg-9.text-right
               .btn-group{ role: "group" }
                 = link_to icon_tag("chevron-left", t(".abort")),
                   abort_upgrade_path,
-                  class: "btn btn-danger"
+                  class: "btn btn-danger",
+                  data: { blockui: t(".blockui_message") }
                 = button_tag icon_tag("chevron-right", t(".continue")),
                   class: "btn btn-primary"

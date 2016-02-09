@@ -85,7 +85,7 @@ jQuery(document).ready(function($) {
     ]
   });
 
-  $('[data-blockui]').live('click submit', function(event) {
+  $('[data-blockui]').live('submit', function(event) {
     $.blockUI({
       css: {
         border: 'none',

@@ -36,7 +36,6 @@ when "crowbar_upgrade"
       for i in /etc/init.d/openstack-* \
                /etc/init.d/rabbitmq-server \
                /etc/init.d/postgresql \
-               /etc/init.d/openvswitch-switch \
                /etc/init.d/ovs-usurp-config-* \
                /etc/init.d/drbd \
                /etc/init.d/hawk \

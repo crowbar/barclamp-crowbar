@@ -34,9 +34,9 @@ when "crowbar_upgrade"
   bash "disable_openstack_services" do
     code <<-EOF
       for i in /etc/init.d/openstack-* \
+               /etc/init.d/apache2 \
                /etc/init.d/rabbitmq-server \
                /etc/init.d/postgresql \
-               /etc/init.d/openvswitch-switch \
                /etc/init.d/ovs-usurp-config-* \
                /etc/init.d/drbd \
                /etc/init.d/hawk \

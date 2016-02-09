@@ -597,7 +597,7 @@ en:
           later on the SUSE OpenStack Cloud 6 Administration Server.
           Click 'Download Upgrade Data' and keep that tar archive in a secure place. You
           will be asked to upload it later on in the process.
-          After you downloaded as saved the upgrade data click 'Continue Upgrade Process'.
+          After you downloaded and saved the upgrade data click 'Continue Upgrade Process'.
         blockui_message: 'Aborting Upgrade...'
       confirm:
         header: 'Reinstall SUSE OpenStack Cloud 6'
@@ -606,7 +606,7 @@ en:
           Administration Server
           with the new version of SUSE OpenStack Cloud. Please make sure to redeploy on
           the very same machine using the same network configuration as before.
-          Note, after redeploying it is not possible anymore to get back to the
+          Note, after redeploying it is not possible anymore to get back to
           SUSE OpenStack Cloud 5.
         question: |
           Please reassure that you successfully downloaded the upgrade data

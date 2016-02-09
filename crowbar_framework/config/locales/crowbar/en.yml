@@ -558,47 +558,61 @@ en:
       header: '%{product}: Upgrade from backup'
       backup_error: 'Failed to create backup'
       nav:
-        prepare: 'Prepare upgrade'
-        download: 'Data download'
-        confirm: 'Confirm upgrade'
-        start: 'Start upgrade'
-        repos: 'Repositories'
-        services: 'Stop services'
-        backup: 'Data backup'
-        nodes: 'Upgrading nodes'
-        finish: 'Upgrade finished'
-        restore: 'Restore from backup'
+        prepare: 'Prepare Client Nodes'
+        download: 'Download Upgrade Data'
+        confirm: 'Reinstall Admin Server'
+        start: 'Continue Upgrade'
+        restore: 'Restore'
+        repos: 'Verify Repositories'
+        services: 'Stop OpenStack Services'
+        backup: 'Data Backup'
+        nodes: 'Upgrading Nodes'
+        finish: 'Upgrade Finished'
       prepare:
-        cancel: 'Back to selection'
-        continue: 'Begin Upgrade Process'
-        header: 'Start upgrade'
+        cancel: 'Back to Selection'
+        continue: 'Prepare Nodes for Upgrade of the Administration Server'
+        header: 'Upgrade to SUSE OpenStack Cloud 6'
         description: |
-          Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry. Lorem Ipsum has been the industry's standard dummy text ever
-          since the 1500s, when an unknown printer took a galley of type and
-          scrambled it to make a type specimen book.
-        blockui_message: 'Preparing upgrade...'
+          Upgrading is a multistep process. The first few steps of this process are still
+          done using the SUSE OpenStack Cloud 5 version of the Administration Server. After
+          that you will be asked to reinstall the Server with SUSE OpenStack Cloud 6, where
+          the rest of the upgrade Process is performed.
+          At some point during the upgrade the OpenStack Cloud will be turned off and all
+          cloud services will be inaccessible.
+          It is highly recommended to back up data before the upgrade.
+        blockui_message: 'Preparing Upgrade...'
+        header_nodes: 'Prepare Nodes for Upgrade'
+        description_nodes: |
+          As a first step all client nodes of this setup need to be prepared to allow the
+          administration server to be upgraded. Click 'Prepare Nodes for Upgrade' to start
+          that preparation. It is still possible to revert the Upgrade Process after that.
       download:
-        cancel: 'Back to selection'
+        cancel: 'Back to Selection'
         continue: 'Continue Upgrade Process'
-        abort: 'Abort Upgrade'
+        abort: 'Abort Upgrade and Restore Client Nodes'
         download: 'Download Upgrade Data'
         header: 'Download the Upgrade Data'
         description: |
-          The upgrade data should be saved in a safe place as
-          it is required to complete the upgrade.
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-          at porttitor sem. Aliquam erat volutpat. Donec placerat nisl magna,
-          et faucibus arcu condimentum sed.Lorem ipsum
-          dolor sit amet, consectetur adipiscing elit.
-        blockui_message: 'Aborting upgrade...'
+          This step will create a tar archive with all relevant data to restore your setup
+          later on the SUSE OpenStack Cloud 6 Administration Server.
+          Click 'Download Upgrade Data' and keep that tar archive in a secure place. You
+          will be asked to upload it later on in the process.
+          After you downloaded as saved the upgrade data click 'Continue Upgrade Process'.
+        blockui_message: 'Aborting Upgrade...'
       confirm:
-        header: 'Confirm Download of Upgrade Data'
+        header: 'Reinstall SUSE OpenStack Cloud 6'
         description: |
-          Please reinstall Crowbar with SUSE OpenStack Cloud 6,
-          making sure to use the same configuration used to
-          install SUSE OpenStack Cloud 5.
-        question: 'I have downloaded the upgrade data and I am ready to proceed with the upgrade.'
+          As the next step in the upgrade process you need to redeploy the
+          Administration Server
+          with the new version of SUSE OpenStack Cloud. Please make sure to redeploy on
+          the very same machine using the same network configuration as before.
+          Note, after redeploying it is not possible anymore to get back to the
+          SUSE OpenStack Cloud 5.
+        question: |
+          Please reassure that you successfully downloaded the upgrade data
+          and continue the upgrade process by redeploying the Administration Server.
+          After that, open the Web Interface again and select the
+          'Continue Upgrade Process' option in the installation wizard.
 
   # Global
   overview: 'Overview'

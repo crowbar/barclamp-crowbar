@@ -15,6 +15,11 @@
 
             %p
               = t(".description")
+
+            %p
+              = t(".link")
+              = link_to file_upgrade_url, file_upgrade_url
+
             %p.text-center
               = link_to icon_tag("circle-arrow-down", t(".download")),
                 file_upgrade_path,

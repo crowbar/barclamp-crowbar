@@ -599,6 +599,7 @@ en:
           will be asked to upload it later on in the process.
           After you downloaded and saved the upgrade data click 'Continue Upgrade Process'.
         blockui_message: 'Aborting Upgrade...'
+        link: 'Direct download link:'
       confirm:
         header: 'Reinstall SUSE OpenStack Cloud 6'
         description: |

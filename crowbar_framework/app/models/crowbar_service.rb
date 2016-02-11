@@ -194,11 +194,14 @@ class CrowbarService < ServiceObject
 
     # To all nodes, add a new role which prepares them for the upgrade
     nodes_to_upgrade = []
+    not_ready_for_upgrade = []
     all_nodes = NodeObject.all
-    not_ready = all_nodes.select { |n| !n.admin? && n.state != "ready" }.map { |n| n.name }
+    all_nodes.each do |n|
+      not_ready_for_upgrade.push n.name if !n.admin? && !%w(ready crowbar_upgrade).include?(n.state)
+    end
 
-    unless not_ready.empty?
-      raise I18n.t("upgrade.upgrade.nodes_not_ready", :nodes => not_ready.join(', '))
+    unless not_ready_for_upgrade.empty?
+      raise I18n.t("upgrade.upgrade.nodes_not_ready", :nodes => not_ready_for_upgrade.join(', '))
     end
 
     all_nodes.each do |node|

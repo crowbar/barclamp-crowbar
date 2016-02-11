@@ -434,6 +434,12 @@ en:
       powercycle: 'Power Cycle'
       poweroff: 'Power Off'
       identify: 'Identify'
+      blockui_reboot: 'Triggering reboot...'
+      blockui_shutdown: 'Triggering shutdown...'
+      blockui_poweron: 'Triggering poweron...'
+      blockui_powercycle: 'Triggering powercycle...'
+      blockui_poweroff: 'Triggering poweroff...'
+      blockui_identify: 'Triggering identify...'
     form:
       allocate: 'Allocate'
       save: 'Save'
@@ -473,7 +479,7 @@ en:
 
   upgrade:
     upgrade:
-      nodes_not_ready: | 
+      nodes_not_ready: |
         Some nodes are not ready: %{nodes}.
         Fix the state of nodes before proceeding with the upgrade.
 

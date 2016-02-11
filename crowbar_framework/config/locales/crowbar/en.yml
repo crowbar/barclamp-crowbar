@@ -566,8 +566,8 @@ en:
         repos: 'Verify Repositories'
         services: 'Stop OpenStack Services'
         backup: 'Data Backup'
-        nodes: 'Upgrading Nodes'
-        finish: 'Upgrade Finished'
+        nodes: 'Upgrading Nodes OS'
+        finish: 'Finishing Upgrade'
       prepare:
         cancel: 'Back to Selection'
         continue: 'Prepare Nodes for Upgrade of the Administration Server'

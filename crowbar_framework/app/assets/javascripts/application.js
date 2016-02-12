@@ -104,7 +104,7 @@ jQuery(document).ready(function($) {
   });
 
   setBlockUI('submit', $('[data-blockui]'));
-  setBlockUI('click', $('body[class="installer/upgrades"] [data-blockui]'));
+  setBlockUI('click', $('body[class="installer/upgrades"]').find('[data-blockui]'));
 
   $('[data-checkall]').live('change', function(event) {
     var checker = $(event.target).data('checkall');

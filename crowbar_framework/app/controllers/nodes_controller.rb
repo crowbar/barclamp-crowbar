@@ -338,25 +338,49 @@ class NodesController < ApplicationController
   end
 
   def update
-    unless request.post?
-      raise ActionController::UnknownHttpMethod.new("POST is required to update proposal #{params[:id]}")
-    end
+    respond_to do |format|
+      format.json do
+        unless request.post?
+          render json:  { error: t('nodes.form.post_error', id: params[:id]) }, status: 404 and return
+        end
 
-    get_node_and_network(params[:id] || params[:name])
-    raise ActionController::RoutingError.new("Node #{params[:id] || params[:name]} not found.") if @node.nil?
+        get_node_and_network(params[:id] || params[:name])
+        render json: { error: t("nodes.form.node_not_found", parameter: (params[:id] || params[:name])) } if @node.nil?
 
-    if params[:submit] == t('nodes.form.allocate')
-      if save_node
-        @node.allocate!
-        flash[:notice] = t('nodes.form.allocate_node_success')
+        if params[:submit] == t('nodes.form.allocate')
+          if save_node
+            @node.allocate!
+            render json: { notice: t('nodes.form.allocate_node_success') }
+          end
+        elsif params[:submit] == t('nodes.form.save')
+          render json: { notice: t('nodes.form.save_node_success') } if save_node
+        else
+          render json: { warn: t("nodes.form.unknown_action") }
+        end
       end
-    elsif params[:submit] == t('nodes.form.save')
-      flash[:notice] = t('nodes.form.save_node_success') if save_node
-    else
-      Rails.logger.warn "Unknown action for node edit: #{params[:submit]}"
-      flash[:notice] = "Unknown action: #{params[:submit]}"
+
+      format.html do 
+        unless request.post?
+          raise ActionController::UnknownHttpMethod.new(t('nodes.form.post_error', id: params[:id]))
+        end
+
+        get_node_and_network(params[:id] || params[:name])
+        raise ActionController::RoutingError.new( t("nodes.form.node_not_found", parameter: (params[:id] || params[:name]))) if @node.nil?
+
+        if params[:submit] == t('nodes.form.allocate')
+          if save_node
+            @node.allocate!
+            flash[:notice] = t('nodes.form.allocate_node_success')
+          end
+        elsif params[:submit] == t('nodes.form.save')
+          flash[:notice] = t('nodes.form.save_node_success') if save_node
+        else
+          Rails.logger.warn t("nodes.form.unknown_action", submit: params[:submit])
+          flash[:notice] = t("nodes.form.unknown_action", submit: params[:submit])
+        end
+        redirect_to node_path(@node.handle)
+      end
     end
-    redirect_to node_path(@node.handle)
   end
 
   #this code allow us to get values of attributes by path of node

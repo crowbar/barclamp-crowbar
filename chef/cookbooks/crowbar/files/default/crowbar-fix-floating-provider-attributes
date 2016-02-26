@@ -1,0 +1,54 @@
+#!/usr/bin/python
+import sqlalchemy
+import sys
+from oslo_config import cfg
+
+_cli_opts = [
+    cfg.StrOpt('network',
+               required=True,
+               help='name of the network to update'),
+    cfg.StrOpt('type',
+               required=True,
+               help='new network type'),
+    cfg.StrOpt('segmentation_id',
+               required=True,
+               help='new segmentation_id'),
+    cfg.StrOpt('physnet',
+               required=True,
+               help='new physnet'),
+]
+
+_db_opts = [
+    cfg.StrOpt('connection',
+               deprecated_name='sql_connection',
+               default='',
+               secret=True,
+               help='URL to database'),
+]
+
+CONF = cfg.ConfigOpts()
+CONF.register_cli_opts(_db_opts, 'database')
+CONF.register_cli_opts(_cli_opts)
+CONF(project='neutron')
+
+db_uri = CONF.database.connection
+
+network = CONF.network
+network_type = CONF.type
+segmentation_id = CONF.segmentation_id
+physnet = CONF.physnet
+
+db = sqlalchemy.create_engine(db_uri)
+try:
+    connection = db.connect()
+except sqlalchemy.exc.SQLAlchemyError as e:
+    print >>sys.stderr, 'Cannot connect to database: %s' % e
+    sys.exit(1)
+
+ret = connection.execute(
+    "UPDATE ml2_network_segments SET "
+    "network_type=%s, segmentation_id=%s, physical_network=%s "
+    "FROM networks WHERE networks.name=%s AND "
+    "ml2_network_segments.network_id=networks.id;",
+    [network_type, segmentation_id, physnet, network])
+sys.exit(0)

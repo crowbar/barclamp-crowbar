@@ -100,7 +100,7 @@ module Crowbar
           if source =~ /resolv.conf/
             data_dir.join(destination).open("w") do |file|
               forwarders.each do |forwarder|
-                file.write("nameserver #{forwarder}")
+                file.write("nameserver #{forwarder}\n")
               end
             end
           else

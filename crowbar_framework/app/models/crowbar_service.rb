@@ -195,9 +195,15 @@ class CrowbarService < ServiceObject
     # To all nodes, add a new role which prepares them for the upgrade
     nodes_to_upgrade = []
     not_ready_for_upgrade = []
+    admin_with_dns_server_role = false
     all_nodes = NodeObject.all
     all_nodes.each do |n|
       not_ready_for_upgrade.push n.name if !n.admin? && !%w(ready crowbar_upgrade).include?(n.state)
+      admin_with_dns_server_role = true if n.admin? && n.role?("dns-server")
+    end
+
+    unless admin_with_dns_server_role
+      raise I18n.t("upgrade.upgrade.admin_missing_dns_server")
     end
 
     unless not_ready_for_upgrade.empty?

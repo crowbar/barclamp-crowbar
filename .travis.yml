@@ -23,7 +23,7 @@ gemfile: crowbar_framework/Gemfile
 install:
   - cd crowbar_framework
   - bin/bundle install
-  - bin/rake rake db:create db:migrate
+  - bin/rake db:create db:migrate
 
 script:
   - bin/rake spec

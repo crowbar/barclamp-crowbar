@@ -476,6 +476,10 @@ en:
       nodes_not_ready: | 
         Some nodes are not ready: %{nodes}.
         Fix the state of nodes before proceeding with the upgrade.
+      admin_missing_dns_server: |
+        The Administration Server does not have the dns-server role while this is mandatory for
+        the upgrade process. Reapply the DNS proposal with this change before proceeding with
+        the upgrade.
 
   support:
     index:

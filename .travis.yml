@@ -22,9 +22,9 @@ gemfile: crowbar_framework/Gemfile
 
 install:
   - cd crowbar_framework
-  - bundle install
-  - bundle exec rake db:create db:migrate
+  - bin/bundle install
+  - bin/rake --trace db:create db:migrate 
 
 script:
-  - bundle exec rake spec
-  - bundle exec rake brakeman:run
+  - bin/rake spec
+  - bin/rake brakeman:run

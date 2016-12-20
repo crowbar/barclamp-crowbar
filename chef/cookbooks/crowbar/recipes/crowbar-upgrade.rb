@@ -63,6 +63,22 @@ when "crowbar_upgrade"
     action [:disable, :stop]
   end
 
+  if node["run_list_map"]["neutron-server"]
+    cookbook_file "crowbar-fix-floating-provider-attributes" do
+      source "crowbar-fix-floating-provider-attributes"
+      path "/usr/bin/crowbar-fix-floating-provider-attributes"
+      mode "0755"
+    end
+    execute "fix floating network provider attributes" do
+      command "/usr/bin/crowbar-fix-floating-provider-attributes " \
+        "--physnet floating --segmentation_id 0 --type flat " \
+        "--network floating"
+      action :run
+    end
+    file "/usr/bin/crowbar-fix-floating-provider-attributes" do
+      action :delete
+    end
+  end
 when "revert_to_ready"
 
   service "crowbar_join" do

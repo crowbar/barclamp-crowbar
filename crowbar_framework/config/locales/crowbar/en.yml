@@ -470,6 +470,9 @@ en:
         raid6: 'RAID 6'
         raid10: 'RAID 10'
       raid_disks_selected: 'Failed to save %{node}: Not enough disks selected for this RAID level'
+      post_error: 'POST is required to update proposal #{id}'
+      nodes_not_found: 'Node #{parameter} not found.'
+      unknown_action: 'Unknown action: #{submit}'
 
   upgrade:
     upgrade:

@@ -434,6 +434,7 @@ en:
       powercycle: 'Power Cycle'
       poweroff: 'Power Off'
       identify: 'Identify'
+      blockui_message: 'Rebooting node...'
     form:
       allocate: 'Allocate'
       save: 'Save'

@@ -1326,6 +1326,29 @@ class ServiceObject
     # XXX: This should not be done this way.  Something else should request this.
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if !ran_admin
 
+    # delete #{role_name}_remove role from runlist as it is not needed anymore
+    pending_node_actions.each do |node_name, lists|
+      node = pre_cached_nodes[node_name]
+      node = NodeObject.find_node_by_name(node_name) if node.nil?
+      next if node.nil?
+
+      save_it = false
+
+      # #{role_name}_remove role has been added before and now needs to be removed
+      rlist = lists[:add].select {|suffixed| suffixed =~ /_remove$/}
+
+      # Remove the roles being lost
+      rlist.each do |item|
+        next unless node.role? item
+        @logger.debug("AR: Removing temporary role #{item} from #{node.name}")
+        node.delete_from_run_list item
+        save_it = true
+      end
+
+      @logger.debug("AR: Saving node #{node.name}") if save_it
+      node.save if save_it
+    end
+
     begin
       apply_role_post_chef_call(old_role, role, all_nodes)
     rescue StandardError => e

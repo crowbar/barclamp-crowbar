@@ -252,6 +252,7 @@ class ProposalObject < ChefObject
     end
     Rails.logger.debug("Saving data bag item: #{@item["id"]} - #{@item["deployment"][barclamp]["crowbar-revision"]}")
     if CHEF_ONLINE
+      self.class.chef_init
       @item.save
     else
       ProposalObject.offline_cache(@item, ProposalObject.nfile('data_bag_item_crowbar', @item.id))

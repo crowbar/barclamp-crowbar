@@ -1,0 +1,556 @@
+#!/usr/bin/env ruby
+#
+# Copyright 2011-2013, Dell
+# Copyright 2013-2014, SUSE LINUX Products GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# TODO:
+#   - batch build:
+#     - support merging from template data bag rather than
+#       from current proposal
+#     - support interpolation of external parameters; example use cases:
+#       - SBD vdisk device names
+#       - SSL yes or no
+#       - different neutron backend
+
+$LOAD_PATH.unshift(File.expand_path("../../crowbar_framework/lib", __FILE__))
+
+require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
+
+require "rubygems"
+require "net/http"
+require "net/http/digest_auth"
+require "uri"
+require "json"
+require "yaml"
+require "getoptlong"
+require "utils/extended_hash"
+require "open3"
+require "tempfile"
+
+require "easy_diff"
+require "chef/mixin/deep_merge"
+require "pp"
+
+ALIAS_REGEXP = /"(@@[^ @]+@@)"/
+ALIAS_TEMPLATE = '@@%s@@'
+
+INDENT = '   '
+
+@barclamp = "batch"
+
+@options.delete_if { |x| %w(--data --file).include? x[0][0] }
+@options += [
+  [
+    [ "--include", "-i", GetoptLong::OPTIONAL_ARGUMENT ],
+    "-i, --include <barclamp[.proposal]> - Only process the given proposal(s)",
+    lambda { |opt, arg|
+      if arg.include?('.')
+        bc = arg.split('.')[0]
+        (@include_barclamps ||= {})[bc ] = true
+        (@include_proposals ||= {})[arg] = true
+      else
+        (@include_barclamps ||= {})[arg] = true
+      end
+    }
+  ],
+  [
+    [ "--exclude", "-e", GetoptLong::OPTIONAL_ARGUMENT ],
+    "-e, --exclude <barclamp[.proposal]> - Only process the given proposal(s)",
+    lambda { |opt, arg|
+      if arg.include?('.')
+        (@exclude_proposals ||= {})[arg] = true
+      else
+        (@exclude_barclamps ||= {})[arg] = true
+      end
+    }
+  ]
+]
+
+@commands = {
+  "help" => [ "help", "help - This page for further help" ],
+  "build" => [ "build ARGV.shift", "build <YAML spec> - Create/edit/commit proposals defined via YAML" ],
+  "export" => [ "export ARGV", "export <barclamp> [<barclamp> ...] - export barclamps as YAML" ],
+}
+
+def build(input_file)
+  usage(-1) if input_file.nil? or input_file == ""
+
+  host_by_alias = get_aliases[0]
+
+  input_data = File.open(input_file).readlines.join('')
+
+  # Translate @@alias@@ to Chef node name
+  host_by_alias.each do |aliaz, hostname|
+    input_data.gsub!(ALIAS_TEMPLATE % aliaz, hostname)
+  end
+
+  data = YAML.load(input_data)
+
+  global_options = data["global_options"] || {}
+
+  proposals = data["proposals"]
+  if ! proposals || proposals.empty?
+    warn "#{input_file} didn't contain any proposals"
+    exit(-1)
+  end
+
+  begin
+    proposals.each do |proposal|
+      build_proposal(proposal)
+    end
+  rescue Timeout::Error
+    abort "Timed out at #{Time.now};\n" +
+      "perhaps you need a --timeout value higher than #{@timeout} seconds?"
+  end
+end
+
+def with_barclamp(barclamp)
+  # Evil cheat for using API calls on other "barclamps",
+  # which allows us to reuse the deficient code in barclamp_lib.
+  # All this code should be using proper classes :-/
+  old_barclamp = @barclamp
+  @barclamp = barclamp
+  ret = yield
+  @barclamp = old_barclamp
+  ret
+end
+
+# Perform an API call to get mappings between Chef node names
+# and Crowbar aliases.  This will be used to substitute strings
+# like '@@controller2@@' within the YAML input file.
+def get_aliases
+  body, status = with_barclamp('machines') do
+    get_json("/")
+  end
+
+  abort "Couldn't get aliases" unless status == 200
+
+  host_by_alias = {}
+  alias_by_host = {}
+
+  return host_by_alias, alias_by_host unless body
+
+  body["nodes"].each do |node|
+    fqdn  = node["name"]
+    aliaz = node["alias"]
+    nodename = fqdn.split('.').first
+    if aliaz != nodename
+      host_by_alias[aliaz] = fqdn
+      alias_by_host[fqdn] = aliaz
+    end
+  end
+
+  return host_by_alias, alias_by_host
+end
+
+def proposal_puts(msg)
+  puts INDENT + msg
+end
+
+def proposal_debug(msg)
+  debug INDENT + msg
+end
+
+def build_proposal(proposal)
+  barclamp = proposal["barclamp"]
+  name     = proposal["name"] || 'default'
+  fullname = "%s.%s" % [ barclamp, name ]
+
+  return if @include_barclamps && ! @include_barclamps[barclamp]
+  return if @exclude_barclamps &&   @exclude_barclamps[barclamp]
+  return if @include_proposals && ! @include_proposals[fullname]
+  return if @exclude_proposals &&   @exclude_proposals[fullname]
+
+  time = Time.now.strftime '%T'
+  puts "[#{time}] #{barclamp} barclamp, '#{name}' proposal:"
+
+  ensure_proposal_exists(barclamp, name)
+
+  needs_commit = modify_proposal(barclamp, name, proposal)
+  commit_proposal(barclamp, name) if needs_commit
+end
+
+def ensure_proposal_exists(barclamp, name)
+  out, err = with_barclamp(barclamp) { proposal_list }
+  abort out if err > 0
+  if ! out.split("\n").find { |line| line.start_with? name }
+    create_proposal(barclamp, name)
+  else
+    proposal_puts "Already exists"
+  end
+end
+
+def create_proposal(barclamp, name)
+  out, err = with_barclamp(barclamp) { proposal_create(name) }
+  abort out if err > 0
+  proposal_puts "Created"
+end
+
+def get_proposal_list(barclamp)
+  out, code = with_barclamp(barclamp) { get_json("/proposals/") }
+
+  if code != 200
+    abort "Failed to talk to service proposal list: #{code}: #{out}"
+  end
+
+  return out
+end
+
+def get_proposal_json(barclamp, name)
+  out, code = with_barclamp(barclamp) { get_json("/proposals/#{name}") }
+
+  if code == 404
+    abort "No #{barclamp} proposal called '#{name}'"
+  elsif code != 200
+    abort "Failed to talk to service proposal show: #{code}: #{out}"
+  end
+
+  return out
+end
+
+# Returns true if the proposal needs applying
+def modify_proposal(barclamp, name, proposal)
+  old_json = get_proposal_json(barclamp, name)
+  new_json = old_json.easy_clone
+
+  if proposal.has_key? 'deployment'
+    # For now, if the YAML specifies any assignment of roles to
+    # elements, we require it to explicitly assign *all* roles.  Maybe
+    # later we can allow harnessing of the intended role feature.
+    # Note that we cannot delete the whole 'elements' Hash since some
+    # validation code relies on roles being present even if they don't
+    # have any nodes assigned.
+    elements = new_json["deployment"][barclamp]["elements"]
+    elements.keys.each do |role|
+      elements[role] = []
+    end
+  else
+    # YAML doesn't specify deployment elements, so leave them as they
+    # are currently.  This is useful for modifying core barclamps,
+    # e.g. provisioner.
+    proposal_puts "Keeping existing role assignments"
+  end
+
+  wipe_attributes(new_json, barclamp, proposal)
+
+  merge_attributes(new_json, barclamp, proposal)
+
+  removed, added = old_json.easy_diff new_json
+
+  if removed.empty? && added.empty?
+    proposal_puts "No change required"
+    applied = old_json["deployment"][barclamp]["crowbar-applied"]
+    if applied
+      proposal_puts "Already applied; skipping commit"
+      return false
+    else
+      proposal_puts "Not yet applied; needs commit"
+      proposal_debug JSON.pretty_generate(new_json)
+      return true
+    end
+  end
+
+  proposal_debug "Removals:  #{removed.inspect}"
+  proposal_debug "Additions: #{added.inspect}"
+
+  new_json["id"] = name
+
+  out, err = with_barclamp(barclamp) {
+    # Evil way of reusing barclamp_lib.rb code non-intrusively
+    @data = JSON.pretty_generate(new_json)
+    begin
+      proposal_edit(name)
+    ensure
+      # make sure proposal data doesn't persist and screw up the next
+      # proposal operation.
+      @data = nil
+    end
+  }
+  err_to_browser(out) if err > 0
+  proposal_puts "Edited; needs commit"
+  proposal_debug JSON.pretty_generate(new_json)
+  return true
+end
+
+def wipe_attributes(new_json, barclamp, proposal)
+  to_wipe = proposal["wipe_attributes"]
+  return unless to_wipe
+
+  to_wipe.each do |attribute|
+    wipe_attribute(new_json, barclamp, attribute)
+  end
+end
+
+def wipe_attribute(new_json, barclamp, attribute)
+  protect = '@PROTECT_QUOTED_DOTS@'
+  # Ruby 1.8.7 doesn't support /(?<!\\)\./
+  segments = attribute.
+    gsub('\.', protect).
+    split('.').
+    map { |x| x.gsub(protect, '.') }
+  to_delete = segments.pop
+  ptr = new_json["attributes"][barclamp]
+  for segment in segments
+    ptr = ptr[segment]
+    if ptr.nil?
+      # "parent" segment didn't exist, so nothing to wipe
+      return
+    end
+  end
+  ptr.delete(to_delete)
+end
+
+def merge_attributes(new_json, barclamp, proposal)
+  to_merge = {
+    "attributes" => {
+      barclamp => proposal["attributes"]
+    },
+    "deployment" => {
+      barclamp => proposal["deployment"]
+    },
+  }
+
+  # easy_merge! seems to have problems with Arrays of Hashes :-/
+  #new_json.easy_merge! to_merge
+
+  #new_json.extend Chef::Mixin::DeepMerge
+  Chef::Mixin::DeepMerge.deep_merge!(to_merge, new_json)
+end
+
+def commit_proposal(barclamp, name)
+  proposal_puts "Committing; please wait ..."
+
+  out, code = with_barclamp(barclamp) {
+    post_json("/proposals/commit/#{name}", @data)
+  }
+
+  if code == 200
+    proposal_puts "Committed #{name}"
+  elsif code == 202
+    proposal_puts "Queued #{name} waiting for: #{out}"
+  elsif code == 402
+    proposal_puts "#{name} already being applied"
+  else
+    abort "Failed to talk to service proposal show: #{code}: #{out}"
+  end
+
+  wait_for_proposal(barclamp, name)
+end
+
+def proposal_state(bc)
+  # Currently BarclampController#proposal_status is a UI-only method :-/
+  #out, code = with_barclamp(barclamp) { get_json("/proposals/status/#{name}") }
+
+  # paraphrased from questionable code in ProposalObject#status
+  return "unready" if bc["crowbar-committing"]
+  return "pending" if bc["crowbar-queued"]
+  return "hold" if !bc.has_key? "crowbar-queued" and !bc.has_key? "crowbar-committing"
+  return "ready" if !bc.key? "crowbar-status" or bc["crowbar-status"] === "success"
+  return "failed"
+end
+
+def wait_for_proposal(barclamp, name)
+  proposal_puts "Waiting for proposal to finish applying ..."
+  last_state = nil
+  loop do
+    json = get_proposal_json(barclamp, name)
+    state = proposal_state(json["deployment"][barclamp])
+    if state != last_state
+      puts unless last_state.nil?
+      print INDENT + "State now #{state} "
+      $stdout.flush
+      last_state = state
+    end
+
+    case state
+    when 'ready'
+      break
+    when 'failed'
+      puts
+      abort "Failed to apply #{barclamp} proposal '#{name}':\n" +
+        JSON.pretty_generate(json)
+    end
+
+    # Still waiting ...
+    print "."
+    $stdout.flush
+    sleep 10
+  end
+
+  puts
+end
+
+def err_to_browser(html)
+  tmp = Tempfile.new([ 'crowbar_autobuild-err-', '.html' ])
+  # Ruby 1.8.7 sucks!  Avoid automatic cleanup of temporary file.
+  tmp_path = tmp.path
+  tmp.close!
+  File.new(tmp_path, 'w').write(html)
+
+  Open3.popen3('w3m -T text/html') do |stdin, stdout, stderr|
+    stdin.write(html)
+    stdin.close
+    while line = stdout.gets
+      break if line =~ /^RAILS_ROOT: /
+      proposal_puts line
+    end
+    while line = stderr.gets
+      proposal_puts line
+    end
+  end
+
+  abort "Full output of error is in #{tmp_path}"
+end
+
+def export(barclamps)
+  load_chef_module
+
+  alias_by_host = get_aliases[1]
+
+  if barclamps.empty?
+    out, code = with_barclamp('modules') { get_json('') }
+    if code != 200
+      abort "Failed to receive list of barclamps: #{code}: #{out}"
+    end
+    barclamps = out.sort_by { |x| x[1]['order'] }.map { |x| x[0] }
+  end
+
+  puts '---'
+  puts 'proposals:'
+
+  barclamps.each do |barclamp|
+    next if @include_barclamps && ! @include_barclamps[barclamp]
+    next if @exclude_barclamps &&   @exclude_barclamps[barclamp]
+    export_barclamp(barclamp, alias_by_host)
+  end
+end
+
+def load_chef_module
+  require "chef"
+
+  Chef::Config.node_name "crowbar"
+  Chef::Config.client_key "/opt/dell/crowbar_framework/config/client.pem"
+  Chef::Config.chef_server_url "http://localhost:4000"
+  Chef::Config.http_retry_count 3
+end
+
+def export_barclamp(barclamp, alias_by_host)
+  begin
+    data_bag = Chef::DataBag.load("crowbar/bc-template-#{barclamp}")
+  rescue Net::HTTPServerException => e
+    if e.response.is_a? Net::HTTPNotFound
+      abort "No template found for barclamp '#{barclamp}'; is it a valid barclamp?"
+    else
+      raise
+    end
+  end
+
+  proposals = get_proposal_list(barclamp)
+  if proposals.empty?
+    puts "# WARNING: no proposals exist for #{barclamp} barclamp"
+    return
+  end
+
+  proposals.each do |proposal|
+    fullname = "%s.%s" % [ barclamp, proposal ]
+    next if @include_proposals && ! @include_proposals[fullname]
+    next if @exclude_proposals &&   @exclude_proposals[fullname]
+
+    export_proposal(barclamp, data_bag.to_hash, proposal, alias_by_host)
+  end
+end
+
+# Turn a nested data structure like
+#
+#   {
+#     'a' => {
+#       'b' => { 'c' => 'd' },
+#       'e' => 'f',
+#     },
+#     'g' => {
+#       'h' => { 'i' => 'j' },
+#     },
+#     'k' => 'l'
+#   }
+#
+# into a (semi-randomly ordered) list of key chains:
+#
+#   [ 'a.b.c', 'a.e', 'g.h.i', 'k' ]
+def squash(hash)
+  hash.map do |k,v|
+    case v
+    when Hash
+      squash(v).map { |i| k + '.' + i }
+    else
+      k
+    end
+  end.flatten
+end
+
+def export_proposal(barclamp, template, proposal, alias_by_host)
+  json = get_proposal_json(barclamp, proposal)
+
+  puts "- barclamp: #{barclamp}"
+  puts "  name: #{proposal}" unless proposal == 'default'
+
+  removed_attrs, added_attrs = \
+    template['attributes'][barclamp].easy_diff json['attributes'][barclamp]
+
+  to_wipe = squash(removed_attrs) - squash(added_attrs)
+  unless to_wipe.empty?
+    puts '  wipe_attributes:'
+    puts batch_to_yaml(to_wipe).gsub(/^/, '    ')
+  end
+
+  if added_attrs.empty?
+    puts '  attributes:'
+  else
+    attrs = { 'attributes' => added_attrs }
+    puts batch_to_yaml(attrs).gsub(/^/, '  ')
+  end
+
+  elements = json['deployment'][barclamp]['elements']
+  elements.each do |role, nodes|
+    nodes.each_with_index do |node, i|
+      if alias_by_host.include? node
+        nodes[i] = ALIAS_TEMPLATE % alias_by_host[node]
+      end
+    end
+  end
+
+  deployment = {
+    'deployment' => {
+      'elements' => elements
+    }
+  }
+  puts batch_to_yaml(deployment).gsub(/^/, '  ')
+end
+
+def batch_to_yaml(data)
+  data.to_yaml.sub('---', '').strip.
+    gsub(ALIAS_REGEXP, '\1')
+end
+
+def print_yaml(data)
+  puts(batch_to_yaml(data))
+end
+
+def main
+  opt_parse
+  run_command
+end
+
+main
